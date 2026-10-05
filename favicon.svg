@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#1d2d50"/>
+      <stop offset="1" stop-color="#070b18"/>
+    </linearGradient>
+    <linearGradient id="head" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#eef1f6"/>
+      <stop offset="1" stop-color="#98a2b3"/>
+    </linearGradient>
+    <radialGradient id="eye">
+      <stop offset="0" stop-color="#fff6c8"/>
+      <stop offset="0.6" stop-color="#ffd84a"/>
+      <stop offset="1" stop-color="#e09a10"/>
+    </radialGradient>
+  </defs>
+  <!-- background tile -->
+  <rect width="64" height="64" rx="14" fill="url(#bg)"/>
+  <!-- antenna -->
+  <line x1="32" y1="8" x2="32" y2="15" stroke="#98a2b3" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="32" cy="7" r="4" fill="#ff4a3a"/>
+  <!-- ears -->
+  <rect x="5" y="28" width="7" height="14" rx="2.5" fill="#7d8796"/>
+  <rect x="52" y="28" width="7" height="14" rx="2.5" fill="#7d8796"/>
+  <!-- head -->
+  <rect x="10" y="14" width="44" height="42" rx="11" fill="url(#head)"/>
+  <!-- bandit mask with its knot tails -->
+  <path d="M53 27 L62 22 L60 29 L63 33 L53 32 Z" fill="#14161c"/>
+  <path d="M8 26 Q32 19 56 26 L56 37 Q32 31 8 37 Z" fill="#14161c"/>
+  <!-- glowing eyes -->
+  <circle cx="22" cy="30" r="5" fill="url(#eye)"/>
+  <circle cx="42" cy="30" r="5" fill="url(#eye)"/>
+  <!-- mouth grille -->
+  <rect x="20" y="43" width="24" height="8" rx="2.5" fill="#2a2f3a"/>
+  <path d="M26 43v8M32 43v8M38 43v8" stroke="#98a2b3" stroke-width="1.6"/>
+</svg>

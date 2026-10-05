@@ -3,7 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>Star Wars X-Wing Starfighter Run</title>
+<title>RoboBandit — Starfighter Run</title>
+<meta name="description" content="Fly four Star Wars–inspired missions — the Death Star, Endor, Hoth and a Tatooine podrace. Answer real science and math questions to launch! Free in your browser, made for ages 7–11.">
+<meta name="theme-color" content="#070b18">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+<!-- Social sharing previews (Facebook, iMessage, Slack, Discord, X…).
+     Most sites need a full web address for the image: replace "og-image.png" with e.g.
+     https://your-site.com/og-image.png once the game is online. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:title" content="RoboBandit — Starfighter Run">
+<meta property="og:description" content="Fly four space missions — the Death Star, Endor, Hoth and a Tatooine podrace. Answer science and math questions to launch!">
+<meta property="og:image" content="og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="RoboBandit: an X-wing flying down the Death Star trench">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RoboBandit — Starfighter Run">
+<meta name="twitter:description" content="Fly four space missions and answer science questions to launch. Free in your browser!">
+<meta name="twitter:image" content="og-image.png">
 <style>
   html, body {
     margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff;
@@ -27,6 +48,8 @@
     color: #ffd84a; text-shadow: 0 0 18px rgba(255,200,40,.6);
   }
   .panel h1 small { display: block; font-size: .55em; letter-spacing: 8px; color: #fff3b0; }
+  .panel h1 .logo { display: block; width: 72px; height: 72px; margin: 0 auto 8px; }
+  .share-link { display: inline-block; margin-top: 10px; color: #7fd0ff; font-weight: 700; }
   .panel p { margin: 8px 0; line-height: 1.5; color: #cfd8ea; }
   .panel .keys { font-size: 14px; color: #9fb0cc; }
   .panel .big { font-size: 20px; color: #fff; }
@@ -116,6 +139,7 @@
   <button id="btnPause" title="Pause (P)">❚❚</button>
   <button id="btnMute" title="Sound on/off (M)">🔊</button>
   <button id="btnFs" title="Fullscreen (F)">⛶</button>
+  <button id="btnShare" title="Share RoboBandit">🔗</button>
 </div>
 
 <div id="fireButtons" class="hidden">
@@ -135,7 +159,7 @@
 'use strict';
 
 // ---------- Constants ----------
-const TW = 3;          // channel half-width
+let TW = 3;            // channel half-width (set per world: Hoth and Tatooine are wider)
 const TH = 5;          // channel depth (floor y=0, rim y=TH)
 const VIEW = 230;      // draw distance
 const SEG = 4;         // wall segment length
@@ -144,7 +168,7 @@ const CAM_BACK = 5.5;  // camera distance behind ship
 let SHIP_HW = 0.55, SHIP_HH = 0.28;   // vehicle hitbox half-size (set per world)
 let FOG = [4, 6, 16];                 // distance haze colour (set per world)
 const TOWER_HP = 3;    // 3 laser hits or 1 special weapon (torpedo / detonator / harpoon)
-const TITLE_HTML = '<small>STAR WARS</small>X-WING STARFIGHTER RUN';
+const TITLE_HTML = '<img class="logo" src="favicon.svg" alt="">ROBOBANDIT<small>STARFIGHTER RUN</small>';
 
 // Aim assist: radius = how far from your flight line an enemy can be and still get locked;
 // turn = max sideways speed a shot can steer at (units/s).
@@ -172,7 +196,7 @@ const GRADES = {
 // pool: obstacle types unlocked at difficulty tier 1, 2, 3 (tier goes up each time the cycle repeats).
 const WORLDS = [
   {
-    key: 'deathstar', name: 'THE DEATH STAR', vehicle: 'xwing', vehicleName: 'X-wing', hit: [0.55, 0.28],
+    key: 'deathstar', name: 'THE DEATH STAR', short: 'DEATH STAR', icon: '🚀', vehicle: 'xwing', vehicleName: 'X-wing', hit: [0.55, 0.28],
     fog: [4, 6, 16], floor: [76, 80, 92], wallL: [112, 117, 130], wallR: [86, 90, 104], lights: true, clipEnd: true,
     obstacleRGB: [[118, 124, 136], [128, 116, 108], [104, 116, 130]],
     pool: [['low', 'high', 'left', 'right', 'center'], ['window', 'diag', 'window'], ['cross', 'window']],
@@ -187,7 +211,7 @@ const WORLDS = [
     intro: 'Skim the Death Star\'s surface in an X-wing, dodge the bulkheads, blast the turbolaser towers as they pop up — and put a proton torpedo into the thermal exhaust port.',
   },
   {
-    key: 'endor', name: 'THE FOREST MOON OF ENDOR', vehicle: 'bike', vehicleName: 'speeder bike', hit: [0.4, 0.3],
+    key: 'endor', name: 'THE FOREST MOON OF ENDOR', short: 'ENDOR', icon: '🌲', vehicle: 'bike', vehicleName: 'speeder bike', hit: [0.4, 0.3],
     fog: [34, 50, 38], floor: [58, 76, 42], path: [100, 84, 58], clipEnd: false,
     obstacleRGB: [[92, 64, 42], [82, 58, 40], [100, 70, 46]],
     pool: [['trunk', 'log', 'branch', 'twin'], ['twin', 'trunkLog', 'trunk'], ['twin', 'branchLow']],
@@ -202,8 +226,8 @@ const WORLDS = [
     intro: 'Race a speeder bike through the giant trees of Endor, dodge logs and branches, blast the Imperial scout troopers — and knock out the shield generator bunker with a thermal detonator.',
   },
   {
-    key: 'hoth', name: 'THE ICE PLANET HOTH', vehicle: 'snowspeeder', vehicleName: 'snowspeeder', hit: [0.6, 0.22],
-    fog: [206, 220, 232], floor: [228, 234, 242], wallL: [205, 218, 232], wallR: [172, 190, 210], lights: false, clipEnd: false,
+    key: 'hoth', name: 'THE ICE PLANET HOTH', short: 'HOTH', icon: '❄️', vehicle: 'snowspeeder', vehicleName: 'snowspeeder', hit: [0.5, 0.22], tw: 4.5,
+    fog: [206, 220, 232], floor: [228, 234, 242], wallL: [205, 218, 232], wallR: [172, 190, 210], lineRGB: [160, 180, 204], lights: false, clipEnd: false, bright: true,
     obstacleRGB: [[196, 218, 236], [182, 206, 228], [210, 226, 240]],
     pool: [['ridge', 'icicle', 'spire', 'legs'], ['arch', 'legs', 'iceL', 'iceR'], ['arch', 'legs']],
     enemy: 'probe', guns: [[0.6, 0], [-0.6, 0]],
@@ -216,10 +240,28 @@ const WORLDS = [
     winTitle: 'THE AT-AT IS DOWN!', winText: 'your tow cable tripped the AT-AT walker!',
     intro: 'Fly a snowspeeder through the ice canyons of Hoth, dodge ice and walker legs, blast the probe droids — and trip the giant AT-AT with your harpoon and tow cable.',
   },
+  {
+    key: 'tatooine', name: 'TATOOINE — THE BOONTA EVE PODRACE', short: 'TATOOINE', icon: '🏜️', vehicle: 'podracer', vehicleName: 'podracer', hit: [0.55, 0.25], tw: 4.2,
+    fog: [228, 200, 158], floor: [222, 184, 128], wallL: [204, 142, 92], wallR: [172, 114, 72], lineRGB: [176, 128, 84], lights: false, clipEnd: false, bright: true,
+    race: true, noGuns: true,
+    obstacleRGB: [[186, 128, 82], [170, 116, 74], [196, 146, 98]],
+    pool: [['dune', 'ledge', 'boulder', 'rockL', 'rockR'], ['rockArch', 'diag', 'boulder'], ['rockArch', 'cross']],
+    enemy: null, guns: [],
+    laserName: 'NO GUNS', secName: 'BOOSTS', secOne: 'BOOST', secBtn: 'BOOST', secVerb: 'BOOST',
+    targetName: 'FINISH LINE', targetShort: 'FINISH LINE',
+    approachMsg: 'FINAL STRETCH — BOOST TO THE FINISH LINE!',
+    winTitle: 'NOW THIS IS PODRACING!', winText: 'you won the Boonta Eve Classic!', winMsg: 'FIRST PLACE!',
+    intro: 'Race a podracer through the desert canyons of Tatooine like young Anakin Skywalker — dodge the rocks, use your boosts, and beat 7 rival racers to the finish line.',
+  },
 ];
 let world = WORLDS[0];
-const worldFor = n => WORLDS[(n - 1) % WORLDS.length];
-const tierFor = n => 1 + Math.floor((n - 1) / WORLDS.length);
+const TOTAL_LEVELS = WORLDS.length;
+// You pick the first world; the rest follow in a random order, each played once per game.
+let startWorld = +(localStorage.getItem('xw_start') || 0);
+if (!WORLDS[startWorld]) startWorld = 0;
+let worldOrder = [startWorld, ...WORLDS.map((_, i) => i).filter(i => i !== startWorld)];
+const worldFor = n => WORLDS[worldOrder[(n - 1) % TOTAL_LEVELS]];
+const tierFor = n => (n >= 3 ? 2 : 1);   // later missions unlock trickier obstacles
 
 // ---------- Canvas ----------
 const canvas = document.getElementById('game');
@@ -300,6 +342,7 @@ const sfx = (() => {
     right()  { [660, 880, 1320].forEach((f, i) => tone('sine', f, f, 0.18, 0.12, i * 0.08)); },
     wrong()  { tone('triangle', 300, 200, 0.3, 0.1); },
     win()    { [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, 0.35, 0.15, 0.4 + i * 0.13)); },
+    breath() { noise(0.9, 0.35, 900, 450); setTimeout(() => noise(1.1, 0.3, 600, 260), 1000); },
     lose()   { [392, 330, 262].forEach((f, i) => tone('triangle', f, f * 0.98, 0.4, 0.15, i * 0.18)); },
   };
 })();
@@ -316,7 +359,7 @@ let assist = localStorage.getItem('xw_assist');
 if (!ASSIST[assist]) assist = 'med';
 let time = 0;
 
-const player = { x: 0, y: 2, z: 0, vx: 0, vy: 0, bank: 0, shield: 100, inv: 0, fireCd: 0, torpCd: 0, gun: 0 };
+const player = { x: 0, y: 2, z: 0, vx: 0, vy: 0, bank: 0, shield: 100, inv: 0, fireCd: 0, torpCd: 0, gun: 0, boostT: 0 };
 const cam = { x: 0, y: 3, z: -CAM_BACK };
 const target = { x: 0, y: 2 };
 const input = { left: false, right: false, up: false, down: false, fire: false, torp: false, pointerFire: false, btnLaser: false, mouse: false };
@@ -324,7 +367,7 @@ const ammo = { laser: 0, torp: 0 };
 
 let levelSpeed = 30, speed = 30, endZ = 1e9;
 let port = { x: 0, y: 2, r: 1 };
-let obstacles = [], towers = [], pickups = [], shots = [], bolts = [], particles = [];
+let obstacles = [], towers = [], pickups = [], shots = [], bolts = [], particles = [], rivals = [];
 let lockTarget = null;
 let shake = 0, flash = 0, hitFlash = 0, stateTimer = 0;
 let msg = '', msgT = 0, finalWarned = false;
@@ -336,7 +379,9 @@ function setWorld(w) {
   world = w;
   FOG = w.fog;
   [SHIP_HW, SHIP_HH] = w.hit;
+  TW = w.tw || 3;
   btnLaser.innerHTML = w.laserName.replace(' ', '<br>');
+  btnLaser.style.display = w.noGuns ? 'none' : '';
   btnTorp.innerHTML = w.secBtn;
 }
 
@@ -347,18 +392,18 @@ function makeObstacle(type, z, n) {
   let rgb = pick(world.obstacleRGB);
   const tall = rs => rs.map(r => [r[0], r[1], r[2], r[3] >= TH ? TH + 14 : r[3]]);
   switch (type) {
-    case 'low': case 'ridge':     rects = [[-TW, TW, 0, rand(1.9, 2.5)]]; break;
-    case 'high': case 'icicle':   rects = [[-TW, TW, rand(2.4, 3.0), TH]]; break;
-    case 'left': case 'iceL':     rects = [[-TW, rand(0, 0.8), 0, TH]]; break;
-    case 'right': case 'iceR':    rects = [[rand(-0.8, 0), TW, 0, TH]]; break;
-    case 'center': case 'spire': { const w = rand(0.7, 1.0); rects = [[-w, w, 0, TH]]; break; }
+    case 'low': case 'ridge': case 'dune':     rects = [[-TW, TW, 0, rand(1.9, 2.5)]]; break;
+    case 'high': case 'icicle': case 'ledge':  rects = [[-TW, TW, rand(2.4, 3.0), TH]]; break;
+    case 'left': case 'iceL': case 'rockL':    rects = [[-TW, rand(0, 0.8), 0, TH]]; break;
+    case 'right': case 'iceR': case 'rockR':   rects = [[rand(-0.8, 0), TW, 0, TH]]; break;
+    case 'center': case 'spire': case 'boulder': { const w = rand(0.7, 1.0); rects = [[-w, w, 0, TH]]; break; }
     case 'diag':
       rects = Math.random() < 0.5
         ? [[-TW, 0, 0, 2.5], [0, TW, 2.5, TH]]
         : [[0, TW, 0, 2.5], [-TW, 0, 2.5, TH]];
       break;
     case 'cross':  rects = [[-TW, TW, 0, 1.6], [-0.6, 0.6, 1.6, TH]]; break;
-    case 'window': case 'arch': {
+    case 'window': case 'arch': case 'rockArch': {
       const hw = clamp(1.3 - n * 0.05, 0.95, 1.3), hh = clamp(1.05 - n * 0.04, 0.8, 1.05);
       const hx = rand(-TW + hw + 0.2, TW - hw - 0.2), hy = rand(hh + 0.3, TH - hh - 0.3);
       rects = [[-TW, hx - hw, 0, TH], [hx + hw, TW, 0, TH],
@@ -383,11 +428,12 @@ function makeObstacle(type, z, n) {
     }
     // Hoth: a pair of AT-AT legs with the walker's body overhead
     case 'legs': {
-      const c = rand(-0.5, 0.5);
-      rects = [[c - 1.6, c - 1.0, 0, TH], [c + 1.0, c + 1.6, 0, TH]];
+      // a 3-unit gap between the legs, plus room to fly around the outside
+      const c = rand(-0.6, 0.6);
+      rects = [[c - 2.1, c - 1.5, 0, TH], [c + 1.5, c + 2.1, 0, TH]];
       draw = rects.map(r => [r[0], r[1], 0, 6.2]);
       depth = 0.6; rgb = [112, 115, 124];
-      decor = { rects: [[c - 1.9, c + 1.9, 6.2, 8.4]], z0: z - 0.8, z1: z + 3.6, rgb: [120, 123, 132] };
+      decor = { rects: [[c - 2.4, c + 2.4, 6.2, 8.4]], z0: z - 0.8, z1: z + 3.6, rgb: [120, 123, 132] };
       break;
     }
   }
@@ -400,7 +446,7 @@ function makeEnemy(z) {
   const t = { kind: world.enemy, z, hp: TOWER_HP, pending: 0, rise: 0, alive: true, cd: rand(0.5, 2), flash: 0, hitFlash: 0, phase: rand(0, 6) };
   if (t.kind === 'tower') { t.side = pick(['L', 'R', 'F']); t.ax = rand(-2.2, 2.2); t.ay = rand(1, 4.2); }
   else if (t.kind === 'scout') { const s = pick([-1, 1]); t.fx = s * rand(1.2, 2.3); t.sx = s * 7; t.fy = rand(0.8, 2.2); }
-  else { t.fx = rand(-2.2, 2.2); t.fy = rand(1.4, 3.6); t.sy = -0.8; }
+  else { t.fx = rand(-TW + 0.8, TW - 0.8); t.fy = rand(1.4, 3.6); t.sy = -0.8; }
   updateTowerPos(t);
   return t;
 }
@@ -445,7 +491,7 @@ function buildLevel(n) {
     obstacles.push(makeObstacle(pick(pool), z, n));
     const mid = (prev + z) / 2;
     const r = Math.random();
-    if (r < Math.min(0.75, 0.3 + n * 0.1)) towers.push(makeEnemy(mid));
+    if (world.enemy && r < Math.min(0.75, 0.3 + n * 0.1)) towers.push(makeEnemy(mid));
     else if (r > 0.88) {
       pickups.push({ kind: Math.random() < 0.5 ? 'shield' : 'ammo', x: rand(-2, 2), y: rand(1, 4), z: mid, taken: false });
     }
@@ -455,9 +501,12 @@ function buildLevel(n) {
   const r = Math.max(0.6, 1.15 - n * 0.1);
   if (world.key === 'deathstar') port = { x: rand(-1.8, 1.8), y: rand(1.2, 3.8), r };
   else if (world.key === 'endor') port = { x: rand(-1.6, 1.6), y: rand(1.2, 2.0), r };
-  else port = { x: pick([-1, 1]), y: 2.7, r: Math.max(0.55, r * 0.9) };   // AT-AT front leg's knee
+  else if (world.key === 'hoth') port = { x: pick([-1, 1]), y: 2.7, r: Math.max(0.55, r * 0.9) };   // AT-AT front leg's knee
+  else port = { x: 0, y: 4.5, r: 1 };   // podrace finish line (where the fireworks go)
   ammo.laser = 100 + n * 20;
   ammo.torp = 5 + Math.floor(n / 2);
+  rivals = [];
+  if (world.race) { ammo.laser = 0; ammo.torp = 4; makeRivals(n); }
 }
 
 function snapCamera() {
@@ -467,7 +516,7 @@ function snapCamera() {
 }
 
 function resetPlayer(z) {
-  Object.assign(player, { x: 0, y: 2, z, vx: 0, vy: 0, bank: 0, inv: 1, fireCd: 0, torpCd: 0 });
+  Object.assign(player, { x: 0, y: 2, z, vx: 0, vy: 0, bank: 0, inv: 1, fireCd: 0, torpCd: 0, boostT: 0 });
   target.x = 0; target.y = 2;
   speed = levelSpeed;
   shots = []; bolts = [];
@@ -476,6 +525,7 @@ function resetPlayer(z) {
 }
 
 function startGame() {
+  worldOrder = [startWorld, ...shuffle(WORLDS.map((_, i) => i).filter(i => i !== startWorld))];
   level = 1; score = 0; player.shield = 100;
   briefing();
 }
@@ -484,7 +534,7 @@ function startGame() {
 function briefing() {
   const w = worldFor(level);
   startQuiz(QUIZ_NEED_LEVEL, 'MISSION BRIEFING',
-    `Level ${level} — ${w.name}: get ${QUIZ_NEED_LEVEL} questions right to launch your ${w.vehicleName}!`,
+    `Mission ${level} of ${TOTAL_LEVELS} — ${w.name}: get ${QUIZ_NEED_LEVEL} questions right to launch your ${w.vehicleName}!`,
     () => offerBonus(() => startLevel(level)));
 }
 
@@ -523,7 +573,7 @@ function retryApproach() {
 function menuScene() {
   state = 'menu';
   setWorld(worldFor(level));   // the quiz and menu background shows the world you're about to fly in
-  obstacles = []; towers = []; pickups = []; shots = []; bolts = [];
+  obstacles = []; towers = []; pickups = []; shots = []; bolts = []; rivals = [];
   endZ = 1e9; levelSpeed = speed = 24;
 }
 
@@ -650,8 +700,110 @@ function victory() {
   sfx.boom(); sfx.win();
   burst(port.x, port.y, endZ - 0.5, 120, FIRE, 14, 0.6, 1.6);
   shots = []; bolts = [];
-  showMsg('DIRECT HIT!', 2.5);
+  showMsg(world.winMsg || 'DIRECT HIT!', 2.5);
 }
+
+// ---------- Podrace (Tatooine) ----------
+const RIVALS = [
+  { name: 'Sebulba', col: { engine: [214, 124, 52], trim: [120, 70, 40], stripe: [240, 204, 90], pod: [190, 110, 50] } },
+  { name: 'Gasgano', col: { engine: [150, 170, 96], trim: [70, 90, 50], stripe: [230, 230, 210], pod: [120, 140, 80] } },
+  { name: 'Ben Quadinaros', col: { engine: [205, 205, 196], trim: [150, 60, 60], stripe: [60, 60, 70], pod: [170, 70, 70] } },
+  { name: 'Mawhonic', col: { engine: [112, 150, 172], trim: [50, 70, 90], stripe: [230, 190, 80], pod: [90, 120, 150] } },
+  { name: 'Aldar Beedo', col: { engine: [92, 122, 92], trim: [40, 60, 40], stripe: [200, 60, 50], pod: [80, 100, 80] } },
+  { name: 'Ody Mandrell', col: { engine: [222, 200, 84], trim: [140, 110, 40], stripe: [60, 60, 70], pod: [200, 170, 60] } },
+  { name: 'Teemto Pagalies', col: { engine: [182, 92, 92], trim: [100, 40, 40], stripe: [230, 230, 230], pod: [160, 80, 80] } },
+];
+const ordinal = n => n + (n === 1 ? 'st' : n === 2 ? 'nd' : n === 3 ? 'rd' : 'th');
+const racePlace = () => 1 + rivals.filter(r => r.z > player.z).length;
+
+// Everyone starts ahead of you on the grid; rivals are a little slower than you at full speed,
+// so clean flying and smart boosts let you work your way to the front.
+function makeRivals(n) {
+  rivals = shuffle(RIVALS).map((r, i) => ({
+    name: r.name, col: r.col,
+    x: (i % 2 ? 1 : -1) * rand(0.9, TW - 1), y: rand(1.2, 2.6), z: 12 + i * 13,
+    base: levelSpeed * clamp(rand(0.84, 0.95) + (tierFor(n) - 1) * 0.03, 0.8, 0.99),
+    speed: levelSpeed * 0.9, boostT: 0, oi: 0, plan: null, hitO: null, bumpCd: 0, skill: rand(0.8, 0.95), bank: 0,
+  }));
+  for (const r of rivals) { r.tx = r.x; r.ty = r.y; }
+}
+
+// Closest open spot (for a vehicle of half-size hw × hh) in an obstacle's cross-section
+function findGap(o, x, y, hw, hh) {
+  let best = null, bd = Infinity;
+  for (let gx = -TW + hw + 0.1; gx <= TW - hw - 0.1; gx += 0.35) {
+    for (let gy = hh + 0.3; gy <= TH - 0.5; gy += 0.35) {
+      if (o.rects.some(q => gx + hw > q[0] && gx - hw < q[1] && gy + hh > q[2] && gy - hh < q[3])) continue;
+      const d = Math.hypot(gx - x, gy - y) + Math.random() * 0.6;
+      if (d < bd) { bd = d; best = [gx, gy]; }
+    }
+  }
+  return best;
+}
+
+function updateRivals(dt) {
+  for (const r of rivals) {
+    if (r.z > endZ + 150) continue;
+    r.boostT -= dt; r.bumpCd -= dt;
+    if (r.boostT <= 0 && Math.random() < dt * 0.04) r.boostT = 1.2;
+    const want = r.base * (r.boostT > 0 ? 1.35 : 1);
+    r.speed += (want - r.speed) * Math.min(1, dt * 1.2);
+    const pz = r.z;
+    r.z += r.speed * dt;
+    // look ahead to the next rock and steer for a gap (they don't always find one!)
+    while (r.oi < obstacles.length && obstacles[r.oi].z + obstacles[r.oi].depth < r.z - 0.6) r.oi++;
+    const o = obstacles[r.oi];
+    if (o && o !== r.plan && o.z - r.z < 45) {
+      r.plan = o;
+      if (Math.random() < r.skill) { const g = findGap(o, r.x, r.y, 0.65, 0.4); if (g) { r.tx = g[0]; r.ty = g[1]; } }
+    }
+    const vx = clamp(r.tx - r.x, -7 * dt, 7 * dt);
+    r.x += vx;
+    r.y += clamp(r.ty - r.y, -6 * dt, 6 * dt);
+    r.bank += (vx / Math.max(dt, 1e-3) * 0.06 - r.bank) * Math.min(1, dt * 6);
+    if (o && r.hitO !== o && r.z + 0.5 > o.z && pz - 0.5 < o.z + o.depth &&
+        o.rects.some(q => r.x + 0.55 > q[0] && r.x - 0.55 < q[1] && r.y + 0.25 > q[2] && r.y - 0.25 < q[3])) {
+      r.hitO = o;
+      r.speed *= 0.4;
+      burst(r.x, r.y, o.z, 20, FIRE, 5, 0.2, 0.6);
+    }
+    // side-by-side bumping with you
+    if (state === 'playing' && r.bumpCd <= 0 && Math.abs(r.z - player.z) < 1.4 &&
+        Math.abs(r.x - player.x) < 1.1 && Math.abs(r.y - player.y) < 0.6) {
+      r.bumpCd = 0.6;
+      const push = player.x < r.x ? -1 : 1;
+      player.vx += push * 8; target.x += push * 0.8; r.tx -= push * 0.8;
+      speed *= 0.92;
+      shake = Math.max(shake, 0.3);
+      sfx.tick();
+      burst((r.x + player.x) / 2, player.y, player.z + 0.5, 10, SPARK, 4, 0.08, 0.3);
+    }
+  }
+}
+
+function useBoost() {
+  if (ammo.torp <= 0) { if (msgT <= 0.3) showMsg('NO BOOSTS LEFT', 1); sfx.empty(); return; }
+  if (player.boostT > 0) return;
+  ammo.torp--;
+  player.boostT = 1.6;
+  shake = Math.max(shake, 0.25);
+  sfx.torp();
+  showMsg('BOOST!', 0.8);
+}
+
+function finishRace() {
+  const place = racePlace();
+  if (place === 1) { victory(); return; }
+  const winner = rivals.reduce((a, b) => (b.z > a.z ? b : a));
+  saveHi();
+  state = 'overlay';
+  sfx.lose();
+  showOverlay(`YOU FINISHED ${ordinal(place).toUpperCase()}!`,
+    `<p class="big">So close! ${winner.name} won this time.</p>
+     <p>Only first place wins the Boonta Eve Classic. Dodge the rocks, save your boosts for open stretches, and pass every racer!</p>`,
+    'RACE AGAIN', retryRace);
+}
+function retryRace() { score = levelStartScore; startLevel(level); }
 
 function saveHi() {
   if (score > hi) { hi = Math.floor(score); localStorage.setItem('xw_hi', hi); }
@@ -747,6 +899,12 @@ function updateShots(dt) {
 
 function updatePlaying(dt) {
   const prevZ = player.z;
+  if (world.race) {
+    // podracers speed up and slow down: boosts push you past top speed, crashes cost speed
+    player.boostT -= dt;
+    const want = levelSpeed * (player.boostT > 0 ? 1.6 : 1);
+    speed += (want - speed) * Math.min(1, dt * (speed < want ? 1.1 : 2.5));
+  }
   player.z += speed * dt;
   score += speed * dt * 0.2;
   player.inv = Math.max(0, player.inv - dt);
@@ -754,15 +912,21 @@ function updatePlaying(dt) {
 
   // Fire
   player.fireCd -= dt; player.torpCd -= dt;
-  if ((input.fire || input.pointerFire || input.btnLaser) && player.fireCd <= 0) {
-    fireShot('laser');
-    player.fireCd = ammo.laser > 0 ? 0.16 : 0.4;
+  if (world.noGuns) {
+    if ((input.fire || input.pointerFire || input.btnLaser) && msgT <= 0.3) showMsg('PODRACERS HAVE NO GUNS — USE A BOOST!', 1.2);
+    if (input.torp && player.torpCd <= 0) { input.torp = false; useBoost(); player.torpCd = 0.3; }
+  } else {
+    if ((input.fire || input.pointerFire || input.btnLaser) && player.fireCd <= 0) {
+      fireShot('laser');
+      player.fireCd = ammo.laser > 0 ? 0.16 : 0.4;
+    }
+    if (input.torp && player.torpCd <= 0) {
+      input.torp = false;   // one torpedo per press
+      fireShot('torp');
+      player.torpCd = 0.7;
+    }
   }
-  if (input.torp && player.torpCd <= 0) {
-    input.torp = false;   // one torpedo per press
-    fireShot('torp');
-    player.torpCd = 0.7;
-  }
+  if (world.race) updateRivals(dt);
 
   // Bulkhead collisions
   for (const o of obstacles) {
@@ -774,6 +938,7 @@ function updatePlaying(dt) {
             player.y + SHIP_HH > r[2] && player.y - SHIP_HH < r[3]) {
           o.hit = true;
           player.inv = 0;
+          if (world.race) speed *= 0.5;
           damage(30);
           showMsg('DEFLECTORS HIT!', 1);
           break;
@@ -849,8 +1014,9 @@ function updatePlaying(dt) {
         showMsg('+25 DEFLECTOR SHIELDS', 1);
         burst(p.x, p.y, p.z, 20, BLUE, 4, 0.12, 0.5);
       } else {
-        ammo.laser += 30; ammo.torp += 1;
-        showMsg(`+30 SHOTS  +1 ${world.secOne}`, 1);
+        if (!world.noGuns) ammo.laser += 30;
+        ammo.torp += 1;
+        showMsg(world.noGuns ? '+1 BOOST' : `+30 SHOTS  +1 ${world.secOne}`, 1);
         burst(p.x, p.y, p.z, 20, SPARK, 4, 0.12, 0.5);
       }
     }
@@ -861,7 +1027,9 @@ function updatePlaying(dt) {
     finalWarned = true;
     showMsg(world.approachMsg, 2.5);
   }
-  if (player.z > endZ - 10) {
+  if (world.race) {
+    if (player.z >= endZ) finishRace();
+  } else if (player.z > endZ - 10) {
     state = 'pullup';
     stateTimer = 1.4;
     showMsg('PULL UP!', 1.4);
@@ -887,10 +1055,17 @@ function updatePullup(dt) {
 }
 
 function updateVictory(dt) {
-  speed *= Math.max(0, 1 - dt * 1.2);
-  player.z = Math.min(player.z + speed * dt, endZ - 6);
   stateTimer -= dt;
-  if (stateTimer < 2.6) player.y += 7 * dt;
+  if (world.race) {
+    // cruise past the finish line with the rest of the pack
+    speed *= Math.max(0, 1 - dt * 0.6);
+    player.z += speed * dt;
+    updateRivals(dt);
+  } else {
+    speed *= Math.max(0, 1 - dt * 1.2);
+    player.z = Math.min(player.z + speed * dt, endZ - 6);
+    if (stateTimer < 2.6) player.y += 7 * dt;
+  }
   if (world.key === 'hoth') atatFall = Math.min(1, atatFall + dt * 0.55);
   if (Math.random() < dt * 12) {
     burst(port.x + rand(-2, 2), port.y + rand(-1.5, 1.5), endZ - 0.5, 25, FIRE, 9, 0.5, 1.2);
@@ -899,13 +1074,17 @@ function updateVictory(dt) {
   if (stateTimer <= 0) {
     saveHi();
     state = 'overlay';
+    const last = level >= TOTAL_LEVELS;
     showOverlay(world.winTitle,
-      `<p class="big">Level ${level} complete — ${world.winText}</p>
-       <p>Next mission: <b>${worldFor(level + 1).name}</b> in a ${worldFor(level + 1).vehicleName}!</p>
+      `<p class="big">Mission ${level} of ${TOTAL_LEVELS} complete — ${world.winText}</p>
+       <p>${last ? 'That was your final mission… or was it? 👀'
+                 : `Next mission: <b>${worldFor(level + 1).name}</b> in a ${worldFor(level + 1).vehicleName}!`}</p>
        <p>Bonus: <b>+${victory.bonus}</b> (unused ammo: +${victory.ammoBonus})</p>
        <p>Score: <b>${Math.floor(score)}</b></p>
        ${bookCard()}`,
-      'NEXT LEVEL', () => { level++; player.shield = Math.max(player.shield, Math.min(100, player.shield + 30)); briefing(); });
+      last ? 'CONTINUE ➜' : 'NEXT MISSION',
+      last ? startFinale
+           : () => { level++; player.shield = Math.max(player.shield, Math.min(100, player.shield + 30)); briefing(); });
   }
 }
 
@@ -944,6 +1123,7 @@ function update(dt) {
     p.life -= dt;
   }
   particles = particles.filter(p => p.life > 0);
+  if (finaleActive) { updateFinale(dt); return; }
 
   if (state === 'menu' || state === 'quiz') {
     player.z += speed * dt;
@@ -1019,13 +1199,16 @@ function drawBoxes(rects, z0, z1, rgb, inset) {
 const stars = Array.from({ length: 260 }, () => ({ x: Math.random(), y: Math.random(), s: Math.random() }));
 const canopy = Array.from({ length: 50 }, () => ({ x: Math.random(), y: Math.random() * 0.12, r: rand(0.04, 0.1), c: pick(['#0c1d12', '#12291a', '#091610', '#183520']) }));
 const peaks = Array.from({ length: 26 }, (_, i) => ({ x: i / 25, h: i % 2 ? rand(0.02, 0.05) : rand(0.06, 0.12) }));
+const mesas = Array.from({ length: 7 }, (_, i) => ({ x: (i + Math.random() * 0.6) / 7, w: rand(0.05, 0.12), h: rand(0.02, 0.06) }));
+const motes = Array.from({ length: 70 }, () => ({ x: 0, y: 0, z: -1 }));
 const flakes = Array.from({ length: 150 }, () => ({ x: Math.random(), y: Math.random(), s: rand(1, 3.2), v: rand(0.08, 0.25) }));
 
 function drawSky() {
   const g = ctx.createLinearGradient(0, 0, 0, H);
   if (world.key === 'deathstar') { g.addColorStop(0, '#02030a'); g.addColorStop(1, '#0a0f24'); }
   else if (world.key === 'endor') { g.addColorStop(0, '#07110a'); g.addColorStop(0.45, '#2a4432'); g.addColorStop(1, '#3d5a45'); }
-  else { g.addColorStop(0, '#7f9cb8'); g.addColorStop(0.42, '#d6e3ee'); g.addColorStop(1, '#eef4f8'); }
+  else if (world.key === 'hoth') { g.addColorStop(0, '#7f9cb8'); g.addColorStop(0.42, '#d6e3ee'); g.addColorStop(1, '#eef4f8'); }
+  else { g.addColorStop(0, '#4f8fcf'); g.addColorStop(0.4, '#9cc4e4'); g.addColorStop(0.6, '#f0d6a8'); g.addColorStop(1, '#f6e2c0'); }
   ctx.fillStyle = g;
   ctx.fillRect(-30, -30, W + 60, H + 60);
   if (world.key === 'deathstar') {
@@ -1045,7 +1228,31 @@ function drawSky() {
     ctx.beginPath(); ctx.moveTo(-60, CY + 2);
     for (const p of peaks) ctx.lineTo(p.x * (W + 120) - 60 + off, CY - p.h * H);
     ctx.lineTo(W + 60, CY + 2); ctx.closePath(); ctx.fill();
+    sunGlow(W * 0.2 - cam.x * 3, H * 0.06, Math.max(W, H) * 0.02, '255,255,245', 0.5);
+  } else if (world.key === 'tatooine') {
+    // Tatooine's famous twin suns
+    sunGlow(W * 0.7 - cam.x * 3, H * 0.1, Math.max(W, H) * 0.03, '255,244,210', 0.6);
+    sunGlow(W * 0.79 - cam.x * 3, H * 0.16, Math.max(W, H) * 0.021, '255,206,140', 0.55);
+    // flat-topped mesas on the horizon
+    const off = -cam.x * 4;
+    ctx.fillStyle = '#d4a273';
+    for (const m of mesas) {
+      const x = m.x * (W + 200) - 100 + off, w = m.w * W, h = m.h * H;
+      ctx.beginPath();
+      ctx.moveTo(x - w * 0.6, CY + 2); ctx.lineTo(x - w * 0.42, CY - h); ctx.lineTo(x + w * 0.42, CY - h); ctx.lineTo(x + w * 0.6, CY + 2);
+      ctx.closePath(); ctx.fill();
+    }
   }
+}
+
+function sunGlow(x, y, r, col, a) {
+  const g = ctx.createRadialGradient(x, y, 0, x, y, r * 5);
+  g.addColorStop(0, `rgba(${col},${a})`);
+  g.addColorStop(1, `rgba(${col},0)`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r * 5, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = `rgb(${col})`;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
 }
 
 // Endor's treetops close over the path like a ceiling of leaves
@@ -1058,6 +1265,46 @@ function drawCanopy() {
     ctx.fillStyle = b.c;
     ctx.beginPath(); ctx.arc(x - W * 0.15, b.y * H, b.r * Math.max(W, H), 0, Math.PI * 2); ctx.fill();
   }
+  // sunbeams slanting down through gaps in the leaves
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < 5; i++) {
+    const x = ((i * 0.23 + 0.08) * W * 1.3 - cam.x * 10) % (W * 1.3) - W * 0.15;
+    const w = W * (0.025 + (i % 3) * 0.012);
+    const a = 0.05 + 0.025 * Math.sin(time * 0.7 + i * 2);
+    const g = ctx.createLinearGradient(0, H * 0.05, 0, H * 0.85);
+    g.addColorStop(0, `rgba(230,255,200,${a})`);
+    g.addColorStop(1, 'rgba(230,255,200,0)');
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    ctx.moveTo(x, H * 0.05); ctx.lineTo(x + w, H * 0.05); ctx.lineTo(x + w * 3 + W * 0.12, H * 0.85); ctx.lineTo(x + W * 0.12, H * 0.85);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.restore();
+}
+
+// Dust, pollen, snow or sand whooshing past the camera — makes the speed feel real
+function drawMotes() {
+  const col = { deathstar: '170,190,255', endor: '220,240,170', hoth: '255,255,255', tatooine: '255,226,170' }[world.key];
+  const len = Math.max(0.6, speed * 0.04);
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (const m of motes) {
+    if (m.z < cam.z + 0.8 || m.z > cam.z + 70) {
+      m.z = cam.z + rand(8, 60);
+      m.x = rand(-TW, TW); m.y = rand(0.2, TH);
+    }
+    line3d(m.x, m.y, m.z, m.x, m.y, m.z + len, `rgba(${col},${world.bright ? 0.55 : 0.35})`, 0.012);
+  }
+  ctx.restore();
+}
+
+function drawVignette() {
+  const g = ctx.createRadialGradient(W / 2, H * 0.45, Math.min(W, H) * 0.35, W / 2, H * 0.45, Math.max(W, H) * 0.78);
+  g.addColorStop(0, 'rgba(0,0,0,0)');
+  g.addColorStop(1, world.bright ? 'rgba(60,40,20,0.3)' : 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
 }
 
 function drawSnowfall() {
@@ -1078,14 +1325,14 @@ function drawSurface() {
   const startSeg = Math.floor(near / SEG);
   const endSeg = Math.floor(Math.min(cam.z + VIEW, zEnd) / SEG);
   const [fr, fg, fb] = world.floor, [lr, lg, lb] = world.wallL, [rr, rg, rb] = world.wallR;
-  const ice = world.key === 'hoth';
-  const vr = ice ? 10 : 18;
+  const bright = !!world.bright;
+  const vr = bright ? 10 : 18;
   for (let i = endSeg; i >= startSeg; i--) {
     const z0 = Math.max(i * SEG, near), z1 = Math.min((i + 1) * SEG, zEnd);
     if (z0 >= z1) continue;
     const d = z0 - cam.z;
     const v = (hash(i) - 0.5) * vr;
-    const line = ice ? shade(160, 180, 204, d) : shade(30, 32, 40, d);
+    const line = world.lineRGB ? shade(...world.lineRGB, d) : shade(30, 32, 40, d);
     face([[-TW, 0, z0], [TW, 0, z0], [TW, 0, z1], [-TW, 0, z1]], shade(fr + v, fg + v, fb + v, d), line);
     face([[-TW, 0, z0], [-TW, TH, z0], [-TW, TH, z1], [-TW, 0, z1]], shade(lr + v, lg + v, lb + v, d), line);
     face([[TW, 0, z0], [TW, TH, z0], [TW, TH, z1], [TW, 0, z1]], shade(rr + v, rg + v, rb + v, d), line);
@@ -1108,7 +1355,7 @@ function drawSurface() {
         face([[x, ly0, za], [x, ly1, za], [x, ly1, Math.min(zb, za + 0.5)], [x, ly0, Math.min(zb, za + 0.5)]],
           `rgba(255,${200 + (h * 50) | 0},120,${clamp(1 - d / VIEW, 0, 1)})`);
       } else {
-        const c = h < 0.25 || h > 0.75 ? (ice ? 0.88 : 0.7) : (ice ? 1.06 : 1.25);
+        const c = h < 0.25 || h > 0.75 ? (bright ? 0.88 : 0.7) : (bright ? 1.06 : 1.25);
         const [br, bg, bb] = left ? world.wallL : world.wallR;
         face([[x, y0, za], [x, y0 + hh, za], [x, y0 + hh, zb], [x, y0, zb]],
           shade((br + v) * c, (bg + v) * c, (bb + v) * c, d));
@@ -1119,7 +1366,7 @@ function drawSurface() {
       const fw = 0.4 + hash(i * 43) * 0.8;
       let za = Math.max(i * SEG + hash(i * 47) * 2, near);
       const zb = Math.min(za + 0.6 + hash(i * 53) * 1.3, zEnd);
-      const k = ice ? 0.92 : 0.76;
+      const k = bright ? 0.92 : 0.76;
       if (za < zb) face([[fx, 0.01, za], [fx + fw, 0.01, za], [fx + fw, 0.01, zb], [fx, 0.01, zb]], shade((fr + v) * k, (fg + v) * k, (fb + v) * k, d));
     }
   }
@@ -1229,7 +1476,24 @@ function drawEnd() {
   if (d > VIEW + 10 || d < NEAR) return;
   if (world.key === 'deathstar') drawEndWall();
   else if (world.key === 'endor') drawBunker(d);
-  else drawATAT();
+  else if (world.key === 'hoth') drawATAT();
+  else drawFinishLine(d);
+}
+
+// Podrace finish: checkered strip on the ground, stone towers and a checkered banner overhead
+function drawFinishLine(d) {
+  const z = endZ, n = 14, w = (TW * 2) / n;
+  const sq = (i, j) => (i + j) % 2 ? shade(20, 20, 22, d) : shade(244, 244, 238, d);
+  for (let i = 0; i < n; i++) for (let j = 0; j < 2; j++) {
+    const x0 = -TW + i * w, x1 = x0 + w;
+    face([[x0, 0.02, z + j * 0.7], [x1, 0.02, z + j * 0.7], [x1, 0.02, z + (j + 1) * 0.7], [x0, 0.02, z + (j + 1) * 0.7]], sq(i, j));
+  }
+  drawBoxes([[-TW - 0.9, -TW + 0.1, 0, 7.4]], z - 0.4, z + 0.6, [190, 146, 98], false);
+  drawBoxes([[TW - 0.1, TW + 0.9, 0, 7.4]], z - 0.4, z + 0.6, [190, 146, 98], false);
+  for (let i = 0; i < n; i++) for (let j = 0; j < 2; j++) {
+    const x0 = -TW + i * w, x1 = x0 + w, y0 = 5.7 + j * 0.55;
+    face([[x0, y0, z], [x1, y0, z], [x1, y0 + 0.55, z], [x0, y0 + 0.55, z]], sq(i, j));
+  }
 }
 
 function drawTower(t) {
@@ -1271,14 +1535,20 @@ function drawPickup(pk) {
   ctx.restore();
 }
 
-function drawShadow() {
-  const p = proj(player.x, 0.02, player.z);
+function drawShadow(x = player.x, y = player.y, z = player.z, w = 1) {
+  const p = proj(x, 0.02, z);
   if (!p) return;
-  const a = clamp(0.45 - player.y * 0.06, 0.1, 0.45);
-  ctx.fillStyle = `rgba(0,0,0,${a})`;
-  ctx.beginPath();
-  ctx.ellipse(p.x, p.y, 0.9 * p.s, 0.25 * p.s, 0, 0, Math.PI * 2);
-  ctx.fill();
+  const a = clamp(0.5 - y * 0.07, 0.08, 0.5);
+  const r = w * p.s * (0.9 + y * 0.05);   // higher up = bigger, fainter shadow
+  ctx.save();
+  ctx.translate(p.x, p.y); ctx.scale(1, 0.28);
+  const g = ctx.createRadialGradient(0, 0, 0, 0, 0, r);
+  g.addColorStop(0, `rgba(0,0,0,${a})`);
+  g.addColorStop(0.6, `rgba(0,0,0,${a * 0.6})`);
+  g.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, r, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
 }
 
 // ---------- 3D models ----------
@@ -1344,7 +1614,7 @@ function buildBike(rider) {
   const BODY = [104, 108, 98], DARK = [56, 60, 56], METAL = [140, 144, 140];
   addFrustum(m, -0.5, 0, 0, 0.22, 0.16, 0.35, 0, -0.01, 0.12, 0.1, BODY);
   addBox(m, -0.14, 0.14, -0.1, 0.08, -0.82, -0.45, DARK);                        // engine
-  m.push({ p: rectAt(-0.1, 0.1, -0.07, 0.05, -0.825), c: [255, 150, 90], e: true });
+  m.push({ p: ringAt(0, -0.01, 0.045, -0.825, 8), c: [255, 150, 90], e: true });
   addBox(m, -0.07, 0.07, 0.08, 0.12, -0.5, -0.12, [40, 40, 40]);                 // seat
   addBox(m, -0.16, 0.16, 0.16, 0.19, 0.06, 0.1, DARK);                           // handlebars
   addBox(m, -0.025, 0.025, -0.13, -0.08, -0.05, 0.45, DARK);                     // blaster cannon
@@ -1358,14 +1628,15 @@ function buildBike(rider) {
     addBox(m, s * 0.08, s * 0.15, -0.08, 0.0, -0.18, -0.02, rider.boot);
     addBox(m, s * 0.1, s * 0.15, 0.24, 0.32, -0.22, 0.1, rider.suit);
   }
-  addPrism(m, [[-0.11, 0.13, -0.42], [0.11, 0.13, -0.42], [0.11, 0.13, -0.2], [-0.11, 0.13, -0.2]],
-              [[-0.12, 0.42, -0.3], [0.12, 0.42, -0.3], [0.12, 0.42, -0.1], [-0.12, 0.42, -0.1]], rider.armor);   // leaning torso
-  addBox(m, -0.07, 0.07, 0.43, 0.57, -0.27, -0.13, rider.helmet);
-  addBox(m, -0.055, 0.055, 0.47, 0.52, -0.13, -0.12, rider.visor);
+  addPrism(m, [[-0.085, 0.13, -0.4], [0.085, 0.13, -0.4], [0.085, 0.13, -0.24], [-0.085, 0.13, -0.24]],
+              [[-0.1, 0.4, -0.3], [0.1, 0.4, -0.3], [0.1, 0.4, -0.15], [-0.1, 0.4, -0.15]], rider.armor);   // leaning torso
+  addBox(m, -0.065, 0.065, 0.2, 0.36, -0.4, -0.33, rider.pack);                    // backpack
+  addCyl(m, 0, 0.48, 0.068, -0.29, -0.13, rider.helmet, 10);                       // rounded helmet
+  addBox(m, -0.05, 0.05, 0.45, 0.5, -0.135, -0.12, rider.visor);
   return mapMesh(m, q => [q[0] * 1.3, q[1] * 1.3, q[2] * 1.3]);
 }
-const REBEL_RIDER = { suit: [74, 92, 56], armor: [66, 84, 50], helmet: [84, 102, 64], visor: [22, 22, 22], boot: [44, 34, 26] };
-const SCOUT_RIDER = { suit: [30, 30, 34], armor: [228, 230, 234], helmet: [232, 234, 238], visor: [16, 16, 20], boot: [232, 232, 236] };
+const REBEL_RIDER = { suit: [74, 92, 56], armor: [92, 108, 66], helmet: [70, 86, 52], visor: [22, 22, 22], boot: [44, 34, 26], pack: [104, 88, 60] };
+const SCOUT_RIDER = { suit: [30, 30, 34], armor: [228, 230, 234], helmet: [232, 234, 238], visor: [16, 16, 20], boot: [232, 232, 236], pack: [40, 40, 44] };
 
 // T-47 snowspeeder: wedge-shaped body, two engine pods with laser cannons, harpoon gun at the back
 function buildSnowspeeder() {
@@ -1381,7 +1652,7 @@ function buildSnowspeeder() {
     addBox(m, s * 0.36, s * 0.58, -0.1, 0.07, -0.12, 0.04, ORANGE);
     addBox(m, s * 0.36, s * 0.58, -0.1, 0.07, 0.04, 0.32, WHITE);
     addFrustum(m, 0.32, s * 0.47, -0.015, 0.22, 0.17, 0.5, s * 0.47, -0.02, 0.13, 0.1, GREY);
-    m.push({ p: rectAt(s * 0.38, s * 0.56, -0.08, 0.05, -0.625), c: [255, 170, 120], e: true });
+    m.push({ p: ringAt(s * 0.47, -0.015, 0.055, -0.625, 8), c: [255, 170, 120], e: true });
     addCyl(m, s * 0.6, 0, 0.022, 0.0, 0.9, DARK, 6);                             // laser cannon
     addCyl(m, s * 0.6, 0, 0.03, 0.82, 0.92, GREY, 6);
     addBox(m, s * 0.3, s * 0.365, 0.07, 0.09, -0.5, 0.35, ORANGE);
@@ -1422,14 +1693,67 @@ function buildATAT() {
   return m;
 }
 
+// Podracer: two huge engines out front, tied by cables to a tiny cockpit pod behind them
+function buildPodracer(col, pilot = [150, 110, 70]) {
+  const m = [];
+  for (const s of [1, -1]) {
+    const ex = s * 0.48;
+    addCyl(m, ex, 0, 0.17, -0.3, 1.2, col.engine, 10);
+    addCyl(m, ex, 0, 0.2, 1.2, 1.4, col.trim, 10, 0.17);                         // intake lip
+    m.push({ p: ringAt(ex, 0, 0.15, 1.405, 10), c: [28, 28, 32] });             // dark intake
+    addCyl(m, ex, 0, 0.12, -0.45, -0.3, col.trim, 10, 0.17);                     // nozzle
+    m.push({ p: ringAt(ex, 0, 0.11, -0.455, 10), c: [140, 200, 255], e: true });
+    addCyl(m, ex, 0, 0.176, 0.7, 0.8, col.stripe, 10);
+    addBox(m, ex - 0.12, ex + 0.12, 0.16, 0.21, 0.4, 0.9, col.trim);             // split air-brake flaps
+  }
+  addFrustum(m, -1.5, 0, -0.05, 0.36, 0.22, -0.8, 0, -0.02, 0.2, 0.14, col.pod);
+  addBox(m, -0.1, 0.1, 0.06, 0.1, -1.35, -1.1, [34, 34, 38]);
+  addCyl(m, 0, 0.13, 0.055, -1.3, -1.18, pilot, 8);                             // pilot's head
+  return m;
+}
+const ANAKIN_POD = { engine: [150, 172, 204], trim: [56, 90, 172], stripe: [226, 226, 234], pod: [70, 110, 190] };
+const podMeshes = {};
+const rivalMesh = r => podMeshes[r.name] || (podMeshes[r.name] = buildPodracer(r.col, [90, 80, 70]));
+
+// Darth Vader's TIE Advanced x1: ball cockpit with bent solar-panel wings
+function buildTIE() {
+  const m = [], BODY = [78, 80, 88], PANEL = [38, 40, 50];
+  addCyl(m, 0, 0, 0.32, -0.4, 0.3, BODY, 10);
+  m.push({ p: ringAt(0, 0, 0.17, 0.305, 8), c: [24, 28, 38] });
+  addBox(m, -0.78, 0.78, -0.06, 0.06, -0.15, 0.1, BODY);
+  for (const s of [1, -1]) for (const v of [1, -1]) {
+    const q = [[0.78, 0, -0.55], [1.02, v * 0.95, -0.38], [1.02, v * 0.95, 0.38], [0.78, 0, 0.55]].map(([x, y, z]) => [x * s, y, z]);
+    addPrism(m, q, q.map(([x, y, z]) => [x + s * 0.04, y, z]), PANEL);
+  }
+  for (const x of [-0.1, 0.1]) m.push({ p: ringAt(x, 0, 0.05, -0.405, 6), c: [255, 90, 70], e: true });
+  return m;
+}
+
+// The Millennium Falcon: saucer hull, front mandibles, cockpit tube on the right side
+function buildFalcon() {
+  const m = [], HULL = [196, 196, 190], DARK = [120, 122, 126];
+  const n = 16, R = 1.25;
+  const ring = (y, r) => Array.from({ length: n }, (_, i) => { const a = i / n * Math.PI * 2; return [Math.cos(a) * r, y, Math.sin(a) * r]; });
+  addPrism(m, ring(0.0, R), ring(0.16, R * 0.6), HULL);
+  addPrism(m, ring(0.0, R), ring(-0.14, R * 0.6), DARK);
+  for (const s of [1, -1]) addBox(m, s * 0.12, s * 0.45, -0.07, 0.07, R * 0.6, R + 0.65, HULL);   // mandibles
+  addCyl(m, R * 0.92, 0, 0.14, 0.2, 1.3, HULL, 8);                                  // cockpit tube
+  m.push({ p: ringAt(R * 0.92, 0, 0.1, 1.305, 8), c: [40, 50, 70] });
+  addBox(m, -0.38, -0.1, 0.16, 0.26, 0.2, 0.42, DARK);                              // radar dish
+  m.push({ p: rectAt(-0.8, 0.8, -0.05, 0.06, -R + 0.03), c: [150, 210, 255], e: true });   // engine glow
+  return m;
+}
+
 const MESH = {
   xwing: buildXWing(), bike: buildBike(REBEL_RIDER), snowspeeder: buildSnowspeeder(),
   scout: buildBike(SCOUT_RIDER), probe: buildProbe(), atat: buildATAT(),
+  podracer: buildPodracer(ANAKIN_POD), tie: buildTIE(), falcon: buildFalcon(),
 };
 const ENGINE_GLOWS = {
   xwing: { pts: [[0.2, 0.105, -0.7], [-0.2, 0.105, -0.7], [0.2, -0.105, -0.7], [-0.2, -0.105, -0.7]], r: 0.13, col: '255,110,90' },
-  bike: { pts: [[0, -0.013, -1.08]], r: 0.16, col: '255,150,90' },
-  snowspeeder: { pts: [[0.47, -0.015, -0.64], [-0.47, -0.015, -0.64]], r: 0.14, col: '255,170,120' },
+  bike: { pts: [[0, -0.013, -1.08]], r: 0.08, col: '255,150,90' },
+  snowspeeder: { pts: [[0.47, -0.015, -0.64], [-0.47, -0.015, -0.64]], r: 0.075, col: '255,170,120' },
+  podracer: { pts: [[0.48, 0, -0.5], [-0.48, 0, -0.5]], r: 0.13, col: '140,200,255' },
 };
 
 const LIGHT = (() => { const l = [0.35, 0.85, -0.4], n = Math.hypot(...l); return l.map(v => v / n); })();
@@ -1504,10 +1828,48 @@ function drawPlayer() {
     x: player.x, y: player.y, z: player.z,
     roll: -player.bank, pitch: -player.vy * 0.03, yaw: player.vx * 0.012,
   });
-  const g = ENGINE_GLOWS[world.vehicle];
-  ctx.globalCompositeOperation = 'lighter';
-  for (const q of g.pts) { const w = tf(q); glowAt(w[0], w[1], w[2], g.r, g.col); }
+  if (world.vehicle === 'podracer') drawPodExtras(tf, player.boostT > 0);
+  else {
+    const g = ENGINE_GLOWS[world.vehicle];
+    ctx.globalCompositeOperation = 'lighter';
+    for (const q of g.pts) { const w = tf(q); glowAt(w[0], w[1], w[2], g.r, g.col); }
+  }
   ctx.restore();
+}
+
+// Podracer cables, the crackling energy binder between the engines, and engine flames
+function drawPodExtras(tf, boosting) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  for (const s of [1, -1]) {
+    const a = tf([s * 0.48, 0, -0.45]), b = tf([s * 0.12, 0.02, -1.0]);
+    line3d(a[0], a[1], a[2], b[0], b[1], b[2], 'rgba(40,40,46,0.9)', 0.012);
+  }
+  const j = (Math.random() - 0.5) * 0.06;
+  const a = tf([0.33, 0.05 + j, 0.75]), b = tf([-0.33, 0.05 - j, 0.75]);
+  line3d(a[0], a[1], a[2], b[0], b[1], b[2], 'rgba(120,200,255,0.45)', 0.08);
+  line3d(a[0], a[1], a[2], b[0], b[1], b[2], 'rgba(235,250,255,0.95)', 0.02);
+  ctx.globalCompositeOperation = 'lighter';
+  for (const s of [1, -1]) { const w = tf([s * 0.48, 0, -0.52]); glowAt(w[0], w[1], w[2], boosting ? 0.34 : 0.14, boosting ? '255,170,90' : '140,200,255'); }
+  ctx.restore();
+}
+
+function drawRival(r) {
+  drawShadow(r.x, r.y, r.z, 1.1);
+  const tf = drawMesh(rivalMesh(r), { x: r.x, y: r.y, z: r.z, roll: -r.bank });
+  drawPodExtras(tf, r.boostT > 0);
+  const d = r.z - cam.z;
+  if (d < 70 && d > 2) {
+    const p = proj(r.x, r.y + 0.7, r.z);
+    if (p) {
+      ctx.save();
+      ctx.font = '700 13px system-ui, sans-serif'; ctx.textAlign = 'center';
+      ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 3;
+      ctx.fillStyle = `rgba(255,240,210,${clamp(1.4 - d / 50, 0, 1)})`;
+      ctx.fillText(r.name, p.x, p.y);
+      ctx.restore();
+    }
+  }
 }
 
 function drawEnemy(t) {
@@ -1538,6 +1900,10 @@ function drawWorld(showShip) {
     if (p.taken || p.z < zmin || p.z > zmax) continue;
     (p.z < player.z ? near : far).push({ z: p.z, k: 2, o: p });
   }
+  for (const r of rivals) {
+    if (r.z < zmin + 1.5 || r.z > zmax) continue;
+    (r.z < player.z ? near : far).push({ z: r.z, k: 3, o: r });
+  }
   far.sort((a, b) => b.z - a.z);
   near.sort((a, b) => b.z - a.z);
   const drawItem = it => {
@@ -1547,7 +1913,8 @@ function drawWorld(showShip) {
       if (o.decor) drawBoxes(o.decor.rects, o.decor.z0, o.decor.z1, o.decor.rgb, false);
     }
     else if (it.k === 1) drawEnemy(it.o);
-    else drawPickup(it.o);
+    else if (it.k === 2) drawPickup(it.o);
+    else drawRival(it.o);
   };
   for (const it of far) drawItem(it);
   if (showShip) { drawShadow(); drawPlayer(); }
@@ -1571,7 +1938,7 @@ function line3d(x0, y0, z0, x1, y1, z1, color, w) {
 function drawEffects() {
   ctx.save();
   // additive glow looks great in the dark, but vanishes against Hoth's bright snow
-  ctx.globalCompositeOperation = world.key === 'hoth' ? 'source-over' : 'lighter';
+  ctx.globalCompositeOperation = world.bright ? 'source-over' : 'lighter';
   ctx.lineCap = 'round';
   for (const s of shots) {
     const k = 4 / s.vz;
@@ -1668,7 +2035,7 @@ function drawHUD() {
   ctx.fillText(world.secName + ' ' + ammo.torp, ax, ay - 16);
   ctx.fillStyle = ammo.laser > 20 ? '#ffb0a8' : '#ff4a3a';
   ctx.font = '700 16px system-ui, sans-serif';
-  ctx.fillText(world.laserName + ' ' + ammo.laser, ax, ay - 38);
+  if (!world.noGuns) ctx.fillText(world.laserName + ' ' + ammo.laser, ax, ay - 38);
   ctx.textBaseline = 'top';
   ctx.font = '600 14px system-ui, sans-serif';
 
@@ -1685,8 +2052,18 @@ function drawHUD() {
   ctx.textAlign = 'center';
   ctx.fillStyle = '#cfd8ea';
   ctx.fillText(world.targetShort + '  ' + Math.max(0, Math.floor(endZ - player.z)) + ' m', W / 2, py + 14);
+  if (world.race) {
+    const place = racePlace();
+    ctx.font = '800 26px system-ui, sans-serif';
+    ctx.fillStyle = place === 1 ? '#ffd84a' : '#ffffff';
+    ctx.fillText(`${ordinal(place).toUpperCase()} PLACE`, W / 2, py + 36);
+    ctx.font = '600 13px system-ui, sans-serif';
+    ctx.fillStyle = '#cfd8ea';
+    ctx.fillText(`of ${rivals.length + 1} racers`, W / 2, py + 66);
+    ctx.font = '600 14px system-ui, sans-serif';
+  }
 
-  if (state === 'playing') {
+  if (state === 'playing' && !world.noGuns) {
     // Crosshair
     const c = proj(player.x, player.y, player.z + 35);
     if (c) {
@@ -1744,6 +2121,7 @@ function drawHUD() {
 }
 
 function render() {
+  if (finaleActive) { drawFinale(); return; }
   ctx.save();
   if (shake > 0) ctx.translate((Math.random() - 0.5) * shake * 16, (Math.random() - 0.5) * shake * 16);
   drawSky();
@@ -1752,9 +2130,11 @@ function render() {
   else { drawSurface(); drawEnd(); }
   drawWorld(state !== 'dead' && !(state === 'overlay' && player.shield <= 0));
   drawEffects();
+  drawMotes();
   if (world.key === 'endor') drawCanopy();
   ctx.restore();
   if (world.key === 'hoth') drawSnowfall();
+  drawVignette();
 
   if (hitFlash > 0) {
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75);
@@ -1767,6 +2147,228 @@ function render() {
     ctx.fillRect(0, 0, W, H);
   }
   if (state !== 'menu' && state !== 'quiz') drawHUD();
+}
+
+// ---------- Secret ending (after all missions) ----------
+// Vader's TIE chases your X-wing, the Millennium Falcon blasts him away, the Death Star explodes,
+// and Vader's helmet looms over the stars: "The Force is strong with this one."
+let finaleActive = false, finaleT = 0, finBolts = [], finFlags = {};
+const finDebris = Array.from({ length: 110 }, () => ({ a: rand(0, Math.PI * 2), v: rand(0.2, 1.5), s: rand(1, 4) }));
+const ease = u => (u < 0 ? 0 : u > 1 ? 1 : u * u * (3 - 2 * u));
+
+function startFinale() {
+  finaleActive = true; finaleT = 0; finBolts = []; finFlags = {}; particles = [];
+  state = 'finale';
+  hideOverlay();
+  setWorld(WORLDS[0]);
+  obstacles = []; towers = []; pickups = []; shots = []; bolts = []; rivals = [];
+}
+
+// Where each ship is at time t (camera sits at the origin looking down +z)
+function finPos(t) {
+  const xw = { x: Math.sin(t * 1.3) * 0.6, y: -0.5 + Math.sin(t * 0.9) * 0.25, z: 7, roll: -Math.cos(t * 1.3) * 0.35 };
+  let tie;
+  if (t < 5.2) {
+    const u = ease((t - 0.8) / 2.2);
+    tie = { x: -3.2 + 2.0 * u + Math.sin(t * 1.7) * 0.2, y: 1.6 - 1.0 * u, z: -1 + 4.6 * u, roll: 0.3 * Math.sin(t * 2) };
+  } else {
+    const u = t - 5.2;   // knocked spinning away
+    tie = { x: -1.0 - u * 3.5, y: 0.6 + u * 1.6, z: 3.6 + u * 2.5, roll: u * 9 };
+  }
+  const u = ease((t - 4.0) / 1.0), v = ease((t - 5.0) / 1.6);
+  const falcon = { x: 3 - 1.7 * u - 5.5 * v, y: 7 - 5.4 * u + 3.5 * v, z: 26 - 14 * u - 6 * v, roll: 0.5 * u - 0.9 * v, pitch: 0.4 * (1 - u) };
+  return { xw, tie, falcon };
+}
+
+function fireFin(from, to, col, miss, spd) {
+  const dx = to.x + miss - from.x, dy = to.y + miss * 0.5 - from.y, dz = to.z - from.z;
+  const len = Math.hypot(dx, dy, dz) || 1;
+  finBolts.push({ x: from.x, y: from.y, z: from.z, vx: dx / len * spd, vy: dy / len * spd, vz: dz / len * spd, col, life: len / spd + 0.3 });
+}
+
+function updateFinale(dt) {
+  finaleT += dt;
+  const t = finaleT, P = finPos(t);
+  const once = (k, at, fn) => { if (!finFlags[k] && t >= at) { finFlags[k] = true; fn(); } };
+  once('breath', 1.6, () => sfx.breath());
+  if (t > 2.2 && t < 4.6) {   // Vader fires… and keeps missing
+    finFlags.tf = (finFlags.tf || 0) - dt;
+    if (finFlags.tf <= 0) { finFlags.tf = 0.3; fireFin(P.tie, P.xw, '80,255,110', rand(-0.7, 0.7), 30); sfx.enemy(); }
+  }
+  once('falcon', 4.0, () => sfx.torp());
+  if (t > 4.5 && t < 5.2) {   // the Falcon to the rescue
+    finFlags.ff = (finFlags.ff || 0) - dt;
+    if (finFlags.ff <= 0) { finFlags.ff = 0.12; fireFin(P.falcon, P.tie, '255,70,50', 0, 40); sfx.laser(); }
+  }
+  once('tieHit', 5.2, () => { burst(P.tie.x, P.tie.y, P.tie.z, 50, FIRE, 5, 0.12, 1); sfx.small(); });
+  once('boom', 7.2, () => { sfx.boom(); flash = 1; shake = 1.2; });
+  once('vader', 9.6, () => sfx.breath());
+  for (const b of finBolts) { b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.life -= dt; }
+  finBolts = finBolts.filter(b => b.life > 0);
+  if (t >= 13.4 && state === 'finale') finishFinale();
+}
+
+function finishFinale() {
+  if (state !== 'finale') return;
+  saveHi();
+  state = 'overlay';
+  sfx.win();
+  showOverlay('🏆 YOU DID IT, PILOT! 🏆',
+    `<p class="big">You completed all ${TOTAL_LEVELS} missions!</p>
+     <p>🥚 <b>Secret ending unlocked:</b> Darth Vader himself came after you — and Han Solo had your back.</p>
+     <p class="big" style="color:#ff6a5a">“The Force is strong with this one.” — Darth Vader</p>
+     <p>Final score: <b>${Math.floor(score)}</b> · High score: ${hi}</p>
+     <a class="share-link" href="share.html" target="_blank" rel="noopener">🔗 Challenge a friend — share RoboBandit!</a>
+     ${bookCard()}`,
+    'PLAY AGAIN', showMenu);
+}
+
+function drawDeathStar2D(x, y, r) {
+  const g = ctx.createRadialGradient(x - r * 0.35, y - r * 0.35, r * 0.1, x, y, r);
+  g.addColorStop(0, '#a3a9b3'); g.addColorStop(0.7, '#5a5f68'); g.addColorStop(1, '#25282e');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  ctx.save();
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+  ctx.strokeStyle = 'rgba(30,32,38,0.35)'; ctx.lineWidth = 1;
+  for (let k = -3; k <= 3; k++) { ctx.beginPath(); ctx.ellipse(x, y + k * r * 0.24, r, r * 0.1, 0, 0, Math.PI); ctx.stroke(); }
+  ctx.strokeStyle = 'rgba(15,16,20,0.85)'; ctx.lineWidth = r * 0.035;   // equatorial trench
+  ctx.beginPath(); ctx.ellipse(x, y + r * 0.02, r, r * 0.12, 0, 0, Math.PI); ctx.stroke();
+  const dx = x - r * 0.38, dy = y - r * 0.38, dr = r * 0.24;             // superlaser dish
+  const dg = ctx.createRadialGradient(dx + dr * 0.3, dy + dr * 0.3, dr * 0.1, dx, dy, dr);
+  dg.addColorStop(0, '#3a3e46'); dg.addColorStop(1, '#6b717b');
+  ctx.fillStyle = dg;
+  ctx.beginPath(); ctx.arc(dx, dy, dr, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = '#2a2d33';
+  ctx.beginPath(); ctx.arc(dx, dy, dr * 0.15, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawDeathStarBoom(x, y, r, et) {
+  const a = clamp(1 - et / 2.4, 0, 1), fr = r * (1 + et * 1.6);
+  const g = ctx.createRadialGradient(x, y, 0, x, y, fr);
+  g.addColorStop(0, `rgba(255,255,240,${a})`);
+  g.addColorStop(0.4, `rgba(255,170,60,${a * 0.8})`);
+  g.addColorStop(1, 'rgba(255,80,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, fr, 0, Math.PI * 2); ctx.fill();
+  const ra = clamp(1 - et / 3, 0, 1);   // the famous flat shockwave ring
+  ctx.strokeStyle = `rgba(255,225,180,${ra})`;
+  ctx.lineWidth = Math.max(1, r * 0.06 * ra);
+  ctx.beginPath(); ctx.ellipse(x, y, r * (0.5 + et * 3), r * (0.1 + et * 0.45), -0.2, 0, Math.PI * 2); ctx.stroke();
+  ctx.fillStyle = `rgba(255,200,140,${clamp(1 - et / 3.5, 0, 1)})`;
+  for (const d of finDebris) ctx.fillRect(x + Math.cos(d.a) * d.v * r * et * 1.4, y + Math.sin(d.a) * d.v * r * et * 1.4, d.s, d.s);
+}
+
+// Darth Vader's helmet, drawn in 2D (unit size ≈ 1, centred on x, y)
+function drawVaderHelmet(x, y, s, alpha) {
+  ctx.save();
+  ctx.globalAlpha = alpha;
+  ctx.translate(x, y); ctx.scale(s, s);
+  const g = ctx.createLinearGradient(-1, -1, 1, 1);
+  g.addColorStop(0, '#4a4e5c'); g.addColorStop(0.45, '#121318'); g.addColorStop(1, '#000');
+  ctx.fillStyle = g;
+  ctx.beginPath();
+  ctx.moveTo(-1.15, 0.95);
+  ctx.quadraticCurveTo(-0.95, 0.4, -0.9, -0.05);
+  ctx.bezierCurveTo(-0.95, -1.1, 0.95, -1.1, 0.9, -0.05);
+  ctx.quadraticCurveTo(0.95, 0.4, 1.15, 0.95);
+  ctx.lineTo(0.55, 0.85); ctx.lineTo(0.3, 0.62); ctx.lineTo(-0.3, 0.62); ctx.lineTo(-0.55, 0.85);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(170,180,200,0.45)'; ctx.lineWidth = 0.025;
+  ctx.beginPath(); ctx.moveTo(-0.7, -0.22); ctx.quadraticCurveTo(0, -0.42, 0.7, -0.22); ctx.stroke();   // brow ridge
+  ctx.fillStyle = '#17181d';
+  ctx.beginPath();
+  ctx.moveTo(-0.62, -0.15); ctx.lineTo(0.62, -0.15); ctx.lineTo(0.5, 0.35); ctx.lineTo(0.28, 0.76); ctx.lineTo(-0.28, 0.76); ctx.lineTo(-0.5, 0.35);
+  ctx.closePath(); ctx.fill();
+  for (const k of [-1, 1]) {   // eye lenses with a red glint
+    const eg = ctx.createLinearGradient(k * 0.1, -0.12, k * 0.5, 0.1);
+    eg.addColorStop(0, '#5a0d0d'); eg.addColorStop(1, '#ff3a2a');
+    ctx.fillStyle = eg;
+    ctx.beginPath();
+    ctx.moveTo(k * 0.08, -0.11); ctx.lineTo(k * 0.55, -0.11); ctx.lineTo(k * 0.45, 0.12); ctx.lineTo(k * 0.12, 0.1);
+    ctx.closePath(); ctx.fill();
+  }
+  ctx.fillStyle = '#2c2e36';   // mouth grille
+  ctx.beginPath(); ctx.moveTo(-0.22, 0.38); ctx.lineTo(0.22, 0.38); ctx.lineTo(0, 0.74); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = 'rgba(190,195,210,0.6)'; ctx.lineWidth = 0.02;
+  for (let i = -2; i <= 2; i++) { ctx.beginPath(); ctx.moveTo(i * 0.06, 0.42); ctx.lineTo(i * 0.03, 0.66); ctx.stroke(); }
+  ctx.restore();
+}
+
+function drawFinale() {
+  const t = finaleT, P = finPos(t);
+  cam.x = 0; cam.y = 0; cam.z = 0;
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake * 16, (Math.random() - 0.5) * shake * 16);
+  ctx.fillStyle = '#02030a';
+  ctx.fillRect(-30, -30, W + 60, H + 60);
+  for (const st of stars) {
+    const x = ((st.x * W * 1.3 - t * 6 * (0.5 + st.s)) % W + W) % W;
+    ctx.fillStyle = `rgba(255,255,255,${0.3 + 0.6 * st.s})`;
+    ctx.fillRect(x, st.y * H, st.s > 0.9 ? 2 : 1.2, st.s > 0.9 ? 2 : 1.2);
+  }
+  const dsx = W * 0.74, dsy = H * 0.3, dsr = Math.min(W, H) * 0.24;
+  if (t < 7.2) drawDeathStar2D(dsx, dsy, dsr);
+  else drawDeathStarBoom(dsx, dsy, dsr, t - 7.2);
+  if (t > 9.4) drawVaderHelmet(W * 0.5, H * 0.36, Math.min(W, H) * 0.2, clamp((t - 9.4) / 1.2, 0, 0.92));
+
+  const ships = [
+    { m: MESH.xwing, p: P.xw, glow: true },
+    { m: MESH.falcon, p: P.falcon, yaw: Math.PI },
+    { m: MESH.tie, p: P.tie },
+  ].filter(sh => sh.p.z > 0.8).sort((a, b) => b.p.z - a.p.z);
+  for (const sh of ships) {
+    const tf = drawMesh(sh.m, { x: sh.p.x, y: sh.p.y, z: sh.p.z, roll: sh.p.roll || 0, pitch: sh.p.pitch || 0, yaw: sh.yaw || 0 });
+    if (sh.glow) {
+      ctx.save(); ctx.globalCompositeOperation = 'lighter';
+      for (const q of ENGINE_GLOWS.xwing.pts) { const w = tf(q); glowAt(w[0], w[1], w[2], 0.13, ENGINE_GLOWS.xwing.col); }
+      ctx.restore();
+    }
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter'; ctx.lineCap = 'round';
+  for (const b of finBolts) {
+    line3d(b.x, b.y, b.z, b.x - b.vx * 0.05, b.y - b.vy * 0.05, b.z - b.vz * 0.05, `rgba(${b.col},0.45)`, 0.12);
+    line3d(b.x, b.y, b.z, b.x - b.vx * 0.05, b.y - b.vy * 0.05, b.z - b.vz * 0.05, 'rgba(255,255,240,0.9)', 0.035);
+  }
+  for (const p of particles) {
+    const q = proj(p.x, p.y, p.z);
+    if (!q) continue;
+    const a = clamp(p.life / p.max, 0, 1);
+    ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${a})`;
+    ctx.beginPath(); ctx.arc(q.x, q.y, Math.max(1, p.size * q.s * (0.6 + (1 - a))), 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+  ctx.restore();
+
+  // subtitles
+  const subs = [
+    [0.3, 2.0, '', 'Mission complete… but someone is on your tail!', '#cfd8ea'],
+    [2.0, 4.5, 'DARTH VADER', '“I have you now.”', '#ff6a5a'],
+    [4.8, 7.0, 'HAN SOLO', '“YAHOO! You’re all clear, kid!”', '#ffd84a'],
+    [7.4, 9.4, '', 'The Death Star is destroyed!', '#cfd8ea'],
+    [10.0, 13.4, 'DARTH VADER', '“The Force is strong with this one.”', '#ff6a5a'],
+  ];
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 6;
+  for (const [a, b, who, line, col] of subs) {
+    if (t < a || t > b) continue;
+    ctx.globalAlpha = clamp(Math.min(t - a, b - t) * 3, 0, 1);
+    if (who) { ctx.font = '700 15px system-ui, sans-serif'; ctx.fillStyle = col; ctx.fillText(who, W / 2, H * 0.8); }
+    ctx.font = `800 ${Math.round(clamp(W / 30, 18, 34))}px system-ui, sans-serif`;
+    ctx.fillStyle = who ? '#ffffff' : col;
+    ctx.fillText(line, W / 2, H * 0.8 + 36);
+  }
+  ctx.globalAlpha = 1;
+  if (state === 'finale' && t > 1) {
+    ctx.font = '600 13px system-ui, sans-serif'; ctx.fillStyle = 'rgba(200,210,230,0.7)';
+    ctx.fillText('Click or press any key to skip', W / 2, H - 20);
+  }
+  ctx.restore();
+  if (flash > 0) { ctx.fillStyle = `rgba(255,245,220,${clamp(flash, 0, 1) * 0.85})`; ctx.fillRect(0, 0, W, H); }
+  drawVignette();
 }
 
 // ---------- Overlay / UI ----------
@@ -1802,6 +2404,19 @@ function setAssist(k) {
   const hint = ovBody.querySelector('.assist .hint');
   if (hint) hint.textContent = ASSIST[k].hint;
 }
+function startPicker() {
+  return `<div class="assist"><div class="label">CHOOSE YOUR FIRST MISSION</div><div class="opts">` +
+    WORLDS.map((w, i) => `<button class="opt${i === startWorld ? ' sel' : ''}" data-start="${i}">${w.icon} ${w.short}</button>`).join('') +
+    `</div><p class="hint">The other missions follow in a random order — beat all ${TOTAL_LEVELS} for a secret ending!</p></div>`;
+}
+function setStart(i) {
+  startWorld = i;
+  localStorage.setItem('xw_start', i);
+  for (const b of ovBody.querySelectorAll('[data-start]')) b.classList.toggle('sel', +b.dataset.start === i);
+  worldOrder = [i, ...WORLDS.map((_, k) => k).filter(k => k !== i)];
+  menuScene();   // show the chosen world behind the menu
+}
+
 function gradePicker() {
   return `<div class="assist"><div class="label">SCIENCE QUESTIONS FOR</div><div class="opts">` +
     Object.keys(GRADES).map(k => `<button class="opt${k === grade ? ' sel' : ''}" data-grade="${k}">${GRADES[k].label}</button>`).join('') +
@@ -1819,29 +2434,35 @@ ovBody.addEventListener('click', e => {
   sfx.init();
   if (b.dataset.assist) setAssist(b.dataset.assist);
   else if (b.dataset.grade) setGrade(b.dataset.grade);
+  else if (b.dataset.start) setStart(+b.dataset.start);
   else if (b.dataset.choice) answerQuiz(+b.dataset.choice);
   else if (b.dataset.hint) showHint();
   else if (b.dataset.bonus) chooseBonus(b.dataset.bonus === 'yes');
 });
 
 function showMenu() {
+  finaleActive = false;
+  level = 1;
+  worldOrder = [startWorld, ...WORLDS.map((_, k) => k).filter(k => k !== startWorld)];
   menuScene();
   showOverlay(TITLE_HTML,
-    `<p class="big">Red Five, you're cleared for three missions!</p>
-     <p>🚀 <b>Level 1 — The Death Star:</b> X-wing trench run to the thermal exhaust port.<br>
-     🌲 <b>Level 2 — Endor:</b> speeder bike chase through the forest to the shield bunker.<br>
-     ❄️ <b>Level 3 — Hoth:</b> snowspeeder attack on a giant AT-AT walker.<br>
-     Then the missions repeat — faster and harder!</p>
+    `<p class="big">Red Five, you're cleared for four missions!</p>
+     <p>🚀 <b>The Death Star:</b> X-wing trench run to the thermal exhaust port.<br>
+     🌲 <b>Endor:</b> speeder bike chase through the forest to the shield bunker.<br>
+     ❄️ <b>Hoth:</b> snowspeeder attack on a giant AT-AT walker.<br>
+     🏜️ <b>Tatooine:</b> podrace against 7 rivals — like young Anakin!</p>
+     ${startPicker()}
      <p>🎓 Every mission starts with a briefing: answer ${QUIZ_NEED_LEVEL} real science or math questions to launch.
      If you crash, answer ${QUIZ_NEED_RETRY} more to get a new ship.
      Before launch you can take on a 🎁 bonus round for extra ammo and shields!</p>
      <p class="keys">Main guns (3 hits destroy an enemy): Click / Space<br>
-     Special weapon — torpedo, detonator or harpoon (1 hit): Right-click / X / E<br>
+     Special weapon — torpedo, detonator or harpoon (1 hit), or podracer boost: Right-click / X / E<br>
      Shots are limited — collect orange orbs for ammo, blue for shields.<br>
      Steer: Mouse / Arrow keys / WASD / Touch &nbsp;·&nbsp; Pause: P &nbsp;·&nbsp; Fullscreen: F &nbsp;·&nbsp; Sound: M</p>
      ${gradePicker()}
      ${assistPicker()}
-     ${hi ? `<p>High score: <b>${hi}</b></p>` : ''}`,
+     ${hi ? `<p>High score: <b>${hi}</b></p>` : ''}
+     <a class="share-link" href="share.html" target="_blank" rel="noopener">🔗 Share RoboBandit with a friend</a>`,
     'START', startGame);
 }
 
@@ -1877,6 +2498,15 @@ document.addEventListener('webkitfullscreenchange', resize);
 document.getElementById('btnPause').addEventListener('click', e => { e.currentTarget.blur(); togglePause(); });
 document.getElementById('btnMute').addEventListener('click', e => { e.currentTarget.blur(); sfx.init(); toggleMute(); });
 document.getElementById('btnFs').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
+document.getElementById('btnShare').addEventListener('click', e => { e.currentTarget.blur(); if (state === 'playing') togglePause(); shareGame(); });
+
+// Phones get the built-in share sheet; everywhere else opens the share page
+function shareGame() {
+  const url = new URL('share.html', location.href).href;
+  if (navigator.share) {
+    navigator.share({ title: 'RoboBandit — Starfighter Run', text: 'Fly four space missions and answer science questions to launch!', url }).catch(() => {});
+  } else window.open(url, '_blank', 'noopener');
+}
 
 // ---------- Science quiz ----------
 // g: 'y' = ages 7–8, 'p' = ages 9–11, 'b' = both. a[0] is always the correct answer (choices get shuffled).
@@ -2088,6 +2718,55 @@ const QUESTIONS = [
     a: ['Snow has trapped air, which keeps heat in', 'Snow is secretly warm', 'Ice makes its own heat', 'Igloos have heaters in the walls'],
     hint: 'A puffy winter coat works the same way.',
     learn: 'Packed snow is full of tiny air pockets, and trapped air is a great insulator — it slows heat from escaping. Body heat alone can make the inside of an igloo much warmer than outside!' },
+  // Desert & racing questions for the Tatooine podrace
+  { g: 'b', t: 'EARTH SCIENCE', q: 'Tatooine is a desert planet. What makes a place a desert?',
+    a: ['It gets very little rain or snow', 'It is always hot', 'It is covered in sand', 'It has camels'],
+    hint: 'Some deserts are freezing cold!',
+    learn: 'A desert is any place that gets very little rain or snow — less than about 25 cm (10 inches) a year. Deserts can be cold too: icy Antarctica is the biggest desert on Earth!' },
+  { g: 'p', t: 'PHYSICS', q: 'On a hot desert road, you might see a shimmering "puddle" that isn’t really there. This is called a…',
+    a: ['Mirage', 'Hologram', 'Rainbow', 'Eclipse'],
+    hint: 'Cartoon characters lost in the desert see one.',
+    learn: 'Hot air near the ground bends (refracts) light coming from the sky, so you see a shiny patch of sky on the road that looks like water.' },
+  { g: 'y', t: 'PHYSICS', q: 'Tatooine has two suns. Standing outside on a two-sun planet, how many shadows could you have?',
+    a: ['Two', 'None', 'One', 'Ten'],
+    hint: 'Each light makes its own shadow.',
+    learn: 'Every light source makes its own shadow. Stand between two lamps in a dark room and you’ll see two shadows — just like Luke would on Tatooine!' },
+  { g: 'p', t: 'PHYSICS', q: 'Podracers go super fast. What does SPEED tell you?',
+    a: ['How far something goes in a certain time', 'How heavy something is', 'How loud something is', 'How hot something is'],
+    hint: 'Think "kilometres per hour" or "miles per hour."',
+    learn: 'Speed = distance ÷ time. Real race cars can go faster than 350 km/h (about 220 mph)!' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'How do cactuses survive in the dry desert?',
+    a: ['They store water in their thick stems', 'They drink from rivers', 'They never need water', 'They eat sand'],
+    hint: 'Squeeze a cactus stem (carefully!) and it’s juicy inside.',
+    learn: 'Cactus stems swell up to store water after it rains. Their spines are special leaves that lose very little water — and keep thirsty animals away!' },
+  { g: 'p', t: 'EARTH SCIENCE', q: 'What is the largest HOT desert on Earth?',
+    a: ['The Sahara', 'The Mojave', 'Death Valley', 'The Gobi'],
+    hint: 'It covers much of northern Africa.',
+    learn: 'The Sahara is about as big as the whole United States! Some of Star Wars’ Tatooine scenes were filmed in Tunisia, at the edge of the Sahara.' },
+  { g: 'p', t: 'PHYSICS', q: 'Race engines burn fuel. What kind of energy do they turn it into to make the vehicle move?',
+    a: ['Motion (kinetic) energy', 'Only sound', 'Only light', 'Magnetic energy'],
+    hint: '"Kinetic" means "moving."',
+    learn: 'Energy changes form! Burning fuel releases chemical energy as heat, and the engine turns it into kinetic (motion) energy. Some is lost as heat and sound — that’s why engines are hot and loud.' },
+  { g: 'y', t: 'EARTH SCIENCE', q: 'The desert is hot in the daytime. What usually happens at night?',
+    a: ['It gets much colder', 'It gets even hotter', 'It stays exactly the same', 'It rains every night'],
+    hint: 'Deserts have very few clouds to act like a blanket.',
+    learn: 'Dry air and clear skies let heat escape into space after sunset, so deserts can get very cold at night.' },
+  { g: 'b', t: 'MATH', q: 'There are 8 racers. You start in LAST place and pass 5 racers, and nobody passes you. What place are you in now?',
+    a: ['3rd', '5th', '2nd', '4th'],
+    hint: 'Last place out of 8 is 8th. Each racer you pass moves you up one.',
+    learn: 'You started 8th. Passing 5 racers moves you up 5 places: 8 − 5 = 3rd place!' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'Which of these animals lives in the desert?',
+    a: ['A scorpion', 'A penguin', 'A dolphin', 'A polar bear'],
+    hint: 'It has pincers and a curved tail.',
+    learn: 'Scorpions hide under rocks during the hot day and hunt at night. Some can go months without eating!' },
+  { g: 'p', t: 'PHYSICS', q: 'Why do race vehicles have smooth, pointy shapes?',
+    a: ['So air flows around them with less drag', 'To look scary', 'To make them heavier', 'To make more noise'],
+    hint: 'Try running with an open umbrella in front of you.',
+    learn: 'Air pushes against moving things — that’s called drag. Streamlined shapes let the air flow smoothly around them, so they go faster using less energy.' },
+  { g: 'b', t: 'SPACE', q: 'A "shooting star" is really…',
+    a: ['A small space rock burning up in our air', 'A star falling to Earth', 'A spaceship', 'A firework'],
+    hint: 'It is much, much smaller than a star.',
+    learn: 'Bits of space rock called meteoroids zoom into our atmosphere and burn up, making a streak of light — a meteor. If a piece reaches the ground, it’s called a meteorite!' },
 ];
 
 const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
@@ -2277,6 +2956,46 @@ const AMERICA = [
     a: ['Orbit (circle) the Earth', 'Walk on the Moon', 'Fly an airplane', 'Visit Mars'],
     hint: 'His capsule was called Friendship 7.',
     learn: 'John Glenn circled Earth 3 times. In 1998, at age 77, he flew to space again on the Space Shuttle — the oldest person in space at the time!' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'What is the name of America’s national anthem?',
+    a: ['The Star-Spangled Banner', 'Twinkle, Twinkle, Little Star', 'Yankee Doodle', 'Happy Birthday'],
+    hint: 'It is about the flag still flying after a battle.',
+    learn: 'Francis Scott Key wrote the words in 1814 after watching a battle at Fort McHenry and seeing the American flag still flying at dawn.' },
+  { g: 'p', t: 'CIVICS', q: 'The 19th Amendment (1920) gave women the right to…',
+    a: ['Vote', 'Drive cars', 'Go to school', 'Own pets'],
+    hint: 'It is about choosing leaders in elections.',
+    learn: 'After many years of hard work by suffragists like Susan B. Anthony, the 19th Amendment guaranteed women the right to vote.' },
+  { g: 'b', t: 'AMERICAN HISTORY', q: 'In 1869, the first railroad across America was finished by hammering in a special…',
+    a: ['Golden spike', 'Silver bell', 'Diamond', 'Flag pole'],
+    hint: 'It was made of a shiny, valuable metal.',
+    learn: 'At Promontory Summit, Utah, a golden spike joined the two halves of the Transcontinental Railroad. A trip across the country dropped from months to about a week!' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'Which President’s face is on the penny?',
+    a: ['Abraham Lincoln', 'George Washington', 'Thomas Jefferson', 'Benjamin Franklin'],
+    hint: 'He was the 16th President.',
+    learn: 'Lincoln has been on the penny since 1909 — the 100th anniversary of his birth.' },
+  { g: 'p', t: 'ECONOMICS', q: 'When lots of stores sell the same kind of toy, prices usually go down. This is because of…',
+    a: ['Competition', 'Gravity', 'Taxes', 'Weather'],
+    hint: 'The stores are trying to win your business.',
+    learn: 'Competition means businesses try to win customers with lower prices and better products — great news for shoppers!' },
+  { g: 'b', t: 'ECONOMICS', q: 'Why do people put money in a bank savings account?',
+    a: ['To keep it safe and earn interest', 'So it disappears', 'To turn it into gold', 'Because banks pay you to spend it'],
+    hint: 'The bank pays you a little extra for keeping it there.',
+    learn: 'Banks keep money safe and pay interest — a small reward for letting them lend your money to others. Over time, interest on interest (compound interest) really adds up!' },
+  { g: 'p', t: 'CIVICS', q: 'How old must you be to vote in U.S. elections?',
+    a: ['18', '12', '16', '30'],
+    hint: 'It is the age most people finish high school.',
+    learn: 'The 26th Amendment (1971) lowered the voting age from 21 to 18.' },
+  { g: 'b', t: 'AMERICAN HISTORY', q: 'The famous Pony Express (1860–1861) delivered…',
+    a: ['Mail, on horseback', 'Pizza', 'Pony rides', 'Newspapers by train'],
+    hint: 'Riders galloped across the West.',
+    learn: 'Riders carried mail about 3,000 km (1,900 miles) from Missouri to California in about 10 days, swapping to fresh horses along the way. The telegraph replaced it after just 18 months.' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'Which November holiday do Americans celebrate by giving thanks, often with turkey?',
+    a: ['Thanksgiving', 'Halloween', 'Independence Day', 'Valentine’s Day'],
+    hint: 'Its name tells you what to do!',
+    learn: 'Thanksgiving remembers the 1621 harvest feast shared by the Pilgrims and the Wampanoag people. Abraham Lincoln made it a national holiday in 1863.' },
+  { g: 'p', t: 'INVENTORS', q: 'Which famous American pilot was the first woman to fly solo across the Atlantic Ocean?',
+    a: ['Amelia Earhart', 'Sally Ride', 'Rosa Parks', 'Betsy Ross'],
+    hint: 'She vanished over the Pacific in 1937.',
+    learn: 'Amelia Earhart flew solo across the Atlantic in 1932. She disappeared while trying to fly around the world in 1937 — still one of history’s great mysteries.' },
 ];
 
 const decks = {};
@@ -2382,6 +3101,8 @@ const BOOKS = [
     about: 'Two kids run a lemonade stand in the snow and learn about counting money, prices and profit.' },
   { g: 'p', title: 'A Child’s Introduction to the Night Sky', author: 'Michael Driscoll',
     about: 'Learn the stars, planets and constellations — then go outside and find them yourself!' },
+  { g: 'b', title: 'Who Was Amelia Earhart?', author: 'Kate Boehm Jerome',
+    about: 'The daring pilot who flew solo across the Atlantic — and her mysterious last flight.' },
 ];
 function bookCard() {
   const b = drawBook();
@@ -2467,6 +3188,7 @@ const KEYMAP = {
   ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'fire',
 };
 window.addEventListener('keydown', e => {
+  if (state === 'finale') { if (finaleT > 1) finishFinale(); return; }
   // Quiz answers use letters A–D (checked first, since A and D also steer)
   if (state === 'quiz' && /^Key[A-D]$/.test(e.code)) { answerQuiz(e.code.charCodeAt(3) - 65); return; }
   const k = KEYMAP[e.code];
@@ -2499,6 +3221,7 @@ function pointerTarget(e) {
 }
 canvas.addEventListener('pointerdown', e => {
   sfx.init();
+  if (state === 'finale') { if (finaleT > 1) finishFinale(); return; }
   canvas.setPointerCapture(e.pointerId);
   pointerTarget(e);
   // Mouse buttons fire; touches on the canvas only steer (use the on-screen buttons to fire)

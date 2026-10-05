@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>RoboBandit — Starfighter Run</title>
+<meta name="description" content="Fly four Star Wars–inspired missions — the Death Star, Endor, Hoth and a Tatooine podrace. Answer real science and math questions to launch! Free in your browser, made for ages 7–11.">
+<meta name="theme-color" content="#070b18">
+<link rel="icon" href="favicon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<!-- Social sharing previews. Most sites need a full web address for the image: replace "og-image.png"
+     with e.g. https://your-site.com/og-image.png once the game is online. -->
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:title" content="RoboBandit — Starfighter Run">
+<meta property="og:description" content="Fly four space missions — the Death Star, Endor, Hoth and a Tatooine podrace. Answer science and math questions to launch!">
+<meta property="og:image" content="og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="RoboBandit: an X-wing flying down the Death Star trench">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RoboBandit — Starfighter Run">
+<meta name="twitter:description" content="Fly four space missions and answer science questions to launch. Free in your browser!">
+<meta name="twitter:image" content="og-image.png">
+<style>
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; min-height: 100vh; color: #e6eefc;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    background: radial-gradient(ellipse at top, #1d2d50, #070b18 60%) fixed;
+    display: flex; justify-content: center; padding: 24px 16px 40px;
+  }
+  main { width: 100%; max-width: 760px; text-align: center; }
+  .logo { width: 88px; height: 88px; }
+  h1 {
+    margin: 6px 0 0; font-size: clamp(36px, 8vw, 60px); letter-spacing: 4px;
+    color: #ffd84a; text-shadow: 0 0 22px rgba(255,200,40,.55);
+  }
+  .tag { margin: 2px 0 18px; letter-spacing: 6px; color: #fff3b0; font-weight: 700; }
+  .preview {
+    width: 100%; border-radius: 14px; display: block;
+    border: 1px solid rgba(255,220,120,.35); box-shadow: 0 10px 40px rgba(0,0,0,.5);
+  }
+  p { line-height: 1.6; color: #cfd8ea; font-size: 17px; }
+  .missions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0; }
+  .missions span { padding: 6px 12px; border-radius: 20px; background: rgba(127,208,255,.12); color: #bfe6ff; font-weight: 600; }
+  .play {
+    display: inline-block; margin: 14px 0 28px; padding: 16px 44px; border-radius: 10px;
+    font-size: 22px; font-weight: 800; letter-spacing: 2px; text-decoration: none;
+    color: #111; background: #ffd84a; box-shadow: 0 0 24px rgba(255,200,40,.5);
+  }
+  .play:hover { background: #ffe680; }
+  h2 { font-size: 16px; letter-spacing: 3px; color: #9fb0cc; margin: 0 0 12px; }
+  .share { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; }
+  .share a, .share button {
+    display: inline-flex; align-items: center; gap: 8px; padding: 11px 18px; border-radius: 8px;
+    font: 700 15px system-ui, sans-serif; color: #fff; text-decoration: none; cursor: pointer;
+    border: 1px solid rgba(255,255,255,.25); background: rgba(255,255,255,.08);
+  }
+  .share a:hover, .share button:hover { background: rgba(255,255,255,.18); }
+  .share .native { background: #2f6fde; border-color: #2f6fde; }
+  #copied { min-height: 1.4em; color: #46e08a; font-weight: 700; margin-top: 10px; }
+  footer { margin-top: 30px; font-size: 13px; color: #7d8aa3; }
+</style>
+</head>
+<body>
+<main>
+  <img class="logo" src="favicon.svg" alt="RoboBandit logo">
+  <h1>ROBOBANDIT</h1>
+  <div class="tag">STARFIGHTER RUN</div>
+
+  <a href="index.html"><img class="preview" src="og-image.png" alt="An X-wing flying down the Death Star trench"></a>
+
+  <p>Fly four space missions, dodge obstacles, blast enemies — and answer real science and math
+     questions to launch! Made for curious kids ages 7–11, and free to play right in your browser.</p>
+  <div class="missions">
+    <span>🚀 Death Star</span><span>🌲 Endor</span><span>❄️ Hoth</span><span>🏜️ Tatooine Podrace</span>
+  </div>
+
+  <a class="play" href="index.html">▶ PLAY NOW</a>
+
+  <h2>SHARE WITH A FRIEND</h2>
+  <div class="share">
+    <button class="native hidden" id="nativeShare">📤 Share…</button>
+    <a id="shareX" target="_blank" rel="noopener">𝕏 Post</a>
+    <a id="shareFacebook" target="_blank" rel="noopener">f Facebook</a>
+    <a id="shareWhatsApp" target="_blank" rel="noopener">💬 WhatsApp</a>
+    <a id="shareEmail">✉️ Email</a>
+    <a id="shareText">📱 Text message</a>
+    <button id="copyLink">🔗 Copy link</button>
+  </div>
+  <div id="copied"></div>
+
+  <footer>RoboBandit is a fan-made learning game inspired by Star Wars. Not affiliated with Lucasfilm or Disney.</footer>
+</main>
+<script>
+  // Share this page (it has the preview image and a big Play button)
+  const url = location.href.split(/[?#]/)[0];
+  const title = 'RoboBandit — Starfighter Run';
+  const text = 'Fly four space missions and answer science questions to launch! 🚀';
+  const enc = encodeURIComponent;
+  document.getElementById('shareX').href = `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`;
+  document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;
+  document.getElementById('shareWhatsApp').href = `https://wa.me/?text=${enc(text + ' ' + url)}`;
+  document.getElementById('shareEmail').href = `mailto:?subject=${enc(title)}&body=${enc(text + '\n\n' + url)}`;
+  document.getElementById('shareText').href = `sms:?&body=${enc(text + ' ' + url)}`;
+
+  const native = document.getElementById('nativeShare');
+  if (navigator.share) {
+    native.classList.remove('hidden');
+    native.addEventListener('click', () => navigator.share({ title, text, url }).catch(() => {}));
+  } else native.style.display = 'none';
+
+  document.getElementById('copyLink').addEventListener('click', async () => {
+    const msg = document.getElementById('copied');
+    try { await navigator.clipboard.writeText(url); msg.textContent = 'Link copied! Paste it anywhere to share.'; }
+    catch { msg.textContent = url; }
+  });
+</script>
+</body>
+</html>
