@@ -1,0 +1,2543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<title>Star Wars X-Wing Starfighter Run</title>
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+  }
+  canvas { display: block; width: 100vw; height: 100vh; cursor: crosshair; }
+  #overlay {
+    position: fixed; inset: 0; display: flex;
+    background: radial-gradient(ellipse at center, rgba(0,10,30,.55), rgba(0,0,0,.85));
+    z-index: 5; overflow-y: auto;
+  }
+  #overlay.hidden, .hidden { display: none !important; }
+  .panel {
+    max-width: 600px; margin: auto; padding: 26px 30px; text-align: center;
+    border: 1px solid rgba(255,220,120,.35); border-radius: 14px;
+    background: rgba(5,10,25,.85); box-shadow: 0 0 40px rgba(255,190,60,.15);
+  }
+  .panel h1 {
+    margin: 0 0 12px; font-size: clamp(24px, 5vw, 42px); letter-spacing: 3px; line-height: 1.15;
+    color: #ffd84a; text-shadow: 0 0 18px rgba(255,200,40,.6);
+  }
+  .panel h1 small { display: block; font-size: .55em; letter-spacing: 8px; color: #fff3b0; }
+  .panel p { margin: 8px 0; line-height: 1.5; color: #cfd8ea; }
+  .panel .keys { font-size: 14px; color: #9fb0cc; }
+  .panel .big { font-size: 20px; color: #fff; }
+  .panel button {
+    margin-top: 18px; padding: 12px 34px; font-size: 18px; font-weight: 700; letter-spacing: 2px;
+    color: #111; background: #ffd84a; border: 0; border-radius: 8px; cursor: pointer;
+    box-shadow: 0 0 20px rgba(255,200,40,.45);
+  }
+  .panel button:hover { background: #ffe680; }
+  .assist { margin: 16px 0 4px; padding: 12px; border: 1px solid rgba(255,255,255,.15); border-radius: 10px; }
+  .assist .label { font-size: 13px; letter-spacing: 3px; color: #9fb0cc; margin-bottom: 8px; }
+  .assist .opts { display: flex; gap: 6px; justify-content: center; flex-wrap: wrap; }
+  .panel .assist button.opt {
+    margin: 0; padding: 8px 14px; font-size: 14px; letter-spacing: 1px; box-shadow: none;
+    color: #cfd8ea; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.25);
+  }
+  .panel .assist button.opt.sel { color: #111; background: #7fd0ff; border-color: #7fd0ff; }
+  .assist .hint { font-size: 13px; color: #9fb0cc; margin: 8px 0 0; min-height: 1.5em; }
+  /* Science quiz */
+  .quiz { text-align: left; }
+  .quiz .qneed { text-align: center; color: #cfd8ea; }
+  .quiz .qtop { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; }
+  .quiz .topic {
+    font-size: 12px; font-weight: 700; letter-spacing: 2px; padding: 4px 10px; border-radius: 20px;
+    background: rgba(127,208,255,.15); color: #7fd0ff;
+  }
+  .quiz .stars { color: #ffd84a; font-size: 24px; letter-spacing: 4px; }
+  .quiz .qtext { font-size: 20px; color: #fff; line-height: 1.45; }
+  .quiz .choices { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 12px; }
+  @media (max-width: 520px) { .quiz .choices { grid-template-columns: 1fr; } }
+  .panel button.choice {
+    margin: 0; padding: 12px 14px; font-size: 16px; font-weight: 600; letter-spacing: 0; text-align: left;
+    color: #fff; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.3); box-shadow: none;
+  }
+  .panel button.choice { display: flex; align-items: center; gap: 12px; }
+  .panel button.choice .letter {
+    flex: none; width: 28px; height: 28px; border-radius: 50%; display: grid; place-items: center;
+    font-size: 14px; font-weight: 800; color: #111; background: #ffd84a;
+  }
+  .panel button.choice:hover { background: rgba(127,208,255,.25); }
+  .panel button.choice:disabled { cursor: default; opacity: .55; background: rgba(255,255,255,.08); }
+  .panel button.choice.right { opacity: 1; background: #1f8a4c; border-color: #46e08a; }
+  .panel button.choice.wrong { opacity: 1; background: #8a1f1f; border-color: #ff6a6a; }
+  .panel button.hintbtn {
+    margin-top: 12px; padding: 6px 14px; font-size: 14px; letter-spacing: 0; box-shadow: none;
+    color: #ffd84a; background: transparent; border: 1px solid rgba(255,216,74,.5);
+  }
+  .panel button.hintbtn:hover { background: rgba(255,216,74,.12); }
+  .quiz .hinttext { background: rgba(255,216,74,.1); border-left: 3px solid #ffd84a; padding: 8px 12px; border-radius: 6px; }
+  .quiz .feedback { margin-top: 14px; padding: 12px 14px; border-radius: 10px; line-height: 1.5; color: #e6eefc; }
+  .quiz .feedback.good { background: rgba(70,224,138,.12); border-left: 3px solid #46e08a; }
+  .quiz .feedback.bad { background: rgba(255,154,106,.12); border-left: 3px solid #ff9a6a; }
+  /* Bonus offer */
+  .yesno { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .panel .yesno button.no { color: #cfd8ea; background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.3); box-shadow: none; }
+  .panel .yesno button.no:hover { background: rgba(255,255,255,.2); }
+  /* Book recommendation */
+  .book {
+    margin-top: 16px; padding: 14px 16px; text-align: left; border-radius: 10px;
+    background: rgba(127,208,255,.08); border: 1px solid rgba(127,208,255,.35);
+  }
+  .book .bk-head { font-weight: 700; color: #7fd0ff; margin-bottom: 8px; }
+  .book .bk-title { font-size: 19px; font-weight: 800; color: #fff; }
+  .book .bk-author { color: #9fb0cc; font-style: italic; }
+  .book p { margin: 8px 0; }
+  .book a { color: #ffd84a; font-weight: 700; }
+  #topbar { position: fixed; top: 12px; right: 12px; display: flex; gap: 8px; z-index: 10; }
+  #topbar button {
+    width: 42px; height: 42px; font-size: 18px; color: #fff; cursor: pointer;
+    background: rgba(20,30,50,.6); border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
+  }
+  #topbar button:hover { background: rgba(60,80,120,.75); }
+  #fireButtons { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 12px; z-index: 4; }
+  #fireButtons button {
+    width: 84px; height: 84px; border-radius: 50%; font-size: 12px; font-weight: 800; letter-spacing: 1px;
+    color: #fff; border: 2px solid rgba(255,255,255,.6); touch-action: none;
+  }
+  #btnLaser { background: rgba(200,40,30,.55); }
+  #btnTorp { background: rgba(40,120,220,.55); }
+  #fireButtons button:active { filter: brightness(1.6); }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="topbar">
+  <button id="btnPause" title="Pause (P)">❚❚</button>
+  <button id="btnMute" title="Sound on/off (M)">🔊</button>
+  <button id="btnFs" title="Fullscreen (F)">⛶</button>
+</div>
+
+<div id="fireButtons" class="hidden">
+  <button id="btnLaser">LASER<br>CANNONS</button>
+  <button id="btnTorp">PROTON<br>TORPEDO</button>
+</div>
+
+<div id="overlay">
+  <div class="panel">
+    <h1 id="ovTitle"></h1>
+    <div id="ovBody"></div>
+    <button id="ovBtn">START</button>
+  </div>
+</div>
+
+<script>
+'use strict';
+
+// ---------- Constants ----------
+const TW = 3;          // channel half-width
+const TH = 5;          // channel depth (floor y=0, rim y=TH)
+const VIEW = 230;      // draw distance
+const SEG = 4;         // wall segment length
+const NEAR = 0.4;      // near clip distance
+const CAM_BACK = 5.5;  // camera distance behind ship
+let SHIP_HW = 0.55, SHIP_HH = 0.28;   // vehicle hitbox half-size (set per world)
+let FOG = [4, 6, 16];                 // distance haze colour (set per world)
+const TOWER_HP = 3;    // 3 laser hits or 1 special weapon (torpedo / detonator / harpoon)
+const TITLE_HTML = '<small>STAR WARS</small>X-WING STARFIGHTER RUN';
+
+// Aim assist: radius = how far from your flight line an enemy can be and still get locked;
+// turn = max sideways speed a shot can steer at (units/s).
+const ASSIST = {
+  off:  { label: 'OFF',    radius: 0,   turn: 0,        hint: 'No help — aim it yourself, pilot.' },
+  low:  { label: 'LOW',    radius: 1.5, turn: 8,        hint: 'Shots bend slightly toward enemies near your crosshair.' },
+  med:  { label: 'MEDIUM', radius: 3.2, turn: 22,       hint: 'Shots home in on the next enemy around you.' },
+  full: { label: 'FULL',   radius: 99,  turn: Infinity, hint: 'Every shot seeks the next available enemy. Use the Force!' },
+};
+
+// Science quiz gate: correct answers needed before each level, and to get a new X-wing after a crash.
+const QUIZ_NEED_LEVEL = 2;
+const QUIZ_NEED_RETRY = 1;
+// Optional bonus round before launch: each right answer earns a torpedo and extra shields.
+const BONUS_QUESTIONS = 2;
+const BONUS_TORP = 1;
+const BONUS_SHIELD = 25;
+const SHIELD_MAX = 150;   // bonus shields can go above the normal 100
+const GRADES = {
+  y: { label: 'YOUNGLING · AGES 7–8' },
+  p: { label: 'PADAWAN · AGES 9–11' },
+};
+
+// Levels cycle through these worlds: 1 = Death Star, 2 = Endor, 3 = Hoth, 4 = Death Star (harder), …
+// pool: obstacle types unlocked at difficulty tier 1, 2, 3 (tier goes up each time the cycle repeats).
+const WORLDS = [
+  {
+    key: 'deathstar', name: 'THE DEATH STAR', vehicle: 'xwing', vehicleName: 'X-wing', hit: [0.55, 0.28],
+    fog: [4, 6, 16], floor: [76, 80, 92], wallL: [112, 117, 130], wallR: [86, 90, 104], lights: true, clipEnd: true,
+    obstacleRGB: [[118, 124, 136], [128, 116, 108], [104, 116, 130]],
+    pool: [['low', 'high', 'left', 'right', 'center'], ['window', 'diag', 'window'], ['cross', 'window']],
+    enemy: 'tower', guns: [[0.835, 0.204], [-0.835, -0.204], [-0.835, 0.204], [0.835, -0.204]],
+    laserName: 'LASER CANNONS', secName: 'PROTON TORPEDOES', secOne: 'PROTON TORPEDO', secBtn: 'PROTON<br>TORPEDO', secVerb: 'FIRE TORPEDO',
+    targetName: 'THERMAL EXHAUST PORT', targetShort: 'EXHAUST PORT',
+    approachMsg: 'THERMAL EXHAUST PORT AHEAD — FIRE A TORPEDO!',
+    laserMsg: 'LASERS WON\'T GET IN — USE A PROTON TORPEDO!',
+    missMsg: 'NEGATIVE — IT JUST IMPACTED ON THE SURFACE',
+    missedText: 'No proton torpedo went down the thermal exhaust port.',
+    winTitle: 'GREAT SHOT!', winText: 'the thermal exhaust port is hit!',
+    intro: 'Skim the Death Star\'s surface in an X-wing, dodge the bulkheads, blast the turbolaser towers as they pop up — and put a proton torpedo into the thermal exhaust port.',
+  },
+  {
+    key: 'endor', name: 'THE FOREST MOON OF ENDOR', vehicle: 'bike', vehicleName: 'speeder bike', hit: [0.4, 0.3],
+    fog: [34, 50, 38], floor: [58, 76, 42], path: [100, 84, 58], clipEnd: false,
+    obstacleRGB: [[92, 64, 42], [82, 58, 40], [100, 70, 46]],
+    pool: [['trunk', 'log', 'branch', 'twin'], ['twin', 'trunkLog', 'trunk'], ['twin', 'branchLow']],
+    enemy: 'scout', guns: [[0, -0.15]],
+    laserName: 'BLASTER CANNON', secName: 'THERMAL DETONATORS', secOne: 'THERMAL DETONATOR', secBtn: 'THERMAL<br>DETONATOR', secVerb: 'THROW DETONATOR',
+    targetName: 'SHIELD GENERATOR BUNKER', targetShort: 'SHIELD BUNKER',
+    approachMsg: 'SHIELD BUNKER AHEAD — HIT THE BLAST DOOR WITH A DETONATOR!',
+    laserMsg: 'BLASTERS WON\'T OPEN IT — USE A THERMAL DETONATOR!',
+    missMsg: 'MISSED THE BLAST DOOR!',
+    missedText: 'No thermal detonator hit the bunker’s blast door.',
+    winTitle: 'THE SHIELD IS DOWN!', winText: 'the shield generator bunker is destroyed!',
+    intro: 'Race a speeder bike through the giant trees of Endor, dodge logs and branches, blast the Imperial scout troopers — and knock out the shield generator bunker with a thermal detonator.',
+  },
+  {
+    key: 'hoth', name: 'THE ICE PLANET HOTH', vehicle: 'snowspeeder', vehicleName: 'snowspeeder', hit: [0.6, 0.22],
+    fog: [206, 220, 232], floor: [228, 234, 242], wallL: [205, 218, 232], wallR: [172, 190, 210], lights: false, clipEnd: false,
+    obstacleRGB: [[196, 218, 236], [182, 206, 228], [210, 226, 240]],
+    pool: [['ridge', 'icicle', 'spire', 'legs'], ['arch', 'legs', 'iceL', 'iceR'], ['arch', 'legs']],
+    enemy: 'probe', guns: [[0.6, 0], [-0.6, 0]],
+    laserName: 'LASER CANNONS', secName: 'HARPOONS', secOne: 'HARPOON', secBtn: 'HARPOON<br>&amp; CABLE', secVerb: 'FIRE HARPOON',
+    targetName: 'AT-AT WALKER — HARPOON ITS LEG', targetShort: 'AT-AT',
+    approachMsg: 'AT-AT AHEAD — HARPOON ITS LEG!',
+    laserMsg: 'LASERS CAN\'T PIERCE AT-AT ARMOR — USE YOUR HARPOON!',
+    missMsg: 'THE HARPOON MISSED!',
+    missedText: 'Your harpoon didn’t catch the AT-AT’s leg.',
+    winTitle: 'THE AT-AT IS DOWN!', winText: 'your tow cable tripped the AT-AT walker!',
+    intro: 'Fly a snowspeeder through the ice canyons of Hoth, dodge ice and walker legs, blast the probe droids — and trip the giant AT-AT with your harpoon and tow cable.',
+  },
+];
+let world = WORLDS[0];
+const worldFor = n => WORLDS[(n - 1) % WORLDS.length];
+const tierFor = n => 1 + Math.floor((n - 1) / WORLDS.length);
+
+// ---------- Canvas ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 0, H = 0, F = 0, CX = 0, CY = 0;
+
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  W = window.innerWidth; H = window.innerHeight;
+  canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+  ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  F = Math.min(W * 0.9, H * 1.15);
+  CX = W / 2; CY = H * 0.40;
+}
+window.addEventListener('resize', resize);
+resize();
+
+// ---------- Helpers ----------
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => v < a ? a : v > b ? b : v;
+function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x - Math.floor(x); }
+function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
+
+// ---------- Audio ----------
+let muted = false;
+const sfx = (() => {
+  let ac = null, master = null, noiseBuf = null;
+  function init() {
+    if (!ac) {
+      const AC = window.AudioContext || window.webkitAudioContext;
+      if (!AC) return;
+      ac = new AC();
+      master = ac.createGain(); master.gain.value = 0.5; master.connect(ac.destination);
+      noiseBuf = ac.createBuffer(1, ac.sampleRate * 1.5, ac.sampleRate);
+      const d = noiseBuf.getChannelData(0);
+      for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    }
+    if (ac.state === 'suspended') ac.resume();
+  }
+  const ok = () => ac && !muted;
+  function tone(type, f0, f1, dur, vol, delay = 0) {
+    if (!ok()) return;
+    const t = ac.currentTime + delay;
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type;
+    o.frequency.setValueAtTime(f0, t);
+    o.frequency.exponentialRampToValueAtTime(Math.max(f1, 1), t + dur);
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g); g.connect(master);
+    o.start(t); o.stop(t + dur + 0.02);
+  }
+  function noise(dur, vol, f0, f1) {
+    if (!ok()) return;
+    const t = ac.currentTime;
+    const s = ac.createBufferSource(); s.buffer = noiseBuf;
+    const fl = ac.createBiquadFilter(); fl.type = 'lowpass';
+    fl.frequency.setValueAtTime(f0, t);
+    fl.frequency.exponentialRampToValueAtTime(f1, t + dur);
+    const g = ac.createGain();
+    g.gain.setValueAtTime(vol, t);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(fl); fl.connect(g); g.connect(master);
+    s.start(t); s.stop(t + dur);
+  }
+  return {
+    init,
+    laser()  { tone('square', 1400, 180, 0.13, 0.06); },
+    torp()   { tone('sawtooth', 220, 900, 0.35, 0.08); noise(0.4, 0.25, 4000, 300); },
+    empty()  { tone('square', 120, 100, 0.06, 0.05); },
+    enemy()  { tone('sawtooth', 500, 120, 0.18, 0.025); },
+    tick()   { tone('square', 900, 600, 0.05, 0.05); },
+    rise()   { tone('triangle', 80, 220, 0.25, 0.05); },
+    hit()    { noise(0.35, 0.5, 2000, 100); tone('sawtooth', 160, 40, 0.3, 0.12); },
+    small()  { noise(0.4, 0.35, 2500, 150); },
+    boom()   { noise(1.4, 0.9, 3000, 40); tone('sine', 90, 25, 1.2, 0.4); },
+    pickup() { tone('sine', 600, 1200, 0.15, 0.15); tone('sine', 900, 1800, 0.15, 0.1, 0.08); },
+    right()  { [660, 880, 1320].forEach((f, i) => tone('sine', f, f, 0.18, 0.12, i * 0.08)); },
+    wrong()  { tone('triangle', 300, 200, 0.3, 0.1); },
+    win()    { [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, 0.35, 0.15, 0.4 + i * 0.13)); },
+    lose()   { [392, 330, 262].forEach((f, i) => tone('triangle', f, f * 0.98, 0.4, 0.15, i * 0.18)); },
+  };
+})();
+
+// ---------- Game state ----------
+let state = 'menu';   // menu | quiz | playing | paused | pullup | victory | dead | overlay
+let pausedFrom = null;
+let level = 1, score = 0, levelStartScore = 0;
+let bonus = { torp: 0, shield: 0 };   // earned in the bonus round, applied at launch
+let grade = localStorage.getItem('xw_grade');
+if (!GRADES[grade]) grade = 'y';
+let hi = +(localStorage.getItem('xw_hi') || 0);
+let assist = localStorage.getItem('xw_assist');
+if (!ASSIST[assist]) assist = 'med';
+let time = 0;
+
+const player = { x: 0, y: 2, z: 0, vx: 0, vy: 0, bank: 0, shield: 100, inv: 0, fireCd: 0, torpCd: 0, gun: 0 };
+const cam = { x: 0, y: 3, z: -CAM_BACK };
+const target = { x: 0, y: 2 };
+const input = { left: false, right: false, up: false, down: false, fire: false, torp: false, pointerFire: false, btnLaser: false, mouse: false };
+const ammo = { laser: 0, torp: 0 };
+
+let levelSpeed = 30, speed = 30, endZ = 1e9;
+let port = { x: 0, y: 2, r: 1 };
+let obstacles = [], towers = [], pickups = [], shots = [], bolts = [], particles = [];
+let lockTarget = null;
+let shake = 0, flash = 0, hitFlash = 0, stateTimer = 0;
+let msg = '', msgT = 0, finalWarned = false;
+
+function showMsg(text, t = 1.6) { msg = text; msgT = t; }
+
+// ---------- Level generation ----------
+function setWorld(w) {
+  world = w;
+  FOG = w.fog;
+  [SHIP_HW, SHIP_HH] = w.hit;
+  btnLaser.innerHTML = w.laserName.replace(' ', '<br>');
+  btnTorp.innerHTML = w.secBtn;
+}
+
+// rects = collision boxes [x0, x1, y0, y1]; draw = what to render (e.g. tree trunks that rise above the
+// play area); decor = extra scenery boxes that can't be hit (e.g. the body above AT-AT legs).
+function makeObstacle(type, z, n) {
+  let rects, draw = null, decor = null, depth = rand(0.8, 1.4);
+  let rgb = pick(world.obstacleRGB);
+  const tall = rs => rs.map(r => [r[0], r[1], r[2], r[3] >= TH ? TH + 14 : r[3]]);
+  switch (type) {
+    case 'low': case 'ridge':     rects = [[-TW, TW, 0, rand(1.9, 2.5)]]; break;
+    case 'high': case 'icicle':   rects = [[-TW, TW, rand(2.4, 3.0), TH]]; break;
+    case 'left': case 'iceL':     rects = [[-TW, rand(0, 0.8), 0, TH]]; break;
+    case 'right': case 'iceR':    rects = [[rand(-0.8, 0), TW, 0, TH]]; break;
+    case 'center': case 'spire': { const w = rand(0.7, 1.0); rects = [[-w, w, 0, TH]]; break; }
+    case 'diag':
+      rects = Math.random() < 0.5
+        ? [[-TW, 0, 0, 2.5], [0, TW, 2.5, TH]]
+        : [[0, TW, 0, 2.5], [-TW, 0, 2.5, TH]];
+      break;
+    case 'cross':  rects = [[-TW, TW, 0, 1.6], [-0.6, 0.6, 1.6, TH]]; break;
+    case 'window': case 'arch': {
+      const hw = clamp(1.3 - n * 0.05, 0.95, 1.3), hh = clamp(1.05 - n * 0.04, 0.8, 1.05);
+      const hx = rand(-TW + hw + 0.2, TW - hw - 0.2), hy = rand(hh + 0.3, TH - hh - 0.3);
+      rects = [[-TW, hx - hw, 0, TH], [hx + hw, TW, 0, TH],
+               [hx - hw, hx + hw, 0, hy - hh], [hx - hw, hx + hw, hy + hh, TH]]
+        .filter(r => r[1] - r[0] > 0.01 && r[3] - r[2] > 0.01);
+      break;
+    }
+    // Endor
+    case 'trunk': {
+      const w = rand(0.9, 1.3), x = rand(-2, 2);
+      rects = [[x - w / 2, x + w / 2, 0, TH]]; depth = w; draw = tall(rects);
+      break;
+    }
+    case 'twin': rects = [[-2.05, -1.15, 0, TH], [1.15, 2.05, 0, TH]]; depth = 0.9; draw = tall(rects); break;
+    case 'log': rects = [[-TW, TW, 0, rand(1.4, 2.0)]]; depth = 0.9; rgb = [106, 78, 52]; break;
+    case 'branch': { const y = rand(2.5, 2.9); rects = [[-TW, TW, y, y + 0.6]]; depth = 0.5; rgb = [88, 64, 42]; break; }
+    case 'branchLow': { const y = rand(1.5, 1.9); rects = [[-TW, TW, y, y + 0.55]]; depth = 0.5; rgb = [88, 64, 42]; break; }
+    case 'trunkLog': {
+      const x = rand(-1.5, 1.5);
+      rects = [[-TW, TW, 0, 1.5], [x - 0.5, x + 0.5, 1.5, TH]]; depth = 1; draw = tall(rects);
+      break;
+    }
+    // Hoth: a pair of AT-AT legs with the walker's body overhead
+    case 'legs': {
+      const c = rand(-0.5, 0.5);
+      rects = [[c - 1.6, c - 1.0, 0, TH], [c + 1.0, c + 1.6, 0, TH]];
+      draw = rects.map(r => [r[0], r[1], 0, 6.2]);
+      depth = 0.6; rgb = [112, 115, 124];
+      decor = { rects: [[c - 1.9, c + 1.9, 6.2, 8.4]], z0: z - 0.8, z1: z + 3.6, rgb: [120, 123, 132] };
+      break;
+    }
+  }
+  return { z, depth, rects, draw: draw || rects, decor, rgb, hit: false, passed: false };
+}
+
+// Enemies pop up as you approach: turbolaser towers rise from the Death Star surface,
+// scout troopers swoop out from behind Endor's trees, probe droids rise out of Hoth's snow.
+function makeEnemy(z) {
+  const t = { kind: world.enemy, z, hp: TOWER_HP, pending: 0, rise: 0, alive: true, cd: rand(0.5, 2), flash: 0, hitFlash: 0, phase: rand(0, 6) };
+  if (t.kind === 'tower') { t.side = pick(['L', 'R', 'F']); t.ax = rand(-2.2, 2.2); t.ay = rand(1, 4.2); }
+  else if (t.kind === 'scout') { const s = pick([-1, 1]); t.fx = s * rand(1.2, 2.3); t.sx = s * 7; t.fy = rand(0.8, 2.2); }
+  else { t.fx = rand(-2.2, 2.2); t.fy = rand(1.4, 3.6); t.sy = -0.8; }
+  updateTowerPos(t);
+  return t;
+}
+
+function towerBox(t) {
+  if (t.kind === 'tower') {
+    const h = 0.6 * t.rise;
+    if (t.side === 'L') return [-TW, -TW + h, t.ay - 0.3, t.ay + 0.3];
+    if (t.side === 'R') return [TW - h, TW, t.ay - 0.3, t.ay + 0.3];
+    return [t.ax - 0.3, t.ax + 0.3, 0, h];
+  }
+  const hw = t.kind === 'scout' ? 0.45 : 0.35;
+  return [t.x - hw, t.x + hw, t.y - 0.35, t.y + 0.35];
+}
+function updateTowerPos(t) {
+  if (t.kind === 'tower') {
+    const b = towerBox(t);
+    t.x = (b[0] + b[1]) / 2; t.y = (b[2] + b[3]) / 2;
+    return;
+  }
+  const e = 1 - (1 - t.rise) ** 2;
+  const bob = Math.sin(time * 3 + t.phase) * 0.08 * t.rise;
+  if (t.kind === 'scout') { t.x = t.sx + (t.fx - t.sx) * e; t.y = t.fy + bob; }
+  else { t.x = t.fx + Math.sin(time * 1.3 + t.phase) * 0.15 * t.rise; t.y = t.sy + (t.fy - t.sy) * e + bob; }
+}
+
+let atatFall = 0;   // Hoth victory: how far the AT-AT has toppled (0..1)
+
+function buildLevel(n) {
+  setWorld(worldFor(n));
+  const tier = tierFor(n);
+  levelSpeed = Math.min(60, 30 + (n - 1) * 4);
+  endZ = 900 + n * 300;
+  obstacles = []; towers = []; pickups = [];
+  atatFall = 0;
+
+  const pool = world.pool.slice(0, tier).flat();
+  const gapTime = Math.max(0.55, 1.1 - n * 0.08);
+  const gap = gapTime * levelSpeed;
+  let z = 70, prev = 30;
+  while (z < endZ - 260) {
+    obstacles.push(makeObstacle(pick(pool), z, n));
+    const mid = (prev + z) / 2;
+    const r = Math.random();
+    if (r < Math.min(0.75, 0.3 + n * 0.1)) towers.push(makeEnemy(mid));
+    else if (r > 0.88) {
+      pickups.push({ kind: Math.random() < 0.5 ? 'shield' : 'ammo', x: rand(-2, 2), y: rand(1, 4), z: mid, taken: false });
+    }
+    prev = z;
+    z += gap * rand(0.85, 1.35);
+  }
+  const r = Math.max(0.6, 1.15 - n * 0.1);
+  if (world.key === 'deathstar') port = { x: rand(-1.8, 1.8), y: rand(1.2, 3.8), r };
+  else if (world.key === 'endor') port = { x: rand(-1.6, 1.6), y: rand(1.2, 2.0), r };
+  else port = { x: pick([-1, 1]), y: 2.7, r: Math.max(0.55, r * 0.9) };   // AT-AT front leg's knee
+  ammo.laser = 100 + n * 20;
+  ammo.torp = 5 + Math.floor(n / 2);
+}
+
+function snapCamera() {
+  cam.x = player.x * 0.8;
+  cam.y = Math.min(player.y + 1.0, TH - 0.15);
+  cam.z = player.z - CAM_BACK;
+}
+
+function resetPlayer(z) {
+  Object.assign(player, { x: 0, y: 2, z, vx: 0, vy: 0, bank: 0, inv: 1, fireCd: 0, torpCd: 0 });
+  target.x = 0; target.y = 2;
+  speed = levelSpeed;
+  shots = []; bolts = [];
+  for (const t of towers) t.pending = 0;
+  snapCamera();
+}
+
+function startGame() {
+  level = 1; score = 0; player.shield = 100;
+  briefing();
+}
+
+// Every level is unlocked by answering science questions.
+function briefing() {
+  const w = worldFor(level);
+  startQuiz(QUIZ_NEED_LEVEL, 'MISSION BRIEFING',
+    `Level ${level} — ${w.name}: get ${QUIZ_NEED_LEVEL} questions right to launch your ${w.vehicleName}!`,
+    () => offerBonus(() => startLevel(level)));
+}
+
+function retryLevel() {
+  score = levelStartScore;
+  player.shield = 100;
+  startLevel(level);
+}
+
+function startLevel(n) {
+  levelStartScore = score;
+  buildLevel(n);
+  resetPlayer(0);
+  finalWarned = false;
+  state = 'playing';
+  hideOverlay();
+  if (bonus.torp || bonus.shield) {
+    ammo.torp += bonus.torp;
+    player.shield = Math.min(SHIELD_MAX, player.shield + bonus.shield);
+    showMsg(`BONUS: +${bonus.torp} ${bonus.torp === 1 ? world.secOne : world.secName}, +${bonus.shield} SHIELDS`, 3);
+    bonus = { torp: 0, shield: 0 };
+  } else showMsg(`LEVEL ${n}: ${world.name}`, 2.5);
+}
+
+function retryApproach() {
+  resetPlayer(endZ - 260);
+  finalWarned = false;
+  let rearmed = false;
+  if (ammo.torp < 2) { ammo.torp = 2; rearmed = true; }
+  if (ammo.laser < 20) { ammo.laser = 20; rearmed = true; }
+  state = 'playing';
+  hideOverlay();
+  showMsg(rearmed ? 'REARMED — LINE UP AND FIRE!' : 'LINE UP AND FIRE!', 2);
+}
+
+function menuScene() {
+  state = 'menu';
+  setWorld(worldFor(level));   // the quiz and menu background shows the world you're about to fly in
+  obstacles = []; towers = []; pickups = []; shots = []; bolts = [];
+  endZ = 1e9; levelSpeed = speed = 24;
+}
+
+// ---------- Particles ----------
+function burst(x, y, z, n, cols, spd, size, life = 0.8) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * Math.PI * 2, b = Math.random() * Math.PI - Math.PI / 2;
+    const v = spd * rand(0.3, 1);
+    particles.push({
+      x, y, z,
+      vx: Math.cos(a) * Math.cos(b) * v, vy: Math.sin(b) * v, vz: Math.sin(a) * Math.cos(b) * v,
+      life: life * rand(0.5, 1), max: life, col: pick(cols), size: size * rand(0.5, 1.2),
+    });
+  }
+}
+const FIRE = [[255, 230, 120], [255, 150, 40], [255, 90, 20], [255, 255, 220]];
+const SPARK = [[255, 220, 140], [255, 180, 80]];
+const BLUE = [[120, 200, 255], [200, 240, 255]];
+const SNOW = [[200, 214, 230], [176, 194, 214]];
+
+// ---------- Weapons ----------
+// Is the straight line between two points free of bulkheads?
+function clearShot(x0, y0, z0, x1, y1, z1) {
+  for (const o of obstacles) {
+    if (o.z + o.depth <= z0 || o.z >= z1) continue;
+    const t = (o.z - z0) / (z1 - z0);
+    const x = x0 + (x1 - x0) * t, y = y0 + (y1 - y0) * t;
+    if (o.rects.some(r => x > r[0] && x < r[1] && y > r[2] && y < r[3])) return false;
+  }
+  return true;
+}
+
+// Next available enemy for aim assist: the closest tower ahead that is within the assist radius,
+// has a clear line of fire and isn't already going to be destroyed by shots in flight.
+function pickTarget(kind) {
+  const a = ASSIST[assist];
+  if (!a.radius) return null;
+  let best = null;
+  for (const t of towers) {
+    if (!t.alive || t.rise < 1 || t.pending >= t.hp) continue;
+    const d = t.z - player.z;
+    if (d < 6 || d > 130) continue;
+    if (Math.abs(t.x - player.x) > a.radius || Math.abs(t.y - player.y) > a.radius) continue;
+    if (best && t.z >= best.z) continue;
+    if (!clearShot(player.x, player.y, player.z + 1, t.x, t.y, t.z - 0.3)) continue;
+    best = t;
+  }
+  if (!best && kind === 'torp' && endZ - player.z < VIEW &&
+      Math.hypot(port.x - player.x, port.y - player.y) < a.radius * 1.2) return 'port';
+  return best;
+}
+
+function fireShot(kind) {
+  const torp = kind === 'torp';
+  if (ammo[kind] <= 0) {
+    if (msgT <= 0.3) showMsg(torp ? `NO ${world.secName} LEFT` : `${world.laserName} DEPLETED`, 1);
+    sfx.empty();
+    return;
+  }
+  ammo[kind]--;
+  let sx, sy;
+  if (torp) { sx = player.x; sy = player.y - 0.15; }
+  else {
+    const g = world.guns[player.gun++ % world.guns.length];
+    sx = player.x + g[0];
+    sy = player.y + g[1];
+  }
+  const tgt = pickTarget(kind);
+  const dmg = torp ? TOWER_HP : 1;
+  if (tgt && tgt !== 'port') tgt.pending += dmg;
+  shots.push({
+    kind, dmg, tgt,
+    x: sx, y: sy, z: player.z + 0.5, z0: player.z + 0.5,
+    // unassisted shots converge onto the flight line; assisted ones steer from the muzzle
+    bx: tgt ? sx : player.x, by: tgt ? sy : player.y,
+    ox: tgt ? 0 : sx - player.x, oy: tgt ? 0 : sy - player.y,
+    vx: 0, vy: 0, vz: speed + (torp ? 80 : 150), life: torp ? 4 : 1.7,
+  });
+  if (torp) sfx.torp(); else sfx.laser();
+}
+
+function hitTower(t, s) {
+  t.hp -= s.dmg;
+  if (t.hp <= 0) {
+    t.alive = false;
+    score += 150;
+    sfx.small();
+    burst(t.x, t.y, t.z, s.kind === 'torp' ? 50 : 30, FIRE, s.kind === 'torp' ? 9 : 6, 0.25, 0.8);
+  } else {
+    t.hitFlash = 0.12;
+    sfx.tick();
+    burst(s.x, s.y, t.z - 0.3, 8, SPARK, 4, 0.08, 0.3);
+  }
+}
+
+function damage(a) {
+  if (player.inv > 0) return;
+  player.shield -= a;
+  player.inv = 0.8;
+  shake = 0.6; hitFlash = 1;
+  sfx.hit();
+  burst(player.x, player.y, player.z, 18, SPARK, 6, 0.12, 0.5);
+  if (player.shield <= 0) { player.shield = 0; die(); }
+}
+
+function die() {
+  state = 'dead';
+  stateTimer = 2;
+  shake = 1.3; flash = 0.6;
+  sfx.boom();
+  burst(player.x, player.y, player.z, 70, FIRE, 9, 0.35, 1.3);
+  shots = [];
+}
+
+function victory() {
+  state = 'victory';
+  stateTimer = 3;
+  flash = 1; shake = 1.4;
+  const ammoBonus = ammo.laser * 5 + ammo.torp * 100;
+  const bonus = 1000 * level + Math.round(player.shield) * 10 + ammoBonus;
+  score += bonus;
+  victory.bonus = bonus;
+  victory.ammoBonus = ammoBonus;
+  sfx.boom(); sfx.win();
+  burst(port.x, port.y, endZ - 0.5, 120, FIRE, 14, 0.6, 1.6);
+  shots = []; bolts = [];
+  showMsg('DIRECT HIT!', 2.5);
+}
+
+function saveHi() {
+  if (score > hi) { hi = Math.floor(score); localStorage.setItem('xw_hi', hi); }
+}
+
+// ---------- Update ----------
+function updateSteering(dt) {
+  const KS = 8;
+  if (!input.mouse) {
+    target.x += ((input.right ? 1 : 0) - (input.left ? 1 : 0)) * KS * dt;
+    target.y += ((input.up ? 1 : 0) - (input.down ? 1 : 0)) * KS * dt;
+  }
+  target.x = clamp(target.x, -TW + SHIP_HW + 0.05, TW - SHIP_HW - 0.05);
+  target.y = clamp(target.y, SHIP_HH + 0.15, TH - 0.4);
+  const MAXV = 10;
+  const dvx = clamp((target.x - player.x) * 8, -MAXV, MAXV);
+  const dvy = clamp((target.y - player.y) * 8, -MAXV, MAXV);
+  const k = Math.min(1, dt * 10);
+  player.vx += (dvx - player.vx) * k;
+  player.vy += (dvy - player.vy) * k;
+  player.x = clamp(player.x + player.vx * dt, -TW + SHIP_HW, TW - SHIP_HW);
+  player.y = clamp(player.y + player.vy * dt, SHIP_HH + 0.1, TH - 0.3);
+  player.bank += (player.vx * 0.06 - player.bank) * Math.min(1, dt * 8);
+}
+
+function updateShots(dt) {
+  const turn = ASSIST[assist].turn;
+  for (const s of shots) {
+    const pz = s.z;
+    // aim-assist steering
+    if (s.tgt && s.tgt !== 'port' && !s.tgt.alive) s.tgt = null;
+    if (s.tgt) {
+      const tx = s.tgt === 'port' ? port.x : s.tgt.x;
+      const ty = s.tgt === 'port' ? port.y : s.tgt.y;
+      const tz = s.tgt === 'port' ? endZ : s.tgt.z - 0.3;
+      const tt = Math.max(0.02, (tz - s.z) / s.vz);
+      s.vx = clamp((tx - s.x) / tt, -turn, turn);
+      s.vy = clamp((ty - s.y) / tt, -turn, turn);
+    }
+    s.z += s.vz * dt; s.life -= dt;
+    s.bx += s.vx * dt; s.by += s.vy * dt;
+    const c = Math.max(0, 1 - (s.z - s.z0) / 25);
+    s.x = s.bx + s.ox * c; s.y = s.by + s.oy * c;
+
+    // bulkheads
+    for (const o of obstacles) {
+      if (s.z >= o.z && pz <= o.z + o.depth && o.z > pz - 2) {
+        if (o.rects.some(r => s.x > r[0] && s.x < r[1] && s.y > r[2] && s.y < r[3])) {
+          s.life = 0;
+          if (s.kind === 'torp') { burst(s.x, s.y, o.z - 0.05, 30, FIRE, 6, 0.2, 0.6); sfx.small(); }
+          else burst(s.x, s.y, o.z - 0.05, 6, SPARK, 4, 0.08, 0.3);
+          break;
+        }
+      }
+    }
+    if (s.life <= 0) continue;
+
+    // turbolaser towers
+    for (const t of towers) {
+      if (!t.alive || t.rise <= 0.2) continue;
+      const b = towerBox(t);
+      if (s.z >= t.z - 0.4 && pz <= t.z + 0.4 &&
+          s.x > b[0] - 0.25 && s.x < b[1] + 0.25 && s.y > b[2] - 0.25 && s.y < b[3] + 0.25) {
+        s.life = 0;
+        hitTower(t, s);
+        break;
+      }
+    }
+    if (s.life <= 0) continue;
+
+    // final target (exhaust port / bunker blast door / AT-AT leg)
+    if (s.z >= endZ) {
+      s.life = 0;
+      const inPort = Math.hypot(s.x - port.x, s.y - port.y) < port.r;
+      // the Death Star wall and the bunker are solid; on Hoth only the AT-AT's legs stop a shot
+      const solid = world.key !== 'hoth' || (Math.abs(Math.abs(s.x) - 1) < 0.32 && s.y < 5.6);
+      if (s.kind === 'torp') {
+        if (inPort) { victory(); return; }
+        if (solid) { burst(s.x, s.y, endZ - 0.1, 40, FIRE, 7, 0.25, 0.7); sfx.small(); }
+        showMsg(world.missMsg, 1.6);
+      } else {
+        if (solid) burst(s.x, s.y, endZ - 0.05, 8, SPARK, 4, 0.1, 0.35);
+        if (inPort) showMsg(world.laserMsg, 1.8);
+      }
+    }
+  }
+  shots = shots.filter(s => {
+    if (s.life > 0) return true;
+    if (s.tgt && s.tgt !== 'port') s.tgt.pending -= s.dmg;
+    return false;
+  });
+}
+
+function updatePlaying(dt) {
+  const prevZ = player.z;
+  player.z += speed * dt;
+  score += speed * dt * 0.2;
+  player.inv = Math.max(0, player.inv - dt);
+  updateSteering(dt);
+
+  // Fire
+  player.fireCd -= dt; player.torpCd -= dt;
+  if ((input.fire || input.pointerFire || input.btnLaser) && player.fireCd <= 0) {
+    fireShot('laser');
+    player.fireCd = ammo.laser > 0 ? 0.16 : 0.4;
+  }
+  if (input.torp && player.torpCd <= 0) {
+    input.torp = false;   // one torpedo per press
+    fireShot('torp');
+    player.torpCd = 0.7;
+  }
+
+  // Bulkhead collisions
+  for (const o of obstacles) {
+    if (o.passed) continue;
+    // Swept test: ship span this frame overlaps the obstacle's depth
+    if (!o.hit && player.z + 0.5 > o.z && prevZ - 0.5 < o.z + o.depth) {
+      for (const r of o.rects) {
+        if (player.x + SHIP_HW > r[0] && player.x - SHIP_HW < r[1] &&
+            player.y + SHIP_HH > r[2] && player.y - SHIP_HH < r[3]) {
+          o.hit = true;
+          player.inv = 0;
+          damage(30);
+          showMsg('DEFLECTORS HIT!', 1);
+          break;
+        }
+      }
+    }
+    if (player.z - 0.5 > o.z + o.depth) {
+      o.passed = true;
+      if (!o.hit) score += 50;
+    }
+  }
+  if (state !== 'playing') return;
+
+  // Towers pop up and fire
+  const boltSpeed = 40 + level * 3;
+  for (const t of towers) {
+    if (!t.alive) continue;
+    t.flash = Math.max(0, t.flash - dt);
+    t.hitFlash = Math.max(0, t.hitFlash - dt);
+    const d = t.z - player.z;
+    if (t.rise < 1 && d < 150) {
+      if (t.rise === 0) {
+        sfx.rise();
+        if (t.kind === 'tower') burst(t.x, t.y, t.z, 10, SPARK, 2, 0.1, 0.5);
+        else if (t.kind === 'probe') burst(t.fx, 0.1, t.z, 16, SNOW, 3, 0.14, 0.7);
+      }
+      t.rise = Math.min(1, t.rise + dt * 1.6);
+    }
+    if (d < 160) updateTowerPos(t);
+    if (t.hp < TOWER_HP && Math.random() < dt * 6) burst(t.x, t.y + 0.3, t.z, 1, FIRE, 1.5, 0.12, 0.5);
+    if (t.rise >= 1 && d > 20 && d < 120) {
+      t.cd -= dt;
+      if (t.cd <= 0) {
+        t.cd = rand(1.4, 2.6) / (1 + level * 0.12);
+        t.flash = 0.15;
+        const T = d / (boltSpeed + speed);
+        const ax = player.x + rand(-0.3, 0.3), ay = player.y + rand(-0.3, 0.3), az = player.z + speed * T;
+        const dx = ax - t.x, dy = ay - t.y, dz = az - t.z;
+        const len = Math.hypot(dx, dy, dz) || 1;
+        bolts.push({ x: t.x, y: t.y, z: t.z - 0.35, vx: dx / len * boltSpeed, vy: dy / len * boltSpeed, vz: dz / len * boltSpeed, life: 4 });
+        sfx.enemy();
+      }
+    }
+  }
+
+  // Enemy bolts
+  for (const b of bolts) {
+    const pz = b.z;
+    b.x += b.vx * dt; b.y += b.vy * dt; b.z += b.vz * dt; b.life -= dt;
+    if ((pz - prevZ) >= -0.6 && (b.z - player.z) <= 0.6 &&
+        Math.abs(b.x - player.x) < 0.65 && Math.abs(b.y - player.y) < 0.45) {
+      b.life = 0;
+      damage(12);
+    }
+  }
+  bolts = bolts.filter(b => b.life > 0 && b.z > cam.z);
+  if (state !== 'playing') return;
+
+  updateShots(dt);
+  if (state !== 'playing') return;
+  lockTarget = pickTarget('laser');
+
+  // Pickups
+  for (const p of pickups) {
+    if (p.taken) continue;
+    if (player.z + 0.8 > p.z && prevZ - 0.8 < p.z &&
+        Math.abs(p.x - player.x) < 1 && Math.abs(p.y - player.y) < 0.9) {
+      p.taken = true;
+      score += 50;
+      sfx.pickup();
+      if (p.kind === 'shield') {
+        player.shield = Math.max(player.shield, Math.min(100, player.shield + 25));
+        showMsg('+25 DEFLECTOR SHIELDS', 1);
+        burst(p.x, p.y, p.z, 20, BLUE, 4, 0.12, 0.5);
+      } else {
+        ammo.laser += 30; ammo.torp += 1;
+        showMsg(`+30 SHOTS  +1 ${world.secOne}`, 1);
+        burst(p.x, p.y, p.z, 20, SPARK, 4, 0.12, 0.5);
+      }
+    }
+  }
+
+  // Final approach
+  if (!finalWarned && endZ - player.z < 230) {
+    finalWarned = true;
+    showMsg(world.approachMsg, 2.5);
+  }
+  if (player.z > endZ - 10) {
+    state = 'pullup';
+    stateTimer = 1.4;
+    showMsg('PULL UP!', 1.4);
+  }
+}
+
+function updatePullup(dt) {
+  speed *= Math.max(0, 1 - dt * 2);
+  player.z = Math.min(player.z + speed * dt, endZ - 3);
+  player.y += 9 * dt;
+  player.bank *= 0.95;
+  stateTimer -= dt;
+  if (stateTimer <= 0) {
+    player.shield -= 25;
+    sfx.lose();
+    if (player.shield <= 0) { player.shield = 0; crashed(); return; }
+    state = 'overlay';
+    showOverlay('MISSED!',
+      `<p class="big">${world.missedText}</p>
+       <p>Loop around for another run. Deflector shields −25.</p>`,
+      'TRY AGAIN', retryApproach);
+  }
+}
+
+function updateVictory(dt) {
+  speed *= Math.max(0, 1 - dt * 1.2);
+  player.z = Math.min(player.z + speed * dt, endZ - 6);
+  stateTimer -= dt;
+  if (stateTimer < 2.6) player.y += 7 * dt;
+  if (world.key === 'hoth') atatFall = Math.min(1, atatFall + dt * 0.55);
+  if (Math.random() < dt * 12) {
+    burst(port.x + rand(-2, 2), port.y + rand(-1.5, 1.5), endZ - 0.5, 25, FIRE, 9, 0.5, 1.2);
+    shake = Math.max(shake, 0.4);
+  }
+  if (stateTimer <= 0) {
+    saveHi();
+    state = 'overlay';
+    showOverlay(world.winTitle,
+      `<p class="big">Level ${level} complete — ${world.winText}</p>
+       <p>Next mission: <b>${worldFor(level + 1).name}</b> in a ${worldFor(level + 1).vehicleName}!</p>
+       <p>Bonus: <b>+${victory.bonus}</b> (unused ammo: +${victory.ammoBonus})</p>
+       <p>Score: <b>${Math.floor(score)}</b></p>
+       ${bookCard()}`,
+      'NEXT LEVEL', () => { level++; player.shield = Math.max(player.shield, Math.min(100, player.shield + 30)); briefing(); });
+  }
+}
+
+function crashed() {
+  saveHi();
+  state = 'overlay';
+  sfx.lose();
+  showOverlay(`${world.vehicleName.toUpperCase()} DESTROYED`,
+    `<p class="big">Don't give up, pilot!</p>
+     <p>Answer ${QUIZ_NEED_RETRY} science question correctly in the repair bay to get a new ${world.vehicleName}
+     and try level ${level} again.</p>
+     <p>High score: ${hi}</p>`,
+    'TO THE REPAIR BAY',
+    () => startQuiz(QUIZ_NEED_RETRY, 'REPAIR BAY',
+      `Get ${QUIZ_NEED_RETRY} right and the mechanics will rebuild your ${world.vehicleName}!`, () => offerBonus(retryLevel)));
+}
+
+function updateCamera(dt) {
+  const tx = player.x * 0.8, ty = Math.min(player.y + 1.0, TH - 0.15);
+  const k = Math.min(1, dt * 6);
+  cam.x += (tx - cam.x) * k;
+  cam.y += (ty - cam.y) * k;
+  cam.z = player.z - CAM_BACK;
+}
+
+function update(dt) {
+  time += dt;
+  if (msgT > 0) msgT -= dt;
+  shake = Math.max(0, shake - dt * 2.5);
+  flash = Math.max(0, flash - dt * 0.8);
+  hitFlash = Math.max(0, hitFlash - dt * 2);
+
+  for (const p of particles) {
+    p.x += p.vx * dt; p.y += p.vy * dt; p.z += p.vz * dt;
+    p.vx *= 0.97; p.vy *= 0.97; p.vz *= 0.97;
+    p.life -= dt;
+  }
+  particles = particles.filter(p => p.life > 0);
+
+  if (state === 'menu' || state === 'quiz') {
+    player.z += speed * dt;
+    const nx = Math.sin(time * 0.6) * 1.6, ny = 2.4 + Math.sin(time * 0.9) * 1.2;
+    player.vx = (nx - player.x) / Math.max(dt, 1e-3);
+    player.x = nx; player.y = ny;
+    player.bank += (player.vx * 0.06 - player.bank) * Math.min(1, dt * 8);
+  } else if (state === 'playing') updatePlaying(dt);
+  else if (state === 'pullup') updatePullup(dt);
+  else if (state === 'victory') updateVictory(dt);
+  else if (state === 'dead') {
+    speed *= Math.max(0, 1 - dt * 1.5);
+    player.z += speed * dt;
+    stateTimer -= dt;
+    if (stateTimer <= 0) crashed();
+  }
+  if (state !== 'overlay') updateCamera(dt);
+}
+
+// ---------- Rendering ----------
+function proj(x, y, z) {
+  const dz = z - cam.z;
+  if (dz < 0.1) return null;
+  const s = F / dz;
+  return { x: CX + (x - cam.x) * s, y: CY - (y - cam.y) * s, s };
+}
+
+function shade(r, g, b, d) {
+  let k = 1 - d / VIEW;
+  k = k < 0 ? 0 : k > 1 ? 1 : k;
+  k = Math.pow(k, 1.2);
+  return `rgb(${(FOG[0] + (r - FOG[0]) * k) | 0},${(FOG[1] + (g - FOG[1]) * k) | 0},${(FOG[2] + (b - FOG[2]) * k) | 0})`;
+}
+
+function face(pts, fill, stroke) {
+  ctx.beginPath();
+  for (let i = 0; i < pts.length; i++) {
+    const q = proj(pts[i][0], pts[i][1], pts[i][2]);
+    if (!q) return;
+    if (i === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+  }
+  ctx.closePath();
+  ctx.fillStyle = fill; ctx.fill();
+  if (stroke) { ctx.strokeStyle = stroke; ctx.lineWidth = 1; ctx.stroke(); }
+}
+
+// Draw a group of axis-aligned boxes sharing the same z-range: side faces first, then fronts.
+function drawBoxes(rects, z0, z1, rgb, inset) {
+  const n = cam.z + NEAR;
+  if (z1 <= n) return;
+  const front = z0 >= n;
+  if (!front) z0 = n;
+  const d = z0 - cam.z;
+  const [r, g, b] = rgb;
+  const edge = shade(r * 0.45, g * 0.45, b * 0.45, d);
+  for (const [x0, x1, y0, y1] of rects) {
+    if (cam.y > y1) face([[x0, y1, z0], [x1, y1, z0], [x1, y1, z1], [x0, y1, z1]], shade(r * 1.3, g * 1.3, b * 1.3, d), edge);
+    if (cam.y < y0) face([[x0, y0, z0], [x1, y0, z0], [x1, y0, z1], [x0, y0, z1]], shade(r * 0.45, g * 0.45, b * 0.45, d), edge);
+    if (cam.x < x0) face([[x0, y0, z0], [x0, y1, z0], [x0, y1, z1], [x0, y0, z1]], shade(r * 0.85, g * 0.85, b * 0.85, d), edge);
+    if (cam.x > x1) face([[x1, y0, z0], [x1, y1, z0], [x1, y1, z1], [x1, y0, z1]], shade(r * 0.65, g * 0.65, b * 0.65, d), edge);
+  }
+  if (!front) return;
+  for (const [x0, x1, y0, y1] of rects) {
+    face([[x0, y0, z0], [x1, y0, z0], [x1, y1, z0], [x0, y1, z0]], shade(r, g, b, d), edge);
+    if (inset && x1 - x0 > 0.7 && y1 - y0 > 0.7) {
+      const m = 0.18, zz = z0 - 0.01;
+      face([[x0 + m, y0 + m, zz], [x1 - m, y0 + m, zz], [x1 - m, y1 - m, zz], [x0 + m, y1 - m, zz]],
+        shade(r * 0.78, g * 0.78, b * 0.78, d));
+    }
+  }
+}
+
+const stars = Array.from({ length: 260 }, () => ({ x: Math.random(), y: Math.random(), s: Math.random() }));
+const canopy = Array.from({ length: 50 }, () => ({ x: Math.random(), y: Math.random() * 0.12, r: rand(0.04, 0.1), c: pick(['#0c1d12', '#12291a', '#091610', '#183520']) }));
+const peaks = Array.from({ length: 26 }, (_, i) => ({ x: i / 25, h: i % 2 ? rand(0.02, 0.05) : rand(0.06, 0.12) }));
+const flakes = Array.from({ length: 150 }, () => ({ x: Math.random(), y: Math.random(), s: rand(1, 3.2), v: rand(0.08, 0.25) }));
+
+function drawSky() {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  if (world.key === 'deathstar') { g.addColorStop(0, '#02030a'); g.addColorStop(1, '#0a0f24'); }
+  else if (world.key === 'endor') { g.addColorStop(0, '#07110a'); g.addColorStop(0.45, '#2a4432'); g.addColorStop(1, '#3d5a45'); }
+  else { g.addColorStop(0, '#7f9cb8'); g.addColorStop(0.42, '#d6e3ee'); g.addColorStop(1, '#eef4f8'); }
+  ctx.fillStyle = g;
+  ctx.fillRect(-30, -30, W + 60, H + 60);
+  if (world.key === 'deathstar') {
+    for (const s of stars) {
+      let x = (s.x * W * 1.3 - cam.x * 6 * (0.5 + s.s)) % W;
+      if (x < 0) x += W;
+      const y = s.y * H * 0.9 + cam.y * 4;
+      const tw = 0.5 + 0.5 * Math.sin(time * 2 + s.x * 50);
+      ctx.fillStyle = `rgba(255,255,255,${0.3 + 0.6 * s.s * tw})`;
+      const sz = s.s > 0.9 ? 2 : 1.2;
+      ctx.fillRect(x, y, sz, sz);
+    }
+  } else if (world.key === 'hoth') {
+    // distant snowy mountains on the horizon
+    const off = -cam.x * 4;
+    ctx.fillStyle = '#b2c4d6';
+    ctx.beginPath(); ctx.moveTo(-60, CY + 2);
+    for (const p of peaks) ctx.lineTo(p.x * (W + 120) - 60 + off, CY - p.h * H);
+    ctx.lineTo(W + 60, CY + 2); ctx.closePath(); ctx.fill();
+  }
+}
+
+// Endor's treetops close over the path like a ceiling of leaves
+function drawCanopy() {
+  ctx.fillStyle = '#081209';
+  ctx.fillRect(-30, -30, W + 60, H * 0.04 + 30);
+  for (const b of canopy) {
+    let x = (b.x * W * 1.3 - cam.x * 12) % (W * 1.3);
+    if (x < 0) x += W * 1.3;
+    ctx.fillStyle = b.c;
+    ctx.beginPath(); ctx.arc(x - W * 0.15, b.y * H, b.r * Math.max(W, H), 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+function drawSnowfall() {
+  ctx.fillStyle = 'rgba(255,255,255,0.85)';
+  for (const f of flakes) {
+    let x = (f.x + Math.sin(time * 0.7 + f.y * 9) * 0.02 - cam.x * 0.01 * f.s) % 1;
+    if (x < 0) x += 1;
+    const y = (f.y + time * f.v * (0.6 + f.s * 0.3)) % 1;
+    ctx.beginPath(); ctx.arc(x * W, y * H, f.s, 0, Math.PI * 2); ctx.fill();
+  }
+}
+
+// Death Star trench and Hoth ice canyon: a floor and two walls, drawn in segments far → near
+function drawSurface() {
+  if (world.key === 'endor') return drawForest();
+  const near = cam.z + NEAR;
+  const zEnd = world.clipEnd ? endZ : Infinity;
+  const startSeg = Math.floor(near / SEG);
+  const endSeg = Math.floor(Math.min(cam.z + VIEW, zEnd) / SEG);
+  const [fr, fg, fb] = world.floor, [lr, lg, lb] = world.wallL, [rr, rg, rb] = world.wallR;
+  const ice = world.key === 'hoth';
+  const vr = ice ? 10 : 18;
+  for (let i = endSeg; i >= startSeg; i--) {
+    const z0 = Math.max(i * SEG, near), z1 = Math.min((i + 1) * SEG, zEnd);
+    if (z0 >= z1) continue;
+    const d = z0 - cam.z;
+    const v = (hash(i) - 0.5) * vr;
+    const line = ice ? shade(160, 180, 204, d) : shade(30, 32, 40, d);
+    face([[-TW, 0, z0], [TW, 0, z0], [TW, 0, z1], [-TW, 0, z1]], shade(fr + v, fg + v, fb + v, d), line);
+    face([[-TW, 0, z0], [-TW, TH, z0], [-TW, TH, z1], [-TW, 0, z1]], shade(lr + v, lg + v, lb + v, d), line);
+    face([[TW, 0, z0], [TW, TH, z0], [TW, TH, z1], [TW, 0, z1]], shade(rr + v, rg + v, rb + v, d), line);
+
+    // Surface details (greebles / ice cracks) and lights
+    for (let k = 0; k < 4; k++) {
+      const h = hash(i * 13 + k * 3.1);
+      const y0 = hash(i * 17 + k) * TH * 0.85;
+      const hh = Math.min(0.3 + hash(i * 19 + k) * 1.3, TH - y0);
+      let za = i * SEG + hash(i * 23 + k) * SEG * 0.6;
+      let zb = Math.min(za + 0.4 + hash(i * 29 + k) * 1.4, (i + 1) * SEG, zEnd);
+      if (zb <= near) continue;
+      za = Math.max(za, near);
+      if (za >= zb) continue;
+      const light = world.lights && hash(i * 31 + k) < 0.12;
+      const left = h < 0.5;
+      const x = left ? -TW + 0.01 : TW - 0.01;
+      if (light) {
+        const ly0 = y0, ly1 = y0 + 0.15;
+        face([[x, ly0, za], [x, ly1, za], [x, ly1, Math.min(zb, za + 0.5)], [x, ly0, Math.min(zb, za + 0.5)]],
+          `rgba(255,${200 + (h * 50) | 0},120,${clamp(1 - d / VIEW, 0, 1)})`);
+      } else {
+        const c = h < 0.25 || h > 0.75 ? (ice ? 0.88 : 0.7) : (ice ? 1.06 : 1.25);
+        const [br, bg, bb] = left ? world.wallL : world.wallR;
+        face([[x, y0, za], [x, y0 + hh, za], [x, y0 + hh, zb], [x, y0, zb]],
+          shade((br + v) * c, (bg + v) * c, (bb + v) * c, d));
+      }
+    }
+    if (hash(i * 37) < 0.6) {
+      const fx = -TW + hash(i * 41) * (TW * 2 - 1.2);
+      const fw = 0.4 + hash(i * 43) * 0.8;
+      let za = Math.max(i * SEG + hash(i * 47) * 2, near);
+      const zb = Math.min(za + 0.6 + hash(i * 53) * 1.3, zEnd);
+      const k = ice ? 0.92 : 0.76;
+      if (za < zb) face([[fx, 0.01, za], [fx + fw, 0.01, za], [fx + fw, 0.01, zb], [fx, 0.01, zb]], shade((fr + v) * k, (fg + v) * k, (fb + v) * k, d));
+    }
+  }
+}
+
+// Endor: a dirt path through a forest of giant trees
+function drawForest() {
+  const near = cam.z + NEAR;
+  const startSeg = Math.floor(near / SEG);
+  const endSeg = Math.floor((cam.z + VIEW) / SEG);
+  const [fr, fg, fb] = world.floor, [pr, pg, pb] = world.path;
+  for (let i = endSeg; i >= startSeg; i--) {
+    const z0 = Math.max(i * SEG, near), z1 = (i + 1) * SEG;
+    const d = z0 - cam.z;
+    const v = (hash(i) - 0.5) * 14;
+    face([[-60, 0, z0], [60, 0, z0], [60, 0, z1], [-60, 0, z1]], shade(fr + v, fg + v, fb + v * 0.5, d));
+    face([[-TW - 0.3, 0.005, z0], [TW + 0.3, 0.005, z0], [TW + 0.3, 0.005, z1], [-TW - 0.3, 0.005, z1]], shade(pr + v, pg + v, pb + v, d));
+    // ferns and bushes beside the path
+    {
+      const side = hash(i * 7) < 0.5 ? -1 : 1;
+      const x = side * (TW + 0.6 + hash(i * 9) * 5), w = 0.4 + hash(i * 11) * 0.6;
+      const za = i * SEG + hash(i * 13) * 2;
+      drawBoxes([[x - w, x + w, 0, 0.3 + hash(i * 15) * 0.6]], za, za + w * 1.5, [42 + v, 74 + v, 34], false);
+    }
+    // giant tree trunks (none past the bunker)
+    if (i * SEG > endZ - 6) continue;
+    for (let k = 0; k < 3; k++) {
+      const h = hash(i * 5 + k * 1.7);
+      if (h > 0.72) continue;
+      const side = k === 1 ? (hash(i * 3) < 0.5 ? -1 : 1) : (k === 0 ? -1 : 1);
+      const w = 0.7 + hash(i * 19 + k) * 1.3;
+      const x = side * (TW + 0.8 + w / 2 + hash(i * 23 + k) * 9);
+      const za = i * SEG + hash(i * 29 + k) * (SEG - 1);
+      const t = (hash(i * 31 + k) - 0.5) * 16;
+      drawBoxes([[x - w / 2, x + w / 2, 0, TH + 20]], za, za + w, [86 + t, 60 + t * 0.7, 40 + t * 0.4], false);
+    }
+  }
+}
+
+function drawEndWall() {
+  const d = endZ - cam.z;
+  if (d > VIEW + 10 || d < NEAR) return;
+  face([[-TW, 0, endZ], [TW, 0, endZ], [TW, TH, endZ], [-TW, TH, endZ]], shade(98, 102, 116, d), shade(40, 42, 50, d));
+  for (let yy = 1; yy < TH; yy++) {
+    const a = proj(-TW, yy, endZ), b = proj(TW, yy, endZ);
+    ctx.strokeStyle = shade(70, 72, 84, d); ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+  }
+  const p = proj(port.x, port.y, endZ);
+  const R = port.r * p.s;
+  ctx.fillStyle = shade(60, 62, 72, d);
+  ctx.beginPath(); ctx.arc(p.x, p.y, R * 1.8, 0, Math.PI * 2); ctx.fill();
+  ctx.fillStyle = shade(30, 31, 38, d);
+  ctx.beginPath(); ctx.arc(p.x, p.y, R * 1.35, 0, Math.PI * 2); ctx.fill();
+  const pulse = 0.65 + 0.35 * Math.sin(time * 6);
+  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
+  g.addColorStop(0, `rgba(255,240,180,${pulse})`);
+  g.addColorStop(0.5, `rgba(255,120,30,${0.9 * pulse})`);
+  g.addColorStop(1, 'rgba(60,10,0,1)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, Math.PI * 2); ctx.fill();
+}
+
+// Pulsing target marker
+function targetGlow(x, y, z, r, col) {
+  const p = proj(x, y, z);
+  if (!p) return;
+  const R = r * p.s, pulse = 0.65 + 0.35 * Math.sin(time * 6);
+  ctx.save();
+  ctx.strokeStyle = `rgba(${col},0.9)`; ctx.lineWidth = Math.max(2, R * 0.12);
+  ctx.beginPath(); ctx.arc(p.x, p.y, R * 1.1, 0, Math.PI * 2); ctx.stroke();
+  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
+  g.addColorStop(0, `rgba(255,255,240,${pulse})`);
+  g.addColorStop(0.5, `rgba(${col},${0.85 * pulse})`);
+  g.addColorStop(1, `rgba(${col},0.1)`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+// Endor: the shield generator bunker, built into a hillside
+function drawBunker(d) {
+  const z = endZ, x = port.x;
+  face([[-18, 0, z + 0.5], [18, 0, z + 0.5], [13, 12, z + 30], [-13, 12, z + 30]], shade(38, 58, 36, d));
+  face([[-4.6, 0, z], [4.6, 0, z], [4.6, 3.9, z], [-4.6, 3.9, z]], shade(122, 126, 112, d), shade(70, 72, 64, d));
+  drawBoxes([[-5, 5, 3.9, 4.5]], z - 0.6, z + 2.5, [104, 108, 96], false);
+  face([[x - 1.3, 0, z - 0.01], [x + 1.3, 0, z - 0.01], [x + 1.3, 3.4, z - 0.01], [x - 1.3, 3.4, z - 0.01]], shade(70, 72, 68, d));
+  face([[x - 1.05, 0, z - 0.02], [x + 1.05, 0, z - 0.02], [x + 1.05, 3.1, z - 0.02], [x - 1.05, 3.1, z - 0.02]], shade(150, 152, 142, d));
+  ctx.strokeStyle = shade(96, 98, 90, d); ctx.lineWidth = 1.5;
+  for (let yy = 0.45; yy < 3.1; yy += 0.45) {
+    const a = proj(x - 1.05, yy, z - 0.03), b = proj(x + 1.05, yy, z - 0.03);
+    if (a && b) { ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke(); }
+  }
+  if (state !== 'victory') targetGlow(port.x, port.y, z - 0.04, port.r, '255,190,70');
+}
+
+// Hoth: a giant AT-AT walker; when tripped by the tow cable it topples sideways
+function drawATAT() {
+  const fs = port.x > 0 ? 1 : -1;
+  const a = atatFall * atatFall * 1.4;
+  drawMesh(MESH.atat, { x: 0, y: 0, z: endZ, roll: -fs * a, pivot: [fs * 1.4, 0, 0] });
+  if (state !== 'victory') targetGlow(port.x, port.y, endZ - 0.37, port.r, '90,210,255');
+}
+
+function drawEnd() {
+  const d = endZ - cam.z;
+  if (d > VIEW + 10 || d < NEAR) return;
+  if (world.key === 'deathstar') drawEndWall();
+  else if (world.key === 'endor') drawBunker(d);
+  else drawATAT();
+}
+
+function drawTower(t) {
+  if (t.rise <= 0) return;
+  const b = towerBox(t);
+  const dmg = t.hp / TOWER_HP;
+  const rgb = t.hitFlash > 0 ? [235, 235, 235] : [50 + 22 * dmg, 52 + 22 * dmg, 60 + 24 * dmg];
+  drawBoxes([b], t.z - 0.3, t.z + 0.3, rgb, false);
+  if (t.rise < 1) return;
+  // barrel pointing at the incoming X-wing
+  drawBoxes([[t.x - 0.06, t.x + 0.06, t.y - 0.06, t.y + 0.06]], t.z - 0.7, t.z - 0.3, [40, 42, 48], false);
+  const p = proj(t.x, t.y, t.z - 0.71);
+  if (!p) return;
+  const r = Math.max(1.5, (t.flash > 0 ? 0.28 : 0.1) * p.s);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 2.5);
+  g.addColorStop(0, 'rgba(255,120,100,1)'); g.addColorStop(0.4, 'rgba(255,30,20,0.8)'); g.addColorStop(1, 'rgba(255,0,0,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, r * 2.5, 0, Math.PI * 2); ctx.fill();
+  ctx.restore();
+}
+
+function drawPickup(pk) {
+  const p = proj(pk.x, pk.y, pk.z);
+  if (!p) return;
+  const r = 0.45 * p.s * (1 + 0.12 * Math.sin(time * 8));
+  const shield = pk.kind === 'shield';
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r * 1.6);
+  if (shield) { g.addColorStop(0, 'rgba(230,250,255,1)'); g.addColorStop(0.35, 'rgba(90,180,255,0.9)'); g.addColorStop(1, 'rgba(40,100,255,0)'); }
+  else { g.addColorStop(0, 'rgba(255,250,220,1)'); g.addColorStop(0.35, 'rgba(255,170,40,0.9)'); g.addColorStop(1, 'rgba(255,100,0,0)'); }
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, r * 1.6, 0, Math.PI * 2); ctx.fill();
+  ctx.strokeStyle = shield ? 'rgba(180,230,255,0.9)' : 'rgba(255,220,150,0.9)';
+  ctx.lineWidth = Math.max(1, r * 0.12);
+  ctx.beginPath(); ctx.ellipse(p.x, p.y, r * 1.3, r * 0.45, time * 2, 0, Math.PI * 2); ctx.stroke();
+  ctx.restore();
+}
+
+function drawShadow() {
+  const p = proj(player.x, 0.02, player.z);
+  if (!p) return;
+  const a = clamp(0.45 - player.y * 0.06, 0.1, 0.45);
+  ctx.fillStyle = `rgba(0,0,0,${a})`;
+  ctx.beginPath();
+  ctx.ellipse(p.x, p.y, 0.9 * p.s, 0.25 * p.s, 0, 0, Math.PI * 2);
+  ctx.fill();
+}
+
+// ---------- 3D models ----------
+// A mesh is a list of flat faces { p: [[x, y, z], ...], c: [r, g, b], e: glows? }.
+// Local axes: x = right, y = up, z = forward (nose).
+function rectAt(x0, x1, y0, y1, z) { return [[x0, y0, z], [x1, y0, z], [x1, y1, z], [x0, y1, z]]; }
+function ringAt(cx, cy, r, z, n = 8) {
+  const p = [];
+  for (let i = 0; i < n; i++) { const a = (i + 0.5) / n * Math.PI * 2; p.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r, z]); }
+  return p;
+}
+function addPrism(m, A, B, c, e) {
+  m.push({ p: A, c, e }, { p: B, c, e });
+  for (let i = 0; i < A.length; i++) { const j = (i + 1) % A.length; m.push({ p: [A[i], A[j], B[j], B[i]], c, e }); }
+}
+function addBox(m, x0, x1, y0, y1, z0, z1, c, e) { addPrism(m, rectAt(x0, x1, y0, y1, z0), rectAt(x0, x1, y0, y1, z1), c, e); }
+function addCyl(m, cx, cy, r, z0, z1, c, n = 8, r1 = r) { addPrism(m, ringAt(cx, cy, r, z0, n), ringAt(cx, cy, r1, z1, n), c); }
+function addFrustum(m, z0, x0, y0, w0, h0, z1, x1, y1, w1, h1, c) {
+  addPrism(m, rectAt(x0 - w0 / 2, x0 + w0 / 2, y0 - h0 / 2, y0 + h0 / 2, z0), rectAt(x1 - w1 / 2, x1 + w1 / 2, y1 - h1 / 2, y1 + h1 / 2, z1), c);
+}
+function mapMesh(m, fn) { for (const f of m) f.p = f.p.map(fn); return m; }
+
+// Incom T-65 X-wing: long nose, four S-foil wings in an X, engines at the wing roots, laser cannons on the tips
+function buildXWing() {
+  const m = [];
+  const HULL = [210, 212, 216], GREY = [150, 154, 162], DARK = [66, 70, 78], RED = [196, 44, 36], GLASS = [28, 42, 64], ENG = [128, 132, 140];
+  addBox(m, -0.13, 0.13, -0.11, 0.11, -0.62, 0.05, HULL);
+  addFrustum(m, 0.05, 0, 0, 0.24, 0.2, 0.8, 0, -0.02, 0.14, 0.12, HULL);
+  addFrustum(m, 0.8, 0, -0.02, 0.14, 0.12, 0.92, 0, -0.025, 0.125, 0.105, RED);
+  addFrustum(m, 0.92, 0, -0.025, 0.125, 0.105, 1.28, 0, -0.04, 0.035, 0.035, HULL);
+  addPrism(m, [[-0.085, 0.1, -0.08], [0.085, 0.1, -0.08], [0.06, 0.21, -0.08], [-0.06, 0.21, -0.08]],
+              [[-0.06, 0.09, 0.42], [0.06, 0.09, 0.42], [0.02, 0.11, 0.42], [-0.02, 0.11, 0.42]], GLASS);   // cockpit canopy
+  addBox(m, -0.055, 0.055, 0.11, 0.17, -0.34, -0.22, [226, 230, 238]);   // astromech droid
+  addBox(m, -0.035, 0.035, 0.17, 0.2, -0.32, -0.24, [50, 95, 200]);
+  addBox(m, -0.1, 0.1, -0.08, 0.08, -0.66, -0.62, DARK);
+  for (const sx of [1, -1]) for (const sy of [1, -1]) {
+    const w = [];
+    // wing: root chord z -0.6..-0.05, tip chord z -0.55..-0.27, with a red stripe near the tip
+    const zr = x => { const t = (x - 0.12) / 0.73; return [-0.6 + t * 0.05, -0.05 - t * 0.22]; };
+    const span = (x0, x1, c) => {
+      const [a0, b0] = zr(x0), [a1, b1] = zr(x1);
+      addPrism(w, [[x0, 0.016, a0], [x1, 0.016, a1], [x1, 0.016, b1], [x0, 0.016, b0]],
+                  [[x0, -0.016, a0], [x1, -0.016, a1], [x1, -0.016, b1], [x0, -0.016, b0]], c);
+    };
+    span(0.12, 0.56, HULL); span(0.56, 0.67, RED); span(0.67, 0.85, HULL);
+    addCyl(w, 0.86, 0, 0.032, -0.5, 0.05, GREY, 6);     // laser cannon
+    addCyl(w, 0.86, 0, 0.014, 0.05, 0.72, DARK, 6);
+    addCyl(w, 0.86, 0, 0.024, 0.68, 0.8, GREY, 6);
+    const a = 0.24 * sx * sy, ca = Math.cos(a), sa = Math.sin(a);
+    mapMesh(w, q => { const x = q[0] * sx; return [x * ca - q[1] * sa, x * sa + q[1] * ca, q[2]]; });
+    m.push(...w);
+    // engine
+    addCyl(m, sx * 0.2, sy * 0.105, 0.078, -0.68, 0.06, ENG, 10);
+    addCyl(m, sx * 0.2, sy * 0.105, 0.086, 0.06, 0.12, DARK, 10, 0.064);
+    m.push({ p: ringAt(sx * 0.2, sy * 0.105, 0.06, -0.685, 10), c: [255, 140, 110], e: true });
+  }
+  return m;
+}
+
+// 74-Z speeder bike with its rider
+function buildBike(rider) {
+  const m = [];
+  const BODY = [104, 108, 98], DARK = [56, 60, 56], METAL = [140, 144, 140];
+  addFrustum(m, -0.5, 0, 0, 0.22, 0.16, 0.35, 0, -0.01, 0.12, 0.1, BODY);
+  addBox(m, -0.14, 0.14, -0.1, 0.08, -0.82, -0.45, DARK);                        // engine
+  m.push({ p: rectAt(-0.1, 0.1, -0.07, 0.05, -0.825), c: [255, 150, 90], e: true });
+  addBox(m, -0.07, 0.07, 0.08, 0.12, -0.5, -0.12, [40, 40, 40]);                 // seat
+  addBox(m, -0.16, 0.16, 0.16, 0.19, 0.06, 0.1, DARK);                           // handlebars
+  addBox(m, -0.025, 0.025, -0.13, -0.08, -0.05, 0.45, DARK);                     // blaster cannon
+  for (const s of [1, -1]) {
+    addBox(m, s * 0.04, s * 0.065, -0.025, 0.0, 0.3, 1.3, METAL);                // steering rods
+    addBox(m, s * 0.03, s * 0.24, 0.0, 0.018, 1.12, 1.38, BODY);                 // steering vanes
+    addBox(m, s * 0.03, s * 0.2, -0.09, -0.072, 1.15, 1.36, BODY);
+    addBox(m, s * 0.1, s * 0.18, -0.08, -0.05, -0.35, -0.05, DARK);              // footrests
+    // rider's legs, boots and arms
+    addBox(m, s * 0.04, s * 0.12, -0.04, 0.14, -0.32, -0.12, rider.suit);
+    addBox(m, s * 0.08, s * 0.15, -0.08, 0.0, -0.18, -0.02, rider.boot);
+    addBox(m, s * 0.1, s * 0.15, 0.24, 0.32, -0.22, 0.1, rider.suit);
+  }
+  addPrism(m, [[-0.11, 0.13, -0.42], [0.11, 0.13, -0.42], [0.11, 0.13, -0.2], [-0.11, 0.13, -0.2]],
+              [[-0.12, 0.42, -0.3], [0.12, 0.42, -0.3], [0.12, 0.42, -0.1], [-0.12, 0.42, -0.1]], rider.armor);   // leaning torso
+  addBox(m, -0.07, 0.07, 0.43, 0.57, -0.27, -0.13, rider.helmet);
+  addBox(m, -0.055, 0.055, 0.47, 0.52, -0.13, -0.12, rider.visor);
+  return mapMesh(m, q => [q[0] * 1.3, q[1] * 1.3, q[2] * 1.3]);
+}
+const REBEL_RIDER = { suit: [74, 92, 56], armor: [66, 84, 50], helmet: [84, 102, 64], visor: [22, 22, 22], boot: [44, 34, 26] };
+const SCOUT_RIDER = { suit: [30, 30, 34], armor: [228, 230, 234], helmet: [232, 234, 238], visor: [16, 16, 20], boot: [232, 232, 236] };
+
+// T-47 snowspeeder: wedge-shaped body, two engine pods with laser cannons, harpoon gun at the back
+function buildSnowspeeder() {
+  const m = [];
+  const WHITE = [224, 224, 218], GREY = [160, 162, 160], DARK = [66, 68, 74], ORANGE = [226, 112, 40], GLASS = [34, 46, 66];
+  addPrism(m,
+    [[-0.36, -0.08], [0.36, -0.08], [0.36, 0.07], [0.12, 0.16], [-0.12, 0.16], [-0.36, 0.07]].map(([x, y]) => [x, y, -0.55]),
+    [[-0.15, -0.07], [0.15, -0.07], [0.15, -0.04], [0.04, -0.01], [-0.04, -0.01], [-0.15, -0.04]].map(([x, y]) => [x, y, 0.78]), WHITE);
+  addPrism(m, [[-0.11, 0.14, -0.25], [0.11, 0.14, -0.25], [0.08, 0.25, -0.25], [-0.08, 0.25, -0.25]],
+              [[-0.09, 0.09, 0.25], [0.09, 0.09, 0.25], [0.04, 0.12, 0.25], [-0.04, 0.12, 0.25]], GLASS);
+  for (const s of [1, -1]) {
+    addBox(m, s * 0.36, s * 0.58, -0.1, 0.07, -0.62, -0.12, WHITE);              // engine pod with orange stripe
+    addBox(m, s * 0.36, s * 0.58, -0.1, 0.07, -0.12, 0.04, ORANGE);
+    addBox(m, s * 0.36, s * 0.58, -0.1, 0.07, 0.04, 0.32, WHITE);
+    addFrustum(m, 0.32, s * 0.47, -0.015, 0.22, 0.17, 0.5, s * 0.47, -0.02, 0.13, 0.1, GREY);
+    m.push({ p: rectAt(s * 0.38, s * 0.56, -0.08, 0.05, -0.625), c: [255, 170, 120], e: true });
+    addCyl(m, s * 0.6, 0, 0.022, 0.0, 0.9, DARK, 6);                             // laser cannon
+    addCyl(m, s * 0.6, 0, 0.03, 0.82, 0.92, GREY, 6);
+    addBox(m, s * 0.3, s * 0.365, 0.07, 0.09, -0.5, 0.35, ORANGE);
+    addBox(m, s * 0.08, s * 0.3, 0.06, 0.1, -0.68, -0.55, GREY);                // split airbrakes
+    addBox(m, s * 0.08, s * 0.3, -0.09, -0.05, -0.68, -0.55, GREY);
+  }
+  addCyl(m, 0, 0.03, 0.04, -0.72, -0.55, DARK, 6);                               // harpoon gun
+  return m;
+}
+
+// Imperial probe droid: dark head with red sensor eyes and dangling arms
+function buildProbe() {
+  const m = [], BLK = [48, 50, 56], DARK = [28, 28, 32];
+  addCyl(m, 0, 0, 0.26, -0.2, 0.2, BLK, 8);
+  addBox(m, -0.13, 0.13, 0.24, 0.33, -0.13, 0.13, BLK);
+  for (const [x, y] of [[-0.1, 0.06], [0.1, 0.06], [0, -0.06]]) m.push({ p: rectAt(x - 0.04, x + 0.04, y - 0.03, y + 0.03, -0.21), c: [255, 40, 30], e: true });
+  for (const [x, z] of [[-0.15, -0.08], [0.15, -0.08], [-0.08, 0.12], [0.08, 0.12], [0, 0]]) addBox(m, x - 0.015, x + 0.015, -0.85, -0.2, z - 0.015, z + 0.015, DARK);
+  addBox(m, 0.1, 0.125, 0.33, 0.75, -0.012, 0.012, DARK);
+  return m;
+}
+
+// AT-AT walker, standing with its front legs at local z = 0, facing the player (-z)
+function buildATAT() {
+  const m = [], G = [132, 134, 140], D = [92, 94, 102], L = [152, 154, 160];
+  addBox(m, -1.3, 1.3, 5.6, 7.6, 0.2, 4.6, G);
+  addBox(m, -1.1, 1.1, 7.6, 8.0, 0.6, 4.2, L);
+  addBox(m, -0.35, 0.35, 5.9, 6.6, -0.9, 0.2, D);                                 // neck
+  addPrism(m, rectAt(-0.6, 0.6, 5.3, 6.6, -0.9), rectAt(-0.45, 0.45, 5.25, 6.0, -2.7), G);   // head
+  addBox(m, -0.5, -0.42, 5.15, 5.27, -3.0, -2.2, D);                              // chin guns
+  addBox(m, 0.42, 0.5, 5.15, 5.27, -3.0, -2.2, D);
+  m.push({ p: rectAt(-0.4, 0.4, 5.75, 5.9, -2.71), c: [40, 40, 48] });             // viewport
+  for (const lx of [-1, 1]) for (const lz of [0, 3.6]) {
+    addBox(m, lx - 0.22, lx + 0.22, 3.0, 5.7, lz, lz + 0.45, D);                  // upper leg
+    addBox(m, lx - 0.3, lx + 0.3, 2.35, 3.05, lz - 0.35, lz + 0.55, G);            // knee
+    addBox(m, lx - 0.2, lx + 0.2, 0.35, 2.4, lz, lz + 0.42, D);                   // lower leg
+    addBox(m, lx - 0.38, lx + 0.38, 0, 0.35, lz - 0.25, lz + 0.7, G);              // foot
+  }
+  return m;
+}
+
+const MESH = {
+  xwing: buildXWing(), bike: buildBike(REBEL_RIDER), snowspeeder: buildSnowspeeder(),
+  scout: buildBike(SCOUT_RIDER), probe: buildProbe(), atat: buildATAT(),
+};
+const ENGINE_GLOWS = {
+  xwing: { pts: [[0.2, 0.105, -0.7], [-0.2, 0.105, -0.7], [0.2, -0.105, -0.7], [-0.2, -0.105, -0.7]], r: 0.13, col: '255,110,90' },
+  bike: { pts: [[0, -0.013, -1.08]], r: 0.16, col: '255,150,90' },
+  snowspeeder: { pts: [[0.47, -0.015, -0.64], [-0.47, -0.015, -0.64]], r: 0.14, col: '255,170,120' },
+};
+
+const LIGHT = (() => { const l = [0.35, 0.85, -0.4], n = Math.hypot(...l); return l.map(v => v / n); })();
+
+// Transform a mesh (roll → pitch → yaw about an optional pivot, then move to x,y,z), sort faces far → near and fill them.
+// Returns the transform so callers can place glows on the model.
+function drawMesh(mesh, o) {
+  const cyw = Math.cos(o.yaw || 0), syw = Math.sin(o.yaw || 0);
+  const cp = Math.cos(o.pitch || 0), sp = Math.sin(o.pitch || 0);
+  const cr = Math.cos(o.roll || 0), sr = Math.sin(o.roll || 0);
+  const pv = o.pivot || [0, 0, 0];
+  const tf = q => {
+    const x = q[0] - pv[0], y = q[1] - pv[1], z = q[2] - pv[2];
+    const x1 = x * cr - y * sr, y1 = x * sr + y * cr;
+    const y2 = y1 * cp - z * sp, z2 = y1 * sp + z * cp;
+    const x3 = x1 * cyw + z2 * syw, z3 = -x1 * syw + z2 * cyw;
+    return [x3 + pv[0] + o.x, y2 + pv[1] + o.y, z3 + pv[2] + o.z];
+  };
+  const nearZ = cam.z + NEAR;
+  const list = [];
+  for (const f of mesh) {
+    const w = f.p.map(tf);
+    let mx = 0, my = 0, mz = 0, ok = true;
+    for (const q of w) { if (q[2] < nearZ) { ok = false; break; } mx += q[0]; my += q[1]; mz += q[2]; }
+    if (!ok) continue;
+    const n = w.length;
+    mx = mx / n - cam.x; my = my / n - cam.y; mz = mz / n - cam.z;
+    list.push({ w, f, d: mx * mx + my * my + mz * mz });
+  }
+  list.sort((a, b) => b.d - a.d);
+  for (const { w, f, d } of list) {
+    let c = f.c;
+    if (!f.e) {
+      const ux = w[1][0] - w[0][0], uy = w[1][1] - w[0][1], uz = w[1][2] - w[0][2];
+      const vx = w[2][0] - w[0][0], vy = w[2][1] - w[0][1], vz = w[2][2] - w[0][2];
+      let nx = uy * vz - uz * vy, ny = uz * vx - ux * vz, nz = ux * vy - uy * vx;
+      const len = Math.hypot(nx, ny, nz) || 1;
+      nx /= len; ny /= len; nz /= len;
+      if (nx * (cam.x - w[0][0]) + ny * (cam.y - w[0][1]) + nz * (cam.z - w[0][2]) < 0) { nx = -nx; ny = -ny; nz = -nz; }
+      const lum = 0.4 + 0.6 * Math.max(0, nx * LIGHT[0] + ny * LIGHT[1] + nz * LIGHT[2]);
+      c = o.tint ? [c[0] * lum * 0.3 + 180, c[1] * lum * 0.3 + 180, c[2] * lum * 0.3 + 180] : [c[0] * lum, c[1] * lum, c[2] * lum];
+    }
+    const col = shade(c[0], c[1], c[2], Math.sqrt(d));
+    ctx.beginPath();
+    for (let i = 0; i < w.length; i++) {
+      const q = proj(w[i][0], w[i][1], w[i][2]);
+      if (i === 0) ctx.moveTo(q.x, q.y); else ctx.lineTo(q.x, q.y);
+    }
+    ctx.closePath();
+    ctx.fillStyle = col; ctx.fill();
+    ctx.strokeStyle = col; ctx.lineWidth = 0.6; ctx.stroke();
+  }
+  return tf;
+}
+
+function glowAt(x, y, z, r, col) {
+  const p = proj(x, y, z);
+  if (!p) return;
+  const R = Math.max(2, r * p.s * (0.85 + Math.random() * 0.3));
+  const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, R);
+  g.addColorStop(0, 'rgba(255,255,235,1)');
+  g.addColorStop(0.35, `rgba(${col},0.9)`);
+  g.addColorStop(1, `rgba(${col},0)`);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(p.x, p.y, R, 0, Math.PI * 2); ctx.fill();
+}
+
+function drawPlayer() {
+  ctx.save();
+  if (player.inv > 0 && Math.floor(time * 20) % 2 === 0) ctx.globalAlpha = 0.45;
+  const tf = drawMesh(MESH[world.vehicle], {
+    x: player.x, y: player.y, z: player.z,
+    roll: -player.bank, pitch: -player.vy * 0.03, yaw: player.vx * 0.012,
+  });
+  const g = ENGINE_GLOWS[world.vehicle];
+  ctx.globalCompositeOperation = 'lighter';
+  for (const q of g.pts) { const w = tf(q); glowAt(w[0], w[1], w[2], g.r, g.col); }
+  ctx.restore();
+}
+
+function drawEnemy(t) {
+  if (t.kind === 'tower') return drawTower(t);
+  if (t.rise <= 0) return;
+  const tint = t.hitFlash > 0;
+  if (t.kind === 'scout') drawMesh(MESH.scout, { x: t.x, y: t.y - 0.15, z: t.z, yaw: Math.PI, roll: (t.x - t.fx) * 0.12, tint });
+  else drawMesh(MESH.probe, { x: t.x, y: t.y, z: t.z, yaw: Math.sin(time + t.phase) * 0.4, tint });
+  if (t.flash > 0) {
+    ctx.save(); ctx.globalCompositeOperation = 'lighter';
+    glowAt(t.x, t.y - (t.kind === 'scout' ? 0.3 : 0), t.z - 0.7, 0.35, '80,255,110');
+    ctx.restore();
+  }
+}
+
+function drawWorld(showShip) {
+  const zmin = cam.z + NEAR, zmax = cam.z + VIEW;
+  const far = [], near = [];
+  for (const o of obstacles) {
+    if (o.z + o.depth < zmin || o.z > zmax) continue;
+    (o.z + o.depth < player.z ? near : far).push({ z: o.z, k: 0, o });
+  }
+  for (const t of towers) {
+    if (!t.alive || t.z < zmin || t.z > zmax) continue;
+    (t.z < player.z ? near : far).push({ z: t.z, k: 1, o: t });
+  }
+  for (const p of pickups) {
+    if (p.taken || p.z < zmin || p.z > zmax) continue;
+    (p.z < player.z ? near : far).push({ z: p.z, k: 2, o: p });
+  }
+  far.sort((a, b) => b.z - a.z);
+  near.sort((a, b) => b.z - a.z);
+  const drawItem = it => {
+    if (it.k === 0) {
+      const o = it.o;
+      drawBoxes(o.draw, o.z, o.z + o.depth, o.rgb, world.key === 'deathstar');
+      if (o.decor) drawBoxes(o.decor.rects, o.decor.z0, o.decor.z1, o.decor.rgb, false);
+    }
+    else if (it.k === 1) drawEnemy(it.o);
+    else drawPickup(it.o);
+  };
+  for (const it of far) drawItem(it);
+  if (showShip) { drawShadow(); drawPlayer(); }
+  ctx.globalAlpha = 0.35;
+  for (const it of near) drawItem(it);
+  ctx.globalAlpha = 1;
+}
+
+function line3d(x0, y0, z0, x1, y1, z1, color, w) {
+  const n = cam.z + NEAR;
+  if (z0 < n && z1 < n) return;
+  if (z0 < n) { const t = (n - z0) / (z1 - z0); x0 += (x1 - x0) * t; y0 += (y1 - y0) * t; z0 = n; }
+  if (z1 < n) { const t = (n - z1) / (z0 - z1); x1 += (x0 - x1) * t; y1 += (y0 - y1) * t; z1 = n; }
+  const a = proj(x0, y0, z0), b = proj(x1, y1, z1);
+  if (!a || !b) return;
+  ctx.strokeStyle = color;
+  ctx.lineWidth = Math.max(1.5, w * Math.max(a.s, b.s));
+  ctx.beginPath(); ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.stroke();
+}
+
+function drawEffects() {
+  ctx.save();
+  // additive glow looks great in the dark, but vanishes against Hoth's bright snow
+  ctx.globalCompositeOperation = world.key === 'hoth' ? 'source-over' : 'lighter';
+  ctx.lineCap = 'round';
+  for (const s of shots) {
+    const k = 4 / s.vz;
+    const tx = s.x - s.vx * k, ty = s.y - s.vy * k;
+    if (s.kind === 'laser') {
+      line3d(s.x, s.y, s.z, tx, ty, s.z - 4, 'rgba(255,50,40,0.35)', 0.16);
+      line3d(s.x, s.y, s.z, tx, ty, s.z - 4, 'rgba(255,210,200,0.95)', 0.05);
+    } else if (world.key === 'hoth') {
+      // harpoon trailing its tow cable back to the snowspeeder
+      line3d(player.x, player.y + 0.03, player.z - 0.7, s.x, s.y, s.z, 'rgba(60,62,70,0.9)', 0.015);
+      line3d(s.x, s.y, s.z, tx, ty, s.z - 0.5, 'rgba(90,92,100,1)', 0.06);
+    } else if (world.key === 'endor') {
+      // thermal detonator: small metal ball with a blinking red light
+      const p = proj(s.x, s.y, s.z);
+      if (p) {
+        ctx.fillStyle = '#9a9ea6';
+        ctx.beginPath(); ctx.arc(p.x, p.y, Math.max(3, 0.12 * p.s), 0, Math.PI * 2); ctx.fill();
+        if (Math.floor(time * 12) % 2) glowAt(s.x, s.y, s.z - 0.01, 0.12, '255,40,30');
+      }
+    } else {
+      line3d(s.x, s.y, s.z, tx, ty, s.z - 4, 'rgba(255,140,40,0.35)', 0.12);
+      const p = proj(s.x, s.y, s.z);
+      if (p) {
+        const r = Math.max(3, 0.35 * p.s * (0.9 + Math.random() * 0.2));
+        const g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, r);
+        g.addColorStop(0, 'rgba(255,255,255,1)');
+        g.addColorStop(0.3, 'rgba(140,200,255,0.95)');
+        g.addColorStop(0.6, 'rgba(255,140,60,0.5)');
+        g.addColorStop(1, 'rgba(255,80,0,0)');
+        ctx.fillStyle = g;
+        ctx.beginPath(); ctx.arc(p.x, p.y, r, 0, Math.PI * 2); ctx.fill();
+      }
+    }
+  }
+  for (const b of bolts) {
+    const k = 0.06;
+    line3d(b.x, b.y, b.z, b.x - b.vx * k, b.y - b.vy * k, b.z - b.vz * k, 'rgba(60,255,90,0.4)', 0.2);
+    line3d(b.x, b.y, b.z, b.x - b.vx * k, b.y - b.vy * k, b.z - b.vz * k, 'rgba(210,255,210,0.95)', 0.06);
+  }
+  for (const p of particles) {
+    const q = proj(p.x, p.y, p.z);
+    if (!q || p.z < cam.z + NEAR) continue;
+    const a = clamp(p.life / p.max, 0, 1);
+    const r = Math.max(1, p.size * q.s * (0.6 + (1 - a)));
+    ctx.fillStyle = `rgba(${p.col[0]},${p.col[1]},${p.col[2]},${a})`;
+    ctx.beginPath(); ctx.arc(q.x, q.y, r, 0, Math.PI * 2); ctx.fill();
+  }
+  ctx.restore();
+}
+
+function drawHUD() {
+  ctx.save();
+  ctx.shadowColor = 'rgba(0,0,0,0.9)'; ctx.shadowBlur = 4;   // keeps the HUD readable over bright snow
+  ctx.textBaseline = 'top';
+  ctx.font = '700 16px system-ui, sans-serif';
+  ctx.fillStyle = '#ffd84a';
+  ctx.fillText('SCORE ' + Math.floor(score), 16, 16);
+  ctx.fillStyle = '#cfd8ea';
+  ctx.font = '600 14px system-ui, sans-serif';
+  ctx.fillText('LEVEL ' + level + '   HI ' + Math.max(hi, Math.floor(score)), 16, 40);
+  ctx.fillStyle = '#7fd0ff';
+  ctx.fillText('AIM ASSIST: ' + ASSIST[assist].label, 16, 60);
+
+  // Deflector shield bar
+  const bw = Math.min(220, W * 0.35), bx = 16, by = H - 34;
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(bx, by, bw, 14);
+  const sh = Math.min(player.shield, 100) / 100;
+  ctx.fillStyle = sh > 0.5 ? '#46d2ff' : sh > 0.25 ? '#ffc23a' : '#ff4a3a';
+  ctx.fillRect(bx, by, bw * sh, 14);
+  const extra = Math.round(player.shield - 100);
+  if (extra > 0) {   // bonus shields above 100 show as a gold strip
+    ctx.fillStyle = '#ffd84a';
+    ctx.fillRect(bx, by + 9, bw * extra / 100, 5);
+  }
+  ctx.strokeStyle = 'rgba(255,255,255,0.5)'; ctx.strokeRect(bx + 0.5, by + 0.5, bw, 14);
+  ctx.fillStyle = '#cfd8ea';
+  ctx.fillText('DEFLECTOR SHIELDS' + (extra > 0 ? `  +${extra} BONUS` : ''), bx, by - 20);
+
+  // Ammo (bottom right, above the touch buttons when shown)
+  ctx.textAlign = 'right';
+  const ax = W - 16;
+  let ay = H - (touchUI ? 130 : 24);
+  ctx.textBaseline = 'bottom';
+  for (let i = 0; i < Math.min(ammo.torp, 12); i++) {
+    const cx = ax - 6 - i * 16, cy = ay - 6;
+    const g = ctx.createRadialGradient(cx, cy, 0, cx, cy, 6);
+    g.addColorStop(0, '#fff'); g.addColorStop(0.5, '#8cc8ff'); g.addColorStop(1, '#ff8c3c');
+    ctx.fillStyle = g;
+    ctx.beginPath(); ctx.arc(cx, cy, 6, 0, Math.PI * 2); ctx.fill();
+  }
+  if (ammo.torp > 12) { ctx.fillStyle = '#cfd8ea'; ctx.fillText('+' + (ammo.torp - 12), ax - 12 * 16 - 4, ay); }
+  ctx.fillStyle = ammo.torp ? '#cfd8ea' : '#ff4a3a';
+  ctx.fillText(world.secName + ' ' + ammo.torp, ax, ay - 16);
+  ctx.fillStyle = ammo.laser > 20 ? '#ffb0a8' : '#ff4a3a';
+  ctx.font = '700 16px system-ui, sans-serif';
+  ctx.fillText(world.laserName + ' ' + ammo.laser, ax, ay - 38);
+  ctx.textBaseline = 'top';
+  ctx.font = '600 14px system-ui, sans-serif';
+
+  // Progress to the thermal exhaust port
+  ctx.textAlign = 'left';
+  const pw = Math.min(360, W * 0.4), px = (W - pw) / 2, py = 20;
+  const prog = clamp(player.z / endZ, 0, 1);
+  ctx.fillStyle = 'rgba(0,0,0,0.35)';
+  ctx.fillRect(px, py, pw, 8);
+  ctx.fillStyle = '#ffd84a';
+  ctx.fillRect(px, py, pw * prog, 8);
+  ctx.fillStyle = '#ff7a2a';
+  ctx.beginPath(); ctx.arc(px + pw, py + 4, 6, 0, Math.PI * 2); ctx.fill();
+  ctx.textAlign = 'center';
+  ctx.fillStyle = '#cfd8ea';
+  ctx.fillText(world.targetShort + '  ' + Math.max(0, Math.floor(endZ - player.z)) + ' m', W / 2, py + 14);
+
+  if (state === 'playing') {
+    // Crosshair
+    const c = proj(player.x, player.y, player.z + 35);
+    if (c) {
+      ctx.strokeStyle = 'rgba(255,120,110,0.85)'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(c.x, c.y, 12, 0, Math.PI * 2); ctx.stroke();
+      ctx.beginPath();
+      ctx.moveTo(c.x - 20, c.y); ctx.lineTo(c.x - 7, c.y);
+      ctx.moveTo(c.x + 7, c.y); ctx.lineTo(c.x + 20, c.y);
+      ctx.moveTo(c.x, c.y - 20); ctx.lineTo(c.x, c.y - 7);
+      ctx.moveTo(c.x, c.y + 7); ctx.lineTo(c.x, c.y + 20);
+      ctx.stroke();
+    }
+    // Aim-assist lock on the next enemy
+    if (lockTarget && lockTarget.alive) {
+      const p = proj(lockTarget.x, lockTarget.y, lockTarget.z - 0.3);
+      if (p) {
+        const r = Math.max(12, 0.7 * p.s);
+        ctx.save();
+        ctx.translate(p.x, p.y); ctx.rotate(time * 3);
+        ctx.strokeStyle = '#7fd0ff'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.moveTo(0, -r); ctx.lineTo(r, 0); ctx.lineTo(0, r); ctx.lineTo(-r, 0); ctx.closePath(); ctx.stroke();
+        ctx.restore();
+      }
+    }
+    // Target brackets around the thermal exhaust port
+    if (endZ - player.z < VIEW) {
+      const p = proj(port.x, port.y, endZ);
+      if (p) {
+        const locked = Math.hypot(player.x - port.x, player.y - port.y) < port.r * 0.9 ||
+          (ASSIST[assist].radius && Math.hypot(player.x - port.x, player.y - port.y) < ASSIST[assist].radius * 1.2);
+        const r = Math.max(port.r * p.s, 10) + 10;
+        const L = r * 0.45;
+        ctx.strokeStyle = locked ? '#ff3a3a' : '#ffd84a';
+        ctx.lineWidth = 2.5;
+        ctx.beginPath();
+        for (const [sx, sy] of [[-1, -1], [1, -1], [1, 1], [-1, 1]]) {
+          ctx.moveTo(p.x + sx * r, p.y + sy * (r - L)); ctx.lineTo(p.x + sx * r, p.y + sy * r); ctx.lineTo(p.x + sx * (r - L), p.y + sy * r);
+        }
+        ctx.stroke();
+        ctx.fillStyle = locked ? '#ff3a3a' : '#ffd84a';
+        ctx.font = '700 14px system-ui, sans-serif';
+        ctx.fillText(locked ? `LOCKED — ${world.secVerb}!` : world.targetName, p.x, p.y + r + 6);
+      }
+    }
+  }
+
+  if (msgT > 0) {
+    ctx.globalAlpha = clamp(msgT * 2, 0, 1);
+    ctx.font = `800 ${Math.round(clamp(W / 28, 18, 40))}px system-ui, sans-serif`;
+    ctx.fillStyle = '#ffd84a';
+    ctx.shadowColor = 'rgba(255,180,40,0.7)'; ctx.shadowBlur = 16;
+    ctx.fillText(msg, W / 2, H * 0.2);
+  }
+  ctx.restore();
+}
+
+function render() {
+  ctx.save();
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake * 16, (Math.random() - 0.5) * shake * 16);
+  drawSky();
+  // the Death Star trench ends at its wall; on Endor and Hoth the ground carries on past the target
+  if (world.clipEnd) { drawEnd(); drawSurface(); }
+  else { drawSurface(); drawEnd(); }
+  drawWorld(state !== 'dead' && !(state === 'overlay' && player.shield <= 0));
+  drawEffects();
+  if (world.key === 'endor') drawCanopy();
+  ctx.restore();
+  if (world.key === 'hoth') drawSnowfall();
+
+  if (hitFlash > 0) {
+    const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75);
+    g.addColorStop(0, 'rgba(255,0,0,0)');
+    g.addColorStop(1, `rgba(255,30,20,${0.55 * hitFlash})`);
+    ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  }
+  if (flash > 0) {
+    ctx.fillStyle = `rgba(255,245,220,${clamp(flash, 0, 1) * 0.85})`;
+    ctx.fillRect(0, 0, W, H);
+  }
+  if (state !== 'menu' && state !== 'quiz') drawHUD();
+}
+
+// ---------- Overlay / UI ----------
+const overlay = document.getElementById('overlay');
+const ovTitle = document.getElementById('ovTitle');
+const ovBody = document.getElementById('ovBody');
+const ovBtn = document.getElementById('ovBtn');
+const fireButtons = document.getElementById('fireButtons');
+const touchUI = ('ontouchstart' in window) || (window.matchMedia && matchMedia('(pointer: coarse)').matches);
+let ovAction = null;
+
+function showOverlay(title, html, btn, action) {
+  ovTitle.innerHTML = title;
+  ovBody.innerHTML = html;
+  ovBtn.textContent = btn;
+  ovBtn.classList.remove('hidden');
+  ovAction = action;
+  overlay.classList.remove('hidden');
+  input.pointerFire = input.btnLaser = input.torp = false;
+}
+function hideOverlay() { overlay.classList.add('hidden'); }
+ovBtn.addEventListener('click', () => { sfx.init(); if (ovAction) ovAction(); });
+
+function assistPicker() {
+  return `<div class="assist"><div class="label">AIM ASSIST</div><div class="opts">` +
+    Object.keys(ASSIST).map(k => `<button class="opt${k === assist ? ' sel' : ''}" data-assist="${k}">${ASSIST[k].label}</button>`).join('') +
+    `</div><p class="hint">${ASSIST[assist].hint}</p></div>`;
+}
+function setAssist(k) {
+  assist = k;
+  localStorage.setItem('xw_assist', k);
+  for (const b of ovBody.querySelectorAll('[data-assist]')) b.classList.toggle('sel', b.dataset.assist === k);
+  const hint = ovBody.querySelector('.assist .hint');
+  if (hint) hint.textContent = ASSIST[k].hint;
+}
+function gradePicker() {
+  return `<div class="assist"><div class="label">SCIENCE QUESTIONS FOR</div><div class="opts">` +
+    Object.keys(GRADES).map(k => `<button class="opt${k === grade ? ' sel' : ''}" data-grade="${k}">${GRADES[k].label}</button>`).join('') +
+    `</div></div>`;
+}
+function setGrade(k) {
+  grade = k;
+  localStorage.setItem('xw_grade', k);
+  for (const b of ovBody.querySelectorAll('[data-grade]')) b.classList.toggle('sel', b.dataset.grade === k);
+}
+
+ovBody.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  sfx.init();
+  if (b.dataset.assist) setAssist(b.dataset.assist);
+  else if (b.dataset.grade) setGrade(b.dataset.grade);
+  else if (b.dataset.choice) answerQuiz(+b.dataset.choice);
+  else if (b.dataset.hint) showHint();
+  else if (b.dataset.bonus) chooseBonus(b.dataset.bonus === 'yes');
+});
+
+function showMenu() {
+  menuScene();
+  showOverlay(TITLE_HTML,
+    `<p class="big">Red Five, you're cleared for three missions!</p>
+     <p>🚀 <b>Level 1 — The Death Star:</b> X-wing trench run to the thermal exhaust port.<br>
+     🌲 <b>Level 2 — Endor:</b> speeder bike chase through the forest to the shield bunker.<br>
+     ❄️ <b>Level 3 — Hoth:</b> snowspeeder attack on a giant AT-AT walker.<br>
+     Then the missions repeat — faster and harder!</p>
+     <p>🎓 Every mission starts with a briefing: answer ${QUIZ_NEED_LEVEL} real science or math questions to launch.
+     If you crash, answer ${QUIZ_NEED_RETRY} more to get a new ship.
+     Before launch you can take on a 🎁 bonus round for extra ammo and shields!</p>
+     <p class="keys">Main guns (3 hits destroy an enemy): Click / Space<br>
+     Special weapon — torpedo, detonator or harpoon (1 hit): Right-click / X / E<br>
+     Shots are limited — collect orange orbs for ammo, blue for shields.<br>
+     Steer: Mouse / Arrow keys / WASD / Touch &nbsp;·&nbsp; Pause: P &nbsp;·&nbsp; Fullscreen: F &nbsp;·&nbsp; Sound: M</p>
+     ${gradePicker()}
+     ${assistPicker()}
+     ${hi ? `<p>High score: <b>${hi}</b></p>` : ''}`,
+    'START', startGame);
+}
+
+function togglePause() {
+  if (state === 'playing') {
+    pausedFrom = state;
+    state = 'paused';
+    showOverlay('PAUSED', '<p>Stay on target, pilot.</p>' + gradePicker() + assistPicker(), 'RESUME', togglePause);
+  } else if (state === 'paused') {
+    state = pausedFrom || 'playing';
+    hideOverlay();
+  }
+}
+
+function toggleMute() {
+  muted = !muted;
+  document.getElementById('btnMute').textContent = muted ? '🔇' : '🔊';
+}
+
+function toggleFullscreen() {
+  const d = document, el = d.documentElement;
+  const isFs = d.fullscreenElement || d.webkitFullscreenElement;
+  const fn = isFs ? (d.exitFullscreen || d.webkitExitFullscreen) : (el.requestFullscreen || el.webkitRequestFullscreen);
+  if (!fn) return;
+  const r = fn.call(isFs ? d : el);
+  if (r && r.catch) r.catch(() => {});
+}
+const fsSupported = !!(document.documentElement.requestFullscreen || document.documentElement.webkitRequestFullscreen);
+if (!fsSupported) document.getElementById('btnFs').style.display = 'none';
+document.addEventListener('fullscreenchange', resize);
+document.addEventListener('webkitfullscreenchange', resize);
+
+document.getElementById('btnPause').addEventListener('click', e => { e.currentTarget.blur(); togglePause(); });
+document.getElementById('btnMute').addEventListener('click', e => { e.currentTarget.blur(); sfx.init(); toggleMute(); });
+document.getElementById('btnFs').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
+
+// ---------- Science quiz ----------
+// g: 'y' = ages 7–8, 'p' = ages 9–11, 'b' = both. a[0] is always the correct answer (choices get shuffled).
+const QUESTIONS = [
+  { g: 'b', t: 'PHYSICS', q: 'In Star Wars you hear a loud BOOM when ships explode in space. What would you REALLY hear in space?',
+    a: ['Nothing at all', 'A loud boom', 'A quiet pop', 'An echo'],
+    hint: 'Sound is a vibration. It needs something to travel through, like air or water.',
+    learn: 'Space is almost completely empty — there is no air to carry sound waves, so space is silent. Astronauts talk using radios, because radio waves (a kind of light) CAN travel through empty space!' },
+  { g: 'b', t: 'SPACE', q: "Luke Skywalker's home planet Tatooine has two suns. Have scientists found REAL planets that orbit two stars?",
+    a: ['Yes, they have found some', 'No, it is impossible', 'Only in movies', 'Only around the Moon'],
+    hint: 'Lots of stars in our galaxy come in pairs.',
+    learn: "Many stars have a partner star. In 2011 NASA's Kepler space telescope found a planet called Kepler-16b that orbits two stars — scientists nicknamed it \"Tatooine\"!" },
+  { g: 'b', t: 'SPACE', q: 'What is the closest star to Earth?',
+    a: ['The Sun', 'The North Star', 'Sirius', 'Proxima Centauri'],
+    hint: 'You can see this star almost every day.',
+    learn: 'The Sun is a star — a giant ball of hot, glowing gas. The next closest star, Proxima Centauri, is so far away that its light takes more than 4 years to reach us.' },
+  { g: 'b', t: 'PHYSICS', q: 'On the ice planet Hoth everything is frozen. At what temperature does water freeze into ice?',
+    a: ['0 °C (32 °F)', '100 °C (212 °F)', '50 °C (122 °F)', '20 °C (68 °F)'],
+    hint: 'Water BOILS at 100 °C. Freezing is the opposite end of the scale.',
+    learn: 'Water freezes at 0 °C (32 °F) and boils at 100 °C (212 °F). The Celsius scale was actually designed around water: 0 for freezing, 100 for boiling!' },
+  { g: 'b', t: 'PHYSICS', q: 'If an astronaut dropped a wrench on the Moon, what would happen?',
+    a: ['It falls down, but slower than on Earth', 'It floats away into space', 'It falls faster than on Earth', 'It stays still in the air'],
+    hint: 'The Moon has gravity too — just less than Earth.',
+    learn: "The Moon's gravity is about 1/6 as strong as Earth's. Things still fall down, just more slowly — and astronauts could jump much higher than on Earth!" },
+  { g: 'b', t: 'PHYSICS', q: 'How does a rocket push itself forward in space, where there is no air to push against?',
+    a: ['It shoots hot gas backward, which pushes the rocket forward', 'It pushes against the stars', 'Giant magnets pull it', 'It can’t move in space'],
+    hint: 'Think of blowing up a balloon and letting it go.',
+    learn: "This is Newton's Third Law: every action has an equal and opposite reaction. Gas shoots out the back, so the rocket zooms forward — just like a balloon whizzing around the room!" },
+  { g: 'b', t: 'LIFE SCIENCE', q: "Endor's forest moon is covered in giant trees. What do plants need to make their own food?",
+    a: ['Sunlight, water and carbon dioxide', 'Only soil', 'Darkness and sugar', 'Moonlight and rocks'],
+    hint: 'Plants are green because they catch something from the Sun.',
+    learn: 'Plants use photosynthesis: they use sunlight to turn water and carbon dioxide (a gas in the air) into sugar for food. They give off oxygen — the gas we breathe!' },
+  { g: 'b', t: 'SPACE', q: 'Star Wars happens "in a galaxy far, far away." What is the name of OUR galaxy?',
+    a: ['The Milky Way', 'Andromeda', 'The Death Star', 'The Sombrero'],
+    hint: 'It is named after the milky band of light you can see across a dark night sky.',
+    learn: 'We live in the Milky Way, a spiral galaxy with hundreds of billions of stars. The nearest big galaxy, Andromeda, is so far away its light takes about 2.5 million years to reach us!' },
+  { g: 'b', t: 'SPACE', q: 'Which is the BIGGEST planet in our solar system?',
+    a: ['Jupiter', 'Earth', 'Mars', 'Mercury'],
+    hint: 'It has a giant storm called the Great Red Spot.',
+    learn: 'Jupiter is so big that about 1,300 Earths could fit inside it! It is a gas giant — mostly gas, with no solid ground to land an X-wing on.' },
+  { g: 'b', t: 'PHYSICS', q: 'Droids like R2-D2 run on electricity. Which material lets electricity flow through it easily?',
+    a: ['Copper metal', 'Rubber', 'Wood', 'Plastic'],
+    hint: 'Electric wires are made of this inside their plastic coating.',
+    learn: 'Materials that let electricity flow are called conductors — most metals, like copper. Materials that block it, like rubber and plastic, are insulators. They keep us safe from shocks!' },
+
+  { g: 'y', t: 'SPACE', q: 'Which planet is called the "Red Planet"?',
+    a: ['Mars', 'Venus', 'Jupiter', 'Neptune'],
+    hint: 'NASA has sent rovers like Curiosity and Perseverance to drive on it.',
+    learn: 'Mars looks red because its dust and rocks have lots of iron oxide in them — the same thing as rust!' },
+  { g: 'y', t: 'SPACE', q: 'Which planet is famous for its beautiful rings?',
+    a: ['Saturn', 'Mars', 'Mercury', 'Earth'],
+    hint: 'It is the sixth planet from the Sun.',
+    learn: "Saturn's rings are made of billions of pieces of ice and rock — some as tiny as grains of sand, some as big as houses!" },
+  { g: 'y', t: 'PHYSICS', q: 'Light from a lightsaber or a flashlight travels in…',
+    a: ['Straight lines', 'Circles', 'Zig-zags', 'Spirals'],
+    hint: "That's why you can't see around corners.",
+    learn: 'Light travels in straight lines until it hits something. It can bounce off a mirror (that is called reflection) or bend when it goes into water or glass (refraction).' },
+  { g: 'y', t: 'SPACE', q: 'How long does it take Earth to spin around once?',
+    a: ['About 24 hours — one day', 'One hour', 'One week', 'One year'],
+    hint: 'One spin gives us one daytime and one nighttime.',
+    learn: 'One spin of Earth = one day (about 24 hours). One trip all the way around the Sun = one year (about 365 days).' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'Which gas do astronauts and Rebel pilots need to breathe?',
+    a: ['Oxygen', 'Carbon dioxide', 'Helium', 'Steam'],
+    hint: 'Trees and plants give off this gas.',
+    learn: 'Our bodies use oxygen to turn food into energy. Space has no air, so spacesuits and spaceships carry their own oxygen supply.' },
+  { g: 'y', t: 'SPACE', q: 'Why does the Moon shine at night?',
+    a: ['It reflects light from the Sun', 'It is on fire', 'It has giant lamps', 'It is made of glowing crystals'],
+    hint: 'The Moon does not make any light of its own.',
+    learn: "The Moon is a big rock that reflects sunlight. Its phases (full moon, half moon, crescent) are just how much of its sunny side we can see from Earth." },
+  { g: 'y', t: 'SPACE', q: 'Which planet is closest to the Sun?',
+    a: ['Mercury', 'Venus', 'Earth', 'Neptune'],
+    hint: 'It is also the smallest planet.',
+    learn: 'Mercury is closest and races around the Sun in just 88 days. The planet order is Mercury, Venus, Earth, Mars, Jupiter, Saturn, Uranus, Neptune — "My Very Excellent Mother Just Served Us Noodles!"' },
+  { g: 'y', t: 'PHYSICS', q: 'Which of these would a magnet pick up?',
+    a: ['An iron nail', 'A plastic spoon', 'A wooden block', 'A glass marble'],
+    hint: 'Magnets attract some kinds of metal.',
+    learn: 'Magnets attract iron, nickel and cobalt. Earth itself is like a giant magnet — that is why a compass needle points north!' },
+  { g: 'y', t: 'CHEMISTRY', q: 'Han Solo got frozen in carbonite! When liquid water freezes, it becomes a…',
+    a: ['Solid', 'Gas', 'Liquid', 'Rainbow'],
+    hint: 'Ice is hard and keeps its shape.',
+    learn: 'Matter comes in states: solid, liquid and gas. Cooling water turns it into solid ice; heating it turns it into a gas called water vapour (steam).' },
+  { g: 'y', t: 'LIFE SCIENCE', q: "Yoda's swamp planet Dagobah would be perfect for frogs. What kind of animal is a frog?",
+    a: ['An amphibian', 'A mammal', 'A bird', 'An insect'],
+    hint: 'Frogs start life as tadpoles swimming in water.',
+    learn: 'Amphibians start life in water breathing with gills, then grow lungs so they can live on land too. "Amphibian" means "two lives"!' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'Tatooine is a hot desert. Which real desert animal can go a long time without drinking water?',
+    a: ['A camel', 'A dolphin', 'A penguin', 'A goldfish'],
+    hint: 'It has one or two humps on its back.',
+    learn: "Camels can go more than a week without drinking. Their humps store fat (not water!), which gives them energy when food is hard to find." },
+  { g: 'y', t: 'SPACE', q: 'The Moon travels around the Earth. That makes the Moon Earth\'s…',
+    a: ['Natural satellite', 'Star', 'Sun', 'Comet'],
+    hint: 'Anything that orbits a planet has this name.',
+    learn: 'A satellite is something that orbits a planet. The Moon is Earth’s natural satellite. People have also launched thousands of artificial satellites for things like GPS and weather forecasts.' },
+  { g: 'y', t: 'SPACE', q: 'What tool do astronomers use to look at faraway planets and galaxies?',
+    a: ['A telescope', 'A microscope', 'A thermometer', 'A stethoscope'],
+    hint: 'Its name means "far-seeing."',
+    learn: 'Telescopes collect lots of light so we can see faint, faraway objects. The James Webb Space Telescope floats in space, far beyond the Moon, to see the very first galaxies!' },
+  { g: 'y', t: 'PHYSICS', q: 'When you rub your hands together fast, they get warm. What causes that?',
+    a: ['Friction', 'Magnetism', 'Moonlight', 'Sound'],
+    hint: 'It is the force that makes things slow down when they rub.',
+    learn: 'Friction is a force between surfaces rubbing together, and it turns motion into heat. Spaceships coming back to Earth slam into the air so fast that they get super hot — they need heat shields!' },
+
+  { g: 'p', t: 'SPACE', q: 'Sunlight takes about how long to travel from the Sun to Earth?',
+    a: ['About 8 minutes', 'About 1 second', 'About 1 day', 'About 1 year'],
+    hint: 'Light is the fastest thing there is, but the Sun is about 150 million km away.',
+    learn: 'Sunlight takes about 8 minutes and 20 seconds to reach us. So the Sun you see is how it looked 8 minutes ago! (Never look straight at the Sun — it can hurt your eyes.)' },
+  { g: 'p', t: 'SPACE', q: "Han Solo dodged through a crowded asteroid field. In our solar system's real asteroid belt, asteroids are usually…",
+    a: ['Very far apart', 'Bumping into each other', 'Close enough to touch', 'Stuck together in one big rock'],
+    hint: 'Space is VERY big.',
+    learn: 'Real asteroid belts are mostly empty space — asteroids are usually hundreds of thousands of kilometres apart. NASA spacecraft have flown straight through ours without having to dodge anything!' },
+  { g: 'p', t: 'SPACE', q: 'Stars come in different colours. Which colour stars are the HOTTEST?',
+    a: ['Blue', 'Red', 'Orange', 'Yellow'],
+    hint: 'Think of the hottest part of a gas stove flame.',
+    learn: 'Blue stars are the hottest (more than 10,000 °C on the surface) and red stars are the coolest. Our yellow-white Sun is in the middle.' },
+  { g: 'p', t: 'SPACE', q: 'Which planet is the HOTTEST in our solar system?',
+    a: ['Venus', 'Mercury', 'Mars', 'Jupiter'],
+    hint: "It isn't the closest planet to the Sun! Think about a very thick blanket.",
+    learn: "Venus is about 465 °C — hotter than Mercury! Its thick carbon dioxide atmosphere traps heat. That's called the greenhouse effect." },
+  { g: 'p', t: 'SPACE', q: 'What is a black hole?',
+    a: ['A place where gravity is so strong not even light can escape', 'A hole dug into a planet', 'A planet painted black', 'An empty spot with no gravity'],
+    hint: 'It is all about extremely strong gravity.',
+    learn: 'Black holes can form when giant stars collapse. In 2019 scientists took the first ever picture of a black hole’s shadow, in a galaxy called M87.' },
+  { g: 'p', t: 'CHEMISTRY', q: 'Stars like our Sun are mostly made of super-hot glowing…',
+    a: ['Plasma', 'Ice', 'Rock', 'Liquid water'],
+    hint: 'It is called the fourth state of matter.',
+    learn: 'Plasma is gas that is so hot its atoms break apart into electrically charged pieces. Lightning and neon signs are plasma too!' },
+  { g: 'p', t: 'PHYSICS', q: 'If you flew to Mars, what would happen to your MASS (how much stuff you are made of)?',
+    a: ['It stays the same', 'It gets bigger', 'It gets smaller', 'It becomes zero'],
+    hint: 'Weight depends on gravity, but you are still made of the same amount of stuff.',
+    learn: 'Mass stays the same everywhere. WEIGHT is how hard gravity pulls on your mass. On Mars you would weigh only about 38% of what you weigh on Earth, but your mass would not change.' },
+  { g: 'p', t: 'SPACE', q: 'What happens during a SOLAR eclipse?',
+    a: ['The Moon passes between the Sun and Earth', 'Earth passes between the Sun and Moon', 'The Sun switches off', 'Mars blocks the Moon'],
+    hint: 'Something blocks the Sun from our view.',
+    learn: "In a solar eclipse, the Moon's shadow falls on Earth. In a lunar eclipse, Earth's shadow falls on the Moon. Only look at a solar eclipse through special eclipse glasses!" },
+  { g: 'p', t: 'EARTH SCIENCE', q: 'The ocean planet Kamino is covered in water. About how much of EARTH is covered by water?',
+    a: ['About 70%', 'About 10%', 'About 30%', 'All of it'],
+    hint: 'From space, Earth looks mostly blue.',
+    learn: 'About 71% of Earth’s surface is water, but almost all of it is salty ocean. Only about 3% of Earth’s water is fresh water.' },
+  { g: 'p', t: 'SPACE', q: 'The International Space Station circles Earth about once every…',
+    a: ['90 minutes', '1 day', '1 month', '1 year'],
+    hint: 'It is moving at about 28,000 km per hour!',
+    learn: 'The ISS goes around Earth about every 90 minutes, so astronauts on board see about 16 sunrises and 16 sunsets every day!' },
+  { g: 'p', t: 'SPACE', q: "A comet's glowing tail always points…",
+    a: ['Away from the Sun', 'Toward the Sun', 'Toward Earth', 'Straight down'],
+    hint: 'The Sun’s heat and the solar wind push on it.',
+    learn: 'Comets are "dirty snowballs" of ice and dust. Sunlight and the solar wind push gas and dust away from the Sun, so the tail always points away from it — even when the comet is heading away!' },
+  // Forest & ice questions for the Endor and Hoth missions
+  { g: 'b', t: 'LIFE SCIENCE', q: "The giant trees on Endor's forest moon were filmed in a real forest in California. What are the TALLEST trees on Earth?",
+    a: ['Coast redwoods', 'Palm trees', 'Apple trees', 'Cactuses'],
+    hint: 'They grow in foggy forests along the coast of California.',
+    learn: 'Coast redwoods can grow over 100 m (330 ft) tall — taller than a 30-story building! The Endor scenes in Return of the Jedi were filmed among real redwoods in Northern California.' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'How can you tell how old a tree was after it has been cut down?',
+    a: ['Count the rings inside its trunk', 'Count its leaves', 'Measure its shadow', 'Weigh its branches'],
+    hint: 'Look at the circles on a tree stump.',
+    learn: 'Most trees grow one new ring every year. Wide rings mean a good year with lots of rain; thin rings mean a hard, dry year.' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'Ewoks live up in the trees. Which real tree-living animal sleeps about 18 to 22 hours a day?',
+    a: ['The koala', 'The cow', 'The penguin', 'The horse'],
+    hint: 'It lives in Australia and eats eucalyptus leaves.',
+    learn: 'Koalas sleep 18–22 hours a day! Eucalyptus leaves give them very little energy, so they rest a lot to save it.' },
+  { g: 'b', t: 'PHYSICS', q: 'Speeder bikes hover above the ground. What force pulls everything DOWN toward the ground?',
+    a: ['Gravity', 'Friction', 'Magnetism', 'Wind'],
+    hint: 'It is the reason a dropped ball falls.',
+    learn: 'Gravity pulls things toward the ground. To hover, a real machine has to push down just as hard as gravity pulls — helicopters and drones do it by blowing air downward.' },
+  { g: 'p', t: 'PHYSICS', q: 'When you race a speeder bike through the trees, why is it harder to turn when you are going faster?',
+    a: ['Moving things want to keep going straight', 'The trees pull on you', 'The air turns solid', 'Gravity switches off'],
+    hint: 'This idea is called inertia.',
+    learn: "That's Newton's First Law: a moving object keeps going in a straight line unless a force changes it. The faster you go, the more force it takes to turn — that's why race cars slow down for sharp corners." },
+  { g: 'p', t: 'LIFE SCIENCE', q: 'Forests are sometimes called "the lungs of the Earth." Why?',
+    a: ['Trees take in carbon dioxide and give off oxygen', 'Trees have lungs inside them', 'Forests make all the wind', 'Trees breathe out smoke'],
+    hint: 'Think about the gas that people breathe in.',
+    learn: 'Through photosynthesis, trees take carbon dioxide out of the air and release oxygen. Forests also store huge amounts of carbon in their wood.' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'Owls hunt at night and sleep during the day. Animals like this are called…',
+    a: ['Nocturnal', 'Hibernating', 'Migrating', 'Cold-blooded'],
+    hint: 'The word comes from the Latin word for "night."',
+    learn: 'Nocturnal animals have special senses for the dark — owls have huge eyes and amazing hearing. Animals that are awake in the daytime are called diurnal.' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'In the forest, a caterpillar wraps itself up in a chrysalis. What comes out?',
+    a: ['A butterfly', 'A frog', 'A bird', 'A spider'],
+    hint: 'It has big, colourful wings.',
+    learn: 'This amazing change is called metamorphosis. Inside the chrysalis, the caterpillar’s body is completely rebuilt into a butterfly!' },
+  { g: 'y', t: 'EARTH SCIENCE', q: 'Hoth is covered in snow. What is snow made of?',
+    a: ['Tiny ice crystals', 'Cotton', 'Salt', 'Frozen milk'],
+    hint: 'It forms in cold clouds.',
+    learn: 'Snowflakes form when water vapour in clouds freezes into ice crystals. Almost every snowflake has 6 sides or 6 arms!' },
+  { g: 'p', t: 'PHYSICS', q: 'Why does ice float in water?',
+    a: ['Ice is less dense than liquid water', 'Ice is hollow inside', 'Ice is magnetic', 'Ice is lighter than air'],
+    hint: 'When water freezes, it actually gets bigger.',
+    learn: 'When water freezes, its molecules lock into a pattern with extra space between them, so ice takes up about 9% more room and floats. That is why lakes freeze from the top down, and fish can survive underneath!' },
+  { g: 'y', t: 'LIFE SCIENCE', q: 'On Hoth, Luke rides a furry tauntaun. Which REAL animal has thick fur and blubber to survive in the Arctic?',
+    a: ['The polar bear', 'The lion', 'The camel', 'The iguana'],
+    hint: 'It is a big white bear.',
+    learn: 'Polar bears have two layers of fur and a thick layer of fat called blubber. Their fur looks white, but their skin underneath is black, which helps soak up the Sun’s heat!' },
+  { g: 'b', t: 'EARTH SCIENCE', q: 'Which is the coldest continent on Earth — a real-life Hoth?',
+    a: ['Antarctica', 'Africa', 'Australia', 'Europe'],
+    hint: 'It is at the South Pole.',
+    learn: 'Antarctica holds the record for the coldest temperature ever measured on Earth: about −89 °C (−128 °F)! Scientists live and work there in research stations.' },
+  { g: 'p', t: 'PHYSICS', q: 'Why do you feel colder when the wind blows on a snowy day?',
+    a: ['Wind carries your body heat away faster', 'Wind is made of ice', 'Wind blocks the Sun', 'Wind makes the air heavier'],
+    hint: 'Your body warms a thin layer of air around your skin.',
+    learn: 'Wind blows away the warm layer of air next to your skin, so you lose heat faster. Weather reports call this the "wind chill."' },
+  { g: 'y', t: 'PHYSICS', q: 'On a cold, sunny day, which colour coat would soak up the MOST warmth from the Sun?',
+    a: ['Black', 'White', 'Light yellow', 'Silver'],
+    hint: 'Think about which car seat gets hottest in summer.',
+    learn: 'Dark colours absorb more sunlight and turn it into heat. White and light colours reflect sunlight — that is why bright white snow can be dazzling!' },
+  { g: 'p', t: 'SPACE', q: 'Hoth is a frozen planet far from its sun. In our solar system, planets farther from the Sun are usually…',
+    a: ['Colder', 'Hotter', 'Brighter', 'Always bigger'],
+    hint: 'Sunlight spreads out and gets weaker as it travels.',
+    learn: 'Far-away planets get less of the Sun’s heat — Neptune is about −200 °C! (Venus is a surprise exception: its thick atmosphere makes it hotter than Mercury.)' },
+  { g: 'b', t: 'PHYSICS', q: "The Rebels' Echo Base on Hoth was dug into ice. Why can an igloo made of snow keep people warm?",
+    a: ['Snow has trapped air, which keeps heat in', 'Snow is secretly warm', 'Ice makes its own heat', 'Igloos have heaters in the walls'],
+    hint: 'A puffy winter coat works the same way.',
+    learn: 'Packed snow is full of tiny air pockets, and trapped air is a great insulator — it slows heat from escaping. Body heat alone can make the inside of an igloo much warmer than outside!' },
+];
+
+const ri = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+// Math generators: return { q, ans, hint, learn }
+const MATH = {
+  y: [
+    () => { const n = ri(2, 5); return { q: `An X-wing has 4 laser cannons. How many laser cannons do ${n} X-wings have altogether?`, ans: 4 * n,
+      hint: `Count by 4s, ${n} times: 4, 8, 12…`, learn: `${n} × 4 = ${4 * n}. Multiplying is a quick way to add equal groups: ${Array(n).fill(4).join(' + ')} = ${4 * n}.` }; },
+    () => { const a = ri(25, 60), b = ri(5, 19); return { q: `You have ${a} laser shots and fire ${b} of them at a turbolaser tower. How many shots are left?`, ans: a - b,
+      hint: `Take ${b} away from ${a}. Try taking away 10 first, then the rest.`, learn: `${a} − ${b} = ${a - b}. Subtraction tells you how many are left.` }; },
+    () => { const a = ri(6, 24), b = ri(6, 24); return { q: `Red Squadron has ${a} pilots and Gold Squadron has ${b} pilots. How many pilots are there altogether?`, ans: a + b,
+      hint: 'Add the tens first, then add the ones.', learn: `${a} + ${b} = ${a + b}.` }; },
+    () => { const n = ri(3, 9); return { q: `A TIE fighter has 2 wings. How many wings do ${n} TIE fighters have?`, ans: 2 * n,
+      hint: 'Count by 2s — or just double the number!', learn: `${n} × 2 = ${2 * n}. Multiplying by 2 is doubling: ${n} + ${n} = ${2 * n}.` }; },
+    () => { const n = ri(2, 7); return { q: `Your deflector shields are at 100. Each blast takes away 10. What are your shields after ${n} blasts?`, ans: 100 - 10 * n,
+      hint: 'Count backwards by 10s from 100.', learn: `${n} blasts × 10 = ${10 * n}, and 100 − ${10 * n} = ${100 - 10 * n}.` }; },
+    () => { const n = ri(2, 5); return { q: `A turbolaser tower takes 3 laser hits to destroy. How many hits do you need to destroy ${n} towers?`, ans: 3 * n,
+      hint: 'Count by 3s.', learn: `${n} × 3 = ${3 * n}. That's ${Array(n).fill(3).join(' + ')}.` }; },
+  ],
+  p: [
+    () => { const s = ri(3, 9) * 10, t = ri(3, 9); return { q: `Your X-wing flies ${s} km every minute. How far does it fly in ${t} minutes?`, ans: s * t,
+      hint: `Work out ${s / 10} × ${t}, then put a zero on the end.`, learn: `Distance = speed × time. ${s} × ${t} = ${s * t} km.` }; },
+    () => { const k = ri(3, 8), each = ri(3, 9); return { q: `${k * each} proton torpedoes are shared equally between ${k} X-wings. How many torpedoes does each X-wing get?`, ans: each,
+      hint: `Division is fair sharing. What number times ${k} makes ${k * each}?`, learn: `${k * each} ÷ ${k} = ${each}, because ${k} × ${each} = ${k * each}. Division and multiplication undo each other!` }; },
+    () => { const v = ri(2, 9) * 10, t = ri(3, 9); return { q: `The thermal exhaust port is ${v * t} m away. You fly ${v} m every second. How many seconds until you reach it?`, ans: t,
+      hint: 'Time = distance ÷ speed.', learn: `${v * t} ÷ ${v} = ${t} seconds. Scientists use distance, speed and time to plan real space missions.` }; },
+    () => { const t = ri(2, 6); return { q: `Sound travels about 340 metres every second through air. You see lightning and hear the thunder ${t} seconds later. About how far away was the lightning?`, ans: 340 * t,
+      hint: `Multiply 340 by ${t}.`, learn: `340 × ${t} = ${340 * t} m. Light reaches your eyes almost instantly, but sound is much slower — so you see lightning before you hear thunder. In space, with no air, there would be no thunder at all!` }; },
+    () => { const q = ri(3, 9), total = 4 * q; return { q: `You start with ${total} laser shots and use 1/4 of them in the first minute. How many shots did you use?`, ans: q,
+      hint: 'Finding a quarter means splitting into 4 equal parts.', learn: `${total} ÷ 4 = ${q}. One quarter (1/4) means 1 out of 4 equal parts.` }; },
+    () => { const n = ri(6, 12); return { q: `A turbolaser tower takes 3 laser hits to destroy. How many hits do you need to destroy ${n} towers?`, ans: 3 * n,
+      hint: `Work out ${n} × 3.`, learn: `${n} × 3 = ${3 * n}. (Or use proton torpedoes — 1 hit each!)` }; },
+    () => { const m = ri(4, 12); return { q: `On the Moon, gravity is about 1/6 as strong as on Earth. A droid reads ${6 * m} on a scale on Earth. About what would the scale read on the Moon?`, ans: m,
+      hint: `Divide ${6 * m} by 6.`, learn: `${6 * m} ÷ 6 = ${m}. The droid is made of the same amount of stuff, but the Moon pulls on it about 6 times less, so the scale reads less.` }; },
+  ],
+};
+
+function shuffle(arr) {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) { const j = (Math.random() * (i + 1)) | 0; [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+function numberChoices(ans) {
+  const cands = shuffle([ans + 1, ans - 1, ans + 2, ans - 2, ans + 10, ans - 10, ans * 2, Math.round(ans / 2)]);
+  const wrong = [];
+  for (const c of cands) if (c > 0 && c !== ans && !wrong.includes(c) && wrong.length < 3) wrong.push(c);
+  const choices = shuffle([ans, ...wrong]);
+  return { choices: choices.map(String), correct: choices.indexOf(ans) };
+}
+
+// Bonus-round trivia about America: history, civics, inventors and how money & trade work.
+const AMERICA = [
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'Who was the first President of the United States?',
+    a: ['George Washington', 'Abraham Lincoln', 'Thomas Jefferson', 'Benjamin Franklin'],
+    hint: 'His face is on the $1 bill and the quarter.',
+    learn: 'George Washington led the army in the American Revolution and became the first President in 1789. After two terms he chose to step down, showing that power should be handed on peacefully.' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'On the 4th of July, Americans celebrate…',
+    a: ['Independence Day', 'The first Moon landing', 'Thanksgiving', 'The first airplane flight'],
+    hint: 'It is the birthday of the United States.',
+    learn: 'On July 4, 1776, leaders of the 13 colonies adopted the Declaration of Independence, announcing that America was free from British rule.' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'How many stars are on the American flag?',
+    a: ['50', '13', '48', '100'],
+    hint: 'There is one star for each state.',
+    learn: 'There are 50 stars — one for each state — and 13 stripes for the original 13 colonies.' },
+  { g: 'y', t: 'CIVICS', q: 'What is the capital city of the United States?',
+    a: ['Washington, D.C.', 'New York City', 'Los Angeles', 'Chicago'],
+    hint: 'It is named after the first President.',
+    learn: 'Washington, D.C. is where Congress, the President (in the White House) and the Supreme Court work. Before it was built, New York City and Philadelphia were both capitals!' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'What is the national bird of the United States?',
+    a: ['The bald eagle', 'The turkey', 'The robin', 'The blue jay'],
+    hint: 'It is a big bird of prey with a white head.',
+    learn: 'The bald eagle has been on the Great Seal of the United States since 1782. Ben Franklin once joked in a letter that the turkey was a more respectable bird!' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'The Statue of Liberty was a gift to the United States from which country?',
+    a: ['France', 'England', 'Spain', 'Mexico'],
+    hint: 'This country also helped America win the Revolutionary War.',
+    learn: 'France gave the statue in 1886 as a symbol of freedom and friendship. Her torch welcomed millions of immigrants arriving by ship in New York.' },
+  { g: 'y', t: 'ECONOMICS', q: 'If you save $1 every week, how much will you have after 10 weeks?',
+    a: ['$10', '$1', '$7', '$100'],
+    hint: 'Add $1 ten times.',
+    learn: 'Saving a little at a time really adds up! A bank can even pay you interest — extra money — for keeping your savings there.' },
+  { g: 'b', t: 'SPACE', q: 'Which American became the first person to walk on the Moon in 1969?',
+    a: ['Neil Armstrong', 'Buzz Aldrin', 'John Glenn', 'Sally Ride'],
+    hint: 'He said: "That\'s one small step for man, one giant leap for mankind."',
+    learn: "On July 20, 1969, Apollo 11's Neil Armstrong stepped onto the Moon, followed by Buzz Aldrin. Twelve American astronauts walked on the Moon between 1969 and 1972." },
+  { g: 'b', t: 'SPACE', q: 'Which American space agency sent astronauts to the Moon?',
+    a: ['NASA', 'The Rebel Alliance', 'The Post Office', 'The Navy'],
+    hint: 'Its four letters stand for National Aeronautics and Space Administration.',
+    learn: 'NASA was created in 1958. Today it explores Mars with rovers — and private American companies build rockets too!' },
+  { g: 'b', t: 'INVENTORS', q: 'Orville and Wilbur Wright made the first powered airplane flight in 1903. What business did they run before that?',
+    a: ['A bicycle shop', 'A bakery', 'A bank', 'A toy store'],
+    hint: 'Something with two wheels and pedals.',
+    learn: 'The Wright brothers were entrepreneurs who paid for their airplane experiments with money from their bicycle shop. Their first flight at Kitty Hawk, North Carolina lasted just 12 seconds — and changed the world!' },
+  { g: 'b', t: 'INVENTORS', q: 'Benjamin Franklin flew a kite in a thunderstorm to show that lightning is…',
+    a: ['Electricity', 'Fire', 'Sound', 'Water'],
+    hint: 'It is the same thing that powers droids and light bulbs.',
+    learn: "Franklin's 1752 kite experiment helped show that lightning is electricity. He then invented the lightning rod to protect buildings. (Never try his experiment — it is extremely dangerous!)" },
+  { g: 'b', t: 'INVENTORS', q: "Thomas Edison's team made one of the first long-lasting, practical…",
+    a: ['Light bulbs', 'Telephones', 'Airplanes', 'Televisions'],
+    hint: 'You switch it on when it gets dark.',
+    learn: 'Edison held over 1,000 patents! A patent protects an inventor’s idea for a while. Edison said genius is "1% inspiration and 99% perspiration" — lots of hard work!' },
+  { g: 'b', t: 'AMERICAN HISTORY', q: 'Who wrote most of the Declaration of Independence?',
+    a: ['Thomas Jefferson', 'George Washington', 'Abraham Lincoln', 'Paul Revere'],
+    hint: 'He later became the 3rd President.',
+    learn: 'Thomas Jefferson wrote the first draft when he was just 33. It says all people are created equal, with rights to "Life, Liberty and the pursuit of Happiness."' },
+  { g: 'b', t: 'AMERICAN HISTORY', q: 'Which president led the country during the Civil War and worked to end slavery?',
+    a: ['Abraham Lincoln', 'George Washington', 'Thomas Jefferson', 'John Adams'],
+    hint: 'He was known as "Honest Abe."',
+    learn: "Abraham Lincoln was the 16th President. His Emancipation Proclamation (1863) declared enslaved people in the Confederate states free, and the 13th Amendment (1865) ended slavery in the United States." },
+  { g: 'b', t: 'ECONOMICS', q: 'Two kids agree to trade: one gives a toy car for the other’s comic book. Who wins?',
+    a: ['Both of them', 'Only the one who got the car', 'Nobody', 'Only the one who got the comic'],
+    hint: 'Would either kid agree if they didn’t want the other thing more?',
+    learn: 'When a trade is voluntary, both people usually win — each one values what they get more than what they give up. That is why free trade makes people better off.' },
+  { g: 'b', t: 'ECONOMICS', q: 'Someone who starts their own business, like a lemonade stand, is called an…',
+    a: ['Entrepreneur', 'Astronaut', 'Ambassador', 'Umpire'],
+    hint: 'The word comes from French and means "one who undertakes."',
+    learn: "Entrepreneurs spot something people need, take a risk and build it. Many famous American companies started in garages and bedrooms!" },
+  { g: 'p', t: 'ECONOMICS', q: 'On a super-hot day, LOTS of people want lemonade, but you only have a little left. What usually happens to the price?',
+    a: ['It goes up', 'It goes down', 'It always stays the same', 'It becomes free'],
+    hint: 'Think about what happens when everyone wants the last cookie.',
+    learn: 'That is supply and demand! When many people want something (high demand) but there is not much of it (low supply), prices tend to rise. When there is plenty, prices tend to fall.' },
+  { g: 'p', t: 'ECONOMICS', q: 'You can spend $5 on a comic book OR save it toward a model X-wing. If you pick the comic, the X-wing savings you gave up is called the…',
+    a: ['Opportunity cost', 'Tax', 'Interest', 'Profit'],
+    hint: 'It is the "opportunity" you missed out on.',
+    learn: 'Every choice has an opportunity cost — the next-best thing you give up. Thinking about it helps you make smarter choices with your money AND your time.' },
+  { g: 'p', t: 'ECONOMICS', q: 'Before money, people traded things directly — like 3 fish for a basket of apples. This is called…',
+    a: ['Barter', 'Banking', 'Borrowing', 'Budgeting'],
+    hint: 'It starts with B and means swapping goods.',
+    learn: 'Barter is tricky: the fisher has to find someone who has apples AND wants fish! Money fixes that, because almost everyone accepts it.' },
+  { g: 'p', t: 'CIVICS', q: 'The first 10 amendments (changes) to the U.S. Constitution are called…',
+    a: ['The Bill of Rights', 'The Declaration of Independence', 'The Pledge of Allegiance', 'The Star-Spangled Banner'],
+    hint: 'They list rights that the government must respect.',
+    learn: 'The Bill of Rights (1791) protects freedoms like speech, religion, the press and a fair trial, and limits what the government is allowed to do.' },
+  { g: 'p', t: 'CIVICS', q: 'The First Amendment protects your freedom of…',
+    a: ['Speech, religion and the press', 'Choosing your bedtime', 'Skipping school', 'Never paying for things'],
+    hint: 'It is about what people can say, write and believe.',
+    learn: 'The First Amendment protects freedom of religion, speech, the press, peaceful assembly, and petitioning (asking) the government to fix problems.' },
+  { g: 'p', t: 'CIVICS', q: 'The U.S. government has 3 branches: Congress, the President and the courts. Why did the Founders split power this way?',
+    a: ['So no one person or group gets too much power', 'To make decisions faster', 'Because 3 is a lucky number', 'So the President can do anything'],
+    hint: 'Think about what could go wrong if one person made ALL the rules.',
+    learn: 'This is called "checks and balances": each branch can limit the others. Congress makes laws, the President carries them out, and the courts decide what the laws mean.' },
+  { g: 'p', t: 'SPACE', q: 'In 1983, Sally Ride became the first American woman to…',
+    a: ['Fly in space', 'Fly an airplane', 'Become President', 'Climb Mount Everest'],
+    hint: 'She rode on the Space Shuttle Challenger.',
+    learn: 'Sally Ride was also a physicist, and later she wrote science books to get kids excited about space!' },
+  { g: 'p', t: 'INVENTORS', q: "Henry Ford's moving assembly line (1913) made cars…",
+    a: ['Much cheaper, so more families could buy one', 'More expensive', 'Slower to build', 'Able to fly'],
+    hint: 'Each worker did one small job as the cars rolled past.',
+    learn: 'Ford’s factory cut the time to build a Model T from over 12 hours to about 1½ hours. Lower costs meant lower prices — new ideas and competition can make things affordable for everyone.' },
+  { g: 'p', t: 'AMERICAN HISTORY', q: "Lewis and Clark's famous expedition (1804–1806) explored…",
+    a: ['The American West, all the way to the Pacific Ocean', 'The Moon', 'The North Pole', 'Australia'],
+    hint: 'They travelled up the Missouri River and over the Rocky Mountains.',
+    learn: 'Meriwether Lewis and William Clark mapped rivers and mountains and recorded over 100 animals and plants that were new to science. A young Shoshone woman, Sacagawea, helped guide them.' },
+  { g: 'y', t: 'CIVICS', q: 'Which famous American document begins with the words "We the People"?',
+    a: ['The Constitution', 'The Pledge of Allegiance', 'The Star-Spangled Banner', 'A dinner menu'],
+    hint: 'It was written in Philadelphia in 1787.',
+    learn: 'The U.S. Constitution sets up how the government works. "We the People" means the government’s power comes from its citizens.' },
+  { g: 'p', t: 'CIVICS', q: 'How many U.S. Senators does each state get?',
+    a: ['2', '1', '10', 'It depends on how many people live there'],
+    hint: 'Every state gets the same number, big or small.',
+    learn: 'Every state has 2 senators. In the House of Representatives, though, states with more people get more members. This mix was a compromise the Founders made in 1787.' },
+  { g: 'b', t: 'EARTH SCIENCE', q: "America's first national park has a famous geyser called Old Faithful. What is the park called?",
+    a: ['Yellowstone', 'The Grand Canyon', 'Yosemite', 'The Everglades'],
+    hint: 'It is named after a river with yellow-coloured rocks.',
+    learn: 'Yellowstone became the world’s first national park in 1872. Old Faithful shoots boiling water into the air about every 1½ hours, heated by hot magma deep underground!' },
+  { g: 'y', t: 'INVENTORS', q: 'Who made the first telephone call in 1876?',
+    a: ['Alexander Graham Bell', 'George Washington', 'The Wright brothers', 'Abraham Lincoln'],
+    hint: 'His last name sounds like something that rings.',
+    learn: 'Alexander Graham Bell’s first words on the telephone were: "Mr. Watson, come here, I want to see you." Today phones fit in your pocket!' },
+  { g: 'p', t: 'ECONOMICS', q: 'A store buys a toy for $6 and sells it for $10. How much profit does the store make?',
+    a: ['$4', '$16', '$10', '$6'],
+    hint: 'Profit = selling price − cost.',
+    learn: '$10 − $6 = $4 profit. Profit rewards a business for making things people want, and it can be used to grow the business and hire more workers.' },
+  { g: 'b', t: 'ECONOMICS', q: 'Why do people specialize — like one person baking bread and another fixing bikes — and then trade?',
+    a: ['Everyone gets better at their job, so more gets made', 'It is a law that you must', 'So nobody ever has to work', 'Because tools are not allowed'],
+    hint: 'Think about what happens when you practise one thing a lot.',
+    learn: 'When people specialize and trade, everyone can end up with more than if each person tried to make everything alone. The economist Adam Smith wrote about this idea in 1776.' },
+  { g: 'y', t: 'AMERICAN HISTORY', q: 'In 1620, the Pilgrims sailed to America on a ship called the…',
+    a: ['Mayflower', 'Titanic', 'Millennium Falcon', 'Santa Maria'],
+    hint: 'Its name is a spring flower.',
+    learn: 'The Mayflower carried about 100 passengers across the Atlantic Ocean. Before landing, the men signed the Mayflower Compact, agreeing to make fair laws together.' },
+  { g: 'p', t: 'INVENTORS', q: 'Which American scientist found hundreds of uses for peanuts and taught farmers how to keep their soil healthy?',
+    a: ['George Washington Carver', 'Thomas Edison', 'Henry Ford', 'Neil Armstrong'],
+    hint: 'He worked at the Tuskegee Institute in Alabama.',
+    learn: 'Carver taught farmers to rotate crops — planting peanuts and sweet potatoes to put nutrients back into soil worn out by cotton. He found about 300 uses for peanuts!' },
+  { g: 'b', t: 'SPACE', q: 'In 1962, John Glenn became the first American to…',
+    a: ['Orbit (circle) the Earth', 'Walk on the Moon', 'Fly an airplane', 'Visit Mars'],
+    hint: 'His capsule was called Friendship 7.',
+    learn: 'John Glenn circled Earth 3 times. In 1998, at age 77, he flew to space again on the Space Shuttle — the oldest person in space at the time!' },
+];
+
+const decks = {};
+function drawFromDeck(key, list) {
+  if (!decks[key] || !decks[key].length) decks[key] = shuffle(list.filter(q => q.g === grade || q.g === 'b'));
+  const c = decks[key].pop();
+  const order = shuffle(c.a.map((text, i) => ({ text, i })));
+  return { topic: c.t, q: c.q, choices: order.map(o => o.text), correct: order.findIndex(o => o.i === 0), hint: c.hint, learn: c.learn };
+}
+
+// kind: 'gate' = science or math, 'sci' = science only, 'usa' = America trivia
+let lastMath = null;
+function drawQuestion(kind = 'gate') {
+  if (kind === 'usa') return drawFromDeck('usa-' + grade, AMERICA);
+  if (kind === 'gate' && Math.random() < 0.4) {
+    let gen;
+    do { gen = pick(MATH[grade]); } while (gen === lastMath && MATH[grade].length > 1);
+    lastMath = gen;
+    const m = gen();
+    return { topic: 'MATH', q: m.q, ...numberChoices(m.ans), hint: m.hint, learn: m.learn };
+  }
+  return drawFromDeck('sci-' + grade, QUESTIONS);
+}
+
+let quiz = null;
+
+// mode 'gate': keep asking until `need` are right. mode 'bonus': ask exactly `need` questions, reward each right one.
+function startQuiz(need, title, intro, onPass, mode = 'gate') {
+  menuScene();
+  state = 'quiz';
+  quiz = { mode, need, got: 0, results: [], title, intro, onPass, q: null, answered: false, kinds: shuffle(['usa', 'sci']) };
+  nextQuestion();
+}
+
+function quizStars() {
+  if (quiz.mode === 'bonus') {
+    return Array.from({ length: quiz.need }, (_, i) => i < quiz.results.length ? (quiz.results[i] ? '★' : '✗') : '☆').join('');
+  }
+  return Array.from({ length: quiz.need }, (_, i) => i < quiz.got ? '★' : '☆').join('');
+}
+
+// ---------- Bonus round ----------
+let bonusLaunch = null;
+function offerBonus(launch) {
+  bonus = { torp: 0, shield: 0 };
+  bonusLaunch = launch;
+  state = 'quiz';
+  showOverlay('BONUS ROUND',
+    `<p class="big">Do you want ${BONUS_QUESTIONS * BONUS_TORP} extra ${world.secName.toLowerCase()} and some extra deflector shields too?</p>
+     <p>Answer ${BONUS_QUESTIONS} trivia questions about science and America!
+     Every right answer earns <b>+${BONUS_TORP} ${world.secOne.toLowerCase()}</b> and <b>+${BONUS_SHIELD} shields</b>.</p>
+     <div class="yesno">
+       <button data-bonus="yes">YES, BONUS ROUND! 🎁</button>
+       <button class="no" data-bonus="no">NO THANKS — LAUNCH 🚀</button>
+     </div>
+     <p class="keys">Press Y or N</p>`,
+    '', null);
+  ovBtn.classList.add('hidden');
+}
+function chooseBonus(yes) {
+  if (!bonusLaunch) return;
+  const launch = bonusLaunch;
+  bonusLaunch = null;
+  if (yes) {
+    startQuiz(BONUS_QUESTIONS, 'BONUS ROUND',
+      `Each right answer = +${BONUS_TORP} ${world.secOne.toLowerCase()} and +${BONUS_SHIELD} shields!`, launch, 'bonus');
+  } else launch();
+}
+
+// ---------- Book recommendations ----------
+const BOOKS = [
+  { g: 'b', title: 'The Tuttle Twins Learn About the Law', author: 'Connor Boyack',
+    about: 'Ethan and Emily Tuttle find out what makes a law fair — and what happens when it isn’t.' },
+  { g: 'b', title: 'The Tuttle Twins and the Miraculous Pencil', author: 'Connor Boyack',
+    about: 'How does a simple pencil get made? Thousands of people around the world work together through trade — without anyone being in charge!' },
+  { g: 'b', title: 'The Tuttle Twins and the Food Truck Fiasco', author: 'Connor Boyack',
+    about: 'The twins help a friend start a food truck and learn about entrepreneurs, competition and rules.' },
+  { g: 'p', title: 'The Tuttle Twins and the Creature from Jekyll Island', author: 'Connor Boyack',
+    about: 'What is money, where does it come from, and why do prices go up? The twins investigate.' },
+  { g: 'y', title: 'National Geographic Little Kids First Big Book of Space', author: 'Catherine D. Hughes',
+    about: 'Amazing photos and fun facts about the Sun, planets, stars and astronauts.' },
+  { g: 'y', title: 'There’s No Place Like Space!', author: 'Tish Rabe',
+    about: 'The Cat in the Hat takes you on a rhyming tour of our solar system.' },
+  { g: 'y', title: 'The Magic School Bus Lost in the Solar System', author: 'Joanna Cole',
+    about: 'Ms. Frizzle’s class blasts off on a field trip past every planet.' },
+  { g: 'b', title: 'Who Was Neil Armstrong?', author: 'Roberta Edwards',
+    about: 'The true story of the first person to walk on the Moon.' },
+  { g: 'b', title: 'Who Were the Wright Brothers?', author: 'James Buckley Jr.',
+    about: 'How two bicycle-shop brothers from Ohio invented the airplane.' },
+  { g: 'b', title: 'Who Was Ben Franklin?', author: 'Dennis Brindell Fradin',
+    about: 'Inventor, scientist, writer and Founding Father — and yes, the kite experiment!' },
+  { g: 'p', title: 'What Is the Declaration of Independence?', author: 'Michael C. Harris',
+    about: 'The story behind the famous document that started the United States.' },
+  { g: 'p', title: 'Hidden Figures (Young Readers’ Edition)', author: 'Margot Lee Shetterly',
+    about: 'The true story of the brilliant women mathematicians who helped NASA send astronauts into space.' },
+  { g: 'y', title: 'Mae Among the Stars', author: 'Roda Ahmed',
+    about: 'Little Mae dreams of space — and grows up to be Mae Jemison, the first African American woman in space.' },
+  { g: 'y', title: 'Ada Twist, Scientist', author: 'Andrea Beaty',
+    about: 'Ada asks "Why?" about everything and uses science to find the answers.' },
+  { g: 'b', title: 'One Grain of Rice: A Mathematical Folktale', author: 'Demi',
+    about: 'A clever girl uses the power of doubling to outsmart a greedy raja.' },
+  { g: 'y', title: 'Lemonade in Winter', author: 'Emily Jenkins',
+    about: 'Two kids run a lemonade stand in the snow and learn about counting money, prices and profit.' },
+  { g: 'p', title: 'A Child’s Introduction to the Night Sky', author: 'Michael Driscoll',
+    about: 'Learn the stars, planets and constellations — then go outside and find them yourself!' },
+];
+function bookCard() {
+  const b = drawBook();
+  const url = 'https://search.worldcat.org/search?q=' + encodeURIComponent(b.title + ' ' + b.author);
+  return `<div class="book">
+      <div class="bk-head">📚 Do you want to learn more? Check out this book!</div>
+      <div class="bk-title">${b.title}</div>
+      <div class="bk-author">by ${b.author}</div>
+      <p>${b.about}</p>
+      <a href="${url}" target="_blank" rel="noopener">Find it at a library →</a>
+    </div>`;
+}
+function drawBook() {
+  const key = 'books-' + grade;
+  if (!decks[key] || !decks[key].length) decks[key] = shuffle(BOOKS.filter(b => b.g === grade || b.g === 'b'));
+  return decks[key].pop();
+}
+
+function nextQuestion() {
+  const kind = quiz.mode === 'bonus' ? quiz.kinds[quiz.results.length % quiz.kinds.length] : 'gate';
+  const q = quiz.q = drawQuestion(kind);
+  quiz.answered = false;
+  showOverlay(quiz.title,
+    `<div class="quiz">
+       <p class="qneed">${quiz.intro}</p>
+       <div class="qtop"><span class="topic">${q.topic}</span><span class="stars">${quizStars()}</span></div>
+       <p class="qtext">${q.q}</p>
+       <div class="choices">${q.choices.map((c, i) => `<button class="choice" data-choice="${i}"><span class="letter">${'ABCD'[i]}</span><span>${c}</span></button>`).join('')}</div>
+       <button class="hintbtn" data-hint="1">💡 Need a hint?</button>
+       <p class="hinttext hidden">${q.hint}</p>
+       <div class="feedback hidden"></div>
+     </div>`,
+    '', null);
+  ovBtn.classList.add('hidden');
+}
+
+function showHint() {
+  if (!quiz || quiz.answered) return;
+  ovBody.querySelector('.hinttext').classList.remove('hidden');
+  ovBody.querySelector('.hintbtn').classList.add('hidden');
+}
+
+function answerQuiz(i) {
+  if (!quiz || quiz.answered || state !== 'quiz') return;
+  const q = quiz.q;
+  if (i < 0 || i >= q.choices.length) return;
+  quiz.answered = true;
+  const right = i === q.correct;
+  ovBody.querySelectorAll('.choice').forEach((b, j) => {
+    b.disabled = true;
+    if (j === q.correct) b.classList.add('right');
+    else if (j === i) b.classList.add('wrong');
+  });
+  ovBody.querySelector('.hintbtn').classList.add('hidden');
+  ovBody.querySelector('.hinttext').classList.add('hidden');
+  quiz.results.push(right);
+  const isBonus = quiz.mode === 'bonus';
+  if (right) {
+    quiz.got++;
+    sfx.right();
+    if (isBonus) { bonus.torp += BONUS_TORP; bonus.shield += BONUS_SHIELD; }
+  } else sfx.wrong();
+  ovBody.querySelector('.stars').textContent = quizStars();
+  const done = isBonus ? quiz.results.length >= quiz.need : quiz.got >= quiz.need;
+  const fb = ovBody.querySelector('.feedback');
+  fb.classList.remove('hidden');
+  fb.classList.add(right ? 'good' : 'bad');
+  fb.innerHTML = (right
+    ? `<b>✅ Correct — great job, pilot!</b>${isBonus ? ` 🎁 +${BONUS_TORP} ${world.secOne.toLowerCase()}, +${BONUS_SHIELD} shields!` : ''}<br>`
+    : `<b>Not quite — good try!</b> The answer is <b>${q.choices[q.correct]}</b>.<br>`) +
+    `🎓 ${q.learn}` +
+    (isBonus && done
+      ? `<br><br><b>Bonus round total: +${bonus.torp} ${world.secName.toLowerCase()}, +${bonus.shield} shields.</b>`
+      : '');
+  ovBtn.textContent = !done ? 'NEXT QUESTION' : isBonus ? 'LAUNCH X-WING! 🚀' : 'CONTINUE ➜';
+  ovAction = done ? quiz.onPass : nextQuestion;
+  ovBtn.classList.remove('hidden');
+}
+
+// ---------- Input ----------
+const KEYMAP = {
+  ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
+  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'fire',
+};
+window.addEventListener('keydown', e => {
+  // Quiz answers use letters A–D (checked first, since A and D also steer)
+  if (state === 'quiz' && /^Key[A-D]$/.test(e.code)) { answerQuiz(e.code.charCodeAt(3) - 65); return; }
+  const k = KEYMAP[e.code];
+  if (k) {
+    e.preventDefault();
+    if (k !== 'fire' && input.mouse) { input.mouse = false; target.x = player.x; target.y = player.y; }
+    input[k] = true;
+    sfx.init();
+    return;
+  }
+  if (e.code === 'KeyX' || e.code === 'KeyE') { if (!e.repeat) input.torp = true; }
+  else if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+  else if (e.code === 'KeyF') toggleFullscreen();
+  else if (e.code === 'KeyM') toggleMute();
+  else if (state === 'quiz' && e.code === 'KeyH') showHint();
+  else if (state === 'quiz' && bonusLaunch && (e.code === 'KeyY' || e.code === 'KeyN')) chooseBonus(e.code === 'KeyY');
+  else if (e.code === 'Enter' && !overlay.classList.contains('hidden') && !ovBtn.classList.contains('hidden')) ovBtn.click();
+});
+window.addEventListener('keyup', e => {
+  const k = KEYMAP[e.code];
+  if (k) input[k] = false;
+});
+
+function pointerTarget(e) {
+  input.mouse = true;
+  target.x = (e.clientX / W * 2 - 1) * TW * 1.25;
+  // top 10% of screen = top of the channel, bottom 15% = floor
+  const fy = (e.clientY / H - 0.1) / 0.75;
+  target.y = (TH - 0.4) - fy * (TH - 0.8);
+}
+canvas.addEventListener('pointerdown', e => {
+  sfx.init();
+  canvas.setPointerCapture(e.pointerId);
+  pointerTarget(e);
+  // Mouse buttons fire; touches on the canvas only steer (use the on-screen buttons to fire)
+  if (state === 'playing' && e.pointerType === 'mouse') {
+    if (e.button === 2) input.torp = true;
+    else if (e.button === 0) input.pointerFire = true;
+  }
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerType === 'mouse' || e.buttons) pointerTarget(e);
+});
+const release = e => { if (e.pointerType !== 'mouse' || e.button === 0) input.pointerFire = false; };
+canvas.addEventListener('pointerup', release);
+canvas.addEventListener('pointercancel', release);
+canvas.addEventListener('contextmenu', e => e.preventDefault());
+
+const btnLaser = document.getElementById('btnLaser'), btnTorp = document.getElementById('btnTorp');
+btnLaser.addEventListener('pointerdown', e => { e.preventDefault(); sfx.init(); input.btnLaser = true; });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) btnLaser.addEventListener(ev, () => { input.btnLaser = false; });
+btnTorp.addEventListener('pointerdown', e => { e.preventDefault(); sfx.init(); input.torp = true; });
+for (const b of [btnLaser, btnTorp]) b.addEventListener('contextmenu', e => e.preventDefault());
+
+window.addEventListener('blur', () => { if (state === 'playing') togglePause(); });
+document.addEventListener('visibilitychange', () => { if (document.hidden && state === 'playing') togglePause(); });
+
+// ---------- Main loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  if (state !== 'paused') update(dt);
+  fireButtons.classList.toggle('hidden', !(touchUI && state === 'playing'));
+  render();
+  requestAnimationFrame(frame);
+}
+
+showMenu();
+snapCamera();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
