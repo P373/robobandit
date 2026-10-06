@@ -53,6 +53,28 @@
   .panel h1 small { display: block; font-size: .55em; letter-spacing: 8px; color: #fff3b0; }
   .panel h1 .logo { display: block; width: 72px; height: 72px; margin: 0 auto 8px; }
   .share-link { display: inline-block; margin-top: 10px; color: #7fd0ff; font-weight: 700; }
+  /* Main menu: mission picture cards */
+  .pick-label { margin: 6px 0 10px; font-size: 13px; font-weight: 700; letter-spacing: 3px; color: #9fb0cc; }
+  .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+  @media (max-width: 520px) { .mission-grid { grid-template-columns: repeat(2, 1fr); } }
+  .panel button.mission {
+    margin: 0; padding: 0; overflow: hidden; display: flex; flex-direction: column; text-align: center;
+    color: #e6eefc; background: rgba(255,255,255,.06); border: 2px solid rgba(255,255,255,.18);
+    border-radius: 10px; box-shadow: none; font-size: 12px; letter-spacing: 1px;
+  }
+  .panel button.mission img { width: 100%; aspect-ratio: 16 / 10; object-fit: cover; display: block; background: #0a1224; }
+  .panel button.mission span { padding: 7px 4px; font-weight: 800; }
+  .panel button.mission:hover { background: rgba(127,208,255,.15); border-color: rgba(127,208,255,.6); }
+  .panel button.mission.sel { border-color: #ffd84a; background: rgba(255,216,74,.14); box-shadow: 0 0 18px rgba(255,216,74,.45); }
+  .menu-links { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; margin-top: 14px; }
+  .panel button.link {
+    margin: 0; padding: 8px 14px; font-size: 14px; letter-spacing: 0; box-shadow: none;
+    color: #cfd8ea; background: transparent; border: 1px solid rgba(255,255,255,.25);
+  }
+  .panel button.link:hover { background: rgba(255,255,255,.1); }
+  .howto { text-align: left; }
+  .howto ul { margin: 6px 0; padding-left: 20px; color: #cfd8ea; line-height: 1.45; }
+  .howto li { margin-bottom: 6px; }
   .panel p { margin: 8px 0; line-height: 1.5; color: #cfd8ea; }
   .panel .keys { font-size: 14px; color: #9fb0cc; }
   .panel .big { font-size: 20px; color: #fff; }
@@ -139,7 +161,7 @@
 <canvas id="game"></canvas>
 
 <div id="topbar">
-  <button id="btnPause" title="Pause (P)">❚❚</button>
+  <button id="btnPause" title="Game menu (P)">☰</button>
   <button id="btnMute" title="Sound on/off (M)">🔊</button>
   <button id="btnFs" title="Fullscreen (F)">⛶</button>
   <button id="btnShare" title="Share RoboBandit">🔗</button>
@@ -163,7 +185,7 @@
 
 // ---------- Constants ----------
 let TW = 3;            // channel half-width (set per world: Hoth and Tatooine are wider)
-const TH = 5;          // channel depth (floor y=0, rim y=TH)
+let TH = 5;            // channel depth (floor y=0, rim y=TH); taller in open space
 const VIEW = 230;      // draw distance
 const SEG = 4;         // wall segment length
 const NEAR = 0.4;      // near clip distance
@@ -256,6 +278,31 @@ const WORLDS = [
     winTitle: 'NOW THIS IS PODRACING!', winText: 'you won the Boonta Eve Classic!', winMsg: 'FIRST PLACE!',
     intro: 'Race a podracer through the desert canyons of Tatooine like young Anakin Skywalker — dodge the rocks, use your boosts, and beat 7 rival racers to the finish line.',
   },
+  {
+    key: 'tiefight', name: 'DOGFIGHT IN DEEP SPACE', short: 'TIE DOGFIGHT', icon: '🛸', vehicle: 'tie', vehicleName: 'TIE fighter',
+    hit: [0.7, 0.45], tw: 5, th: 6.5, space: true, fog: [3, 4, 12], clipEnd: false, quota: true,
+    obstacleRGB: [[110, 104, 98]],
+    pool: [['rock'], ['rock', 'rock2'], ['rock2']],
+    enemy: 'tie', guns: [[0.22, -0.1], [-0.22, -0.1]], shotCol: '80,255,110', boltCol: '255,70,50',
+    laserName: 'LASER CANNONS', secName: 'CONCUSSION MISSILES', secOne: 'CONCUSSION MISSILE', secBtn: 'MISSILE', secVerb: 'FIRE MISSILE',
+    targetName: 'ENEMY FIGHTERS', targetShort: 'ENEMY FIGHTERS',
+    winTitle: 'SQUADRON DESTROYED!', winText: 'you shot down the whole enemy squadron!', winMsg: 'ALL ENEMIES DOWN!',
+    intro: 'Fly a TIE fighter in open space, with a giant planet below and the Death Star in the distance. Shoot down a whole squadron of enemy fighters — and watch out for drifting space rocks!',
+  },
+  {
+    key: 'falcon', name: 'THE MILLENNIUM FALCON', short: 'FALCON ESCAPE', icon: '☄️', vehicle: 'falconP', vehicleName: 'Millennium Falcon',
+    hit: [0.62, 0.2], tw: 5, th: 6.5, space: true, fog: [3, 4, 12], clipEnd: false, hyper: true, cave: true,
+    obstacleRGB: [[110, 104, 98]],
+    pool: [['rock', 'rock2', 'rockPair'], ['rockPair', 'rockWall'], ['rockWall', 'rockPair']],
+    enemy: 'tie', guns: [[0, 0.16], [0, -0.16]], boltCol: '80,255,110',
+    laserName: 'QUAD LASERS', secName: 'CONCUSSION MISSILES', secOne: 'CONCUSSION MISSILE', secBtn: 'MISSILE', secVerb: 'FIRE MISSILE',
+    targetName: 'CAVE IN THE GIANT ASTEROID', targetShort: 'HIDING CAVE', lockText: 'LINED UP — FLY IN!',
+    approachMsg: 'GIANT ASTEROID AHEAD — FLY INTO THE CAVE TO HIDE!',
+    missMsg: 'THE CAVE IS AHEAD — FLY IN!',
+    missedText: 'You missed the cave entrance and had to swerve away from the giant asteroid!',
+    winTitle: 'SAFELY HIDDEN!', winText: 'you parked the Falcon inside the giant asteroid… wait, this is no cave! 😱', winMsg: 'PARKED!',
+    intro: 'Pilot the Millennium Falcon: escape the TIE fighters, punch it into hyperspace, weave through an asteroid field — and hide inside a cave in a giant asteroid.',
+  },
 ];
 let world = WORLDS[0];
 const TOTAL_LEVELS = WORLDS.length;
@@ -264,7 +311,7 @@ let startWorld = +(localStorage.getItem('xw_start') || 0);
 if (!WORLDS[startWorld]) startWorld = 0;
 let worldOrder = [startWorld, ...WORLDS.map((_, i) => i).filter(i => i !== startWorld)];
 const worldFor = n => WORLDS[worldOrder[(n - 1) % TOTAL_LEVELS]];
-const tierFor = n => (n >= 3 ? 2 : 1);   // later missions unlock trickier obstacles
+const tierFor = n => (n >= 5 ? 3 : n >= 3 ? 2 : 1);   // later missions unlock trickier obstacles
 
 // ---------- Canvas ----------
 const canvas = document.getElementById('game');
@@ -345,6 +392,7 @@ const sfx = (() => {
     right()  { [660, 880, 1320].forEach((f, i) => tone('sine', f, f, 0.18, 0.12, i * 0.08)); },
     wrong()  { tone('triangle', 300, 200, 0.3, 0.1); },
     win()    { [523, 659, 784, 1047].forEach((f, i) => tone('triangle', f, f, 0.35, 0.15, 0.4 + i * 0.13)); },
+    hyper()  { tone('sawtooth', 60, 1400, 1.4, 0.07); noise(2.4, 0.25, 600, 4000); },
     breath() { noise(0.9, 0.35, 900, 450); setTimeout(() => noise(1.1, 0.3, 600, 260), 1000); },
     lose()   { [392, 330, 262].forEach((f, i) => tone('triangle', f, f * 0.98, 0.4, 0.15, i * 0.18)); },
   };
@@ -372,6 +420,10 @@ let levelSpeed = 30, speed = 30, endZ = 1e9;
 let port = { x: 0, y: 2, r: 1 };
 let obstacles = [], towers = [], pickups = [], shots = [], bolts = [], particles = [], rivals = [];
 let lockTarget = null;
+let levelKills = 0, quota = 0;                    // TIE dogfight: enemies to shoot down
+let hyper = { z: Infinity, exitZ: Infinity, t: 0, done: true, exited: false };   // Falcon's hyperspace jump
+let decorRocks = [];                              // scenery asteroids outside the flight area
+let caveDark = 0, fxZ = 0;
 let shake = 0, flash = 0, hitFlash = 0, stateTimer = 0;
 let msg = '', msgT = 0, finalWarned = false;
 
@@ -383,6 +435,7 @@ function setWorld(w) {
   FOG = w.fog;
   [SHIP_HW, SHIP_HH] = w.hit;
   TW = w.tw || 3;
+  TH = w.th || 5;
   btnLaser.innerHTML = w.laserName.replace(' ', '<br>');
   btnLaser.style.display = w.noGuns ? 'none' : '';
   btnTorp.innerHTML = w.secBtn;
@@ -429,6 +482,26 @@ function makeObstacle(type, z, n) {
       rects = [[-TW, TW, 0, 1.5], [x - 0.5, x + 0.5, 1.5, TH]]; depth = 1; draw = tall(rects);
       break;
     }
+    // Space: tumbling asteroids. Collision boxes are a little smaller than the rocks look.
+    case 'rock': case 'rock2': case 'rockPair': case 'rockWall': {
+      const rocks = [];
+      const add = (x, y, r) => rocks.push({ x, y, r, v: (Math.random() * 6) | 0, s: rand(-0.6, 0.6), p: rand(0, 6) });
+      if (type === 'rockWall') {
+        // fill a 3 × 2 grid of cells with rocks, leaving one cell open to fly through
+        const open = (Math.random() * 6) | 0, cw = (TW * 2) / 3, ch = TH / 2;
+        for (let c = 0; c < 6; c++) if (c !== open) {
+          const r = rand(0.9, 1.3);
+          add(-TW + cw * (c % 3 + 0.5) + rand(-0.3, 0.3), ch * ((c / 3 | 0) + 0.5) + rand(-0.3, 0.3), r);
+        }
+      } else {
+        const count = type === 'rock' ? 1 : type === 'rock2' ? 2 : 3;
+        for (let k = 0; k < count; k++) { const r = rand(0.7, 1.4); add(rand(-TW + r, TW - r), rand(r, TH - r), r); }
+      }
+      const R = Math.max(...rocks.map(k => k.r));
+      rects = rocks.map(k => [k.x - k.r * 0.8, k.x + k.r * 0.8, k.y - k.r * 0.8, k.y + k.r * 0.8]);
+      depth = R * 1.6;
+      return { z, depth, rects, draw: rects, rocks, decor: null, rgb, hit: false, passed: false };
+    }
     // Hoth: a pair of AT-AT legs with the walker's body overhead
     case 'legs': {
       // a 3-unit gap between the legs, plus room to fly around the outside
@@ -449,6 +522,12 @@ function makeEnemy(z) {
   const t = { kind: world.enemy, z, hp: TOWER_HP, pending: 0, rise: 0, alive: true, cd: rand(0.5, 2), flash: 0, hitFlash: 0, phase: rand(0, 6) };
   if (t.kind === 'tower') { t.side = pick(['L', 'R', 'F']); t.ax = rand(-2.2, 2.2); t.ay = rand(1, 4.2); }
   else if (t.kind === 'scout') { const s = pick([-1, 1]); t.fx = s * rand(1.2, 2.3); t.sx = s * 7; t.fy = rand(0.8, 2.2); }
+  else if (t.kind === 'tie') {
+    // most come at you head-on and shoot; some fly away and you chase them
+    t.chase = Math.random() < 0.35;
+    t.vz = levelSpeed * (t.chase ? rand(0.5, 0.65) : -rand(0.1, 0.25));
+    t.fx = rand(-TW + 1.2, TW - 1.2); t.fy = rand(1.2, TH - 1.2);
+  }
   else { t.fx = rand(-TW + 0.8, TW - 0.8); t.fy = rand(1.4, 3.6); t.sy = -0.8; }
   updateTowerPos(t);
   return t;
@@ -461,8 +540,9 @@ function towerBox(t) {
     if (t.side === 'R') return [TW - h, TW, t.ay - 0.3, t.ay + 0.3];
     return [t.ax - 0.3, t.ax + 0.3, 0, h];
   }
-  const hw = t.kind === 'scout' ? 0.45 : 0.35;
-  return [t.x - hw, t.x + hw, t.y - 0.35, t.y + 0.35];
+  const hw = t.kind === 'scout' ? 0.45 : t.kind === 'tie' ? 0.65 : 0.35;
+  const hh = t.kind === 'tie' ? 0.6 : 0.35;
+  return [t.x - hw, t.x + hw, t.y - hh, t.y + hh];
 }
 function updateTowerPos(t) {
   if (t.kind === 'tower') {
@@ -473,18 +553,65 @@ function updateTowerPos(t) {
   const e = 1 - (1 - t.rise) ** 2;
   const bob = Math.sin(time * 3 + t.phase) * 0.08 * t.rise;
   if (t.kind === 'scout') { t.x = t.sx + (t.fx - t.sx) * e; t.y = t.fy + bob; }
+  else if (t.kind === 'tie') {   // swoop and weave
+    t.x = clamp(t.fx + Math.sin(time * 0.9 + t.phase) * 1.6, -TW + 0.7, TW - 0.7);
+    t.y = clamp(t.fy + Math.cos(time * 1.1 + t.phase) * 0.9, 0.7, TH - 0.7);
+  }
   else { t.x = t.fx + Math.sin(time * 1.3 + t.phase) * 0.15 * t.rise; t.y = t.sy + (t.fy - t.sy) * e + bob; }
 }
 
 let atatFall = 0;   // Hoth victory: how far the AT-AT has toppled (0..1)
 
+// TIE dogfight: open space with a few drifting rocks; enemy fighters keep coming until you hit the quota
+function buildDogfight(n) {
+  quota = 8 + tierFor(n) * 2;
+  endZ = 1e9;
+  let z = 90;
+  while (z < 40000) { obstacles.push(makeObstacle(pick(world.pool.slice(0, tierFor(n)).flat()), z, n)); z += levelSpeed * rand(2.2, 3.4); }
+  port = { x: 0, y: TH / 2, r: 1 };
+  ammo.laser = 160 + n * 20;
+  ammo.torp = 6;
+}
+
+// Falcon: TIE fighters in open space → hyperspace jump → dense asteroid field → cave in a giant asteroid
+function buildFalconRun(n) {
+  const tier = tierFor(n);
+  const spaceEnd = 520, fieldStart = spaceEnd + 760, fieldLen = 820 + n * 40;
+  endZ = fieldStart + fieldLen + 220;
+  hyper = { z: spaceEnd, exitZ: fieldStart - 40, t: 0, done: false, exited: false };
+  let z = 90, prev = 40;
+  while (z < spaceEnd - 30) {   // open space: sparse rocks and TIE fighters
+    obstacles.push(makeObstacle('rock', z, n));
+    if (Math.random() < 0.7) towers.push(makeEnemy((prev + z) / 2));
+    prev = z; z += levelSpeed * rand(1.6, 2.4);
+  }
+  const pool = world.pool.slice(0, tier).flat();
+  z = fieldStart;
+  while (z < endZ - 240) {      // the asteroid field
+    obstacles.push(makeObstacle(pick(pool), z, n));
+    if (Math.random() < 0.12) pickups.push({ kind: Math.random() < 0.5 ? 'shield' : 'ammo', x: rand(-3, 3), y: rand(1, TH - 1), z: z + 8, taken: false });
+    z += levelSpeed * Math.max(0.5, 0.95 - n * 0.05) * rand(0.8, 1.2);
+  }
+  for (let rz = fieldStart - 60; rz < endZ + 40; rz += 5) {   // scenery rocks all around the flight path
+    const side = Math.random() < 0.5 ? -1 : 1;
+    decorRocks.push({ x: side * rand(TW + 2, 34), y: rand(-14, 18), z: rz + rand(0, 5), r: rand(0.8, 3.6), v: (Math.random() * 6) | 0, s: rand(-0.4, 0.4), p: rand(0, 6) });
+  }
+  port = { x: rand(-2, 2), y: rand(2, TH - 2), r: 1.35 };   // the cave entrance
+  ammo.laser = 140 + n * 20;
+  ammo.torp = 5;
+}
+
 function buildLevel(n) {
   setWorld(worldFor(n));
   const tier = tierFor(n);
   levelSpeed = Math.min(60, 30 + (n - 1) * 4);
-  endZ = 900 + n * 300;
-  obstacles = []; towers = []; pickups = [];
+  endZ = 900 + Math.min(n, 4) * 300;
+  obstacles = []; towers = []; pickups = []; rivals = [];
   atatFall = 0;
+  levelKills = 0; caveDark = 0; decorRocks = [];
+  hyper = { z: Infinity, exitZ: Infinity, t: 0, done: true, exited: false };
+  if (world.quota) { buildDogfight(n); return; }
+  if (world.hyper) { buildFalconRun(n); return; }
 
   const pool = world.pool.slice(0, tier).flat();
   const gapTime = Math.max(0.55, 1.1 - n * 0.08);
@@ -576,7 +703,9 @@ function retryApproach() {
 function menuScene() {
   state = 'menu';
   setWorld(worldFor(level));   // the quiz and menu background shows the world you're about to fly in
-  obstacles = []; towers = []; pickups = []; shots = []; bolts = []; rivals = [];
+  obstacles = []; towers = []; pickups = []; shots = []; bolts = []; rivals = []; decorRocks = [];
+  hyper = { z: Infinity, exitZ: Infinity, t: 0, done: true, exited: false };
+  caveDark = 0;
   endZ = 1e9; levelSpeed = speed = 24;
 }
 
@@ -624,7 +753,7 @@ function pickTarget(kind) {
     if (!clearShot(player.x, player.y, player.z + 1, t.x, t.y, t.z - 0.3)) continue;
     best = t;
   }
-  if (!best && kind === 'torp' && endZ - player.z < VIEW &&
+  if (!best && kind === 'torp' && !world.cave && endZ - player.z < VIEW &&
       Math.hypot(port.x - player.x, port.y - player.y) < a.radius * 1.2) return 'port';
   return best;
 }
@@ -662,6 +791,7 @@ function hitTower(t, s) {
   t.hp -= s.dmg;
   if (t.hp <= 0) {
     t.alive = false;
+    levelKills++;
     score += 150;
     sfx.small();
     burst(t.x, t.y, t.z, s.kind === 'torp' ? 50 : 30, FIRE, s.kind === 'torp' ? 9 : 6, 0.25, 0.8);
@@ -694,14 +824,16 @@ function die() {
 function victory() {
   state = 'victory';
   stateTimer = 3;
-  flash = 1; shake = 1.4;
+  fxZ = world.quota ? player.z + 25 : endZ - 0.5;   // where the fireworks go
+  if (world.quota) port = { x: player.x, y: player.y + 1, r: 1 };
+  if (!world.cave) { flash = 1; shake = 1.4; }
   const ammoBonus = ammo.laser * 5 + ammo.torp * 100;
   const bonus = 1000 * level + Math.round(player.shield) * 10 + ammoBonus;
   score += bonus;
   victory.bonus = bonus;
   victory.ammoBonus = ammoBonus;
-  sfx.boom(); sfx.win();
-  burst(port.x, port.y, endZ - 0.5, 120, FIRE, 14, 0.6, 1.6);
+  if (world.cave) sfx.win();   // a quiet landing, no explosions
+  else { sfx.boom(); sfx.win(); burst(port.x, port.y, fxZ, 120, FIRE, 14, 0.6, 1.6); }
   shots = []; bolts = [];
   showMsg(world.winMsg || 'DIRECT HIT!', 2.5);
 }
@@ -783,6 +915,31 @@ function updateRivals(dt) {
     }
   }
 }
+
+// Falcon's jump to lightspeed: stars stretch, you blast through an empty stretch of space,
+// then drop out right at the edge of the asteroid field.
+function updateHyper(dt) {
+  if (!hyper.done && hyper.t === 0 && player.z >= hyper.z) {
+    hyper.t = 1e-4;
+    showMsg('PUNCH IT! JUMPING TO HYPERSPACE!', 2.2);
+    sfx.hyper();
+    shots = []; bolts = [];
+  }
+  if (hyper.t <= 0) return;
+  hyper.t += dt;
+  target.x = 0; target.y = TH / 2;   // the navicomputer flies during the jump
+  player.inv = Math.max(player.inv, 0.6);
+  if (hyper.t > 0.6 && hyper.t < 2.6) player.z = Math.min(player.z + levelSpeed * 9 * dt, hyper.exitZ);
+  if (hyper.t >= 2.6 && !hyper.exited) {
+    hyper.exited = true;
+    player.z = hyper.exitZ;
+    flash = 0.8;
+    showMsg('OUT OF HYPERSPACE — ASTEROID FIELD!', 2.5);
+  }
+  if (hyper.t >= 3.2) { hyper.t = 0; hyper.done = true; }
+}
+// 0..1: how stretched the stars are
+const hyperAmount = () => hyper.t <= 0 ? 0 : hyper.t < 0.6 ? hyper.t / 0.6 : hyper.t < 2.6 ? 1 : Math.max(0, 1 - (hyper.t - 2.6) / 0.6);
 
 function useBoost() {
   if (ammo.torp <= 0) { if (msgT <= 0.3) showMsg('NO BOOSTS LEFT', 1); sfx.empty(); return; }
@@ -877,6 +1034,12 @@ function updateShots(dt) {
     }
     if (s.life <= 0) continue;
 
+    // the giant asteroid is solid rock — shots just spark off it
+    if (world.cave && s.z >= endZ - 0.5) {
+      s.life = 0;
+      burst(s.x, s.y, endZ - 0.6, 6, SPARK, 4, 0.08, 0.3);
+      continue;
+    }
     // final target (exhaust port / bunker blast door / AT-AT leg)
     if (s.z >= endZ) {
       s.life = 0;
@@ -930,6 +1093,14 @@ function updatePlaying(dt) {
     }
   }
   if (world.race) updateRivals(dt);
+  if (world.quota) {
+    // keep a few enemy fighters ahead until the squadron is down
+    const ahead = towers.filter(t => t.alive && t.z > player.z + 8).length;
+    if (ahead < 5 && levelKills + ahead < quota + 3) towers.push(makeEnemy(player.z + rand(120, 175)));
+    towers = towers.filter(t => t.alive && t.z > cam.z - 2);
+    if (levelKills >= quota) { victory(); return; }
+  }
+  if (world.hyper) updateHyper(dt);
 
   // Bulkhead collisions
   for (const o of obstacles) {
@@ -961,6 +1132,7 @@ function updatePlaying(dt) {
     if (!t.alive) continue;
     t.flash = Math.max(0, t.flash - dt);
     t.hitFlash = Math.max(0, t.hitFlash - dt);
+    if (t.kind === 'tie') t.z += t.vz * dt;
     const d = t.z - player.z;
     if (t.rise < 1 && d < 150) {
       if (t.rise === 0) {
@@ -972,7 +1144,7 @@ function updatePlaying(dt) {
     }
     if (d < 160) updateTowerPos(t);
     if (t.hp < TOWER_HP && Math.random() < dt * 6) burst(t.x, t.y + 0.3, t.z, 1, FIRE, 1.5, 0.12, 0.5);
-    if (t.rise >= 1 && d > 20 && d < 120) {
+    if (t.rise >= 1 && !t.chase && d > 20 && d < 120) {
       t.cd -= dt;
       if (t.cd <= 0) {
         t.cd = rand(1.4, 2.6) / (1 + level * 0.12);
@@ -1032,6 +1204,13 @@ function updatePlaying(dt) {
   }
   if (world.race) {
     if (player.z >= endZ) finishRace();
+  } else if (world.quota) {
+    // no finish line — the level ends when the squadron is destroyed
+  } else if (world.cave) {
+    if (player.z >= endZ - 2) {
+      if (Math.hypot(player.x - port.x, player.y - port.y) < port.r) victory();
+      else { state = 'pullup'; stateTimer = 1.4; showMsg('PULL UP!', 1.4); }
+    }
   } else if (player.z > endZ - 10) {
     state = 'pullup';
     stateTimer = 1.4;
@@ -1064,14 +1243,21 @@ function updateVictory(dt) {
     speed *= Math.max(0, 1 - dt * 0.6);
     player.z += speed * dt;
     updateRivals(dt);
+  } else if (world.cave) {
+    // glide into the dark cave
+    speed *= Math.max(0, 1 - dt * 1.5);
+    player.z = Math.min(player.z + speed * dt, endZ - 1.2);
+    player.x += (port.x - player.x) * Math.min(1, dt * 3);
+    player.y += (port.y - player.y) * Math.min(1, dt * 3);
+    caveDark = Math.min(1, caveDark + dt * 0.6);
   } else {
     speed *= Math.max(0, 1 - dt * 1.2);
     player.z = Math.min(player.z + speed * dt, endZ - 6);
     if (stateTimer < 2.6) player.y += 7 * dt;
   }
   if (world.key === 'hoth') atatFall = Math.min(1, atatFall + dt * 0.55);
-  if (Math.random() < dt * 12) {
-    burst(port.x + rand(-2, 2), port.y + rand(-1.5, 1.5), endZ - 0.5, 25, FIRE, 9, 0.5, 1.2);
+  if (!world.cave && Math.random() < dt * 12) {
+    burst(port.x + rand(-2, 2), port.y + rand(-1.5, 1.5), fxZ, 25, FIRE, 9, 0.5, 1.2);
     shake = Math.max(shake, 0.4);
   }
   if (stateTimer <= 0) {
@@ -1208,13 +1394,13 @@ const flakes = Array.from({ length: 150 }, () => ({ x: Math.random(), y: Math.ra
 
 function drawSky() {
   const g = ctx.createLinearGradient(0, 0, 0, H);
-  if (world.key === 'deathstar') { g.addColorStop(0, '#02030a'); g.addColorStop(1, '#0a0f24'); }
+  if (world.key === 'deathstar' || world.space) { g.addColorStop(0, '#02030a'); g.addColorStop(1, '#0a0f24'); }
   else if (world.key === 'endor') { g.addColorStop(0, '#07110a'); g.addColorStop(0.45, '#2a4432'); g.addColorStop(1, '#3d5a45'); }
   else if (world.key === 'hoth') { g.addColorStop(0, '#7f9cb8'); g.addColorStop(0.42, '#d6e3ee'); g.addColorStop(1, '#eef4f8'); }
   else { g.addColorStop(0, '#4f8fcf'); g.addColorStop(0.4, '#9cc4e4'); g.addColorStop(0.6, '#f0d6a8'); g.addColorStop(1, '#f6e2c0'); }
   ctx.fillStyle = g;
   ctx.fillRect(-30, -30, W + 60, H + 60);
-  if (world.key === 'deathstar') {
+  if (world.key === 'deathstar' || world.space) {
     for (const s of stars) {
       let x = (s.x * W * 1.3 - cam.x * 6 * (0.5 + s.s)) % W;
       if (x < 0) x += W;
@@ -1223,6 +1409,18 @@ function drawSky() {
       ctx.fillStyle = `rgba(255,255,255,${0.3 + 0.6 * s.s * tw})`;
       const sz = s.s > 0.9 ? 2 : 1.2;
       ctx.fillRect(x, y, sz, sz);
+    }
+    if (world.key === 'tiefight') {
+      drawPlanet(W * 0.16 - cam.x * 3, H * 0.86, Math.min(W, H) * 0.5, ['#f5c27a', '#c8662e', '#2a0e04'], true);
+      drawDeathStar2D(W * 0.8 - cam.x * 4, H * 0.18, Math.min(W, H) * 0.085);
+    } else if (world.key === 'falcon') {
+      if (!hyper.exited) drawPlanet(W * 0.82 - cam.x * 3, H * 0.8, Math.min(W, H) * 0.32, ['#a8dcff', '#3a7cc8', '#081830'], false);
+      else {   // dusty glow of the asteroid field
+        const g2 = ctx.createRadialGradient(W * 0.3, H * 0.3, 0, W * 0.3, H * 0.3, W * 0.7);
+        g2.addColorStop(0, 'rgba(120,80,60,0.25)'); g2.addColorStop(1, 'rgba(120,80,60,0)');
+        ctx.fillStyle = g2; ctx.fillRect(0, 0, W, H);
+        sunGlow(W * 0.75 - cam.x * 2, H * 0.12, Math.max(W, H) * 0.012, '255,236,200', 0.35);
+      }
     }
   } else if (world.key === 'hoth') {
     // distant snowy mountains on the horizon
@@ -1246,6 +1444,23 @@ function drawSky() {
       ctx.closePath(); ctx.fill();
     }
   }
+}
+
+// A planet lit from the upper left, with optional cloud bands
+function drawPlanet(x, y, r, [hi, mid, dark], bands) {
+  const g = ctx.createRadialGradient(x - r * 0.4, y - r * 0.4, r * 0.1, x, y, r);
+  g.addColorStop(0, hi); g.addColorStop(0.55, mid); g.addColorStop(1, dark);
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+  if (bands) {
+    ctx.save();
+    ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.clip();
+    ctx.strokeStyle = 'rgba(80,30,10,0.18)';
+    for (let k = -4; k <= 4; k++) { ctx.lineWidth = r * (0.03 + (k & 1) * 0.04); ctx.beginPath(); ctx.ellipse(x, y + k * r * 0.2, r * 1.1, r * 0.12, -0.25, 0, Math.PI * 2); ctx.stroke(); }
+    ctx.restore();
+  }
+  ctx.strokeStyle = 'rgba(180,220,255,0.18)'; ctx.lineWidth = r * 0.03;   // thin atmosphere glow
+  ctx.beginPath(); ctx.arc(x, y, r * 1.01, Math.PI * 0.9, Math.PI * 1.75); ctx.stroke();
 }
 
 function sunGlow(x, y, r, col, a) {
@@ -1288,7 +1503,7 @@ function drawCanopy() {
 
 // Dust, pollen, snow or sand whooshing past the camera — makes the speed feel real
 function drawMotes() {
-  const col = { deathstar: '170,190,255', endor: '220,240,170', hoth: '255,255,255', tatooine: '255,226,170' }[world.key];
+  const col = { tiefight: '200,215,255', falcon: '220,200,170', deathstar: '170,190,255', endor: '220,240,170', hoth: '255,255,255', tatooine: '255,226,170' }[world.key];
   const len = Math.max(0.6, speed * 0.04);
   ctx.save();
   ctx.lineCap = 'round';
@@ -1322,6 +1537,7 @@ function drawSnowfall() {
 
 // Death Star trench and Hoth ice canyon: a floor and two walls, drawn in segments far → near
 function drawSurface() {
+  if (world.space) return;
   if (world.key === 'endor') return drawForest();
   const near = cam.z + NEAR;
   const zEnd = world.clipEnd ? endZ : Infinity;
@@ -1480,7 +1696,53 @@ function drawEnd() {
   if (world.key === 'deathstar') drawEndWall();
   else if (world.key === 'endor') drawBunker(d);
   else if (world.key === 'hoth') drawATAT();
+  else if (world.cave) drawGiantAsteroid();
+  else if (world.quota) return;
   else drawFinishLine(d);
+}
+
+// Falcon: a huge asteroid filling the view, with a dark cave mouth to fly into
+function drawGiantAsteroid() {
+  drawMesh(MESH.bigRock, { x: 0, y: 2.5, z: endZ + 14.5, scale: 14, yaw: 0.4 });
+  const p = proj(port.x, port.y, endZ - 0.4);
+  if (!p) return;
+  const R = port.r * p.s * 1.15;
+  ctx.save();
+  ctx.translate(p.x, p.y); ctx.scale(1, 0.8);
+  const g = ctx.createRadialGradient(0, 0, R * 0.2, 0, 0, R);
+  g.addColorStop(0, '#000'); g.addColorStop(0.75, '#0b0806'); g.addColorStop(1, 'rgba(40,30,24,0)');
+  ctx.fillStyle = g;
+  ctx.beginPath(); ctx.arc(0, 0, R, 0, Math.PI * 2); ctx.fill();
+  if (state === 'playing') {
+    ctx.strokeStyle = `rgba(255,210,140,${0.35 + 0.25 * Math.sin(time * 5)})`;
+    ctx.lineWidth = Math.max(2, R * 0.05);
+    ctx.setLineDash([R * 0.18, R * 0.12]);
+    ctx.beginPath(); ctx.arc(0, 0, R * 0.92, 0, Math.PI * 2); ctx.stroke();
+  }
+  ctx.restore();
+}
+
+// Hyperspace: stars stretch into long streaks rushing past
+const hyperStars = Array.from({ length: 240 }, () => ({ a: rand(0, Math.PI * 2), d: Math.random(), w: rand(0.6, 2.2) }));
+function drawHyperspace(k) {
+  const maxR = Math.hypot(W, H) * 0.6;
+  ctx.save();
+  ctx.fillStyle = `rgba(10,20,50,${0.55 * k})`;
+  ctx.fillRect(0, 0, W, H);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  for (const st of hyperStars) {
+    const d = (st.d + time * (0.2 + 1.6 * k)) % 1;
+    const r0 = d * d * maxR, len = maxR * (0.02 + 0.5 * k) * d;
+    const ca = Math.cos(st.a), sa = Math.sin(st.a);
+    ctx.strokeStyle = `rgba(200,225,255,${0.25 + 0.7 * d})`;
+    ctx.lineWidth = st.w * (0.5 + d);
+    ctx.beginPath(); ctx.moveTo(CX + ca * r0, CY + sa * r0); ctx.lineTo(CX + ca * (r0 + len), CY + sa * (r0 + len)); ctx.stroke();
+  }
+  const g = ctx.createRadialGradient(CX, CY, 0, CX, CY, maxR * 0.35);
+  g.addColorStop(0, `rgba(220,240,255,${0.5 * k})`); g.addColorStop(1, 'rgba(220,240,255,0)');
+  ctx.fillStyle = g; ctx.fillRect(0, 0, W, H);
+  ctx.restore();
 }
 
 // Podrace finish: checkered strip on the ground, stone towers and a checkered banner overhead
@@ -1747,16 +2009,61 @@ function buildFalcon() {
   return m;
 }
 
+// TIE fighter (TIE/ln): ball cockpit and two flat hexagonal wings
+function buildTIEln(body = [92, 94, 104], panel = [46, 48, 60]) {
+  const m = [];
+  addCyl(m, 0, 0, 0.3, -0.3, 0.3, body, 10);
+  addCyl(m, 0, 0, 0.2, 0.3, 0.34, body, 10, 0.16);
+  m.push({ p: ringAt(0, 0, 0.15, 0.345, 8), c: [24, 28, 38] });                   // front window
+  addBox(m, -0.8, 0.8, -0.055, 0.055, -0.1, 0.1, body);                           // wing pylons
+  for (const s of [1, -1]) {
+    const hex = Array.from({ length: 6 }, (_, k) => { const a = k / 6 * Math.PI * 2 + Math.PI / 6; return [s * 0.8, Math.sin(a) * 0.95, Math.cos(a) * 0.95]; });
+    addPrism(m, hex, hex.map(([x, y, z]) => [x + s * 0.07, y, z]), panel);
+    addBox(m, s * 0.79, s * 0.88, -0.95, 0.95, -0.04, 0.04, body);               // wing spar
+  }
+  for (const x of [-0.09, 0.09]) m.push({ p: ringAt(x, 0, 0.05, -0.305, 6), c: [255, 110, 80], e: true });
+  return m;
+}
+
+// Lumpy asteroid: a jittered sphere (radius ≈ 1; scale it when drawing)
+function buildRock(seed, jitter = 0.24, nu = 7, nv = 5) {
+  const rows = [];
+  for (let j = 0; j <= nv; j++) {
+    const phi = j / nv * Math.PI, row = [];
+    for (let i = 0; i < nu; i++) {
+      const th = i / nu * Math.PI * 2;
+      const r = j === 0 || j === nv ? 1 - jitter * 0.3 : 1 + (hash(seed * 31 + j * 7 + i * 13) - 0.5) * 2 * jitter;
+      row.push([r * Math.sin(phi) * Math.cos(th), r * Math.cos(phi), r * Math.sin(phi) * Math.sin(th)]);
+    }
+    rows.push(row);
+  }
+  const m = [];
+  for (let j = 0; j < nv; j++) for (let i = 0; i < nu; i++) {
+    const i2 = (i + 1) % nu, k = 0.82 + hash(seed * 17 + j * 5 + i) * 0.3;
+    const c = [112 * k, 104 * k, 96 * k];
+    if (j === 0) m.push({ p: [rows[0][0], rows[1][i2], rows[1][i]], c });
+    else if (j === nv - 1) m.push({ p: [rows[j][i], rows[j][i2], rows[nv][0]], c });
+    else m.push({ p: [rows[j][i], rows[j][i2], rows[j + 1][i2], rows[j + 1][i]], c });
+  }
+  return m;
+}
+
 const MESH = {
   xwing: buildXWing(), bike: buildBike(REBEL_RIDER), snowspeeder: buildSnowspeeder(),
   scout: buildBike(SCOUT_RIDER), probe: buildProbe(), atat: buildATAT(),
   podracer: buildPodracer(ANAKIN_POD), tie: buildTIE(), falcon: buildFalcon(),
+  tieP: buildTIEln(), tieEnemy: buildTIEln([120, 122, 130], [60, 62, 74]),
+  falconP: mapMesh(buildFalcon(), q => [q[0] * 0.5, q[1] * 0.5, q[2] * 0.5]),
+  rocks: Array.from({ length: 6 }, (_, i) => buildRock(i + 1)),
+  bigRock: buildRock(99, 0.07, 16, 10),
 };
 const ENGINE_GLOWS = {
   xwing: { pts: [[0.2, 0.105, -0.7], [-0.2, 0.105, -0.7], [0.2, -0.105, -0.7], [-0.2, -0.105, -0.7]], r: 0.13, col: '255,110,90' },
   bike: { pts: [[0, -0.013, -1.08]], r: 0.08, col: '255,150,90' },
   snowspeeder: { pts: [[0.47, -0.015, -0.64], [-0.47, -0.015, -0.64]], r: 0.075, col: '255,170,120' },
   podracer: { pts: [[0.48, 0, -0.5], [-0.48, 0, -0.5]], r: 0.13, col: '140,200,255' },
+  tie: { pts: [[0.09, 0, -0.32], [-0.09, 0, -0.32]], r: 0.07, col: '255,110,80' },
+  falconP: { pts: [[-0.28, 0, -0.62], [0, 0, -0.64], [0.28, 0, -0.62]], r: 0.09, col: '150,210,255' },
 };
 
 const LIGHT = (() => { const l = [0.35, 0.85, -0.4], n = Math.hypot(...l); return l.map(v => v / n); })();
@@ -1767,9 +2074,9 @@ function drawMesh(mesh, o) {
   const cyw = Math.cos(o.yaw || 0), syw = Math.sin(o.yaw || 0);
   const cp = Math.cos(o.pitch || 0), sp = Math.sin(o.pitch || 0);
   const cr = Math.cos(o.roll || 0), sr = Math.sin(o.roll || 0);
-  const pv = o.pivot || [0, 0, 0];
+  const pv = o.pivot || [0, 0, 0], sc = o.scale || 1;
   const tf = q => {
-    const x = q[0] - pv[0], y = q[1] - pv[1], z = q[2] - pv[2];
+    const x = q[0] * sc - pv[0], y = q[1] * sc - pv[1], z = q[2] * sc - pv[2];
     const x1 = x * cr - y * sr, y1 = x * sr + y * cr;
     const y2 = y1 * cp - z * sp, z2 = y1 * sp + z * cp;
     const x3 = x1 * cyw + z2 * syw, z3 = -x1 * syw + z2 * cyw;
@@ -1827,7 +2134,7 @@ function glowAt(x, y, z, r, col) {
 function drawPlayer() {
   ctx.save();
   if (player.inv > 0 && Math.floor(time * 20) % 2 === 0) ctx.globalAlpha = 0.45;
-  const tf = drawMesh(MESH[world.vehicle], {
+  const tf = drawMesh(MESH[world.vehicle === 'tie' ? 'tieP' : world.vehicle], {
     x: player.x, y: player.y, z: player.z,
     roll: -player.bank, pitch: -player.vy * 0.03, yaw: player.vx * 0.012,
   });
@@ -1879,11 +2186,12 @@ function drawEnemy(t) {
   if (t.kind === 'tower') return drawTower(t);
   if (t.rise <= 0) return;
   const tint = t.hitFlash > 0;
-  if (t.kind === 'scout') drawMesh(MESH.scout, { x: t.x, y: t.y - 0.15, z: t.z, yaw: Math.PI, roll: (t.x - t.fx) * 0.12, tint });
+  if (t.kind === 'tie') drawMesh(MESH.tieEnemy, { x: t.x, y: t.y, z: t.z, yaw: t.chase ? 0 : Math.PI, roll: Math.sin(time * 0.9 + t.phase) * 0.5, scale: 0.3 + 0.7 * t.rise, tint });
+  else if (t.kind === 'scout') drawMesh(MESH.scout, { x: t.x, y: t.y - 0.15, z: t.z, yaw: Math.PI, roll: (t.x - t.fx) * 0.12, tint });
   else drawMesh(MESH.probe, { x: t.x, y: t.y, z: t.z, yaw: Math.sin(time + t.phase) * 0.4, tint });
   if (t.flash > 0) {
     ctx.save(); ctx.globalCompositeOperation = 'lighter';
-    glowAt(t.x, t.y - (t.kind === 'scout' ? 0.3 : 0), t.z - 0.7, 0.35, '80,255,110');
+    glowAt(t.x, t.y - (t.kind === 'scout' ? 0.3 : 0), t.z - 0.7, 0.35, world.boltCol || '80,255,110');
     ctx.restore();
   }
 }
@@ -1903,6 +2211,10 @@ function drawWorld(showShip) {
     if (p.taken || p.z < zmin || p.z > zmax) continue;
     (p.z < player.z ? near : far).push({ z: p.z, k: 2, o: p });
   }
+  for (const k of decorRocks) {
+    if (k.z < zmin + k.r || k.z > zmax) continue;
+    (k.z < player.z ? near : far).push({ z: k.z, k: 4, o: k });
+  }
   for (const r of rivals) {
     if (r.z < zmin + 1.5 || r.z > zmax) continue;
     (r.z < player.z ? near : far).push({ z: r.z, k: 3, o: r });
@@ -1910,17 +2222,21 @@ function drawWorld(showShip) {
   far.sort((a, b) => b.z - a.z);
   near.sort((a, b) => b.z - a.z);
   const drawItem = it => {
-    if (it.k === 0) {
+    if (it.k === 0 && it.o.rocks) {
+      const o = it.o;
+      for (const k of o.rocks) drawMesh(MESH.rocks[k.v], { x: k.x, y: k.y, z: o.z + o.depth / 2, scale: k.r, yaw: time * k.s + k.p, pitch: time * k.s * 0.6 });
+    } else if (it.k === 0) {
       const o = it.o;
       drawBoxes(o.draw, o.z, o.z + o.depth, o.rgb, world.key === 'deathstar');
       if (o.decor) drawBoxes(o.decor.rects, o.decor.z0, o.decor.z1, o.decor.rgb, false);
     }
     else if (it.k === 1) drawEnemy(it.o);
     else if (it.k === 2) drawPickup(it.o);
-    else drawRival(it.o);
+    else if (it.k === 3) drawRival(it.o);
+    else { const k = it.o; drawMesh(MESH.rocks[k.v], { x: k.x, y: k.y, z: k.z, scale: k.r, yaw: time * k.s + k.p, pitch: time * k.s * 0.5 }); }
   };
   for (const it of far) drawItem(it);
-  if (showShip) { drawShadow(); drawPlayer(); }
+  if (showShip) { if (!world.space) drawShadow(); drawPlayer(); }
   ctx.globalAlpha = 0.35;
   for (const it of near) drawItem(it);
   ctx.globalAlpha = 1;
@@ -1947,7 +2263,7 @@ function drawEffects() {
     const k = 4 / s.vz;
     const tx = s.x - s.vx * k, ty = s.y - s.vy * k;
     if (s.kind === 'laser') {
-      line3d(s.x, s.y, s.z, tx, ty, s.z - 4, 'rgba(255,50,40,0.35)', 0.16);
+      line3d(s.x, s.y, s.z, tx, ty, s.z - 4, `rgba(${world.shotCol || '255,50,40'},0.35)`, 0.16);
       line3d(s.x, s.y, s.z, tx, ty, s.z - 4, 'rgba(255,210,200,0.95)', 0.05);
     } else if (world.key === 'hoth') {
       // harpoon trailing its tow cable back to the snowspeeder
@@ -1978,7 +2294,7 @@ function drawEffects() {
   }
   for (const b of bolts) {
     const k = 0.06;
-    line3d(b.x, b.y, b.z, b.x - b.vx * k, b.y - b.vy * k, b.z - b.vz * k, 'rgba(60,255,90,0.4)', 0.2);
+    line3d(b.x, b.y, b.z, b.x - b.vx * k, b.y - b.vy * k, b.z - b.vz * k, `rgba(${world.boltCol || '60,255,90'},0.4)`, 0.2);
     line3d(b.x, b.y, b.z, b.x - b.vx * k, b.y - b.vy * k, b.z - b.vz * k, 'rgba(210,255,210,0.95)', 0.06);
   }
   for (const p of particles) {
@@ -2045,7 +2361,7 @@ function drawHUD() {
   // Progress to the thermal exhaust port
   ctx.textAlign = 'left';
   const pw = Math.min(360, W * 0.4), px = (W - pw) / 2, py = 20;
-  const prog = clamp(player.z / endZ, 0, 1);
+  const prog = world.quota ? clamp(levelKills / quota, 0, 1) : clamp(player.z / endZ, 0, 1);
   ctx.fillStyle = 'rgba(0,0,0,0.35)';
   ctx.fillRect(px, py, pw, 8);
   ctx.fillStyle = '#ffd84a';
@@ -2054,7 +2370,8 @@ function drawHUD() {
   ctx.beginPath(); ctx.arc(px + pw, py + 4, 6, 0, Math.PI * 2); ctx.fill();
   ctx.textAlign = 'center';
   ctx.fillStyle = '#cfd8ea';
-  ctx.fillText(world.targetShort + '  ' + Math.max(0, Math.floor(endZ - player.z)) + ' m', W / 2, py + 14);
+  ctx.fillText(world.quota ? `${world.targetShort} DOWN  ${levelKills} / ${quota}`
+                           : world.targetShort + '  ' + Math.max(0, Math.floor(endZ - player.z)) + ' m', W / 2, py + 14);
   if (world.race) {
     const place = racePlace();
     ctx.font = '800 26px system-ui, sans-serif';
@@ -2108,7 +2425,7 @@ function drawHUD() {
         ctx.stroke();
         ctx.fillStyle = locked ? '#ff3a3a' : '#ffd84a';
         ctx.font = '700 14px system-ui, sans-serif';
-        ctx.fillText(locked ? `LOCKED — ${world.secVerb}!` : world.targetName, p.x, p.y + r + 6);
+        ctx.fillText(locked ? (world.lockText || `LOCKED — ${world.secVerb}!`) : world.targetName, p.x, p.y + r + 6);
       }
     }
   }
@@ -2134,10 +2451,12 @@ function render() {
   drawWorld(state !== 'dead' && !(state === 'overlay' && player.shield <= 0));
   drawEffects();
   drawMotes();
+  if (hyper.t > 0) drawHyperspace(hyperAmount());
   if (world.key === 'endor') drawCanopy();
   ctx.restore();
   if (world.key === 'hoth') drawSnowfall();
   drawVignette();
+  if (caveDark > 0) { ctx.fillStyle = `rgba(0,0,0,${caveDark})`; ctx.fillRect(0, 0, W, H); }
 
   if (hitFlash > 0) {
     const g = ctx.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75);
@@ -2407,10 +2726,13 @@ function setAssist(k) {
   const hint = ovBody.querySelector('.assist .hint');
   if (hint) hint.textContent = ASSIST[k].hint;
 }
+// Picture cards for choosing the first mission
 function startPicker() {
-  return `<div class="assist"><div class="label">CHOOSE YOUR FIRST MISSION</div><div class="opts">` +
-    WORLDS.map((w, i) => `<button class="opt${i === startWorld ? ' sel' : ''}" data-start="${i}">${w.icon} ${w.short}</button>`).join('') +
-    `</div><p class="hint">The other missions follow in a random order — beat all ${TOTAL_LEVELS} for a secret ending!</p></div>`;
+  return `<p class="pick-label">CHOOSE YOUR FIRST MISSION</p><div class="mission-grid">` +
+    WORLDS.map((w, i) => `<button class="mission${i === startWorld ? ' sel' : ''}" data-start="${i}">
+        <img src="thumbs/${w.key}.jpg" alt="">
+        <span>${w.icon} ${w.short}</span></button>`).join('') +
+    `</div>`;
 }
 function setStart(i) {
   startWorld = i;
@@ -2438,9 +2760,14 @@ ovBody.addEventListener('click', e => {
   if (b.dataset.assist) setAssist(b.dataset.assist);
   else if (b.dataset.grade) setGrade(b.dataset.grade);
   else if (b.dataset.start) setStart(+b.dataset.start);
+  else if (b.dataset.menu === 'howto') showHowTo();
+  else if (b.dataset.menu === 'settings') showSettings();
+  else if (b.dataset.menu === 'share') shareGame();
   else if (b.dataset.choice) answerQuiz(+b.dataset.choice);
   else if (b.dataset.hint) showHint();
   else if (b.dataset.bonus) chooseBonus(b.dataset.bonus === 'yes');
+  else if (b.dataset.quit === 'ask') confirmQuit();
+  else if (b.dataset.quit) answerQuit(b.dataset.quit === 'yes');
 });
 
 function showMenu() {
@@ -2449,31 +2776,90 @@ function showMenu() {
   worldOrder = [startWorld, ...WORLDS.map((_, k) => k).filter(k => k !== startWorld)];
   menuScene();
   showOverlay(TITLE_HTML,
-    `<p class="big">Red Five, you're cleared for four missions!</p>
-     <p>🚀 <b>The Death Star:</b> X-wing trench run to the thermal exhaust port.<br>
-     🌲 <b>Endor:</b> speeder bike chase through the forest to the shield bunker.<br>
-     ❄️ <b>Hoth:</b> snowspeeder attack on a giant AT-AT walker.<br>
-     🏜️ <b>Tatooine:</b> podrace against 7 rivals — like young Anakin!</p>
-     ${startPicker()}
-     <p>🎓 Every mission starts with a briefing: answer ${QUIZ_NEED_LEVEL} real science or math questions to launch.
-     If you crash, answer ${QUIZ_NEED_RETRY} more to get a new ship.
-     Before launch you can take on a 🎁 bonus round for extra ammo and shields!</p>
-     <p class="keys">Main guns (3 hits destroy an enemy): Click / Space<br>
-     Special weapon — torpedo, detonator or harpoon (1 hit), or podracer boost: Right-click / X / E<br>
-     Shots are limited — collect orange orbs for ammo, blue for shields.<br>
-     Steer: Mouse / Arrow keys / WASD / Touch &nbsp;·&nbsp; Pause: P &nbsp;·&nbsp; Fullscreen: F &nbsp;·&nbsp; Sound: M</p>
-     ${gradePicker()}
-     ${assistPicker()}
-     ${hi ? `<p>High score: <b>${hi}</b></p>` : ''}
-     <a class="share-link" href="share.html" target="_blank" rel="noopener">🔗 Share RoboBandit with a friend</a>`,
-    'START', startGame);
+    `${startPicker()}
+     <div class="menu-links">
+       <button class="link" data-menu="howto">📖 How to play</button>
+       <button class="link" data-menu="settings">⚙️ Settings</button>
+       <button class="link" data-menu="share">🔗 Share</button>
+     </div>
+     ${hi ? `<p class="keys">High score: <b>${hi}</b></p>` : ''}`,
+    '▶ START', startGame);
+}
+
+function showHowTo() {
+  showOverlay('HOW TO PLAY',
+    `<div class="howto">
+       <p>🎓 <b>Launch with your brain:</b> every mission starts with a briefing — answer ${QUIZ_NEED_LEVEL} science or math questions
+       correctly to launch. Crash, and ${QUIZ_NEED_RETRY} more gets you a new ship. Before launch, a 🎁 bonus round
+       of trivia can earn extra ammo and shields.</p>
+       <p>🕹️ <b>Controls</b><br>
+       Steer: mouse, arrow keys, WASD or touch<br>
+       Main guns (3 hits destroy an enemy): click or Space<br>
+       Special weapon — torpedo, detonator, harpoon or missile (1 hit), or a podracer boost: right-click, X or E<br>
+       Pause or quit: P or ☰ · Fullscreen: F · Sound: M</p>
+       <p>🎯 Shots are limited — grab <span style="color:#ffb35a">orange orbs</span> for ammo and <span style="color:#7fd0ff">blue orbs</span> for shields.</p>
+       <p>🗺️ <b>The ${TOTAL_LEVELS} missions</b></p>
+       <ul>${WORLDS.map(w => `<li>${w.icon} <b>${w.short}:</b> ${w.intro}</li>`).join('')}</ul>
+       <p>🏆 You pick the first mission; the others come in a random order. Beat all ${TOTAL_LEVELS} for a secret ending!</p>
+     </div>`,
+    '◀ BACK', showMenu);
+}
+
+function showSettings() {
+  showOverlay('SETTINGS', gradePicker() + assistPicker(), '◀ BACK', showMenu);
+}
+
+// ---------- Game menu: quit the current game ----------
+const quitButton = () => '<div class="yesno"><button class="no" data-quit="ask">🏠 QUIT TO MAIN MENU</button></div>';
+let quitSnapshot = null;   // the screen to go back to if they decide not to quit
+
+// ☰ button: pauses during flight; on quiz and mission screens it asks whether to quit
+function openGameMenu() {
+  if (state === 'playing' || state === 'paused') togglePause();
+  else if (state === 'quiz' || (state === 'overlay' && !finaleActive)) confirmQuit();
+}
+
+function confirmQuit() {
+  if (quitSnapshot) return;
+  quitSnapshot = {
+    title: ovTitle.innerHTML, body: ovBody.innerHTML, btn: ovBtn.textContent,
+    btnHidden: ovBtn.classList.contains('hidden'), action: ovAction,
+  };
+  showOverlay('QUIT THIS GAME?',
+    `<p class="big">Head back to the main menu?</p>
+     <p>Your progress in this game will be lost, but your high score is saved.</p>
+     <div class="yesno">
+       <button data-quit="yes">YES, QUIT</button>
+       <button class="no" data-quit="no">NO, KEEP PLAYING</button>
+     </div>
+     <p class="keys">Press Y or N</p>`,
+    '', null);
+  ovBtn.classList.add('hidden');
+}
+
+function answerQuit(yes) {
+  const snap = quitSnapshot;
+  if (!snap) return;
+  quitSnapshot = null;
+  if (yes) {
+    saveHi();
+    bonus = { torp: 0, shield: 0 };
+    bonusLaunch = null;
+    quiz = null;
+    pausedFrom = null;
+    Object.assign(input, { left: false, right: false, up: false, down: false, fire: false, torp: false, pointerFire: false, btnLaser: false });
+    showMenu();
+    return;
+  }
+  showOverlay(snap.title, snap.body, snap.btn, snap.action);   // put the previous screen back exactly as it was
+  if (snap.btnHidden) ovBtn.classList.add('hidden');
 }
 
 function togglePause() {
   if (state === 'playing') {
     pausedFrom = state;
     state = 'paused';
-    showOverlay('PAUSED', '<p>Stay on target, pilot.</p>' + gradePicker() + assistPicker(), 'RESUME', togglePause);
+    showOverlay('PAUSED', '<p>Stay on target, pilot.</p>' + gradePicker() + assistPicker() + quitButton(), 'RESUME', togglePause);
   } else if (state === 'paused') {
     state = pausedFrom || 'playing';
     hideOverlay();
@@ -2498,7 +2884,7 @@ if (!fsSupported) document.getElementById('btnFs').style.display = 'none';
 document.addEventListener('fullscreenchange', resize);
 document.addEventListener('webkitfullscreenchange', resize);
 
-document.getElementById('btnPause').addEventListener('click', e => { e.currentTarget.blur(); togglePause(); });
+document.getElementById('btnPause').addEventListener('click', e => { e.currentTarget.blur(); openGameMenu(); });
 document.getElementById('btnMute').addEventListener('click', e => { e.currentTarget.blur(); sfx.init(); toggleMute(); });
 document.getElementById('btnFs').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
 document.getElementById('btnShare').addEventListener('click', e => { e.currentTarget.blur(); if (state === 'playing') togglePause(); shareGame(); });
@@ -2507,7 +2893,7 @@ document.getElementById('btnShare').addEventListener('click', e => { e.currentTa
 function shareGame() {
   const url = new URL('share.html', location.href).href;
   if (navigator.share) {
-    navigator.share({ title: 'RoboBandit — Starfighter Run', text: 'Fly four space missions and answer science questions to launch!', url }).catch(() => {});
+    navigator.share({ title: 'RoboBandit — Starfighter Run', text: 'Fly six space missions and answer science questions to launch!', url }).catch(() => {});
   } else window.open(url, '_blank', 'noopener');
 }
 
@@ -3001,10 +3387,33 @@ const AMERICA = [
     learn: 'Amelia Earhart flew solo across the Atlantic in 1932. She disappeared while trying to fly around the world in 1937 — still one of history’s great mysteries.' },
 ];
 
-const decks = {};
+const decks = {};   // book rotation
+
+// Which hand-written questions this player has already been asked, saved in the browser so every
+// question comes up once before any repeats — even across visits. Keyed by bank, e.g. 'sci-y'.
+const ASKED_KEY = 'xw_asked';
+let asked = {};
+try { asked = JSON.parse(localStorage.getItem(ASKED_KEY)) || {}; } catch (e) { asked = {}; }
+function qid(q) {   // short, stable id from the question text
+  let h = 5381;
+  for (let i = 0; i < q.q.length; i++) h = (h * 33 + q.q.charCodeAt(i)) | 0;
+  return (h >>> 0).toString(36);
+}
+// Younglings get Youngling + shared questions; Padawans get everything (their own, shared and Youngling)
+const forGrade = q => q.g === 'b' || q.g === grade || (grade === 'p' && q.g === 'y');
+
 function drawFromDeck(key, list) {
-  if (!decks[key] || !decks[key].length) decks[key] = shuffle(list.filter(q => q.g === grade || q.g === 'b'));
-  const c = decks[key].pop();
+  const pool = list.filter(forGrade);
+  const done = asked[key] || (asked[key] = []);
+  let fresh = pool.filter(q => !done.includes(qid(q)));
+  if (!fresh.length) {   // every question has been asked: start a new round (but not with the one just asked)
+    const last = done[done.length - 1];
+    done.length = 0;
+    fresh = pool.filter(q => qid(q) !== last);
+  }
+  const c = pick(fresh);
+  done.push(qid(c));
+  try { localStorage.setItem(ASKED_KEY, JSON.stringify(asked)); } catch (e) { /* storage full or blocked: still works for this visit */ }
   const order = shuffle(c.a.map((text, i) => ({ text, i })));
   return { topic: c.t, q: c.q, choices: order.map(o => o.text), correct: order.findIndex(o => o.i === 0), hint: c.hint, learn: c.learn };
 }
@@ -3192,6 +3601,11 @@ const KEYMAP = {
 };
 window.addEventListener('keydown', e => {
   if (state === 'finale') { if (finaleT > 1) finishFinale(); return; }
+  if (quitSnapshot) {
+    if (e.code === 'KeyY') answerQuit(true);
+    else if (e.code === 'KeyN' || e.code === 'Escape') answerQuit(false);
+    return;
+  }
   // Quiz answers use letters A–D (checked first, since A and D also steer)
   if (state === 'quiz' && /^Key[A-D]$/.test(e.code)) { answerQuiz(e.code.charCodeAt(3) - 65); return; }
   const k = KEYMAP[e.code];
@@ -3203,7 +3617,7 @@ window.addEventListener('keydown', e => {
     return;
   }
   if (e.code === 'KeyX' || e.code === 'KeyE') { if (!e.repeat) input.torp = true; }
-  else if (e.code === 'KeyP' || e.code === 'Escape') togglePause();
+  else if (e.code === 'KeyP' || e.code === 'Escape') openGameMenu();
   else if (e.code === 'KeyF') toggleFullscreen();
   else if (e.code === 'KeyM') toggleMute();
   else if (state === 'quiz' && e.code === 'KeyH') showHint();
