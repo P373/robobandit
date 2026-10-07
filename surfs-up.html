@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>RoboBandit - Surf's Up</title>
+<meta name="description" content="Ride the curl, launch off the lip and spin for the judges in Surf's Up, a free RoboBandit browser game.">
+<link rel="canonical" href="https://robobandit.com/surfs-up.html">
+<meta name="theme-color" content="#1aa3d9">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/surfs-up.html">
+<meta property="og:title" content="RoboBandit - Surf's Up">
+<meta property="og:description" content="Ride the curl, launch off the lip and spin for the judges!">
+<meta property="og:image" content="https://robobandit.com/thumbs/surfs-up.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RoboBandit - Surf's Up">
+<meta name="twitter:image" content="https://robobandit.com/thumbs/surfs-up.jpg">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #0b5f86;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
+  #topbar {
+    position: fixed; display: flex; gap: 8px;
+    top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right));
+  }
+  #topbar a, #topbar button {
+    width: 44px; height: 44px; border-radius: 10px; border: 0; cursor: pointer;
+    display: grid; place-items: center; font-size: 20px; text-decoration: none;
+    background: rgba(255,255,255,.75); box-shadow: 0 3px 0 rgba(0,0,0,.2);
+  }
+  #topbar a:hover, #topbar button:hover { background: #fff; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar">
+  <a href="index.html" title="More games">🏠</a>
+  <button id="btnMute" title="Sound on/off (M)">🔊</button>
+</div>
+
+<script>
+'use strict';
+
+// ---------- Tuning ----------
+const H = 540;              // logical height; width follows the window's shape
+const MIN_W = 440;          // portrait phones zoom out to at least this width
+const HORIZON = 170;
+const TROUGH = 480;         // bottom of the wave face
+const MAXH = 285;           // face height right at the curl
+const CURL_SPEED = 190;     // how fast the breaking curl chases you, px/s
+const PUSH = 170;           // the wave's push, strongest near the curl
+const GRAV = 170;           // speeds you up going down the face, slows you going up
+const CLIMB = 0.7;          // the face counts as this fraction of its height for moving up and down
+const DRAG = 0.35;
+const TURN = 3.2;           // carving rate on the face, rad/s
+const SPIN = 7;             // rotation rate in the air, rad/s
+const AIR_GRAV = 620;
+const LAUNCH_MIN = 120;     // upward speed needed at the lip to go airborne
+const RIDE_TIME = 60;       // seconds per ride
+const BOARDS = 3;           // wipeouts allowed
+const TAU = Math.PI * 2;
+
+// ---------- Canvas ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 800, VH = H, OFFY = 0, scale = 1;   // OFFY centres the scene on tall screens
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  scale = Math.min(canvas.height / H, canvas.width / MIN_W);
+  W = canvas.width / scale;
+  VH = canvas.height / scale;
+  OFFY = Math.max(0, (VH - H) / 2);
+}
+addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 200));
+resize();
+
+// ---------- Sound ----------
+let actx = null, surfGain = null, muted = localStorage.getItem('su_muted') === '1';
+const btnMute = document.getElementById('btnMute');
+btnMute.textContent = muted ? '🔇' : '🔊';
+function audio() {
+  if (!actx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    actx = new AC();
+    // the ocean: looping filtered noise, swelled by update()
+    const buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = actx.createBufferSource(), lp = actx.createBiquadFilter();
+    src.buffer = buf; src.loop = true;
+    lp.type = 'lowpass'; lp.frequency.value = 700;
+    surfGain = actx.createGain(); surfGain.gain.value = 0;
+    src.connect(lp).connect(surfGain).connect(actx.destination);
+    src.start();
+  }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function beep(f1, f2, dur, type = 'triangle', vol = 0.12, delay = 0) {
+  if (muted || !audio()) return;
+  const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type;
+  o.frequency.setValueAtTime(f1, t);
+  o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(vol, t);
+  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(actx.destination);
+  o.start(t); o.stop(t + dur);
+}
+function splashSound() {
+  if (muted || !audio()) return;
+  const t = actx.currentTime, len = 0.7;
+  const buf = actx.createBuffer(1, actx.sampleRate * len, actx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2;
+  const src = actx.createBufferSource(), g = actx.createGain();
+  src.buffer = buf; g.gain.value = 0.5;
+  src.connect(g).connect(actx.destination);
+  src.start(t);
+}
+const sfx = {
+  trick: () => { beep(660, 660, 0.1); beep(990, 990, 0.15, 'triangle', 0.12, 0.08); },
+  big: () => [523, 659, 784, 1047].forEach((f, i) => beep(f, f, 0.15, 'triangle', 0.13, i * 0.08)),
+  star: () => beep(1200, 1800, 0.12, 'sine', 0.1),
+  launch: () => beep(300, 600, 0.2, 'sine', 0.1),
+  wipe: () => { splashSound(); beep(400, 80, 0.6, 'sawtooth', 0.08); },
+  tick: () => beep(880, 880, 0.05, 'square', 0.05),
+};
+function toggleMute() {
+  muted = !muted;
+  localStorage.setItem('su_muted', muted ? '1' : '0');
+  btnMute.textContent = muted ? '🔇' : '🔊';
+  if (surfGain) surfGain.gain.value = 0;
+}
+btnMute.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
+
+// ---------- Helpers ----------
+const rnd = (i, k) => { const s = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return s - Math.floor(s); };
+const mod = (a, n) => ((a % n) + n) % n;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const wrapAngle = a => mod(a + Math.PI, TAU) - Math.PI;
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function text(str, x, y, size, fill = '#fff', align = 'center') {
+  ctx.font = `900 ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  const w = ctx.measureText(str).width * 1.1;
+  if (align === 'center' && w > W - 24) size *= (W - 24) / w;
+  ctx.font = `900 ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = size * 0.2;
+  ctx.strokeStyle = '#0b3550';
+  ctx.strokeText(str, x, y);
+  ctx.fillStyle = fill;
+  ctx.fillText(str, x, y);
+}
+
+// Face height at world x: tallest at the curl, easing off along the shoulder.
+function faceH(x) {
+  const d = x - curlX;
+  if (d < 0) return MAXH;
+  return MAXH * (0.3 + 0.7 * Math.exp(-d / 550));
+}
+const lipY = x => TROUGH - faceH(x);
+
+// ---------- State ----------
+// mode: 'title' → 'ride' (→ 'wipe' → 'ride' …) → 'results' → (tap) → 'title'
+let mode = 'title';
+let s;                    // the surfer
+let curlX, camX, clock = 0, timeLeft, score, boards, best = +(localStorage.getItem('su_best') || 0);
+let popups = [], spray = [], stars = [], starTimer = 0, wipeT = 0, safeT = 0, results = null, resultsT = 0;
+let tubeT = 0, wentBack = false, lastTick = 0;
+
+function reset() {
+  curlX = 0;
+  s = { x: 320, f: 0.35, a: -0.15, v: 280, air: null, spun: 0, tumble: 0 };
+  camX = s.x - W * 0.42;
+  timeLeft = RIDE_TIME;
+  score = 0;
+  boards = BOARDS;
+  popups = []; spray = []; stars = [];
+  starTimer = 0; tubeT = 0; wentBack = false; safeT = 0;
+  results = null;
+}
+reset();
+
+function addPoints(pts, label, big) {
+  score += pts;
+  popups.push({ text: `${label} +${pts}`, t: 0, big, x: s.x, y: surferY() - 60 });
+  if (big) sfx.big(); else sfx.trick();
+}
+
+function surferY() { return s.air ? s.air.y : TROUGH - s.f * faceH(s.x); }
+
+// ---------- Input ----------
+// ↑ / ← / W / A = nose up (counter-clockwise). ↓ / → / S / D = nose down (clockwise).
+// Touch: hold the top half of the screen for up, bottom half for down.
+const keys = { up: false, down: false };
+const touches = new Map();
+function turnInput() {
+  let up = keys.up, down = keys.down;
+  for (const y of touches.values()) { if (y < innerHeight / 2) up = true; else down = true; }
+  return (up ? 1 : 0) - (down ? 1 : 0);
+}
+function press() {
+  audio();
+  if (mode === 'title') { reset(); mode = 'ride'; }
+  else if (mode === 'results' && resultsT > 2.5) { mode = 'title'; }
+}
+const KEYS_UP = ['ArrowUp', 'ArrowLeft', 'KeyW', 'KeyA'], KEYS_DOWN = ['ArrowDown', 'ArrowRight', 'KeyS', 'KeyD'];
+addEventListener('keydown', e => {
+  if (KEYS_UP.includes(e.code)) { keys.up = true; e.preventDefault(); }
+  if (KEYS_DOWN.includes(e.code)) { keys.down = true; e.preventDefault(); }
+  if (e.repeat) return;
+  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); press(); }
+  if (e.code === 'KeyM') toggleMute();
+});
+addEventListener('keyup', e => {
+  if (KEYS_UP.includes(e.code)) keys.up = false;
+  if (KEYS_DOWN.includes(e.code)) keys.down = false;
+});
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  if (mode === 'ride' || mode === 'wipe') touches.set(e.pointerId, e.clientY);
+  press();
+});
+canvas.addEventListener('pointermove', e => { if (touches.has(e.pointerId)) touches.set(e.pointerId, e.clientY); });
+for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) canvas.addEventListener(ev, e => touches.delete(e.pointerId));
+addEventListener('blur', () => { keys.up = keys.down = false; touches.clear(); });
+
+// ---------- Update ----------
+function wipeout(reason) {
+  if (mode !== 'ride') return;
+  mode = 'wipe';
+  wipeT = 0;
+  boards--;
+  s.tumble = 0;
+  sfx.wipe();
+  if (navigator.vibrate) navigator.vibrate(150);
+  popups.push({ text: reason, t: 0, big: true, x: s.x, y: surferY() - 70, bad: true });
+  const y = surferY();
+  for (let i = 0; i < 40; i++) {
+    const a = -Math.PI * Math.random(), sp = 100 + Math.random() * 300;
+    spray.push({ x: s.x, y, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp, life: 0.8 + Math.random() * 0.6, r: 2 + Math.random() * 4 });
+  }
+}
+
+function respawn() {
+  s.x = curlX + 320;
+  s.f = 0.35; s.a = -0.15; s.v = 280; s.air = null;
+  safeT = 1.5;
+  mode = 'ride';
+}
+
+function endRide() {
+  mode = 'results';
+  resultsT = 0;
+  // five judges, each with an opinion
+  const base = clamp(score / 1000, 0, 10);
+  const cards = [0, 1, 2, 3, 4].map(() => clamp(Math.round((base + (Math.random() - 0.5) * 1.4) * 10) / 10, 0, 10));
+  const avg = Math.round(cards.reduce((a, b) => a + b, 0) / cards.length * 10) / 10;
+  const isBest = score > best;
+  if (isBest) { best = score; localStorage.setItem('su_best', best); }
+  results = { cards, avg, isBest };
+}
+
+function updateFace(dt) {
+  const turn = turnInput();
+  const before = s.a;
+  s.a = wrapAngle(s.a + turn * TURN * dt);
+  const h = faceH(s.x), power = PUSH * (h / MAXH);
+  s.v += (power - GRAV * Math.sin(s.a) - DRAG * s.v) * dt;
+  s.v = clamp(s.v, 40, 560);
+  s.x += s.v * Math.cos(s.a) * dt;
+  s.f += s.v * Math.sin(s.a) * dt / (h * CLIMB);
+
+  // cutback: carve back toward the curl, then turn down the line again
+  if (Math.cos(s.a) < -0.3 && s.v > 140) wentBack = true;
+  if (wentBack && Math.cos(s.a) > 0.6 && Math.cos(before) <= 0.6) { wentBack = false; addPoints(250, 'CUTBACK'); }
+
+  if (s.f < 0) {
+    // flat water at the bottom bogs you down
+    s.f = 0;
+    if (Math.sin(s.a) < 0) s.v -= 260 * -Math.sin(s.a) * dt;
+  }
+  const d = s.x - curlX;
+  if (s.f > 1) {
+    const up = s.v * Math.sin(s.a);
+    if (up > LAUNCH_MIN && d > 60) {
+      s.air = { y: lipY(s.x), vx: s.v * Math.cos(s.a), vy: -up * 1.4, t: 0, peak: lipY(s.x) };
+      s.spun = 0;
+      wentBack = false;
+      sfx.launch();
+      return;
+    }
+    s.f = 1;
+    s.v -= 220 * dt;
+    s.a = wrapAngle(s.a - Math.sign(Math.cos(s.a) || 1) * 2 * dt);   // stall: fall back off the lip
+  }
+
+  // the tube: tucked under the throwing lip right next to the curl
+  if (d < 130 && s.f < 0.8) {
+    tubeT += dt;
+    if (tubeT >= 0.5) { tubeT -= 0.5; addPoints(60, 'TUBE RIDE'); }
+  } else tubeT = 0;
+
+  if (d < 0 && safeT <= 0) wipeout('CAUGHT BY THE CURL!');
+
+  // spray off the board when carving
+  if (Math.random() < 0.7) {
+    const y = surferY();
+    spray.push({ x: s.x - Math.cos(s.a) * 22, y: y + 2, vx: -Math.cos(s.a) * 60 + (Math.random() - 0.5) * 60,
+                 vy: -60 - Math.random() * 100 * Math.min(1, s.v / 300), life: 0.5, r: 1.5 + Math.random() * 2.5 });
+  }
+}
+
+function updateAir(dt) {
+  const air = s.air, turn = turnInput();
+  air.t += dt;
+  air.vy += AIR_GRAV * dt;
+  s.x += air.vx * dt;
+  air.y += air.vy * dt;
+  air.peak = Math.min(air.peak, air.y);
+  const velA = Math.atan2(-air.vy, air.vx);
+  if (turn) {
+    s.a = wrapAngle(s.a + turn * SPIN * dt);
+    s.spun += turn * SPIN * dt;
+  } else {
+    // a gentle hand: with no input the board drifts toward the way you're moving
+    const diff = wrapAngle(velA - s.a);
+    s.a = wrapAngle(s.a + clamp(diff, -3.2 * dt, 3.2 * dt));
+  }
+  if (s.x < curlX) { s.air = null; s.f = 1; wipeout('SWALLOWED BY THE WAVE!'); return; }
+  const ly = lipY(s.x);
+  if (air.vy > 0 && air.y >= ly) {
+    const diff = Math.abs(wrapAngle(velA - s.a));
+    s.air = null;
+    s.f = 0.97;
+    if (diff > 1.2) { wipeout('BAD LANDING!'); return; }
+    s.v = clamp(Math.hypot(air.vx, air.vy) * 0.8, 200, 560);
+    s.a = clamp(velA, -1.2, 0.2);
+    const spins = Math.floor((Math.abs(s.spun) + 0.7) / TAU);
+    const height = Math.round(ly - air.peak);
+    if (spins > 0) addPoints(spins * 1000, spins === 1 ? '360 SPIN!' : `${spins * 360} SPIN!!`, true);
+    else if (Math.abs(s.spun) > 2.2) addPoints(400, s.spun > 0 ? 'BACKFLIP SNAP' : 'FRONT SNAP');
+    addPoints(150 + height * 3, height > 90 ? 'BIG AIR' : 'AERIAL');
+  }
+}
+
+function update(dt) {
+  clock += dt;
+  if (surfGain && !muted) surfGain.gain.value = 0.05 + 0.03 * Math.sin(clock * 0.8);
+
+  if (mode === 'title') {
+    // the wave rolls on by itself behind the title
+    curlX += CURL_SPEED * dt;
+    s.x = curlX + 260 + Math.sin(clock * 0.7) * 60;
+    s.f = 0.45 + Math.sin(clock * 1.4) * 0.3;
+    s.a = Math.cos(clock * 1.4) * 0.6;
+  } else if (mode === 'ride' || mode === 'wipe') {
+    curlX += CURL_SPEED * dt;
+    timeLeft -= dt;
+    if (timeLeft <= 5 && Math.ceil(timeLeft) !== lastTick) { lastTick = Math.ceil(timeLeft); if (lastTick > 0) sfx.tick(); }
+    safeT = Math.max(0, safeT - dt);
+    if (mode === 'ride') {
+      if (s.air) updateAir(dt); else updateFace(dt);
+    } else {
+      wipeT += dt;
+      s.tumble += dt * 9;
+      s.x = Math.max(s.x, curlX - 40);
+      if (wipeT > 1.6) {
+        if (boards > 0 && timeLeft > 0) respawn();
+        else { endRide(); }
+      }
+    }
+    if (timeLeft <= 0 && mode === 'ride') { timeLeft = 0; if (s.air) s.air = null; endRide(); }
+
+    // stars to grab, floating on the face ahead of you
+    starTimer -= dt;
+    if (starTimer <= 0) {
+      starTimer = 1.2 + Math.random() * 1.2;
+      stars.push({ x: curlX + 950 + Math.random() * 300, f: 0.15 + Math.random() * 0.95, got: false });
+    }
+    if (mode === 'ride') {
+      const sy = surferY();
+      for (const st of stars) {
+        if (st.got) continue;
+        const sty = TROUGH - st.f * faceH(st.x);
+        if (Math.hypot(st.x - s.x, sty - (sy - 20)) < 34) { st.got = true; score += 100; sfx.star();
+          popups.push({ text: '+100', t: 0, x: st.x, y: sty - 20 }); }
+      }
+    }
+    stars = stars.filter(st => !st.got && st.x > curlX - 50);
+  } else if (mode === 'results') {
+    resultsT += dt;
+    curlX += CURL_SPEED * dt;
+    s.x = Math.max(s.x, curlX + 200);
+  }
+
+  const target = s.x - W * 0.42;
+  camX += (target - camX) * Math.min(1, dt * 4);
+  camX = Math.max(camX, curlX - W * 0.35);   // always keep some of the breaking wave in view
+
+  for (const p of spray) { p.vy += 500 * dt; p.x += p.vx * dt; p.y += p.vy * dt; p.life -= dt; }
+  spray = spray.filter(p => p.life > 0);
+  for (const p of popups) { p.t += dt; p.y -= 30 * dt; }
+  popups = popups.filter(p => p.t < 1.4);
+}
+
+// ---------- Drawing ----------
+function drawBackground() {
+  const g = ctx.createLinearGradient(0, 0, 0, HORIZON);
+  g.addColorStop(0, '#ff9ec7'); g.addColorStop(0.5, '#ffc78a'); g.addColorStop(1, '#ffe8a8');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, -OFFY, W, HORIZON + OFFY + 2);
+  // sun sitting low over the sea
+  ctx.fillStyle = '#fff4c2'; circle(W * 0.72, HORIZON - 30, 50);
+  // far islands and clouds drift slowly
+  const par = camX * 0.05;
+  ctx.fillStyle = '#7a6aa8';
+  for (let i = -1; i < 4; i++) {
+    const x = mod(i * 420 - par, 1680) - 300;
+    ctx.beginPath(); ctx.ellipse(x, HORIZON, 140, 34, 0, Math.PI, 0); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(x + 60, HORIZON, 70, 52, 0, Math.PI, 0); ctx.fill();
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.75)';
+  for (let i = 0; i < 5; i++) {
+    const x = mod(rnd(i, 1) * 1600 - camX * 0.1 - clock * 8, 1600) - 200, y = 30 + rnd(i, 2) * 70;
+    ctx.beginPath(); ctx.ellipse(x, y, 60, 14, 0, 0, TAU); ctx.ellipse(x + 30, y - 8, 36, 12, 0, 0, TAU); ctx.fill();
+  }
+  // seagulls
+  ctx.strokeStyle = '#4a3b5a'; ctx.lineWidth = 2;
+  for (let i = 0; i < 3; i++) {
+    const x = mod(rnd(i, 3) * 1400 + clock * 40 - camX * 0.2, 1400) - 100, y = 50 + rnd(i, 4) * 60;
+    const fl = Math.sin(clock * 8 + i) * 4;
+    ctx.beginPath(); ctx.moveTo(x - 10, y - fl); ctx.quadraticCurveTo(x - 5, y - 6, x, y); ctx.quadraticCurveTo(x + 5, y - 6, x + 10, y - fl); ctx.stroke();
+  }
+  // open sea out to the horizon
+  const sea = ctx.createLinearGradient(0, HORIZON, 0, TROUGH);
+  sea.addColorStop(0, '#5fb8d6'); sea.addColorStop(1, '#1f8fbf');
+  ctx.fillStyle = sea;
+  ctx.fillRect(0, HORIZON, W, TROUGH - HORIZON);
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  for (let i = 0; i < 30; i++) {
+    const y = HORIZON + 6 + rnd(i, 5) ** 2 * (TROUGH - HORIZON - 10);
+    const x = mod(rnd(i, 6) * W * 2 - camX * (0.1 + (y - HORIZON) / 600), W + 60) - 30;
+    ctx.fillRect(x, y, 10 + rnd(i, 7) * 20, 2);
+  }
+  // a dolphin jumps now and then
+  const dp = mod(clock, 9) / 1.4;
+  if (dp < 1) {
+    const dx = W * 0.85 - dp * 120, dy = HORIZON + 50 - Math.sin(dp * Math.PI) * 40;
+    ctx.save(); ctx.translate(dx, dy); ctx.rotate(-Math.cos(dp * Math.PI) * 0.8);
+    ctx.fillStyle = '#5a6f8a';
+    ctx.beginPath(); ctx.ellipse(0, 0, 18, 6, 0, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.moveTo(-2, -5); ctx.lineTo(4, -12); ctx.lineTo(6, -4); ctx.fill();
+    ctx.restore();
+  }
+}
+
+function drawWave() {
+  const c = curlX - camX;
+  const x0 = Math.max(c, -10);
+  // the face
+  const face = ctx.createLinearGradient(0, TROUGH - MAXH, 0, TROUGH);
+  face.addColorStop(0, '#7fe0e8'); face.addColorStop(0.35, '#2fb3d1'); face.addColorStop(1, '#0d6f9f');
+  ctx.fillStyle = face;
+  ctx.beginPath();
+  ctx.moveTo(x0, TROUGH + 2);
+  for (let sx = x0; sx <= W + 12; sx += 8) ctx.lineTo(sx, lipY(sx + camX));
+  ctx.lineTo(W + 12, TROUGH + 2);
+  ctx.fill();
+  // ripples running along the face
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2;
+  ctx.setLineDash([26, 18]);
+  for (const f of [0.2, 0.42, 0.64, 0.84]) {
+    ctx.lineDashOffset = -clock * 60 * (1 + f) + camX;
+    ctx.beginPath();
+    for (let sx = x0; sx <= W + 12; sx += 10) {
+      const y = TROUGH - f * faceH(sx + camX);
+      if (sx === x0) ctx.moveTo(sx, y); else ctx.lineTo(sx, y);
+    }
+    ctx.stroke();
+  }
+  ctx.setLineDash([]);
+  // foamy lip along the top
+  ctx.strokeStyle = '#eafcff'; ctx.lineWidth = 5;
+  ctx.beginPath();
+  for (let sx = x0; sx <= W + 12; sx += 8) {
+    const y = lipY(sx + camX) + Math.sin((sx + camX) * 0.05 + clock * 4) * 1.5;
+    if (sx === x0) ctx.moveTo(sx, y); else ctx.lineTo(sx, y);
+  }
+  ctx.stroke();
+  // shade inside the tube
+  if (c > -200 && c < W + 200) {
+    const sh = ctx.createLinearGradient(c, 0, c + 150, 0);
+    sh.addColorStop(0, 'rgba(5,40,70,.55)'); sh.addColorStop(1, 'rgba(5,40,70,0)');
+    ctx.fillStyle = sh;
+    ctx.beginPath();
+    ctx.moveTo(c - 20, TROUGH);
+    ctx.lineTo(c - 20, TROUGH - MAXH * 0.5);
+    ctx.quadraticCurveTo(c + 40, TROUGH - MAXH - 10, c + 150, lipY(curlX + 150));
+    ctx.lineTo(c + 150, TROUGH);
+    ctx.fill();
+  }
+}
+
+// The throwing lip and the whitewater, drawn over the surfer so the tube really covers you.
+function drawCurl() {
+  const c = curlX - camX;
+  if (c < -400 || c > W + 300) return;
+  const top = TROUGH - MAXH;
+  ctx.lineCap = 'round';
+  ctx.strokeStyle = '#2fb3d1'; ctx.lineWidth = 30;
+  ctx.beginPath();
+  ctx.moveTo(c + 160, lipY(curlX + 160));
+  ctx.quadraticCurveTo(c + 90, top - 50, c + 20, top - 30);
+  ctx.quadraticCurveTo(c - 30, top - 10, c - 25, top + MAXH * 0.45);
+  ctx.stroke();
+  ctx.strokeStyle = '#d8fbff'; ctx.lineWidth = 7;
+  ctx.beginPath();
+  ctx.moveTo(c + 170, lipY(curlX + 170) - 4);
+  ctx.quadraticCurveTo(c + 95, top - 66, c + 20, top - 46);
+  ctx.quadraticCurveTo(c - 44, top - 22, c - 40, top + MAXH * 0.4);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  // tumbling whitewater behind the curl
+  ctx.fillStyle = '#f2fdff';
+  ctx.beginPath();
+  ctx.moveTo(c + 45, TROUGH + 4);
+  ctx.quadraticCurveTo(c + 30, TROUGH - MAXH * 0.55, c + 5, TROUGH - MAXH * 0.62);
+  for (let k = 0; k <= 40; k++) {
+    const sx = c + 5 - k * 14, wx = sx + camX;
+    const hgt = MAXH * (0.25 + 0.4 * Math.exp(-k / 14)) + Math.sin(wx * 0.04 + clock * 6) * 8 + Math.sin(wx * 0.11 - clock * 9) * 5;
+    ctx.lineTo(sx, TROUGH - hgt);
+  }
+  ctx.lineTo(c - 600, TROUGH + 4);
+  ctx.fill();
+  // churning bubbles along the front of the foam
+  for (let k = 0; k < 8; k++) {
+    const ph = mod(clock * 2 + k / 8, 1), y = TROUGH - ph * MAXH * 0.55;
+    ctx.fillStyle = k % 2 ? '#ffffff' : '#dff6ff';
+    circle(c + 30 - (y - (TROUGH - MAXH * 0.55)) * -0.04 - ph * 20 + Math.sin(clock * 5 + k) * 4, y, 14 + rnd(k, 5) * 10);
+  }
+  ctx.fillStyle = 'rgba(190,235,250,.8)';
+  for (let k = 0; k < 14; k++) {
+    const sx = c - 10 - k * 40 - mod(clock * 30, 40);
+    circle(sx, TROUGH - MAXH * 0.25 - rnd(k, 1) * 50, 8 + rnd(k, 2) * 10);
+  }
+  // spray exploding where the lip lands
+  for (let i = 0; i < 16; i++) {
+    const ph = mod(clock * 1.6 + rnd(i, 1), 1);
+    ctx.fillStyle = `rgba(255,255,255,${0.9 * (1 - ph)})`;
+    circle(c - 20 + (rnd(i, 2) - 0.6) * 80 * ph, TROUGH - MAXH * 0.45 - Math.sin(ph * Math.PI) * (60 + rnd(i, 3) * 70), 3 + rnd(i, 4) * 4);
+  }
+}
+
+function drawForeground() {
+  const g = ctx.createLinearGradient(0, TROUGH, 0, VH);
+  g.addColorStop(0, '#0d6f9f'); g.addColorStop(1, '#063a5c');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, TROUGH, W, VH - OFFY - TROUGH + 2);
+  ctx.fillStyle = 'rgba(255,255,255,.2)';
+  for (let i = 0; i < 24; i++) {
+    const y = TROUGH + 8 + rnd(i, 1) * (VH - OFFY - TROUGH - 12);
+    const x = mod(rnd(i, 2) * W * 2 - camX * 1.2 - clock * 20, W + 60) - 30;
+    ctx.fillRect(x, y, 14 + rnd(i, 3) * 20, 2);
+  }
+}
+
+function drawStar(x, y, r) {
+  ctx.save();
+  ctx.translate(x, y); ctx.rotate(clock * 2);
+  ctx.fillStyle = '#ffe14a'; ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 2;
+  ctx.beginPath();
+  for (let k = 0; k < 10; k++) {
+    const rr = k % 2 ? r * 0.45 : r, a = k * Math.PI / 5 - Math.PI / 2;
+    ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
+  }
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawSurfer() {
+  if (mode === 'ride' && safeT > 0 && Math.floor(safeT * 10) % 2) return;
+  const x = s.x - camX, y = surferY();
+  ctx.save();
+  ctx.translate(x, y);
+  if (mode === 'wipe') {
+    // tumbling in the foam
+    ctx.translate(0, Math.min(40, wipeT * 60));
+    ctx.rotate(s.tumble);
+  } else {
+    ctx.rotate(-s.a);
+  }
+  // board
+  ctx.fillStyle = '#ff5a5f'; ctx.strokeStyle = '#7a1f2a'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(0, 0, 34, 5, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.fillStyle = '#fff'; ctx.fillRect(-26, -1.5, 52, 3);
+  ctx.fillStyle = '#7a1f2a';
+  ctx.beginPath(); ctx.moveTo(-26, 4); ctx.lineTo(-20, 12); ctx.lineTo(-18, 4); ctx.fill();
+  // rider: crouched, arms out for balance
+  const crouch = s.air ? 6 : 2 + Math.sin(clock * 6) * 1.5;
+  ctx.strokeStyle = '#7a4a2a'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.beginPath();
+  ctx.moveTo(-10, -4); ctx.lineTo(-6, -16 + crouch); ctx.lineTo(0, -26 + crouch);
+  ctx.moveTo(10, -4); ctx.lineTo(6, -16 + crouch); ctx.lineTo(0, -26 + crouch);
+  ctx.stroke();
+  ctx.strokeStyle = '#1e88e5'; ctx.lineWidth = 7;              // board shorts
+  ctx.beginPath(); ctx.moveTo(-5, -18 + crouch); ctx.lineTo(0, -27 + crouch); ctx.lineTo(5, -18 + crouch); ctx.stroke();
+  ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 8;              // shirt
+  ctx.beginPath(); ctx.moveTo(0, -27 + crouch); ctx.lineTo(2, -42 + crouch); ctx.stroke();
+  ctx.strokeStyle = '#7a4a2a'; ctx.lineWidth = 4;              // arms
+  const wave = Math.sin(clock * 5) * 4;
+  ctx.beginPath();
+  ctx.moveTo(1, -38 + crouch); ctx.lineTo(-14, -34 + crouch + wave);
+  ctx.moveTo(1, -38 + crouch); ctx.lineTo(16, -42 + crouch - wave);
+  ctx.stroke();
+  ctx.lineCap = 'butt';
+  ctx.fillStyle = '#a0643a'; circle(3, -50 + crouch, 7);    // head
+  ctx.fillStyle = '#ffcf33';                                 // messy blond hair
+  ctx.beginPath(); ctx.ellipse(1, -55 + crouch, 8, 4.5, -0.2, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#111'; ctx.fillRect(4, -52 + crouch, 7, 2.5);   // shades
+  ctx.restore();
+}
+
+function drawHUD() {
+  if (s.air && Math.abs(s.spun) > 1) text(`${Math.round(Math.abs(s.spun) * 180 / Math.PI / 10) * 10}°`, s.x - camX, surferY() - 80, 26, '#bdf2ff');
+  for (const p of popups) {
+    ctx.globalAlpha = Math.min(1, (1.4 - p.t) * 3);
+    text(p.text, clamp(p.x - camX, 120, W - 120), p.y, p.big ? 34 : 24, p.bad ? '#ff6b6b' : p.big ? '#ffe14a' : '#fff');
+  }
+  ctx.globalAlpha = 1;
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  text(`${Math.ceil(timeLeft)}`, W / 2, 34, 40, timeLeft <= 5 ? '#ff6b6b' : '#fff');
+  text(`SCORE ${score}`, 16, 34, 24, '#ffe14a', 'left');
+  // spare boards
+  for (let i = 0; i < BOARDS; i++) {
+    ctx.save();
+    ctx.translate(30 + i * 34, 70); ctx.rotate(-1.1);
+    ctx.fillStyle = i < boards ? '#ff5a5f' : 'rgba(255,255,255,.35)';
+    ctx.strokeStyle = '#0b3550'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.ellipse(0, 0, 14, 4, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.restore();
+  }
+  // touch hint for the first few seconds of a ride
+  if (mode === 'ride' && timeLeft > RIDE_TIME - 4 && matchMedia('(pointer: coarse)').matches) {
+    ctx.globalAlpha = 0.7;
+    text('▲ hold top half to carve up', W / 2, VH * 0.3, 22);
+    text('▼ hold bottom half to carve down', W / 2, VH * 0.78, 22);
+    ctx.globalAlpha = 1;
+  }
+}
+
+function drawTitle() {
+  const bob = Math.sin(clock * 2) * 5;
+  text("SURF'S UP!", W / 2, 90 + bob, 76, '#ffe14a');
+  const lines = matchMedia('(pointer: coarse)').matches
+    ? ['Hold the top or bottom of the screen to carve', 'Shoot off the lip, spin, land nose-down!', 'Stay ahead of the curl!']
+    : ['↑ ↓ (or ← →) to carve up and down the wave', 'Shoot off the lip, spin, land nose-down!', 'Stay ahead of the curl!'];
+  lines.forEach((l, i) => text(l, W / 2, 160 + i * 32, 21));
+  const pulse = 1 + Math.sin(clock * 5) * 0.05;
+  text('TAP OR PRESS SPACE TO PADDLE OUT', W / 2, TROUGH + 32, 22 * pulse, '#ffe14a');
+  if (best) text(`BEST: ${best}`, W / 2, TROUGH - 30, 22);
+}
+
+function drawResults() {
+  const cx = W / 2, cy = H * 0.42;
+  ctx.fillStyle = 'rgba(6,40,70,.75)';
+  ctx.fillRect(0, -OFFY, W, VH);
+  text(boards > 0 ? "TIME'S UP!" : 'OUT OF BOARDS!', cx, cy - 150, 46, '#ffe14a');
+  text(`SCORE ${score}`, cx, cy - 100, 30);
+  text("THE JUDGES' SCORES", cx, cy - 58, 20, '#bdf2ff');
+  const cw = Math.min(84, (W - 40) / 5 - 10);
+  results.cards.forEach((v, i) => {
+    const show = resultsT > 0.6 + i * 0.3;
+    const x = cx + (i - 2) * (cw + 10);
+    // the judge
+    ctx.fillStyle = ['#a0643a', '#f1c27d', '#8d5524', '#ffdbac', '#c68642'][i]; circle(x, cy + 70, 16);
+    ctx.fillStyle = '#ffffff'; roundRect(x - 18, cy + 86, 36, 26, 6); ctx.fill();
+    if (!show) return;
+    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#0b3550'; ctx.lineWidth = 3;
+    roundRect(x - cw / 2, cy - 30, cw, 70, 8); ctx.fill(); ctx.stroke();
+    ctx.font = `900 ${Math.min(30, cw * 0.4)}px system-ui, sans-serif`;
+    ctx.fillStyle = v >= 8 ? '#0a8f3c' : v >= 5 ? '#0b3550' : '#c0392b';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText(v.toFixed(1), x, cy + 5);
+  });
+  if (resultsT > 2.3) {
+    text(`FINAL: ${results.avg.toFixed(1)}`, cx, cy + 150, 40, '#ffe14a');
+    const word = results.avg >= 9 ? 'TOTALLY RADICAL!' : results.avg >= 7 ? 'GNARLY RIDE!' : results.avg >= 4 ? 'NICE WORK, DUDE!' : 'KEEP PRACTICING!';
+    text(results.isBest ? `NEW BEST! ${word}` : word, cx, cy + 195, 24);
+  }
+  if (resultsT > 2.5) text('Tap to surf again', cx, cy + 240, 22, '#bdf2ff');
+}
+
+function draw() {
+  ctx.setTransform(scale, 0, 0, scale, 0, OFFY * scale);
+  drawBackground();
+  drawWave();
+  for (const st of stars) {
+    const x = st.x - camX;
+    if (x > -30 && x < W + 30) drawStar(x, TROUGH - st.f * faceH(st.x), 12);
+  }
+  if (mode !== 'results') drawSurfer();
+  drawCurl();
+  drawForeground();
+  ctx.fillStyle = '#fff';
+  for (const p of spray) { ctx.globalAlpha = Math.min(1, p.life * 2); circle(p.x - camX, p.y, p.r); }
+  ctx.globalAlpha = 1;
+  if (mode === 'title') drawTitle();
+  else if (mode === 'results') drawResults();
+  else drawHUD();
+}
+
+// ---------- Loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+  update(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
