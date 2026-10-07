@@ -56,6 +56,7 @@ const PIPE_W = 76;
 const PIPE_GAP_START = 190, PIPE_GAP_MIN = 145;  // gap shrinks as you score
 const PIPE_SPACING = 250; // horizontal distance between pipes
 const BIRD_R = 17;
+const POINTS_PER_WORLD = 7;
 
 // ---------- Canvas ----------
 const canvas = document.getElementById('game');
@@ -95,6 +96,9 @@ const sfx = {
   flap: () => beep(420, 700, 0.09, 'triangle', 0.15),
   point: () => { beep(880, 880, 0.08); setTimeout(() => beep(1320, 1320, 0.12), 80); },
   bonk: () => beep(300, 60, 0.35, 'sawtooth', 0.15),
+  world: () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, f, 0.14, 'triangle', 0.14), i * 110)),
+  thunder: () => beep(90, 30, 0.9, 'sawtooth', 0.2),
+  rumble: () => beep(60, 35, 0.8, 'sawtooth', 0.15),
 };
 function toggleMute() {
   muted = !muted;
@@ -103,28 +107,497 @@ function toggleMute() {
 }
 btnMute.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
 
+// ---------- Drawing helpers ----------
+// Stateless pseudo-random number in [0, 1) for particle i, channel k.
+const rnd = (i, k) => { const s = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return s - Math.floor(s); };
+const mod = (a, n) => ((a % n) + n) % n;
+const TAU = Math.PI * 2;
+// Layers fade in and out during world changes; theme code multiplies its own alpha by this.
+let layerAlpha = 1;
+const alpha = a => { ctx.globalAlpha = layerAlpha * a; };
+
+function roundRect(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+
+function sky(top, bottom) {
+  const g = ctx.createLinearGradient(0, 0, 0, H);
+  g.addColorStop(0, top);
+  g.addColorStop(0.8, bottom);
+  ctx.fillStyle = g;
+  ctx.fillRect(0, 0, W, H);
+}
+
+function clouds(color, par, rows, size = 1) {
+  ctx.fillStyle = color;
+  const cw = 360, off = mod(scroll * par, cw);
+  for (let x = -off - cw; x < W + cw; x += cw) {
+    for (const [dx, dy, s0] of rows) {
+      const cx = x + dx, cy = dy, r = 26 * s0 * size;
+      ctx.beginPath();
+      ctx.arc(cx, cy, r, 0, TAU);
+      ctx.arc(cx + r * 1.2, cy - r * 0.5, r * 1.3, 0, TAU);
+      ctx.arc(cx + r * 2.6, cy, r * 1.05, 0, TAU);
+      ctx.fill();
+      ctx.beginPath();
+      ctx.ellipse(cx + r * 1.3, cy + r * 0.3, r * 1.6, r * 0.7, 0, 0, TAU);
+      ctx.fill();
+    }
+  }
+}
+
+// Repeating rounded hills; returns nothing, draws two rows.
+function hills(far, near, par = 0.4) {
+  const hw = 300, base = H - GROUND, off = mod(scroll * par, hw);
+  ctx.fillStyle = far;
+  for (let x = -off - hw; x < W + hw; x += hw) { ctx.beginPath(); ctx.ellipse(x + 150, base, 190, 110, 0, Math.PI, 0); ctx.fill(); }
+  const off2 = mod(scroll * par * 1.3, hw);
+  ctx.fillStyle = near;
+  for (let x = -off2 - hw; x < W + hw; x += hw) { ctx.beginPath(); ctx.ellipse(x, base, 130, 70, 0, Math.PI, 0); ctx.fill(); }
+}
+
+// Calls fn(x, i) for objects spaced `gap` apart scrolling at `par`; i is a stable id per object.
+function every(gap, par, fn) {
+  const s = scroll * par, first = Math.floor((s - gap) / gap);
+  for (let i = first; i * gap - s < W + gap; i++) fn(i * gap - s, i);
+}
+
+function pine(x, base, h, snow) {
+  ctx.fillStyle = '#5b3a29';
+  ctx.fillRect(x - 4, base - h * 0.2, 8, h * 0.2);
+  for (let k = 0; k < 3; k++) {
+    const y0 = base - h * 0.15 - k * h * 0.25, w = h * (0.42 - k * 0.1);
+    ctx.fillStyle = '#2f6b4a';
+    ctx.beginPath(); ctx.moveTo(x - w, y0); ctx.lineTo(x + w, y0); ctx.lineTo(x, y0 - h * 0.4); ctx.fill();
+    if (snow) {
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.moveTo(x - w * 0.35, y0 - h * 0.26); ctx.lineTo(x + w * 0.35, y0 - h * 0.26); ctx.lineTo(x, y0 - h * 0.4); ctx.fill();
+    }
+  }
+}
+
+function cactus(x, base, h) {
+  ctx.fillStyle = '#4f9a4a';
+  ctx.strokeStyle = '#3a7536'; ctx.lineWidth = 2;
+  roundRect(x - 8, base - h, 16, h, 8); ctx.fill(); ctx.stroke();
+  roundRect(x - 26, base - h * 0.7, 10, h * 0.35, 5); ctx.fill(); ctx.stroke();
+  ctx.fillRect(x - 20, base - h * 0.42, 14, 8);
+  roundRect(x + 16, base - h * 0.85, 10, h * 0.4, 5); ctx.fill(); ctx.stroke();
+  ctx.fillRect(x + 6, base - h * 0.5, 14, 8);
+}
+
+function windmill(x, base, angle) {
+  ctx.fillStyle = '#f2f2f2';
+  ctx.beginPath(); ctx.moveTo(x - 12, base); ctx.lineTo(x + 12, base); ctx.lineTo(x + 5, base - 120); ctx.lineTo(x - 5, base - 120); ctx.fill();
+  ctx.save();
+  ctx.translate(x, base - 120);
+  ctx.rotate(angle);
+  ctx.fillStyle = '#ffffff';
+  ctx.strokeStyle = '#b8c4cc'; ctx.lineWidth = 2;
+  for (let k = 0; k < 3; k++) {
+    ctx.rotate(TAU / 3);
+    ctx.beginPath(); ctx.ellipse(0, -36, 7, 36, 0, 0, TAU); ctx.fill(); ctx.stroke();
+  }
+  ctx.fillStyle = '#c94a4a'; circle(0, 0, 6);
+  ctx.restore();
+}
+
+// ---------- Worlds ----------
+// Each world draws its own background (`back`), optional ground details (`groundDecor`),
+// weather in front of everything (`weather`), and pipe style. Pipes remember the world
+// they were made in, so you see the new pipes coming before you arrive.
+let clock = 0, windForce = 0, lightningT = 0, lightningTimer = 4, bolt = [], rumbleT = 0, rumbleTimer = 5;
+
+const WORLDS = [
+  {
+    name: 'SUNNY MEADOW', sub: 'Tap to flap!',
+    back() {
+      sky('#4ec0ff', '#bdeaff');
+      ctx.fillStyle = '#fff6b0'; circle(W - 110, 110, 46);
+      clouds('#fff', 0.15, [[40, 120, 1], [220, 200, 0.7]]);
+      hills('#7fd68a', '#5cc46e');
+    },
+    ground: { top: '#73bf2e', stripe: '#5a9e1f', dirt: '#ded895', dash: '#c9c27a' },
+    pipe: { lo: '#3fae3f', hi: '#8ee36a', dk: '#2d8a2d', line: '#1d5e1d' },
+  },
+  {
+    name: 'RAINY DAY', sub: 'Watch out for lightning!', hat: 'rainhat',
+    back() {
+      sky('#46505f', '#8b97a8');
+      clouds('#6b7585', 0.2, [[0, 60, 1.6], [180, 110, 1.3]]);
+      clouds('#59626f', 0.3, [[100, 30, 1.8], [260, 70, 1.2]]);
+      hills('#4f7d5a', '#3f6b4a');
+    },
+    groundDecor(y) {
+      // raindrop ripples in puddles
+      ctx.strokeStyle = 'rgba(200,220,255,.6)'; ctx.lineWidth = 1.5;
+      for (let i = 0; i < 10; i++) {
+        const ph = mod(clock * 1.3 + rnd(i, 3), 1);
+        const x = mod(rnd(i, 1) * (W + 100) - scroll, W + 100) - 50, yy = y + 30 + rnd(i, 2) * 50;
+        alpha(1 - ph);
+        ctx.beginPath(); ctx.ellipse(x, yy, 4 + ph * 16, 1.5 + ph * 5, 0, 0, TAU); ctx.stroke();
+      }
+      alpha(1);
+    },
+    weather() {
+      ctx.strokeStyle = 'rgba(190,210,240,.6)'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < 110; i++) {
+        const x = mod(rnd(i, 1) * (W + 100) - clock * 120 - scroll * 0.5, W + 100);
+        const y = mod(rnd(i, 2) * H + clock * (800 + rnd(i, 3) * 300), H + 40) - 20;
+        ctx.moveTo(x, y); ctx.lineTo(x - 5, y + 18);
+      }
+      ctx.stroke();
+      if (lightningT > 0 && bolt.length) {
+        alpha(lightningT);
+        ctx.strokeStyle = '#fffbd0'; ctx.lineWidth = 4;
+        ctx.beginPath(); bolt.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillRect(0, 0, W, H);
+        alpha(1);
+      }
+    },
+    ground: { top: '#4f8a2a', stripe: '#41751f', dirt: '#7d6e52', dash: '#665a43' },
+    pipe: { lo: '#2f8a4a', hi: '#6cc48a', dk: '#236b39', line: '#173f22' },
+  },
+  {
+    name: 'SNOWY PEAKS', sub: "Brrr! It's freezing!", hat: 'beanie',
+    back() {
+      sky('#8fbde6', '#eef6ff');
+      ctx.fillStyle = 'rgba(255,255,255,.8)'; circle(W - 120, 100, 40);
+      // far mountains with snowy tops
+      every(420, 0.08, (x) => {
+        const base = H - GROUND, top = base - 330;
+        ctx.fillStyle = '#7f9bbd';
+        ctx.beginPath(); ctx.moveTo(x - 220, base); ctx.lineTo(x, top); ctx.lineTo(x + 220, base); ctx.fill();
+        ctx.fillStyle = '#fff';
+        ctx.beginPath(); ctx.moveTo(x - 70, top + 105); ctx.lineTo(x, top); ctx.lineTo(x + 70, top + 105);
+        ctx.lineTo(x + 35, top + 90); ctx.lineTo(x, top + 112); ctx.lineTo(x - 35, top + 90); ctx.fill();
+      });
+      clouds('#f4f8ff', 0.15, [[60, 150, 0.8]]);
+      hills('#e8f1fb', '#d4e4f5');
+      every(110, 0.5, (x, i) => pine(x, H - GROUND, 60 + rnd(i, 1) * 50, true));
+    },
+    weather() {
+      ctx.fillStyle = '#fff';
+      for (let i = 0; i < 90; i++) {
+        const r = 1.5 + rnd(i, 3) * 2.5;
+        const y = mod(rnd(i, 2) * H + clock * (35 + r * 18), H + 20) - 10;
+        const x = mod(rnd(i, 1) * (W + 40) - scroll * 0.4 * r / 3 + Math.sin(clock * 1.3 + i) * 18, W + 40) - 20;
+        circle(x, y, r);
+      }
+    },
+    ground: { top: '#ffffff', stripe: '#dfeaf7', dirt: '#cfe0f2', dash: '#b5cbe3' },
+    pipe: { lo: '#5fa8d3', hi: '#c8ecff', dk: '#3d82b0', line: '#22557a' },
+    pipeDecor(x, topEdge, botEdge) {
+      // snow piles on top, icicles hanging under the top pipe
+      ctx.fillStyle = '#fff';
+      ctx.beginPath(); ctx.ellipse(x + PIPE_W / 2, botEdge + 2, PIPE_W / 2 + 8, 9, 0, Math.PI, 0); ctx.fill();
+      ctx.fillStyle = '#e4f6ff';
+      for (let k = 0; k < 5; k++) {
+        const ix = x - 2 + k * (PIPE_W + 4) / 5 + 6, len = 7 + ((k * 7) % 5) * 2;
+        ctx.beginPath(); ctx.moveTo(ix - 4, topEdge); ctx.lineTo(ix + 4, topEdge); ctx.lineTo(ix, topEdge + len); ctx.fill();
+      }
+    },
+  },
+  {
+    name: 'VOLCANO!', sub: 'Hot hot hot!', hat: 'sweat',
+    back() {
+      sky('#24090c', '#e0552a');
+      // the volcano, with smoke, lava streams and flying lava bombs
+      const vx = W * 0.62, base = H - GROUND, top = 240;
+      for (let i = 0; i < 9; i++) {
+        const ph = mod(clock * 0.12 + i / 9, 1);
+        ctx.fillStyle = `rgba(70,55,55,${0.55 * (1 - ph)})`;
+        circle(vx + ph * 140 + Math.sin(clock + i) * 10, top - 10 - ph * 240, 16 + ph * 46);
+      }
+      ctx.fillStyle = '#3a1d1b';
+      ctx.beginPath(); ctx.moveTo(vx - 320, base); ctx.lineTo(vx - 42, top); ctx.lineTo(vx + 42, top); ctx.lineTo(vx + 320, base); ctx.fill();
+      const glow = 0.6 + Math.sin(clock * 4) * 0.2;
+      ctx.fillStyle = `rgba(255,120,30,${glow})`;
+      ctx.beginPath(); ctx.ellipse(vx, top, 42, 10, 0, 0, TAU); ctx.fill();
+      ctx.strokeStyle = '#ff7a1a'; ctx.lineWidth = 6; ctx.lineCap = 'round';
+      ctx.beginPath();
+      ctx.moveTo(vx - 20, top + 4); ctx.quadraticCurveTo(vx - 60, top + 120, vx - 120, base - 80);
+      ctx.moveTo(vx + 15, top + 4); ctx.quadraticCurveTo(vx + 50, top + 150, vx + 140, base - 40);
+      ctx.stroke();
+      ctx.lineCap = 'butt';
+      for (let k = 0; k < 5; k++) {
+        const t = clock * 0.5 + k * 0.21, ph = mod(t, 1), n = Math.floor(t);
+        const dir = (rnd(k, n) - 0.5) * 2;
+        ctx.fillStyle = '#ffb02e';
+        circle(vx + dir * 220 * ph, top - 300 * ph + 420 * ph * ph, 6);
+      }
+      hills('#4a2420', '#331512');
+    },
+    groundDecor(y) {
+      // glowing lava cracks
+      const glow = 0.55 + Math.sin(clock * 3) * 0.3;
+      ctx.strokeStyle = `rgba(255,110,20,${glow})`; ctx.lineWidth = 3;
+      every(140, 1, (x, i) => {
+        const yy = y + 35 + rnd(i, 1) * 30;
+        ctx.beginPath(); ctx.moveTo(x, yy); ctx.lineTo(x + 25, yy - 8); ctx.lineTo(x + 45, yy + 6); ctx.lineTo(x + 70, yy - 2); ctx.stroke();
+      });
+    },
+    weather() {
+      for (let i = 0; i < 50; i++) {
+        const y = H - mod(rnd(i, 2) * H + clock * (50 + rnd(i, 3) * 90), H + 20);
+        const x = mod(rnd(i, 1) * W + Math.sin(clock * 2 + i) * 12 - scroll * 0.3, W);
+        ctx.fillStyle = rnd(i, 4) > 0.5 ? '#ffb02e' : '#ff5a1a';
+        alpha(0.5 + 0.5 * Math.sin(clock * 6 + i));
+        circle(x, y, 1.5 + rnd(i, 5) * 2);
+      }
+      alpha(1);
+    },
+    ground: { top: '#2b2120', stripe: '#3d2c2a', dirt: '#1c1514', dash: '#1c1514' },
+    pipe: { lo: '#3b3b42', hi: '#6d6d78', dk: '#26262b', line: '#120f10' },
+    pipeDecor(x, topEdge, botEdge) {
+      const glow = 0.6 + Math.sin(clock * 3 + x * 0.01) * 0.3;
+      ctx.strokeStyle = `rgba(255,120,30,${glow})`; ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(x + 20, topEdge - 60); ctx.lineTo(x + 34, topEdge - 90); ctx.lineTo(x + 28, topEdge - 130);
+      ctx.moveTo(x + 50, botEdge + 60); ctx.lineTo(x + 38, botEdge + 95); ctx.lineTo(x + 48, botEdge + 140);
+      ctx.stroke();
+    },
+  },
+  {
+    name: 'WINDY HILLS', sub: 'Gusts push you up and down!', hat: 'goggles', windy: true,
+    back() {
+      sky('#5fb6ff', '#d8f0ff');
+      clouds('#fff', 0.9, [[40, 100, 0.9], [230, 180, 0.6]]);
+      hills('#9be08a', '#74c86a');
+      every(260, 0.4, (x, i) => windmill(x, H - GROUND - 20, clock * (2 + Math.abs(windForce) / 80) + i));
+    },
+    weather() {
+      // streaks tilt with the wind so you can see which way it's pushing
+      const tilt = windForce * 0.06;
+      ctx.strokeStyle = 'rgba(255,255,255,.75)'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      for (let i = 0; i < 28; i++) {
+        const x = W + 100 - mod(rnd(i, 1) * (W + 300) + clock * (650 + rnd(i, 3) * 300), W + 300);
+        const y = rnd(i, 2) * (H - GROUND);
+        ctx.moveTo(x, y); ctx.lineTo(x + 70, y - tilt);
+      }
+      ctx.stroke();
+      for (let i = 0; i < 10; i++) {
+        const x = W + 50 - mod(rnd(i, 4) * (W + 100) + clock * (380 + rnd(i, 5) * 200), W + 100);
+        const y = rnd(i, 6) * (H - GROUND) + Math.sin(clock * 3 + i) * 20;
+        ctx.save(); ctx.translate(x, y); ctx.rotate(clock * 6 + i);
+        ctx.fillStyle = i % 2 ? '#e8a33a' : '#c9662f';
+        ctx.beginPath(); ctx.ellipse(0, 0, 7, 3.5, 0, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+    },
+    ground: { top: '#8ad04a', stripe: '#6fb434', dirt: '#e4dc9c', dash: '#cfc684' },
+    pipe: { lo: '#2fa38f', hi: '#7fe3cf', dk: '#23806f', line: '#145045' },
+    pipeDecor(x, topEdge, botEdge) {
+      // a little flag on each bottom pipe, flapping in the wind
+      const fx = x + PIPE_W / 2, fy = botEdge;
+      ctx.strokeStyle = '#555'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(fx, fy); ctx.lineTo(fx, fy - 40); ctx.stroke();
+      ctx.fillStyle = '#ff4a3a';
+      ctx.beginPath(); ctx.moveTo(fx, fy - 40);
+      for (let k = 0; k <= 6; k++) ctx.lineTo(fx - k * 5, fy - 40 + Math.sin(clock * 10 - k) * 3 - windForce * 0.01 * k);
+      for (let k = 6; k >= 0; k--) ctx.lineTo(fx - k * 5, fy - 24 + Math.sin(clock * 10 - k) * 3 - windForce * 0.01 * k);
+      ctx.fill();
+    },
+  },
+  {
+    name: 'RAINFOREST', sub: 'Deep in the jungle!', hat: 'leaf',
+    back() {
+      sky('#1d5236', '#79b86a');
+      // sunbeams through the leaves
+      ctx.fillStyle = 'rgba(255,255,190,.10)';
+      for (let k = 0; k < 4; k++) {
+        const x = mod(k * 260 - scroll * 0.05, W + 300) - 100;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.lineTo(x + 60, 0); ctx.lineTo(x + 220, H); ctx.lineTo(x + 100, H); ctx.fill();
+      }
+      every(150, 0.2, (x, i) => {
+        ctx.fillStyle = '#2f4a26';
+        ctx.fillRect(x - 10, 80, 20, H);
+        ctx.fillStyle = i % 2 ? '#2c6b33' : '#24592b';
+        circle(x, 120 + rnd(i, 1) * 80, 70);
+      });
+      hills('#2f7a3a', '#26652f', 0.5);
+      // big jungle leaves along the bottom
+      every(90, 0.7, (x, i) => {
+        ctx.fillStyle = i % 2 ? '#3e9a3e' : '#2f8233';
+        ctx.save(); ctx.translate(x, H - GROUND); ctx.rotate(-0.6 + rnd(i, 2) * 1.2);
+        ctx.beginPath(); ctx.ellipse(0, -30, 14, 34, 0, 0, TAU); ctx.fill();
+        ctx.restore();
+      });
+      // hanging vines
+      ctx.strokeStyle = '#3c7a2a'; ctx.lineWidth = 4;
+      every(120, 0.5, (x, i) => {
+        const len = 80 + rnd(i, 3) * 140, sway = Math.sin(clock + i) * 12;
+        ctx.beginPath(); ctx.moveTo(x, 0); ctx.quadraticCurveTo(x + sway, len / 2, x + sway * 0.4, len); ctx.stroke();
+        ctx.fillStyle = '#52a83a';
+        for (let k = 1; k < 4; k++) circle(x + sway * k / 5, len * k / 4, 5);
+      });
+      // leafy canopy across the top
+      every(70, 0.3, (x, i) => { ctx.fillStyle = i % 2 ? '#174a24' : '#1f5c2c'; circle(x, 0, 45 + rnd(i, 4) * 20); });
+    },
+    weather() {
+      // fireflies and drifting leaves
+      for (let i = 0; i < 18; i++) {
+        const x = mod(rnd(i, 1) * W + Math.sin(clock * 0.7 + i) * 40 - scroll * 0.2, W);
+        const y = rnd(i, 2) * (H - GROUND - 60) + 40 + Math.cos(clock * 0.9 + i) * 20;
+        alpha(0.4 + 0.6 * Math.max(0, Math.sin(clock * 3 + i * 2)));
+        ctx.fillStyle = '#f4ff8a'; circle(x, y, 2.5);
+      }
+      alpha(1);
+      for (let i = 0; i < 8; i++) {
+        const y = mod(rnd(i, 3) * H + clock * 45, H + 20) - 10;
+        const x = mod(rnd(i, 4) * W + Math.sin(clock * 1.5 + i) * 30 - scroll * 0.3, W);
+        ctx.save(); ctx.translate(x, y); ctx.rotate(Math.sin(clock * 2 + i));
+        ctx.fillStyle = '#6cc44a'; ctx.beginPath(); ctx.ellipse(0, 0, 8, 4, 0, 0, TAU); ctx.fill();
+        ctx.restore();
+      }
+    },
+    ground: { top: '#2f7a2a', stripe: '#246322', dirt: '#5a3d22', dash: '#4a3019' },
+    pipe: { lo: '#4f7a2a', hi: '#9fc65a', dk: '#3a5e1d', line: '#22380f' },
+    pipeDecor(x, topEdge, botEdge) {
+      // vines wrapped around the pipes
+      ctx.strokeStyle = '#2f8a2a'; ctx.lineWidth = 4;
+      ctx.beginPath();
+      for (let y = botEdge + 40; y < H - GROUND; y += 50) { ctx.moveTo(x, y); ctx.lineTo(x + PIPE_W, y + 25); }
+      for (let y = topEdge - 40; y > -50; y -= 50) { ctx.moveTo(x, y); ctx.lineTo(x + PIPE_W, y - 25); }
+      ctx.stroke();
+      ctx.fillStyle = '#5cbf3a';
+      circle(x + 10, botEdge + 46, 6); circle(x + PIPE_W - 12, topEdge - 32, 6);
+    },
+  },
+  {
+    name: 'DESERT', sub: 'Sand, sun and tumbleweeds!', hat: 'shades',
+    back() {
+      sky('#ff9248', '#ffe7a3');
+      ctx.fillStyle = '#fff3c4'; circle(W * 0.75, 150, 70);
+      every(520, 0.06, (x) => {
+        const base = H - GROUND - 40;
+        ctx.fillStyle = '#e6a95a';
+        ctx.beginPath(); ctx.moveTo(x - 90, base); ctx.lineTo(x, base - 110); ctx.lineTo(x + 90, base); ctx.fill();
+        ctx.fillStyle = '#c98c45';
+        ctx.beginPath(); ctx.moveTo(x, base - 110); ctx.lineTo(x + 90, base); ctx.lineTo(x + 25, base); ctx.fill();
+      });
+      // rolling dunes
+      for (const [col, par, amp, yb] of [['#f0c27a', 0.25, 30, 70], ['#e3a95c', 0.5, 22, 30]]) {
+        ctx.fillStyle = col;
+        ctx.beginPath(); ctx.moveTo(0, H);
+        for (let x = 0; x <= W + 10; x += 10) ctx.lineTo(x, H - GROUND - yb - Math.sin((x + scroll * par) / 120) * amp);
+        ctx.lineTo(W, H); ctx.fill();
+      }
+      every(230, 0.5, (x, i) => { if (rnd(i, 1) > 0.35) cactus(x, H - GROUND - 10, 45 + rnd(i, 2) * 30); });
+    },
+    groundDecor(y) {
+      // tumbleweeds bouncing along faster than the ground
+      ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 2;
+      for (let i = 0; i < 2; i++) {
+        const x = W + 60 - mod(clock * 260 + i * 470, W + 200);
+        const yy = y - 18 - Math.abs(Math.sin(clock * 5 + i)) * 26;
+        ctx.save(); ctx.translate(x, yy); ctx.rotate(-clock * 8);
+        ctx.beginPath();
+        for (let k = 0; k < 6; k++) ctx.ellipse(0, 0, 18, 7, k, 0, TAU);
+        ctx.stroke();
+        ctx.restore();
+      }
+    },
+    weather() {
+      ctx.fillStyle = 'rgba(210,150,80,.5)';
+      for (let i = 0; i < 40; i++) {
+        const x = W - mod(rnd(i, 1) * W + clock * (200 + rnd(i, 2) * 200), W);
+        circle(x, rnd(i, 3) * (H - GROUND), 1.5);
+      }
+    },
+    ground: { top: '#e8b86b', stripe: '#d9a352', dirt: '#f2cf8d', dash: '#e0b56e' },
+    pipe: { lo: '#c98a4b', hi: '#efc28a', dk: '#a86d35', line: '#6b3f1a' },
+    pipeDecor(x, topEdge, botEdge) {
+      ctx.fillStyle = 'rgba(107,63,26,.25)';
+      for (let y = botEdge + 50; y < H - GROUND; y += 36) ctx.fillRect(x, y, PIPE_W, 6);
+      for (let y = topEdge - 50; y > 0; y -= 36) ctx.fillRect(x, y, PIPE_W, 6);
+    },
+  },
+  {
+    name: 'OUTER SPACE', sub: 'Low gravity. So floaty!', hat: 'helmet', gravity: 0.6, flap: 0.78,
+    back() {
+      sky('#05030f', '#2a1050');
+      for (let i = 0; i < 120; i++) {
+        alpha(0.4 + 0.6 * Math.abs(Math.sin(clock * (0.5 + rnd(i, 3)) + i)));
+        ctx.fillStyle = '#fff';
+        circle(mod(rnd(i, 1) * W - scroll * 0.03, W), rnd(i, 2) * (H - GROUND), rnd(i, 4) * 1.6 + 0.4);
+      }
+      alpha(1);
+      // ringed planet and a small blue one
+      const px = W * 0.7, py = 170;
+      ctx.fillStyle = '#e07a5f'; circle(px, py, 60);
+      ctx.fillStyle = '#f2a07b'; circle(px - 15, py - 15, 30);
+      ctx.strokeStyle = '#f6d6a8'; ctx.lineWidth = 6;
+      ctx.beginPath(); ctx.ellipse(px, py, 105, 22, -0.3, 0, TAU); ctx.stroke();
+      ctx.fillStyle = '#4a8ff0'; circle(W * 0.18, 110, 22);
+      ctx.fillStyle = '#5bd18a'; circle(W * 0.18 - 6, 104, 9);
+      // a shooting star every few seconds
+      const ph = mod(clock / 4, 1);
+      if (ph < 0.25) {
+        const t = ph / 0.25, sx = W * (0.9 - t * 0.6), sy = 60 + t * 120;
+        ctx.strokeStyle = `rgba(255,255,255,${1 - t})`; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx + 60, sy - 12); ctx.stroke();
+      }
+    },
+    groundDecor(y) {
+      ctx.fillStyle = '#6e6e7a';
+      every(130, 1, (x, i) => { ctx.beginPath(); ctx.ellipse(x, y + 40 + rnd(i, 1) * 25, 16 + rnd(i, 2) * 12, 5, 0, 0, TAU); ctx.fill(); });
+    },
+    ground: { top: '#b4b4c0', stripe: '#9a9aa8', dirt: '#8a8a96', dash: '#8a8a96' },
+    pipe: { lo: '#7d8696', hi: '#d9dee8', dk: '#5a6272', line: '#2a3040' },
+    pipeDecor(x, topEdge, botEdge) {
+      const on = Math.sin(clock * 6 + x * 0.05) > 0;
+      ctx.fillStyle = on ? '#ff4a3a' : '#5a1a1a'; circle(x + PIPE_W / 2, topEdge - 15, 5);
+      ctx.fillStyle = on ? '#5aff8a' : '#1a5a2a'; circle(x + PIPE_W / 2, botEdge + 15, 5);
+    },
+  },
+];
+const worldFor = s => Math.floor(s / POINTS_PER_WORLD) % WORLDS.length;
+
 // ---------- State ----------
 // mode: 'title' → 'play' → 'dead' → (tap) → 'title'
 let mode = 'title';
-let bird, pipes, score, best = +(localStorage.getItem('fb_best') || 0);
+let bird, pipes, pipeCount, score, best = +(localStorage.getItem('fb_best') || 0);
 let scroll = 0, deadTimer = 0, flashT = 0, shakeT = 0, newBest = false;
+let world = 0, worldFrom = 0, fade = 1, bannerT = 0;
 let feathers = [];
 
 function reset() {
   bird = { x: 0, y: H * 0.42, vy: 0, rot: 0, squash: 0, wing: 0 };
   pipes = [];
+  pipeCount = 0;
   score = 0;
   newBest = false;
   feathers = [];
+  if (world !== 0) setWorld(0, false);
 }
-reset();
+
+function setWorld(w, announce = true) {
+  if (w === world) return;
+  worldFrom = world;
+  world = w;
+  fade = 0;
+  bannerT = announce ? 2.8 : 0;
+  if (announce) sfx.world();
+}
 
 function gapSize() { return Math.max(PIPE_GAP_MIN, PIPE_GAP_START - score * 2); }
 
 function addPipe(x) {
   const gap = gapSize(), top = 70, bottom = H - GROUND - 70;
   const cy = top + gap / 2 + Math.random() * (bottom - top - gap);
-  pipes.push({ x, cy, gap, scored: false });
+  // passing pipe n gives point n+1, so this pipe belongs to the world you'll be in then
+  pipes.push({ x, cy, gap, scored: false, world: worldFor(pipeCount) });
+  pipeCount++;
 }
 
 function flap() {
@@ -133,7 +606,7 @@ function flap() {
     addPipe(bird.x + W * 0.55 + 140);
   }
   if (mode === 'play') {
-    bird.vy = FLAP;
+    bird.vy = FLAP * (WORLDS[world].flap || 1);
     bird.squash = 1;
     sfx.flap();
   } else if (mode === 'dead' && deadTimer > 0.6) {
@@ -150,7 +623,7 @@ function die() {
   shakeT = 0.35;
   sfx.bonk();
   for (let i = 0; i < 14; i++) {
-    const a = Math.random() * Math.PI * 2, s = 80 + Math.random() * 220;
+    const a = Math.random() * TAU, s = 80 + Math.random() * 220;
     feathers.push({ x: bird.x, y: bird.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120,
                     rot: Math.random() * 6, spin: (Math.random() - 0.5) * 10, life: 1.6 });
   }
@@ -171,18 +644,46 @@ function circleHitsRect(cx, cy, r, rx, ry, rw, rh) {
   return (cx - nx) ** 2 + (cy - ny) ** 2 < r * r;
 }
 
+function updateWeather(dt) {
+  const w = WORLDS[world];
+  windForce = w.windy ? Math.sin(clock * 0.8) * 170 + Math.sin(clock * 2.3 + 1) * 80 : 0;
+
+  lightningT = Math.max(0, lightningT - dt * 3);
+  if (w.name === 'RAINY DAY' && (lightningTimer -= dt) < 0) {
+    lightningTimer = 3 + Math.random() * 4;
+    lightningT = 1;
+    let x = W * (0.3 + Math.random() * 0.6), y = 0;
+    bolt = [[x, y]];
+    while (y < H - GROUND - 40) { x += (Math.random() - 0.5) * 60; y += 30 + Math.random() * 30; bolt.push([x, y]); }
+    setTimeout(sfx.thunder, 150);
+  }
+
+  rumbleT = Math.max(0, rumbleT - dt);
+  if (w.name === 'VOLCANO!' && (rumbleTimer -= dt) < 0) {
+    rumbleTimer = 5 + Math.random() * 4;
+    rumbleT = 0.8;
+    sfx.rumble();
+  }
+}
+
 function update(dt) {
+  clock += dt;
   bird.x = Math.min(W * 0.3, 220);
   bird.squash = Math.max(0, bird.squash - dt * 5);
   bird.wing += dt * (mode === 'play' && bird.vy < 0 ? 28 : 12);
+  fade = Math.min(1, fade + dt / 1.2);
+  bannerT = Math.max(0, bannerT - dt);
+  updateWeather(dt);
 
   if (mode !== 'dead') scroll += SPEED * dt;
 
   if (mode === 'title') {
-    bird.y = H * 0.42 + Math.sin(performance.now() / 300) * 10;
+    bird.y = H * 0.42 + Math.sin(clock * 3.3) * 10;
     bird.rot = 0;
   } else {
-    bird.vy = Math.min(MAX_FALL, bird.vy + GRAVITY * dt);
+    const w = WORLDS[world];
+    bird.vy += (GRAVITY * (w.gravity || 1) + (mode === 'play' ? windForce : 0)) * dt;
+    bird.vy = Math.min(MAX_FALL * (w.gravity || 1), bird.vy);
     bird.y += bird.vy * dt;
     // nose up when flapping, flop nose-down when falling
     const target = bird.vy < 0 ? -0.45 : Math.min(1.5, bird.vy / 380);
@@ -203,6 +704,7 @@ function update(dt) {
         p.scored = true;
         score++;
         sfx.point();
+        setWorld(worldFor(score));
       }
       // circle vs. the two pipe rectangles (bird shrunk a little to be forgiving)
       const r = BIRD_R - 3, x = p.x - PIPE_W / 2;
@@ -225,94 +727,111 @@ function update(dt) {
 }
 
 // ---------- Drawing ----------
-function roundRect(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
+// Draws one layer of the old and new worlds, cross-fading between them.
+function layer(key, ...args) {
+  const a = WORLDS[worldFrom], b = WORLDS[world];
+  if (fade < 1 && a[key]) {
+    // opaque layers keep the old world fully drawn underneath; weather fades out
+    layerAlpha = key === 'weather' ? 1 - fade : 1;
+    ctx.globalAlpha = layerAlpha;
+    a[key](...args);
+  }
+  if (b[key]) {
+    layerAlpha = fade;
+    ctx.globalAlpha = layerAlpha;
+    b[key](...args);
+  }
+  layerAlpha = 1;
+  ctx.globalAlpha = 1;
 }
 
-function drawSky() {
-  const g = ctx.createLinearGradient(0, 0, 0, H);
-  g.addColorStop(0, '#4ec0ff');
-  g.addColorStop(0.75, '#bdeaff');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
-
-  // sun
-  ctx.fillStyle = '#fff6b0';
-  ctx.beginPath(); ctx.arc(W - 110, 110, 46, 0, Math.PI * 2); ctx.fill();
-
-  // clouds (slow parallax)
-  ctx.fillStyle = '#fff';
-  const cw = 360, off = (scroll * 0.15) % cw;
-  for (let x = -off - cw; x < W + cw; x += cw) {
-    for (const [dx, dy, s] of [[40, 120, 1], [220, 200, 0.7]]) {
-      const cx = x + dx, cy = dy, r = 26 * s;
-      ctx.beginPath();
-      ctx.arc(cx, cy, r, 0, Math.PI * 2);
-      ctx.arc(cx + r * 1.2, cy - r * 0.5, r * 1.3, 0, Math.PI * 2);
-      ctx.arc(cx + r * 2.6, cy, r * 1.05, 0, Math.PI * 2);
-      ctx.fill();
-      ctx.beginPath();
-      ctx.ellipse(cx + r * 1.3, cy + r * 0.3, r * 1.6, r * 0.7, 0, 0, Math.PI * 2);
-      ctx.fill();
-    }
-  }
-
-  // hills (medium parallax)
-  const hw = 300, hoff = (scroll * 0.4) % hw, base = H - GROUND;
-  ctx.fillStyle = '#7fd68a';
-  for (let x = -hoff - hw; x < W + hw; x += hw) {
-    ctx.beginPath(); ctx.ellipse(x + 150, base, 190, 110, 0, Math.PI, 0); ctx.fill();
-  }
-  ctx.fillStyle = '#5cc46e';
-  for (let x = -hoff * 1.3 % hw - hw; x < W + hw; x += hw) {
-    ctx.beginPath(); ctx.ellipse(x, base, 130, 70, 0, Math.PI, 0); ctx.fill();
-  }
-}
-
-function drawPipe(p) {
-  const x = p.x - PIPE_W / 2, topEdge = p.cy - p.gap / 2, botEdge = p.cy + p.gap / 2;
-  const capH = 30, capOver = 6;
-  const body = ctx.createLinearGradient(x, 0, x + PIPE_W, 0);
-  body.addColorStop(0, '#3fae3f'); body.addColorStop(0.35, '#8ee36a'); body.addColorStop(1, '#2d8a2d');
-  ctx.lineWidth = 3;
-  ctx.strokeStyle = '#1d5e1d';
-  // top pipe
-  ctx.fillStyle = body;
-  ctx.fillRect(x, -5, PIPE_W, topEdge - capH + 5);
-  ctx.strokeRect(x, -5, PIPE_W, topEdge - capH + 5);
-  roundRect(x - capOver, topEdge - capH, PIPE_W + capOver * 2, capH, 6);
-  ctx.fill(); ctx.stroke();
-  // bottom pipe
-  const groundY = H - GROUND;
-  ctx.fillRect(x, botEdge + capH, PIPE_W, groundY - botEdge - capH);
-  ctx.strokeRect(x, botEdge + capH, PIPE_W, groundY - botEdge - capH);
-  roundRect(x - capOver, botEdge, PIPE_W + capOver * 2, capH, 6);
-  ctx.fill(); ctx.stroke();
-}
-
-function drawGround() {
+function drawGroundOf(g) {
   const y = H - GROUND;
-  ctx.fillStyle = '#ded895';
+  ctx.fillStyle = g.dirt;
   ctx.fillRect(0, y, W, GROUND);
-  ctx.fillStyle = '#73bf2e';
+  ctx.fillStyle = g.top;
   ctx.fillRect(0, y, W, 18);
-  ctx.fillStyle = '#5a9e1f';
-  const sw = 28, off = scroll % sw;
+  ctx.fillStyle = g.stripe;
+  const sw = 28, off = mod(scroll, sw);
   for (let x = -off; x < W + sw; x += sw) {
     ctx.beginPath();
     ctx.moveTo(x, y + 18); ctx.lineTo(x + 14, y + 18); ctx.lineTo(x + 24, y); ctx.lineTo(x + 10, y);
     ctx.fill();
   }
-  ctx.fillStyle = '#c9c27a';
-  for (let x = -((scroll * 1) % 60); x < W + 60; x += 60) ctx.fillRect(x, y + 40, 30, 6);
+  ctx.fillStyle = g.dash;
+  for (let x = -mod(scroll, 60); x < W + 60; x += 60) ctx.fillRect(x, y + 40, 30, 6);
   ctx.fillStyle = '#543847';
   ctx.fillRect(0, y - 2, W, 3);
+}
+
+function drawPipe(p) {
+  const w = WORLDS[p.world], c = w.pipe;
+  const x = p.x - PIPE_W / 2, topEdge = p.cy - p.gap / 2, botEdge = p.cy + p.gap / 2;
+  const capH = 30, capOver = 6, groundY = H - GROUND;
+  const body = ctx.createLinearGradient(x, 0, x + PIPE_W, 0);
+  body.addColorStop(0, c.lo); body.addColorStop(0.35, c.hi); body.addColorStop(1, c.dk);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = c.line;
+  ctx.fillStyle = body;
+  ctx.fillRect(x, -5, PIPE_W, topEdge - capH + 5);
+  ctx.strokeRect(x, -5, PIPE_W, topEdge - capH + 5);
+  ctx.fillRect(x, botEdge + capH, PIPE_W, groundY - botEdge - capH);
+  ctx.strokeRect(x, botEdge + capH, PIPE_W, groundY - botEdge - capH);
+  if (w.pipeDecor) w.pipeDecor(x, topEdge, botEdge);
+  ctx.fillStyle = body;
+  ctx.strokeStyle = c.line;
+  ctx.lineWidth = 3;
+  roundRect(x - capOver, topEdge - capH, PIPE_W + capOver * 2, capH, 6); ctx.fill(); ctx.stroke();
+  roundRect(x - capOver, botEdge, PIPE_W + capOver * 2, capH, 6); ctx.fill(); ctx.stroke();
+  // snow piles and flags sit on top of the cap, so draw those parts again over it
+  if (w.pipeDecor && (w.name === 'SNOWY PEAKS' || w.name === 'WINDY HILLS')) w.pipeDecor(x, topEdge, botEdge);
+}
+
+function drawHat(kind) {
+  ctx.lineWidth = 2.5;
+  ctx.strokeStyle = '#543847';
+  if (kind === 'rainhat') {
+    ctx.fillStyle = '#ffcc1a';
+    ctx.beginPath(); ctx.ellipse(-2, -15, 24, 6, -0.15, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.ellipse(0, -18, 13, 11, 0, Math.PI, 0); ctx.fill(); ctx.stroke();
+  } else if (kind === 'beanie') {
+    ctx.fillStyle = '#e63946';
+    ctx.beginPath(); ctx.ellipse(-1, -14, 16, 13, 0, Math.PI, 0); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#fff';
+    ctx.fillRect(-17, -16, 32, 5);
+    circle(-1, -29, 5);
+    // scarf
+    ctx.fillStyle = '#e63946';
+    ctx.fillRect(-14, 12, 22, 6);
+    ctx.fillRect(-18, 14, 6, 12);
+  } else if (kind === 'sweat') {
+    ctx.fillStyle = '#7fd0ff';
+    const d = mod(clock * 1.5, 1);
+    ctx.beginPath(); ctx.moveTo(-12, -16 + d * 10); ctx.quadraticCurveTo(-17, -6 + d * 10, -12, -5 + d * 10);
+    ctx.quadraticCurveTo(-7, -6 + d * 10, -12, -16 + d * 10); ctx.fill();
+  } else if (kind === 'goggles') {
+    ctx.fillStyle = '#6b4a2b';
+    ctx.fillRect(-20, -11, 30, 5);
+    ctx.fillStyle = '#9fe6ff';
+    ctx.beginPath(); ctx.arc(9, -8, 8.5, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = '#111'; circle(11, -8, 3);
+  } else if (kind === 'leaf') {
+    ctx.fillStyle = '#4caf3a';
+    ctx.save(); ctx.translate(0, -18); ctx.rotate(-0.5 + Math.sin(clock * 4) * 0.1);
+    ctx.beginPath(); ctx.ellipse(0, -8, 7, 14, 0, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(0, 6); ctx.lineTo(0, -20); ctx.stroke();
+    ctx.restore();
+  } else if (kind === 'shades') {
+    ctx.fillStyle = '#111';
+    ctx.fillRect(-2, -10, 22, 3);
+    roundRect(3, -11, 15, 9, 3); ctx.fill();
+  } else if (kind === 'helmet') {
+    ctx.fillStyle = 'rgba(200,235,255,.25)';
+    ctx.strokeStyle = 'rgba(220,240,255,.9)';
+    ctx.beginPath(); ctx.arc(2, -1, 30, 0, TAU); ctx.fill(); ctx.stroke();
+    ctx.fillStyle = 'rgba(255,255,255,.7)';
+    ctx.beginPath(); ctx.ellipse(-8, -16, 8, 4, -0.6, 0, TAU); ctx.fill();
+  }
 }
 
 function drawBird() {
@@ -331,10 +850,10 @@ function drawBird() {
   ctx.fillStyle = '#ffd84a';
   ctx.strokeStyle = '#543847';
   ctx.lineWidth = 3;
-  ctx.beginPath(); ctx.ellipse(0, 0, BIRD_R + 3, BIRD_R, 0, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(0, 0, BIRD_R + 3, BIRD_R, 0, 0, TAU); ctx.fill(); ctx.stroke();
   // belly
   ctx.fillStyle = '#fff3b0';
-  ctx.beginPath(); ctx.ellipse(2, 7, 12, 7, 0, 0, Math.PI * 2); ctx.fill();
+  ctx.beginPath(); ctx.ellipse(2, 7, 12, 7, 0, 0, TAU); ctx.fill();
 
   // floppy wing
   const flapA = Math.sin(bird.wing) * (mode === 'dead' ? 0.2 : 0.7);
@@ -342,18 +861,18 @@ function drawBird() {
   ctx.translate(-5, 2);
   ctx.rotate(flapA);
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.ellipse(-4, 0, 11, 7, -0.2, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(-4, 0, 11, 7, -0.2, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.restore();
 
   // eye
   ctx.fillStyle = '#fff';
-  ctx.beginPath(); ctx.arc(9, -7, 7.5, 0, Math.PI * 2); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.arc(9, -7, 7.5, 0, TAU); ctx.fill(); ctx.stroke();
   ctx.fillStyle = '#111';
   if (mode === 'dead') {
     ctx.lineWidth = 2.5; ctx.strokeStyle = '#111';
     ctx.beginPath(); ctx.moveTo(6, -10); ctx.lineTo(12, -4); ctx.moveTo(12, -10); ctx.lineTo(6, -4); ctx.stroke();
   } else {
-    ctx.beginPath(); ctx.arc(11, -7, 3.2, 0, Math.PI * 2); ctx.fill();
+    circle(11, -7, 3.2);
   }
 
   // beak
@@ -361,6 +880,10 @@ function drawBird() {
   ctx.strokeStyle = '#543847';
   ctx.lineWidth = 2.5;
   ctx.beginPath(); ctx.moveTo(15, 0); ctx.lineTo(29, 3); ctx.lineTo(15, 9); ctx.closePath(); ctx.fill(); ctx.stroke();
+
+  // each world gives the bird something to wear
+  const hat = WORLDS[world].hat;
+  if (hat) drawHat(hat);
   ctx.restore();
 }
 
@@ -370,7 +893,7 @@ function drawFeathers() {
     ctx.globalAlpha = Math.min(1, f.life);
     ctx.translate(f.x, f.y); ctx.rotate(f.rot);
     ctx.fillStyle = '#ffd84a';
-    ctx.beginPath(); ctx.ellipse(0, 0, 7, 3, 0, 0, Math.PI * 2); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0, 0, 7, 3, 0, 0, TAU); ctx.fill();
     ctx.restore();
   }
 }
@@ -394,13 +917,25 @@ function text(str, x, y, size, fill = '#fff', align = 'center') {
 function drawUI() {
   const cx = W / 2;
   if (mode === 'title') {
-    const bob = Math.sin(performance.now() / 400) * 6;
+    const bob = Math.sin(clock * 2.5) * 6;
     text('FLOPPY', cx, 120 + bob, 64, '#ffd84a');
     text('BIRD', cx, 186 + bob, 64, '#ff9f1c');
+    text('Every 7 points = a new world!', cx, H - GROUND - 100, 22, '#bdf2ff');
     text('Tap or press Space to flap!', cx, H - GROUND - 60, 22);
     if (best > 0) text(`BEST: ${best}`, cx, H - GROUND + 45, 24, '#fff');
   } else {
     text(String(score), cx, 70, 64);
+  }
+
+  // "welcome to a new world" banner
+  if (bannerT > 0 && mode === 'play') {
+    const t = bannerT, a = Math.min(1, t * 2, (2.8 - t) * 4);
+    const y = 170 + (1 - Math.min(1, (2.8 - t) * 4)) * -40;
+    ctx.globalAlpha = a;
+    text(`WORLD ${Math.floor(score / POINTS_PER_WORLD) + 1}`, cx, y - 34, 24, '#bdf2ff');
+    text(WORLDS[world].name, cx, y + 10, 52, '#ffd84a');
+    text(WORLDS[world].sub, cx, y + 56, 22);
+    ctx.globalAlpha = 1;
   }
 
   if (mode === 'dead' && deadTimer > 0.3) {
@@ -417,26 +952,34 @@ function drawUI() {
     text(String(score), cx - 55, y + 50, 40);
     text('BEST', cx + 55, y + 5, 20, '#ff9f1c');
     text(String(best), cx + 55, y + 50, 40);
-    if (newBest) text('NEW BEST! 🎉', cx, y + 135, 26, '#ffd84a');
-    if (deadTimer > 0.6) text('Tap to try again', cx, y + 180, 24);
+    text(`Made it to: ${WORLDS[world].name}`, cx, y + 132, 22, '#bdf2ff');
+    if (newBest) text('NEW BEST!', cx, y + 170, 26, '#ffd84a');
+    if (deadTimer > 0.6) text('Tap to try again', cx, y + (newBest ? 210 : 175), 24);
     ctx.globalAlpha = 1;
   }
 }
 
 function draw() {
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
-  if (shakeT > 0) ctx.translate((Math.random() - 0.5) * 10 * shakeT * 3, (Math.random() - 0.5) * 10 * shakeT * 3);
-  drawSky();
+  const shake = shakeT * 30 + rumbleT * 5;
+  if (shake > 0) ctx.translate((Math.random() - 0.5) * shake, (Math.random() - 0.5) * shake);
+  layer('back');
   for (const p of pipes) drawPipe(p);
-  drawGround();
+  layer('ground');
+  layer('groundDecor', H - GROUND);
   drawFeathers();
   drawBird();
+  layer('weather');
   drawUI();
   if (flashT > 0) {
     ctx.fillStyle = `rgba(255,255,255,${flashT * 0.8})`;
     ctx.fillRect(-20, -20, W + 40, H + 40);
   }
 }
+// The ground is plain data on each world, so give each one a draw function for layer().
+for (const w of WORLDS) { const g = w.ground; w.ground = () => drawGroundOf(g); }
+
+reset();
 
 // ---------- Loop ----------
 let last = performance.now();
