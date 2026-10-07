@@ -21,6 +21,9 @@
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="RoboBandit - Surf's Up">
 <meta name="twitter:image" content="https://robobandit.com/thumbs/surfs-up.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
   html, body {
     margin: 0; height: 100%; overflow: hidden; background: #0b5f86;
@@ -39,10 +42,84 @@
     background: rgba(255,255,255,.75); box-shadow: 0 3px 0 rgba(0,0,0,.2);
   }
   #topbar a:hover, #topbar button:hover { background: #fff; }
+  .hidden { display: none !important; }
+  .pixel { font-family: 'Press Start 2P', monospace; }
+  #titleUI {
+    position: fixed; left: 0; right: 0; bottom: max(18%, 70px); display: flex; flex-direction: column;
+    align-items: center; gap: 14px; pointer-events: none;
+  }
+  #titleUI button, #howto .go {
+    pointer-events: auto; font: 16px 'Press Start 2P', monospace; cursor: pointer; border: 0;
+    padding: 16px 26px; color: #081848; background: #f8e848; box-shadow: 0 5px 0 #b89810, 0 0 0 4px #081848;
+  }
+  #titleUI button.second { font-size: 12px; padding: 12px 18px; background: #fff; box-shadow: 0 4px 0 #8aa8c8, 0 0 0 4px #081848; }
+  #titleUI button:active, #howto .go:active { transform: translateY(3px); }
+  #howto {
+    position: fixed; inset: 0; z-index: 5; overflow-y: auto; display: flex; padding: 16px;
+    background: rgba(8,24,72,.82); touch-action: pan-y;
+  }
+  #howto .panel {
+    margin: auto; max-width: 640px; width: 100%; background: #f4fbff; color: #102050;
+    border: 4px solid #081848; box-shadow: 8px 8px 0 #081848; padding: 22px 22px 26px;
+    font: 17px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  }
+  #howto h2 { font: 20px 'Press Start 2P', monospace; color: #1c48b8; text-align: center; margin: 4px 0 18px; }
+  #howto h3 { font: 13px 'Press Start 2P', monospace; color: #1c48b8; margin: 20px 0 10px; }
+  #howto ol { margin: 0; padding: 0; list-style: none; counter-reset: step; }
+  #howto li { position: relative; padding: 8px 0 8px 46px; border-bottom: 2px dashed #c8dcf0; counter-increment: step; }
+  #howto li::before {
+    content: counter(step); position: absolute; left: 0; top: 8px; width: 32px; height: 32px; display: grid; place-items: center;
+    font: 13px 'Press Start 2P', monospace; color: #081848; background: #f8e848; border: 3px solid #081848;
+  }
+  #howto kbd {
+    display: inline-block; min-width: 1.6em; padding: 1px 6px; text-align: center; font: bold 15px system-ui, sans-serif;
+    color: #081848; background: #fff; border: 2px solid #081848; border-radius: 4px; box-shadow: 0 2px 0 #081848;
+  }
+  #howto table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  #howto td { padding: 5px 4px; border-bottom: 1px solid #d8e6f4; }
+  #howto td:last-child { text-align: right; font-weight: 800; color: #c02878; white-space: nowrap; }
+  #howto .go { display: block; margin: 22px auto 0; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
 </head>
 <body>
 <canvas id="game"></canvas>
+<div id="titleUI">
+  <button id="btnStart">▶ PADDLE OUT</button>
+  <button id="btnHow" class="second">? HOW TO SURF</button>
+</div>
+<div id="howto" class="hidden">
+  <div class="panel">
+    <h2>HOW TO SURF</h2>
+    <ol>
+      <li><b>You ride across the wave from left to right.</b> The white, crashing <b>curl</b> behind you is
+        chasing you. Don't let it catch you!</li>
+      <li><b>Steer your board.</b>
+        <span class="key-only"><kbd>↑</kbd> tips the nose <b>up</b> the wave. <kbd>↓</kbd> tips it <b>down</b>.
+          (<kbd>W</kbd>/<kbd>S</kbd> or <kbd>←</kbd>/<kbd>→</kbd> work too.)</span>
+        <span class="touch-only">Hold the <b>top half</b> of the screen to tip the nose <b>up</b> the wave.
+          Hold the <b>bottom half</b> to tip it <b>down</b>.</span></li>
+      <li><b>Speed comes from going down.</b> Riding <b>down</b> the wave makes you faster. Riding <b>up</b> slows you down.</li>
+      <li><b>Fly!</b> Drop to the bottom, turn hard, and race straight <b>up</b> the wave. If you're fast enough,
+        you shoot off the top into the air.</li>
+      <li><b>Do a trick.</b> In the air, keep holding
+        <span class="key-only"><kbd>↑</kbd> or <kbd>↓</kbd></span><span class="touch-only">top or bottom</span>
+        to spin. Go all the way around for a <b>360</b>!</li>
+      <li><b>Land it.</b> Before you splash down, point your nose <b>down</b> the wave. Land pointing up and you wipe out.</li>
+      <li><b>You get 60 seconds and 3 boards.</b> Each wipeout costs a board. When the ride ends, five judges score you out of 10.</li>
+    </ol>
+    <h3>POINTS</h3>
+    <table>
+      <tr><td>✈️ Aerial (more for higher jumps)</td><td>150+</td></tr>
+      <tr><td>🌀 360 spin in the air</td><td>1000</td></tr>
+      <tr><td>🌊 Tube ride: stay tucked under the curling lip</td><td>60 every ½ sec</td></tr>
+      <tr><td>↩️ Cutback: turn back toward the curl, then down again</td><td>250</td></tr>
+      <tr><td>⭐ Grab a star</td><td>100</td></tr>
+    </table>
+    <button class="go" id="btnGo">▶ LET'S SURF!</button>
+  </div>
+</div>
 <div id="topbar">
   <a href="index.html" title="More games">🏠</a>
   <button id="btnMute" title="Sound on/off (M)">🔊</button>
@@ -72,7 +149,8 @@ const TAU = Math.PI * 2;
 
 // ---------- Canvas ----------
 const canvas = document.getElementById('game');
-const ctx = canvas.getContext('2d');
+const mainCtx = canvas.getContext('2d');
+let ctx = mainCtx;   // swapped to the low-res canvas while drawing the world
 let W = 800, VH = H, OFFY = 0, scale = 1;   // OFFY centres the scene on tall screens
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
@@ -151,31 +229,6 @@ const rnd = (i, k) => { const s = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; 
 const mod = (a, n) => ((a % n) + n) % n;
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const wrapAngle = a => mod(a + Math.PI, TAU) - Math.PI;
-function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
-function roundRect(x, y, w, h, r) {
-  ctx.beginPath();
-  ctx.moveTo(x + r, y);
-  ctx.arcTo(x + w, y, x + w, y + h, r);
-  ctx.arcTo(x + w, y + h, x, y + h, r);
-  ctx.arcTo(x, y + h, x, y, r);
-  ctx.arcTo(x, y, x + w, y, r);
-  ctx.closePath();
-}
-function text(str, x, y, size, fill = '#fff', align = 'center') {
-  ctx.font = `900 ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
-  const w = ctx.measureText(str).width * 1.1;
-  if (align === 'center' && w > W - 24) size *= (W - 24) / w;
-  ctx.font = `900 ${size}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
-  ctx.textAlign = align;
-  ctx.textBaseline = 'middle';
-  ctx.lineJoin = 'round';
-  ctx.lineWidth = size * 0.2;
-  ctx.strokeStyle = '#0b3550';
-  ctx.strokeText(str, x, y);
-  ctx.fillStyle = fill;
-  ctx.fillText(str, x, y);
-}
-
 // Face height at world x: tallest at the curl, easing off along the shoulder.
 function faceH(x) {
   const d = x - curlX;
@@ -191,6 +244,17 @@ let s;                    // the surfer
 let curlX, camX, clock = 0, timeLeft, score, boards, best = +(localStorage.getItem('su_best') || 0);
 let popups = [], spray = [], stars = [], starTimer = 0, wipeT = 0, safeT = 0, results = null, resultsT = 0;
 let tubeT = 0, wentBack = false, lastTick = 0;
+// Coaching tips: each one shows once (per visit) the first time it's useful.
+const TIP_TIME = 4.5;
+const tipsShown = new Set(), tipQueue = [];
+let tip = null, bottomT = 0;
+const UP_WORD = matchMedia('(pointer: coarse)').matches ? 'hold the TOP of the screen' : 'press ↑';
+const DOWN_WORD = matchMedia('(pointer: coarse)').matches ? 'hold the BOTTOM of the screen' : 'press ↓';
+function showTip(key, msg) {
+  if (tipsShown.has(key)) return;
+  tipsShown.add(key);
+  tipQueue.push({ text: msg, t: 0 });
+}
 
 function reset() {
   curlX = 0;
@@ -199,7 +263,7 @@ function reset() {
   timeLeft = RIDE_TIME;
   score = 0;
   boards = BOARDS;
-  popups = []; spray = []; stars = [];
+  popups = []; spray = []; stars = []; bottomT = 0;
   starTimer = 0; tubeT = 0; wentBack = false; safeT = 0;
   results = null;
 }
@@ -223,17 +287,35 @@ function turnInput() {
   for (const y of touches.values()) { if (y < innerHeight / 2) up = true; else down = true; }
   return (up ? 1 : 0) - (down ? 1 : 0);
 }
+const howto = document.getElementById('howto');
+function startRide() {
+  audio();
+  // first time here? show how to surf before paddling out
+  if (!localStorage.getItem('su_howto')) { openHowTo(); return; }
+  howto.classList.add('hidden');
+  reset();
+  mode = 'ride';
+}
+function openHowTo() { howto.classList.remove('hidden'); howto.scrollTop = 0; }
 function press() {
   audio();
-  if (mode === 'title') { reset(); mode = 'ride'; }
+  if (!howto.classList.contains('hidden')) return;
+  if (mode === 'title') startRide();
   else if (mode === 'results' && resultsT > 2.5) { mode = 'title'; }
 }
+document.getElementById('btnStart').addEventListener('click', startRide);
+document.getElementById('btnHow').addEventListener('click', () => { audio(); openHowTo(); });
+document.getElementById('btnGo').addEventListener('click', () => { localStorage.setItem('su_howto', '1'); startRide(); });
 const KEYS_UP = ['ArrowUp', 'ArrowLeft', 'KeyW', 'KeyA'], KEYS_DOWN = ['ArrowDown', 'ArrowRight', 'KeyS', 'KeyD'];
 addEventListener('keydown', e => {
   if (KEYS_UP.includes(e.code)) { keys.up = true; e.preventDefault(); }
   if (KEYS_DOWN.includes(e.code)) { keys.down = true; e.preventDefault(); }
   if (e.repeat) return;
-  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); press(); }
+  if (e.code === 'Space' || e.code === 'Enter') {
+    e.preventDefault();
+    if (!howto.classList.contains('hidden')) document.getElementById('btnGo').click();
+    else press();
+  }
   if (e.code === 'KeyM') toggleMute();
 });
 addEventListener('keyup', e => {
@@ -304,6 +386,8 @@ function updateFace(dt) {
     s.f = 0;
     if (Math.sin(s.a) < 0) s.v -= 260 * -Math.sin(s.a) * dt;
   }
+  bottomT = s.f < 0.03 ? bottomT + dt : 0;
+  if (bottomT > 0.6) showTip('bottom', `You're at the bottom of the wave. Now ${UP_WORD} to turn and race back up!`);
   const d = s.x - curlX;
   if (s.f > 1) {
     const up = s.v * Math.sin(s.a);
@@ -312,8 +396,10 @@ function updateFace(dt) {
       s.spun = 0;
       wentBack = false;
       sfx.launch();
+      showTip('air', `You're flying! Keep holding to spin. Before you land, point your nose DOWN the wave.`);
       return;
     }
+    if (d > 60) showTip('stall', 'Too slow to fly! Ride DOWN the wave first to get fast, then turn up hard.');
     s.f = 1;
     s.v -= 220 * dt;
     s.a = wrapAngle(s.a - Math.sign(Math.cos(s.a) || 1) * 2 * dt);   // stall: fall back off the lip
@@ -326,6 +412,7 @@ function updateFace(dt) {
   } else tubeT = 0;
 
   if (d < 0 && safeT <= 0) wipeout('CAUGHT BY THE CURL!');
+  else if (d < 150 && safeT <= 0) showTip('curl', `The curl is right behind you! ${DOWN_WORD} to ride down the wave and speed away.`);
 
   // spray off the board when carving
   if (Math.random() < 0.7) {
@@ -357,7 +444,11 @@ function updateAir(dt) {
     const diff = Math.abs(wrapAngle(velA - s.a));
     s.air = null;
     s.f = 0.97;
-    if (diff > 1.2) { wipeout('BAD LANDING!'); return; }
+    if (diff > 1.2) {
+      wipeout('BAD LANDING!');
+      showTip('land', `Land with your nose pointing DOWN the wave. In the air, ${DOWN_WORD} to tip it down.`);
+      return;
+    }
     s.v = clamp(Math.hypot(air.vx, air.vy) * 0.8, 200, 560);
     s.a = clamp(velA, -1.2, 0.2);
     const spins = Math.floor((Math.abs(s.spun) + 0.7) / TAU);
@@ -371,6 +462,12 @@ function updateAir(dt) {
 function update(dt) {
   clock += dt;
   if (surfGain && !muted) surfGain.gain.value = 0.05 + 0.03 * Math.sin(clock * 0.8);
+
+  // coaching tips play one at a time
+  if (!tip && tipQueue.length && (mode === 'ride' || mode === 'wipe')) tip = tipQueue.shift();
+  if (tip && (tip.t += dt) > TIP_TIME) tip = null;
+  if (mode === 'ride' && timeLeft < RIDE_TIME - 1.5) showTip('start', `Ride DOWN the wave to pick up speed, then turn UP to launch off the top!`);
+  if (mode !== 'ride' && mode !== 'wipe') { tip = null; tipQueue.length = 0; }
 
   if (mode === 'title') {
     // the wave rolls on by itself behind the title
@@ -429,99 +526,106 @@ function update(dt) {
 }
 
 // ---------- Drawing ----------
+// The world is drawn into a small offscreen canvas (one pixel = PIXEL logical units) and blown up
+// with smoothing off, for a chunky handheld look. Text and HUD go on top at full resolution.
+const PIXEL = 3;
+const low = document.createElement('canvas'), lctx = low.getContext('2d');
+const PAL = {
+  sky: '#68b8f0', skyLo: '#a8dcff',
+  far: ['#2048b8', '#2858c8', '#3068d8'], farCrest: '#e8f8ff',
+  face: ['#0c2470', '#14349a', '#1c48b8', '#2860d0', '#3878e0', '#5098f0'],   // trough → lip
+  streak: '#a8e0ff', foam: '#ffffff', foamShade: '#a8d8f8', tube: 'rgba(8,20,72,.45)',
+  deep: '#14309a', deepStreak: '#2c58c8',
+};
+
 function drawBackground() {
-  const g = ctx.createLinearGradient(0, 0, 0, HORIZON);
-  g.addColorStop(0, '#ff9ec7'); g.addColorStop(0.5, '#ffc78a'); g.addColorStop(1, '#ffe8a8');
-  ctx.fillStyle = g;
-  ctx.fillRect(0, -OFFY, W, HORIZON + OFFY + 2);
-  // sun sitting low over the sea
-  ctx.fillStyle = '#fff4c2'; circle(W * 0.72, HORIZON - 30, 50);
-  // far islands and clouds drift slowly
-  const par = camX * 0.05;
-  ctx.fillStyle = '#7a6aa8';
-  for (let i = -1; i < 4; i++) {
-    const x = mod(i * 420 - par, 1680) - 300;
-    ctx.beginPath(); ctx.ellipse(x, HORIZON, 140, 34, 0, Math.PI, 0); ctx.fill();
-    ctx.beginPath(); ctx.ellipse(x + 60, HORIZON, 70, 52, 0, Math.PI, 0); ctx.fill();
-  }
-  ctx.fillStyle = 'rgba(255,255,255,.75)';
+  ctx.fillStyle = PAL.sky;
+  ctx.fillRect(0, -OFFY, W, HORIZON + OFFY);
+  ctx.fillStyle = PAL.skyLo;
+  ctx.fillRect(0, HORIZON - 36, W, 36);
+  ctx.fillRect(0, HORIZON - 54, W, 9);
+  // blocky clouds
+  ctx.fillStyle = '#ffffff';
   for (let i = 0; i < 5; i++) {
-    const x = mod(rnd(i, 1) * 1600 - camX * 0.1 - clock * 8, 1600) - 200, y = 30 + rnd(i, 2) * 70;
-    ctx.beginPath(); ctx.ellipse(x, y, 60, 14, 0, 0, TAU); ctx.ellipse(x + 30, y - 8, 36, 12, 0, 0, TAU); ctx.fill();
+    const x = mod(rnd(i, 1) * 1600 - camX * 0.08 - clock * 6, 1600) - 200, y = 24 + rnd(i, 2) * 70;
+    ctx.fillRect(x, y, 90, 12); ctx.fillRect(x + 18, y - 9, 48, 9); ctx.fillRect(x + 30, y + 12, 75, 6);
   }
   // seagulls
-  ctx.strokeStyle = '#4a3b5a'; ctx.lineWidth = 2;
+  ctx.fillStyle = '#28305a';
   for (let i = 0; i < 3; i++) {
-    const x = mod(rnd(i, 3) * 1400 + clock * 40 - camX * 0.2, 1400) - 100, y = 50 + rnd(i, 4) * 60;
-    const fl = Math.sin(clock * 8 + i) * 4;
-    ctx.beginPath(); ctx.moveTo(x - 10, y - fl); ctx.quadraticCurveTo(x - 5, y - 6, x, y); ctx.quadraticCurveTo(x + 5, y - 6, x + 10, y - fl); ctx.stroke();
+    const x = mod(rnd(i, 3) * 1400 + clock * 40 - camX * 0.2, 1400) - 100, y = 40 + rnd(i, 4) * 60;
+    const up = Math.sin(clock * 8 + i) > 0 ? -3 : 3;
+    ctx.fillRect(x - 9, y + up, 6, 3); ctx.fillRect(x - 3, y, 6, 3); ctx.fillRect(x + 3, y + up, 6, 3);
   }
-  // open sea out to the horizon
-  const sea = ctx.createLinearGradient(0, HORIZON, 0, TROUGH);
-  sea.addColorStop(0, '#5fb8d6'); sea.addColorStop(1, '#1f8fbf');
-  ctx.fillStyle = sea;
-  ctx.fillRect(0, HORIZON, W, TROUGH - HORIZON);
-  ctx.fillStyle = 'rgba(255,255,255,.35)';
-  for (let i = 0; i < 30; i++) {
-    const y = HORIZON + 6 + rnd(i, 5) ** 2 * (TROUGH - HORIZON - 10);
-    const x = mod(rnd(i, 6) * W * 2 - camX * (0.1 + (y - HORIZON) / 600), W + 60) - 30;
-    ctx.fillRect(x, y, 10 + rnd(i, 7) * 20, 2);
-  }
-  // a dolphin jumps now and then
-  const dp = mod(clock, 9) / 1.4;
-  if (dp < 1) {
-    const dx = W * 0.85 - dp * 120, dy = HORIZON + 50 - Math.sin(dp * Math.PI) * 40;
-    ctx.save(); ctx.translate(dx, dy); ctx.rotate(-Math.cos(dp * Math.PI) * 0.8);
-    ctx.fillStyle = '#5a6f8a';
-    ctx.beginPath(); ctx.ellipse(0, 0, 18, 6, 0, 0, TAU); ctx.fill();
-    ctx.beginPath(); ctx.moveTo(-2, -5); ctx.lineTo(4, -12); ctx.lineTo(6, -4); ctx.fill();
-    ctx.restore();
+  // rows of swells rolling in toward you, all the way to the horizon
+  const rows = 6;
+  for (let r = 0; r < rows; r++) {
+    const t0 = r / rows, t1 = (r + 1) / rows;
+    const y0 = HORIZON + (TROUGH - HORIZON) * t0 ** 1.5, y1 = HORIZON + (TROUGH - HORIZON) * t1 ** 1.5;
+    ctx.fillStyle = PAL.far[r % 3];
+    ctx.fillRect(0, y0, W, y1 - y0 + 1);
+    // white crest along the top of each swell
+    const step = 18 + r * 10, off = mod(camX * (0.1 + t0 * 0.6) + clock * (15 + r * 6), step * 2);
+    ctx.fillStyle = PAL.farCrest;
+    for (let x = -off; x < W + step; x += step * 2) {
+      ctx.fillRect(x, y0, step * 1.3, 3 + r);
+      ctx.fillRect(x + step * 0.3, y0 - 3, step * 0.6, 3);
+    }
+    ctx.fillStyle = PAL.streak;
+    for (let i = 0; i < 6; i++) {
+      const x = mod(rnd(i + r * 10, 5) * W * 2 - camX * (0.1 + t0 * 0.6), W + 40) - 20;
+      ctx.fillRect(x, y0 + (y1 - y0) * (0.4 + rnd(i, r) * 0.4), 9 + r * 3, 3);
+    }
   }
 }
 
 function drawWave() {
   const c = curlX - camX;
   const x0 = Math.max(c, -10);
-  // the face
-  const face = ctx.createLinearGradient(0, TROUGH - MAXH, 0, TROUGH);
-  face.addColorStop(0, '#7fe0e8'); face.addColorStop(0.35, '#2fb3d1'); face.addColorStop(1, '#0d6f9f');
-  ctx.fillStyle = face;
-  ctx.beginPath();
-  ctx.moveTo(x0, TROUGH + 2);
-  for (let sx = x0; sx <= W + 12; sx += 8) ctx.lineTo(sx, lipY(sx + camX));
-  ctx.lineTo(W + 12, TROUGH + 2);
-  ctx.fill();
-  // ripples running along the face
-  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 2;
-  ctx.setLineDash([26, 18]);
-  for (const f of [0.2, 0.42, 0.64, 0.84]) {
-    ctx.lineDashOffset = -clock * 60 * (1 + f) + camX;
+  // the face, in bands from the dark trough up to the bright lip
+  const n = PAL.face.length;
+  for (let k = 0; k < n; k++) {
+    const f0 = k / n, f1 = (k + 1) / n;
+    ctx.fillStyle = PAL.face[k];
     ctx.beginPath();
-    for (let sx = x0; sx <= W + 12; sx += 10) {
-      const y = TROUGH - f * faceH(sx + camX);
-      if (sx === x0) ctx.moveTo(sx, y); else ctx.lineTo(sx, y);
-    }
-    ctx.stroke();
+    for (let sx = x0; sx <= W + 12; sx += 6) ctx.lineTo(sx, TROUGH - f1 * faceH(sx + camX));
+    for (let sx = W + 12; sx >= x0; sx -= 6) ctx.lineTo(sx, TROUGH - f0 * faceH(sx + camX) + 1);
+    ctx.fill();
   }
-  ctx.setLineDash([]);
-  // foamy lip along the top
-  ctx.strokeStyle = '#eafcff'; ctx.lineWidth = 5;
+  // streaks of water racing along the face
+  for (let i = 0; i < 70; i++) {
+    const f = 0.06 + rnd(i, 2) * 0.82;
+    const span = W + 200;
+    const sx = mod(rnd(i, 1) * span - clock * (40 + f * 50) - camX, span) - 100;
+    if (sx < c + 10) continue;
+    const y = TROUGH - f * faceH(sx + camX);
+    ctx.fillStyle = rnd(i, 3) > 0.6 ? '#ffffff' : PAL.streak;
+    const len = 9 + rnd(i, 4) * 24;
+    ctx.fillRect(sx, y, len, 3);
+    if (rnd(i, 5) > 0.5) ctx.fillRect(sx + len * 0.3, y - 3, len * 0.4, 3);
+  }
+  // thick foamy crest riding the lip
+  ctx.fillStyle = PAL.foam;
   ctx.beginPath();
-  for (let sx = x0; sx <= W + 12; sx += 8) {
-    const y = lipY(sx + camX) + Math.sin((sx + camX) * 0.05 + clock * 4) * 1.5;
-    if (sx === x0) ctx.moveTo(sx, y); else ctx.lineTo(sx, y);
+  for (let sx = x0; sx <= W + 12; sx += 6) ctx.lineTo(sx, lipY(sx + camX) - 3);
+  for (let sx = W + 12; sx >= x0; sx -= 6) {
+    const wx = sx + camX;
+    ctx.lineTo(sx, lipY(wx) + 12 + Math.sin(wx * 0.09 + clock * 3) * 5 + Math.sin(wx * 0.23) * 3);
   }
-  ctx.stroke();
+  ctx.fill();
+  ctx.fillStyle = PAL.foamShade;
+  for (let sx = x0 - mod(camX, 15); sx <= W; sx += 15) {
+    const wx = sx + camX;
+    if (rnd(Math.floor(wx / 15), 7) > 0.5) ctx.fillRect(sx, lipY(wx) + 3, 6, 3);
+  }
   // shade inside the tube
   if (c > -200 && c < W + 200) {
-    const sh = ctx.createLinearGradient(c, 0, c + 150, 0);
-    sh.addColorStop(0, 'rgba(5,40,70,.55)'); sh.addColorStop(1, 'rgba(5,40,70,0)');
-    ctx.fillStyle = sh;
+    ctx.fillStyle = PAL.tube;
     ctx.beginPath();
     ctx.moveTo(c - 20, TROUGH);
     ctx.lineTo(c - 20, TROUGH - MAXH * 0.5);
-    ctx.quadraticCurveTo(c + 40, TROUGH - MAXH - 10, c + 150, lipY(curlX + 150));
-    ctx.lineTo(c + 150, TROUGH);
+    ctx.quadraticCurveTo(c + 40, TROUGH - MAXH - 10, c + 130, lipY(curlX + 130) + 10);
+    ctx.quadraticCurveTo(c + 90, TROUGH - MAXH * 0.4, c + 60, TROUGH);
     ctx.fill();
   }
 }
@@ -531,22 +635,21 @@ function drawCurl() {
   const c = curlX - camX;
   if (c < -400 || c > W + 300) return;
   const top = TROUGH - MAXH;
-  ctx.lineCap = 'round';
-  ctx.strokeStyle = '#2fb3d1'; ctx.lineWidth = 30;
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = PAL.face[4]; ctx.lineWidth = 30;
   ctx.beginPath();
-  ctx.moveTo(c + 160, lipY(curlX + 160));
+  ctx.moveTo(c + 160, lipY(curlX + 160) + 6);
   ctx.quadraticCurveTo(c + 90, top - 50, c + 20, top - 30);
   ctx.quadraticCurveTo(c - 30, top - 10, c - 25, top + MAXH * 0.45);
   ctx.stroke();
-  ctx.strokeStyle = '#d8fbff'; ctx.lineWidth = 7;
+  ctx.strokeStyle = PAL.foam; ctx.lineWidth = 12;
   ctx.beginPath();
-  ctx.moveTo(c + 170, lipY(curlX + 170) - 4);
+  ctx.moveTo(c + 170, lipY(curlX + 170) - 2);
   ctx.quadraticCurveTo(c + 95, top - 66, c + 20, top - 46);
   ctx.quadraticCurveTo(c - 44, top - 22, c - 40, top + MAXH * 0.4);
   ctx.stroke();
-  ctx.lineCap = 'butt';
   // tumbling whitewater behind the curl
-  ctx.fillStyle = '#f2fdff';
+  ctx.fillStyle = PAL.foam;
   ctx.beginPath();
   ctx.moveTo(c + 45, TROUGH + 4);
   ctx.quadraticCurveTo(c + 30, TROUGH - MAXH * 0.55, c + 5, TROUGH - MAXH * 0.62);
@@ -557,48 +660,44 @@ function drawCurl() {
   }
   ctx.lineTo(c - 600, TROUGH + 4);
   ctx.fill();
-  // churning bubbles along the front of the foam
-  for (let k = 0; k < 8; k++) {
-    const ph = mod(clock * 2 + k / 8, 1), y = TROUGH - ph * MAXH * 0.55;
-    ctx.fillStyle = k % 2 ? '#ffffff' : '#dff6ff';
-    circle(c + 30 - (y - (TROUGH - MAXH * 0.55)) * -0.04 - ph * 20 + Math.sin(clock * 5 + k) * 4, y, 14 + rnd(k, 5) * 10);
-  }
-  ctx.fillStyle = 'rgba(190,235,250,.8)';
-  for (let k = 0; k < 14; k++) {
-    const sx = c - 10 - k * 40 - mod(clock * 30, 40);
-    circle(sx, TROUGH - MAXH * 0.25 - rnd(k, 1) * 50, 8 + rnd(k, 2) * 10);
+  // bubbles churning in the foam
+  ctx.strokeStyle = PAL.foamShade; ctx.lineWidth = 3;
+  for (let k = 0; k < 26; k++) {
+    const ph = mod(clock * (0.8 + rnd(k, 1)) + rnd(k, 2), 1);
+    const x = c + 20 - rnd(k, 3) * 420, y = TROUGH - ph * MAXH * (0.55 * Math.exp(-(c + 20 - x) / 400));
+    ctx.beginPath(); ctx.arc(x, y, 4 + rnd(k, 4) * 7, 0, TAU); ctx.stroke();
   }
   // spray exploding where the lip lands
-  for (let i = 0; i < 16; i++) {
+  ctx.fillStyle = '#ffffff';
+  for (let i = 0; i < 18; i++) {
     const ph = mod(clock * 1.6 + rnd(i, 1), 1);
-    ctx.fillStyle = `rgba(255,255,255,${0.9 * (1 - ph)})`;
-    circle(c - 20 + (rnd(i, 2) - 0.6) * 80 * ph, TROUGH - MAXH * 0.45 - Math.sin(ph * Math.PI) * (60 + rnd(i, 3) * 70), 3 + rnd(i, 4) * 4);
+    if (ph > 0.85) continue;
+    ctx.fillRect(c - 20 + (rnd(i, 2) - 0.6) * 80 * ph, TROUGH - MAXH * 0.45 - Math.sin(ph * Math.PI) * (60 + rnd(i, 3) * 70), 6, 6);
   }
 }
 
 function drawForeground() {
-  const g = ctx.createLinearGradient(0, TROUGH, 0, VH);
-  g.addColorStop(0, '#0d6f9f'); g.addColorStop(1, '#063a5c');
-  ctx.fillStyle = g;
+  ctx.fillStyle = PAL.deep;
   ctx.fillRect(0, TROUGH, W, VH - OFFY - TROUGH + 2);
-  ctx.fillStyle = 'rgba(255,255,255,.2)';
-  for (let i = 0; i < 24; i++) {
-    const y = TROUGH + 8 + rnd(i, 1) * (VH - OFFY - TROUGH - 12);
+  ctx.fillStyle = PAL.deepStreak;
+  for (let i = 0; i < 30; i++) {
+    const y = TROUGH + 6 + rnd(i, 1) * (VH - OFFY - TROUGH - 12);
     const x = mod(rnd(i, 2) * W * 2 - camX * 1.2 - clock * 20, W + 60) - 30;
-    ctx.fillRect(x, y, 14 + rnd(i, 3) * 20, 2);
+    ctx.fillRect(x, y, 15 + rnd(i, 3) * 24, 3);
   }
 }
 
 function drawStar(x, y, r) {
   ctx.save();
-  ctx.translate(x, y); ctx.rotate(clock * 2);
-  ctx.fillStyle = '#ffe14a'; ctx.strokeStyle = '#b8860b'; ctx.lineWidth = 2;
+  ctx.translate(x, y); ctx.rotate(Math.round(clock * 4) * Math.PI / 10);
+  ctx.fillStyle = '#f8e030';
   ctx.beginPath();
   for (let k = 0; k < 10; k++) {
     const rr = k % 2 ? r * 0.45 : r, a = k * Math.PI / 5 - Math.PI / 2;
     ctx.lineTo(Math.cos(a) * rr, Math.sin(a) * rr);
   }
-  ctx.closePath(); ctx.fill(); ctx.stroke();
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(-3, -3, 3, 3);
   ctx.restore();
 }
 
@@ -608,127 +707,181 @@ function drawSurfer() {
   ctx.save();
   ctx.translate(x, y);
   if (mode === 'wipe') {
-    // tumbling in the foam
     ctx.translate(0, Math.min(40, wipeT * 60));
     ctx.rotate(s.tumble);
   } else {
     ctx.rotate(-s.a);
   }
-  // board
-  ctx.fillStyle = '#ff5a5f'; ctx.strokeStyle = '#7a1f2a'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.ellipse(0, 0, 34, 5, 0, 0, TAU); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#fff'; ctx.fillRect(-26, -1.5, 52, 3);
-  ctx.fillStyle = '#7a1f2a';
-  ctx.beginPath(); ctx.moveTo(-26, 4); ctx.lineTo(-20, 12); ctx.lineTo(-18, 4); ctx.fill();
-  // rider: crouched, arms out for balance
+  ctx.scale(1.3, 1.3);
+  // board: yellow deck, pink rails
+  ctx.fillStyle = '#f048a8';
+  ctx.beginPath(); ctx.ellipse(0, 1, 36, 6, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#f8e848';
+  ctx.beginPath(); ctx.ellipse(0, -1, 34, 4, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#f048a8';
+  ctx.beginPath(); ctx.moveTo(-26, 4); ctx.lineTo(-20, 12); ctx.lineTo(-17, 4); ctx.fill();
+  // rider: crouched low, arms out for balance
   const crouch = s.air ? 6 : 2 + Math.sin(clock * 6) * 1.5;
-  ctx.strokeStyle = '#7a4a2a'; ctx.lineWidth = 5; ctx.lineCap = 'round';
+  ctx.lineCap = 'butt';
+  ctx.strokeStyle = '#d88848'; ctx.lineWidth = 6;              // legs
   ctx.beginPath();
-  ctx.moveTo(-10, -4); ctx.lineTo(-6, -16 + crouch); ctx.lineTo(0, -26 + crouch);
-  ctx.moveTo(10, -4); ctx.lineTo(6, -16 + crouch); ctx.lineTo(0, -26 + crouch);
+  ctx.moveTo(-11, -3); ctx.lineTo(-7, -16 + crouch); ctx.lineTo(0, -26 + crouch);
+  ctx.moveTo(11, -3); ctx.lineTo(7, -16 + crouch); ctx.lineTo(0, -26 + crouch);
   ctx.stroke();
-  ctx.strokeStyle = '#1e88e5'; ctx.lineWidth = 7;              // board shorts
-  ctx.beginPath(); ctx.moveTo(-5, -18 + crouch); ctx.lineTo(0, -27 + crouch); ctx.lineTo(5, -18 + crouch); ctx.stroke();
-  ctx.strokeStyle = '#ffd84a'; ctx.lineWidth = 8;              // shirt
-  ctx.beginPath(); ctx.moveTo(0, -27 + crouch); ctx.lineTo(2, -42 + crouch); ctx.stroke();
-  ctx.strokeStyle = '#7a4a2a'; ctx.lineWidth = 4;              // arms
+  ctx.strokeStyle = '#30b840'; ctx.lineWidth = 9;              // board shorts
+  ctx.beginPath(); ctx.moveTo(-6, -18 + crouch); ctx.lineTo(0, -28 + crouch); ctx.lineTo(6, -18 + crouch); ctx.stroke();
+  ctx.strokeStyle = '#d88848'; ctx.lineWidth = 10;             // bare chest
+  ctx.beginPath(); ctx.moveTo(0, -28 + crouch); ctx.lineTo(3, -43 + crouch); ctx.stroke();
+  ctx.lineWidth = 5;                                           // arms
   const wave = Math.sin(clock * 5) * 4;
   ctx.beginPath();
-  ctx.moveTo(1, -38 + crouch); ctx.lineTo(-14, -34 + crouch + wave);
-  ctx.moveTo(1, -38 + crouch); ctx.lineTo(16, -42 + crouch - wave);
+  ctx.moveTo(1, -39 + crouch); ctx.lineTo(-16, -34 + crouch + wave);
+  ctx.moveTo(1, -39 + crouch); ctx.lineTo(18, -43 + crouch - wave);
   ctx.stroke();
-  ctx.lineCap = 'butt';
-  ctx.fillStyle = '#a0643a'; circle(3, -50 + crouch, 7);    // head
-  ctx.fillStyle = '#ffcf33';                                 // messy blond hair
-  ctx.beginPath(); ctx.ellipse(1, -55 + crouch, 8, 4.5, -0.2, 0, TAU); ctx.fill();
-  ctx.fillStyle = '#111'; ctx.fillRect(4, -52 + crouch, 7, 2.5);   // shades
+  ctx.fillStyle = '#d88848'; ctx.fillRect(-2, -58 + crouch, 12, 12);   // head
+  ctx.fillStyle = '#f8d830';                                           // big blond hair
+  ctx.fillRect(-5, -62 + crouch, 16, 6); ctx.fillRect(-7, -58 + crouch, 7, 9);
   ctx.restore();
 }
 
+// ---------- Text, HUD and screens (full resolution, on top) ----------
+const FONT = "'Press Start 2P', monospace";
+const touchy = matchMedia('(pointer: coarse)').matches;
+function text(str, x, y, size, fill = '#fff', align = 'center') {
+  ctx.font = `${size}px ${FONT}`;
+  const w = ctx.measureText(str).width;
+  if (align === 'center' && w > W - 24) { size *= (W - 24) / w; ctx.font = `${size}px ${FONT}`; }
+  ctx.textAlign = align;
+  ctx.textBaseline = 'middle';
+  const sh = Math.max(2, Math.round(size / 7));
+  ctx.fillStyle = '#081848';
+  ctx.fillText(str, x + sh, y + sh);
+  ctx.fillStyle = fill;
+  ctx.fillText(str, x, y);
+}
+// readable message box for coaching tips
+function tipBox(str, y) {
+  ctx.font = `bold 19px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`;
+  const maxW = Math.min(W - 30, 620), words = str.split(' '), lines = [];
+  let line = '';
+  for (const w of words) {
+    const t = line ? line + ' ' + w : w;
+    if (ctx.measureText(t).width > maxW - 30 && line) { lines.push(line); line = w; } else line = t;
+  }
+  lines.push(line);
+  const bh = lines.length * 26 + 18;
+  ctx.fillStyle = 'rgba(8,24,72,.85)';
+  ctx.fillRect(W / 2 - maxW / 2, y, maxW, bh);
+  ctx.fillStyle = '#f8e848';
+  ctx.fillRect(W / 2 - maxW / 2, y, 6, bh);
+  ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  lines.forEach((l, i) => ctx.fillText(l, W / 2, y + 22 + i * 26));
+}
+
+const fmtTime = t => { const n = Math.max(0, Math.ceil(t)); return `${Math.floor(n / 60)}:${String(n % 60).padStart(2, '0')}`; };
+
 function drawHUD() {
-  if (s.air && Math.abs(s.spun) > 1) text(`${Math.round(Math.abs(s.spun) * 180 / Math.PI / 10) * 10}°`, s.x - camX, surferY() - 80, 26, '#bdf2ff');
+  // things that float in the world
+  if (s.air && Math.abs(s.spun) > 1) text(`${Math.round(Math.abs(s.spun) * 180 / Math.PI / 10) * 10}°`, s.x - camX, surferY() - 95, 18, '#a8e0ff');
   for (const p of popups) {
     ctx.globalAlpha = Math.min(1, (1.4 - p.t) * 3);
-    text(p.text, clamp(p.x - camX, 120, W - 120), p.y, p.big ? 34 : 24, p.bad ? '#ff6b6b' : p.big ? '#ffe14a' : '#fff');
+    text(p.text, clamp(p.x - camX, 140, W - 140), p.y - 20, p.big ? 22 : 15, p.bad ? '#ff6868' : p.big ? '#f8e848' : '#fff');
   }
   ctx.globalAlpha = 1;
+  // things stuck to the screen
   ctx.setTransform(scale, 0, 0, scale, 0, 0);
-  text(`${Math.ceil(timeLeft)}`, W / 2, 34, 40, timeLeft <= 5 ? '#ff6b6b' : '#fff');
-  text(`SCORE ${score}`, 16, 34, 24, '#ffe14a', 'left');
-  // spare boards
+  const cssToLogical = canvas.width / innerWidth / scale;
+  text(fmtTime(timeLeft), 16, 30, 26, timeLeft <= 5 ? '#ff6868' : '#f8e848', 'left');
+  text(String(score), W - 132 * cssToLogical, 30, 26, '#f8e848', 'right');
   for (let i = 0; i < BOARDS; i++) {
-    ctx.save();
-    ctx.translate(30 + i * 34, 70); ctx.rotate(-1.1);
-    ctx.fillStyle = i < boards ? '#ff5a5f' : 'rgba(255,255,255,.35)';
-    ctx.strokeStyle = '#0b3550'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.ellipse(0, 0, 14, 4, 0, 0, TAU); ctx.fill(); ctx.stroke();
-    ctx.restore();
+    const x = 20 + i * 30, y = 62;
+    ctx.fillStyle = i < boards ? '#f048a8' : 'rgba(255,255,255,.3)';
+    ctx.fillRect(x, y, 24, 6);
+    ctx.fillStyle = i < boards ? '#f8e848' : 'rgba(255,255,255,.3)';
+    ctx.fillRect(x + 3, y - 3, 18, 3);
   }
-  // touch hint for the first few seconds of a ride
-  if (mode === 'ride' && timeLeft > RIDE_TIME - 4 && matchMedia('(pointer: coarse)').matches) {
-    ctx.globalAlpha = 0.7;
-    text('▲ hold top half to carve up', W / 2, VH * 0.3, 22);
-    text('▼ hold bottom half to carve down', W / 2, VH * 0.78, 22);
+  if (mode === 'ride' && timeLeft > RIDE_TIME - 4 && touchy) {
+    ctx.globalAlpha = 0.85;
+    text('▲ HOLD TOP = UP', W / 2, VH * 0.3, 15);
+    text('▼ HOLD BOTTOM = DOWN', W / 2, VH * 0.8, 15);
+    ctx.globalAlpha = 1;
+  }
+  if (tip) {
+    ctx.globalAlpha = Math.min(1, tip.t * 4, (TIP_TIME - tip.t) * 3);
+    tipBox(tip.text, 92);
     ctx.globalAlpha = 1;
   }
 }
 
 function drawTitle() {
-  const bob = Math.sin(clock * 2) * 5;
-  text("SURF'S UP!", W / 2, 90 + bob, 76, '#ffe14a');
-  const lines = matchMedia('(pointer: coarse)').matches
-    ? ['Hold the top or bottom of the screen to carve', 'Shoot off the lip, spin, land nose-down!', 'Stay ahead of the curl!']
-    : ['↑ ↓ (or ← →) to carve up and down the wave', 'Shoot off the lip, spin, land nose-down!', 'Stay ahead of the curl!'];
-  lines.forEach((l, i) => text(l, W / 2, 160 + i * 32, 21));
-  const pulse = 1 + Math.sin(clock * 5) * 0.05;
-  text('TAP OR PRESS SPACE TO PADDLE OUT', W / 2, TROUGH + 32, 22 * pulse, '#ffe14a');
-  if (best) text(`BEST: ${best}`, W / 2, TROUGH - 30, 22);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  const bob = Math.round(Math.sin(clock * 2) * 3) * 2;
+  // keep clear of the 🏠 / 🔊 buttons when the screen is narrow
+  const ty = W < 700 ? 70 * canvas.width / innerWidth / scale + 40 : 70;
+  text("SURF'S UP!", W / 2, ty + bob, 54, '#f8e848');
+  text('A ROBOBANDIT GAME', W / 2, ty + 52, 13, '#ffffff');
+  if (best) text(`BEST ${best}`, W / 2, VH - 40, 16, '#f8e848');
 }
 
 function drawResults() {
-  const cx = W / 2, cy = H * 0.42;
-  ctx.fillStyle = 'rgba(6,40,70,.75)';
-  ctx.fillRect(0, -OFFY, W, VH);
-  text(boards > 0 ? "TIME'S UP!" : 'OUT OF BOARDS!', cx, cy - 150, 46, '#ffe14a');
-  text(`SCORE ${score}`, cx, cy - 100, 30);
-  text("THE JUDGES' SCORES", cx, cy - 58, 20, '#bdf2ff');
-  const cw = Math.min(84, (W - 40) / 5 - 10);
+  ctx.setTransform(scale, 0, 0, scale, 0, 0);
+  const cx = W / 2, cy = VH / 2 - 40;
+  ctx.fillStyle = 'rgba(8,24,72,.8)';
+  ctx.fillRect(0, 0, W, VH);
+  text(boards > 0 ? "TIME'S UP!" : 'OUT OF BOARDS!', cx, cy - 150, 30, '#f8e848');
+  text(`SCORE ${score}`, cx, cy - 104, 20);
+  text("THE JUDGES' SCORES", cx, cy - 66, 12, '#a8e0ff');
+  const cw = Math.min(88, (W - 40) / 5 - 10);
   results.cards.forEach((v, i) => {
     const show = resultsT > 0.6 + i * 0.3;
     const x = cx + (i - 2) * (cw + 10);
-    // the judge
-    ctx.fillStyle = ['#a0643a', '#f1c27d', '#8d5524', '#ffdbac', '#c68642'][i]; circle(x, cy + 70, 16);
-    ctx.fillStyle = '#ffffff'; roundRect(x - 18, cy + 86, 36, 26, 6); ctx.fill();
+    ctx.fillStyle = ['#a06438', '#f0c080', '#885028', '#ffd8a8', '#c88840'][i];
+    ctx.fillRect(x - 13, cy + 56, 26, 26);
+    ctx.fillStyle = '#ffffff'; ctx.fillRect(x - 18, cy + 84, 36, 26);
     if (!show) return;
-    ctx.fillStyle = '#fff'; ctx.strokeStyle = '#0b3550'; ctx.lineWidth = 3;
-    roundRect(x - cw / 2, cy - 30, cw, 70, 8); ctx.fill(); ctx.stroke();
-    ctx.font = `900 ${Math.min(30, cw * 0.4)}px system-ui, sans-serif`;
-    ctx.fillStyle = v >= 8 ? '#0a8f3c' : v >= 5 ? '#0b3550' : '#c0392b';
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x - cw / 2, cy - 34, cw, 72);
+    ctx.fillStyle = '#081848';
+    ctx.fillRect(x - cw / 2 + 4, cy - 30, cw - 8, 64);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(x - cw / 2 + 8, cy - 26, cw - 16, 56);
+    ctx.font = `${Math.min(18, cw * 0.24)}px ${FONT}`;
+    ctx.fillStyle = v >= 8 ? '#108838' : v >= 5 ? '#081848' : '#c02828';
     ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
-    ctx.fillText(v.toFixed(1), x, cy + 5);
+    ctx.fillText(v.toFixed(1), x, cy + 3);
   });
   if (resultsT > 2.3) {
-    text(`FINAL: ${results.avg.toFixed(1)}`, cx, cy + 150, 40, '#ffe14a');
+    text(`FINAL ${results.avg.toFixed(1)}`, cx, cy + 150, 30, '#f8e848');
     const word = results.avg >= 9 ? 'TOTALLY RADICAL!' : results.avg >= 7 ? 'GNARLY RIDE!' : results.avg >= 4 ? 'NICE WORK, DUDE!' : 'KEEP PRACTICING!';
-    text(results.isBest ? `NEW BEST! ${word}` : word, cx, cy + 195, 24);
+    text(results.isBest ? `NEW BEST! ${word}` : word, cx, cy + 194, 15);
   }
-  if (resultsT > 2.5) text('Tap to surf again', cx, cy + 240, 22, '#bdf2ff');
+  if (resultsT > 2.5) text(touchy ? 'TAP TO SURF AGAIN' : 'PRESS SPACE TO SURF AGAIN', cx, cy + 236, 13, '#a8e0ff');
 }
 
 function draw() {
-  ctx.setTransform(scale, 0, 0, scale, 0, OFFY * scale);
+  // 1. the world, small and chunky
+  const lw = Math.ceil(W / PIXEL), lh = Math.ceil(VH / PIXEL);
+  if (low.width !== lw || low.height !== lh) { low.width = lw; low.height = lh; }
+  ctx = lctx;
+  ctx.setTransform(1 / PIXEL, 0, 0, 1 / PIXEL, 0, OFFY / PIXEL);
   drawBackground();
   drawWave();
   for (const st of stars) {
     const x = st.x - camX;
-    if (x > -30 && x < W + 30) drawStar(x, TROUGH - st.f * faceH(st.x), 12);
+    if (x > -30 && x < W + 30) drawStar(x, TROUGH - st.f * faceH(st.x), 14);
   }
   if (mode !== 'results') drawSurfer();
   drawCurl();
   drawForeground();
   ctx.fillStyle = '#fff';
-  for (const p of spray) { ctx.globalAlpha = Math.min(1, p.life * 2); circle(p.x - camX, p.y, p.r); }
-  ctx.globalAlpha = 1;
+  for (const p of spray) { if (p.life > 0.15) ctx.fillRect(p.x - camX, p.y, p.r * 1.6, p.r * 1.6); }
+  // 2. blow it up with hard pixel edges
+  ctx = mainCtx;
+  ctx.setTransform(1, 0, 0, 1, 0, 0);
+  ctx.imageSmoothingEnabled = false;
+  ctx.drawImage(low, 0, 0, lw, lh, 0, 0, lw * PIXEL * scale, lh * PIXEL * scale);
+  // 3. text on top
+  ctx.setTransform(scale, 0, 0, scale, 0, OFFY * scale);
   if (mode === 'title') drawTitle();
   else if (mode === 'results') drawResults();
   else drawHUD();
@@ -736,8 +889,10 @@ function draw() {
 
 // ---------- Loop ----------
 let last = performance.now();
+const titleUI = document.getElementById('titleUI');
 function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
+  titleUI.classList.toggle('hidden', mode !== 'title' || !howto.classList.contains('hidden'));
   last = now;
   update(dt);
   draw();
