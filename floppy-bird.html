@@ -2,7 +2,9 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
 <title>RoboBandit — Floppy Bird</title>
 <meta name="description" content="Flap through the pipes in Floppy Bird, a free RoboBandit browser game.">
 <link rel="canonical" href="https://robobandit.com/floppy-bird.html">
@@ -24,11 +26,16 @@
     margin: 0; height: 100%; overflow: hidden; background: #4ec0ff;
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
     user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
   }
-  canvas { display: block; width: 100vw; height: 100vh; cursor: pointer; }
-  #topbar { position: fixed; top: 10px; right: 10px; display: flex; gap: 8px; }
+  /* fixed + inset avoids the mobile address bar hiding the bottom of a 100vh canvas */
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
+  #topbar {
+    position: fixed; display: flex; gap: 8px;
+    top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right));
+  }
   #topbar a, #topbar button {
-    width: 42px; height: 42px; border-radius: 10px; border: 0; cursor: pointer;
+    width: 44px; height: 44px; border-radius: 10px; border: 0; cursor: pointer;
     display: grid; place-items: center; font-size: 20px; text-decoration: none;
     background: rgba(255,255,255,.75); box-shadow: 0 3px 0 rgba(0,0,0,.2);
   }
@@ -57,19 +64,23 @@ const PIPE_GAP_START = 190, PIPE_GAP_MIN = 145;  // gap shrinks as you score
 const PIPE_SPACING = 250; // horizontal distance between pipes
 const BIRD_R = 17;
 const POINTS_PER_WORLD = 7;
+const LIVES = 3;
+const MIN_W = 360;        // narrow (portrait phone) screens zoom out to at least this width
 
 // ---------- Canvas ----------
 const canvas = document.getElementById('game');
 const ctx = canvas.getContext('2d');
-let W = 400, scale = 1;
+let W = 400, VH = H, scale = 1;   // VH = visible logical height (≥ H; the extra is more ground)
 function resize() {
   const dpr = Math.min(window.devicePixelRatio || 1, 2);
   canvas.width = Math.round(innerWidth * dpr);
   canvas.height = Math.round(innerHeight * dpr);
-  scale = canvas.height / H;
+  scale = Math.min(canvas.height / H, canvas.width / MIN_W);
   W = canvas.width / scale;
+  VH = canvas.height / scale;
 }
 addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 200));
 resize();
 
 // ---------- Sound ----------
@@ -83,6 +94,7 @@ function beep(f1, f2, dur, type = 'square', vol = 0.12) {
     if (!AC) return;
     actx = new AC();
   }
+  if (actx.state === 'suspended') actx.resume();
   const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
   o.type = type;
   o.frequency.setValueAtTime(f1, t);
@@ -132,7 +144,7 @@ function sky(top, bottom) {
   g.addColorStop(0, top);
   g.addColorStop(0.8, bottom);
   ctx.fillStyle = g;
-  ctx.fillRect(0, 0, W, H);
+  ctx.fillRect(0, 0, W, VH);
 }
 
 function clouds(color, par, rows, size = 1) {
@@ -259,7 +271,7 @@ const WORLDS = [
         alpha(lightningT);
         ctx.strokeStyle = '#fffbd0'; ctx.lineWidth = 4;
         ctx.beginPath(); bolt.forEach(([x, y], i) => i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)); ctx.stroke();
-        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillRect(0, 0, W, H);
+        ctx.fillStyle = 'rgba(255,255,255,.45)'; ctx.fillRect(0, 0, W, VH);
         alpha(1);
       }
     },
@@ -564,10 +576,12 @@ const WORLDS = [
 const worldFor = s => Math.floor(s / POINTS_PER_WORLD) % WORLDS.length;
 
 // ---------- State ----------
-// mode: 'title' → 'play' → 'dead' → (tap) → 'title'
+// mode: 'title' → 'play' → crash → 'hurt' → (tap) → 'play' … last life → 'dead' → (tap) → 'title'
 let mode = 'title';
 let bird, pipes, pipeCount, score, best = +(localStorage.getItem('fb_best') || 0);
 let scroll = 0, deadTimer = 0, flashT = 0, shakeT = 0, newBest = false;
+// Lives: a crash costs one; you come back at the same spot, wait for a tap, then get a moment of safety.
+let lives = LIVES, hurtT = 0, safeT = 0, heartPop = 0;
 let world = 0, worldFrom = 0, fade = 1, bannerT = 0;
 let feathers = [];
 
@@ -576,6 +590,8 @@ function reset() {
   pipes = [];
   pipeCount = 0;
   score = 0;
+  lives = LIVES;
+  safeT = 0;
   newBest = false;
   feathers = [];
   if (world !== 0) setWorld(0, false);
@@ -605,6 +621,10 @@ function flap() {
     mode = 'play';
     addPipe(bird.x + W * 0.55 + 140);
   }
+  if (mode === 'hurt' && hurtT > 0.7) {
+    mode = 'play';
+    safeT = 1.5;
+  }
   if (mode === 'play') {
     bird.vy = FLAP * (WORLDS[world].flap || 1);
     bird.squash = 1;
@@ -616,17 +636,30 @@ function flap() {
 }
 
 function die() {
-  if (mode !== 'play') return;
-  mode = 'dead';
-  deadTimer = 0;
+  if (mode !== 'play' || safeT > 0) return;
+  lives--;
+  heartPop = 1;
   flashT = 1;
   shakeT = 0.35;
   sfx.bonk();
+  if (navigator.vibrate) navigator.vibrate(lives > 0 ? 80 : [120, 60, 200]);
   for (let i = 0; i < 14; i++) {
     const a = Math.random() * TAU, s = 80 + Math.random() * 220;
     feathers.push({ x: bird.x, y: bird.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 120,
                     rot: Math.random() * 6, spin: (Math.random() - 0.5) * 10, life: 1.6 });
   }
+  if (lives > 0) {
+    // Respawn right where you crashed, in the middle of the gap you were going for.
+    mode = 'hurt';
+    hurtT = 0;
+    const p = pipes.find(q => q.x + PIPE_W / 2 + BIRD_R > bird.x);
+    bird.y = p ? p.cy : H * 0.42;
+    bird.vy = 0;
+    bird.rot = 0;
+    return;
+  }
+  mode = 'dead';
+  deadTimer = 0;
   if (score > best) { best = score; newBest = true; localStorage.setItem('fb_best', best); }
 }
 
@@ -675,11 +708,16 @@ function update(dt) {
   bannerT = Math.max(0, bannerT - dt);
   updateWeather(dt);
 
-  if (mode !== 'dead') scroll += SPEED * dt;
+  if (mode === 'title' || mode === 'play') scroll += SPEED * dt;
 
+  safeT = Math.max(0, safeT - dt);
+  heartPop = Math.max(0, heartPop - dt * 2);
   if (mode === 'title') {
     bird.y = H * 0.42 + Math.sin(clock * 3.3) * 10;
     bird.rot = 0;
+  } else if (mode === 'hurt') {
+    hurtT += dt;
+    bird.y += Math.sin(clock * 3.3) * 0.3;
   } else {
     const w = WORLDS[world];
     bird.vy += (GRAVITY * (w.gravity || 1) + (mode === 'play' ? windForce : 0)) * dt;
@@ -692,8 +730,8 @@ function update(dt) {
     const floor = H - GROUND - BIRD_R;
     if (bird.y >= floor) {
       bird.y = floor;
-      bird.vy = 0;
-      die();
+      if (mode === 'play' && safeT > 0) bird.vy = FLAP * 0.8;
+      else { bird.vy = 0; die(); }
     }
   }
 
@@ -748,7 +786,7 @@ function layer(key, ...args) {
 function drawGroundOf(g) {
   const y = H - GROUND;
   ctx.fillStyle = g.dirt;
-  ctx.fillRect(0, y, W, GROUND);
+  ctx.fillRect(0, y, W, VH - y + 10);
   ctx.fillStyle = g.top;
   ctx.fillRect(0, y, W, 18);
   ctx.fillStyle = g.stripe;
@@ -835,6 +873,7 @@ function drawHat(kind) {
 }
 
 function drawBird() {
+  if (mode === 'play' && safeT > 0 && Math.floor(safeT * 10) % 2) return;   // blink while safe
   ctx.save();
   ctx.translate(bird.x, bird.y);
   ctx.rotate(bird.rot);
@@ -914,13 +953,36 @@ function text(str, x, y, size, fill = '#fff', align = 'center') {
   ctx.fillText(str, x, y);
 }
 
+function heart(x, y, r, full) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + r * 0.9);
+  ctx.bezierCurveTo(x - r * 1.6, y - r * 0.2, x - r * 0.7, y - r * 1.3, x, y - r * 0.45);
+  ctx.bezierCurveTo(x + r * 0.7, y - r * 1.3, x + r * 1.6, y - r * 0.2, x, y + r * 0.9);
+  ctx.fillStyle = full ? '#ff4a5a' : 'rgba(255,255,255,.35)';
+  ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = '#543847'; ctx.stroke();
+}
+
 function drawUI() {
   const cx = W / 2;
+  if (mode !== 'title') {
+    for (let i = 0; i < LIVES; i++) {
+      const pop = i === lives ? 1 + heartPop * 0.6 : 1;
+      heart(30 + i * 36, 32, 13 * pop, i < lives);
+    }
+  }
+  if (mode === 'hurt') {
+    // put the message in whichever half of the screen the bird isn't in
+    const my = bird.y < 300 ? 355 : 160;
+    text('OUCH!', cx, my, 54, '#ff6b35');
+    text(`${lives} ${lives === 1 ? 'life' : 'lives'} left`, cx, my + 50, 26);
+    if (hurtT > 0.7) text('Tap to keep flying!', cx, my + 95, 26, '#ffd84a');
+  }
   if (mode === 'title') {
     const bob = Math.sin(clock * 2.5) * 6;
     text('FLOPPY', cx, 120 + bob, 64, '#ffd84a');
     text('BIRD', cx, 186 + bob, 64, '#ff9f1c');
-    text('Every 7 points = a new world!', cx, H - GROUND - 100, 22, '#bdf2ff');
+    text('3 lives · a new world every 7 points!', cx, H - GROUND - 100, 22, '#bdf2ff');
     text('Tap or press Space to flap!', cx, H - GROUND - 60, 22);
     if (best > 0) text(`BEST: ${best}`, cx, H - GROUND + 45, 24, '#fff');
   } else {
@@ -973,7 +1035,7 @@ function draw() {
   drawUI();
   if (flashT > 0) {
     ctx.fillStyle = `rgba(255,255,255,${flashT * 0.8})`;
-    ctx.fillRect(-20, -20, W + 40, H + 40);
+    ctx.fillRect(-20, -20, W + 40, VH + 40);
   }
 }
 // The ground is plain data on each world, so give each one a draw function for layer().

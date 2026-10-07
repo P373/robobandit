@@ -142,11 +142,12 @@
   .book p { margin: 8px 0; }
   .book a { color: #ffd84a; font-weight: 700; }
   #topbar { position: fixed; top: 12px; right: 12px; display: flex; gap: 8px; z-index: 10; }
-  #topbar button {
-    width: 42px; height: 42px; font-size: 18px; color: #fff; cursor: pointer;
+  #topbar button, #topbar a {
+    width: 42px; height: 42px; font-size: 18px; color: #fff; cursor: pointer; box-sizing: border-box;
+    display: grid; place-items: center; text-decoration: none;
     background: rgba(20,30,50,.6); border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
   }
-  #topbar button:hover { background: rgba(60,80,120,.75); }
+  #topbar button:hover, #topbar a:hover { background: rgba(60,80,120,.75); }
   #fireButtons { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 12px; z-index: 4; }
   #fireButtons button {
     width: 84px; height: 84px; border-radius: 50%; font-size: 12px; font-weight: 800; letter-spacing: 1px;
@@ -161,6 +162,7 @@
 <canvas id="game"></canvas>
 
 <div id="topbar">
+  <a id="btnHome" href="index.html" title="All RoboBandit games">🏠</a>
   <button id="btnPause" title="Game menu (P)">☰</button>
   <button id="btnMute" title="Sound on/off (M)">🔊</button>
   <button id="btnFs" title="Fullscreen (F)">⛶</button>
@@ -2763,6 +2765,7 @@ ovBody.addEventListener('click', e => {
   else if (b.dataset.menu === 'howto') showHowTo();
   else if (b.dataset.menu === 'settings') showSettings();
   else if (b.dataset.menu === 'share') shareGame();
+  else if (b.dataset.menu === 'home') location.href = 'index.html';
   else if (b.dataset.choice) answerQuiz(+b.dataset.choice);
   else if (b.dataset.hint) showHint();
   else if (b.dataset.bonus) chooseBonus(b.dataset.bonus === 'yes');
@@ -2781,6 +2784,7 @@ function showMenu() {
        <button class="link" data-menu="howto">📖 How to play</button>
        <button class="link" data-menu="settings">⚙️ Settings</button>
        <button class="link" data-menu="share">🔗 Share</button>
+       <button class="link" data-menu="home">🏠 All games</button>
      </div>
      ${hi ? `<p class="keys">High score: <b>${hi}</b></p>` : ''}`,
     '▶ START', startGame);
@@ -2884,6 +2888,13 @@ if (!fsSupported) document.getElementById('btnFs').style.display = 'none';
 document.addEventListener('fullscreenchange', resize);
 document.addEventListener('webkitfullscreenchange', resize);
 
+// 🏠 button: back to the games list. Mid-game, pause and check first so a stray tap doesn't lose a run.
+document.getElementById('btnHome').addEventListener('click', e => {
+  if (state === 'menu') return;
+  if (state === 'playing') togglePause();
+  if (!confirm('Leave Space Wars and go back to all the games? Your high score is saved.')) { e.preventDefault(); return; }
+  saveHi();
+});
 document.getElementById('btnPause').addEventListener('click', e => { e.currentTarget.blur(); openGameMenu(); });
 document.getElementById('btnMute').addEventListener('click', e => { e.currentTarget.blur(); sfx.init(); toggleMute(); });
 document.getElementById('btnFs').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
