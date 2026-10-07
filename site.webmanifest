@@ -2,7 +2,7 @@
   "name": "RoboBandit — Starfighter Run",
   "short_name": "RoboBandit",
   "description": "Fly four space missions and answer science questions to launch!",
-  "start_url": "index.html",
+  "start_url": "space-wars.html",
   "display": "fullscreen",
   "orientation": "landscape",
   "background_color": "#070b18",
