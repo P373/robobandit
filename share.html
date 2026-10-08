@@ -3,30 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RoboBandit — Starfighter Run</title>
-<meta name="description" content="Play RoboBandit: Starfighter Run, a fast-paced browser game.">
+<title>Share RoboBandit | A New Game Every Day</title>
+<meta name="description" content="RoboBandit makes a brand-new free browser game every day. Pick one and play!">
 <link rel="canonical" href="https://robobandit.com/share.html">
 <meta name="theme-color" content="#070b18">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-<!-- Social sharing (iMessage, LinkedIn, Facebook, X, Slack, Discord). Crawlers don't run JavaScript,
-     so these must stay in the HTML, and image URLs must be absolute. -->
+<!-- Social sharing. Crawlers don't run JavaScript, so these must stay in the HTML, and image URLs must be absolute. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RoboBandit">
-<meta property="og:url" content="https://robobandit.com/share.html">
-<meta property="og:title" content="RoboBandit — Starfighter Run">
-<meta property="og:description" content="Play RoboBandit: Starfighter Run, a fast-paced browser game.">
-<meta property="og:image" content="https://robobandit.com/social-preview.png">
-<meta property="og:image:secure_url" content="https://robobandit.com/social-preview.png">
-<meta property="og:image:type" content="image/png">
+<meta property="og:url" content="https://robobandit.com/">
+<meta property="og:title" content="RoboBandit | A New Game Every Day">
+<meta property="og:description" content="RoboBandit makes a brand-new free browser game every day. Pick one and play!">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="RoboBandit — Starfighter Run">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RoboBandit — Starfighter Run">
-<meta name="twitter:description" content="Play RoboBandit: Starfighter Run, a fast-paced browser game.">
-<meta name="twitter:image" content="https://robobandit.com/social-preview.png">
+<meta name="twitter:title" content="RoboBandit | A New Game Every Day">
+<meta name="twitter:description" content="RoboBandit makes a brand-new free browser game every day. Pick one and play!">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
 <style>
   * { box-sizing: border-box; }
   body {
@@ -48,7 +44,8 @@
   }
   p { line-height: 1.6; color: #cfd8ea; font-size: 17px; }
   .missions { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 14px 0; }
-  .missions span { padding: 6px 12px; border-radius: 20px; background: rgba(127,208,255,.12); color: #bfe6ff; font-weight: 600; }
+  .missions a { padding: 6px 12px; border-radius: 20px; background: rgba(127,208,255,.12); color: #bfe6ff; font-weight: 600; text-decoration: none; }
+  .missions a:hover { background: rgba(127,208,255,.25); }
   .play {
     display: inline-block; margin: 14px 0 28px; padding: 16px 44px; border-radius: 10px;
     font-size: 22px; font-weight: 800; letter-spacing: 2px; text-decoration: none;
@@ -72,17 +69,17 @@
 <main>
   <img class="logo" src="favicon.svg" alt="RoboBandit logo">
   <h1>ROBOBANDIT</h1>
-  <div class="tag">STARFIGHTER RUN</div>
+  <div class="tag">A NEW GAME EVERY DAY</div>
 
-  <a href="space-wars.html"><img class="preview" src="social-preview.png" alt="An X-wing flying down the Death Star trench"></a>
+  <a href="index.html"><img class="preview" src="previews/robobandit.jpg" alt="RoboBandit games: Space Wars, Floppy Bird, Surf's Up and Hamglider"></a>
 
-  <p>Fly six space missions, dodge obstacles, blast enemies — and answer real science and math
-     questions to launch! Made for curious kids ages 7–11, and free to play right in your browser.</p>
+  <p>A brand-new free game every day, made for curious kids and played right in your browser,
+     on a computer or a phone.</p>
   <div class="missions">
-    <span>🚀 Death Star</span><span>🌲 Endor</span><span>❄️ Hoth</span><span>🏜️ Tatooine Podrace</span><span>🛸 TIE Dogfight</span><span>☄️ Falcon Escape</span>
+    <a href="space-wars.html">🚀 Space Wars</a><a href="floppy-bird.html">🐤 Floppy Bird</a><a href="surfs-up.html">🏄 Surf's Up</a><a href="hamglider.html">🐹 Hamglider</a>
   </div>
 
-  <a class="play" href="space-wars.html">▶ PLAY NOW</a>
+  <a class="play" href="index.html">▶ PLAY NOW</a>
 
   <h2>SHARE WITH A FRIEND</h2>
   <div class="share">
@@ -96,13 +93,13 @@
   </div>
   <div id="copied"></div>
 
-  <footer>RoboBandit is a fan-made learning game inspired by Star Wars. Not affiliated with Lucasfilm or Disney.</footer>
+  <footer>Space Wars is a fan-made learning game inspired by Star Wars. RoboBandit is not affiliated with Lucasfilm or Disney.</footer>
 </main>
 <script>
-  // Share this page (it has the preview image and a big Play button)
-  const url = location.href.split(/[?#]/)[0];
-  const title = 'RoboBandit — Starfighter Run';
-  const text = 'Fly six space missions and answer science questions to launch! 🚀';
+  // Share the arcade's front page
+  const url = 'https://robobandit.com/';
+  const title = 'RoboBandit | A New Game Every Day';
+  const text = 'A brand-new free game every day! 🎮';
   const enc = encodeURIComponent;
   document.getElementById('shareX').href = `https://twitter.com/intent/tweet?text=${enc(text)}&url=${enc(url)}`;
   document.getElementById('shareFacebook').href = `https://www.facebook.com/sharer/sharer.php?u=${enc(url)}`;

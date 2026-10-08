@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>RoboBandit — Floppy Bird</title>
+<title>Floppy Bird | RoboBandit</title>
 <meta name="description" content="Flap through the pipes in Floppy Bird, a free RoboBandit browser game.">
 <link rel="canonical" href="https://robobandit.com/floppy-bird.html">
 <meta name="theme-color" content="#4ec0ff">
@@ -15,12 +15,14 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/floppy-bird.html">
-<meta property="og:title" content="RoboBandit — Floppy Bird">
+<meta property="og:title" content="Floppy Bird | RoboBandit">
 <meta property="og:description" content="Flap through the pipes in Floppy Bird, a free RoboBandit browser game.">
-<meta property="og:image" content="https://robobandit.com/thumbs/floppy-bird.jpg">
+<meta property="og:image" content="https://robobandit.com/previews/floppy-bird.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RoboBandit — Floppy Bird">
-<meta name="twitter:image" content="https://robobandit.com/thumbs/floppy-bird.jpg">
+<meta name="twitter:title" content="Floppy Bird | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/floppy-bird.jpg">
 <style>
   html, body {
     margin: 0; height: 100%; overflow: hidden; background: #4ec0ff;
@@ -30,25 +32,14 @@
   }
   /* fixed + inset avoids the mobile address bar hiding the bottom of a 100vh canvas */
   canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
-  #topbar {
-    position: fixed; display: flex; gap: 8px;
-    top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right));
-  }
-  #topbar a, #topbar button {
-    width: 44px; height: 44px; border-radius: 10px; border: 0; cursor: pointer;
-    display: grid; place-items: center; font-size: 20px; text-decoration: none;
-    background: rgba(255,255,255,.75); box-shadow: 0 3px 0 rgba(0,0,0,.2);
-  }
-  #topbar a:hover, #topbar button:hover { background: #fff; }
 </style>
+<link rel="stylesheet" href="common.css">
 </head>
 <body>
 <canvas id="game"></canvas>
-<div id="topbar">
-  <a href="index.html" title="More games">🏠</a>
-  <button id="btnMute" title="Sound on/off (M)">🔊</button>
-</div>
+<div id="topbar"></div>
 
+<script src="common.js"></script>
 <script>
 'use strict';
 
@@ -84,40 +75,15 @@ addEventListener('orientationchange', () => setTimeout(resize, 200));
 resize();
 
 // ---------- Sound ----------
-let actx = null, muted = localStorage.getItem('fb_muted') === '1';
-const btnMute = document.getElementById('btnMute');
-btnMute.textContent = muted ? '🔇' : '🔊';
-function beep(f1, f2, dur, type = 'square', vol = 0.12) {
-  if (muted) return;
-  if (!actx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    actx = new AC();
-  }
-  if (actx.state === 'suspended') actx.resume();
-  const t = actx.currentTime, o = actx.createOscillator(), g = actx.createGain();
-  o.type = type;
-  o.frequency.setValueAtTime(f1, t);
-  o.frequency.exponentialRampToValueAtTime(f2, t + dur);
-  g.gain.setValueAtTime(vol, t);
-  g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  o.connect(g).connect(actx.destination);
-  o.start(t); o.stop(t + dur);
-}
+const beep = RB.beep;
 const sfx = {
   flap: () => beep(420, 700, 0.09, 'triangle', 0.15),
-  point: () => { beep(880, 880, 0.08); setTimeout(() => beep(1320, 1320, 0.12), 80); },
+  point: () => { beep(880, 880, 0.08, 'square'); setTimeout(() => beep(1320, 1320, 0.12, 'square'), 80); },
   bonk: () => beep(300, 60, 0.35, 'sawtooth', 0.15),
   world: () => [523, 659, 784, 1047].forEach((f, i) => setTimeout(() => beep(f, f, 0.14, 'triangle', 0.14), i * 110)),
   thunder: () => beep(90, 30, 0.9, 'sawtooth', 0.2),
   rumble: () => beep(60, 35, 0.8, 'sawtooth', 0.15),
 };
-function toggleMute() {
-  muted = !muted;
-  localStorage.setItem('fb_muted', muted ? '1' : '0');
-  btnMute.textContent = muted ? '🔇' : '🔊';
-}
-btnMute.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
 
 // ---------- Drawing helpers ----------
 // Stateless pseudo-random number in [0, 1) for particle i, channel k.
@@ -663,11 +629,35 @@ function die() {
   if (score > best) { best = score; newBest = true; localStorage.setItem('fb_best', best); }
 }
 
+// ---------- Pause ----------
+// Pausing only matters mid-flight; it also kicks in when you switch tabs or apps.
+let paused = false;
+function pause() {
+  if (paused || (mode !== 'play' && mode !== 'hurt')) return;
+  paused = true;
+  RB.showPause(resume);
+}
+function resume() {
+  paused = false;
+  RB.hidePause();
+  last = performance.now();
+}
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Floppy Bird | RoboBandit', text: 'Can you beat my score in Floppy Bird? 🐤' },
+});
+RB.onHide(pause);
+
 // ---------- Input ----------
 addEventListener('keydown', e => {
   if (e.repeat) return;
+  if (paused) {
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') { e.preventDefault(); resume(); }
+    return;
+  }
   if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') { e.preventDefault(); flap(); }
-  if (e.code === 'KeyM') toggleMute();
+  if (e.code === 'KeyP' || e.code === 'Escape') pause();
+  if (e.code === 'KeyM') RB.toggleMute();
 });
 canvas.addEventListener('pointerdown', e => { e.preventDefault(); flap(); });
 
@@ -1048,7 +1038,7 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
-  update(dt);
+  if (!paused) update(dt);
   draw();
   requestAnimationFrame(frame);
 }

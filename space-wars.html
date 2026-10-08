@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<title>RoboBandit — Starfighter Run</title>
-<meta name="description" content="Play RoboBandit: Starfighter Run, a fast-paced browser game.">
+<title>Space Wars | RoboBandit</title>
+<meta name="description" content="Fly six space missions and answer science and math questions to launch! A free RoboBandit game.">
 <link rel="canonical" href="https://robobandit.com/space-wars.html">
 <meta name="theme-color" content="#070b18">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,18 +16,18 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/space-wars.html">
-<meta property="og:title" content="RoboBandit — Starfighter Run">
-<meta property="og:description" content="Play RoboBandit: Starfighter Run, a fast-paced browser game.">
-<meta property="og:image" content="https://robobandit.com/social-preview.png">
-<meta property="og:image:secure_url" content="https://robobandit.com/social-preview.png">
-<meta property="og:image:type" content="image/png">
+<meta property="og:title" content="Space Wars | RoboBandit">
+<meta property="og:description" content="Fly six space missions and answer science and math questions to launch! A free RoboBandit game.">
+<meta property="og:image" content="https://robobandit.com/previews/space-wars.jpg">
+<meta property="og:image:secure_url" content="https://robobandit.com/previews/space-wars.jpg">
+<meta property="og:image:type" content="image/jpeg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
-<meta property="og:image:alt" content="RoboBandit — Starfighter Run">
+<meta property="og:image:alt" content="Space Wars | RoboBandit">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RoboBandit — Starfighter Run">
-<meta name="twitter:description" content="Play RoboBandit: Starfighter Run, a fast-paced browser game.">
-<meta name="twitter:image" content="https://robobandit.com/social-preview.png">
+<meta name="twitter:title" content="Space Wars | RoboBandit">
+<meta name="twitter:description" content="Fly six space missions and answer science and math questions to launch! A free RoboBandit game.">
+<meta name="twitter:image" content="https://robobandit.com/previews/space-wars.jpg">
 <style>
   html, body {
     margin: 0; height: 100%; overflow: hidden; background: #000; color: #fff;
@@ -52,7 +52,6 @@
   }
   .panel h1 small { display: block; font-size: .55em; letter-spacing: 8px; color: #fff3b0; }
   .panel h1 .logo { display: block; width: 72px; height: 72px; margin: 0 auto 8px; }
-  .share-link { display: inline-block; margin-top: 10px; color: #7fd0ff; font-weight: 700; }
   /* Main menu: mission picture cards */
   .pick-label { margin: 6px 0 10px; font-size: 13px; font-weight: 700; letter-spacing: 3px; color: #9fb0cc; }
   .mission-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -141,13 +140,6 @@
   .book .bk-author { color: #9fb0cc; font-style: italic; }
   .book p { margin: 8px 0; }
   .book a { color: #ffd84a; font-weight: 700; }
-  #topbar { position: fixed; top: 12px; right: 12px; display: flex; gap: 8px; z-index: 10; }
-  #topbar button, #topbar a {
-    width: 42px; height: 42px; font-size: 18px; color: #fff; cursor: pointer; box-sizing: border-box;
-    display: grid; place-items: center; text-decoration: none;
-    background: rgba(20,30,50,.6); border: 1px solid rgba(255,255,255,.25); border-radius: 8px;
-  }
-  #topbar button:hover, #topbar a:hover { background: rgba(60,80,120,.75); }
   #fireButtons { position: fixed; right: 16px; bottom: 16px; display: flex; gap: 12px; z-index: 4; }
   #fireButtons button {
     width: 84px; height: 84px; border-radius: 50%; font-size: 12px; font-weight: 800; letter-spacing: 1px;
@@ -157,16 +149,17 @@
   #btnTorp { background: rgba(40,120,220,.55); }
   #fireButtons button:active { filter: brightness(1.6); }
 </style>
+<link rel="stylesheet" href="common.css">
 </head>
 <body>
 <canvas id="game"></canvas>
 
-<div id="topbar">
+<div id="topbar" class="rb-topbar">
   <a id="btnHome" href="index.html" title="All RoboBandit games">🏠</a>
-  <button id="btnPause" title="Game menu (P)">☰</button>
+  <button id="btnPause" title="Pause (P)">⏸&#xFE0F;</button>
   <button id="btnMute" title="Sound on/off (M)">🔊</button>
   <button id="btnFs" title="Fullscreen (F)">⛶</button>
-  <button id="btnShare" title="Share RoboBandit">🔗</button>
+  <button id="btnShare" title="Share this game">🔗</button>
 </div>
 
 <div id="fireButtons" class="hidden">
@@ -182,6 +175,7 @@
   </div>
 </div>
 
+<script src="common.js"></script>
 <script src="touch-stick.js"></script>
 <script>
 'use strict';
@@ -196,7 +190,7 @@ const CAM_BACK = 5.5;  // camera distance behind ship
 let SHIP_HW = 0.55, SHIP_HH = 0.28;   // vehicle hitbox half-size (set per world)
 let FOG = [4, 6, 16];                 // distance haze colour (set per world)
 const TOWER_HP = 3;    // 3 laser hits or 1 special weapon (torpedo / detonator / harpoon)
-const TITLE_HTML = '<img class="logo" src="favicon.svg" alt="">ROBOBANDIT<small>STARFIGHTER RUN</small>';
+const TITLE_HTML = '<img class="logo" src="favicon.svg" alt="">SPACE WARS<small>A ROBOBANDIT GAME</small>';
 
 // Aim assist: radius = how far from your flight line an enemy can be and still get locked;
 // turn = max sideways speed a shot can steer at (units/s).
@@ -339,7 +333,8 @@ function hash(n) { const x = Math.sin(n * 127.1 + 311.7) * 43758.5453; return x 
 function pick(arr) { return arr[(Math.random() * arr.length) | 0]; }
 
 // ---------- Audio ----------
-let muted = false;
+let muted = RB.muted;   // shared with the other RoboBandit games
+RB.onMute(m => { muted = m; });
 const sfx = (() => {
   let ac = null, master = null, noiseBuf = null;
   function init() {
@@ -2544,7 +2539,7 @@ function finishFinale() {
      <p>🥚 <b>Secret ending unlocked:</b> Darth Vader himself came after you — and Han Solo had your back.</p>
      <p class="big" style="color:#ff6a5a">“The Force is strong with this one.” — Darth Vader</p>
      <p>Final score: <b>${Math.floor(score)}</b> · High score: ${hi}</p>
-     <a class="share-link" href="share.html" target="_blank" rel="noopener">🔗 Challenge a friend — share RoboBandit!</a>
+     <button class="link" data-menu="share">🔗 Challenge a friend — share Space Wars!</button>
      ${bookCard()}`,
     'PLAY AGAIN', showMenu);
 }
@@ -2872,10 +2867,8 @@ function togglePause() {
   }
 }
 
-function toggleMute() {
-  muted = !muted;
-  document.getElementById('btnMute').textContent = muted ? '🔇' : '🔊';
-}
+function toggleMute() { RB.setMuted(!muted); }
+document.getElementById('btnMute').textContent = muted ? '🔇' : '🔊';
 
 function toggleFullscreen() {
   const d = document, el = d.documentElement;
@@ -2902,12 +2895,9 @@ document.getElementById('btnMute').addEventListener('click', e => { e.currentTar
 document.getElementById('btnFs').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
 document.getElementById('btnShare').addEventListener('click', e => { e.currentTarget.blur(); if (state === 'playing') togglePause(); shareGame(); });
 
-// Phones get the built-in share sheet; everywhere else opens the share page
+// Share this game's own page: phones get the share sheet, computers copy the link
 function shareGame() {
-  const url = new URL('share.html', location.href).href;
-  if (navigator.share) {
-    navigator.share({ title: 'RoboBandit — Starfighter Run', text: 'Fly six space missions and answer science questions to launch!', url }).catch(() => {});
-  } else window.open(url, '_blank', 'noopener');
+  RB.share({ title: 'Space Wars | RoboBandit', text: 'Fly six space missions and answer science questions to launch! 🚀' });
 }
 
 // ---------- Science quiz ----------

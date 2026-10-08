@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<title>RoboBandit - Hamglider</title>
+<title>Hamglider | RoboBandit</title>
 <meta name="description" content="Roll Pip the hamster down a ramp over the ocean, pop open your wings and glide onto the bullseye in Hamglider, a free RoboBandit game.">
 <link rel="canonical" href="https://robobandit.com/hamglider.html">
 <meta name="theme-color" content="#5ec8ff">
@@ -15,12 +15,14 @@
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/hamglider.html">
-<meta property="og:title" content="RoboBandit - Hamglider">
+<meta property="og:title" content="Hamglider | RoboBandit">
 <meta property="og:description" content="Roll down the ramp, pop open your wings and glide onto the bullseye!">
-<meta property="og:image" content="https://robobandit.com/thumbs/hamglider.jpg">
+<meta property="og:image" content="https://robobandit.com/previews/hamglider.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RoboBandit - Hamglider">
-<meta name="twitter:image" content="https://robobandit.com/thumbs/hamglider.jpg">
+<meta name="twitter:title" content="Hamglider | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/hamglider.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
@@ -35,15 +37,6 @@
   .bungee { font-family: 'Bungee', system-ui, sans-serif; }
   .hidden { display: none !important; }
   .shadow { text-shadow: 3px 3px 0 #0b2a5c; }
-  #topbar {
-    position: fixed; display: flex; gap: 8px; z-index: 6;
-    top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right));
-  }
-  #topbar a, #topbar button {
-    width: 44px; height: 44px; border-radius: 10px; border: 0; cursor: pointer;
-    display: grid; place-items: center; font-size: 20px; text-decoration: none;
-    background: rgba(255,255,255,.8); box-shadow: 0 3px 0 rgba(0,0,0,.2);
-  }
   #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
   #hudTL { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top)); font-size: 20px; line-height: 1.3; }
   #hudTL .small { font-size: 14px; color: #fff3a8; }
@@ -74,9 +67,6 @@
     font: 15px 'Bungee', system-ui, sans-serif; color: #0b2a5c; background: #ffe14a; box-shadow: 0 6px 0 #0b2a5c;
   }
   #wingBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0b2a5c; }
-  #stick { position: fixed; z-index: 3; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
-    border: 3px solid rgba(255,255,255,.6); background: rgba(11,42,92,.25); pointer-events: none; }
-  #stickKnob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.8); }
   .screen {
     position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
     background: radial-gradient(ellipse at center, rgba(11,42,92,.35), rgba(11,42,92,.75)); touch-action: pan-y;
@@ -108,14 +98,12 @@
   #scoreTable td { padding: 6px; border-bottom: 2px dashed #c9d8ee; }
   #scoreTable td:last-child { text-align: right; color: #e5397a; }
 </style>
+<link rel="stylesheet" href="common.css">
 </head>
 <body>
 <canvas id="game"></canvas>
 
-<div id="topbar">
-  <a href="index.html" title="More games">🏠</a>
-  <button id="btnMute" title="Sound on/off (M)">🔊</button>
-</div>
+<div id="topbar"></div>
 
 <div id="hud" class="hidden">
   <div id="hudTL" class="bungee shadow"><div id="hudRound">ROUND 1/5</div><div id="hudScore">SCORE 0</div><div class="small" id="hudSeeds"></div></div>
@@ -129,7 +117,6 @@
   <div id="banner" class="hidden"></div>
 </div>
 <button id="wingBtn" class="hidden">WINGS</button>
-<div id="stick" class="hidden"><div id="stickKnob"></div></div>
 
 <div id="title" class="screen">
   <div class="panel">
@@ -165,6 +152,8 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
+<script src="common.js"></script>
+<script src="touch-stick.js"></script>
 <script>
 'use strict';
 
@@ -507,39 +496,9 @@ function doSplash(x, y, z) {
 }
 
 // ---------- Sound ----------
-let actx = null, windGain = null, muted = localStorage.getItem('hg_muted') === '1';
-const btnMute = document.getElementById('btnMute');
-btnMute.textContent = muted ? '🔇' : '🔊';
-function audio() {
-  if (!actx) {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return null;
-    actx = new AC();
-    const buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
-    const src = actx.createBufferSource(), lp = actx.createBiquadFilter();
-    src.buffer = buf; src.loop = true; lp.type = 'lowpass'; lp.frequency.value = 500;
-    windGain = actx.createGain(); windGain.gain.value = 0;
-    src.connect(lp).connect(windGain).connect(actx.destination);
-    src.start();
-  }
-  if (actx.state === 'suspended') actx.resume();
-  return actx;
-}
-function beep(f1, f2, dur, type = 'triangle', vol = 0.12, delay = 0) {
-  if (muted || !audio()) return;
-  const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
-  o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
-  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
-  o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
-}
-function noise(dur, vol) {
-  if (muted || !audio()) return;
-  const buf = actx.createBuffer(1, actx.sampleRate * dur, actx.sampleRate), d = buf.getChannelData(0);
-  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2;
-  const s = actx.createBufferSource(), g = actx.createGain(); s.buffer = buf; g.gain.value = vol;
-  s.connect(g).connect(actx.destination); s.start();
-}
+let windGain = null;   // rushing air while flying, started on the first tap
+function audio() { RB.audio(); if (!windGain) windGain = RB.ambient(500); }
+const beep = RB.beep, noise = RB.noise;
 const sfx = {
   open: () => { beep(300, 900, 0.25, 'sine', 0.12); noise(0.3, 0.15); },
   close: () => beep(700, 250, 0.2, 'sine', 0.1),
@@ -549,56 +508,57 @@ const sfx = {
   score: pts => [523, 659, 784, 1047].slice(0, pts >= 100 ? 4 : pts >= 30 ? 3 : 2).forEach((f, i) => beep(f, f, 0.18, 'triangle', 0.13, i * 0.1)),
   go: () => beep(440, 880, 0.3, 'square', 0.06),
 };
-btnMute.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
-function toggleMute() {
-  muted = !muted; localStorage.setItem('hg_muted', muted ? '1' : '0');
-  btnMute.textContent = muted ? '🔇' : '🔊';
-  if (windGain) windGain.gain.value = 0;
-}
 
 // ---------- Input ----------
 const keys = {};
-const stick = { x: 0, y: 0, id: null, ox: 0, oy: 0 };
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
 addEventListener('keydown', e => {
   if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
   if (e.repeat) return;
+  if (paused) {
+    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') { e.preventDefault(); resume(); }
+    return;
+  }
   if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); action(); }
-  if (e.code === 'KeyM') toggleMute();
+  if (e.code === 'KeyP' || e.code === 'Escape') pause();
+  if (e.code === 'KeyM') RB.toggleMute();
 });
 addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; stick.x = stick.y = 0; stick.id = null; });
-const stickEl = document.getElementById('stick'), knob = document.getElementById('stickKnob');
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+// Touch: the shared floating joystick (drag left/right to turn, up to float, down to dive)
+const stick = createTouchStick(canvas, { enabled: () => state !== 'title' && state !== 'intro' && state !== 'end' });
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   audio();
-  if (state === 'intro') { action(); return; }
-  if (stick.id === null && e.pointerType !== 'mouse') {
-    stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY;
-    stickEl.style.left = e.clientX + 'px'; stickEl.style.top = e.clientY + 'px';
-    stickEl.classList.remove('hidden');
-  } else if (e.pointerType === 'mouse') action();
+  if (state === 'intro' || e.pointerType === 'mouse') action();
 });
-canvas.addEventListener('pointermove', e => {
-  if (e.pointerId !== stick.id) return;
-  const dx = e.clientX - stick.ox, dy = e.clientY - stick.oy, m = 55;
-  stick.x = Math.max(-1, Math.min(1, dx / m));
-  stick.y = Math.max(-1, Math.min(1, dy / m));
-  knob.style.transform = `translate(${stick.x * 35}px, ${stick.y * 35}px)`;
-});
-const endStick = e => {
-  if (e.pointerId !== stick.id) return;
-  stick.id = null; stick.x = stick.y = 0;
-  knob.style.transform = '';
-  stickEl.classList.add('hidden');
-};
-for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, endStick);
 const wingBtn = document.getElementById('wingBtn');
 wingBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); action(); });
 
 function steerInput() { return (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x; }
 // up = nose up (float), down = nose down (dive). On touch, dragging up means nose up.
 function pitchInput() { return (keys.up ? 1 : 0) - (keys.down ? 1 : 0) - stick.y; }
+
+// ---------- Pause ----------
+// Anytime during a round; also kicks in when you switch tabs or apps.
+let paused = false;
+function pause() {
+  if (paused || state === 'title' || state === 'end') return;
+  paused = true;
+  for (const k in keys) keys[k] = false;
+  stick.reset();
+  RB.showPause(resume);
+}
+function resume() {
+  paused = false;
+  RB.hidePause();
+  last = performance.now();
+}
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Hamglider | RoboBandit', text: 'Help Pip the hamster glide onto the bullseye! 🐹' },
+});
+RB.onHide(pause);
 
 // ---------- Game state ----------
 // state: 'title' → 'intro' → 'ramp' → 'air' → 'roll' → 'result' → next round … → 'end'
@@ -759,7 +719,7 @@ function update(dt) {
     if (splashT > 1.6) splash.visible = false;
   }
 
-  if (windGain && !muted) windGain.gain.value = state === 'air' ? Math.min(0.25, vel.length() / 120) : 0;
+  if (windGain) windGain.gain.value = state === 'air' ? Math.min(0.25, vel.length() / 120) : 0;
 }
 
 // ---------- Camera & visuals ----------
@@ -880,8 +840,10 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
-  update(dt);
-  updateVisuals(dt);
+  if (!paused) {
+    update(dt);
+    updateVisuals(dt);
+  }
   updateHUD();
   renderer.render(scene, camera);
   requestAnimationFrame(frame);

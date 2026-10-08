@@ -1,10 +1,10 @@
 {
-  "name": "RoboBandit — Starfighter Run",
+  "name": "RoboBandit",
   "short_name": "RoboBandit",
-  "description": "Fly four space missions and answer science questions to launch!",
-  "start_url": "space-wars.html",
-  "display": "fullscreen",
-  "orientation": "landscape",
+  "description": "A brand-new free game every day!",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
   "background_color": "#070b18",
   "theme_color": "#070b18",
   "icons": [

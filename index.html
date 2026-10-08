@@ -3,27 +3,28 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RoboBandit — A New Game Every Day</title>
+<title>RoboBandit | A New Game Every Day</title>
 <meta name="description" content="RoboBandit makes a brand-new free browser game every day. Pick one and play!">
 <link rel="canonical" href="https://robobandit.com/">
 <meta name="theme-color" content="#070b18">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
 <link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
 <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="manifest" href="/site.webmanifest">
 <!-- Social sharing. Crawlers don't run JavaScript, so these must stay in the HTML,
      and image URLs must be absolute. -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/">
-<meta property="og:title" content="RoboBandit — A New Game Every Day">
+<meta property="og:title" content="RoboBandit | A New Game Every Day">
 <meta property="og:description" content="RoboBandit makes a brand-new free browser game every day. Pick one and play!">
-<meta property="og:image" content="https://robobandit.com/social-preview.png">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="RoboBandit — A New Game Every Day">
+<meta name="twitter:title" content="RoboBandit | A New Game Every Day">
 <meta name="twitter:description" content="RoboBandit makes a brand-new free browser game every day. Pick one and play!">
-<meta name="twitter:image" content="https://robobandit.com/social-preview.png">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
 <style>
   * { box-sizing: border-box; }
   html { background: #070b18; }
@@ -100,7 +101,12 @@
   .soon .thumb { display: grid; place-items: center; font-size: 64px; color: #3b4d80; }
   .soon .thumb span { animation: bob 2s ease-in-out infinite; }
 
+  .meta { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; }
+  .meta span { padding: 3px 9px; border-radius: 999px; font-size: 13px; font-weight: 700; color: #bfe6ff; background: rgba(127,208,255,.12); }
+  .meta .best { color: #111; background: #ffd84a; }
+
   footer { margin-top: 44px; font-size: 14px; color: #7d8aa3; }
+  footer a { color: #7fd0ff; }
 
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
@@ -116,32 +122,37 @@
 
   <div class="grid" id="games"></div>
 
-  <footer>Made with 🤖 by RoboBandit · Free to play in your browser</footer>
+  <footer>Made with 🤖 by RoboBandit · Free to play in your browser · <a href="share.html">🔗 Share RoboBandit</a></footer>
 </main>
 
 <script>
 // Add one entry per new game, oldest first. The newest game gets the "NEW!" badge.
+// bestKey is where the game saves its best score in this browser (shown on the card once there is one).
 const GAMES = [
   {
     title: 'Space Wars',
+    bestKey: 'xw_hi',
     url: 'space-wars.html',
     thumb: 'thumbs/space-wars.jpg',
-    blurb: 'Fly six starfighter missions and answer science questions to launch!',
+    blurb: 'Fly six space missions and answer science questions to launch!',
   },
   {
     title: 'Floppy Bird',
+    bestKey: 'fb_best',
     url: 'floppy-bird.html',
     thumb: 'thumbs/floppy-bird.jpg',
     blurb: 'Flap through 8 wild worlds: rain, snow, volcanoes, jungle and space!',
   },
   {
     title: "Surf's Up",
+    bestKey: 'su_best',
     url: 'surfs-up.html',
     thumb: 'thumbs/surfs-up.jpg',
     blurb: 'Ride the curl, launch off the lip and spin for the judges!',
   },
   {
     title: 'Hamglider',
+    bestKey: 'hg_best',
     url: 'hamglider.html',
     thumb: 'thumbs/hamglider.jpg',
     blurb: 'Roll Pip the hamster off a ramp, pop open your wings and glide onto the bullseye!',
@@ -149,22 +160,28 @@ const GAMES = [
 ];
 
 const grid = document.getElementById('games');
+const bestOf = g => { try { return +(localStorage.getItem(g.bestKey) || 0); } catch (e) { return 0; } };
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-// Newest first, numbered by the day it came out.
-grid.innerHTML = GAMES.map((g, i) => `
+// Newest first, numbered by the day it came out. Redrawn whenever the page is shown, so a best
+// score set a moment ago appears even when Back brings up a cached copy of this page.
+const render = () => grid.innerHTML = GAMES.map((g, i) => `
   <a class="card" href="${esc(g.url)}">
     <div class="thumb">
       <img src="${esc(g.thumb)}" alt="${esc(g.title)}" loading="lazy">
       <span class="day">DAY ${i + 1}</span>
       ${i === GAMES.length - 1 ? '<span class="new">NEW!</span>' : ''}
     </div>
-    <div class="info"><h2>${esc(g.title)}</h2><p>${esc(g.blurb)}</p></div>
+    <div class="info"><h2>${esc(g.title)}</h2><p>${esc(g.blurb)}</p>
+      <div class="meta">${bestOf(g) ? `<span class="best">🏆 Best ${bestOf(g)}</span>` : ''}<span title="Play with a keyboard">⌨️ Keys</span><span title="Play on a phone or tablet">📱 Touch</span></div>
+    </div>
   </a>`).reverse().join('') + `
   <div class="card soon">
     <div class="thumb"><span>❓</span></div>
     <div class="info"><h2>Day ${GAMES.length + 1}</h2><p>A brand-new game is coming tomorrow!</p></div>
   </div>`;
+render();
+addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
 </body>
 </html>
