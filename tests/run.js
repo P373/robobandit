@@ -64,7 +64,7 @@ const PHONE = { ...devices['iPhone 13'] };
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -210,12 +210,46 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p, 'hamglider-phone.png');
   });
 
+  await test('Web Hero: just holding chains swings across the city and bonks bots', async () => {
+    const p = await open(browser, 'web-hero.html');
+    await p.click('#btnPlay');
+    const r = await p.evaluate(() => {
+      for (let i = 0; i < 60 * 60 && mode !== 'over'; i++) {
+        if (mode === 'play' && !held) press();
+        update(1 / 60);
+      }
+      return { mode, x: hero.x, bonked, hearts, score: score() };
+    });
+    check(r.x > 8000, 'only got to x=' + Math.round(r.x));
+    check(r.bonked >= 5, 'bonked ' + r.bonked);
+    check(r.score > 0, 'no score');
+    await done(p, 'web-hero.png');
+  });
+
+  await test('Web Hero: falling to the street costs a heart, three falls end the game', async () => {
+    const p = await open(browser, 'web-hero.html');
+    await p.click('#btnPlay');
+    const r = await p.evaluate(() => {
+      const seen = [];
+      for (let k = 0; k < 3; k++) {
+        safeT = 0; hero.state = 'air'; hero.y = STREET + 5; update(1 / 60);
+        seen.push(hearts + ':' + mode);
+        for (let i = 0; i < 100; i++) update(1 / 60);
+      }
+      return { seen, mode };
+    });
+    check(r.seen.join() === '2:fall,1:fall,0:fall', 'hearts went ' + r.seen.join());
+    check(r.mode === 'over', 'game did not end');
+    check(await p.isVisible('#over'), 'game over screen hidden');
+    await done(p);
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

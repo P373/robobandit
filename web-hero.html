@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Web Hero | RoboBandit</title>
+<meta name="description" content="Swing across the city on your web and bonk the Bandit Bots in Web Hero, a free RoboBandit game.">
+<link rel="canonical" href="https://robobandit.com/web-hero.html">
+<meta name="theme-color" content="#5ab8ff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/web-hero.html">
+<meta property="og:title" content="Web Hero | RoboBandit">
+<meta property="og:description" content="Swing across the city on your web and bonk the Bandit Bots!">
+<meta property="og:image" content="https://robobandit.com/previews/web-hero.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Web Hero | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/web-hero.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #5ab8ff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
+  .hidden { display: none !important; }
+  .screen {
+    position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
+    background: rgba(20,16,60,.45); touch-action: pan-y;
+  }
+  .panel {
+    margin: auto; max-width: 560px; width: 100%; text-align: center; color: #1b1450; background: #fffdf2;
+    border: 4px solid #1b1450; border-radius: 22px; box-shadow: 0 8px 0 #1b1450; padding: 22px 22px 26px;
+  }
+  .panel h1 { font: 50px/1 'Bungee', system-ui, sans-serif; margin: 0; color: #8a3ffc; text-shadow: 3px 3px 0 #1b1450; }
+  .panel .sub { font-weight: 800; margin: 8px 0 14px; color: #ff6a1f; }
+  .panel ol { text-align: left; margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  .panel li { position: relative; padding: 7px 0 7px 44px; counter-increment: s; line-height: 1.4; font-size: 17px; }
+  .panel li::before {
+    content: counter(s); position: absolute; left: 0; top: 6px; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font: 14px 'Bungee', system-ui, sans-serif; background: #ffe14a; border: 3px solid #1b1450;
+  }
+  kbd { display: inline-block; padding: 0 6px; font: bold 14px system-ui, sans-serif; background: #fff;
+    border: 2px solid #1b1450; border-radius: 4px; box-shadow: 0 2px 0 #1b1450; }
+  .big-btn {
+    margin-top: 16px; font: 22px 'Bungee', system-ui, sans-serif; padding: 14px 30px; cursor: pointer; border-radius: 16px;
+    border: 4px solid #1b1450; color: #1b1450; background: #ffe14a; box-shadow: 0 6px 0 #1b1450;
+  }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #1b1450; }
+  .stats { font: 20px 'Bungee', system-ui, sans-serif; margin: 12px 0 0; line-height: 1.5; }
+  .stats b { color: #ff6a1f; font-weight: normal; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+</style>
+<link rel="stylesheet" href="common.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar"></div>
+
+<div id="title" class="screen">
+  <div class="panel">
+    <h1>WEB HERO</h1>
+    <div class="sub">🕸️ Swing across the city and stop the Bandit Bots!</div>
+    <ol>
+      <li><b>Hold</b> <span class="key-only"><kbd>Space</kbd> or the mouse</span><span class="touch-only">your finger anywhere on the screen</span>
+        to shoot a web and <b>swing</b>.</li>
+      <li><b>Let go</b> to fly through the air!</li>
+      <li><b>Crash into Bandit Bots</b> to bonk them. Bonk lots in a row without landing for a big <b>combo</b>.</li>
+      <li>Land on rooftops to run. <b>Don't fall to the street!</b> You have 3 hearts.</li>
+    </ol>
+    <div class="stats" id="titleBest"></div>
+    <button class="big-btn" id="btnPlay">▶ SWING!</button>
+  </div>
+</div>
+
+<div id="over" class="screen hidden">
+  <div class="panel">
+    <h1>GREAT JOB!</h1>
+    <div class="stats" id="overStats"></div>
+    <button class="big-btn" id="btnAgain">▶ SWING AGAIN</button>
+  </div>
+</div>
+
+<script src="common.js"></script>
+<script>
+'use strict';
+
+// ---------- Tuning ----------
+const H = 600;                 // logical height; width follows the window's shape
+const MIN_W = 460;             // portrait phones zoom out to at least this width
+const STREET = 572;            // fall below this and you lose a heart
+const G = 1350;                // gravity, px/s²
+const RUN = 300;               // running speed on rooftops
+const JUMP = 430;
+const HERO_R = 20;
+const WEB_MIN = 70;            // the web reels in down to this length while you swing
+const REEL = 45;               // px/s of web reeled in while swinging
+const PUMP = 260;              // forward push along the swing, so a held swing never dies out
+const MAX_SPEED = 1050;
+const HEARTS = 3;
+
+// ---------- Canvas ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 800, VH = H, OFFY = 0, scale = 1;
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  scale = Math.min(canvas.height / H, canvas.width / MIN_W);
+  W = canvas.width / scale;
+  VH = canvas.height / scale;
+  OFFY = Math.max(0, (VH - H) / 2);   // tall screens: centre the city, more sky above and street below
+}
+addEventListener('resize', resize);
+resize();
+
+// ---------- Helpers ----------
+const rnd = (i, k) => { const s = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return s - Math.floor(s); };
+const rand = (a, b) => a + Math.random() * (b - a);
+const mod = (a, n) => ((a % n) + n) % n;
+const TAU = Math.PI * 2;
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.fill(); }
+function rrect(x, y, w, h, r) {
+  ctx.beginPath(); ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath();
+}
+function text(str, x, y, size, fill = '#fff', align = 'center') {
+  ctx.font = `${size}px 'Bungee', system-ui, sans-serif`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle'; ctx.lineJoin = 'round';
+  ctx.lineWidth = size * 0.22; ctx.strokeStyle = '#1b1450';
+  ctx.strokeText(str, x, y);
+  ctx.fillStyle = fill; ctx.fillText(str, x, y);
+}
+
+// ---------- Sound ----------
+const beep = RB.beep;
+const sfx = {
+  thwip: () => { RB.noise(0.12, 0.25); beep(1400, 500, 0.12, 'sine', 0.08); },
+  bonk: n => { beep(220, 90, 0.18, 'square', 0.12); beep(500 + n * 80, 900 + n * 120, 0.15, 'triangle', 0.12, 0.05); },
+  land: () => beep(160, 90, 0.1, 'sine', 0.2),
+  jump: () => beep(400, 700, 0.12, 'triangle', 0.1),
+  fall: () => { beep(600, 120, 0.6, 'sawtooth', 0.1); },
+  over: () => [523, 440, 349].forEach((f, i) => beep(f, f * 0.98, 0.25, 'triangle', 0.12, i * 0.18)),
+};
+
+// ---------- State ----------
+// mode: 'title' → 'play' (→ 'fall' → 'play' …) → 'over'
+let mode = 'title';
+let hero, buildings, towers, bots, pops, sparks, camX, clock = 0;
+let bonkPts, combo, bestCombo, bonked, hearts, safeT, fallT, held = false;
+let best = +(RB.store.get('wh_best') || 0);
+let genX, towerX;   // how far the city has been built
+
+function reset() {
+  buildings = []; towers = []; bots = []; pops = []; sparks = [];
+  genX = -200; towerX = -100;
+  // a long first rooftop to start on
+  buildings.push({ x: -200, w: 700, top: 440, color: 0 });
+  genX = 500;
+  hero = { x: 120, y: 440 - HERO_R, vx: RUN, vy: 0, state: 'ground', anchor: null, L: 0, face: 1, spin: 0 };
+  camX = hero.x - W * 0.35;
+  bonkPts = 0; combo = 0; bestCombo = 0; bonked = 0; hearts = HEARTS; safeT = 0; fallT = 0;
+  build();
+}
+
+const dist = () => Math.max(0, Math.floor(hero.x / 40));
+const score = () => bonkPts + dist();
+
+// ---------- City builder ----------
+// Front buildings are rooftops you can land on. Tall towers behind them hold the antennas your web sticks to.
+function build() {
+  const ahead = hero.x + W + 900;
+  const diff = Math.min(1, hero.x / 30000);          // gaps and spacing grow as you go
+  while (genX < ahead) {
+    const gap = rand(90, 150 + diff * 110);
+    const w = rand(170, 360 - diff * 80);
+    const b = { x: genX + gap, w, top: rand(380, 505), color: Math.floor(Math.random() * 4) };
+    buildings.push(b);
+    // Bandit Bots on the roof
+    const n = Math.random() < 0.75 ? 1 + (Math.random() < 0.3 + diff * 0.4 ? 1 : 0) : 0;
+    for (let i = 0; i < n; i++) {
+      const home = b.x + rand(40, b.w - 40);
+      bots.push({ kind: 'walk', x: home, home, y: b.top - 22, dir: Math.random() < 0.5 ? -1 : 1, t: Math.random() * 9, roof: b });
+    }
+    // flying bots in the gaps
+    if (Math.random() < 0.45 + diff * 0.3) {
+      const x = genX + gap / 2 + rand(-20, 20);
+      bots.push({ kind: 'fly', x, y: rand(200, 340), baseY: 0, t: Math.random() * 9 });
+      bots[bots.length - 1].baseY = bots[bots.length - 1].y;
+    }
+    genX = b.x + b.w;
+  }
+  while (towerX < ahead) {
+    towerX += rand(150, 210 + diff * 60);
+    towers.push({ x: towerX, top: rand(70, 190), w: rand(70, 110), color: Math.floor(Math.random() * 3) });
+  }
+  const behind = camX - 500;
+  buildings = buildings.filter(b => b.x + b.w > behind);
+  towers = towers.filter(t => t.x + t.w > behind);
+  bots = bots.filter(b => b.x > behind && b.y < STREET + 200);
+}
+const anchorOf = t => ({ x: t.x, y: t.top - 34 });
+
+// The best antenna to swing from: ahead of you, above you, not too far.
+function findAnchor() {
+  let bestT = null, bestS = -1e9;
+  for (const t of towers) {
+    const a = anchorOf(t), dx = a.x - hero.x, dy = hero.y - a.y;
+    if (dx < 20 || dx > 380 || dy < 60) continue;
+    const s = -Math.abs(dx - 190) - Math.abs(Math.hypot(dx, dy) - 260) * 0.5;
+    if (s > bestS) { bestS = s; bestT = t; }
+  }
+  return bestT ? anchorOf(bestT) : null;
+}
+
+// ---------- Input ----------
+// One button: hold to swing, let go to fly. Space, mouse or a finger anywhere.
+function press() {
+  RB.audio();
+  if (paused) return;
+  held = true;
+  if (mode !== 'play') return;
+  if (hero.state === 'ground') { hero.vy = -JUMP; hero.state = 'air'; sfx.jump(); }
+  tryWeb();
+}
+function release() {
+  held = false;
+  if (hero.state === 'swing') { hero.state = 'air'; hero.anchor = null; }
+}
+function tryWeb() {
+  if (hero.state !== 'air') return;
+  const a = findAnchor();
+  if (!a) return;
+  hero.anchor = a;
+  hero.L = Math.hypot(hero.x - a.x, hero.y - a.y);
+  hero.state = 'swing';
+  if (hero.vx < 220) hero.vx = 220;   // a little tug forward when the web catches
+  sfx.thwip();
+}
+addEventListener('keydown', e => {
+  if (e.repeat) return;
+  if (paused) {
+    if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); }
+    return;
+  }
+  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+    e.preventDefault();
+    if (mode === 'title' || mode === 'over') startGame(); else press();
+  }
+  if (e.code === 'Enter' && mode !== 'play') startGame();
+  if (e.code === 'KeyP' || e.code === 'Escape') pause();
+  if (e.code === 'KeyM') RB.toggleMute();
+});
+addEventListener('keyup', e => { if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') release(); });
+canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); press(); });
+for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, release);
+
+// ---------- Pause ----------
+let paused = false;
+function pause() {
+  if (paused || (mode !== 'play' && mode !== 'fall')) return;
+  paused = true;
+  release();
+  RB.showPause(resume);
+}
+function resume() { paused = false; RB.hidePause(); last = performance.now(); }
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Web Hero | RoboBandit', text: 'Swing across the city and bonk the Bandit Bots! 🕸️' },
+});
+RB.onHide(pause);
+
+// ---------- Update ----------
+function bonk(b) {
+  b.kind = 'webbed';
+  b.vx = hero.vx * 0.5 + rand(-60, 60);
+  b.vy = -380;
+  b.spin = rand(-8, 8);
+  combo = hero.state === 'ground' ? 1 : combo + 1;
+  bestCombo = Math.max(bestCombo, combo);
+  bonked++;
+  const pts = 100 * combo;
+  bonkPts += pts;
+  const words = ['BONK!', 'POW!', 'BAM!', 'ZAP!', 'WHAM!', 'KAPOW!'];
+  pops.push({ x: b.x, y: b.y - 30, t: 0, word: words[Math.floor(Math.random() * words.length)], pts, combo });
+  for (let i = 0; i < 14; i++) {
+    const a = Math.random() * TAU, s = rand(120, 360);
+    sparks.push({ x: b.x, y: b.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.3, 0.6), c: i % 2 ? '#ffe14a' : '#fff' });
+  }
+  // bounce off the bot like a trampoline (unless you're swinging)
+  if (hero.state === 'air') hero.vy = Math.min(hero.vy, -380);
+  sfx.bonk(combo);
+  if (navigator.vibrate) navigator.vibrate(30);
+}
+
+function loseHeart() {
+  hearts--;
+  mode = 'fall'; fallT = 0;
+  hero.state = 'air'; hero.anchor = null;
+  sfx.fall();
+  if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+}
+
+function respawn() {
+  // pop back up on the next rooftop ahead
+  const b = buildings.find(q => q.x + q.w > hero.x + 60) || buildings[buildings.length - 1];
+  hero.x = Math.max(b.x + 50, Math.min(hero.x + 60, b.x + b.w - 60));
+  hero.y = b.top - HERO_R;
+  hero.vx = RUN; hero.vy = 0; hero.state = 'ground'; hero.anchor = null;
+  safeT = 1.5;
+  combo = 0;
+  mode = 'play';
+}
+
+function step(dt) {
+  const h = hero, px = h.x, py = h.y;
+  if (h.state === 'ground') {
+    h.vx += (RUN - h.vx) * Math.min(1, dt * 3);
+    h.x += h.vx * dt;
+    const roof = buildings.find(b => h.x > b.x - 4 && h.x < b.x + b.w + 4 && Math.abs(b.top - HERO_R - h.y) < 2);
+    if (!roof) { h.state = 'air'; if (held) tryWeb(); }
+    return;
+  }
+  h.vy += G * dt;
+  h.x += h.vx * dt;
+  h.y += h.vy * dt;
+  if (h.state === 'swing') {
+    // the web is a rope: keep within L of the anchor, and reel in a little to build speed
+    const a = h.anchor, dx = h.x - a.x, dy = h.y - a.y, d = Math.hypot(dx, dy);
+    h.L = Math.max(WEB_MIN, h.L - REEL * dt);
+    const nx = dx / d, ny = dy / d;
+    if (d > h.L) {
+      h.x = a.x + nx * h.L; h.y = a.y + ny * h.L;
+      const vr = h.vx * nx + h.vy * ny;
+      if (vr > 0) { h.vx -= vr * nx; h.vy -= vr * ny; }
+    }
+    // push along the arc, always toward the right
+    let tx = -ny, ty = nx;
+    if (tx < 0) { tx = -tx; ty = -ty; }
+    h.vx += tx * PUMP * dt; h.vy += ty * PUMP * dt;
+    // past the antenna and running out of upswing: the web lets go by itself, and since you're
+    // still holding, the next antenna gets grabbed. Holding = swing, swing, swing across the city.
+    if (h.x > a.x + 25 && h.vy > -60) { h.state = 'air'; h.anchor = null; }
+  } else if (held) tryWeb();   // still holding: grab the next antenna that comes in range
+  const sp = Math.hypot(h.vx, h.vy);
+  if (sp > MAX_SPEED) { h.vx *= MAX_SPEED / sp; h.vy *= MAX_SPEED / sp; }
+  if (h.y < 20) { h.y = 20; if (h.vy < 0) h.vy = 0; }
+
+  // rooftops: land on top, bump off the sides
+  for (const b of buildings) {
+    if (h.x + HERO_R * 0.6 < b.x || h.x - HERO_R * 0.6 > b.x + b.w) continue;
+    const feet = h.y + HERO_R, prevFeet = py + HERO_R;
+    if (h.vy >= 0 && prevFeet <= b.top + 1 && feet >= b.top) {
+      h.y = b.top - HERO_R; h.vy = 0; h.state = 'ground'; h.anchor = null;
+      if (combo > 1) pops.push({ x: h.x, y: h.y - 60, t: 0, word: `${combo} BOT COMBO!`, pts: 0, combo });
+      combo = 0;
+      sfx.land();
+      return;
+    }
+    if (feet > b.top + 10 && px + HERO_R <= b.x + 2) {   // ran into the wall
+      h.x = b.x - HERO_R; h.vx = -60; h.state = 'air'; h.anchor = null;
+    }
+  }
+}
+
+function update(dt) {
+  clock += dt;
+  if (mode === 'title' || mode === 'over') {
+    // the city scrolls by behind the menus
+    camX += 60 * dt;
+    if (!hero) reset();
+    hero.x = camX + W * 0.35;
+    build();
+    return;
+  }
+  safeT = Math.max(0, safeT - dt);
+  if (mode === 'fall') {
+    fallT += dt;
+    hero.vy += G * dt; hero.y += hero.vy * dt; hero.x += hero.vx * 0.3 * dt; hero.spin += dt * 10;
+    if (fallT > 1.3) {
+      if (hearts > 0) respawn(); else endGame();
+    }
+  } else {
+    // two small steps keep the rope steady at high speed
+    step(dt / 2); step(dt / 2);
+    hero.face = hero.vx >= 0 ? 1 : -1;
+    if (hero.y > STREET && safeT <= 0) loseHeart();
+    else if (hero.y > STREET) { hero.y = STREET; hero.vy = -700; }   // still safe: bounce back up
+  }
+
+  // bots
+  for (const b of bots) {
+    b.t += dt;
+    if (b.kind === 'walk') {
+      b.x += b.dir * 40 * dt;
+      if (Math.abs(b.x - b.home) > 45) b.dir *= -1;
+    } else if (b.kind === 'fly') {
+      b.y = b.baseY + Math.sin(b.t * 2) * 20;
+      b.x += Math.sin(b.t) * 15 * dt;
+    } else {
+      b.vy += G * dt; b.x += b.vx * dt; b.y += b.vy * dt;
+    }
+    if (mode === 'play' && b.kind !== 'webbed' && Math.hypot(b.x - hero.x, b.y - hero.y) < HERO_R + 22) bonk(b);
+  }
+  for (const p of pops) p.t += dt;
+  pops = pops.filter(p => p.t < 1.1);
+  for (const s of sparks) { s.vy += 600 * dt; s.x += s.vx * dt; s.y += s.vy * dt; s.life -= dt; }
+  sparks = sparks.filter(s => s.life > 0);
+
+  const target = hero.x - W * 0.35;
+  camX += (target - camX) * Math.min(1, dt * 6);
+  build();
+}
+
+// ---------- Drawing ----------
+const BUILDING_COLORS = [['#e8734a', '#c95a35'], ['#4fb0a5', '#3a8f86'], ['#f2b84b', '#d69a2e'], ['#8b7bd8', '#6f5fc0']];
+const TOWER_COLORS = ['#55679e', '#4a5b8f', '#61709f'];
+
+function drawSky() {
+  const g = ctx.createLinearGradient(0, -OFFY, 0, H);
+  g.addColorStop(0, '#3d8ff0'); g.addColorStop(0.55, '#8fd0ff'); g.addColorStop(1, '#ffe2b0');
+  ctx.fillStyle = g;
+  ctx.fillRect(0, -OFFY, W, VH);
+  ctx.fillStyle = '#fff3c4'; circle(W * 0.78, 110, 46);
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  for (let i = 0; i < 6; i++) {
+    const x = mod(rnd(i, 1) * 1800 - camX * 0.08 - clock * 8, 1800) - 200, y = 40 + rnd(i, 2) * 120;
+    ctx.beginPath();
+    ctx.ellipse(x, y, 60, 15, 0, 0, TAU); ctx.ellipse(x + 30, y - 10, 36, 14, 0, 0, TAU); ctx.ellipse(x - 26, y - 4, 26, 11, 0, 0, TAU);
+    ctx.fill();
+  }
+  // far skyline
+  for (const [par, col, hmin, hmax, wmin] of [[0.15, '#a9b8e8', 140, 300, 50], [0.3, '#8193cc', 120, 260, 60]]) {
+    ctx.fillStyle = col;
+    const step = 70, off = camX * par;
+    for (let i = Math.floor(off / step) - 1; i * step - off < W + step; i++) {
+      const x = i * step - off, h = hmin + rnd(i, par * 10) * (hmax - hmin);
+      ctx.fillRect(x, STREET - h, wmin + rnd(i, 3) * 30, h);
+    }
+  }
+}
+
+function drawTower(t) {
+  const x = t.x - camX - t.w / 2;
+  ctx.fillStyle = TOWER_COLORS[t.color];
+  ctx.fillRect(x, t.top, t.w, STREET - t.top);
+  ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(x, t.top, t.w * 0.25, STREET - t.top);
+  // windows
+  ctx.fillStyle = 'rgba(255,230,150,.55)';
+  for (let wy = t.top + 16; wy < STREET - 10; wy += 22)
+    for (let wx = x + 10; wx < x + t.w - 14; wx += 18)
+      if (rnd(Math.floor(wx + t.x), wy) > 0.45) ctx.fillRect(wx, wy, 8, 10);
+  // roof cap and antenna (the web anchor)
+  ctx.fillStyle = '#3b4a78'; ctx.fillRect(x - 4, t.top - 6, t.w + 8, 8);
+  ctx.strokeStyle = '#3b4a78'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(t.x - camX, t.top - 6); ctx.lineTo(t.x - camX, t.top - 34); ctx.stroke();
+  const blink = Math.sin(clock * 4 + t.x) > 0;
+  ctx.fillStyle = blink ? '#ff4d4d' : '#a33';
+  circle(t.x - camX, t.top - 36, 5);
+}
+
+function drawBuilding(b) {
+  const [c1, c2] = BUILDING_COLORS[b.color];
+  const x = b.x - camX;
+  ctx.fillStyle = c1; ctx.fillRect(x, b.top, b.w, STREET - b.top + 40);
+  ctx.fillStyle = c2; ctx.fillRect(x + b.w * 0.82, b.top, b.w * 0.18, STREET - b.top + 40);
+  // rooftop ledge, water tank and vents
+  ctx.fillStyle = '#3a2f55'; ctx.fillRect(x - 4, b.top - 4, b.w + 8, 8);
+  if (b.w > 220) {
+    const tx = x + b.w * 0.7;
+    ctx.fillStyle = '#7a5a3a'; ctx.fillRect(tx, b.top - 40, 34, 30);
+    ctx.fillStyle = '#5c4229'; ctx.fillRect(tx + 4, b.top - 10, 4, 10); ctx.fillRect(tx + 26, b.top - 10, 4, 10);
+    ctx.beginPath(); ctx.moveTo(tx - 2, b.top - 40); ctx.lineTo(tx + 17, b.top - 52); ctx.lineTo(tx + 36, b.top - 40); ctx.fill();
+  }
+  // windows
+  for (let wy = b.top + 22; wy < STREET; wy += 30)
+    for (let wx = x + 14; wx < x + b.w - 24; wx += 26) {
+      ctx.fillStyle = rnd(Math.floor(wx + b.x), wy) > 0.3 ? 'rgba(255,248,220,.85)' : 'rgba(40,40,80,.45)';
+      rrect(wx, wy, 14, 18, 3); ctx.fill();
+    }
+}
+
+function drawStreet() {
+  ctx.fillStyle = '#2d2a45'; ctx.fillRect(0, STREET + 10, W, VH);
+  ctx.fillStyle = '#8f8ab0'; ctx.fillRect(0, STREET + 6, W, 6);
+  ctx.fillStyle = '#ffe14a';
+  for (let x = -mod(camX, 80); x < W; x += 80) ctx.fillRect(x, STREET + 34, 40, 5);
+}
+
+function drawBot(b) {
+  const x = b.x - camX, y = b.y;
+  ctx.save();
+  ctx.translate(x, y);
+  if (b.kind === 'webbed') {
+    ctx.rotate(b.t * b.spin);
+    // wrapped up in web
+    ctx.fillStyle = '#f4f4ff'; ctx.beginPath(); ctx.ellipse(0, 0, 20, 26, 0, 0, TAU); ctx.fill();
+    ctx.strokeStyle = '#b9b9d9'; ctx.lineWidth = 2;
+    for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(-20, k * 9); ctx.quadraticCurveTo(0, k * 9 + 6, 20, k * 9); ctx.stroke(); }
+    ctx.fillStyle = '#1b1450'; ctx.fillRect(-10, -12, 20, 6);
+    ctx.fillStyle = '#ff4d4d'; circle(-5, -9, 2.5); circle(5, -9, 2.5);
+    ctx.restore();
+    return;
+  }
+  const bob = b.kind === 'walk' ? Math.abs(Math.sin(b.t * 8)) * 3 : 0;
+  ctx.translate(0, -bob);
+  if (b.kind === 'fly') {
+    // propeller hat
+    ctx.strokeStyle = '#444'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(0, -20); ctx.lineTo(0, -28); ctx.stroke();
+    const sw = Math.cos(b.t * 30) * 18;
+    ctx.fillStyle = '#ff6a1f'; ctx.beginPath(); ctx.ellipse(0, -29, Math.abs(sw) + 2, 3, 0, 0, TAU); ctx.fill();
+  } else {
+    // little legs
+    ctx.fillStyle = '#5b6170';
+    const st = Math.sin(b.t * 8) * 4;
+    ctx.fillRect(-10 + st, 14, 7, 9); ctx.fillRect(3 - st, 14, 7, 9);
+  }
+  // round robot body with a bandit mask
+  const g = ctx.createRadialGradient(-6, -8, 2, 0, 0, 22);
+  g.addColorStop(0, '#e9edf3'); g.addColorStop(1, '#8e98a8');
+  ctx.fillStyle = g; circle(0, 0, 20);
+  ctx.fillStyle = '#1b1b24';
+  ctx.beginPath(); ctx.moveTo(-21, -10); ctx.quadraticCurveTo(0, -16, 21, -10); ctx.lineTo(21, 0); ctx.quadraticCurveTo(0, -5, -21, 0); ctx.fill();
+  ctx.fillStyle = '#ff4d4d'; circle(-7 * (b.dir || 1), -6, 3.5); circle(7 * (b.dir || 1), -6, 3.5);
+  ctx.fillStyle = '#ffd0d0'; circle(-7 * (b.dir || 1) + 1, -7, 1.2);
+  ctx.strokeStyle = '#1b1b24'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.arc(0, 6, 6, 0.2, Math.PI - 0.2); ctx.stroke();   // grumpy grin
+  // money bag
+  ctx.fillStyle = '#c9a25a'; circle(18 * (b.dir || 1), 10, 9);
+  ctx.fillStyle = '#7a5a20'; ctx.font = 'bold 11px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('$', 18 * (b.dir || 1), 11);
+  ctx.restore();
+}
+
+function drawHero() {
+  const h = hero;
+  if (mode === 'play' && safeT > 0 && Math.floor(safeT * 10) % 2) return;
+  const x = h.x - camX, y = h.y;
+  // the web
+  if (h.state === 'swing' && h.anchor) {
+    const ax = h.anchor.x - camX, ay = h.anchor.y;
+    ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 3;
+    ctx.beginPath(); ctx.moveTo(x + 4 * h.face, y - 14); ctx.lineTo(ax, ay); ctx.stroke();
+    ctx.strokeStyle = 'rgba(255,255,255,.5)'; ctx.lineWidth = 1;
+    ctx.beginPath(); ctx.arc(ax, ay, 6, 0, TAU); ctx.stroke();
+  }
+  ctx.save();
+  ctx.translate(x, y);
+  if (mode === 'fall') ctx.rotate(h.spin);
+  else if (h.state !== 'ground') ctx.rotate(Math.atan2(h.vy, Math.abs(h.vx) + 200) * 0.6 * h.face);
+  ctx.scale(h.face * 1.35, 1.35);
+  const run = h.state === 'ground' ? Math.sin(clock * 18) : 0;
+  const suit = '#8a3ffc', trim = '#ff6a1f';
+  ctx.lineCap = 'round';
+  // legs
+  ctx.strokeStyle = suit; ctx.lineWidth = 8;
+  if (h.state === 'ground') {
+    ctx.beginPath(); ctx.moveTo(-3, 8); ctx.lineTo(-6 - run * 8, 20); ctx.moveTo(3, 8); ctx.lineTo(6 + run * 8, 20); ctx.stroke();
+  } else {
+    ctx.beginPath(); ctx.moveTo(-3, 8); ctx.lineTo(-12, 16); ctx.moveTo(3, 8); ctx.lineTo(10, 18); ctx.stroke();
+  }
+  ctx.fillStyle = trim; circle(h.state === 'ground' ? -6 - run * 8 : -12, h.state === 'ground' ? 21 : 17, 4.5);
+  circle(h.state === 'ground' ? 6 + run * 8 : 10, h.state === 'ground' ? 21 : 19, 4.5);
+  // body
+  ctx.fillStyle = suit; rrect(-10, -10, 20, 22, 8); ctx.fill();
+  ctx.fillStyle = trim; ctx.fillRect(-10, 6, 20, 4);          // belt
+  ctx.fillStyle = '#ffe14a'; ctx.font = "bold 12px 'Bungee', system-ui"; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('W', 0, -1);
+  // arms: one reaching up the web while swinging
+  ctx.strokeStyle = suit; ctx.lineWidth = 7;
+  ctx.beginPath();
+  if (h.state === 'swing') { ctx.moveTo(4, -6); ctx.lineTo(6, -16); }
+  else { ctx.moveTo(6, -4); ctx.lineTo(14, 2 + run * 4); }
+  ctx.moveTo(-6, -4); ctx.lineTo(-14, 4 - run * 4);
+  ctx.stroke();
+  ctx.fillStyle = trim; circle(h.state === 'swing' ? 6 : 14, h.state === 'swing' ? -17 : 3 + run * 4, 4); circle(-14, 5 - run * 4, 4);
+  // head with a mask and big white eyes
+  ctx.fillStyle = suit; circle(0, -21, 12);
+  ctx.fillStyle = trim; ctx.beginPath(); ctx.arc(0, -21, 12, Math.PI * 1.05, Math.PI * 1.95); ctx.lineTo(0, -21); ctx.fill();
+  ctx.fillStyle = '#fff'; ctx.strokeStyle = '#1b1450'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.ellipse(-1, -21, 4.5, 6, -0.3, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.beginPath(); ctx.ellipse(8, -21, 4, 5.5, 0.3, 0, TAU); ctx.fill(); ctx.stroke();
+  ctx.restore();
+}
+
+function drawPop(p) {
+  const s = Math.min(1, p.t * 6) * (1 + Math.max(0, 0.3 - p.t));
+  const x = p.x - camX, y = p.y - p.t * 30;
+  ctx.globalAlpha = Math.min(1, (1.1 - p.t) * 4);
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (p.pts) {
+    // comic-book burst
+    ctx.fillStyle = '#ffe14a'; ctx.strokeStyle = '#1b1450'; ctx.lineWidth = 3;
+    ctx.beginPath();
+    for (let k = 0; k < 16; k++) { const r = k % 2 ? 22 : 40, a = k / 16 * TAU; ctx.lineTo(Math.cos(a) * r * 1.3, Math.sin(a) * r); }
+    ctx.closePath(); ctx.fill(); ctx.stroke();
+    text(p.word, 0, -2, 18, '#ff4d4d');
+    text(`+${p.pts}`, 0, 38, 16, '#fff');
+  } else text(p.word, 0, 0, 22, '#ffe14a');
+  ctx.restore();
+  ctx.globalAlpha = 1;
+}
+
+function heart(x, y, r, full) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + r * 0.9);
+  ctx.bezierCurveTo(x - r * 1.6, y - r * 0.2, x - r * 0.7, y - r * 1.3, x, y - r * 0.45);
+  ctx.bezierCurveTo(x + r * 0.7, y - r * 1.3, x + r * 1.6, y - r * 0.2, x, y + r * 0.9);
+  ctx.fillStyle = full ? '#ff4d6d' : 'rgba(255,255,255,.4)'; ctx.fill();
+  ctx.lineWidth = 3; ctx.strokeStyle = '#1b1450'; ctx.stroke();
+}
+
+function draw() {
+  ctx.setTransform(scale, 0, 0, scale, 0, OFFY * scale);
+  drawSky();
+  for (const t of towers) if (t.x - camX > -150 && t.x - camX < W + 150) drawTower(t);
+  drawStreet();
+  for (const b of buildings) if (b.x + b.w - camX > -10 && b.x - camX < W + 10) drawBuilding(b);
+  if (hero) {
+    for (const b of bots) if (b.x - camX > -40 && b.x - camX < W + 40) drawBot(b);
+    if (mode === 'play' || mode === 'fall') {
+      // show which antenna the web would grab
+      if (hero.state !== 'swing') {
+        const a = findAnchor();
+        if (a) {
+          ctx.strokeStyle = `rgba(255,255,255,${0.5 + 0.3 * Math.sin(clock * 8)})`; ctx.lineWidth = 2;
+          ctx.beginPath(); ctx.arc(a.x - camX, a.y, 11, 0, TAU); ctx.stroke();
+        }
+      }
+      drawHero();
+    }
+  }
+  for (const s of sparks) { ctx.fillStyle = s.c; circle(s.x - camX, s.y, 3); }
+  for (const p of pops) drawPop(p);
+
+  if (mode === 'play' || mode === 'fall') {
+    ctx.setTransform(scale, 0, 0, scale, 0, 0);
+    for (let i = 0; i < HEARTS; i++) heart(28 + i * 34, 30, 12, i < hearts);
+    // narrow screens: drop the score below the corner buttons
+    const sy = W < 700 ? 100 : 34;
+    text(String(score()), W / 2, sy, 34, '#fff');
+    text(`🕸️ ${bonked} bots`, 16, 70, 15, '#ffe14a', 'left');
+    if (combo > 1) text(`COMBO x${combo}`, W / 2, sy + 40, 20, '#ffe14a');
+    if (mode === 'play' && dist() < 6) text(RB.touch ? 'HOLD TO SWING · LET GO TO FLY' : 'HOLD SPACE TO SWING · LET GO TO FLY', W / 2, VH * 0.2, 16, '#fff');
+    if (mode === 'fall') text(hearts > 0 ? 'OOPS! WATCH THE STREET!' : 'OH NO!', W / 2, VH * 0.35, 28, '#ff4d6d');
+  }
+}
+
+// ---------- Screens ----------
+const $ = id => document.getElementById(id);
+function startGame() {
+  RB.audio();
+  $('title').classList.add('hidden');
+  $('over').classList.add('hidden');
+  reset();
+  mode = 'play';
+  held = false;
+}
+function endGame() {
+  mode = 'over';
+  sfx.over();
+  const sc = score(), isBest = sc > best;
+  if (isBest) { best = sc; RB.store.set('wh_best', best); }
+  $('overStats').innerHTML = `SCORE <b>${sc}</b><br>BOTS BONKED <b>${bonked}</b><br>BEST COMBO <b>x${bestCombo}</b><br>` +
+    (isBest ? '🏆 NEW BEST!' : `BEST <b>${best}</b>`);
+  $('over').classList.remove('hidden');
+}
+$('btnPlay').addEventListener('click', startGame);
+$('btnAgain').addEventListener('click', startGame);
+if (best) $('titleBest').innerHTML = `🏆 BEST <b>${best}</b>`;
+reset();
+
+// ---------- Loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+  if (!paused) update(dt);
+  draw();
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
