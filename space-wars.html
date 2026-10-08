@@ -182,6 +182,7 @@
   </div>
 </div>
 
+<script src="touch-stick.js"></script>
 <script>
 'use strict';
 
@@ -975,8 +976,9 @@ function saveHi() {
 function updateSteering(dt) {
   const KS = 8;
   if (!input.mouse) {
-    target.x += ((input.right ? 1 : 0) - (input.left ? 1 : 0)) * KS * dt;
-    target.y += ((input.up ? 1 : 0) - (input.down ? 1 : 0)) * KS * dt;
+    // keys, plus the on-screen joystick on touch screens (drag up = fly up)
+    target.x += ((input.right ? 1 : 0) - (input.left ? 1 : 0) + stick.x) * KS * dt;
+    target.y += ((input.up ? 1 : 0) - (input.down ? 1 : 0) - stick.y) * KS * dt;
   }
   target.x = clamp(target.x, -TW + SHIP_HW + 0.05, TW - SHIP_HW - 0.05);
   target.y = clamp(target.y, SHIP_HH + 0.15, TH - 0.4);
@@ -2797,7 +2799,7 @@ function showHowTo() {
        correctly to launch. Crash, and ${QUIZ_NEED_RETRY} more gets you a new ship. Before launch, a 🎁 bonus round
        of trivia can earn extra ammo and shields.</p>
        <p>🕹️ <b>Controls</b><br>
-       Steer: mouse, arrow keys, WASD or touch<br>
+       Steer: mouse, arrow keys, WASD — or on a phone, drag the joystick that appears under your thumb<br>
        Main guns (3 hits destroy an enemy): click or Space<br>
        Special weapon — torpedo, detonator, harpoon or missile (1 hit), or a podracer boost: right-click, X or E<br>
        Pause or quit: P or ☰ · Fullscreen: F · Sound: M</p>
@@ -3647,19 +3649,26 @@ function pointerTarget(e) {
   const fy = (e.clientY / H - 0.1) / 0.75;
   target.y = (TH - 0.4) - fy * (TH - 0.8);
 }
+// Touch screens steer with a floating joystick: put a thumb down anywhere and drag.
+const stick = createTouchStick(canvas, { enabled: () => state === 'playing' });
 canvas.addEventListener('pointerdown', e => {
   sfx.init();
   if (state === 'finale') { if (finaleT > 1) finishFinale(); return; }
   canvas.setPointerCapture(e.pointerId);
+  if (e.pointerType !== 'mouse') {
+    // hand steering back from the mouse to the joystick, starting where the ship is
+    if (input.mouse) { input.mouse = false; target.x = player.x; target.y = player.y; }
+    return;
+  }
   pointerTarget(e);
-  // Mouse buttons fire; touches on the canvas only steer (use the on-screen buttons to fire)
-  if (state === 'playing' && e.pointerType === 'mouse') {
+  // Mouse buttons fire; touches use the on-screen buttons
+  if (state === 'playing') {
     if (e.button === 2) input.torp = true;
     else if (e.button === 0) input.pointerFire = true;
   }
 });
 canvas.addEventListener('pointermove', e => {
-  if (e.pointerType === 'mouse' || e.buttons) pointerTarget(e);
+  if (e.pointerType === 'mouse') pointerTarget(e);
 });
 const release = e => { if (e.pointerType !== 'mouse' || e.button === 0) input.pointerFire = false; };
 canvas.addEventListener('pointerup', release);

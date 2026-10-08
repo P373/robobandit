@@ -97,13 +97,13 @@
       <li><b>Steer your board.</b>
         <span class="key-only"><kbd>↑</kbd> tips the nose <b>up</b> the wave. <kbd>↓</kbd> tips it <b>down</b>.
           (<kbd>W</kbd>/<kbd>S</kbd> or <kbd>←</kbd>/<kbd>→</kbd> work too.)</span>
-        <span class="touch-only">Hold the <b>top half</b> of the screen to tip the nose <b>up</b> the wave.
-          Hold the <b>bottom half</b> to tip it <b>down</b>.</span></li>
+        <span class="touch-only">Put your thumb anywhere and a joystick appears. Drag <b>up</b> to tip the nose
+          <b>up</b> the wave, drag <b>down</b> to tip it <b>down</b>. Drag further to turn harder.</span></li>
       <li><b>Speed comes from going down.</b> Riding <b>down</b> the wave makes you faster. Riding <b>up</b> slows you down.</li>
       <li><b>Fly!</b> Drop to the bottom, turn hard, and race straight <b>up</b> the wave. If you're fast enough,
         you shoot off the top into the air.</li>
       <li><b>Do a trick.</b> In the air, keep holding
-        <span class="key-only"><kbd>↑</kbd> or <kbd>↓</kbd></span><span class="touch-only">top or bottom</span>
+        <span class="key-only"><kbd>↑</kbd> or <kbd>↓</kbd></span><span class="touch-only">the joystick up or down</span>
         to spin. Go all the way around for a <b>360</b>!</li>
       <li><b>Land it.</b> Before you splash down, point your nose <b>down</b> the wave. Land pointing up and you wipe out.</li>
       <li><b>You get 60 seconds and 3 boards.</b> Each wipeout costs a board. When the ride ends, five judges score you out of 10.</li>
@@ -124,6 +124,7 @@
   <button id="btnMute" title="Sound on/off (M)">🔊</button>
 </div>
 
+<script src="touch-stick.js"></script>
 <script>
 'use strict';
 
@@ -248,8 +249,8 @@ const WAKE_LIFE = 1.4;
 const TIP_TIME = 4.5;
 const tipsShown = new Set(), tipQueue = [];
 let tip = null, bottomT = 0;
-const UP_WORD = matchMedia('(pointer: coarse)').matches ? 'hold the TOP of the screen' : 'press ↑';
-const DOWN_WORD = matchMedia('(pointer: coarse)').matches ? 'hold the BOTTOM of the screen' : 'press ↓';
+const UP_WORD = matchMedia('(pointer: coarse)').matches ? 'drag the joystick UP' : 'press ↑';
+const DOWN_WORD = matchMedia('(pointer: coarse)').matches ? 'drag the joystick DOWN' : 'press ↓';
 function showTip(key, msg) {
   if (tipsShown.has(key)) return;
   tipsShown.add(key);
@@ -279,13 +280,12 @@ function surferY() { return s.air ? s.air.y : TROUGH - s.f * faceH(s.x); }
 
 // ---------- Input ----------
 // ↑ / ← / W / A = nose up (counter-clockwise). ↓ / → / S / D = nose down (clockwise).
-// Touch: hold the top half of the screen for up, bottom half for down.
+// Touch: a floating joystick; drag up for nose up, down for nose down (a small drag = a gentle turn).
 const keys = { up: false, down: false };
-const touches = new Map();
+const stick = createTouchStick(canvas, { enabled: () => mode === 'ride' || mode === 'wipe' });
 function turnInput() {
-  let up = keys.up, down = keys.down;
-  for (const y of touches.values()) { if (y < innerHeight / 2) up = true; else down = true; }
-  return (up ? 1 : 0) - (down ? 1 : 0);
+  const sy = Math.abs(stick.y) < 0.15 ? 0 : -stick.y;   // small dead zone so a resting thumb doesn't steer
+  return Math.max(-1, Math.min(1, (keys.up ? 1 : 0) - (keys.down ? 1 : 0) + sy));
 }
 const howto = document.getElementById('howto');
 function startRide() {
@@ -324,12 +324,9 @@ addEventListener('keyup', e => {
 });
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
-  if (mode === 'ride' || mode === 'wipe') touches.set(e.pointerId, e.clientY);
   press();
 });
-canvas.addEventListener('pointermove', e => { if (touches.has(e.pointerId)) touches.set(e.pointerId, e.clientY); });
-for (const ev of ['pointerup', 'pointercancel', 'pointerleave']) canvas.addEventListener(ev, e => touches.delete(e.pointerId));
-addEventListener('blur', () => { keys.up = keys.down = false; touches.clear(); });
+addEventListener('blur', () => { keys.up = keys.down = false; });
 
 // ---------- Update ----------
 function wipeout(reason) {
@@ -883,8 +880,8 @@ function drawHUD() {
   }
   if (mode === 'ride' && timeLeft > RIDE_TIME - 4 && touchy) {
     ctx.globalAlpha = 0.85;
-    text('▲ HOLD TOP = UP', W / 2, VH * 0.3, 15);
-    text('▼ HOLD BOTTOM = DOWN', W / 2, VH * 0.8, 15);
+    text('THUMB DOWN, THEN DRAG', W / 2, VH * 0.72, 15);
+    text('▲ UP = CARVE UP   ▼ DOWN = CARVE DOWN', W / 2, VH * 0.72 + 26, 13);
     ctx.globalAlpha = 1;
   }
   if (tip) {
