@@ -1,0 +1,892 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>RoboBandit - Hamglider</title>
+<meta name="description" content="Roll Pip the hamster down a ramp over the ocean, pop open your wings and glide onto the bullseye in Hamglider, a free RoboBandit game.">
+<link rel="canonical" href="https://robobandit.com/hamglider.html">
+<meta name="theme-color" content="#5ec8ff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/hamglider.html">
+<meta property="og:title" content="RoboBandit - Hamglider">
+<meta property="og:description" content="Roll down the ramp, pop open your wings and glide onto the bullseye!">
+<meta property="og:image" content="https://robobandit.com/thumbs/hamglider.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="RoboBandit - Hamglider">
+<meta name="twitter:image" content="https://robobandit.com/thumbs/hamglider.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #5ec8ff; color: #fff;
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+  .bungee { font-family: 'Bungee', system-ui, sans-serif; }
+  .hidden { display: none !important; }
+  .shadow { text-shadow: 3px 3px 0 #0b2a5c; }
+  #topbar {
+    position: fixed; display: flex; gap: 8px; z-index: 6;
+    top: max(10px, env(safe-area-inset-top)); right: max(10px, env(safe-area-inset-right));
+  }
+  #topbar a, #topbar button {
+    width: 44px; height: 44px; border-radius: 10px; border: 0; cursor: pointer;
+    display: grid; place-items: center; font-size: 20px; text-decoration: none;
+    background: rgba(255,255,255,.8); box-shadow: 0 3px 0 rgba(0,0,0,.2);
+  }
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  #hudTL { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top)); font-size: 20px; line-height: 1.3; }
+  #hudTL .small { font-size: 14px; color: #fff3a8; }
+  #wind {
+    position: absolute; left: max(14px, env(safe-area-inset-left)); top: 88px; display: flex; align-items: center; gap: 8px;
+    font: 14px 'Bungee', system-ui, sans-serif; background: rgba(11,42,92,.55); padding: 6px 10px; border-radius: 10px;
+  }
+  #windArrow { width: 30px; height: 30px; display: grid; place-items: center; font-size: 24px; transition: transform .1s; }
+  #gauges {
+    position: absolute; left: 50%; bottom: max(16px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    display: flex; gap: 10px; font: 13px 'Bungee', system-ui, sans-serif;
+  }
+  #gauges div { background: rgba(11,42,92,.55); padding: 6px 12px; border-radius: 10px; text-align: center; min-width: 74px; }
+  #gauges b { display: block; font-size: 20px; color: #fff3a8; font-weight: normal; }
+  #prompt {
+    position: absolute; left: 0; right: 0; top: 24%; text-align: center; font: 28px 'Bungee', system-ui, sans-serif;
+    color: #ffe14a; text-shadow: 3px 3px 0 #0b2a5c; animation: pulse .7s ease-in-out infinite alternate;
+  }
+  @keyframes pulse { to { transform: scale(1.08); } }
+  #banner {
+    position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 52px/1.1 'Bungee', system-ui, sans-serif;
+    color: #ffe14a; text-shadow: 4px 4px 0 #0b2a5c; padding: 0 12px;
+  }
+  #banner small { display: block; font-size: 22px; color: #fff; margin-top: 8px; }
+  #wingBtn {
+    position: fixed; z-index: 3; right: max(18px, env(safe-area-inset-right)); bottom: max(80px, calc(env(safe-area-inset-bottom) + 70px));
+    width: 104px; height: 104px; border-radius: 50%; border: 4px solid #0b2a5c; cursor: pointer;
+    font: 15px 'Bungee', system-ui, sans-serif; color: #0b2a5c; background: #ffe14a; box-shadow: 0 6px 0 #0b2a5c;
+  }
+  #wingBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0b2a5c; }
+  #stick { position: fixed; z-index: 3; width: 120px; height: 120px; margin: -60px 0 0 -60px; border-radius: 50%;
+    border: 3px solid rgba(255,255,255,.6); background: rgba(11,42,92,.25); pointer-events: none; }
+  #stickKnob { position: absolute; left: 35px; top: 35px; width: 50px; height: 50px; border-radius: 50%; background: rgba(255,255,255,.8); }
+  .screen {
+    position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
+    background: radial-gradient(ellipse at center, rgba(11,42,92,.35), rgba(11,42,92,.75)); touch-action: pan-y;
+  }
+  .panel {
+    margin: auto; max-width: 620px; width: 100%; text-align: center; color: #0b2a5c; background: #fffdf2;
+    border: 4px solid #0b2a5c; border-radius: 22px; box-shadow: 0 8px 0 #0b2a5c; padding: 22px 22px 26px;
+  }
+  .panel h1 { font: 46px/1 'Bungee', system-ui, sans-serif; margin: 0; color: #ff8a1f; text-shadow: 3px 3px 0 #0b2a5c; }
+  .panel .sub { font-weight: 800; margin: 8px 0 14px; color: #3a6fd8; }
+  .panel ol { text-align: left; margin: 0 0 6px; padding-left: 0; list-style: none; counter-reset: s; }
+  .panel li { position: relative; padding: 7px 0 7px 44px; counter-increment: s; line-height: 1.4; font-size: 16px; }
+  .panel li::before {
+    content: counter(s); position: absolute; left: 0; top: 6px; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font: 14px 'Bungee', system-ui, sans-serif; background: #ffe14a; border: 3px solid #0b2a5c;
+  }
+  kbd { display: inline-block; min-width: 1.5em; padding: 0 5px; font: bold 14px system-ui, sans-serif; text-align: center;
+    background: #fff; border: 2px solid #0b2a5c; border-radius: 4px; box-shadow: 0 2px 0 #0b2a5c; }
+  .rings { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; font: 13px 'Bungee', system-ui, sans-serif; }
+  .rings span { padding: 4px 9px; border-radius: 12px; border: 2px solid #0b2a5c; }
+  .big-btn {
+    margin-top: 16px; font: 22px 'Bungee', system-ui, sans-serif; padding: 14px 30px; cursor: pointer; border-radius: 16px;
+    border: 4px solid #0b2a5c; color: #0b2a5c; background: #ffe14a; box-shadow: 0 6px 0 #0b2a5c;
+  }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0b2a5c; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+  #scoreTable { width: 100%; border-collapse: collapse; margin: 12px 0; font: 16px 'Bungee', system-ui, sans-serif; }
+  #scoreTable td { padding: 6px; border-bottom: 2px dashed #c9d8ee; }
+  #scoreTable td:last-child { text-align: right; color: #e5397a; }
+</style>
+</head>
+<body>
+<canvas id="game"></canvas>
+
+<div id="topbar">
+  <a href="index.html" title="More games">🏠</a>
+  <button id="btnMute" title="Sound on/off (M)">🔊</button>
+</div>
+
+<div id="hud" class="hidden">
+  <div id="hudTL" class="bungee shadow"><div id="hudRound">ROUND 1/5</div><div id="hudScore">SCORE 0</div><div class="small" id="hudSeeds"></div></div>
+  <div id="wind"><span>WIND</span><span id="windArrow">➜</span><span id="windSpeed">0</span></div>
+  <div id="gauges">
+    <div>SPEED<b id="gSpeed">0</b></div>
+    <div>HEIGHT<b id="gAlt">0</b></div>
+    <div>TARGET<b id="gDist">0</b></div>
+  </div>
+  <div id="prompt" class="hidden"></div>
+  <div id="banner" class="hidden"></div>
+</div>
+<button id="wingBtn" class="hidden">WINGS</button>
+<div id="stick" class="hidden"><div id="stickKnob"></div></div>
+
+<div id="title" class="screen">
+  <div class="panel">
+    <h1>HAMGLIDER</h1>
+    <div class="sub">🐹 Pip the hamster takes to the skies!</div>
+    <ol>
+      <li><b>Roll down the ramp.</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> steer.</span><span class="touch-only">Drag your finger left or right to steer.</span></li>
+      <li><b>Fly off the end</b>, then press <span class="key-only"><kbd>Space</kbd></span><span class="touch-only">the yellow <b>WINGS</b> button</span>
+        to pop your ball open into <b>wings</b>!</li>
+      <li><b>Glide to the target.</b>
+        <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn. <kbd>↑</kbd> nose up: slow down and float.
+        <kbd>↓</kbd> nose down: dive and speed up.</span>
+        <span class="touch-only">Drag to steer: left/right to turn, up to float, down to dive.</span></li>
+      <li><b>Drop onto the dartboard.</b> Close your wings again to fall straight down. Stop rolling in the middle for the most points, and don't roll off!</li>
+      <li>Watch the <b>wind</b> arrow, grab 🌻 seeds for bonus points, and get the best total over <b>5 rounds</b>.</li>
+    </ol>
+    <div class="rings">
+      <span style="background:#ff4d4d;color:#fff">100</span><span style="background:#ffe14a">50</span><span style="background:#fff">30</span>
+      <span style="background:#5bd0ff">20</span><span style="background:#3a6fd8;color:#fff">10</span><span style="background:#7ab8ff">WATER 0</span>
+    </div>
+    <div id="bestLine" class="sub"></div>
+    <button class="big-btn" id="btnPlay">▶ LET'S FLY!</button>
+  </div>
+</div>
+
+<div id="end" class="screen hidden">
+  <div class="panel">
+    <h1>ALL DONE!</h1>
+    <table id="scoreTable"></table>
+    <div class="sub" id="endBest"></div>
+    <button class="big-btn" id="btnAgain">▶ FLY AGAIN</button>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script>
+'use strict';
+
+// ---------- Tuning (metres, seconds) ----------
+const G = 9.8;
+const R = 1.0;                       // ball radius
+const RAMP_LEN = 110, RAMP_HALF_W = 6;
+const TOP = 1.2;                     // height of the target's surface above the sea
+const TARGET_R = 20;
+const RINGS = [[2.5, 100], [6, 50], [10.5, 30], [15, 20], [20, 10]];
+const ROUNDS = [
+  { dist: 140, side: 0, wind: 0 },
+  { dist: 175, side: -25, wind: 1.5 },
+  { dist: 205, side: 30, wind: 2.5 },
+  { dist: 240, side: -40, wind: 3.2 },
+  { dist: 275, side: 15, wind: 4 },
+];
+const GLIDE_DRAG = 0.0028;           // tuned so a level glide settles near 20 m/s
+const STALL = 8;
+
+// Ramp profile: steep drop, smooth bottom, then a kicker that throws you up and out.
+function rampY(d) {
+  if (d <= 80) return 30 + 40 * (1 - d / 80) ** 2;
+  return 30 + 6 * ((d - 80) / 30) ** 2;
+}
+function rampSlope(d) {
+  if (d <= 80) return -2 * 40 * (1 - d / 80) / 80;
+  return 2 * 6 * (d - 80) / 900;
+}
+
+// ---------- Three.js setup ----------
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+const SKY = new THREE.Color('#8fd8ff');
+scene.background = SKY;
+scene.fog = new THREE.Fog(SKY, 140, 650);
+const camera = new THREE.PerspectiveCamera(60, 1, 0.1, 2000);
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight;
+  // narrow portrait screens get a wider view so the target stays in sight
+  camera.fov = camera.aspect < 0.8 ? 78 : 60;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+scene.add(new THREE.HemisphereLight('#dff4ff', '#2a6fb0', 0.75));
+const sun = new THREE.DirectionalLight('#fff4d6', 0.95);
+sun.position.set(60, 120, 40);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 10, far: 300 });
+scene.add(sun, sun.target);
+
+const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.6, metalness: 0, ...extra });
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+
+// Sky dome with a soft gradient
+let skyDome;
+{
+  const tex = canvasTex(4, 256, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, '#2f8fff'); gr.addColorStop(0.45, '#7fcfff'); gr.addColorStop(0.5, '#c8efff'); gr.addColorStop(1, '#c8efff');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+  const dome = new THREE.Mesh(new THREE.SphereGeometry(900, 32, 16), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false }));
+  scene.add(dome);
+  skyDome = dome;
+}
+
+// Ocean: a low-poly sheet that bobs, following the camera so it never ends
+const OCEAN_SIZE = 900, OCEAN_SEG = 70;
+const oceanGeo = new THREE.PlaneGeometry(OCEAN_SIZE, OCEAN_SIZE, OCEAN_SEG, OCEAN_SEG);
+oceanGeo.rotateX(-Math.PI / 2);
+const ocean = new THREE.Mesh(oceanGeo, new THREE.MeshPhongMaterial({ color: '#1f8fe0', specular: '#bfe8ff', shininess: 60, flatShading: true }));
+ocean.receiveShadow = true;
+scene.add(ocean);
+const oceanBase = oceanGeo.attributes.position.array.slice();
+function waveH(x, z, t) { return Math.sin(x * 0.07 + t * 1.1) * 0.35 + Math.cos(z * 0.05 - t * 0.8) * 0.35 + Math.sin((x + z) * 0.13 + t * 1.7) * 0.15; }
+function updateOcean(t, cx, cz) {
+  const step = OCEAN_SIZE / OCEAN_SEG;
+  ocean.position.set(Math.round(cx / step) * step, 0, Math.round(cz / step) * step);
+  const p = oceanGeo.attributes.position.array;
+  for (let i = 0; i < p.length; i += 3) p[i + 1] = waveH(oceanBase[i] + ocean.position.x, oceanBase[i + 2] + ocean.position.z, t);
+  oceanGeo.attributes.position.needsUpdate = true;
+  oceanGeo.computeVertexNormals();
+}
+
+// Ramp: candy-striped track on stilts, with rails
+{
+  const N = 80, pos = [], uv = [], idx = [];
+  for (let i = 0; i <= N; i++) {
+    const d = i / N * RAMP_LEN, y = rampY(d);
+    pos.push(-RAMP_HALF_W, y, -d, RAMP_HALF_W, y, -d);
+    uv.push(0, d / 8, 1, d / 8);
+    if (i < N) { const a = i * 2; idx.push(a, a + 1, a + 2, a + 1, a + 3, a + 2); }   // wound so the top faces up
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3));
+  geo.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  geo.setIndex(idx);
+  geo.computeVertexNormals();
+  const tex = canvasTex(128, 128, (g, w, h) => {
+    g.fillStyle = '#ff7eb6'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#fff'; g.fillRect(0, h / 2, w, h / 2);
+    g.fillStyle = '#ffe14a'; g.fillRect(0, 0, 10, h); g.fillRect(w - 10, 0, 10, h);
+  });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  const ramp = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5, side: THREE.DoubleSide }));
+  ramp.receiveShadow = true;
+  scene.add(ramp);
+  // rails
+  for (const side of [-1, 1]) {
+    const rp = [], ri = [];
+    for (let i = 0; i <= N; i++) {
+      const d = i / N * RAMP_LEN, y = rampY(d), x = side * RAMP_HALF_W;
+      rp.push(x, y, -d, x, y + 1.3, -d);
+      if (i < N) { const a = i * 2; ri.push(a, a + 2, a + 1, a + 1, a + 2, a + 3); }
+    }
+    const rg = new THREE.BufferGeometry();
+    rg.setAttribute('position', new THREE.Float32BufferAttribute(rp, 3));
+    rg.setIndex(ri); rg.computeVertexNormals();
+    scene.add(new THREE.Mesh(rg, new THREE.MeshStandardMaterial({ color: '#7ad7ff', transparent: true, opacity: 0.55, side: THREE.DoubleSide })));
+  }
+  // stilts
+  const legMat = mat('#f3f3f7');
+  for (let d = 6; d <= RAMP_LEN; d += 14) {
+    for (const side of [-1, 1]) {
+      const h = rampY(d) + 4;
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.5, 0.7, h, 10), legMat);
+      leg.position.set(side * (RAMP_HALF_W - 0.8), rampY(d) - h / 2, -d);
+      leg.castShadow = true;
+      scene.add(leg);
+    }
+  }
+  // start gate behind the ball
+  const gateMat = mat('#ffe14a');
+  for (const side of [-1, 1]) {
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 7, 10), gateMat);
+    post.position.set(side * (RAMP_HALF_W + 0.5), rampY(0) + 3.5, 1.5);
+    scene.add(post);
+  }
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 2, 1.6, 0.4), new THREE.MeshStandardMaterial({
+    map: canvasTex(512, 64, (g, w, h) => {
+      g.fillStyle = '#ff7eb6'; g.fillRect(0, 0, w, h);
+      g.fillStyle = '#fff'; g.font = 'bold 44px Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillText('★ HAMGLIDER ★', w / 2, h / 2 + 2);
+    }),
+  }));
+  sign.position.set(0, rampY(0) + 7, 1.5);
+  sign.rotation.y = Math.PI;   // readable from the ramp side
+  scene.add(sign);
+}
+
+// Target: a floating dartboard
+const TARGET_TEX = canvasTex(1024, 1024, (g, w, h) => {
+  const cx = w / 2, cy = h / 2, k = (w / 2) / TARGET_R;
+  const cols = ['#ff4d4d', '#ffe14a', '#ffffff', '#5bd0ff', '#3a6fd8'];
+  for (let i = RINGS.length - 1; i >= 0; i--) {
+    g.fillStyle = cols[i];
+    g.beginPath(); g.arc(cx, cy, RINGS[i][0] * k, 0, Math.PI * 2); g.fill();
+    g.lineWidth = 8; g.strokeStyle = '#0b2a5c'; g.stroke();
+  }
+  // dartboard wedges, faintly
+  g.strokeStyle = 'rgba(11,42,92,.18)'; g.lineWidth = 4;
+  for (let a = 0; a < 20; a++) {
+    const ang = a / 20 * Math.PI * 2;
+    g.beginPath(); g.moveTo(cx + Math.cos(ang) * RINGS[0][0] * k, cy + Math.sin(ang) * RINGS[0][0] * k);
+    g.lineTo(cx + Math.cos(ang) * TARGET_R * k, cy + Math.sin(ang) * TARGET_R * k); g.stroke();
+  }
+  g.font = `bold ${Math.round(k * 2.4)}px Arial, sans-serif`; g.textAlign = 'center'; g.textBaseline = 'middle';
+  for (let i = 1; i < RINGS.length; i++) {
+    const r = (RINGS[i][0] + RINGS[i - 1][0]) / 2 * k;
+    g.fillStyle = i >= 3 ? '#ffffff' : '#0b2a5c';
+    if (i === 3) g.fillStyle = '#0b2a5c';
+    for (const [dx, dy] of [[0, -1], [0, 1], [-1, 0], [1, 0]]) g.fillText(String(RINGS[i][1]), cx + dx * r, cy + dy * r);
+  }
+  g.fillStyle = '#fff'; g.font = `bold ${Math.round(k * 2)}px Arial, sans-serif`;
+  g.fillText('100', cx, cy);
+});
+const target = new THREE.Group();
+{
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(TARGET_R, TARGET_R, 0.6, 64), [
+    mat('#ffffff'), new THREE.MeshStandardMaterial({ map: TARGET_TEX, roughness: 0.55 }), mat('#ffffff'),
+  ]);
+  top.position.y = TOP - 0.3;
+  top.receiveShadow = true;
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(TARGET_R + 0.6, TARGET_R + 1.4, 3, 64), mat('#ff8a1f'));
+  base.position.y = TOP - 2.1;
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(TARGET_R + 0.3, 0.5, 10, 64), mat('#ffffff'));
+  rim.rotation.x = Math.PI / 2; rim.position.y = TOP;
+  target.add(top, base, rim);
+  // buoys bobbing around it
+  for (let i = 0; i < 8; i++) {
+    const b = new THREE.Mesh(new THREE.SphereGeometry(1.1, 14, 10), mat(i % 2 ? '#ff4d4d' : '#ffffff'));
+    const a = i / 8 * Math.PI * 2;
+    b.position.set(Math.cos(a) * (TARGET_R + 6), 0.3, Math.sin(a) * (TARGET_R + 6));
+    b.userData.bob = i;
+    target.add(b);
+  }
+}
+scene.add(target);
+
+// Far-off islands and puffy clouds for a sense of place
+{
+  const isle = mat('#5fd17a', { flatShading: true }), sand = mat('#ffe7a3', { flatShading: true });
+  for (let i = 0; i < 7; i++) {
+    const a = -Math.PI * 0.15 - (i / 6) * Math.PI * 0.7 + (i % 2) * 0.1, d = 420 + (i % 3) * 90;
+    const g = new THREE.Group();
+    const hill = new THREE.Mesh(new THREE.ConeGeometry(30 + i * 4, 30 + (i % 3) * 14, 7), isle);
+    hill.position.y = 12;
+    const beach = new THREE.Mesh(new THREE.CylinderGeometry(40 + i * 4, 44 + i * 4, 3, 9), sand);
+    g.add(beach, hill);
+    g.position.set(Math.cos(a) * d, 0, Math.sin(a) * d - 120);
+    scene.add(g);
+  }
+  const cloudMat = new THREE.MeshStandardMaterial({ color: '#ffffff', roughness: 1, flatShading: true });
+  for (let i = 0; i < 14; i++) {
+    const c = new THREE.Group();
+    for (let k = 0; k < 4; k++) {
+      const p = new THREE.Mesh(new THREE.IcosahedronGeometry(8 + k * 2, 1), cloudMat);
+      p.position.set(k * 9 - 13, (k % 2) * 3, (k % 3) * 3);
+      c.add(p);
+    }
+    c.position.set((Math.random() - 0.5) * 800, 120 + Math.random() * 60, -Math.random() * 700 + 50);
+    scene.add(c);
+  }
+}
+
+// ---------- Pip the hamster, in a ball that opens into wings ----------
+const pip = new THREE.Group();
+const hamster = new THREE.Group();
+{
+  const fur = mat('#f2a65a'), cream = mat('#fff3df'), pink = mat('#ff9fb7'), dark = mat('#2a1a12');
+  const body = new THREE.Mesh(new THREE.SphereGeometry(0.62, 20, 16), fur); body.scale.set(1, 0.9, 1.05);
+  const belly = new THREE.Mesh(new THREE.SphereGeometry(0.5, 16, 12), cream); belly.position.set(0, -0.08, -0.25);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.46, 20, 16), fur); head.position.set(0, 0.45, -0.32);
+  const face = new THREE.Mesh(new THREE.SphereGeometry(0.34, 16, 12), cream); face.position.set(0, 0.38, -0.56);
+  const nose = new THREE.Mesh(new THREE.SphereGeometry(0.06, 10, 8), pink); nose.position.set(0, 0.45, -0.88);
+  hamster.add(body, belly, head, face, nose);
+  for (const sx of [-1, 1]) {
+    const ear = new THREE.Mesh(new THREE.SphereGeometry(0.2, 12, 10), fur); ear.position.set(sx * 0.3, 0.86, -0.25); ear.scale.set(1, 1, 0.5);
+    const earIn = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), pink); earIn.position.set(sx * 0.3, 0.82, -0.31); earIn.scale.set(1, 1, 0.4);
+    const eye = new THREE.Mesh(new THREE.SphereGeometry(0.075, 10, 8), dark); eye.position.set(sx * 0.17, 0.56, -0.74);
+    const shine = new THREE.Mesh(new THREE.SphereGeometry(0.025, 6, 6), mat('#ffffff')); shine.position.set(sx * 0.17 + 0.02, 0.59, -0.81);
+    const cheek = new THREE.Mesh(new THREE.SphereGeometry(0.12, 10, 8), pink); cheek.position.set(sx * 0.28, 0.38, -0.66); cheek.scale.set(1, 0.7, 0.6);
+    const paw = new THREE.Mesh(new THREE.SphereGeometry(0.1, 10, 8), cream); paw.position.set(sx * 0.22, 0.05, -0.68);
+    hamster.add(ear, earIn, eye, shine, cheek, paw);
+  }
+  hamster.position.y = -0.15;
+}
+pip.add(hamster);
+// two shell halves: a clear ball while rolling, swinging out into wings when opened
+const BALL_COLOR = new THREE.Color('#bfefff'), WING_COLOR = new THREE.Color('#ffc2e0');
+const shellMat = new THREE.MeshPhongMaterial({ color: '#bfefff', transparent: true, opacity: 0.38, shininess: 120, specular: '#ffffff', side: THREE.DoubleSide, depthWrite: false });
+const halves = [-1, 1].map(side => {
+  const pivot = new THREE.Group();
+  // phi from π/2 to 3π/2 is the +x half of a sphere; the other half mirrors it
+  const geo = new THREE.SphereGeometry(R, 24, 16, side > 0 ? Math.PI / 2 : -Math.PI / 2, Math.PI);
+  const shell = new THREE.Mesh(geo, shellMat);
+  if (side > 0) {
+    const band = new THREE.Mesh(new THREE.TorusGeometry(R, 0.05, 6, 40), mat('#ff7eb6'));
+    band.rotation.y = Math.PI / 2;   // the seam where the halves meet
+    shell.add(band);
+  }
+  pivot.add(shell);
+  pivot.userData = { side, shell };
+  pip.add(pivot);
+  return pivot;
+});
+scene.add(pip);
+pip.traverse(o => { if (o.isMesh) o.castShadow = true; });
+
+// wingOpen goes 0 → 1; each half slides out and flattens into a wing
+function poseShell(open, roll) {
+  for (const h of halves) {
+    const side = h.userData.side;
+    h.rotation.set(roll * (1 - open), 0, -side * open * 0.12);   // a little dihedral when open
+    h.position.set(side * open * 0.9, open * 0.15, open * 0.1);
+    h.scale.set(1 + open * 1.5, 1 - open * 0.84, 1 + open * 0.2);
+  }
+  shellMat.opacity = 0.38 + open * 0.42;
+  shellMat.color.lerpColors(BALL_COLOR, WING_COLOR, open);
+  shellMat.emissive.setRGB(0.45 * open, 0.18 * open, 0.32 * open);
+}
+
+// seeds to grab in the air
+const seedGeo = new THREE.SphereGeometry(0.45, 12, 8);
+seedGeo.scale(0.6, 1, 0.6);
+const seedMat = mat('#3a3a3a'), seedStripe = mat('#f4f0e0');
+let seeds = [];
+function placeSeeds(round) {
+  for (const s of seeds) scene.remove(s);
+  seeds = [];
+  const t = ROUNDS[round];
+  for (let i = 0; i < 6; i++) {
+    const f = 0.25 + i * 0.12;
+    const s = new THREE.Group();
+    s.add(new THREE.Mesh(seedGeo, seedMat));
+    const stripe = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.9, 0.56), seedStripe);
+    s.add(stripe);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(1, 12, 8), new THREE.MeshBasicMaterial({ color: '#fff3a0', transparent: true, opacity: 0.35 }));
+    s.add(glow);
+    s.position.set(t.side * f + Math.sin(i * 2.1) * 6, 34 - i * 4 + Math.cos(i) * 3, -(RAMP_LEN + t.dist * f));
+    scene.add(s);
+    seeds.push(s);
+  }
+}
+
+// splash particles
+const splashGeo = new THREE.BufferGeometry();
+const SPLASH_N = 160;
+splashGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(SPLASH_N * 3), 3));
+const splash = new THREE.Points(splashGeo, new THREE.PointsMaterial({ color: '#ffffff', size: 0.6, transparent: true }));
+splash.visible = false;
+scene.add(splash);
+let splashVel = [], splashT = 0;
+function doSplash(x, y, z) {
+  const p = splashGeo.attributes.position.array;
+  splashVel = [];
+  for (let i = 0; i < SPLASH_N; i++) {
+    p[i * 3] = x; p[i * 3 + 1] = y; p[i * 3 + 2] = z;
+    const a = Math.random() * Math.PI * 2, s = 2 + Math.random() * 6;
+    splashVel.push([Math.cos(a) * s, 6 + Math.random() * 10, Math.sin(a) * s]);
+  }
+  splashT = 0;
+  splash.visible = true;
+}
+
+// ---------- Sound ----------
+let actx = null, windGain = null, muted = localStorage.getItem('hg_muted') === '1';
+const btnMute = document.getElementById('btnMute');
+btnMute.textContent = muted ? '🔇' : '🔊';
+function audio() {
+  if (!actx) {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return null;
+    actx = new AC();
+    const buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    const src = actx.createBufferSource(), lp = actx.createBiquadFilter();
+    src.buffer = buf; src.loop = true; lp.type = 'lowpass'; lp.frequency.value = 500;
+    windGain = actx.createGain(); windGain.gain.value = 0;
+    src.connect(lp).connect(windGain).connect(actx.destination);
+    src.start();
+  }
+  if (actx.state === 'suspended') actx.resume();
+  return actx;
+}
+function beep(f1, f2, dur, type = 'triangle', vol = 0.12, delay = 0) {
+  if (muted || !audio()) return;
+  const t = actx.currentTime + delay, o = actx.createOscillator(), g = actx.createGain();
+  o.type = type; o.frequency.setValueAtTime(f1, t); o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.001, t + dur);
+  o.connect(g).connect(actx.destination); o.start(t); o.stop(t + dur);
+}
+function noise(dur, vol) {
+  if (muted || !audio()) return;
+  const buf = actx.createBuffer(1, actx.sampleRate * dur, actx.sampleRate), d = buf.getChannelData(0);
+  for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2;
+  const s = actx.createBufferSource(), g = actx.createGain(); s.buffer = buf; g.gain.value = vol;
+  s.connect(g).connect(actx.destination); s.start();
+}
+const sfx = {
+  open: () => { beep(300, 900, 0.25, 'sine', 0.12); noise(0.3, 0.15); },
+  close: () => beep(700, 250, 0.2, 'sine', 0.1),
+  seed: () => beep(1300, 1900, 0.1, 'sine', 0.1),
+  thud: () => beep(140, 60, 0.25, 'sine', 0.3),
+  splash: () => noise(0.8, 0.5),
+  score: pts => [523, 659, 784, 1047].slice(0, pts >= 100 ? 4 : pts >= 30 ? 3 : 2).forEach((f, i) => beep(f, f, 0.18, 'triangle', 0.13, i * 0.1)),
+  go: () => beep(440, 880, 0.3, 'square', 0.06),
+};
+btnMute.addEventListener('click', e => { e.stopPropagation(); toggleMute(); });
+function toggleMute() {
+  muted = !muted; localStorage.setItem('hg_muted', muted ? '1' : '0');
+  btnMute.textContent = muted ? '🔇' : '🔊';
+  if (windGain) windGain.gain.value = 0;
+}
+
+// ---------- Input ----------
+const keys = {};
+const stick = { x: 0, y: 0, id: null, ox: 0, oy: 0 };
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
+addEventListener('keydown', e => {
+  if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
+  if (e.repeat) return;
+  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); action(); }
+  if (e.code === 'KeyM') toggleMute();
+});
+addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; stick.x = stick.y = 0; stick.id = null; });
+const stickEl = document.getElementById('stick'), knob = document.getElementById('stickKnob');
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault();
+  audio();
+  if (state === 'intro') { action(); return; }
+  if (stick.id === null && e.pointerType !== 'mouse') {
+    stick.id = e.pointerId; stick.ox = e.clientX; stick.oy = e.clientY;
+    stickEl.style.left = e.clientX + 'px'; stickEl.style.top = e.clientY + 'px';
+    stickEl.classList.remove('hidden');
+  } else if (e.pointerType === 'mouse') action();
+});
+canvas.addEventListener('pointermove', e => {
+  if (e.pointerId !== stick.id) return;
+  const dx = e.clientX - stick.ox, dy = e.clientY - stick.oy, m = 55;
+  stick.x = Math.max(-1, Math.min(1, dx / m));
+  stick.y = Math.max(-1, Math.min(1, dy / m));
+  knob.style.transform = `translate(${stick.x * 35}px, ${stick.y * 35}px)`;
+});
+const endStick = e => {
+  if (e.pointerId !== stick.id) return;
+  stick.id = null; stick.x = stick.y = 0;
+  knob.style.transform = '';
+  stickEl.classList.add('hidden');
+};
+for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, endStick);
+const wingBtn = document.getElementById('wingBtn');
+wingBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); action(); });
+
+function steerInput() { return (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x; }
+// up = nose up (float), down = nose down (dive). On touch, dragging up means nose up.
+function pitchInput() { return (keys.up ? 1 : 0) - (keys.down ? 1 : 0) - stick.y; }
+
+// ---------- Game state ----------
+// state: 'title' → 'intro' → 'ramp' → 'air' → 'roll' → 'result' → next round … → 'end'
+let state = 'title', round = 0, total = 0, roundScores = [], best = +(localStorage.getItem('hg_best') || 0);
+let d = 0, rampV = 0;                       // distance along the ramp and speed
+const pos = new THREE.Vector3(), vel = new THREE.Vector3(), wind = new THREE.Vector3();
+let wings = false, wingOpen = 0, yaw = 0, gamma = 0, bank = 0, roll = 0, stateT = 0, seedPts = 0;
+let resultText = '', resultPts = 0, clock = 0;
+const targetPos = new THREE.Vector3();
+
+function setupRound(i) {
+  round = i;
+  const r = ROUNDS[i];
+  targetPos.set(r.side, 0, -(RAMP_LEN + r.dist));
+  target.position.copy(targetPos);
+  const a = Math.random() * Math.PI * 2;
+  wind.set(Math.cos(a) * r.wind, 0, Math.sin(a) * r.wind);
+  placeSeeds(i);
+  d = 0; rampV = 2;
+  pos.set(0, rampY(0) + R, 0);
+  vel.set(0, 0, 0);
+  wings = false; wingOpen = 0; seedPts = 0; roll = 0; bank = 0;
+  state = 'intro'; stateT = 0;
+  showBanner(`ROUND ${i + 1}`, `Target ${r.dist} m away · wind ${r.wind ? r.wind.toFixed(1) + ' m/s' : 'calm'}<br>${matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
+}
+
+function action() {
+  audio();
+  if (state === 'intro') { hideBanner(); state = 'ramp'; stateT = 0; sfx.go(); }
+  else if (state === 'air') {
+    wings = !wings;
+    if (wings) {
+      sfx.open();
+      const hs = Math.hypot(vel.x, vel.z);
+      yaw = Math.atan2(vel.x, -vel.z);
+      gamma = Math.atan2(vel.y, hs);
+    } else sfx.close();
+  }
+}
+
+function ringScore(dist) {
+  for (const [r, p] of RINGS) if (dist <= r) return p;
+  return 0;
+}
+
+function finish(pts, text) {
+  state = 'result'; stateT = 0;
+  resultPts = pts + seedPts;
+  resultText = text;
+  roundScores.push({ pts, seeds: seedPts, text });
+  total += resultPts;
+  if (pts > 0) sfx.score(pts); else sfx.splash();
+  const label = pts >= 100 ? 'BULLSEYE!' : pts > 0 ? `${pts} POINTS!` : text;
+  showBanner(label, `${pts > 0 ? text + ' · ' : ''}${seedPts ? `+${seedPts} seed bonus` : ''}`);
+}
+
+function splashDown(text) {
+  doSplash(pos.x, 0.5, pos.z);
+  state = 'splash'; stateT = 0;
+  resultText = text;
+  sfx.splash();
+}
+
+// ---------- Update ----------
+function update(dt) {
+  clock += dt;
+  stateT += dt;
+  const steer = Math.max(-1, Math.min(1, steerInput()));
+  const pitch = Math.max(-1, Math.min(1, pitchInput()));
+
+  if (state === 'ramp') {
+    const slope = rampSlope(d), th = Math.atan(slope);
+    rampV += (-G * Math.sin(th) - 0.35) * dt;
+    rampV = Math.max(rampV, 1);
+    d += rampV * Math.cos(th) * dt;
+    pos.x = Math.max(-RAMP_HALF_W + R + 0.3, Math.min(RAMP_HALF_W - R - 0.3, pos.x + steer * 6 * dt));
+    pos.y = rampY(d) + R;
+    pos.z = -d;
+    roll -= rampV * dt / R;
+    if (d >= RAMP_LEN) {
+      vel.set(steer * 3, rampV * Math.sin(th), -rampV * Math.cos(th));
+      state = 'air'; stateT = 0;
+    }
+  } else if (state === 'air') {
+    if (wings) {
+      const V = vel.length();
+      let targetGamma = -0.13 + (pitch > 0 ? pitch * 0.4 : pitch * 0.55);
+      if (V < STALL) targetGamma = -0.7;                    // too slow: the nose drops
+      gamma += Math.max(-1.3 * dt, Math.min(1.3 * dt, targetGamma - gamma));
+      yaw += steer * 1.1 * dt;
+      let nv = V + (-G * Math.sin(gamma) - GLIDE_DRAG * V * V) * dt;
+      nv = Math.max(4, nv);
+      vel.set(nv * Math.cos(gamma) * Math.sin(yaw), nv * Math.sin(gamma), -nv * Math.cos(gamma) * Math.cos(yaw));
+      pos.addScaledVector(wind, dt);
+    } else {
+      vel.y -= G * dt;
+      vel.multiplyScalar(1 - 0.03 * dt);
+      pos.addScaledVector(wind, dt * 0.4);
+      roll -= vel.length() * dt / R * 0.5;
+    }
+    pos.addScaledVector(vel, dt);
+    bank += (steer * (wings ? 0.6 : 0) - bank) * Math.min(1, dt * 4);
+    // seeds
+    for (const s of seeds) {
+      if (s.visible && s.position.distanceTo(pos) < 2.6) { s.visible = false; seedPts += 5; sfx.seed(); }
+    }
+    // touchdown
+    const flat = Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z);
+    if (pos.y - R <= TOP && flat <= TARGET_R && pos.y - R > TOP - 1.5) {
+      pos.y = TOP + R;
+      const keep = wings ? 0.3 : 0.5;
+      vel.set(vel.x * keep, 0, vel.z * keep);
+      wings = false;
+      state = 'roll'; stateT = 0;
+      sfx.thud();
+    } else if (pos.y - R <= 0.2) {
+      splashDown('SPLASH!');
+    }
+  } else if (state === 'roll') {
+    const sp = Math.hypot(vel.x, vel.z);
+    const ns = Math.max(0, sp - 7 * dt);
+    if (sp > 0) { vel.x *= ns / sp; vel.z *= ns / sp; }
+    pos.addScaledVector(vel, dt);
+    roll -= ns * dt / R;
+    const flat = Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z);
+    if (flat > TARGET_R) { state = 'falloff'; stateT = 0; }
+    else if (ns < 0.05 && stateT > 0.4) {
+      const pts = ringScore(flat);
+      finish(pts, pts >= 100 ? 'Right in the middle!' : pts >= 50 ? 'So close!' : 'Nice landing!');
+    }
+  } else if (state === 'falloff') {
+    vel.y -= G * dt;
+    pos.addScaledVector(vel, dt);
+    if (pos.y < 0.3) splashDown('ROLLED OFF!');
+  } else if (state === 'splash') {
+    pos.y = Math.max(-1.5, pos.y - dt * 3);
+    if (stateT > 1.2) finish(0, resultText);
+  } else if (state === 'result') {
+    if (stateT > 3) {
+      hideBanner();
+      if (round + 1 < ROUNDS.length) setupRound(round + 1);
+      else endGame();
+    }
+  }
+
+  wingOpen += ((wings ? 1 : 0) - wingOpen) * Math.min(1, dt * 7);
+
+  // splash particles
+  if (splash.visible) {
+    splashT += dt;
+    const p = splashGeo.attributes.position.array;
+    for (let i = 0; i < SPLASH_N; i++) {
+      const v = splashVel[i]; v[1] -= G * dt;
+      p[i * 3] += v[0] * dt; p[i * 3 + 1] += v[1] * dt; p[i * 3 + 2] += v[2] * dt;
+    }
+    splashGeo.attributes.position.needsUpdate = true;
+    splash.material.opacity = Math.max(0, 1 - splashT / 1.6);
+    if (splashT > 1.6) splash.visible = false;
+  }
+
+  if (windGain && !muted) windGain.gain.value = state === 'air' ? Math.min(0.25, vel.length() / 120) : 0;
+}
+
+// ---------- Camera & visuals ----------
+const camPos = new THREE.Vector3(0, 80, 30), camLook = new THREE.Vector3();
+function updateVisuals(dt) {
+  pip.position.copy(pos);
+  // face the direction of travel
+  let heading = 0;
+  const hs = Math.hypot(vel.x, vel.z);
+  if (state === 'air' && hs > 0.5) heading = Math.atan2(vel.x, -vel.z);
+  else if (state === 'roll' && hs > 0.3) heading = Math.atan2(vel.x, -vel.z);
+  pip.rotation.set(0, -heading, 0);
+  pip.rotateZ(-bank);
+  if (state === 'air' && wings) pip.rotateX(gamma * 0.8);
+  poseShell(wingOpen, roll);
+  hamster.rotation.z = Math.sin(clock * 8) * 0.04 * wingOpen;
+  pip.visible = state !== 'splash' || stateT < 0.15;
+
+  // chase camera
+  const fwd = new THREE.Vector3(Math.sin(heading), 0, -Math.cos(heading));
+  let want, look;
+  if (state === 'title') {
+    // drift slowly around the ramp, looking out over the course
+    const a = clock * 0.12;
+    want = new THREE.Vector3(Math.sin(a) * 40, rampY(0) + 20, -40 + Math.cos(a) * 60);
+    look = new THREE.Vector3(targetPos.x * 0.5, 10, targetPos.z * 0.7);
+  } else if (state === 'intro') {
+    // behind Pip at the top, looking down the ramp to the target
+    want = new THREE.Vector3(Math.sin(clock * 0.5) * 3, rampY(0) + 12, 20);
+    look = new THREE.Vector3(targetPos.x * 0.4, 8, targetPos.z * 0.55);
+  } else if (state === 'result' || state === 'splash' || state === 'falloff') {
+    const a = stateT * 0.4;
+    want = new THREE.Vector3(pos.x + Math.sin(a) * 26, Math.max(pos.y, 0) + 16, pos.z + Math.cos(a) * 26);
+    look = new THREE.Vector3(pos.x, Math.max(pos.y, 0), pos.z);
+  } else {
+    want = pos.clone().addScaledVector(fwd, -11).add(new THREE.Vector3(0, state === 'ramp' ? 4.5 : 5.5, 0));
+    // on the steep ramp, stay above the track behind the ball
+    if (state === 'ramp') want.y = Math.max(want.y, rampY(Math.max(0, d - 11)) + 3.5);
+    look = pos.clone().addScaledVector(fwd, 14);
+    look.y = pos.y - (state === 'air' ? 2.5 : 1);
+  }
+  const k = Math.min(1, dt * (state === 'ramp' || state === 'air' ? 5 : 2));
+  camPos.lerp(want, k);
+  camLook.lerp(look, k);
+  if (camPos.y < 1.5) camPos.y = 1.5;
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+
+  sun.position.set(pos.x + 60, 120, pos.z + 40);
+  sun.target.position.copy(pos);
+  skyDome.position.set(camPos.x, 0, camPos.z);
+  updateOcean(clock, camPos.x, camPos.z - 150);
+  for (const b of target.children) if (b.userData.bob !== undefined) b.position.y = 0.3 + Math.sin(clock * 2 + b.userData.bob) * 0.25;
+  for (const s of seeds) { s.rotation.y += dt * 3; s.children[2].scale.setScalar(1 + Math.sin(clock * 5) * 0.1); }
+}
+
+// ---------- HUD ----------
+const $ = id => document.getElementById(id);
+const hud = $('hud'), prompt = $('prompt'), banner = $('banner');
+function showBanner(t, sub) { banner.innerHTML = `${t}${sub ? `<small>${sub}</small>` : ''}`; banner.classList.remove('hidden'); }
+function hideBanner() { banner.classList.add('hidden'); }
+function updateHUD() {
+  const playing = state !== 'title' && state !== 'end';
+  hud.classList.toggle('hidden', !playing);
+  wingBtn.classList.toggle('hidden', !(state === 'air' && matchMedia('(pointer: coarse)').matches));
+  wingBtn.textContent = wings ? 'CLOSE' : 'WINGS';
+  if (!playing) return;
+  $('hudRound').textContent = `ROUND ${round + 1}/${ROUNDS.length}`;
+  $('hudScore').textContent = `SCORE ${total}`;
+  $('hudSeeds').textContent = seedPts ? `🌻 +${seedPts}` : '';
+  const sp = state === 'ramp' ? rampV : vel.length();
+  $('gSpeed').textContent = Math.round(sp * 3.6);
+  $('gAlt').textContent = Math.max(0, Math.round(pos.y - R)) + 'm';
+  $('gDist').textContent = Math.round(Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z)) + 'm';
+  // wind arrow, relative to where the camera is looking
+  const camYaw = Math.atan2(camLook.x - camPos.x, -(camLook.z - camPos.z));
+  const windYaw = Math.atan2(wind.x, -wind.z);
+  $('windArrow').style.transform = `rotate(${(windYaw - camYaw) * 180 / Math.PI - 90}deg)`;
+  $('windSpeed').textContent = wind.length() < 0.1 ? 'CALM' : wind.length().toFixed(1);
+  // what to do right now
+  let msg = '';
+  const touch = matchMedia('(pointer: coarse)').matches;
+  if (state === 'ramp' && d > 60) msg = 'GET READY…';
+  else if (state === 'air' && !wings && stateT < 4 && vel.y > -25) msg = touch ? 'TAP WINGS TO FLY!' : 'SPACE TO OPEN WINGS!';
+  else if (state === 'air' && wings && vel.length() < STALL + 1) msg = 'TOO SLOW! NOSE DOWN';
+  else if (state === 'air' && wings && pos.y < 14 && Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z) < TARGET_R) msg = touch ? 'CLOSE TO DROP!' : 'SPACE TO DROP!';
+  prompt.textContent = msg;
+  prompt.classList.toggle('hidden', !msg);
+}
+
+// ---------- Screens ----------
+function startGame() {
+  audio();
+  $('title').classList.add('hidden');
+  $('end').classList.add('hidden');
+  total = 0; roundScores = [];
+  setupRound(0);
+}
+function endGame() {
+  state = 'end';
+  const isBest = total > best;
+  if (isBest) { best = total; localStorage.setItem('hg_best', best); }
+  $('scoreTable').innerHTML = roundScores.map((r, i) =>
+    `<tr><td>Round ${i + 1}</td><td>${r.pts ? r.pts : r.text}${r.seeds ? ` + 🌻${r.seeds}` : ''}</td><td>${r.pts + r.seeds}</td></tr>`).join('') +
+    `<tr><td><b>TOTAL</b></td><td></td><td>${total}</td></tr>`;
+  $('endBest').textContent = isBest ? `🏆 NEW BEST: ${total}!` : `Best: ${best}`;
+  $('end').classList.remove('hidden');
+}
+$('btnPlay').addEventListener('click', startGame);
+$('btnAgain').addEventListener('click', startGame);
+if (best) $('bestLine').textContent = `🏆 Best score: ${best}`;
+targetPos.set(0, 0, -(RAMP_LEN + ROUNDS[0].dist));
+target.position.copy(targetPos);
+pos.set(0, rampY(0) + R, 0);
+
+// ---------- Loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+  update(dt);
+  updateVisuals(dt);
+  updateHUD();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
