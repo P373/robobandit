@@ -64,7 +64,7 @@ const PHONE = { ...devices['iPhone 13'] };
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -245,12 +245,45 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p);
   });
 
+  await test('Sparkle Meadow: following the pink arrow makes all six animal friends', async () => {
+    const p = await open(browser, 'sparkle-meadow.html');
+    await p.click('#btnPlay');
+    await p.click('#btnStableDone');
+    const r = await p.evaluate(() => {
+      for (let i = 0; i < 60 * 400 && friendCount() < 6; i++) {
+        const q = questTarget();
+        keys.l = keys.r = keys.u = keys.d = false;
+        if (q) {
+          const dx = q.x - pony.x, dy = q.y - pony.y;
+          if (Math.abs(dx) > 30) keys[dx > 0 ? 'r' : 'l'] = true;
+          if (Math.abs(dy) > 30) keys[dy > 0 ? 'd' : 'u'] = true;
+        }
+        if (actionHere()[2] !== 'jump' && i % 30 === 0) action();
+        update(1 / 60);
+      }
+      return { friends: friendCount(), saved: JSON.parse(localStorage.getItem('sm_save')).friends };
+    });
+    check(r.friends === 6, 'made ' + r.friends + ' friends');
+    check(Object.keys(r.saved).length === 6, 'friends not saved');
+    await done(p, 'sparkle-meadow.png');
+  });
+
+  await test('Sparkle Meadow: sparkles unlock the unicorn horn', async () => {
+    const p = await open(browser, 'sparkle-meadow.html');
+    await p.click('#btnPlay');
+    await p.evaluate(() => { save.sparkles = 60; renderStable(); });
+    await p.click('[data-acc="horn"]');
+    const r = await p.evaluate(() => ({ unlocked: save.unlocked.includes('horn'), wearing: save.look.acc.includes('horn'), left: save.sparkles }));
+    check(r.unlocked && r.wearing && r.left === 0, JSON.stringify(r));
+    await done(p);
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

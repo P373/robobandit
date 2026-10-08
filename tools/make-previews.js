@@ -12,6 +12,7 @@ const GAMES = [
   { file: 'surfs-up', title: "SURF'S UP", tag: 'Ride the curl, spin for the judges!', color: '#ffe14a' },
   { file: 'hamglider', title: 'HAMGLIDER', tag: 'Glide Pip the hamster onto the bullseye!', color: '#ff9a3c' },
   { file: 'web-hero', title: 'WEB HERO', tag: 'Swing across the city, bonk the Bandit Bots!', color: '#b98cff' },
+  { file: 'sparkle-meadow', title: 'SPARKLE MEADOW', tag: 'Ride your pony and make animal friends!', color: '#ff8fc8' },
 ];
 
 const page = body => `<!doctype html><html><head><meta charset="utf-8">
