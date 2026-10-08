@@ -8,7 +8,7 @@
 - **Surf's Up**: an autopilot launches aerials and the five judges score the ride; the touch joystick carves
 - **Space Wars**: the touch joystick flies the ship and the fire buttons show
 - **Hamglider**: an autopilot lands on the target in all five rounds; the joystick and WINGS button work on a phone
-- **Web Hero**: just holding chains swings across the city and bonks bots; three falls end the game
+- **Web Hero**: just holding chains swings across the city, bonks bots and beats the Big Bandit; three falls end the game
 - muting one game mutes them all
 
 The autopilots call each game's own `update()` in a loop, so a whole game takes a few seconds.

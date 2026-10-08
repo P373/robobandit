@@ -78,7 +78,8 @@
         to shoot a web and <b>swing</b>.</li>
       <li><b>Let go</b> to fly through the air!</li>
       <li><b>Crash into Bandit Bots</b> to bonk them. Bonk lots in a row without landing for a big <b>combo</b>.</li>
-      <li>Land on rooftops to run. <b>Don't fall to the street!</b> You have 3 hearts.</li>
+      <li>Land on rooftops to run. <b>Don't fall to the street!</b> You have 3 hearts. Grab ❤️ balloons for more.</li>
+      <li>Stop enough bots and the <b>Big Bandit</b> flies in. <b>Swing into him 3 times</b> to catch him and reach the next level!</li>
     </ol>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">▶ SWING!</button>
@@ -149,6 +150,9 @@ function text(str, x, y, size, fill = '#fff', align = 'center') {
 // ---------- Sound ----------
 const beep = RB.beep;
 const sfx = {
+  boss: () => [196, 233, 196, 233].forEach((f, i) => beep(f, f, 0.2, 'square', 0.1, i * 0.2)),
+  win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, f, 0.18, 'triangle', 0.13, i * 0.09)),
+  heart: () => beep(880, 1320, 0.2, 'sine', 0.12),
   thwip: () => { RB.noise(0.12, 0.25); beep(1400, 500, 0.12, 'sine', 0.08); },
   bonk: n => { beep(220, 90, 0.18, 'square', 0.12); beep(500 + n * 80, 900 + n * 120, 0.15, 'triangle', 0.12, 0.05); },
   land: () => beep(160, 90, 0.1, 'sine', 0.2),
@@ -162,11 +166,15 @@ const sfx = {
 let mode = 'title';
 let hero, buildings, towers, bots, pops, sparks, camX, clock = 0;
 let bonkPts, combo, bestCombo, bonked, hearts, safeT, fallT, held = false;
+// missions: bonk `goal` bots, then the Big Bandit shows up; beat him to reach the next level (and time of day)
+let level, got, boss, pickups, freezeT = 0, shakeT = 0, banner = null, tod = 0, todTarget = 0;
+const goalFor = lv => 4 + lv * 4;
 let best = +(RB.store.get('wh_best') || 0);
 let genX, towerX;   // how far the city has been built
 
 function reset() {
-  buildings = []; towers = []; bots = []; pops = []; sparks = [];
+  buildings = []; towers = []; bots = []; pops = []; sparks = []; pickups = [];
+  level = 1; got = 0; boss = null; banner = null; tod = todTarget = 0; freezeT = shakeT = 0;
   genX = -200; towerX = -100;
   // a long first rooftop to start on
   buildings.push({ x: -200, w: 700, top: 440, color: 0 });
@@ -196,6 +204,8 @@ function build() {
       const home = b.x + rand(40, b.w - 40);
       bots.push({ kind: 'walk', x: home, home, y: b.top - 22, dir: Math.random() < 0.5 ? -1 : 1, t: Math.random() * 9, roof: b });
     }
+    // now and then a heart balloon floats over a gap
+    if (Math.random() < 0.08) pickups.push({ x: genX + gap / 2, y: rand(170, 300), t: Math.random() * 9 });
     // flying bots in the gaps
     if (Math.random() < 0.45 + diff * 0.3) {
       const x = genX + gap / 2 + rand(-20, 20);
@@ -212,6 +222,7 @@ function build() {
   buildings = buildings.filter(b => b.x + b.w > behind);
   towers = towers.filter(t => t.x + t.w > behind);
   bots = bots.filter(b => b.x > behind && b.y < STREET + 200);
+  pickups = pickups.filter(q => q.x > behind && !q.got);
 }
 const anchorOf = t => ({ x: t.x, y: t.top - 34 });
 
@@ -305,6 +316,81 @@ function bonk(b) {
   if (hero.state === 'air') hero.vy = Math.min(hero.vy, -380);
   sfx.bonk(combo);
   if (navigator.vibrate) navigator.vibrate(30);
+  freezeT = 0.05; shakeT = 0.15;   // a tiny freeze-frame makes each hit feel solid
+  if (!boss) {
+    got++;
+    if (got >= goalFor(level)) spawnBoss();
+  }
+}
+
+function showBanner(title, sub, time = 2.4) { banner = { title, sub, t: 0, time }; }
+
+function spawnBoss() {
+  boss = { x: hero.x + W * 0.7 + 250, y: 240, baseY: 240, vx: 0, hp: 3, t: 0, hurtT: 0 };
+  showBanner('BIG BANDIT!', 'Swing into him 3 times!');
+  sfx.boss();
+}
+
+function hitBoss() {
+  boss.hp--;
+  boss.hurtT = 1.1;
+  boss.vx = 650;                       // knocked away; he'll float back into range
+  hero.vy = -480;
+  if (hero.state === 'swing') { hero.state = 'air'; hero.anchor = null; }
+  freezeT = 0.12; shakeT = 0.4;
+  for (let i = 0; i < 24; i++) {
+    const a = Math.random() * TAU, s = rand(150, 420);
+    sparks.push({ x: boss.x, y: boss.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s, life: rand(0.4, 0.8), c: i % 3 ? '#ffe14a' : '#ff4d6d' });
+  }
+  if (navigator.vibrate) navigator.vibrate(60);
+  if (boss.hp > 0) {
+    const pts = 300 * level;
+    bonkPts += pts;
+    pops.push({ x: boss.x, y: boss.y - 70, t: 0, word: 'KA-BOOM!', pts, combo: 1 });
+    sfx.bonk(4);
+    return;
+  }
+  // caught!
+  const pts = 1000 * level;
+  bonkPts += pts;
+  pops.push({ x: boss.x, y: boss.y - 70, t: 0, word: 'CAUGHT!', pts, combo: 1 });
+  for (let i = 0; i < 60; i++) {
+    const a = Math.random() * TAU, s = rand(200, 600);
+    sparks.push({ x: boss.x, y: boss.y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - 200, life: rand(0.8, 1.6),
+                  c: ['#ffe14a', '#ff4d6d', '#5ad1ff', '#8aff7a', '#fff'][i % 5] });
+  }
+  bots.push({ kind: 'webbed', x: boss.x, y: boss.y, vx: 200, vy: -300, spin: 3, t: 0, big: true });
+  boss = null;
+  level++;
+  got = 0;
+  todTarget = level - 1;   // keeps counting up; the sky wraps round every 4 levels
+  if (hearts < HEARTS) hearts++;
+  showBanner(`LEVEL ${level}!`, ['A brand-new day!', 'The sun is setting…', 'Night falls on the city!', 'Here comes the sunrise!'][(level - 1) % 4], 2.8);
+  sfx.win();
+}
+
+function updateBoss(dt) {
+  const b = boss;
+  b.t += dt;
+  b.hurtT = Math.max(0, b.hurtT - dt);
+  b.x += b.vx * dt;
+  b.vx *= Math.pow(0.15, dt);
+  b.y = b.baseY + Math.sin(b.t * 1.3) * 70;
+  // never let the hero leave him behind: if you swing past, he zooms ahead again
+  if (hero.x > b.x + 220) b.vx = Math.max(b.vx, 900);
+  if (b.x > hero.x + W * 0.75) b.x = hero.x + W * 0.75;
+  if (mode === 'play' && b.hurtT <= 0 && Math.hypot(b.x - hero.x, b.y - hero.y) < HERO_R + 50) hitBoss();
+}
+
+// Spider-sense: flying near a bot gently pulls you toward it, so little hands can land the hit.
+function senseTarget() {
+  let best = null, bd = 210;
+  const cands = boss ? [boss] : bots.filter(b => b.kind !== 'webbed');
+  for (const b of cands) {
+    const dx = b.x - hero.x, d = Math.hypot(dx, b.y - hero.y);
+    if (dx > -30 && d < bd) { bd = d; best = b; }
+  }
+  return best;
 }
 
 function loseHeart() {
@@ -355,7 +441,14 @@ function step(dt) {
     // past the antenna and running out of upswing: the web lets go by itself, and since you're
     // still holding, the next antenna gets grabbed. Holding = swing, swing, swing across the city.
     if (h.x > a.x + 25 && h.vy > -60) { h.state = 'air'; h.anchor = null; }
-  } else if (held) tryWeb();   // still holding: grab the next antenna that comes in range
+  } else {
+    if (held) tryWeb();   // still holding: grab the next antenna that comes in range
+    const tgt = h.state === 'air' && senseTarget();
+    if (tgt) {
+      const dx = tgt.x - h.x, dy = tgt.y - h.y, d = Math.hypot(dx, dy) || 1;
+      h.vx += dx / d * 1100 * dt; h.vy += dy / d * 1100 * dt;
+    }
+  }
   const sp = Math.hypot(h.vx, h.vy);
   if (sp > MAX_SPEED) { h.vx *= MAX_SPEED / sp; h.vy *= MAX_SPEED / sp; }
   if (h.y < 20) { h.y = 20; if (h.vy < 0) h.vy = 0; }
@@ -387,6 +480,10 @@ function update(dt) {
     build();
     return;
   }
+  shakeT = Math.max(0, shakeT - dt);
+  if (banner && (banner.t += dt) > banner.time) banner = null;
+  tod += (todTarget - tod) * Math.min(1, dt * 0.8);   // the sky changes slowly between levels
+  if (freezeT > 0) { freezeT -= dt; return; }
   safeT = Math.max(0, safeT - dt);
   if (mode === 'fall') {
     fallT += dt;
@@ -414,7 +511,17 @@ function update(dt) {
     } else {
       b.vy += G * dt; b.x += b.vx * dt; b.y += b.vy * dt;
     }
-    if (mode === 'play' && b.kind !== 'webbed' && Math.hypot(b.x - hero.x, b.y - hero.y) < HERO_R + 22) bonk(b);
+    if (mode === 'play' && b.kind !== 'webbed' && Math.hypot(b.x - hero.x, b.y - hero.y) < HERO_R + 26) bonk(b);
+  }
+  if (boss) updateBoss(dt);
+  for (const q of pickups) {
+    q.t += dt;
+    if (mode === 'play' && !q.got && Math.hypot(q.x - hero.x, q.y + Math.sin(q.t * 2) * 8 - hero.y) < HERO_R + 22) {
+      q.got = true;
+      sfx.heart();
+      if (hearts < HEARTS) { hearts++; pops.push({ x: q.x, y: q.y - 30, t: 0, word: '+1 ❤️', pts: 0, combo: 1 }); }
+      else { bonkPts += 250; pops.push({ x: q.x, y: q.y - 30, t: 0, word: '+250', pts: 0, combo: 1 }); }
+    }
   }
   for (const p of pops) p.t += dt;
   pops = pops.filter(p => p.t < 1.1);
@@ -430,13 +537,35 @@ function update(dt) {
 const BUILDING_COLORS = [['#e8734a', '#c95a35'], ['#4fb0a5', '#3a8f86'], ['#f2b84b', '#d69a2e'], ['#8b7bd8', '#6f5fc0']];
 const TOWER_COLORS = ['#55679e', '#4a5b8f', '#61709f'];
 
-function drawSky() {
+// One time of day per level: day → sunset → night → dawn, then round again.
+const TIMES = [
+  { sky: ['#3d8ff0', '#8fd0ff', '#ffe2b0'], sun: '#fff3c4', far: ['#a9b8e8', '#8193cc'], cloud: 0.9, dark: 0 },
+  { sky: ['#4a5bb8', '#f28c6a', '#ffcf7a'], sun: '#ffb04a', far: ['#b98ab8', '#8a6aa8'], cloud: 0.75, dark: 0.18 },
+  { sky: ['#0b1238', '#1f2a68', '#3a3f8a'], sun: '#f4f1d0', far: ['#2a3470', '#222a5c'], cloud: 0.2, dark: 0.55 },
+  { sky: ['#5a7fd8', '#f7a8c0', '#ffe0b0'], sun: '#ffd7a0', far: ['#a8a0d8', '#8a84c0'], cloud: 0.85, dark: 0.08 },
+];
+const hexRGB = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (c1, c2, t) => { const a = hexRGB(c1), b = hexRGB(c2); return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`; };
+function timeNow() {
+  const i = Math.floor(tod), f = tod - i, A = TIMES[i % 4], B = TIMES[(i + 1) % 4];
+  return {
+    sky: A.sky.map((c, k) => mix(c, B.sky[k], f)), sun: mix(A.sun, B.sun, f),
+    far: A.far.map((c, k) => mix(c, B.far[k], f)),
+    cloud: A.cloud + (B.cloud - A.cloud) * f, dark: A.dark + (B.dark - A.dark) * f,
+  };
+}
+
+function drawSky(T) {
   const g = ctx.createLinearGradient(0, -OFFY, 0, H);
-  g.addColorStop(0, '#3d8ff0'); g.addColorStop(0.55, '#8fd0ff'); g.addColorStop(1, '#ffe2b0');
+  g.addColorStop(0, T.sky[0]); g.addColorStop(0.55, T.sky[1]); g.addColorStop(1, T.sky[2]);
   ctx.fillStyle = g;
   ctx.fillRect(0, -OFFY, W, VH);
-  ctx.fillStyle = '#fff3c4'; circle(W * 0.78, 110, 46);
-  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  if (T.dark > 0.25) {   // stars come out at night
+    ctx.fillStyle = `rgba(255,255,255,${(T.dark - 0.25) * 2})`;
+    for (let i = 0; i < 60; i++) circle(mod(rnd(i, 4) * W * 3 - camX * 0.02, W), -OFFY + rnd(i, 5) * (OFFY + 260), rnd(i, 6) * 1.6 + 0.4);
+  }
+  ctx.fillStyle = T.sun; circle(W * 0.78, 110, 46);
+  ctx.fillStyle = `rgba(255,255,255,${T.cloud})`;
   for (let i = 0; i < 6; i++) {
     const x = mod(rnd(i, 1) * 1800 - camX * 0.08 - clock * 8, 1800) - 200, y = 40 + rnd(i, 2) * 120;
     ctx.beginPath();
@@ -444,41 +573,54 @@ function drawSky() {
     ctx.fill();
   }
   // far skyline
-  for (const [par, col, hmin, hmax, wmin] of [[0.15, '#a9b8e8', 140, 300, 50], [0.3, '#8193cc', 120, 260, 60]]) {
-    ctx.fillStyle = col;
+  [[0.15, 140, 300, 50], [0.3, 120, 260, 60]].forEach(([par, hmin, hmax, wmin], k) => {
+    ctx.fillStyle = T.far[k];
     const step = 70, off = camX * par;
     for (let i = Math.floor(off / step) - 1; i * step - off < W + step; i++) {
       const x = i * step - off, h = hmin + rnd(i, par * 10) * (hmax - hmin);
       ctx.fillRect(x, STREET - h, wmin + rnd(i, 3) * 30, h);
     }
-  }
+  });
 }
 
-function drawTower(t) {
-  const x = t.x - camX - t.w / 2;
-  ctx.fillStyle = TOWER_COLORS[t.color];
-  ctx.fillRect(x, t.top, t.w, STREET - t.top);
-  ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(x, t.top, t.w * 0.25, STREET - t.top);
-  // windows
-  ctx.fillStyle = 'rgba(255,230,150,.55)';
-  for (let wy = t.top + 16; wy < STREET - 10; wy += 22)
-    for (let wx = x + 10; wx < x + t.w - 14; wx += 18)
-      if (rnd(Math.floor(wx + t.x), wy) > 0.45) ctx.fillRect(wx, wy, 8, 10);
-  // roof cap and antenna (the web anchor)
+// Which windows are lit is fixed per building (by column and row), so nothing flickers as you scroll.
+const lit = (seed, col, row, odds) => rnd(seed + col * 13.7, row * 3.1 + 0.5) < odds;
+
+function drawTower(t, lights) {
+  const x = t.x - camX - t.w / 2, seed = Math.round(t.x);
+  const cols = Math.floor((t.w - 14) / 18), rows = Math.floor((STREET - 10 - t.top - 16) / 22);
+  if (!lights) {
+    ctx.fillStyle = TOWER_COLORS[t.color];
+    ctx.fillRect(x, t.top, t.w, STREET - t.top);
+    ctx.fillStyle = 'rgba(255,255,255,.07)'; ctx.fillRect(x, t.top, t.w * 0.25, STREET - t.top);
+    ctx.fillStyle = 'rgba(255,230,150,.45)';
+  } else ctx.fillStyle = '#ffe28a';
+  for (let r = 0; r <= rows; r++)
+    for (let c = 0; c < cols; c++)
+      if (lit(seed, c, r, lights ? 0.4 : 0.55)) ctx.fillRect(x + 10 + c * 18, t.top + 16 + r * 22, 8, 10);
+  if (lights) return;
+  // roof cap and antenna (the web anchor) with a slow red beacon
   ctx.fillStyle = '#3b4a78'; ctx.fillRect(x - 4, t.top - 6, t.w + 8, 8);
   ctx.strokeStyle = '#3b4a78'; ctx.lineWidth = 4;
   ctx.beginPath(); ctx.moveTo(t.x - camX, t.top - 6); ctx.lineTo(t.x - camX, t.top - 34); ctx.stroke();
-  const blink = Math.sin(clock * 4 + t.x) > 0;
-  ctx.fillStyle = blink ? '#ff4d4d' : '#a33';
+  ctx.fillStyle = `rgba(255,77,77,${0.65 + 0.35 * Math.sin(clock * 2 + seed)})`;
   circle(t.x - camX, t.top - 36, 5);
 }
 
-function drawBuilding(b) {
+function drawBuilding(b, lights) {
   const [c1, c2] = BUILDING_COLORS[b.color];
-  const x = b.x - camX;
+  const x = b.x - camX, seed = Math.round(b.x);
+  const cols = Math.floor((b.w - 38) / 26) + 1, rows = Math.floor((STREET - b.top - 22) / 30) + 1;
+  if (lights) {
+    ctx.fillStyle = '#ffe28a';
+    for (let r = 0; r < rows; r++)
+      for (let c = 0; c < cols; c++)
+        if (lit(seed, c, r, 0.45)) { rrect(x + 14 + c * 26, b.top + 22 + r * 30, 14, 18, 3); ctx.fill(); }
+    return;
+  }
   ctx.fillStyle = c1; ctx.fillRect(x, b.top, b.w, STREET - b.top + 40);
   ctx.fillStyle = c2; ctx.fillRect(x + b.w * 0.82, b.top, b.w * 0.18, STREET - b.top + 40);
-  // rooftop ledge, water tank and vents
+  // rooftop ledge and water tank
   ctx.fillStyle = '#3a2f55'; ctx.fillRect(x - 4, b.top - 4, b.w + 8, 8);
   if (b.w > 220) {
     const tx = x + b.w * 0.7;
@@ -487,11 +629,53 @@ function drawBuilding(b) {
     ctx.beginPath(); ctx.moveTo(tx - 2, b.top - 40); ctx.lineTo(tx + 17, b.top - 52); ctx.lineTo(tx + 36, b.top - 40); ctx.fill();
   }
   // windows
-  for (let wy = b.top + 22; wy < STREET; wy += 30)
-    for (let wx = x + 14; wx < x + b.w - 24; wx += 26) {
-      ctx.fillStyle = rnd(Math.floor(wx + b.x), wy) > 0.3 ? 'rgba(255,248,220,.85)' : 'rgba(40,40,80,.45)';
-      rrect(wx, wy, 14, 18, 3); ctx.fill();
+  for (let r = 0; r < rows; r++)
+    for (let c = 0; c < cols; c++) {
+      ctx.fillStyle = lit(seed, c, r, 0.7) ? 'rgba(255,248,220,.85)' : 'rgba(40,40,80,.45)';
+      rrect(x + 14 + c * 26, b.top + 22 + r * 30, 14, 18, 3); ctx.fill();
     }
+}
+
+function drawBoss(b) {
+  const x = b.x - camX, y = b.y;
+  ctx.save();
+  ctx.translate(x, y);
+  if (b.hurtT > 0 && Math.floor(b.hurtT * 12) % 2) ctx.globalAlpha = 0.45;
+  // getaway hover-car
+  ctx.fillStyle = '#5b2a86';
+  ctx.beginPath(); ctx.ellipse(0, 34, 74, 18, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#ffe14a';
+  for (let k = -3; k <= 3; k++) circle(k * 19, 38, 4);
+  for (const sx of [-1, 1]) {   // spinning rotors
+    ctx.fillStyle = '#444'; ctx.fillRect(sx * 62 - 2, 4, 4, 22);
+    ctx.fillStyle = '#9aa3b5';
+    ctx.beginPath(); ctx.ellipse(sx * 62, 3, Math.abs(Math.cos(b.t * 25)) * 26 + 3, 4, 0, 0, TAU); ctx.fill();
+  }
+  // the Big Bandit himself
+  const g = ctx.createRadialGradient(-12, -16, 4, 0, 0, 42);
+  g.addColorStop(0, '#f1f4f8'); g.addColorStop(1, '#7f8898');
+  ctx.fillStyle = g; circle(0, 0, 40);
+  ctx.fillStyle = '#1b1b24';
+  ctx.beginPath(); ctx.moveTo(-42, -18); ctx.quadraticCurveTo(0, -30, 42, -18); ctx.lineTo(42, 2); ctx.quadraticCurveTo(0, -8, -42, 2); ctx.fill();
+  ctx.fillStyle = '#ff4d4d'; circle(-14, -9, 6); circle(14, -9, 6);
+  ctx.strokeStyle = '#1b1b24'; ctx.lineWidth = 4;
+  ctx.beginPath(); ctx.moveTo(-24, -26); ctx.lineTo(-6, -20); ctx.moveTo(24, -26); ctx.lineTo(6, -20); ctx.stroke();   // grumpy brows
+  ctx.beginPath(); ctx.arc(0, 18, 10, Math.PI + 0.3, -0.3); ctx.stroke();
+  ctx.fillStyle = '#1b1b24'; ctx.fillRect(-26, -50, 52, 8); ctx.fillRect(-17, -76, 34, 28);   // top hat
+  ctx.fillStyle = '#ff4d6d'; ctx.fillRect(-17, -56, 34, 6);
+  ctx.fillStyle = '#c9a25a'; circle(-46, 20, 13); circle(48, 18, 13);   // loot
+  ctx.fillStyle = '#7a5a20'; ctx.font = 'bold 14px system-ui'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+  ctx.fillText('$', -46, 21); ctx.fillText('$', 48, 19);
+  ctx.restore();
+  for (let i = 0; i < 3; i++) heart(x - 30 + i * 30, y - 96, 9, i < b.hp);
+}
+
+function drawBalloon(q) {
+  const x = q.x - camX, y = q.y + Math.sin(q.t * 2) * 8;
+  ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(x, y + 12); ctx.quadraticCurveTo(x + 6, y + 30, x, y + 46); ctx.stroke();
+  heart(x, y, 15, true);
+  ctx.fillStyle = 'rgba(255,255,255,.7)'; circle(x - 7, y - 5, 3);
 }
 
 function drawStreet() {
@@ -507,6 +691,7 @@ function drawBot(b) {
   ctx.translate(x, y);
   if (b.kind === 'webbed') {
     ctx.rotate(b.t * b.spin);
+    if (b.big) ctx.scale(2, 2);
     // wrapped up in web
     ctx.fillStyle = '#f4f4ff'; ctx.beginPath(); ctx.ellipse(0, 0, 20, 26, 0, 0, TAU); ctx.fill();
     ctx.strokeStyle = '#b9b9d9'; ctx.lineWidth = 2;
@@ -626,11 +811,26 @@ function heart(x, y, r, full) {
 }
 
 function draw() {
-  ctx.setTransform(scale, 0, 0, scale, 0, OFFY * scale);
-  drawSky();
-  for (const t of towers) if (t.x - camX > -150 && t.x - camX < W + 150) drawTower(t);
+  const shake = shakeT * 24;
+  ctx.setTransform(scale, 0, 0, scale, (Math.random() - 0.5) * shake * scale, (OFFY + (Math.random() - 0.5) * shake) * scale);
+  const T = timeNow();
+  drawSky(T);
+  const seenT = towers.filter(t => t.x - camX > -150 && t.x - camX < W + 150);
+  const seenB = buildings.filter(b => b.x + b.w - camX > -10 && b.x - camX < W + 10);
+  for (const t of seenT) drawTower(t, false);
   drawStreet();
-  for (const b of buildings) if (b.x + b.w - camX > -10 && b.x - camX < W + 10) drawBuilding(b);
+  for (const b of seenB) drawBuilding(b, false);
+  if (T.dark > 0.02) {
+    // dusk and night: darken the city, then switch on the lights
+    ctx.fillStyle = `rgba(10,14,50,${T.dark})`;
+    ctx.fillRect(0, 100, W, VH);
+    ctx.globalAlpha = Math.min(1, T.dark * 1.8);
+    for (const t of seenT) drawTower(t, true);
+    for (const b of seenB) drawBuilding(b, true);
+    ctx.globalAlpha = 1;
+  }
+  for (const q of pickups) if (!q.got && q.x - camX > -30 && q.x - camX < W + 30) drawBalloon(q);
+  if (boss) drawBoss(boss);
   if (hero) {
     for (const b of bots) if (b.x - camX > -40 && b.x - camX < W + 40) drawBot(b);
     if (mode === 'play' || mode === 'fall') {
@@ -643,6 +843,16 @@ function draw() {
         }
       }
       drawHero();
+      // spider-sense: little wiggly lines when a bot is close enough to pull you in
+      if (hero.state === 'air' && mode === 'play' && senseTarget()) {
+        ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+        const hx = hero.x - camX, hy = hero.y - 30;
+        for (const a of [-0.9, -1.57, -2.25]) {
+          const w = Math.sin(clock * 30) * 2;
+          ctx.beginPath(); ctx.moveTo(hx + Math.cos(a) * 26, hy + Math.sin(a) * 26);
+          ctx.lineTo(hx + Math.cos(a) * 36 + w, hy + Math.sin(a) * 36); ctx.stroke();
+        }
+      }
     }
   }
   for (const s of sparks) { ctx.fillStyle = s.c; circle(s.x - camX, s.y, 3); }
@@ -654,10 +864,26 @@ function draw() {
     // narrow screens: drop the score below the corner buttons
     const sy = W < 700 ? 100 : 34;
     text(String(score()), W / 2, sy, 34, '#fff');
-    text(`🕸️ ${bonked} bots`, 16, 70, 15, '#ffe14a', 'left');
+    // mission: bots to go this level, or the boss's hits left
+    if (boss) text('STOP THE BIG BANDIT!', 16, 66, 14, '#ff8fa3', 'left');
+    else {
+      const goal = goalFor(level), f = Math.min(1, got / goal);
+      text(`LEVEL ${level} · 🕸️ ${got}/${goal}`, 16, 64, 14, '#ffe14a', 'left');
+      ctx.fillStyle = 'rgba(27,20,80,.6)'; rrect(16, 78, 150, 10, 5); ctx.fill();
+      ctx.fillStyle = '#ffe14a'; rrect(16, 78, Math.max(10, 150 * f), 10, 5); ctx.fill();
+    }
     if (combo > 1) text(`COMBO x${combo}`, W / 2, sy + 40, 20, '#ffe14a');
     if (mode === 'play' && dist() < 6) text(RB.touch ? 'HOLD TO SWING · LET GO TO FLY' : 'HOLD SPACE TO SWING · LET GO TO FLY', W / 2, VH * 0.2, 16, '#fff');
     if (mode === 'fall') text(hearts > 0 ? 'OOPS! WATCH THE STREET!' : 'OH NO!', W / 2, VH * 0.35, 28, '#ff4d6d');
+    if (banner) {
+      const a = Math.min(1, banner.t * 5, (banner.time - banner.t) * 3), sc = 0.7 + 0.3 * Math.min(1, banner.t * 6);
+      ctx.globalAlpha = a;
+      ctx.save(); ctx.translate(W / 2, VH * 0.3); ctx.scale(sc, sc);
+      text(banner.title, 0, 0, 46, '#ffe14a');
+      text(banner.sub, 0, 46, 18, '#fff');
+      ctx.restore();
+      ctx.globalAlpha = 1;
+    }
   }
 }
 
@@ -676,7 +902,7 @@ function endGame() {
   sfx.over();
   const sc = score(), isBest = sc > best;
   if (isBest) { best = sc; RB.store.set('wh_best', best); }
-  $('overStats').innerHTML = `SCORE <b>${sc}</b><br>BOTS BONKED <b>${bonked}</b><br>BEST COMBO <b>x${bestCombo}</b><br>` +
+  $('overStats').innerHTML = `SCORE <b>${sc}</b><br>LEVEL <b>${level}</b><br>BOTS BONKED <b>${bonked}</b><br>BEST COMBO <b>x${bestCombo}</b><br>` +
     (isBest ? '🏆 NEW BEST!' : `BEST <b>${best}</b>`);
   $('over').classList.remove('hidden');
 }

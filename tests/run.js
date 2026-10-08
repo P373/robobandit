@@ -210,7 +210,7 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p, 'hamglider-phone.png');
   });
 
-  await test('Web Hero: just holding chains swings across the city and bonks bots', async () => {
+  await test('Web Hero: just holding chains swings, bonks bots and beats the Big Bandit', async () => {
     const p = await open(browser, 'web-hero.html');
     await p.click('#btnPlay');
     const r = await p.evaluate(() => {
@@ -218,9 +218,10 @@ const PHONE = { ...devices['iPhone 13'] };
         if (mode === 'play' && !held) press();
         update(1 / 60);
       }
-      return { mode, x: hero.x, bonked, hearts, score: score() };
+      return { mode, x: hero.x, bonked, hearts, score: score(), level };
     });
     check(r.x > 8000, 'only got to x=' + Math.round(r.x));
+    check(r.level >= 2, 'never beat the Big Bandit (level ' + r.level + ')');
     check(r.bonked >= 5, 'bonked ' + r.bonked);
     check(r.score > 0, 'no score');
     await done(p, 'web-hero.png');
