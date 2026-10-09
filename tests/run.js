@@ -666,6 +666,44 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(stamps.size === 1, 'pages disagree on the shared-file version (run node tools/bump-version.js): ' + [...stamps].join(' '));
   });
 
+  await test('Witch Way Out: controller tester and settings (invert each stick, vibration) from the title and pause menu', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1100, height: 760 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    await p.click('#btnPad'); await p.waitForTimeout(200);
+    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen.testing')), 'the controller screen should open in testing mode');
+    // testing: buttons light up the picture and don't press anything
+    await padHold(p, 'A', true); await p.waitForTimeout(100);
+    check(await p.evaluate(() => document.querySelector('.b[data-b="0"]').classList.contains('on') && state === 'title'), 'Ⓐ should light up, not start the game');
+    await padHold(p, 'A', false);
+    await padHold(p, 'B', true); await p.waitForTimeout(1500); await padHold(p, 'B', false);
+    check(await p.evaluate(() => !document.querySelector('.rb-padscreen.testing')), 'holding Ⓑ should finish testing');
+    // settings: invert the left stick's up/down and the right stick's up/down, switch vibration off
+    await p.click('[data-k="invLY"]'); await p.click('[data-k="invRY"]'); await p.click('[data-k="rumble"]');
+    const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('rb_pad')));
+    check(saved.invLY && saved.invRY && !saved.rumble, 'settings should save: ' + JSON.stringify(saved));
+    await padTap(p, 'B'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !document.querySelector('.rb-padscreen') && state === 'title'), 'Ⓑ should close the screen');
+    await p.evaluate(() => startGame()); await p.waitForTimeout(200);
+    await p.evaluate(() => { __pad.axes[1] = -0.9; __pad.axes[3] = -0.9; }); await p.waitForTimeout(200);
+    const r = await p.evaluate(() => ({ stickY: stick.y, lookY: RB.pad.look.y }));
+    check(r.stickY > 0.3 && r.lookY > 0.3, 'pushing both sticks up should now count as down (inverted): ' + JSON.stringify(r));
+    await p.evaluate(() => { __pad.axes[1] = 0; __pad.axes[3] = 0; window.__rumbles = 0; RB.noise(0.3, 0.5); });
+    check(await p.evaluate(() => !window.__rumbles), 'vibration off should stop the rumble');
+    // the pause menu has the controller screen too, and closing it returns to the pause menu
+    await padTap(p, 'MENU');
+    await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
+    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause menu should open the controller screen');
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause menu, still paused');
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); });
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await p.screenshot({ path: path.join(OUT, 'witch-controller.png') });
+    await ctx.close();
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();

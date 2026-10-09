@@ -72,12 +72,12 @@
   .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a3a0a; }
   .stats { font-size: 20px; line-height: 1.6; margin: 10px 0 0; }
   .camopts { margin-top: 12px; font-size: 16px; }
-  .camopts button { font: 700 15px system-ui, sans-serif; padding: 6px 12px; margin: 4px 2px; border-radius: 10px; border: 2px solid #c89cff; color: #f3eaff; background: rgba(60,20,90,.7); cursor: pointer; }
+  .camopts button { font: 700 16px system-ui, sans-serif; padding: 8px 14px; margin: 4px 2px; border-radius: 12px; border: 2px solid #c89cff; color: #f3eaff; background: rgba(60,20,90,.7); cursor: pointer; }
   .stats b { color: #ffb347; }
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261009-1421">
+<link rel="stylesheet" href="common.css?v=20261009-1434">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -104,7 +104,7 @@
       <li>In the storm, cast your <b>shield spell</b> (<span class="key-only"><kbd>Space</kbd></span><span class="touch-only">purple button</span>) when lightning is coming!</li>
       <li>Swoop through a <b>backyard</b>, a <b>spooky graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
     </ol>
-    <div class="camopts">🎥 Camera: <button type="button" id="camInv"></button> <button type="button" id="camSpd"></button></div>
+    <div class="camopts"><button type="button" id="btnPad">🎮 Controller &amp; camera settings</button></div>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">🧹 Fly!</button>
   </div>
@@ -119,8 +119,8 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261009-1421"></script>
-<script src="touch-stick.js?v=20261009-1421"></script>
+<script src="common.js?v=20261009-1434"></script>
+<script src="touch-stick.js?v=20261009-1434"></script>
 <script>
 'use strict';
 
@@ -653,7 +653,8 @@ canvas.addEventListener('pointerdown', e => {
 canvas.addEventListener('pointermove', e => {
   const d = cam.drag;
   if (!d || e.pointerId !== d.id) return;
-  cam.yaw -= (e.clientX - d.x) * 0.008; cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005 * (camOpts.invertY ? -1 : 1), CAM.minEl, CAM.maxEl);
+  cam.yaw -= (e.clientX - d.x) * 0.008 * (camCfg().invRX ? -1 : 1);
+  cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005 * (camCfg().invRY ? -1 : 1), CAM.minEl, CAM.maxEl);
   d.x = e.clientX; d.y = e.clientY; cam.idle = 0;
 });
 const endDrag = e => { if (cam.drag && e.pointerId === cam.drag.id) cam.drag = null; };
@@ -664,7 +665,7 @@ spellBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropag
 function pause() {
   if (paused || state !== 'fly') return;
   paused = true; stick.reset(); for (const k in keys) keys[k] = false;
-  RB.showPause(resume);
+  RB.showPause(resume, { extra: [{ label: '🎮 CONTROLLER', onClick: () => RB.controllerScreen() }] });
 }
 function resume() { paused = false; RB.hidePause(); last = performance.now(); }
 RB.topbar({
@@ -906,27 +907,19 @@ function placeFlock(dt, fixedSpeed) {
 //   (it never moves on its own while you're holding the stick)
 // - it pulls in close when a tree, gate, crypt or the cliff gets between it and her, then eases back out
 // - a ring boost pulls it back a touch and widens the view, slowly, for a sense of speed
-// - options on the title screen: invert up/down, and camera speed
+// - invert up/down / left-right and camera speed: in the 🎮 controller settings (title screen and pause menu)
 const CAM = { dist: 11, el0: 0.33, minEl: -0.17, maxEl: 1.05, turn: 2.8, tilt: 1.3, idleBack: 1.5, lead: 0.22 };
-const camOpts = (() => {
-  const o = { invertY: false, speed: 1 };
-  try { Object.assign(o, JSON.parse(RB.store.get('ww_cam') || '{}')); } catch (e) { /* defaults */ }
-  return o;
-})();
-const SPEEDS = [['Slow', 0.65], ['Normal', 1], ['Fast', 1.45]];
-function showCamOpts() {
-  $('camInv').textContent = `Up/down: ${camOpts.invertY ? 'Inverted' : 'Normal'}`;
-  $('camSpd').textContent = `Speed: ${(SPEEDS[camOpts.speed] || SPEEDS[1])[0]}`;
-  RB.store.set('ww_cam', JSON.stringify(camOpts));
-}
+// Invert and camera speed live in the shared 🎮 controller settings (common.js applies the stick inversion).
+const camCfg = () => (RB.pad && RB.pad.config) || {};
+const camSpeed = () => (RB.pad && RB.pad.camSpeed) || 1;
 const cam = { yaw: 0, el: CAM.el0, yawS: 0, elS: CAM.el0, idle: 99, snap: false, drag: null, dist: CAM.dist, speedK: 0, steerRef: null, steerSign: 0 };
 const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
 // near the top and bottom limits the tilt slows down, so it settles instead of slamming into a stop
 const softTilt = (el, d) => d * clamp((d > 0 ? CAM.maxEl - el : el - CAM.minEl) / 0.25, 0.15, 1);
 function cameraInput(dt, sx) {
   const pad = RB.pad || {}, L = pad.look || { x: 0, y: 0 };   // (an old cached common.js has no right stick)
-  const sp = (SPEEDS[camOpts.speed] || SPEEDS[1])[1];
-  const lx = clamp(L.x + (keys.camR ? 1 : 0) - (keys.camL ? 1 : 0), -1, 1), ly = L.y * (camOpts.invertY ? -1 : 1);
+  const sp = camSpeed();
+  const lx = clamp(L.x + (keys.camR ? 1 : 0) - (keys.camL ? 1 : 0), -1, 1), ly = L.y;
   if (lx || ly) {
     cam.yaw -= lx * CAM.turn * sp * dt;   // push right: the view swings right
     cam.el = clamp(cam.el + softTilt(cam.el, ly * CAM.tilt * sp * dt), CAM.minEl, CAM.maxEl);   // push up: look up from lower down
@@ -1051,9 +1044,7 @@ function updateHUD() {
 
 // ---------- Screens ----------
 $('btnPlay').addEventListener('click', startGame);
-$('camInv').addEventListener('click', () => { camOpts.invertY = !camOpts.invertY; showCamOpts(); });
-$('camSpd').addEventListener('click', () => { camOpts.speed = (camOpts.speed + 1) % SPEEDS.length; showCamOpts(); });
-showCamOpts();
+$('btnPad').addEventListener('click', () => RB.controllerScreen());
 $('btnAgain').addEventListener('click', startGame);
 if (best) $('titleBest').innerHTML = `🏆 Best time <b>${fmt(best)}</b>`;
 resetRun(0);

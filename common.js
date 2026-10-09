@@ -120,16 +120,17 @@ const RB = (() => {
 
   // ---------- Pausing ----------
   let pauseEl = null;
-  function showPause(onResume) {
+  function showPause(onResume, { extra = [] } = {}) {
     if (pauseEl) return;
     pauseEl = document.createElement('div');
     pauseEl.className = 'rb-pause';
     pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>
-      <button type="button">▶ KEEP PLAYING</button><a href="${homeHref()}" class="rb-home">🏠 All games</a>
+      <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}<a href="${homeHref()}" class="rb-home">🏠 All games</a>
       <div class="rb-hint">${pad.connected ? '🎮 ☰ Menu to carry on · ⧉ View twice for all games' : touch ? 'Tap the button to carry on' : 'Press P or Space to carry on'}</div></div>`;
     pauseEl.querySelector('.rb-home').addEventListener('click', () => dispatchEvent(new Event('rb-leave')));
     pauseEl.addEventListener('pointerdown', e => e.stopPropagation());
     pauseEl.querySelector('button').addEventListener('click', () => { hidePause(); onResume(); });
+    pauseEl.querySelectorAll('.rb-extra').forEach(b => b.addEventListener('click', () => extra[+b.dataset.x].onClick()));
     document.body.appendChild(pauseEl);
     if (ac && ac.state === 'running') ac.suspend();   // music, wind and sound effects all stop while paused
   }
@@ -156,7 +157,22 @@ const RB = (() => {
     const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
     const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
     const sticks = [];
-    const look = { x: 0, y: 0 };   // the right stick, for games with a camera to swing around
+    // Controller settings, shared by every game (saved as rb_pad): invert each stick's axes,
+    // camera speed, how big the stick dead zone is, and vibration.
+    const DEFAULTS = { invLX: false, invLY: false, invRX: false, invRY: false, camSpeed: 1, dead: 1, rumble: true };
+    const DEADZONES = [0.12, 0.22, 0.32];   // small, medium, large
+    const cfg = { ...DEFAULTS };
+    try {
+      const saved = JSON.parse(store.get('rb_pad') || 'null');
+      if (saved) Object.assign(cfg, saved);
+      else {   // Witch Way Out's first camera options carry over
+        const old = JSON.parse(store.get('ww_cam') || 'null');
+        if (old) { cfg.invRY = !!old.invertY; if (old.speed != null) cfg.camSpeed = old.speed; }
+      }
+    } catch (e) { /* defaults */ }
+    const saveCfg = () => store.set('rb_pad', JSON.stringify(cfg));
+    let navOff = false;   // while the controller tester is testing, buttons only light up the picture
+    const look = { x: 0, y: 0 }, game = { lx: 0, ly: 0 };   // game: the left stick as games see it   // the right stick, for games with a camera to swing around
     let pressedNow = [], ignore = [];   // ignore: buttons still held from before a menu opened or closed
     let running = false, held = {}, prevBtn = [], menuMode = false, focusEl = null, styled = false, last = { dir: null, t: 0, next: 0 }, cache = { t: 0, list: [] };
     try { if ('gamepadInputEmulation' in navigator) navigator.gamepadInputEmulation = 'gamepad'; } catch (e) { /* old Xbox Edge only */ }
@@ -198,7 +214,8 @@ const RB = (() => {
         }
         return false;
       };
-      cache = { t: now, list: game ? all.filter(inPanel) : all };
+      const modal = document.querySelector('.rb-padscreen');   // the controller screen covers everything else
+      cache = { t: now, list: modal ? all.filter(el => modal.contains(el)) : game ? all.filter(inPanel) : all };
       return cache.list;
     }
 
@@ -286,11 +303,22 @@ const RB = (() => {
         g.buttons.forEach((b, i) => { btn[i] = btn[i] || b.pressed || b.value > 0.5; });
         for (const i of [0, 1, 2, 3]) if (Math.abs(g.axes[i] || 0) > Math.abs(A[i])) A[i] = g.axes[i] || 0;
       }
-      const rmag = Math.hypot(A[2], A[3]), rk = rmag < 0.18 ? 0 : Math.min(1, (rmag - 0.18) / 0.82) / rmag;
+      if (cfg.invLX) A[0] = -A[0];
+      if (cfg.invLY) A[1] = -A[1];
+      if (cfg.invRX) A[2] = -A[2];
+      if (cfg.invRY) A[3] = -A[3];
+      const dead = DEADZONES[cfg.dead] != null ? DEADZONES[cfg.dead] : 0.22, rdead = Math.max(0.1, dead - 0.04);
+      const rmag = Math.hypot(A[2], A[3]), rk = rmag < rdead ? 0 : Math.min(1, (rmag - rdead) / (1 - rdead)) / rmag;
       look.x = A[2] * rk; look.y = A[3] * rk;
-      const mag = Math.hypot(A[0], A[1]), dead = 0.22;
+      const mag = Math.hypot(A[0], A[1]);
       const lx = mag < dead ? 0 : A[0] / mag * Math.min(1, (mag - dead) / (1 - dead)), ly = mag < dead ? 0 : A[1] / mag * Math.min(1, (mag - dead) / (1 - dead));
       const edge = i => btn[i] && !prevBtn[i];
+      game.lx = lx; game.ly = ly;
+      if (navOff) {   // testing: nothing reaches the game or the menus
+        releaseAll(); prevBtn = btn; pressedNow = btn; ignore = btn.slice();
+        for (const s of sticks) if (s.driving) { s.driving = false; s.stick.x = s.stick.y = 0; s.stick.active = false; }
+        return;
+      }
       // a button press always looks at the screen as it is right now (a menu may have just closed)
       const anyEdge = btn.some((b, i) => b && !prevBtn[i]);
       const menu = choices(anyEdge).length > 0;
@@ -309,7 +337,7 @@ const RB = (() => {
         if (dir && (dir !== last.dir || now >= last.next)) { move(dir, opts); last.next = now + (dir === last.dir ? 130 : 380); }
         last.dir = dir;
         if (edge(0) || edge(2) || edge(7)) activate();
-        if (edge(1)) { key('keydown', 'Escape'); key('keyup', 'Escape'); }
+        if (edge(1)) { if (padScreen) padScreen.close(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
         if (edge(9)) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); }
       } else {
         // the left stick: smooth analog steering where the game has a joystick, arrow keys everywhere else
@@ -345,6 +373,7 @@ const RB = (() => {
       // touch-stick.js registers each joystick so the left stick can drive it smoothly
       addStick(stick, enabled) { sticks.push({ stick, enabled, driving: false }); },
       rumble(ms, strength = 0.6) {
+        if (!cfg.rumble) return;
         for (const g of pads()) {
           const v = g.vibrationActuator;
           if (v && v.playEffect) v.playEffect('dual-rumble', { duration: ms, strongMagnitude: strength, weakMagnitude: Math.min(1, strength + 0.2) }).catch(() => {});
@@ -354,15 +383,169 @@ const RB = (() => {
       look,   // { x, y } from the right stick, -1 to 1 (y is +1 pulled down)
       pressed: i => !!pressedNow[i],   // is button i held right now (10 / 11 are the stick clicks)
       get menuMode() { return menuMode; },
+      config: cfg, DEFAULTS, DEADZONES, game,
+      setConfig(patch) { Object.assign(cfg, patch); saveCfg(); },
+      get camSpeed() { return [0.65, 1, 1.45][cfg.camSpeed] || 1; },
+      set navOff(v) { navOff = v; if (v) { releaseAll(); setFocus(null); } else ignore = prevBtn.slice(); },
+      pads,
     };
   })();
+
+  // ---------- 🎮 Controller tester and settings ----------
+  // A full-screen page like gamepad-tester.com: a controller picture lights up every button, shows the
+  // sticks and triggers, and lists the raw numbers. While testing, the controller only lights things up
+  // (so pressing Ⓐ can't flip a setting); hold Ⓑ to finish testing and move on to the settings.
+  let padScreen = null;
+  function controllerScreen({ onClose } = {}) {
+    if (padScreen) return;
+    style2();
+    const wrap = document.createElement('div');
+    wrap.className = 'rb-padscreen';
+    const hiddenPause = pauseEl; if (hiddenPause) hiddenPause.style.display = 'none';
+    const B = (i, x, y, r, label, cls = '') => `<g class="b ${cls}" data-b="${i}"><circle cx="${x}" cy="${y}" r="${r}"/><text x="${x}" y="${y + 1}">${label}</text></g>`;
+    const R = (i, x, y, w, h, label, rx = 8) => `<g class="b" data-b="${i}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"/><text x="${x + w / 2}" y="${y + h / 2 + 1}">${label}</text></g>`;
+    wrap.innerHTML = `<div class="rb-panel rb-padpanel">
+      <h2>🎮 Controller</h2>
+      <div class="pad-status" id="padStatus"></div>
+      <svg viewBox="0 0 420 270" class="pad-svg" aria-label="Your controller">
+        <g class="trig" data-t="6"><rect x="58" y="6" width="70" height="26" rx="8"/><rect class="fill" x="58" y="6" width="0" height="26" rx="8"/><text x="93" y="20">LT</text></g>
+        <g class="trig" data-t="7"><rect x="292" y="6" width="70" height="26" rx="8"/><rect class="fill" x="292" y="6" width="0" height="26" rx="8"/><text x="327" y="20">RT</text></g>
+        ${R(4, 52, 38, 84, 20, 'LB')}${R(5, 284, 38, 84, 20, 'RB')}
+        <path class="body" d="M70 70 Q 210 50 350 70 Q 405 80 412 170 Q 418 250 360 252 Q 320 254 290 205 L 130 205 Q 100 254 60 252 Q 2 250 8 170 Q 15 80 70 70 Z"/>
+        <g class="stick" data-s="L"><circle class="well" cx="110" cy="115" r="34"/>${B(10, 110, 115, 18, 'L', 'knob')}</g>
+        <g class="stick" data-s="R"><circle class="well" cx="262" cy="178" r="34"/>${B(11, 262, 178, 18, 'R', 'knob')}</g>
+        ${R(12, 146, 140, 22, 24, '▲', 4)}${R(13, 146, 186, 22, 24, '▼', 4)}${R(14, 121, 164, 24, 22, '◀', 4)}${R(15, 169, 164, 24, 22, '▶', 4)}
+        ${B(8, 178, 105, 12, '⧉')}${B(9, 242, 105, 12, '☰')}
+        ${B(3, 320, 88, 15, 'Y', 'y')}${B(2, 292, 116, 15, 'X', 'x')}${B(1, 348, 116, 15, 'B', 'bb')}${B(0, 320, 144, 15, 'A', 'a')}
+      </svg>
+      <div class="pad-nums" id="padNums"></div>
+      <div class="pad-test" id="padTest">✋ <b>Testing:</b> press every button and move both sticks. <b>Hold Ⓑ</b> to finish testing.
+        <div class="hold"><div id="padHold"></div></div></div>
+      <div class="pad-settings" id="padSettings">
+        <div class="row"><b>Left stick</b> <button type="button" data-k="invLY"></button><button type="button" data-k="invLX"></button></div>
+        <div class="row"><b>Right stick (camera)</b> <button type="button" data-k="invRY"></button><button type="button" data-k="invRX"></button></div>
+        <div class="row"><b>Camera speed</b> <button type="button" data-k="camSpeed"></button>
+          <b>Dead zone</b> <button type="button" data-k="dead"></button></div>
+        <div class="row"><b>Vibration</b> <button type="button" data-k="rumble"></button> <button type="button" id="padBuzz">Test 📳</button></div>
+        <div class="row"><button type="button" id="padReset" class="alt">↺ Reset to defaults</button>
+          <button type="button" id="padRetest" class="alt">🎮 Test again</button>
+          <button type="button" id="padDone" data-pad-default>✓ Done</button></div>
+      </div></div>`;
+    wrap.addEventListener('pointerdown', e => e.stopPropagation());
+    document.body.appendChild(wrap);
+    padScreen = wrap;
+    wrap.close = () => close();
+    const $p = sel => wrap.querySelector(sel);
+    const cfg = pad.config;
+    const NAMES = {
+      invLY: v => `Up/down: ${v ? 'Inverted' : 'Normal'}`, invLX: v => `Left/right: ${v ? 'Inverted' : 'Normal'}`,
+      invRY: v => `Up/down: ${v ? 'Inverted' : 'Normal'}`, invRX: v => `Left/right: ${v ? 'Inverted' : 'Normal'}`,
+      camSpeed: v => ['Slow', 'Normal', 'Fast'][v] || 'Normal', dead: v => ['Small', 'Medium', 'Large'][v] || 'Medium', rumble: v => v ? 'On' : 'Off',
+    };
+    const paint = () => wrap.querySelectorAll('[data-k]').forEach(b => { b.textContent = NAMES[b.dataset.k](cfg[b.dataset.k]); b.classList.toggle('on', cfg[b.dataset.k] !== pad.DEFAULTS[b.dataset.k]); });
+    wrap.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
+      const k = b.dataset.k, v = cfg[k];
+      pad.setConfig({ [k]: typeof v === 'boolean' ? !v : (v + 1) % 3 });
+      paint();
+    }));
+    $p('#padBuzz').addEventListener('click', () => { const was = cfg.rumble; cfg.rumble = true; pad.rumble(400, 0.8); cfg.rumble = was; });
+    $p('#padReset').addEventListener('click', () => { pad.setConfig({ ...pad.DEFAULTS }); paint(); });
+    let testing = false, holdB = 0, last = performance.now();
+    const setTesting = on => {
+      testing = on && pad.connected; pad.navOff = testing; holdB = 0;
+      if (testing) wrap.dataset.seen = 1;
+      wrap.classList.toggle('testing', testing);
+    };
+    $p('#padRetest').addEventListener('click', () => setTesting(true));
+    // keys on the keyboard don't reach the game while this screen is open; Escape closes it
+    const keyGuard = e => {
+      if (e.code === 'Escape') { e.preventDefault(); close(); }
+      e.stopImmediatePropagation();   // (buttons still work: Enter and Space press the highlighted one)
+    };
+    addEventListener('keydown', keyGuard, true);
+    const close = () => {
+      removeEventListener('keydown', keyGuard, true);
+      pad.navOff = false; padScreen = null; wrap.remove();
+      if (hiddenPause) hiddenPause.style.display = '';
+      if (onClose) onClose();
+    };
+    $p('#padDone').addEventListener('click', close);
+    paint(); setTesting(true);
+    (function draw(now) {
+      if (!padScreen) return;
+      requestAnimationFrame(draw);
+      const dt = Math.min(0.1, (now - last) / 1000); last = now;
+      const g = pad.pads()[0];
+      if (!g) {
+        $p('#padStatus').innerHTML = '🔌 No controller found yet. <b>Press any button</b> on your controller to wake it up.';
+        $p('#padNums').textContent = '';
+        if (testing) setTesting(false);
+        return;
+      }
+      if (!testing && !wrap.dataset.seen) { wrap.dataset.seen = 1; setTesting(true); }
+      $p('#padStatus').innerHTML = `✅ <b>${esc(g.id.replace(/\s*\(.*$/, '') || 'Controller')}</b> is connected${g.mapping === 'standard' ? '' : ' (unusual layout: some buttons may differ)'}`;
+      const pressed = i => g.buttons[i] && (g.buttons[i].pressed || g.buttons[i].value > 0.5);
+      wrap.querySelectorAll('.b').forEach(el => el.classList.toggle('on', !!pressed(+el.dataset.b)));
+      wrap.querySelectorAll('.trig').forEach(el => { const v = (g.buttons[+el.dataset.t] || {}).value || 0; el.querySelector('.fill').setAttribute('width', 70 * v); el.classList.toggle('on', v > 0.5); });
+      // the sticks: the knob shows the direction the GAME sees (after your invert settings)
+      const ax = i => g.axes[i] || 0;
+      const seen = [ax(0) * (cfg.invLX ? -1 : 1), ax(1) * (cfg.invLY ? -1 : 1), ax(2) * (cfg.invRX ? -1 : 1), ax(3) * (cfg.invRY ? -1 : 1)];
+      for (const [s, cx, cy, i] of [['L', 110, 115, 0], ['R', 262, 178, 2]]) {
+        const k = wrap.querySelector(`[data-s="${s}"] .knob`);
+        k.setAttribute('transform', `translate(${seen[i] * 20} ${seen[i + 1] * 20})`);
+      }
+      $p('#padNums').innerHTML = `Left stick <b>${ax(0).toFixed(2)}, ${ax(1).toFixed(2)}</b> · Right stick <b>${ax(2).toFixed(2)}, ${ax(3).toFixed(2)}</b> · Triggers <b>${(((g.buttons[6] || {}).value) || 0).toFixed(2)}, ${(((g.buttons[7] || {}).value) || 0).toFixed(2)}</b>` +
+        `<br><span class="raw">${g.buttons.map((b, i) => `<span class="${b.pressed ? 'on' : ''}">${i}</span>`).join('')}</span>`;
+      if (testing) {
+        holdB = pressed(1) ? holdB + dt : 0;
+        $p('#padHold').style.width = Math.min(100, holdB / 1.2 * 100) + '%';
+        if (holdB > 1.2) { setTesting(false); }
+      }
+    })(performance.now());
+  }
+  const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  let styled2 = false;
+  function style2() {
+    if (styled2) return;
+    styled2 = true;
+    const css = document.createElement('style');
+    css.textContent = `
+      .rb-padscreen { position: fixed; inset: 0; z-index: 12; display: flex; overflow-y: auto; padding: 16px; background: rgba(8,16,40,.86); font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      .rb-padpanel { margin: auto; width: 100%; max-width: 640px; box-sizing: border-box; text-align: center; color: #0b2a5c; background: #fffdf2;
+        border: 4px solid #0b2a5c; border-radius: 22px; box-shadow: 0 8px 0 #0b2a5c; padding: 16px 18px 18px; }
+      .rb-padpanel h2 { margin: 0 0 6px; font: 30px 'Bungee', system-ui, sans-serif; }
+      .pad-status { font-size: 16px; min-height: 22px; }
+      .pad-svg { width: 100%; max-width: 440px; display: block; margin: 6px auto; }
+      .pad-svg .body { fill: #2a2f3d; stroke: #0b2a5c; stroke-width: 3; }
+      .pad-svg .well { fill: #161a24; }
+      .pad-svg .b circle, .pad-svg .b rect, .pad-svg .trig rect { fill: #4a5168; stroke: #0b2a5c; stroke-width: 2; transition: fill .05s; }
+      .pad-svg text { fill: #fff; font: 700 13px system-ui, sans-serif; text-anchor: middle; dominant-baseline: middle; pointer-events: none; }
+      .pad-svg .b.a circle { fill: #2f8f3a; } .pad-svg .b.bb circle { fill: #b03030; } .pad-svg .b.x circle { fill: #2f5fb0; } .pad-svg .b.y circle { fill: #b09020; }
+      .pad-svg .b.on circle, .pad-svg .b.on rect { fill: #ffd84a !important; }
+      .pad-svg .b.on text, .pad-svg .trig.on text { fill: #0b2a5c; }
+      .pad-svg .knob circle { fill: #8a92a8; }
+      .pad-svg .trig .fill { fill: #ffd84a; stroke: none; }
+      .pad-nums { font-size: 14px; color: #3a4a6a; }
+      .pad-nums .raw span { display: inline-block; min-width: 18px; margin: 3px 1px; padding: 1px 3px; border-radius: 5px; background: #e6ebf5; font-size: 12px; }
+      .pad-nums .raw span.on { background: #ffd84a; }
+      .pad-test { display: none; margin: 10px 0; padding: 10px; border-radius: 14px; background: #fff3b0; font-size: 16px; }
+      .rb-padscreen.testing .pad-test { display: block; }
+      .rb-padscreen.testing .pad-settings { opacity: .45; }
+      .pad-test .hold { height: 10px; margin-top: 8px; border-radius: 5px; background: #e6d38a; overflow: hidden; }
+      .pad-test .hold div { height: 100%; width: 0; background: #b03030; }
+      .pad-settings .row { margin: 8px 0; font-size: 15px; }
+      .pad-settings button { font: 700 15px system-ui, sans-serif; padding: 8px 12px; margin: 3px; border-radius: 12px; border: 3px solid #0b2a5c; background: #fff; color: #0b2a5c; cursor: pointer; }
+      .pad-settings button.on { background: #ffe7a0; }
+      .pad-settings #padDone { background: #ffd84a; box-shadow: 0 4px 0 #0b2a5c; }`;
+    document.head.appendChild(css);
+  }
 
   return {
     touch, store, audio, pad, beep, noise, ambient, setMuted,
     get muted() { return muted; },
     toggleMute: () => { audio(); setMuted(!muted); },
     onMute: f => muteHooks.push(f),
-    toast, share, topbar, showPause, hidePause, onHide,
+    toast, share, topbar, showPause, hidePause, onHide, controllerScreen,
     get pauseShowing() { return !!pauseEl; },
   };
 })();
