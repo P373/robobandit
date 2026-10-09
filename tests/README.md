@@ -15,6 +15,10 @@
 - **School folders**: the home page links to each grade's folder, and the 5th and 2nd grade folders list their subjects with saved stars
 - **5th grade** (reading & rights, math, science, social studies) and **2nd grade** (math, reading, science, social studies): every lesson picture draws, every quiz can be aced, every game can be won with 3 stars
 - **Xbox controller** (a pretend one): the D-pad and Ⓐ pick games on the arcade page, press menu buttons and lesson buttons; Ⓐ flaps and holds the burner; the left stick steers smoothly; ☰ pauses; crashes rumble
+- **Witch Way Out camera**: the right stick swings the camera all the way around the witch at a steady distance, clicking it snaps back, letting go drifts back behind her, and pushing right moves her right on screen from behind and in front
+- pausing silences all music and sound; the controller's ⧉ View button pressed twice goes back to all the games (or a lesson's folder)
+- every page links the shared files with the same `?v=` stamp (run `node tools/bump-version.js` after changing a shared file)
+- **Controller screen** (Witch Way Out, from the title and the pause menu): testing lights up the picture without pressing anything, holding Ⓑ finishes, inverting each stick and switching vibration off save and take effect, Ⓑ / Escape go back
 - muting one game mutes them all
 
 The autopilots call each game's own `update()` in a loop, so a whole game takes a few seconds.
@@ -27,6 +31,8 @@ npm install                  # once: installs Playwright
 npx playwright install chromium   # once, if you don't have a browser for it yet
 npm test
 ```
+
+After changing any shared file (`common.js`, `common.css`, `touch-stick.js`, `lesson.js`, …) run `node tools/bump-version.js`, so visitors never get a mix of old and new files.
 
 When you add a game, add a block for it to `tests/run.js`, then make its link-preview picture with
 `npm run previews` (add the game to the list at the top of `tools/make-previews.js` first).

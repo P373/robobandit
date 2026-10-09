@@ -589,6 +589,129 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Witch Way Out: the right stick swings the camera all the way around, steering follows the screen', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1200);
+    // the right stick reaches the game through common.js
+    await p.evaluate(() => { startGame(); introT = 0; });
+    await p.evaluate(() => { __pad.axes[2] = 1; }); await p.waitForTimeout(400);
+    check(await p.evaluate(() => cam.yaw < -0.05), 'pushing the right stick right should swing the camera');
+    await p.evaluate(() => { __pad.axes[2] = 0; });
+    await padTap(p, 'RIGHT'); // (any button) let the loop settle
+    await p.evaluate(() => { __pad.buttons[11] = { pressed: true, value: 1 }; }); await p.waitForTimeout(120);
+    await p.evaluate(() => { __pad.buttons[11] = { pressed: false, value: 0 }; });
+    check(await p.evaluate(() => Math.abs(cam.yaw) < 0.01), 'clicking the right stick should snap the camera back');
+    const r = await p.evaluate(() => {
+      const out = {};
+      for (const [name, cy] of [['behind', 0], ['front', Math.PI]]) {   // push right: she moves right on screen
+        startGame(); introT = 0;
+        for (let i = 0; i < 120; i++) { update(1 / 60); updateVisuals(1 / 60); }
+        cam.yaw = cam.yawS = cy;
+        for (let i = 0; i < 30; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
+        camera.updateMatrixWorld();
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), p0 = pos.clone();
+        keys.r = true;
+        for (let i = 0; i < 40; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
+        keys.r = false;
+        out[name] = pos.clone().sub(p0).dot(right);
+      }
+      // a full circle keeps the camera on its orbit (same distance) and above the ground
+      const d = [];
+      for (let k = 0; k < 8; k++) { cam.yaw = cam.yawS = k / 8 * Math.PI * 2; cam.idle = 0; for (let i = 0; i < 40; i++) { update(1 / 60); updateVisuals(1 / 60); } d.push(camera.position.distanceTo(pos)); }
+      // let go: it drifts back behind her
+      cam.yaw = 2.5; cam.idle = 0;
+      for (let i = 0; i < 60 * 6; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      return { ...out, minD: Math.min(...d), maxD: Math.max(...d), back: cam.yaw };
+    });
+    check(r.behind > 2 && r.front > 2, 'pushing right should move her right on screen from behind and in front: ' + JSON.stringify(r));
+    check(r.minD > 8 && r.maxD < 16, 'the camera should orbit at a steady distance: ' + JSON.stringify(r));
+    check(Math.abs(r.back) < 0.1, 'the camera should drift back behind her: ' + r.back);
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await p.screenshot({ path: path.join(OUT, 'witch-camera.png') });
+    await ctx.close();
+  });
+
+  await test('pausing silences all sound; the controller View button (twice) goes home; pages load matching shared files', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const view = async () => { try { await padTap(p, 'VIEW'); } catch (e) { /* the page went away: that's the point */ } };
+    await p.goto(url('flight-school.html')); await p.waitForTimeout(400);
+    await p.evaluate(() => { cur = 0; startRound(true); });   // a balloon waiting on the ground: the round can't end by itself
+    await padTap(p, 'A');
+    check(await p.evaluate(() => RB.audio().state) === 'running', 'sound should be on while playing');
+    await padTap(p, 'MENU');
+    check(await p.evaluate(() => paused && RB.audio().state === 'suspended'), 'pausing should silence the music and sounds');
+    await padTap(p, 'MENU');
+    check(await p.evaluate(() => !paused && RB.audio().state === 'running'), 'carrying on should bring the sound back');
+    await view();
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pad-focus')?.classList.contains('rb-home')), 'View once should pause with "All games" highlighted');
+    await view(); await p.waitForTimeout(500);
+    check(p.url().endsWith('/index.html'), 'View twice should go back to all the games: ' + p.url());
+    await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(400);
+    await view(); await view(); await p.waitForTimeout(500);
+    check(p.url().endsWith('5th-grade/index.html'), 'from a lesson, View twice goes back to its folder: ' + p.url());
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    // every page links our shared files with the same ?v= stamp, so a browser never mixes old and new copies
+    const stamps = new Set(), missing = [];
+    const walk = d => fs.readdirSync(d, { withFileTypes: true }).forEach(e => {
+      if (e.name.startsWith('.') || ['node_modules', 'tests', 'tools', 'vendor'].includes(e.name)) return;
+      const f = path.join(d, e.name);
+      if (e.isDirectory()) return walk(f);
+      if (!e.name.endsWith('.html')) return;
+      for (const m of fs.readFileSync(f, 'utf8').matchAll(/(?:src|href)="((?!https?:|data:)[^"]+\.(?:js|css))(\?v=[^"]*)?"/g)) {
+        if (m[1].includes('vendor/')) continue;
+        if (!m[2]) missing.push(path.relative(ROOT, f) + ': ' + m[1]); else stamps.add(m[2]);
+      }
+    });
+    walk(ROOT);
+    check(!missing.length, 'shared files without a ?v= stamp (run node tools/bump-version.js): ' + missing.join(', '));
+    check(stamps.size === 1, 'pages disagree on the shared-file version (run node tools/bump-version.js): ' + [...stamps].join(' '));
+  });
+
+  await test('Witch Way Out: controller tester and settings (invert each stick, vibration) from the title and pause menu', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1100, height: 760 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    await p.click('#btnPad'); await p.waitForTimeout(200);
+    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen.testing')), 'the controller screen should open in testing mode');
+    // testing: buttons light up the picture and don't press anything
+    await padHold(p, 'A', true); await p.waitForTimeout(100);
+    check(await p.evaluate(() => document.querySelector('.b[data-b="0"]').classList.contains('on') && state === 'title'), 'Ⓐ should light up, not start the game');
+    await padHold(p, 'A', false);
+    await padHold(p, 'B', true); await p.waitForTimeout(1500); await padHold(p, 'B', false);
+    check(await p.evaluate(() => !document.querySelector('.rb-padscreen.testing')), 'holding Ⓑ should finish testing');
+    // settings: invert the left stick's up/down and the right stick's up/down, switch vibration off
+    await p.click('[data-k="invLY"]'); await p.click('[data-k="invRY"]'); await p.click('[data-k="rumble"]');
+    const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('rb_pad')));
+    check(saved.invLY && saved.invRY && !saved.rumble, 'settings should save: ' + JSON.stringify(saved));
+    await padTap(p, 'B'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !document.querySelector('.rb-padscreen') && state === 'title'), 'Ⓑ should close the screen');
+    await p.evaluate(() => startGame()); await p.waitForTimeout(200);
+    await p.evaluate(() => { __pad.axes[1] = -0.9; __pad.axes[3] = -0.9; }); await p.waitForTimeout(200);
+    const r = await p.evaluate(() => ({ stickY: stick.y, lookY: RB.pad.look.y }));
+    check(r.stickY > 0.3 && r.lookY > 0.3, 'pushing both sticks up should now count as down (inverted): ' + JSON.stringify(r));
+    await p.evaluate(() => { __pad.axes[1] = 0; __pad.axes[3] = 0; window.__rumbles = 0; RB.noise(0.3, 0.5); });
+    check(await p.evaluate(() => !window.__rumbles), 'vibration off should stop the rumble');
+    // the pause menu has the controller screen too, and closing it returns to the pause menu
+    await padTap(p, 'MENU');
+    await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
+    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause menu should open the controller screen');
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause menu, still paused');
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); });
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await p.screenshot({ path: path.join(OUT, 'witch-controller.png') });
+    await ctx.close();
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();

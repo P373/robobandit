@@ -149,7 +149,7 @@
   #btnTorp { background: rgba(40,120,220,.55); }
   #fireButtons button:active { filter: brightness(1.6); }
 </style>
-<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="common.css?v=20261009-1621">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -175,8 +175,8 @@
   </div>
 </div>
 
-<script src="common.js"></script>
-<script src="touch-stick.js"></script>
+<script src="common.js?v=20261009-1621"></script>
+<script src="touch-stick.js?v=20261009-1621"></script>
 <script>
 'use strict';
 
@@ -2891,6 +2891,7 @@ document.getElementById('btnHome').addEventListener('click', e => {
   saveHi();
 });
 document.getElementById('btnPause').addEventListener('click', e => { e.currentTarget.blur(); openGameMenu(); });
+addEventListener('rb-leave', () => saveHi());   // leaving with the controller's View button saves your high score too
 document.getElementById('btnMute').addEventListener('click', e => { e.currentTarget.blur(); sfx.init(); toggleMute(); });
 document.getElementById('btnFs').addEventListener('click', e => { e.currentTarget.blur(); toggleFullscreen(); });
 document.getElementById('btnShare').addEventListener('click', e => { e.currentTarget.blur(); if (state === 'playing') togglePause(); shareGame(); });
