@@ -636,6 +636,49 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Hamglider: the right stick swings the camera all the way round Pip, steering follows the screen', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('hamglider.html')); await p.waitForTimeout(800);
+    await p.evaluate(() => { startWorld(0); action(); });   // rolling down the ramp
+    await p.evaluate(() => { __pad.axes[2] = 1; }); await p.waitForTimeout(400);
+    check(await p.evaluate(() => cam.yaw < -0.05), 'pushing the right stick right should swing the camera');
+    await p.evaluate(() => { __pad.axes[2] = 0; __pad.buttons[4] = { pressed: true, value: 1 }; }); await p.waitForTimeout(150);
+    await p.evaluate(() => { __pad.buttons[4] = { pressed: false, value: 0 }; });
+    check(await p.evaluate(() => Math.abs(cam.yaw) < 0.01), 'LB should swing the camera back behind');
+    const r = await p.evaluate(() => {
+      const out = {};
+      for (const [name, cy] of [['behind', 0], ['front', Math.PI]]) {   // push right: Pip moves right on screen
+        paused = true;   // (the page's own loop sits still while we step)
+        setupRound(0); action();
+        for (let i = 0; i < 60 * 20 && state !== 'air'; i++) { update(1 / 60); updateVisuals(1 / 60); }
+        action();   // wings open
+        cam.yaw = cam.yawS = cy;
+        for (let i = 0; i < 20; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
+        camera.updateMatrixWorld();
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), p0 = pos.clone();
+        keys.right = true;
+        for (let i = 0; i < 50; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
+        keys.right = false;
+        out[name] = pos.clone().sub(p0).dot(right);
+      }
+      const d = [];
+      for (let k = 0; k < 8; k++) { cam.yaw = cam.yawS = k / 8 * Math.PI * 2; cam.idle = 0; for (let i = 0; i < 30; i++) { update(1 / 60); updateVisuals(1 / 60); } d.push(camera.position.distanceTo(pip.position)); }
+      cam.yaw = 2.5; cam.idle = 0;
+      for (let i = 0; i < 60 * 5 && state === 'air'; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      paused = false;
+      return { ...out, minD: Math.min(...d), maxD: Math.max(...d), back: cam.yaw, state };
+    });
+    check(r.behind > 1 && r.front > 1, 'pushing right should move Pip right on screen from behind and in front: ' + JSON.stringify(r));
+    check(r.minD > 8 && r.maxD < 16, 'the camera should orbit at a steady distance: ' + JSON.stringify(r));
+    check(r.state !== 'air' || Math.abs(r.back) < 0.15, 'the camera should drift back behind: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await p.screenshot({ path: path.join(OUT, 'hamglider-camera.png') });
+    await ctx.close();
+  });
+
   await test('pausing silences all sound; the controller View button (twice) goes home; pages load matching shared files', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
     await ctx.addInitScript(fakePad);

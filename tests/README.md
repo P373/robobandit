@@ -19,6 +19,7 @@
 - **Witch Way Out camera**: the right stick swings the camera all the way around the witch at a steady distance, clicking it snaps back, letting go drifts back behind her, and pushing right moves her right on screen from behind and in front
 - pausing silences all music and sound; the controller's ⧉ View button pressed twice goes back to all the games (or a lesson's folder)
 - every page links the shared files with the same `?v=` stamp (run `node tools/bump-version.js` after changing a shared file)
+- **Hamglider camera**: the right stick swings the shared orbit camera (`orbit-cam.js`) round Pip, LB swings it back, pushing right moves Pip right on screen from behind and in front, and it orbits at a steady distance
 - **Controller screen** (Witch Way Out, from the title and the pause menu): testing lights up the picture without pressing anything, holding Ⓑ finishes, inverting each stick and switching vibration off save and take effect, Ⓑ / Escape go back
 - muting one game mutes them all
 
