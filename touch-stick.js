@@ -38,5 +38,6 @@ function createTouchStick(surface, { enabled = () => true, radius = 55 } = {}) {
   surface.addEventListener('pointerup', end);
   surface.addEventListener('pointercancel', end);
   addEventListener('blur', stick.reset);
+  if (typeof RB !== 'undefined' && RB.pad) RB.pad.addStick(stick, enabled);   // a game controller's left stick can drive it too
   return stick;
 }

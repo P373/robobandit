@@ -33,6 +33,7 @@ const RB = (() => {
   }
   // a burst of fading noise: splashes, whooshes
   function noise(dur, vol = 0.4) {
+    pad.rumble(Math.min(dur * 1000, 400), Math.min(1, vol * 1.5));   // crashes and splashes shake the controller too
     if (muted || !audio()) return;
     const buf = ac.createBuffer(1, Math.floor(ac.sampleRate * dur), ac.sampleRate), d = buf.getChannelData(0);
     for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2;
@@ -129,8 +130,190 @@ const RB = (() => {
     addEventListener('blur', fn);
   }
 
+
+  // ---------- Game controllers (Xbox and other standard gamepads) ----------
+  // During play the controller presses the game's own keys, so every game works without changes:
+  //   left stick / D-pad → arrow keys, Ⓐ or RT → Space, Ⓑ or LT → X, Ⓧ → Space, Ⓨ → H,
+  //   ☰ Menu → P (pause), ⧉ View → M (sound).
+  // Games with a touch joystick (touch-stick.js) also get the left stick as a smooth analog stick.
+  // When a menu, pop-up or page of buttons is showing, the D-pad / stick moves a yellow highlight
+  // between buttons, Ⓐ presses the highlighted one and Ⓑ is Escape (back).
+  const pad = (() => {
+    const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
+    const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 8: 'KeyM', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+    const sticks = [];
+    let running = false, held = {}, prevBtn = [], menuMode = false, focusEl = null, styled = false, last = { dir: null, t: 0, next: 0 }, cache = { t: 0, list: [] };
+    try { if ('gamepadInputEmulation' in navigator) navigator.gamepadInputEmulation = 'gamepad'; } catch (e) { /* old Xbox Edge only */ }
+
+    const pads = () => [...(navigator.getGamepads ? navigator.getGamepads() : [])].filter(g => g && g.connected);
+    function key(type, code) {
+      const ev = new KeyboardEvent(type, { code, key: KEYNAME[code] || code, bubbles: true, cancelable: true });
+      (document.body || document).dispatchEvent(ev);
+    }
+    function press(code, on) {
+      if (!!held[code] === on) return;
+      held[code] = on;
+      key(on ? 'keydown' : 'keyup', code);
+    }
+    const releaseAll = () => { for (const c in held) if (held[c]) press(c, false); };
+
+    // ---- what's on screen: a game being played, or buttons to choose from? ----
+    function shown(el) {
+      if (el.disabled || el.closest('.rb-topbar, [hidden], [aria-hidden="true"]')) return false;
+      if (el.checkVisibility && !el.checkVisibility({ opacityProperty: true, visibilityProperty: true })) return false;
+      const r = el.getBoundingClientRect();
+      if (r.width < 4 || r.height < 4) return false;
+      return getComputedStyle(el).pointerEvents !== 'none';
+    }
+    const big = el => { const r = el.getBoundingClientRect(); return r.width * r.height > innerWidth * innerHeight * 0.4; };
+    function choices() {
+      const now = performance.now();
+      if (now - cache.t < 200) return cache.list;
+      const all = [...document.querySelectorAll('button, a[href], input, select, [role="button"], [tabindex]:not([tabindex="-1"])')].filter(shown);
+      const game = [...document.querySelectorAll('canvas')].some(c => shown(c) && big(c));
+      // On a game page only buttons inside a big covering panel count (title screens, pause, quizzes);
+      // the small corner buttons and on-screen action buttons are left to the controller's own buttons.
+      const inPanel = el => {
+        for (let a = el.parentElement; a && a !== document.body; a = a.parentElement) {
+          const pos = getComputedStyle(a).position;
+          if ((pos === 'fixed' || pos === 'absolute') && big(a)) return true;
+        }
+        return false;
+      };
+      cache = { t: now, list: game ? all.filter(inPanel) : all };
+      return cache.list;
+    }
+
+    // ---- moving the highlight ----
+    function style() {
+      if (styled) return;
+      styled = true;
+      const css = document.createElement('style');
+      css.textContent = `.rb-pad-focus { outline: 5px solid #ffd84a !important; outline-offset: 3px; box-shadow: 0 0 0 9px rgba(11,42,92,.55) !important; }
+        .rb-toast { position: fixed; z-index: 11; left: 50%; bottom: 24px; transform: translateX(-50%); max-width: calc(100% - 32px); padding: 12px 18px;
+          border-radius: 14px; color: #fff; background: rgba(8,24,60,.92); font: 700 16px system-ui, sans-serif; text-align: center; pointer-events: none; opacity: 0; transition: opacity .25s; }
+        .rb-toast.on { opacity: 1; }`;
+      document.head.appendChild(css);
+    }
+    function setFocus(el) {
+      if (focusEl === el) return;
+      if (focusEl) focusEl.classList.remove('rb-pad-focus');
+      focusEl = el;
+      if (!el) return;
+      el.classList.add('rb-pad-focus');
+      try { el.focus({ preventScroll: true }); } catch (e) { /* not focusable */ }
+      el.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: 'smooth' });
+    }
+    function pickDefault(list) {
+      return list.find(el => el.matches('[data-pad-default], [autofocus]'))
+        || list.find(el => el.matches('.btn:not(.alt):not(.chip), .big-btn, .go, #btnPlay, #btnStart, #btnGo, #ovBtn, #go, .lvl.next'))
+        || list.find(el => el.matches('.card, .lvl:not(.locked)')) || list[0];
+    }
+    function move(dir, list) {
+      if (!focusEl || !list.includes(focusEl)) { setFocus(pickDefault(list)); return; }
+      if (focusEl.type === 'range' && (dir === 'ArrowLeft' || dir === 'ArrowRight')) {   // sliders slide
+        const s = focusEl, step = (s.max - s.min) / 20 || 1;
+        s.value = +s.value + (dir === 'ArrowRight' ? step : -step);
+        s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true }));
+        return;
+      }
+      const a = focusEl.getBoundingClientRect(), ax = a.left + a.width / 2, ay = a.top + a.height / 2;
+      const [dx, dy] = { ArrowUp: [0, -1], ArrowDown: [0, 1], ArrowLeft: [-1, 0], ArrowRight: [1, 0] }[dir];
+      let best = null, bestCost = Infinity;
+      for (const el of list) {
+        if (el === focusEl) continue;
+        const b = el.getBoundingClientRect(), bx = b.left + b.width / 2, by = b.top + b.height / 2;
+        const along = (bx - ax) * dx + (by - ay) * dy, side = Math.abs((bx - ax) * dy - (by - ay) * dx);
+        if (along <= 4) continue;
+        const cost = along + side * 2.2;
+        if (cost < bestCost) { bestCost = cost; best = el; }
+      }
+      if (best) setFocus(best);
+    }
+    function activate() {
+      if (!focusEl) return;
+      if (focusEl.matches('input[type="checkbox"], input[type="radio"]')) focusEl.click();
+      else if (focusEl.matches('input, select, textarea')) focusEl.focus();
+      else {
+        // games listen for pointerdown on some buttons and click on others: send both, like a real tap
+        const opt = { bubbles: true, cancelable: true, pointerType: 'mouse', isPrimary: true };
+        try { focusEl.dispatchEvent(new PointerEvent('pointerdown', opt)); focusEl.dispatchEvent(new PointerEvent('pointerup', opt)); } catch (e) { /* old browsers */ }
+        focusEl.click();
+      }
+    }
+
+    // ---- the polling loop ----
+    function frame(now) {
+      const list = pads();
+      if (!list.length) { releaseAll(); running = false; return; }
+      requestAnimationFrame(frame);
+      const btn = [], A = [0, 0];
+      for (const g of list) {
+        g.buttons.forEach((b, i) => { btn[i] = btn[i] || b.pressed || b.value > 0.5; });
+        for (const i of [0, 1]) if (Math.abs(g.axes[i] || 0) > Math.abs(A[i])) A[i] = g.axes[i] || 0;
+      }
+      const mag = Math.hypot(A[0], A[1]), dead = 0.22;
+      const lx = mag < dead ? 0 : A[0] / mag * Math.min(1, (mag - dead) / (1 - dead)), ly = mag < dead ? 0 : A[1] / mag * Math.min(1, (mag - dead) / (1 - dead));
+      const edge = i => btn[i] && !prevBtn[i];
+      const menu = choices().length > 0;
+      if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); }
+      if (menu) {
+        const opts = choices();
+        if (focusEl && !opts.includes(focusEl)) setFocus(null);
+        if (!focusEl) setFocus(pickDefault(opts));
+        const dir = btn[12] || ly < -0.5 ? 'ArrowUp' : btn[13] || ly > 0.5 ? 'ArrowDown' : btn[14] || lx < -0.5 ? 'ArrowLeft' : btn[15] || lx > 0.5 ? 'ArrowRight' : null;
+        if (dir && (dir !== last.dir || now >= last.next)) { move(dir, opts); last.next = now + (dir === last.dir ? 130 : 380); }
+        last.dir = dir;
+        if (edge(0) || edge(2) || edge(7)) activate();
+        if (edge(1)) { key('keydown', 'Escape'); key('keyup', 'Escape'); }
+        if (edge(9)) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); }
+        if (edge(8)) { key('keydown', 'KeyM'); key('keyup', 'KeyM'); }
+      } else {
+        // the left stick: smooth analog steering where the game has a joystick, arrow keys everywhere else
+        const st = sticks.find(s => s.stick.id === null && s.enabled());
+        for (const s of sticks) if (s !== st && s.driving) { s.driving = false; s.stick.x = s.stick.y = 0; s.stick.active = false; }
+        if (st) {
+          st.driving = !!(lx || ly);
+          st.stick.x = lx; st.stick.y = ly; st.stick.active = st.driving;
+        }
+        const want = {};
+        for (const i in BUTTONS) if (btn[i]) want[BUTTONS[i]] = true;
+        if (!st) {
+          const on = (v, was) => was ? v > 0.3 : v > 0.5;   // a little stickiness so it doesn't flicker
+          if (on(-ly, held.ArrowUp)) want.ArrowUp = true;
+          if (on(ly, held.ArrowDown)) want.ArrowDown = true;
+          if (on(-lx, held.ArrowLeft)) want.ArrowLeft = true;
+          if (on(lx, held.ArrowRight)) want.ArrowRight = true;
+        }
+        for (const c of new Set([...Object.keys(held), ...Object.keys(want)])) press(c, !!want[c]);
+      }
+      prevBtn = btn;
+    }
+    function start() {
+      if (running || !pads().length) return;
+      running = true; style();
+      if (audio) audio();
+      requestAnimationFrame(frame);
+    }
+    addEventListener('gamepadconnected', () => { start(); style(); toast('🎮 Controller ready! Ⓐ to play · ☰ Menu to pause'); });
+    addEventListener('gamepaddisconnected', () => { if (!pads().length) { releaseAll(); setFocus(null); } });
+    if (pads().length) start();
+    return {
+      // touch-stick.js registers each joystick so the left stick can drive it smoothly
+      addStick(stick, enabled) { sticks.push({ stick, enabled, driving: false }); },
+      rumble(ms, strength = 0.6) {
+        for (const g of pads()) {
+          const v = g.vibrationActuator;
+          if (v && v.playEffect) v.playEffect('dual-rumble', { duration: ms, strongMagnitude: strength, weakMagnitude: Math.min(1, strength + 0.2) }).catch(() => {});
+        }
+      },
+      get connected() { return pads().length > 0; },
+      get menuMode() { return menuMode; },
+    };
+  })();
+
   return {
-    touch, store, audio, beep, noise, ambient, setMuted,
+    touch, store, audio, pad, beep, noise, ambient, setMuted,
     get muted() { return muted; },
     toggleMute: () => { audio(); setMuted(!muted); },
     onMute: f => muteHooks.push(f),
