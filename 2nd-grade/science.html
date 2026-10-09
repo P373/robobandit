@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Earth, Matter & Habitats | RoboBandit 2nd Grade</title>
+<meta name="description" content="2nd grade science: erosion and landforms, states of matter, animal habitats and plant and animal adaptations, and the engineering design process. Lessons, quizzes and games.">
+<link rel="canonical" href="https://robobandit.com/2nd-grade/science.html">
+<meta name="theme-color" content="#1f9a7a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/2nd-grade/science.html">
+<meta property="og:title" content="Earth, Matter & Habitats | RoboBandit 2nd Grade">
+<meta property="og:description" content="Erosion, solids, liquids and gases, habitats and adaptations, and engineering. 2nd grade science lessons, quizzes and games.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>:root { --c: #1f9a7a; --c2: #ffd84a; --bg: #177a60; }</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', TEAL = '#1f9a7a', BLUE = '#3d8ff0', GREEN = '#2fae5a', ORANGE = '#f08a24', PINK = '#e8457a', YELLOW = '#ffd84a', BROWN = '#8a5a34', RED = '#e8453a', SAND = '#e8c88a';
+
+// ---------- Drawing helpers ----------
+const sky = (d, a = '#9fd6ff', b = '#e6f6ff') => d.bg(a, b);
+function hill(d, x, y, w, h, col = '#7cc45a') {
+  d.ctx.beginPath(); d.ctx.moveTo(x - w / 2, y);
+  d.ctx.quadraticCurveTo(x, y - h * 2, x + w / 2, y); d.ctx.closePath();
+  d.paint({ fill: col, stroke: 'rgba(20,37,77,.4)', lw: 2 });
+}
+function mountain(d, x, y, w, h, snow = true) {
+  d.poly([[x - w / 2, y], [x, y - h], [x + w / 2, y]], { close: true, fill: '#9aa3b5', stroke: '#5a6378', lw: 3 });
+  if (snow) d.poly([[x - w * 0.12, y - h * 0.76], [x, y - h], [x + w * 0.12, y - h * 0.76], [x + w * 0.04, y - h * 0.7], [x - w * 0.04, y - h * 0.78]], { close: true, fill: '#fff', stroke: '#fff', lw: 1 });
+}
+function rain(d, t, x0, x1, y0, y1, n = 30, col = '#3d8ff0') {
+  for (let i = 0; i < n; i++) {
+    const x = x0 + ((i * 97) % (x1 - x0)), y = y0 + ((i * 53 + t * 420) % (y1 - y0));
+    d.line(x, y, x - 5, y + 16, { stroke: col, lw: 3 });
+  }
+}
+// a box of particles: 'solid' (packed, wiggling), 'liquid' (sliding past each other) or 'gas' (zooming apart)
+function particles(d, kind, x, y, w, h, t, col) {
+  d.rect(x, y, w, h, { r: 14, fill: '#fff', stroke: INK, lw: 3 });
+  const r = 13;
+  if (kind === 'solid') for (let i = 0; i < 5; i++) for (let j = 0; j < 4; j++)
+    d.circle(x + w / 2 - 2 * 2 * r - 4 + i * (2 * r + 2) + Math.sin(t * 20 + i + j) * 1.5, y + h - 20 - r - j * (2 * r + 2) + Math.cos(t * 23 + i * j) * 1.5, r, { fill: col, stroke: INK, lw: 2 });
+  if (kind === 'liquid') for (let i = 0; i < 16; i++) {
+    const a = t * 0.8 + i * 1.7, px = x + 30 + ((i * 37 + Math.sin(a) * 30 + t * 30) % (w - 60) + (w - 60)) % (w - 60), py = y + h - 24 - (i % 3) * 26 - Math.abs(Math.sin(a)) * 6;
+    d.circle(px, py, r, { fill: col, stroke: INK, lw: 2 });
+  }
+  if (kind === 'gas') for (let i = 0; i < 8; i++) {
+    const bx = (i * 131 + t * (90 + i * 13)) % (2 * (w - 2 * r)), by = (i * 71 + t * (70 + i * 17)) % (2 * (h - 2 * r));
+    d.circle(x + r + (bx > w - 2 * r ? 2 * (w - 2 * r) - bx : bx), y + r + (by > h - 2 * r ? 2 * (h - 2 * r) - by : by), r, { fill: col, stroke: INK, lw: 2 });
+  }
+}
+function thermo(d, x, y, k) {
+  d.rect(x - 14, y - 150, 28, 160, { r: 14, fill: '#fff', stroke: INK, lw: 3 });
+  d.circle(x, y + 16, 24, { fill: RED, stroke: INK, lw: 3 });
+  d.rect(x - 7, y - 140 * k, 14, 140 * k + 10, { r: 7, fill: RED });
+}
+const panel = (d, x, y, w, h, fill = '#fff', lw = 3) => d.rect(x, y, w, h, { r: 18, fill, stroke: INK, lw });
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  // ----- erosion & landforms -----
+  'er-what'(d, t) {
+    sky(d, '#8fa8c8', '#d6e4f2');
+    for (let i = 0; i < 3; i++) d.emoji('☁️', 140 + i * 260, 60, 110);
+    rain(d, t, 40, 700, 80, 380);
+    d.poly([[0, 540], [0, 180], [180, 160], [420, 330], [620, 470], [960, 470], [960, 540]], { close: true, fill: '#b88a5a', stroke: '#7a5a3a', lw: 3 });
+    d.rect(0, 470, d.W, 70, { r: 0, fill: '#5ab0e8' });
+    for (let i = 0; i < 14; i++) {
+      const k = d.loop(t * 0.35 + i / 14, 1), x = d.lerp(120, 760, k), y = k < 0.7 ? d.lerp(175, 465, k / 0.7) : 465 + (k - 0.7) * 40;
+      d.circle(x, y, 7, { fill: '#7a5a3a', stroke: INK, lw: 1.5 });
+    }
+    d.pill('rain loosens bits of rock and soil', 280, 120, { size: 22 });
+    d.pill('water carries them away', 640, 380, { size: 22, bg: '#cfe6ff' });
+    d.alpha(d.in(t, 2), () => d.pill('EROSION = moving rock and soil to a new place', 480, 505, { size: 26, bg: YELLOW }));
+  },
+  'er-why'(d, t) {
+    sky(d);
+    d.rect(560, 380, 400, 160, { r: 0, fill: '#5ab0e8' });
+    d.poly([[0, 540], [0, 300], [500, 300], [560, 380], [520, 540]], { close: true, fill: '#c9a06a', stroke: '#7a5a3a', lw: 3 });
+    d.rect(0, 290, 500, 14, { r: 0, fill: '#6dbb5c' });
+    const k = d.loop(t, 4);
+    for (let i = 0; i < 6; i++) { const f = (k + i / 6) % 1; d.circle(530 + f * 40 + i * 4, 320 + f * 200, 8 - f * 3, { fill: '#a8804a', stroke: INK, lw: 1.5 }); }
+    d.emoji('🏠', 430, 250, 90);
+    d.emoji('🌊', 700 + Math.sin(t * 2) * 20, 420, 70);
+    d.pill('Waves wear away the cliff…', 760, 120, { size: 24 });
+    d.pill('…and the house gets closer to the edge!', 720, 180, { size: 24, bg: '#ffd8d0' });
+    d.text('Knowing about erosion helps us protect land, homes and farms.', 480, 40, { size: 26, weight: 700, color: TEAL });
+  },
+  'er-land'(d, t) {
+    sky(d, '#bfe6ff', '#eaf7ff');
+    mountain(d, 170, 330, 300, 240); mountain(d, 330, 330, 220, 170);
+    hill(d, 560, 340, 220, 60);
+    d.rect(0, 330, d.W, 210, { r: 0, fill: '#8bd06a' });
+    d.poly([[400, 330], [460, 330], [520, 540], [380, 540]], { close: true, fill: '#5ab0e8' });
+    d.ellipse(760, 440, 140, 50, { fill: '#5ab0e8', stroke: '#2f7fc8', lw: 3 });
+    d.ellipse(760, 440, 40, 16, { fill: SAND }); d.emoji('🌴', 760, 412, 40);
+    d.poly([[860, 330], [960, 330], [960, 540], [900, 540], [880, 420]], { close: true, fill: '#c9805a', stroke: '#7a4a2a', lw: 3 });
+    const L = [['mountain', 170, 70], ['valley', 255, 300], ['hill', 560, 250], ['plain', 220, 420], ['river', 450, 500], ['lake', 660, 390], ['island', 760, 500], ['canyon', 900, 300]];
+    L.forEach(([s, x, y], i) => d.alpha(d.in(t, 0.3 + i * 0.4), () => d.pill(s, x, y, { size: 24 })));
+  },
+  'er-agents'(d, t) {
+    d.bg('#f2fbf8', '#dff4ee');
+    // water
+    panel(d, 20, 30, 300, 400, '#eaf6ff');
+    d.poly([[23, 200], [130, 200], [150, 400], [190, 400], [210, 200], [317, 200], [317, 427], [23, 427]], { close: true, fill: '#c9805a', stroke: '#7a4a2a', lw: 3 });
+    d.rect(150, 380, 40, 20, { r: 0, fill: '#3d8ff0' });
+    for (let i = 0; i < 4; i++) d.line(170, 200 + ((t * 80 + i * 50) % 180), 170, 220 + ((t * 80 + i * 50) % 180), { stroke: '#3d8ff0', lw: 6 });
+    d.text('💧 Water', 170, 70, { size: 30, weight: 700, color: BLUE }); d.text('carves canyons', 170, 110, { size: 22 });
+    // wind
+    panel(d, 330, 30, 300, 400, '#fff8e6');
+    for (let i = 0; i < 3; i++) hill(d, 400 + i * 90, 427, 160, 40 + i * 10, SAND);
+    for (let i = 0; i < 10; i++) { const x = 340 + ((t * 160 + i * 47) % 280); d.circle(x, 300 + (i * 23) % 80, 3, { fill: '#c9a060' }); }
+    d.emoji('🌬️', 400 + Math.sin(t) * 10, 210, 70);
+    d.text('🌬️ Wind', 480, 70, { size: 30, weight: 700, color: ORANGE }); d.text('blows sand into dunes', 480, 110, { size: 22 });
+    // ice
+    panel(d, 640, 30, 300, 400, '#f2f8ff');
+    d.poly([[643, 427], [643, 180], [720, 300], [860, 300], [937, 180], [937, 427]], { close: true, fill: '#9aa3b5', stroke: '#5a6378', lw: 3 });
+    d.poly([[700, 160], [880, 160], [860, 300 - Math.sin(t) * 6], [720, 300 - Math.sin(t) * 6]], { close: true, fill: '#dff2ff', stroke: '#7fb8e0', lw: 3 });
+    d.text('🧊 Ice', 790, 70, { size: 30, weight: 700, color: '#2f7fc8' }); d.text('glaciers scrape valleys', 790, 110, { size: 22 });
+    d.text('Water, wind and ice all move rock and soil.', 480, 485, { size: 28, weight: 700, color: TEAL });
+  },
+  'er-fast'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    panel(d, 20, 30, 450, 400, '#fff');
+    d.text('SLOW 🐢', 245, 70, { size: 34, weight: 700, color: TEAL });
+    const k = d.loop(t, 6), deep = 40 + k * 200;
+    d.rect(40, 110, 410, 300, { r: 0, fill: '#c9805a' });
+    d.poly([[200, 110], [290, 110], [260, 110 + deep], [230, 110 + deep]], { close: true, fill: '#bfe6ff' });
+    d.rect(232, 100 + deep, 26, 12, { r: 3, fill: '#3d8ff0' });
+    d.pill(`${Math.round(k * 6)} million years`, 245, 390, { size: 24, bg: YELLOW });
+    panel(d, 490, 30, 450, 400, '#fff');
+    d.text('FAST ⚡', 715, 70, { size: 34, weight: 700, color: RED });
+    const f = d.loop(t, 3);
+    d.poly([[510, 410], [510, 140], [700, 140], [920, 410]], { close: true, fill: '#8bd06a', stroke: '#4a8a3a', lw: 3 });
+    for (let i = 0; i < 8; i++) d.circle(560 + i * 20 + f * 250, 170 + i * 6 + f * 200, 14, { fill: '#a8804a', stroke: INK, lw: 2 });
+    d.pill('landslide: in minutes!', 715, 390, { size: 24, bg: '#ffd8d0' });
+    d.text('Some changes take millions of years. Some happen in a flash!', 480, 485, { size: 26, weight: 700, color: TEAL });
+  },
+  'er-stop'(d, t) {
+    sky(d, '#8fa8c8', '#d6e4f2');
+    rain(d, t, 0, 960, 0, 300, 40);
+    const side = (x, plants) => {
+      d.poly([[x, 440], [x + 120, 220], [x + 300, 220], [x + 420, 440]], { close: true, fill: '#b88a5a', stroke: '#7a5a3a', lw: 3 });
+      if (plants) {
+        for (let i = 0; i < 9; i++) { const px = x + 40 + i * 42, py = px < x + 120 ? 440 - (px - x) * 1.83 : px > x + 300 ? 220 + (px - x - 300) * 1.83 : 220; d.emoji('🌱', px, py - 10, 34); }
+        for (let i = 0; i < 6; i++) d.line(x + 80 + i * 50, 260, x + 70 + i * 50, 330, { stroke: '#e8d2a8', lw: 3 });
+      } else for (let i = 0; i < 10; i++) { const k = d.loop(t * 0.5 + i / 10, 1); d.circle(x + 110 + (i % 2) * 220 + (i % 2 ? 1 : -1) * k * 100, 240 + k * 200, 6, { fill: '#7a5a3a' }); }
+      d.rect(x - 10, 440, 440, 100, { r: 0, fill: plants ? '#8bd06a' : '#a8804a' });
+    };
+    side(30, false); side(510, true);
+    d.pill('bare soil washes away 😟', 240, 480, { size: 22, bg: '#ffd8d0' });
+    d.pill('roots hold the soil 😀', 720, 480, { size: 22, bg: '#c8f0c0' });
+    d.pill('Plants, walls and fences can slow erosion', 480, 40, { size: 24, bg: YELLOW });
+  },
+  // ----- states of matter -----
+  'sm-what'(d, t) {
+    d.bg('#f2fbf8', '#dff4ee');
+    const S = [['Solid', '🪨', 'keeps its own shape', '#ffd8b8'], ['Liquid', '🥛', 'flows and takes the shape of its container', '#cfe6ff'], ['Gas', '🎈', 'spreads out to fill any space', '#e6dcff']];
+    S.forEach(([n, e, s, bg], i) => d.alpha(d.in(t, i * 0.9), () => {
+      const x = 170 + i * 310;
+      panel(d, x - 145, 40, 290, 380, bg);
+      d.text(n, x, 90, { size: 40, weight: 700, color: TEAL });
+      d.emoji(e, x, 210 + Math.sin(t * 2 + i) * 6, 110);
+      d.wrap(s, x, 300, 250, { size: 24, weight: 700 });
+    }));
+    d.text('MATTER is anything that takes up space.', 480, 485, { size: 30, weight: 700, color: TEAL });
+  },
+  'sm-why'(d, t) {
+    sky(d, '#a8c8e8', '#e6f0ff');
+    rain(d, t, 0, 960, 0, 540, 30, '#7fb8ff');
+    const I = [['🧥', 'raincoat', 'waterproof plastic keeps you dry'], ['🪟', 'window', 'clear glass lets light in'], ['🛏️', 'pillow', 'soft and squishy for sleeping'], ['🔨', 'hammer', 'hard metal for banging nails']];
+    I.forEach(([e, n, s], i) => {
+      const x = 125 + i * 237, on = Math.floor(t / 1.5) % 4 === i;
+      panel(d, x - 108, 60, 216, 330, on ? '#fff3b0' : '#fff', on ? 5 : 3);
+      d.emoji(e, x, 150, 90); d.text(n, x, 240, { size: 28, weight: 700 });
+      d.wrap(s, x, 275, 190, { size: 21 });
+    });
+    d.pill('We pick materials that are right for the job!', 480, 470, { size: 26, bg: YELLOW });
+  },
+  'sm-parts'(d, t) {
+    d.bg('#f2fbf8', '#dff4ee');
+    particles(d, 'solid', 30, 80, 280, 280, t, '#ff9f6a');
+    particles(d, 'liquid', 340, 80, 280, 280, t, '#7fc4ff');
+    particles(d, 'gas', 650, 80, 280, 280, t, '#c9b3ff');
+    [['Solid', 'packed tight, just wiggle'], ['Liquid', 'close, but slide around'], ['Gas', 'far apart, zooming!']].forEach(([n, s], i) => {
+      d.text(n, 170 + i * 310, 50, { size: 32, weight: 700, color: TEAL });
+      d.pill(s, 170 + i * 310, 400, { size: 22 });
+    });
+    d.text('Everything is made of tiny pieces called particles.', 480, 485, { size: 28, weight: 700 });
+  },
+  'sm-props'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const P = [['🧸', 'soft'], ['🪨', 'hard'], ['🥨', 'rough'], ['🪀', 'bendy?'], ['🧊', 'cold'], ['🪵', 'floats'], ['🔑', 'sinks'], ['🔦', 'shiny']];
+    P.forEach(([e, s], i) => {
+      const x = 120 + (i % 4) * 240, y = 120 + Math.floor(i / 4) * 200, k = d.in(t, 0.2 + i * 0.3, 0.4);
+      d.alpha(k, () => { d.circle(x, y, 70, { fill: '#fff', stroke: INK, lw: 3 }); d.emoji(e, x, y, 76); d.pill(s, x, y + 90, { size: 24, bg: YELLOW }); });
+    });
+    d.text('PROPERTIES describe matter: how it looks, feels and acts.', 480, 505, { size: 26, weight: 700, color: TEAL });
+  },
+  'sm-heat'(d, t) {
+    d.bg('#f2f8ff', '#e2edff');
+    const T = t % 12, k = T < 6 ? T / 6 : (12 - T) / 6;
+    thermo(d, 870, 330, k);
+    d.text(T < 6 ? 'heating 🔥' : 'cooling ❄️', 870, 400, { size: 26, weight: 700, color: T < 6 ? RED : BLUE });
+    // a pot: ice cube melts into water, then steam rises
+    d.rect(250, 260, 340, 170, { r: 10, fill: '#cfd5de', stroke: INK, lw: 4 });
+    d.rect(220, 250, 400, 22, { r: 8, fill: '#9aa3b5', stroke: INK, lw: 3 });
+    const ice = Math.max(0, 1 - k * 2.5), water = Math.min(1, k * 2.5) * (1 - Math.max(0, k - 0.6) * 1.5);
+    if (water > 0) d.rect(256, 425 - 110 * water, 328, 110 * water, { r: 6, fill: 'rgba(61,143,240,.6)' });
+    if (ice > 0) d.rect(370 - 40 * ice, 420 - 100 * ice, 100 * ice, 100 * ice, { r: 10, fill: '#dff6ff', stroke: '#7fb8e0', lw: 3 });
+    if (k > 0.6) for (let i = 0; i < 6; i++) { const f = d.loop(t * 0.6 + i / 6, 1); d.emoji('💨', 300 + i * 50 + Math.sin(f * 6) * 10, 230 - f * 180, 40, { alpha: (k - 0.6) * 2.5 * (1 - f) }); }
+    if (T < 6) d.emoji('🔥', 420, 470, 60);
+    d.pill(k < 0.35 ? 'SOLID ice' : k < 0.6 ? 'LIQUID water' : 'GAS: water vapor (steam)', 420, 60, { size: 28, bg: YELLOW });
+    d.text('Heat it: solid → liquid → gas.  Cool it: back again!', 480, 505, { size: 26, weight: 700, color: TEAL });
+  },
+  'sm-undo'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    panel(d, 20, 30, 450, 400, '#e6f6ea');
+    d.text('Can be undone ↔️', 245, 75, { size: 30, weight: 700, color: GREEN });
+    const k = (Math.sin(t * 1.5) + 1) / 2;
+    d.emoji('🍫', 245, 200, 100, { alpha: 1 - k });
+    d.ellipse(245, 240, 80 * k, 18 * k, { fill: '#7a4a2a' });
+    d.wrap('Chocolate melts when warm and gets hard again when cool.', 245, 300, 400, { size: 24 });
+    panel(d, 490, 30, 450, 400, '#ffece6');
+    d.text('Can\'t be undone ➡️', 715, 75, { size: 30, weight: 700, color: RED });
+    const f = d.in(t % 6, 1, 1.5);
+    d.emoji('🥚', 620, 190, 80); d.arrow(670, 190, 740, 190, { color: RED });
+    d.emoji('🍳', 810, 190, 90 * f + 1);
+    d.emoji('🍞', 620, 270, 60); d.arrow(670, 270, 740, 270, { color: RED });
+    d.at(810, 270, 0, f, () => { d.rect(-30, -30, 60, 60, { r: 10, fill: '#a8641a', stroke: INK, lw: 2 }); });
+    d.wrap('A cooked egg or toast can never turn back!', 715, 330, 400, { size: 24 });
+    d.text('Heating and cooling can change matter.', 480, 485, { size: 28, weight: 700, color: TEAL });
+  },
+  // ----- habitats & adaptations -----
+  'hb-what'(d, t) {
+    sky(d); d.rect(0, 330, d.W, 210, { r: 0, fill: '#8bd06a' });
+    d.ellipse(480, 420, 300, 80, { fill: '#5ab0e8', stroke: '#2f7fc8', lw: 3 });
+    d.emoji('🐸', 300, 380 - Math.abs(Math.sin(t * 2)) * 40, 60); d.emoji('🦆', 520 + Math.sin(t) * 60, 400, 60, { flip: Math.cos(t) < 0 });
+    d.emoji('🐟', 600 + Math.sin(t * 1.4) * 60, 450, 40); d.emoji('🪷', 400, 430, 40); d.emoji('🌾', 160, 330, 70); d.emoji('🌾', 820, 330, 70); d.emoji('🐞', 140, 300, 30);
+    const N = [['🍃 food', 140, 80], ['💧 water', 380, 80], ['🏠 shelter', 600, 80], ['↔️ space', 820, 80]];
+    N.forEach(([s, x, y], i) => d.alpha(d.in(t, 0.5 + i * 0.6), () => d.pill(s, x, y, { size: 26, bg: YELLOW })));
+    d.alpha(d.in(t, 3), () => d.text('A pond habitat', 480, 170, { size: 34, weight: 700, color: TEAL }));
+  },
+  'hb-why'(d, t) {
+    d.bg('#f2fbf8', '#dff4ee');
+    d.emoji('🐼', 250, 230, 160); d.emoji('🎋', 380, 220, 120);
+    d.wrap('Pandas eat almost only bamboo. If the bamboo forest is cut down, pandas can\'t find food!', 700, 120, 440, { size: 26, weight: 700 });
+    d.alpha(d.in(t, 1.5), () => d.pill('Living things need their habitats to survive', 480, 420, { size: 28, bg: YELLOW }));
+    d.alpha(d.in(t, 2.5), () => d.text('Protecting habitats protects animals and plants. 💚', 480, 490, { size: 26, weight: 700, color: TEAL }));
+  },
+  'hb-tour'(d, t) {
+    const H = [['Polar', '#e8f6ff', '#ffffff', ['🐻‍❄️', '🐧'], 'icy and cold'], ['Desert', '#ffe9b8', SAND, ['🐪', '🌵'], 'hot and dry'], ['Ocean', '#bfe6ff', '#3d8ff0', ['🐙', '🐋'], 'salty water'], ['Rainforest', '#d8f5d0', '#2f8a4e', ['🦜', '🦥'], 'warm and wet']];
+    d.bg('#fff', '#f2f2f2');
+    H.forEach(([n, a, b, E, s], i) => {
+      const x = 10 + i * 237;
+      d.rect(x, 20, 228, 470, { r: 16, fill: a, stroke: INK, lw: 3 });
+      d.rect(x + 3, 330, 222, 157, { r: 0, fill: b });
+      d.text(n, x + 114, 60, { size: 30, weight: 700, color: TEAL });
+      E.forEach((e, j) => d.emoji(e, x + 70 + j * 90, 230 + Math.sin(t * 2 + i + j) * 8, 80));
+      d.pill(s, x + 114, 420, { size: 20 });
+    });
+    d.text('Different habitats are home to different living things.', 480, 515, { size: 22, weight: 700 });
+  },
+  'hb-animal'(d, t) {
+    d.bg('#f2fbf8', '#dff4ee');
+    const A = [['🐻‍❄️', 'thick fur and fat keep it warm'], ['🐪', 'humps store fat; long lashes block sand'], ['🦆', 'webbed feet paddle like flippers'], ['🦒', 'a long neck reaches high leaves']];
+    A.forEach(([e, s], i) => {
+      const x = 125 + i * 237, on = Math.floor(t / 1.5) % 4 === i;
+      panel(d, x - 108, 40, 216, 360, on ? '#fff3b0' : '#fff', on ? 5 : 3);
+      d.emoji(e, x, 150 + (on ? Math.sin(t * 6) * 6 : 0), 110);
+      d.wrap(s, x, 250, 190, { size: 23, weight: 700 });
+    });
+    d.text('An ADAPTATION is a body part or action that helps a living thing survive.', 480, 470, { size: 22, weight: 700, color: TEAL });
+  },
+  'hb-plant'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    panel(d, 20, 30, 290, 380, '#ffefc8'); d.emoji('🌵', 165, 170, 130); d.wrap('Cactus: stores water in its thick stem; spines protect it', 165, 270, 260, { size: 22, weight: 700 });
+    panel(d, 335, 30, 290, 380, '#d6efff'); d.ellipse(480, 230, 120, 30, { fill: '#5ab0e8' }); d.emoji('🪷', 480, 205, 90); d.wrap('Water lily: big flat leaves float to catch sunlight', 480, 270, 260, { size: 22, weight: 700 });
+    panel(d, 650, 30, 290, 380, '#e6f6ea');
+    d.emoji('☀️', 880, 80, 60);
+    const lean = 0.3 + Math.sin(t) * 0.05;
+    d.line(760, 300, 760 + Math.sin(lean) * 120, 300 - Math.cos(lean) * 120, { stroke: '#3a8a3a', lw: 8 });
+    d.emoji('🌼', 760 + Math.sin(lean) * 130, 300 - Math.cos(lean) * 130, 50);
+    d.rect(700, 300, 120, 40, { r: 6, fill: '#c9805a', stroke: INK, lw: 2 });
+    d.wrap('Plants grow toward the light', 795, 350, 260, { size: 22, weight: 700 });
+    d.text('Plants need WATER and LIGHT to grow.', 480, 475, { size: 30, weight: 700, color: TEAL });
+  },
+  'hb-help'(d, t) {
+    sky(d); d.rect(0, 380, d.W, 160, { r: 0, fill: '#8bd06a' });
+    // bee carrying pollen between flowers
+    const k = d.loop(t, 3), bx = d.lerp(120, 400, k < 0.5 ? k * 2 : 2 - k * 2);
+    d.emoji('🌸', 120, 330, 80); d.emoji('🌸', 400, 330, 80);
+    d.emoji('🐝', bx, 250 - Math.sin(k * Math.PI * 2) * 30, 50);
+    for (let i = 0; i < 4; i++) d.circle(bx - 10 + i * 6, 275 - Math.sin(k * Math.PI * 2) * 30, 4, { fill: YELLOW, stroke: ORANGE, lw: 1 });
+    d.pill('Bees carry POLLEN from flower to flower', 260, 140, { size: 22, bg: YELLOW });
+    // squirrel burying an acorn
+    d.emoji('🌳', 760, 250, 200);
+    const s = d.loop(t, 4);
+    d.emoji('🐿️', d.lerp(640, 820, s), 420, 60, { flip: true });
+    d.emoji('🌰', 700, 470, 30); d.emoji('🌱', 820, 460, 36 * d.in(t % 4, 2, 1) + 1);
+    d.pill('Animals spread SEEDS', 760, 80, { size: 22, bg: '#c8f0c0' });
+    d.text('Animals help plants make new plants!', 480, 515, { size: 26, weight: 700, color: TEAL });
+  },
+  // ----- engineering -----
+  'en-what'(d, t) {
+    d.bg('#f2f8ff', '#e2edff');
+    const S = [['❓', 'Ask'], ['💭', 'Imagine'], ['📝', 'Plan'], ['🔨', 'Create'], ['🔁', 'Test & Improve']], cx = 480, cy = 270, R = 180;
+    d.ctx.save(); d.ctx.strokeStyle = TEAL; d.ctx.lineWidth = 6; d.ctx.setLineDash([14, 10]); d.ctx.lineDashOffset = -t * 30;
+    d.ctx.beginPath(); d.ctx.ellipse(cx, cy, R * 1.4, R, 0, 0, Math.PI * 2); d.ctx.stroke(); d.ctx.restore();
+    const on = Math.floor(t / 1.2) % 5;
+    S.forEach(([e, s], i) => {
+      const a = -Math.PI / 2 + i / 5 * Math.PI * 2, x = cx + Math.cos(a) * R * 1.4, y = cy + Math.sin(a) * R;
+      d.circle(x, y, 54, { fill: i === on ? YELLOW : '#fff', stroke: INK, lw: 3 });
+      d.emoji(e, x, y - 4, 54); d.pill(s, x, y + 66, { size: 22 });
+    });
+    d.text('ENGINEERS', cx, cy - 16, { size: 34, color: TEAL, font: "'Bungee', sans-serif" }); d.text('solve problems', cx, cy + 24, { size: 28, weight: 700 });
+  },
+  'en-why'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const T = [['🌉', 'bridges'], ['🪑', 'chairs'], ['🎒', 'backpacks'], ['🚲', 'bikes'], ['🧃', 'juice boxes'], ['🛝', 'slides']];
+    T.forEach(([e, s], i) => {
+      const x = 160 + (i % 3) * 320, y = 110 + Math.floor(i / 3) * 190;
+      d.alpha(d.in(t, i * 0.3), () => { d.emoji(e, x, y + Math.sin(t * 2 + i) * 5, 90); d.pill(s, x, y + 75, { size: 24 }); });
+    });
+    d.text('Almost everything around you was designed by an engineer!', 480, 500, { size: 26, weight: 700, color: TEAL });
+  },
+  'en-ask'(d, t) {
+    d.bg('#e8f6ff', '#fff3d6');
+    // problem: waves wash away a sand castle
+    d.rect(0, 380, 500, 160, { r: 0, fill: SAND });
+    const w = d.loop(t, 3);
+    d.ellipse(-60 + w * 300, 450, 160, 50, { fill: 'rgba(61,143,240,.7)' });
+    d.emoji('🏰', 300, 340, 100, { alpha: 0.6 + 0.4 * Math.cos(w * Math.PI * 2) });
+    d.pill('PROBLEM: the waves wash our sand castle away!', 260, 60, { size: 22, bg: '#ffd8d0' });
+    d.pill('ASK: how can we protect it?', 260, 120, { size: 22 });
+    panel(d, 540, 30, 400, 420, '#fff');
+    d.text('IMAGINE 💭', 740, 75, { size: 32, weight: 700, color: TEAL });
+    [['🪨', 'a wall of rocks'], ['🌿', 'plants to hold sand'], ['〰️', 'a moat to catch water'], ['🪵', 'a fence of sticks']].forEach(([e, s], i) => d.alpha(d.in(t, 0.6 + i * 0.6), () => { d.emoji(e, 600, 150 + i * 75, 50); d.text(s, 640, 150 + i * 75, { size: 26, weight: 700, align: 'left' }); }));
+    d.text('Think of LOTS of ideas!', 740, 430, { size: 24, color: '#5a6f99', weight: 700 });
+  },
+  'en-plan'(d, t) {
+    d.bg('#f2f8ff', '#e2edff');
+    panel(d, 30, 40, 420, 380, '#fffdf6');
+    for (let i = 0; i < 8; i++) d.line(50, 90 + i * 40, 430, 90 + i * 40, { stroke: '#cfe0ff', lw: 2 });
+    d.text('PLAN 📝', 240, 70, { size: 30, weight: 700, color: TEAL });
+    const k = d.in(t, 0.3, 2);
+    d.ctx.save(); d.ctx.beginPath(); d.ctx.rect(30, 40, 420 * k, 380); d.ctx.clip();
+    d.poly([[120, 330], [170, 230], [220, 330]], { close: true, stroke: INK, lw: 3 });
+    for (let i = 0; i < 5; i++) d.circle(80 + i * 70, 350, 16, { stroke: INK, lw: 3 });
+    d.text('castle', 170, 200, { size: 22 }); d.text('rock wall', 230, 390, { size: 22 });
+    d.ctx.restore();
+    d.emoji('✏️', 30 + 420 * k, 300, 50);
+    d.alpha(d.in(t, 2.5), () => {
+      panel(d, 510, 40, 420, 380, '#fff8e6');
+      d.text('CREATE 🔨', 720, 70, { size: 30, weight: 700, color: TEAL });
+      d.rect(513, 300, 414, 117, { r: 0, fill: SAND });
+      d.emoji('🏰', 720, 250, 110);
+      for (let i = 0; i < 6; i++) d.alpha(d.in(t, 3 + i * 0.2, 0.3), () => d.circle(570 + i * 60, 340, 24, { fill: '#9aa3b5', stroke: INK, lw: 2 }));
+    });
+    d.text('Draw your plan, then build it!', 480, 480, { size: 30, weight: 700, color: TEAL });
+  },
+  'en-test'(d, t) {
+    d.bg('#e8f6ff', '#fff3d6');
+    const T = t % 10, second = T > 5, k = d.loop(T, 5);
+    panel(d, 30, 30, 900, 360, '#fff');
+    d.rect(33, 280, 894, 107, { r: 0, fill: SAND });
+    // test 1: a few rocks with gaps; test 2: a tight wall, two rocks high
+    if (second) for (let i = 0; i < 8; i++) d.circle(540 + (i % 4) * 44, 300 - Math.floor(i / 4) * 40, 24, { fill: '#9aa3b5', stroke: INK, lw: 2 });
+    else for (let i = 0; i < 3; i++) d.circle(540 + i * 90, 300, 24, { fill: '#9aa3b5', stroke: INK, lw: 2 });
+    d.ellipse(980 - k * 400, 320, 120, 40, { fill: 'rgba(61,143,240,.7)' });
+    const hit = !second && k > 0.7;
+    d.emoji('🏰', 420, 230, 110, { alpha: hit ? 0.4 : 1 });
+    d.pill(second ? 'Test 2: more rocks… it stays dry! 🎉' : 'Test 1: water gets through the gaps 😕', 480, 70, { size: 26, bg: second ? '#c8f0c0' : '#ffd8d0' });
+    d.text('Mistakes help us learn. Test it, then make it better!', 480, 450, { size: 28, weight: 700, color: TEAL });
+  },
+};
+
+// ---------- Shared bits for the two choice games ----------
+function choiceGame(api, o) {
+  const { root, board, sfx, shuffle } = api;
+  const list = shuffle(o.items);
+  let i = 0, score = 0, firstTry = 0, miss = 0, done = false, t = 0, move = 0;
+  root.innerHTML = `<div class="hud"><span id="cg-n"></span><span>🏆 <b id="cg-s">0</b></span></div>
+    <canvas class="board" id="cg-cv"></canvas>
+    <p id="cg-q" style="font-weight:600;margin:4px auto"></p><div class="choices" id="cg-c"></div><p id="cg-why" style="font-size:18px;color:var(--soft);margin:4px auto"></p>`;
+  const draw = board(api.$('cg-cv'));
+  api.$('cg-c').innerHTML = o.bins.map((b, k) => `<button class="ans" data-k="${k}"${o.bins.length > 3 ? ' style="flex-basis:170px"' : ''}>${b.icon} ${api.esc(b.name)}</button>`).join('');
+  api.$('cg-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+  function ask() {
+    api.$('cg-n').textContent = `${o.noun} ${i + 1} of ${list.length}`;
+    api.$('cg-q').textContent = o.question(list[i]);
+    api.$('cg-c').querySelectorAll('.ans').forEach(b => { b.disabled = false; b.classList.remove('wrong', 'shake', 'right'); });
+    miss = 0; move = 0;
+  }
+  function pick(k) {
+    if (done || move > 0) return;
+    RB.audio();
+    const b = api.$('cg-c').children[k];
+    if (k !== list[i].bin) { sfx.wrong(); miss++; b.disabled = true; b.classList.add('wrong', 'shake'); return; }
+    sfx.right(); b.classList.add('right');
+    if (!miss) { score += 100; firstTry++; } else score += 50;
+    api.$('cg-s').textContent = score;
+    api.$('cg-why').textContent = '✅ ' + list[i].why;
+    move = 0.01;
+  }
+  function next() {
+    o.placed(list[i]);
+    i++;
+    if (i === list.length) {
+      done = true;
+      api.done({ score, stars: firstTry >= list.length - 2 ? 3 : firstTry >= list.length / 2 ? 2 : 1, rows: [[o.doneRow, list.length], ['✅ Right on the first try', `${firstTry} of ${list.length}`]],
+        hint: `Get ${list.length - 2} or more right on the first try for ★★★` });
+      return;
+    }
+    ask();
+  }
+  ask();
+  return {
+    tick(dt) { t += dt; if (move > 0) { move += dt; if (move > 1) next(); } if (!done) draw(d => o.render(d, list[i], Math.min(1, move), t)); },
+    key(k) { const n = '1234'.indexOf(k); if (n >= 0 && n < o.bins.length) pick(n); },
+    bot() { if (move > 0) { this.tick(1.05); return; } if (!done) pick(list[i].bin); },
+  };
+}
+
+// ---------- Game 1: Matter Sorter ----------
+function matterGame(api) {
+  const BINS = [{ name: 'Solid', icon: '🧱', col: '#ffd8b8' }, { name: 'Liquid', icon: '💧', col: '#cfe6ff' }, { name: 'Gas', icon: '💨', col: '#e6dcff' }];
+  const I = (e, name, bin, why) => ({ e, name, bin, why });
+  const ITEMS = [I('🪨', 'a rock', 0, 'A rock keeps its own shape.'), I('🧊', 'an ice cube', 0, 'Ice is water in its solid state.'), I('🖍️', 'a crayon', 0, 'A crayon keeps its shape.'), I('🔑', 'a key', 0, 'Metal keys are solid.'),
+    I('🥛', 'milk', 1, 'Milk pours and takes the shape of the glass.'), I('🍯', 'honey', 1, 'Honey is a slow, thick liquid, but it still pours.'), I('🌧️', 'raindrops', 1, 'Rain is liquid water.'), I('🧃', 'juice (poured out)', 1, 'Juice flows and takes the shape of its cup.'),
+    I('♨️', 'steam', 2, 'Steam is water as a gas.'), I('🎈', 'the air inside a balloon', 2, 'Air spreads out to fill the whole balloon.'), I('🌬️', 'wind', 2, 'Wind is moving air, a gas.'), I('🫧', 'the air in a bubble', 2, 'The air in a bubble is a gas.')];
+  const jars = [[], [], []];
+  return choiceGame(api, {
+    items: ITEMS, bins: BINS, noun: 'Thing', doneRow: '🧪 Things sorted',
+    question: it => `Is ${it.name} a solid, a liquid or a gas?`,
+    placed: it => jars[it.bin].push(it.e),
+    render(d, it, mv, t) {
+      d.bg('#f2fbf8', '#dff4ee');
+      BINS.forEach((b, k) => {
+        const x = 170 + k * 310;
+        d.rect(x - 120, 300, 240, 220, { r: 20, fill: b.col, stroke: INK, lw: 4 });
+        d.text(b.icon + ' ' + b.name, x, 335, { size: 28, weight: 700 });
+        jars[k].forEach((e, j) => d.emoji(e, x - 75 + (j % 4) * 50, 400 + Math.floor(j / 4) * 50, 40));
+      });
+      if (!it) return;
+      const tx = 170 + it.bin * 310, x = mv ? d.lerp(480, tx, mv) : 480, y = mv ? d.lerp(150, 420, mv) : 150 + Math.sin(t * 3) * 8;
+      d.circle(x, y, 90 * (1 - mv * 0.6), { fill: '#fff', stroke: TEAL, lw: 5 });
+      d.emoji(it.e, x, y, 110 * (1 - mv * 0.6));
+      if (!mv) d.pill(it.name, 480, 262, { size: 24, bg: YELLOW });
+    },
+  });
+}
+
+// ---------- Game 2: Habitat Match ----------
+function habitatGame(api) {
+  const BINS = [{ name: 'Polar', icon: '❄️', a: '#e8f6ff', b: '#ffffff' }, { name: 'Desert', icon: '🏜️', a: '#ffe9b8', b: SAND }, { name: 'Ocean', icon: '🌊', a: '#bfe6ff', b: '#3d8ff0' }, { name: 'Rainforest', icon: '🌴', a: '#d8f5d0', b: '#2f8a4e' }];
+  const I = (e, hint, bin, why) => ({ e, hint, bin, why });
+  const ITEMS = [I('🐻‍❄️', 'I have thick white fur and a layer of fat to stay warm on the ice.', 0, 'Polar bears live in the icy Arctic.'),
+    I('🐧', 'I huddle with my friends to stay warm and slide on my belly across the ice.', 0, 'Many penguins live in icy Antarctica.'),
+    I('🐪', 'My humps store fat, and long eyelashes keep sand out of my eyes.', 1, 'Camels can go for days without water in the desert.'),
+    I('🦂', 'I hide under rocks in the day to stay out of the hot sun.', 1, 'Scorpions stay cool in the hot, dry desert.'),
+    I('🐙', 'I have eight arms and squirt ink to escape. I never leave the salty water.', 2, 'Octopuses live in the ocean.'),
+    I('🐋', 'I am the biggest animal ever, and I come up to breathe through a blowhole.', 2, 'Blue whales swim in the ocean.'),
+    I('🦥', 'I hang upside down in warm, wet trees and move very slowly.', 3, 'Sloths live high in rainforest trees.'),
+    I('🦜', 'My bright feathers blend in with colorful flowers in the warm, rainy trees.', 3, 'Parrots live in rainforests.')];
+  const homes = [[], [], [], []];
+  return choiceGame(api, {
+    items: ITEMS, bins: BINS, noun: 'Animal', doneRow: '🐾 Animals home',
+    question: it => '"' + it.hint + '" Where do I live?',
+    placed: it => homes[it.bin].push(it.e),
+    render(d, it, mv, t) {
+      d.bg('#fff', '#f2f2f2');
+      BINS.forEach((b, k) => {
+        const x = 10 + k * 237;
+        d.rect(x, 230, 228, 300, { r: 16, fill: b.a, stroke: INK, lw: 3 });
+        d.rect(x + 3, 430, 222, 97, { r: 0, fill: b.b });
+        d.text(b.icon + ' ' + b.name, x + 114, 262, { size: 26, weight: 700 });
+        homes[k].forEach((e, j) => d.emoji(e, x + 60 + j * 100, 360 + Math.sin(t * 2 + j) * 5, 70));
+      });
+      if (!it) return;
+      const tx = 124 + it.bin * 237, x = mv ? d.lerp(480, tx, mv) : 480, y = mv ? d.lerp(110, 360, mv) - Math.sin(mv * Math.PI) * 60 : 110 + Math.sin(t * 3) * 6;
+      d.circle(x, y, 80 * (1 - mv * 0.5), { fill: '#fff', stroke: TEAL, lw: 5 });
+      d.emoji(it.e, x, y, 100 * (1 - mv * 0.4));
+    },
+  });
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g2_science', grade: '2nd Grade · Science', title: 'Earth, Matter & Habitats', icon: '🔬', home: 'index.html', homeTitle: 'Back to the 2nd grade folder',
+  tagline: 'How **water, wind and ice** shape the land, **solids, liquids and gases**, where animals live, and how **engineers** solve problems.',
+  certTitle: 'Super Scientist', certText: 'knows how land changes, what matter is made of, how plants and animals survive, and how to design and test!',
+  shareText: 'Explore erosion, matter and habitats on RoboBandit! 🔬',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'erosion', icon: '🏞️', name: 'Erosion & Landforms', sub: 'Water, wind & ice shape the land', badge: 'Land Shaper',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Moving the land, bit by bit', d: 'er-what', p: '**Weathering** breaks rock into tiny pieces. **Erosion** is when **water**, **wind** or **ice** carries those pieces of rock and soil away to a **new place**.', v: [['erosion', 'moving rock and soil to a new place']] },
+        { k: 'WHY DO WE CARE?', t: 'Protecting land and homes', d: 'er-why', p: 'Erosion can wash away the soil farmers need and wear away cliffs under houses and roads. Knowing how it works helps people **protect the land**.' },
+        { t: 'Landforms', d: 'er-land', p: '**Landforms** are the shapes of the land: tall **mountains**, low **valleys**, rounded **hills** and flat **plains**. Water makes shapes too: **rivers**, **lakes** and **islands**. A **canyon** is a deep valley carved by a river.', v: [['landform', 'a natural shape of the land']] },
+        { t: 'Water, wind and ice', d: 'er-agents', p: '**Rivers** carve canyons. **Wind** blows sand into dunes. Giant sheets of ice called **glaciers** scrape out wide valleys. They all move rock and soil from one place to another.', v: [['glacier', 'a huge, slow river of ice']] },
+        { t: 'Fast and slow changes', d: 'er-fast', p: 'Some changes are **slow**: a river took **millions of years** to carve the Grand Canyon. Others are **fast**: a landslide, volcano or earthquake can change the land in minutes!' },
+        { t: 'Slowing erosion', d: 'er-stop', p: 'People can **slow erosion**. Plant **roots** hold soil in place, so planting grass and trees helps. **Walls**, **fences** and **rocks** can block water and wind, too.' },
+      ],
+      quiz: [
+        { q: 'What is erosion?', a: ['Water, wind or ice moving rock and soil', 'A kind of rock', 'When plants grow'], why: 'Erosion moves bits of rock and soil to a new place.' },
+        { q: 'Which landform is a deep valley carved by a river?', a: ['Canyon', 'Plain', 'Island'], why: 'Rivers carve canyons over a very long time.' },
+        { q: 'Land with water all around it is an…', a: ['Island', 'Mountain', 'Valley'], why: 'An island is surrounded by water.' },
+        { q: 'Which is a FAST change to the land?', a: ['A landslide', 'A river carving a canyon', 'A glacier scraping a valley'], why: 'Landslides happen in minutes. The others take a very long time.' },
+        { q: 'How do plants help stop erosion?', a: ['Their roots hold the soil', 'They eat the rain', 'They make wind'], why: 'Roots grip the soil so water can\'t wash it away as easily.' },
+        { q: 'Wind blows sand into hills called…', a: ['Dunes', 'Glaciers', 'Lakes'], why: 'Sand dunes are made by wind.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'matter', icon: '🧊', name: 'States of Matter', sub: 'Solids, liquids & gases', badge: 'Matter Master',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Everything is matter', d: 'sm-what', p: '**Matter** is anything that takes up space. It comes in three main **states**: **solids** keep their own shape, **liquids** flow and take the shape of their container, and **gases** spread out to fill any space.', v: [['matter', 'anything that takes up space'], ['state', 'solid, liquid or gas']] },
+        { k: 'WHY DO WE CARE?', t: 'The right stuff for the job', d: 'sm-why', p: 'Knowing about matter helps us **choose the right material**. A raincoat should be waterproof. A window should be clear. A pillow should be soft!' },
+        { t: 'Tiny particles', d: 'sm-parts', p: 'All matter is made of tiny pieces called **particles**. In a **solid**, they\'re packed tight and just wiggle. In a **liquid**, they slide past each other. In a **gas**, they zoom far apart.', v: [['particle', 'a tiny piece of matter']] },
+        { t: 'Properties', d: 'sm-props', p: '**Properties** describe matter: its **color**, **shape**, **size** and **texture** (rough or smooth), whether it\'s **hard** or **soft**, **bendy**, and whether it **floats** or **sinks**.', v: [['property', 'something you can observe about matter']] },
+        { t: 'Heating and cooling', d: 'sm-heat', p: '**Heating** can change matter: ice **melts** into water, and water **evaporates** into a gas called water vapor. **Cooling** can change it back: water vapor turns into drops, and water **freezes** into ice.', v: [['melt', 'solid → liquid'], ['freeze', 'liquid → solid']] },
+        { t: 'Changes that can\'t be undone', d: 'sm-undo', p: 'Some changes can be **undone**: melted chocolate gets hard again when it cools. Others **can\'t**: you can never un-cook an egg or turn toast back into bread!' },
+      ],
+      quiz: [
+        { q: 'Which is a liquid?', a: ['Milk', 'A rock', 'Steam'], why: 'Milk flows and takes the shape of its cup.' },
+        { q: 'A gas…', a: ['Spreads out to fill any space', 'Keeps its own shape', 'Is always hard'], why: 'Gas particles zoom apart and fill their container.' },
+        { q: 'What happens when you heat an ice cube?', a: ['It melts into water', 'It turns into a rock', 'It gets bigger and harder'], why: 'Heating changes ice from a solid to a liquid.' },
+        { q: 'Which change CAN\'T be undone?', a: ['Cooking an egg', 'Freezing water', 'Melting chocolate'], why: 'Once an egg is cooked, it can\'t go back.' },
+        { q: 'Why is a raincoat made of plastic, not paper?', a: ['Plastic is waterproof', 'Paper is too heavy', 'Plastic is see-through'], why: 'We pick materials with the right properties for the job.' },
+        { q: 'In a solid, the particles are…', a: ['Packed tight and just wiggle', 'Zooming far apart', 'Gone'], why: 'That\'s why solids keep their shape.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'habitats', icon: '🐻‍❄️', name: 'Habitats & Adaptations', sub: 'Homes and special features', badge: 'Habitat Hero',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'A home with everything', d: 'hb-what', p: 'A **habitat** is the place where a plant or animal lives. It gives them what they need: **food**, **water**, **shelter** and **space**. A pond is a habitat for frogs, ducks and fish.', v: [['habitat', 'the natural home of a living thing']] },
+        { k: 'WHY DO WE CARE?', t: 'No habitat, no home', d: 'hb-why', p: 'Living things need their habitats to survive. Pandas eat almost only **bamboo**, so if bamboo forests disappear, pandas can\'t find food. **Protecting habitats** protects animals and plants.' },
+        { t: 'Different habitats', d: 'hb-tour', p: 'Earth has many habitats: icy **polar** lands, hot dry **deserts**, the salty **ocean**, and warm, wet **rainforests**. Each one is home to different living things.' },
+        { t: 'Animal adaptations', d: 'hb-animal', p: 'An **adaptation** is a body part or behavior that helps a living thing survive in its habitat. Polar bears have **thick fur**. Camels store fat in their **humps**. Ducks have **webbed feet** for swimming.', v: [['adaptation', 'a feature that helps something survive']] },
+        { t: 'Plant adaptations and needs', d: 'hb-plant', p: 'Plants need **water** and **light** to grow. A cactus **stores water** in its thick stem. A water lily\'s leaves **float** to catch the sun. And plants **grow toward the light**!' },
+        { t: 'Animals help plants', d: 'hb-help', p: 'Bees carry **pollen** from flower to flower, which helps plants make **seeds**. Squirrels bury acorns and forget some, and seeds stick to animal fur. Animals help **spread seeds** to new places!', v: [['pollen', 'a yellow dust flowers need to make seeds']] },
+      ],
+      quiz: [
+        { q: 'What does a habitat give a living thing?', a: ['Food, water, shelter and space', 'Only toys', 'Only sunlight'], why: 'A habitat has everything a living thing needs.' },
+        { q: 'Which animal is adapted to the cold?', a: ['A polar bear, with thick fur and fat', 'A camel, with long eyelashes', 'A parrot, with bright feathers'], why: 'Thick fur and fat keep polar bears warm.' },
+        { q: 'How is a cactus adapted to the desert?', a: ['It stores water in its stem', 'It has big floating leaves', 'It needs lots of rain'], why: 'Storing water helps it survive where it rarely rains.' },
+        { q: 'What two things do plants need to grow?', a: ['Water and light', 'Candy and toys', 'Snow and darkness'], why: 'Plants need water and sunlight.' },
+        { q: 'How do bees help flowers?', a: ['They carry pollen between flowers', 'They water them', 'They eat their roots'], why: 'Moving pollen helps plants make seeds.' },
+        { q: 'Webbed feet help a duck…', a: ['Swim', 'Climb trees', 'Dig tunnels'], why: 'Webbed feet push water like paddles.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'engineer', icon: '🛠️', name: 'Engineering Design', sub: 'Ask, imagine, plan, create, improve', badge: 'Junior Engineer',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Solving problems by design', d: 'en-what', p: '**Engineers** solve problems by designing things. They follow steps: **Ask** about the problem, **Imagine** ideas, **Plan**, **Create**, then **Test and Improve**. Then they go around again!', v: [['engineer', 'a person who designs things to solve problems']] },
+        { k: 'WHY DO WE CARE?', t: 'Designed by someone', d: 'en-why', p: 'Bridges, chairs, backpacks, bikes, slides: almost everything around you was **designed** by someone to solve a problem. You can be an engineer too!' },
+        { t: 'Ask and imagine', d: 'en-ask', p: 'First, **ask**: what\'s the problem? The waves keep washing away our sand castle! Then **imagine** lots of ideas: a wall of rocks, plants, a moat or a fence. There are no bad ideas yet!', v: [['problem', 'something that needs to be fixed']] },
+        { t: 'Plan and create', d: 'en-plan', p: '**Plan** by choosing one idea and drawing a picture with **labels**. Then **create**: build it! Use the materials with the right properties for the job.' },
+        { t: 'Test and improve', d: 'en-test', p: '**Test** your design. Did it work? If not, that\'s OK: **mistakes help us learn**! **Improve** it and test again. Engineers often test many times before they get it right.' },
+      ],
+      quiz: [
+        { q: 'What is the first step of the design process?', a: ['Ask about the problem', 'Build right away', 'Give up'], why: 'You need to understand the problem first.' },
+        { q: 'Your design didn\'t work. What should an engineer do?', a: ['Improve it and test again', 'Throw it away and quit', 'Say it worked anyway'], why: 'Engineers learn from mistakes and improve.' },
+        { q: 'Why do engineers draw a plan?', a: ['To show how they will build it', 'Because drawing is required for fun only', 'To skip testing'], why: 'A labeled drawing guides the building.' },
+        { q: 'During "Imagine", you should…', a: ['Think of lots of ideas', 'Pick the first idea only', 'Test your design'], why: 'More ideas mean more chances for a great one.' },
+        { q: 'Which is something an engineer designed?', a: ['A bridge', 'A mountain', 'A cloud'], why: 'Bridges are designed and built by people. Mountains and clouds are natural.' },
+        { q: 'To protect a sand castle from waves, a good idea to test is…', a: ['A wall of rocks', 'A paper roof', 'More water'], why: 'Rocks can block the waves. Then you test to see!' },
+      ],
+    },
+    {
+      kind: 'game', id: 'sorter', icon: '🧪', name: 'Matter Sorter', sub: 'Solid, liquid or gas?', badge: 'Matter Sorter',
+      how: [['🧪', 'Things are coming down the line! Sort each one.'],
+        ['👆', 'Is it a <b>solid</b>, a <b>liquid</b> or a <b>gas</b>? Tap the right jar.'], ['⌨️', '<span class="key-only">You can press <b>1</b>, <b>2</b> or <b>3</b>.</span><span class="touch-only">Tap an answer.</span>'], ['⭐', '100 points for every first-try answer.']],
+      make: matterGame,
+    },
+    {
+      kind: 'game', id: 'homes', icon: '🌍', name: 'Habitat Match', sub: 'Help animals get home', badge: 'Habitat Helper',
+      how: [['🐾', 'Each animal gives you a clue about its adaptations.'],
+        ['🌍', 'Send it home to the right habitat: <b>Polar</b>, <b>Desert</b>, <b>Ocean</b> or <b>Rainforest</b>.'], ['⌨️', '<span class="key-only">You can press <b>1</b> to <b>4</b>.</span><span class="touch-only">Tap a habitat.</span>'], ['⭐', '100 points for every first-try answer.']],
+      make: habitatGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>

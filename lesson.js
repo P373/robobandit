@@ -123,7 +123,8 @@ const School = (() => {
       if (o.rot) c.rotate(o.rot);
       if (o.flip) c.scale(-1, 1);
       if (o.alpha != null) c.globalAlpha *= o.alpha;
-      c.font = `${size}px ${EMOJI}`; c.textAlign = 'center'; c.textBaseline = 'middle';
+      // an opaque fill: browsers fade colour emoji by the alpha of whatever fill was used last
+      c.font = `${size}px ${EMOJI}`; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillStyle = '#000';
       c.fillText(e, 0, size * 0.06);
       c.restore();
     },

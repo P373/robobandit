@@ -12,8 +12,8 @@
 - **Sparkle Meadow**: following the pink arrow makes all six animal friends (and saves them); sparkles unlock the unicorn horn
 - **Witch Way Out**: flying the friendly line (with shields in the storm) escapes the pumpkin without being caught; doing nothing gets caught but the pumpkin eases off so everyone can finish
 - **Flight School**: every lesson diagram draws (sliders at both ends); autopilots (`tests/flight-bots.js`) win all 14 rounds in Easy and Toddler modes, and every round ends even with no input in all three modes; the quiz gives second chances, saves stars and Flight Cards and unlocks the next level; Toddler mode opens every level and skips quizzes; a perfect final exam earns the honors certificate; "Unlock all levels" opens every level and the exam and is remembered; on a phone, holding fires the burner, STAGE stages and the joystick flies the helicopter
-- **School folders**: the home page links to each grade's folder, and the 5th grade folder lists its subjects with saved stars
-- **5th grade** (reading & rights, math, science, social studies): every lesson picture draws, every quiz can be aced, every game can be won with 3 stars
+- **School folders**: the home page links to each grade's folder, and the 5th and 2nd grade folders list their subjects with saved stars
+- **5th grade** (reading & rights, math, science, social studies) and **2nd grade** (math, reading, science, social studies): every lesson picture draws, every quiz can be aced, every game can be won with 3 stars
 - **Xbox controller** (a pretend one): the D-pad and Ⓐ pick games on the arcade page, press menu buttons and lesson buttons; Ⓐ flaps and holds the burner; the left stick steers smoothly; ☰ pauses; crashes rumble
 - muting one game mutes them all
 

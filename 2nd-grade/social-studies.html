@@ -1,0 +1,707 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Our Community & Country | RoboBandit 2nd Grade</title>
+<meta name="description" content="2nd grade social studies: being a good citizen, families and traditions, famous Americans, maps and globes, and consumers and producers. Lessons, quizzes and games.">
+<link rel="canonical" href="https://robobandit.com/2nd-grade/social-studies.html">
+<meta name="theme-color" content="#d63c4a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/2nd-grade/social-studies.html">
+<meta property="og:title" content="Our Community & Country | RoboBandit 2nd Grade">
+<meta property="og:description" content="Citizens, traditions, famous Americans, maps and money. 2nd grade social studies lessons, quizzes and games.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>
+  :root { --c: #d63c4a; --c2: #ffd84a; --bg: #23407a; }
+  .pad { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px auto 0; }
+  .pad button { min-width: 110px; height: 54px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; font: 700 16px 'Fredoka', sans-serif; color: var(--ink);
+    box-shadow: 0 3px 0 var(--ink); cursor: pointer; }
+  .pad button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', RED = '#d63c4a', NAVY = '#23407a', BLUE = '#3d8ff0', GREEN = '#2fae5a', ORANGE = '#f08a24', YELLOW = '#ffd84a', PURPLE = '#7b4bd6', SEA = '#7fc4f0', LAND = '#9ccf7a';
+const SKINS = ['#f1c7a0', '#c98d5f', '#8a5a3c', '#e0ac7e', '#5a3a28', '#f5d6b8'], SHIRTS = ['#3d8ff0', '#e8457a', '#2fae5a', '#f08a24', '#7b4bd6', '#ffb400'];
+
+// ---------- Drawing helpers ----------
+const paper = (d, a = '#fffaf0', b = '#fff1d6') => d.bg(a, b);
+const panel = (d, x, y, w, h, fill = '#fff', lw = 3) => d.rect(x, y, w, h, { r: 18, fill, stroke: INK, lw });
+const kid = (d, x, y, s, i, o = {}) => d.person(x, y, s, { shirt: SHIRTS[i % 6], skin: SKINS[i % 6], hair: ['#3a2a1a', '#a86a2a', '#1a1a1a', '#e0b04a'][i % 4], ...o });
+// a framed portrait of a famous person: an emoji face, a name and years
+function portrait(d, x, y, e, name, years, o = {}) {
+  d.rect(x - 110, y - 130, 220, 260, { r: 10, fill: '#c9971e', stroke: INK, lw: 3 });
+  d.rect(x - 96, y - 116, 192, 180, { r: 6, fill: o.bg || '#e8f3ff' });
+  d.emoji(e, x, y - 26, 110);
+  d.text(name, x, y + 88, { size: o.size || 24, weight: 700, color: '#fff', stroke: INK, lw: 5, maxW: 200 });
+  if (years) d.text(years, x, y + 116, { size: 18, color: '#fff' });
+}
+function compass(d, x, y, r = 60, spin = 0) {
+  d.circle(x, y, r, { fill: '#fff', stroke: INK, lw: 3 });
+  d.at(x, y, spin, 1, () => {
+    d.poly([[0, -r * 0.85], [r * 0.18, 0], [0, r * 0.85], [-r * 0.18, 0]], { close: true, fill: RED, stroke: INK, lw: 2 });
+    d.poly([[-r * 0.85, 0], [0, r * 0.18], [r * 0.85, 0], [0, -r * 0.18]], { close: true, fill: NAVY, stroke: INK, lw: 2 });
+  });
+  [['N', 0, -1], ['E', 1, 0], ['S', 0, 1], ['W', -1, 0]].forEach(([s, dx, dy]) => d.text(s, x + dx * (r + 20), y + dy * (r + 20), { size: Math.max(20, r * 0.4), weight: 700, color: s === 'N' ? RED : INK }));
+}
+function flag(d, x, y, w = 120) {
+  const h = w * 0.55;
+  for (let i = 0; i < 7; i++) d.rect(x, y + i * h / 7, w, h / 7 + 0.5, { r: 0, fill: i % 2 ? '#fff' : '#d63c4a' });
+  d.rect(x, y, w * 0.42, h * 4 / 7, { r: 0, fill: NAVY });
+  for (let i = 0; i < 9; i++) d.circle(x + 8 + (i % 3) * w * 0.13, y + 7 + Math.floor(i / 3) * h * 0.17, 2.5, { fill: '#fff' });
+  d.rect(x, y, w, h, { r: 0, stroke: INK, lw: 2 });
+}
+// the world: rough continent shapes on a 960×540 picture
+const CONT = {
+  'North America': [[60, 110], [180, 80], [330, 90], [340, 150], [280, 210], [250, 270], [210, 280], [160, 220], [90, 190]],
+  'South America': [[230, 290], [300, 300], [340, 340], [310, 420], [280, 470], [260, 430], [240, 350]],
+  'Europe': [[440, 100], [520, 90], [540, 140], [500, 170], [450, 165]],
+  'Africa': [[450, 190], [540, 185], [580, 250], [560, 330], [520, 400], [490, 350], [470, 280], [440, 240]],
+  'Asia': [[540, 80], [760, 70], [850, 120], [820, 200], [740, 250], [660, 270], [600, 220], [560, 170]],
+  'Australia': [[740, 330], [830, 320], [860, 370], [820, 410], [750, 400]],
+  'Antarctica': [[200, 500], [760, 500], [700, 530], [260, 530]],
+};
+const CONT_LABEL = { 'North America': [200, 160], 'South America': [290, 370], 'Europe': [490, 130], 'Africa': [510, 280], 'Asia': [700, 160], 'Australia': [800, 365], 'Antarctica': [480, 515] };
+const OCEANS = [['Pacific', 70, 330], ['Atlantic', 380, 240], ['Indian', 640, 360], ['Arctic', 480, 40], ['Southern', 480, 465], ['Pacific', 910, 280]];
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  // ----- citizenship -----
+  'ci-what'(d, t) {
+    d.bg('#bfe6ff', '#eaf7ff');
+    d.rect(0, 380, d.W, 160, { r: 0, fill: '#8bd06a' });
+    [['🏫', 150, 'school'], ['🏠', 330, 'homes'], ['🏪', 500, 'stores'], ['🏥', 670, 'hospital'], ['🏛️', 840, 'town hall']].forEach(([e, x, s]) => { d.emoji(e, x, 300, 110); d.pill(s, x, 380, { size: 20 }); });
+    for (let i = 0; i < 6; i++) kid(d, (i * 160 + t * 40 * (i % 2 ? 1 : -1) + 2000) % 1000 - 20, 450, 1, i);
+    d.pill('A COMMUNITY: people who live, work and play together', 480, 60, { size: 26, bg: YELLOW });
+    d.text('A citizen is a member of a community.', 480, 130, { size: 28, weight: 700, color: RED });
+  },
+  'ci-why'(d, t) {
+    d.bg('#bfe6ff', '#eaf7ff'); d.rect(0, 360, d.W, 180, { r: 0, fill: '#8bd06a' });
+    d.emoji('🌳', 140, 290, 150); d.emoji('🌳', 820, 290, 150);
+    const k = d.loop(t, 6);
+    ['🥤', '📄', '🍌', '🥫'].forEach((e, i) => { if (k < 0.2 + i * 0.18) d.emoji(e, 300 + i * 110, 470, 40); });
+    kid(d, 300 + Math.min(1, k * 1.2) * 330, 420, 1.4, 1);
+    d.emoji('🗑️', 760, 450, 70);
+    d.pill('Picking up litter makes the park nicer for everyone', 480, 60, { size: 24, bg: YELLOW });
+    d.text('When everyone does their part, our community is safe, fair and fun!', 480, 120, { size: 24, weight: 700, color: RED });
+  },
+  'ci-rules'(d, t) {
+    paper(d);
+    panel(d, 30, 30, 430, 380, '#e8f3ff'); panel(d, 500, 30, 430, 380, '#ffe8e0');
+    d.text('RULES at school', 245, 75, { size: 30, weight: 700, color: BLUE }); d.text('LAWS in town', 715, 75, { size: 30, weight: 700, color: RED });
+    [['🙋', 'Raise your hand'], ['🚶', 'Walk in the hall'], ['🧹', 'Clean up your space']].forEach(([e, s], i) => d.alpha(d.in(t, i * 0.4), () => { d.emoji(e, 100, 150 + i * 90, 56); d.text(s, 145, 150 + i * 90, { size: 26, weight: 700, align: 'left' }); }));
+    [['🛑', 'Stop at stop signs'], ['🚸', 'Cross at crosswalks'], ['🚲', 'Wear a bike helmet']].forEach(([e, s], i) => d.alpha(d.in(t, 1.2 + i * 0.4), () => { d.emoji(e, 570, 150 + i * 90, 56); d.text(s, 615, 150 + i * 90, { size: 26, weight: 700, align: 'left' }); }));
+    d.text('Rules and laws keep us SAFE and make things FAIR.', 480, 470, { size: 28, weight: 700, color: NAVY });
+  },
+  'ci-ssr'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    const S = [['Be Safe', '🦺', ['walking feet', 'hands to yourself', 'pick up after yourself'], '#cfe6ff'], ['Be Kind', '💗', ['include others', 'use kind words', 'share and help'], '#ffd8e2'], ['Be Respectful', '👂', ['listen to others', 'raise your hand', 'care for supplies'], '#d8f5d0']];
+    const on = Math.floor(t / 2) % 3;
+    S.forEach(([n, e, L, bg], i) => {
+      const x = 170 + i * 310;
+      d.at(x, 240, 0, i === on ? 1.05 : 1, () => {
+        d.poly([[-140, -200], [140, -200], [140, 60], [0, 200], [-140, 60]], { close: true, fill: bg, stroke: INK, lw: i === on ? 5 : 3 });
+        d.emoji(e, 0, -140, 64);
+        d.text(n, 0, -70, { size: 30, weight: 700 });
+        L.forEach((s, j) => d.text('• ' + s, 0, -20 + j * 42, { size: 22 }));
+      });
+    });
+    d.text('Good citizens are safe, kind and respectful.', 480, 505, { size: 28, weight: 700, color: RED });
+  },
+  'ci-vote'(d, t) {
+    paper(d);
+    d.text('Vote: what should we name the class fish? 🐠', 480, 45, { size: 30, weight: 700 });
+    const N = [['Bubbles', 7, '#7fc4ff'], ['Captain Fin', 12, '#ffcf7a'], ['Goldie', 5, '#ffd8e2']], T = t % 9;
+    N.forEach(([n, v, c], i) => {
+      const y = 130 + i * 110, shown = Math.min(v, Math.floor(d.in(T, 0.5 + i * 0.3, 4) * v));
+      panel(d, 40, y - 45, 880, 90, c);
+      d.text(n, 160, y, { size: 30, weight: 700 });
+      for (let k = 0; k < shown; k++) {
+        const g = Math.floor(k / 5), m = k % 5, x = 320 + g * 110 + m * 18;
+        if (m < 4) d.line(x, y - 28, x, y + 28, { lw: 5 }); else d.line(x - 80, y + 20, x - 4, y - 20, { lw: 5 });
+      }
+      d.text(String(shown), 860, y, { size: 36, weight: 700 });
+    });
+    d.alpha(d.in(T, 5), () => d.pill('🏆 Captain Fin wins! The choice with the most votes wins.', 480, 480, { size: 24, bg: YELLOW }));
+  },
+  'ci-leaders'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const L = [['🏫', 'School', 'principal'], ['🏘️', 'Town or city', 'mayor'], ['🏞️', 'State', 'governor'], ['🇺🇸', 'Country', 'president']];
+    L.forEach(([e, p, l], i) => {
+      const x = 130 + i * 233, y = 420 - i * 90;
+      d.alpha(d.in(t, i * 0.6), () => {
+        d.rect(x - 105, y, 210, 540 - y, { r: 6, fill: ['#ffe08a', '#ffcf7a', '#ffb07a', '#ff8f8a'][i], stroke: INK, lw: 3 });
+        d.emoji(e, x, y - 60, 70);
+        d.text(p, x, y + 30, { size: 24, weight: 700 }); d.pill(l, x, y + 72, { size: 22 });
+      });
+    });
+    d.text('Communities choose LEADERS to help make decisions.', 480, 40, { size: 28, weight: 700, color: RED });
+  },
+  // ----- families & traditions -----
+  'ft-what'(d, t) {
+    paper(d);
+    const F = [[2, 1], [3, 2], [4, 3], [2, 4]];
+    let n = 0;
+    F.forEach(([size], i) => {
+      const x = 130 + i * 233;
+      panel(d, x - 105, 60, 210, 330, ['#ffe8f0', '#e8f3ff', '#e8f8e0', '#fff3d6'][i]);
+      d.emoji('🏠', x, 120, 60);
+      for (let k = 0; k < size; k++) { const s = k === 0 ? 1.15 : k % 2 ? 0.9 : 1.05; kid(d, x - (size - 1) * 30 + k * 60, 280 + (1 - s) * 30, s, n++); }
+    });
+    d.emoji('🐶', 790, 360, 40);
+    d.text('Families come in all shapes and sizes.', 480, 460, { size: 32, weight: 700, color: RED });
+  },
+  'ft-why'(d, t) {
+    d.bg('#2a2050', '#4a3a80');
+    for (let i = 0; i < 40; i++) d.circle((i * 211) % 960, (i * 97) % 300, 1.5, { fill: 'rgba(255,255,255,.6)' });
+    d.ellipse(480, 470, 360, 60, { fill: '#8a5a34', stroke: INK, lw: 3 });
+    d.emoji('🔥', 480, 420 + Math.sin(t * 8) * 3, 80);
+    for (let i = 0; i < 5; i++) { const a = Math.PI + i / 4 * Math.PI; kid(d, 480 + Math.cos(a) * 260, 420 + Math.sin(a) * 40 - 20, 1.1, i); }
+    d.pill('Traditions connect us to our families and our past', 480, 70, { size: 24, bg: YELLOW });
+    d.text('Learning about other traditions helps us respect each other.', 480, 140, { size: 24, weight: 700, color: '#fff' });
+  },
+  'ft-trad'(d, t) {
+    paper(d, '#fff6e0', '#ffe8c0');
+    const T = [['🎂', 'Birthdays'], ['🏮', 'Lunar New Year'], ['🕎', 'Hanukkah'], ['🪔', 'Diwali'], ['🦃', 'Thanksgiving'], ['🎄', 'Christmas'], ['🌙', 'Eid'], ['🎆', 'Fourth of July']];
+    T.forEach(([e, s], i) => {
+      const x = 120 + (i % 4) * 240, y = 120 + Math.floor(i / 4) * 200, bob = Math.sin(t * 2 + i) * 6;
+      d.alpha(d.in(t, i * 0.25, 0.4), () => { d.circle(x, y + bob, 70, { fill: '#fff', stroke: RED, lw: 4 }); d.emoji(e, x, y + bob, 76); d.pill(s, x, y + 92, { size: 20 }); });
+    });
+    d.text('Traditions: special ways families celebrate, cook, sing and remember.', 480, 505, { size: 23, weight: 700, color: RED });
+  },
+  'ft-time'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    const x0 = 80, x1 = 880, y = 290;
+    d.line(x0, y, x1, y, { lw: 8 });
+    const E = [['👶', 'Born', 'past'], ['🚶', 'First steps', 'past'], ['🎒', 'Started school', 'past'], ['✏️', '2nd grade!', 'present'], ['🎓', 'Graduate', 'future'], ['🚀', '???', 'future']];
+    E.forEach(([e, s, w], i) => {
+      const x = x0 + 40 + i * 145, col = w === 'past' ? BLUE : w === 'present' ? RED : GREEN;
+      d.alpha(d.in(t, i * 0.5), () => { d.circle(x, y, 14, { fill: col, stroke: INK, lw: 3 }); d.emoji(e, x, y - 80, 64); d.text(s, x, y + 50, { size: 22, weight: 700 }); });
+    });
+    d.pill('PAST', 280, 420, { size: 28, bg: '#cfe6ff' }); d.pill('PRESENT', 555, 420, { size: 28, bg: '#ffd8d0' }); d.pill('FUTURE', 790, 420, { size: 28, bg: '#c8f0c0' });
+    d.text('A TIMELINE shows events in the order they happened.', 480, 60, { size: 28, weight: 700, color: RED });
+  },
+  'ft-then'(d, t) {
+    paper(d);
+    d.text('THEN', 250, 45, { size: 36, color: '#8a5a34', font: "'Bungee', sans-serif" }); d.text('NOW', 710, 45, { size: 36, color: BLUE, font: "'Bungee', sans-serif" });
+    const P = [['☎️', 'phone on the wall', '📱', 'phone in your pocket'], ['🕯️', 'candles for light', '💡', 'electric lights'], ['🐎', 'horses and wagons', '🚗', 'cars and buses'], ['✉️', 'letters by mail', '💻', 'email and video calls']];
+    const on = Math.floor(t / 2) % P.length;
+    P.forEach(([a, sa, b, sb], i) => {
+      const y = 110 + i * 100, hi = i === on;
+      d.rect(40, y - 42, 880, 84, { r: 14, fill: hi ? '#fff3b0' : '#fff', stroke: INK, lw: hi ? 4 : 2 });
+      d.emoji(a, 100, y, 56); d.text(sa, 140, y, { size: 24, weight: 700, align: 'left' });
+      d.arrow(420, y, 520, y, { color: RED, lw: 5, head: 16 });
+      d.emoji(b, 570, y, 56); d.text(sb, 610, y, { size: 24, weight: 700, align: 'left' });
+    });
+    d.text('Life changes over time, but families still love and care for each other.', 480, 515, { size: 22, weight: 700, color: RED });
+  },
+  // ----- famous Americans -----
+  'fa-what'(d, t) {
+    d.bg('#f6efe4', '#eadbc4');
+    const P = [['🎩', 'Leaders'], ['⚡', 'Inventors'], ['🕯️', 'Freedom fighters'], ['🎒', 'Brave kids']];
+    P.forEach(([e, s], i) => {
+      const x = 130 + i * 233, bob = Math.sin(t * 2 + i) * 5;
+      d.rect(x - 95, 70 + bob, 190, 230, { r: 10, fill: '#c9971e', stroke: INK, lw: 3 });
+      d.rect(x - 80, 85 + bob, 160, 160, { r: 6, fill: '#e8f3ff' });
+      d.emoji(e, x, 165 + bob, 90);
+      d.text(s, x, 272 + bob, { size: 22, weight: 700, color: '#fff', stroke: INK, lw: 5 });
+    });
+    flag(d, 420, 350, 120);
+    d.text('Famous Americans made a difference with their ideas, courage and kindness.', 480, 495, { size: 23, weight: 700, color: NAVY });
+  },
+  'fa-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    kid(d, 240, 300, 1.8, 3);
+    d.emoji('💭', 380, 140, 80);
+    d.rect(450, 60, 440, 300, { r: 22, fill: '#fff', stroke: INK, lw: 3 });
+    const Q = ['brave', 'honest', 'curious', 'kind', 'hardworking'], i = Math.floor(t / 1.2) % Q.length;
+    d.text('I can be…', 670, 130, { size: 34, weight: 700 });
+    d.text(Q[i] + '!', 670, 220, { size: 56, weight: 700, color: RED });
+    d.text('just like them', 670, 300, { size: 26, color: '#5a6f99' });
+    d.text('Their stories show that anyone can make a difference.', 480, 470, { size: 28, weight: 700, color: NAVY });
+  },
+  'fa-lead'(d, t) {
+    d.bg('#f6efe4', '#eadbc4');
+    portrait(d, 210, 200, '🎖️', 'George Washington', '1732–1799', { bg: '#dde8f6' });
+    portrait(d, 750, 200, '🎩', 'Abraham Lincoln', '1809–1865', { bg: '#e8e0f6' });
+    d.alpha(d.in(t, 0.8), () => { d.pill('1st president', 210, 380, { size: 22, bg: YELLOW }); d.pill('on the $1 bill and the quarter', 210, 430, { size: 20 }); });
+    d.alpha(d.in(t, 1.8), () => { d.pill('16th president', 750, 380, { size: 22, bg: YELLOW }); d.pill('on the penny and the $5 bill', 750, 430, { size: 20 }); });
+    d.alpha(d.in(t, 2.6), () => { d.wrap('Washington led the army that won freedom from Britain. Lincoln kept the country together and worked to end slavery.', 480, 120, 300, { size: 22, weight: 700 }); });
+    flag(d, 420, 380, 120);
+  },
+  'fa-franklin'(d, t) {
+    d.bg('#3a4a6a', '#6a7a9a');
+    for (let i = 0; i < 3; i++) d.emoji('☁️', 200 + i * 220, 70, 130);
+    const flash = d.loop(t, 3) < 0.08;
+    if (flash) d.poly([[520, 90], [490, 170], [520, 170], [480, 260]], { stroke: YELLOW, lw: 8 });
+    const kx = 560 + Math.sin(t) * 20, ky = 190 + Math.cos(t * 1.3) * 10;
+    d.poly([[kx, ky - 40], [kx + 30, ky], [kx, ky + 40], [kx - 30, ky]], { close: true, fill: '#ffcf7a', stroke: INK, lw: 3 });
+    d.curve(kx, ky + 40, 420, 330, 300, 380, { color: '#fff', lw: 2, head: 0 });
+    d.emoji('🔑', 380, 330, 30);
+    d.person(270, 410, 1.6, { shirt: '#7a4a2a', skin: '#f1c7a0', hair: '#ddd' });
+    d.alpha(flash ? 1 : 0.85, () => d.pill('Benjamin Franklin (1706–1790)', 680, 330, { size: 24, bg: YELLOW }));
+    d.wrap('His kite experiment showed lightning is electricity. He invented the lightning rod and bifocal glasses, and helped start our country!', 700, 370, 480, { size: 21, weight: 700, color: '#fff' });
+  },
+  'fa-tubman'(d, t) {
+    d.bg('#0b1638', '#1d2d60');
+    for (let i = 0; i < 50; i++) d.circle((i * 211) % 960, (i * 97) % 300, 1.5, { fill: 'rgba(255,255,255,.7)' });
+    d.emoji('⭐', 820, 60, 50 + Math.sin(t * 3) * 6); d.text('North Star', 820, 110, { size: 20, color: '#fff' });
+    d.rect(0, 400, d.W, 140, { r: 0, fill: '#1d3a2a' });
+    for (let i = 0; i < 6; i++) d.emoji('🌲', 60 + i * 170, 380, 90, { alpha: 0.6 });
+    const k = d.loop(t, 8);
+    for (let i = 0; i < 4; i++) d.person(100 + k * 600 - i * 50, 420, 1.1, { shirt: SHIRTS[i + 1], skin: SKINS[2 + (i % 3)], pants: '#2a2a3a' });
+    d.emoji('🏠', 860, 440, 70); d.emoji('🕯️', 880, 410, 30);
+    d.pill('Harriet Tubman (about 1822–1913)', 400, 60, { size: 24, bg: YELLOW });
+    d.wrap('She escaped slavery, then bravely went back about 13 times to lead about 70 people to freedom on the Underground Railroad.', 400, 110, 600, { size: 22, weight: 700, color: '#fff' });
+    d.pill('safe house', 860, 500, { size: 18 });
+  },
+  'fa-ruby'(d, t) {
+    d.bg('#bfe6ff', '#eaf7ff');
+    d.rect(0, 380, d.W, 160, { r: 0, fill: '#cfd5de' });
+    d.rect(620, 120, 320, 260, { r: 4, fill: '#d98c6a', stroke: INK, lw: 3 });
+    for (let i = 0; i < 3; i++) d.rect(650 + i * 95, 160, 60, 60, { r: 4, fill: '#bfe6ff', stroke: INK, lw: 2 });
+    d.rect(745, 290, 70, 90, { r: 4, fill: '#7a4a2a', stroke: INK, lw: 2 });
+    d.text('SCHOOL', 780, 140, { size: 22, weight: 700, color: '#fff' });
+    const k = d.in(t % 8, 0.5, 6), x = 80 + k * 520;
+    d.person(x - 70, 440, 1.6, { shirt: '#5a6378', skin: SKINS[0], hat: '#3a3f58' });
+    d.person(x, 450, 1.1, { shirt: '#fff', skin: SKINS[4], hair: '#1a1a1a' });
+    d.emoji('🎒', x - 18, 440, 30);
+    d.person(x + 70, 440, 1.6, { shirt: '#5a6378', skin: SKINS[0], hat: '#3a3f58' });
+    d.pill('Ruby Bridges, age 6 (1960)', 300, 60, { size: 26, bg: YELLOW });
+    d.wrap('Ruby was the first Black child at an all-white elementary school in New Orleans. She walked in bravely every day, helping end unfair school rules.', 300, 105, 540, { size: 22, weight: 700 });
+  },
+  // ----- maps -----
+  'mp-what'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const k = (Math.sin(t * 0.8) + 1) / 2;
+    d.alpha(1 - k, () => {
+      d.rect(140, 140, 260, 220, { r: 0, fill: '#ffe8c0', stroke: INK, lw: 3 });
+      d.rect(160, 300, 120, 50, { r: 6, fill: '#8a5a34' }); d.rect(300, 160, 80, 50, { r: 6, fill: '#bfe6ff', stroke: INK, lw: 2 }); d.circle(220, 200, 30, { fill: '#e8457a' });
+      d.text('bed', 220, 325, { size: 20, color: '#fff' }); d.text('window', 340, 230, { size: 18 }); d.text('rug', 220, 200, { size: 18, color: '#fff' });
+      d.text('A map of my room', 270, 110, { size: 24, weight: 700 });
+    });
+    d.alpha(k, () => {
+      d.rect(100, 90, 340, 320, { r: 0, fill: LAND, stroke: INK, lw: 3 });
+      d.rect(100, 230, 340, 30, { r: 0, fill: '#9aa3b5' }); d.rect(260, 90, 30, 320, { r: 0, fill: '#9aa3b5' });
+      d.emoji('🏠', 160, 170, 40); d.emoji('🏫', 370, 170, 40); d.emoji('🌳', 160, 330, 40); d.emoji('🏪', 370, 330, 40);
+      d.text('A map of my neighborhood', 270, 70, { size: 24, weight: 700 });
+    });
+    d.emoji('🦅', 690, 160 + Math.sin(t * 2) * 10, 100);
+    d.wrap('A MAP is a drawing of a place, as if you were a bird looking down from above.', 700, 260, 420, { size: 26, weight: 700, color: NAVY });
+  },
+  'mp-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    d.rect(60, 60, 400, 400, { r: 16, fill: LAND, stroke: INK, lw: 3 });
+    d.poly([[100, 420], [100, 260], [300, 260], [300, 120], [420, 120]], { stroke: RED, lw: 8, dash: [14, 10] });
+    const k = d.loop(t, 4), pts = [[100, 420], [100, 260], [300, 260], [300, 120], [420, 120]];
+    const seg = Math.min(3, Math.floor(k * 4)), f = k * 4 - seg;
+    d.emoji('🚗', d.lerp(pts[seg][0], pts[seg + 1][0], f), d.lerp(pts[seg][1], pts[seg + 1][1], f), 44);
+    d.emoji('🏖️', 420, 110, 50);
+    ['Find your way', 'Plan a trip', 'Learn about places far away'].forEach((s, i) => d.alpha(d.in(t, 0.5 + i * 0.6), () => d.pill('🗺️ ' + s, 710, 150 + i * 90, { size: 26 })));
+    d.text('Maps help us find our way!', 710, 450, { size: 30, weight: 700, color: RED });
+  },
+  'mp-key'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    d.rect(30, 30, 600, 470, { r: 10, fill: LAND, stroke: INK, lw: 3 });
+    d.rect(30, 250, 600, 40, { r: 0, fill: '#9aa3b5' }); d.rect(300, 30, 40, 470, { r: 0, fill: '#9aa3b5' });
+    d.poly([[30, 420], [200, 400], [300, 460], [340, 470], [630, 430]], { stroke: SEA, lw: 22 });
+    const S = [['🏫', 'school', 140, 140], ['📚', 'library', 470, 140], ['🌳', 'park', 140, 350], ['🏥', 'hospital', 470, 350], ['🏠', 'house', 560, 200]];
+    const on = Math.floor(t / 1.2) % S.length;
+    S.forEach(([e, s, x, y], i) => { if (i === on) d.circle(x, y, 44, { fill: 'rgba(255,216,74,.7)' }); d.emoji(e, x, y, 54); });
+    panel(d, 660, 30, 270, 470);
+    d.text('MAP KEY', 795, 70, { size: 28, color: RED, font: "'Bungee', sans-serif" });
+    S.forEach(([e, s], i) => { if (i === on) d.rect(675, 105 + i * 62, 240, 56, { r: 10, fill: YELLOW }); d.emoji(e, 710, 133 + i * 62, 40); d.text(s, 750, 133 + i * 62, { size: 24, weight: 700, align: 'left' }); });
+    d.rect(690, 432, 40, 14, { r: 7, fill: SEA }); d.text('river', 750, 440, { size: 24, weight: 700, align: 'left' });
+  },
+  'mp-compass'(d, t) {
+    paper(d, '#fff6e0', '#ffe8c0');
+    compass(d, 300, 270, 150, Math.max(0, 1 - d.in(t, 0, 2)) * 6);
+    [['N', 'Never'], ['E', 'Eat'], ['S', 'Soggy'], ['W', 'Waffles']].forEach(([l, w], i) => d.alpha(d.in(t, 2 + i * 0.5), () => {
+      d.text(l, 640, 120 + i * 90, { size: 56, weight: 700, color: RED });
+      d.text(w, 690, 120 + i * 90, { size: 40, weight: 700, align: 'left' });
+    }));
+    d.emoji('🧇', 880, 390, 60);
+    d.text('A COMPASS ROSE shows directions: North, East, South, West.', 480, 505, { size: 24, weight: 700, color: NAVY });
+  },
+  'mp-world'(d, t) {
+    d.bg(SEA, '#9fd6ff');
+    const on = Math.floor(t / 1.2) % 7, names = Object.keys(CONT);
+    names.forEach((n, i) => d.poly(CONT[n], { close: true, fill: i === on ? YELLOW : LAND, stroke: '#4a8a3a', lw: 3 }));
+    names.forEach(n => d.text(n, CONT_LABEL[n][0], CONT_LABEL[n][1], { size: 18, weight: 700, stroke: '#fff', lw: 4 }));
+    OCEANS.forEach(([s, x, y]) => d.text(s, x, y, { size: 18, weight: 700, color: '#1d4a8a' }));
+    d.pill('7 continents and 5 oceans', 160, 40, { size: 22, bg: '#fff' });
+    d.pill('You are here! 📍', 230, 220, { size: 18, bg: '#ffd8d0', alpha: 0.6 + 0.4 * Math.sin(t * 4) });
+  },
+  'mp-land'(d, t) {
+    d.bg(SEA, '#9fd6ff');
+    d.poly([[100, 470], [80, 200], [200, 90], [500, 70], [800, 110], [880, 300], [840, 470]], { close: true, fill: LAND, stroke: '#4a8a3a', lw: 3 });
+    for (let i = 0; i < 5; i++) d.poly([[240 + i * 60, 220], [270 + i * 60, 150], [300 + i * 60, 220]], { close: true, fill: '#a87a4a', stroke: '#6a4a2a', lw: 2 });
+    d.curve(300, 230, 450, 330, 520, 470, { color: '#3d8ff0', lw: 10, head: 0 });
+    d.ellipse(680, 260, 70, 40, { fill: SEA, stroke: '#2f7fc8', lw: 3 });
+    d.circle(900, 470, 30, { fill: LAND, stroke: '#4a8a3a', lw: 3 });
+    [['mountains', 330, 120], ['river', 470, 380], ['lake', 680, 320], ['plains', 650, 420], ['island', 900, 520], ['ocean', 100, 510]].forEach(([s, x, y], i) => d.alpha(d.in(t, i * 0.4), () => d.pill(s, x, y, { size: 22 })));
+    compass(d, 880, 90, 36);
+    d.pill('Maps use colors: blue for water, green for land, brown for mountains', 480, 30, { size: 20, bg: YELLOW });
+  },
+  // ----- economics -----
+  'ec-what'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    d.emoji('🧑‍🌾', 140, 220, 110); d.emoji('🌳', 140, 360, 100);
+    d.emoji('🏪', 480, 240, 130);
+    kid(d, 820, 290, 1.6, 2);
+    const k = d.loop(t, 4);
+    d.emoji('🍎', k < 0.5 ? d.lerp(200, 440, k * 2) : d.lerp(520, 790, (k - 0.5) * 2), 180 - Math.sin(k * Math.PI * 2) * 30, 44);
+    d.emoji('🪙', k < 0.5 ? d.lerp(790, 520, k * 2) : d.lerp(440, 200, (k - 0.5) * 2), 330, 36);
+    d.pill('PRODUCER: grows or makes things', 210, 450, { size: 20, bg: '#c8f0c0' });
+    d.pill('CONSUMER: buys and uses things', 760, 450, { size: 20, bg: '#cfe6ff' });
+    d.text('Apples go one way… money goes the other!', 480, 60, { size: 28, weight: 700, color: RED });
+  },
+  'ec-why'(d, t) {
+    paper(d);
+    const P = [['🧑‍🌾', 'farmer'], ['👩‍🍳', 'baker'], ['🧑‍🏫', 'teacher'], ['🧑‍⚕️', 'doctor'], ['🧑‍🔧', 'mechanic'], ['🧑‍🚒', 'firefighter']], cx = 480, cy = 260;
+    P.forEach(([e, s], i) => {
+      const a = -Math.PI / 2 + i / P.length * Math.PI * 2 + t * 0.2, x = cx + Math.cos(a) * 300, y = cy + Math.sin(a) * 170;
+      d.line(cx, cy, x, y, { stroke: 'rgba(214,60,74,.35)', lw: 4 });
+      d.circle(x, y, 50, { fill: '#fff', stroke: INK, lw: 3 }); d.emoji(e, x, y - 4, 56); d.pill(s, x, y + 56, { size: 18 });
+    });
+    d.circle(cx, cy, 70, { fill: YELLOW, stroke: INK, lw: 3 }); d.text('our', cx, cy - 14, { size: 26, weight: 700 }); d.text('community', cx, cy + 16, { size: 22, weight: 700 });
+    d.text('We all depend on each other!', 480, 510, { size: 28, weight: 700, color: RED });
+  },
+  'ec-goods'(d, t) {
+    paper(d);
+    panel(d, 30, 30, 430, 400, '#fff3d6'); panel(d, 500, 30, 430, 400, '#e8f3ff');
+    d.text('GOODS', 245, 75, { size: 36, color: ORANGE, font: "'Bungee', sans-serif" }); d.text('things you can touch', 245, 115, { size: 22 });
+    d.text('SERVICES', 715, 75, { size: 36, color: BLUE, font: "'Bungee', sans-serif" }); d.text('work someone does for you', 715, 115, { size: 22 });
+    ['🍞', '🧸', '👟', '📕', '🍎', '🚲'].forEach((e, i) => d.emoji(e, 110 + (i % 3) * 135, 200 + Math.floor(i / 3) * 120 + Math.sin(t * 2 + i) * 5, 70));
+    [['💇', 'haircut'], ['🧑‍⚕️', 'checkup'], ['🧑‍🏫', 'teaching'], ['🚌', 'bus ride']].forEach(([e, s], i) => { const x = 610 + (i % 2) * 210, y = 200 + Math.floor(i / 2) * 120; d.emoji(e, x, y, 64); d.text(s, x, y + 48, { size: 20, weight: 700 }); });
+    d.text('Producers make goods or give services.', 480, 485, { size: 28, weight: 700, color: RED });
+  },
+  'ec-needs'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    panel(d, 30, 30, 430, 400, '#d8f5d0'); panel(d, 500, 30, 430, 400, '#ffe8f0');
+    d.text('NEEDS', 245, 75, { size: 36, color: GREEN, font: "'Bungee', sans-serif" }); d.text('things we must have to live', 245, 115, { size: 22 });
+    d.text('WANTS', 715, 75, { size: 36, color: '#e8457a', font: "'Bungee', sans-serif" }); d.text('things that are nice to have', 715, 115, { size: 22 });
+    [['🍲', 'food'], ['💧', 'water'], ['🏠', 'shelter'], ['🧥', 'clothes']].forEach(([e, s], i) => { const x = 140 + (i % 2) * 210, y = 210 + Math.floor(i / 2) * 120; d.emoji(e, x, y, 64); d.text(s, x, y + 48, { size: 22, weight: 700 }); });
+    [['🎮', 'video games'], ['🍭', 'candy'], ['🧸', 'toys'], ['🎢', 'theme park']].forEach(([e, s], i) => { const x = 610 + (i % 2) * 210, y = 210 + Math.floor(i / 2) * 120; d.emoji(e, x, y + Math.sin(t * 3 + i) * 5, 64); d.text(s, x, y + 48, { size: 22, weight: 700 }); });
+    d.text('Take care of NEEDS first, then think about WANTS.', 480, 485, { size: 28, weight: 700, color: RED });
+  },
+  'ec-choice'(d, t) {
+    paper(d, '#fff6e0', '#ffe8c0');
+    d.pill('You have $5', 480, 50, { size: 30, bg: '#c8f0c0' });
+    for (let i = 0; i < 5; i++) d.rect(330 + i * 62, 90, 54, 30, { r: 4, fill: '#bfe3b0', stroke: '#3f7a3a', lw: 2 });
+    const opts = [['⚽', 'ball $5', 220], ['📕', 'book $5', 480], ['🐷', 'save it!', 740]], on = Math.floor(t / 1.6) % 3;
+    opts.forEach(([e, s, x], i) => {
+      panel(d, x - 110, 160, 220, 220, i === on ? '#fff3b0' : '#fff', i === on ? 5 : 3);
+      d.emoji(e, x, 250, 90); d.text(s, x, 345, { size: 26, weight: 700 });
+    });
+    d.wrap('You can\'t buy everything, so you have to CHOOSE. Saving money now lets you buy something bigger later!', 480, 410, 820, { size: 25, weight: 700, color: RED });
+  },
+};
+
+// ---------- Game 1: Map Quest ----------
+function mapGame(api) {
+  const { root, board, sfx, d } = api;
+  const COLS = 10, ROWS = 5, CS = 80, X0 = 30, Y0 = 70;
+  // landmarks: [emoji, name, col, row]
+  const L = { school: ['🏫', 'school', 1, 0], library: ['📚', 'library', 8, 0], park: ['🌳', 'park', 5, 2], pond: ['🦆', 'duck pond', 0, 4], store: ['🏪', 'store', 7, 4], fire: ['🚒', 'fire station', 9, 2], home: ['🏠', 'house', 2, 2], museum: ['🏛️', 'museum', 5, 0], bakery: ['🥐', 'bakery', 5, 4] };
+  const TASKS = [
+    ['Walk to the 🏫 school.', 'school'], ['Go to the 📚 library.', 'library'], ['Start at the 🏛️ museum in your head, then go two blocks SOUTH. Walk to what you find there!', 'park'],
+    ['Go to the 🚒 fire station. It is on the EAST edge of town.', 'fire'], ['The 🥐 bakery is two blocks SOUTH of the 🌳 park. Go there!', 'bakery'], ['Go to the place in the SOUTHWEST corner of the map.', 'pond'],
+  ];
+  let ti = 0, pos = [0, 2], from = null, mv = 1, steps = 0, score = 0, perfect = 0, done = false, t = 0, cheer = 0, trail = [];
+  root.innerHTML = `<div class="hud"><span id="mq-n"></span><span>👣 <b id="mq-st">0</b> steps</span><span>🏆 <b id="mq-s">0</b></span></div>
+    <p id="mq-q" style="font-weight:600;margin:4px auto"></p>
+    <canvas class="board" id="mq-cv" style="width:min(100%, calc((100vh - 400px) * 16 / 9))"></canvas>
+    <div class="pad"><button data-m="-1,0">⬅️ West</button><button data-m="0,-1">⬆️ North</button><button data-m="0,1">⬇️ South</button><button data-m="1,0">East ➡️</button></div>`;
+  const draw = board(api.$('mq-cv'));
+  root.querySelectorAll('.pad button').forEach(b => b.addEventListener('click', () => { const [dx, dy] = b.dataset.m.split(',').map(Number); step(dx, dy); }));
+  const target = () => L[TASKS[ti][1]];
+  const shortest = () => Math.abs(target()[2] - pos[0]) + Math.abs(target()[3] - pos[1]);
+  let best = 0;
+  function task() {
+    api.$('mq-n').textContent = `Trip ${ti + 1} of ${TASKS.length}`;
+    api.$('mq-q').textContent = '🧭 ' + TASKS[ti][0];
+    steps = 0; best = shortest(); trail = [pos.slice()];
+    api.$('mq-st').textContent = 0;
+  }
+  function step(dx, dy) {
+    if (done || mv < 1 || cheer > 0) return;
+    RB.audio();
+    const nx = pos[0] + dx, ny = pos[1] + dy;
+    if (nx < 0 || ny < 0 || nx >= COLS || ny >= ROWS) { sfx.wrong(); return; }
+    from = pos.slice(); pos = [nx, ny]; mv = 0; steps++; sfx.pop();
+    trail.push(pos.slice());
+    api.$('mq-st').textContent = steps;
+    if (nx === target()[2] && ny === target()[3]) {
+      sfx.right(); cheer = 1.2;
+      const extra = steps - best, pts = extra === 0 ? 150 : extra <= 4 ? 100 : 50;
+      score += pts; if (!extra) perfect++;
+      api.$('mq-s').textContent = score;
+    }
+  }
+  function next() {
+    ti++;
+    if (ti === TASKS.length) {
+      done = true;
+      api.done({ score, stars: score >= 800 ? 3 : score >= 550 ? 2 : 1, rows: [['🗺️ Trips taken', TASKS.length], ['🧭 Shortest way', `${perfect} of ${TASKS.length}`]],
+        hint: 'Take the shortest way on most trips for ★★★' });
+      return;
+    }
+    task();
+  }
+  const cell = (c, r) => [X0 + c * CS + CS / 2, Y0 + r * CS + CS / 2];
+  function render() {
+    if (done) return;
+    draw(() => {
+      d.bg('#f2f7ff', '#e2edff');
+      d.rect(X0, Y0, COLS * CS, ROWS * CS, { r: 8, fill: LAND, stroke: INK, lw: 3 });
+      for (let c = 1; c < COLS; c++) d.line(X0 + c * CS, Y0, X0 + c * CS, Y0 + ROWS * CS, { stroke: 'rgba(20,37,77,.15)', lw: 2 });
+      for (let r = 1; r < ROWS; r++) d.line(X0, Y0 + r * CS, X0 + COLS * CS, Y0 + r * CS, { stroke: 'rgba(20,37,77,.15)', lw: 2 });
+      const tg = target();
+      Object.values(L).forEach(([e, , c, r]) => {
+        const [x, y] = cell(c, r);
+        if (e === tg[0]) d.circle(x, y, 36 + Math.sin(t * 5) * 3, { fill: 'rgba(255,216,74,.55)' });
+        d.emoji(e, x, y, 52);
+      });
+      d.poly(trail.map(([c, r]) => cell(c, r)), { stroke: 'rgba(214,60,74,.6)', lw: 6, dash: [8, 8] });
+      const [px, py] = from && mv < 1 ? cell(d.lerp(from[0], pos[0], mv), d.lerp(from[1], pos[1], mv)) : cell(pos[0], pos[1]);
+      d.circle(px, py + 22, 16, { fill: 'rgba(0,0,0,.15)' });
+      d.emoji('🤖', px, py - Math.abs(Math.sin(mv * Math.PI)) * 12, 50);
+      compass(d, 895, 175, 38);
+      d.text('N is up!', 895, 270, { size: 20, weight: 700, color: RED });
+      d.text(`Fewest steps: ${best}`, 895, 330, { size: 18, weight: 700, color: '#5a6f99', maxW: 120 });
+      d.text('MAP OF RIVERTOWN', X0 + COLS * CS / 2, 40, { size: 26, color: NAVY, font: "'Bungee', sans-serif" });
+      if (cheer > 0) d.text('You made it! 🎉', X0 + COLS * CS / 2, 270 - (1.2 - cheer) * 30, { size: 52, weight: 700, color: GREEN, stroke: '#fff', lw: 8, alpha: Math.min(1, cheer) });
+    });
+  }
+  task(); render();
+  return {
+    tick(dt) {
+      t += dt;
+      if (mv < 1) mv = Math.min(1, mv + dt / 0.22);
+      if (cheer > 0) { cheer -= dt; if (cheer <= 0) { cheer = 0; next(); } }
+      render();
+    },
+    key(k, e) {
+      const m = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1], arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] }[k];
+      if (m) { if (e) e.preventDefault(); step(...m); }
+    },
+    bot() {
+      if (cheer > 0) { this.tick(1.3); return; }
+      if (mv < 1) this.tick(0.3);
+      const tg = target(), dx = Math.sign(tg[2] - pos[0]), dy = Math.sign(tg[3] - pos[1]);
+      if (dx) step(dx, 0); else if (dy) step(0, dy);
+    },
+  };
+}
+
+// ---------- Game 2: Market Day ----------
+function marketGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  // [picture, question, right answer, wrong answer, why]
+  const Q = shuffle([
+    ['🍞', 'A baker makes bread to sell. The baker is a…', 'Producer', 'Consumer', 'Producers make or grow things.'],
+    ['🛒', 'You buy apples at the store. You are a…', 'Consumer', 'Producer', 'Consumers buy and use things.'],
+    ['💇', 'A haircut is a…', 'Service', 'Good', 'A service is work someone does for you.'],
+    ['🧸', 'A teddy bear is a…', 'Good', 'Service', 'Goods are things you can touch.'],
+    ['💧', 'Water to drink is a…', 'Need', 'Want', 'We need water to live.'],
+    ['🎮', 'A new video game is a…', 'Want', 'Need', 'It\'s fun, but we can live without it.'],
+    ['🧑‍⚕️', 'A doctor checking your ears is a…', 'Service', 'Good', 'The doctor does work for you.'],
+    ['🧑‍🌾', 'A farmer grows corn. The farmer is a…', 'Producer', 'Consumer', 'Growing food makes the farmer a producer.'],
+    ['🧥', 'A warm coat in winter is a…', 'Need', 'Want', 'Clothes to stay warm are a need.'],
+    ['🍭', 'A giant lollipop is a…', 'Want', 'Need', 'Candy is a treat, not a need.'],
+  ]);
+  let qi = 0, score = 0, firstTry = 0, miss = 0, done = false, t = 0, coins = 0, wait = 0, opts = [];
+  root.innerHTML = `<div class="hud"><span id="md-n"></span><span>🏆 <b id="md-s">0</b></span></div>
+    <canvas class="board" id="md-cv"></canvas>
+    <p id="md-q" style="font-weight:700;font-size:22px;margin:4px auto"></p><div class="choices" id="md-c"></div><p id="md-why" style="font-size:18px;color:var(--soft);margin:4px auto"></p>`;
+  const draw = board(api.$('md-cv'));
+  function ask() {
+    const [, q, right, wrong] = Q[qi];
+    opts = shuffle([right, wrong]);
+    api.$('md-n').textContent = `Card ${qi + 1} of ${Q.length}`;
+    api.$('md-q').textContent = q;
+    api.$('md-c').innerHTML = opts.map((o, k) => `<button class="ans" data-k="${k}" style="font-size:24px">${o}</button>`).join('');
+    api.$('md-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+    miss = 0;
+  }
+  function pick(k) {
+    if (done || wait > 0) return;
+    RB.audio();
+    const b = api.$('md-c').children[k];
+    if (opts[k] !== Q[qi][2]) { sfx.wrong(); miss++; b.disabled = true; b.classList.add('wrong', 'shake'); return; }
+    sfx.right(); b.classList.add('right');
+    if (!miss) { score += 100; firstTry++; coins++; } else score += 50;
+    api.$('md-s').textContent = score;
+    api.$('md-why').textContent = '✅ ' + Q[qi][4];
+    wait = 0.9;
+  }
+  function next() {
+    qi++;
+    if (qi === Q.length) {
+      done = true;
+      api.done({ score, stars: firstTry >= 8 ? 3 : firstTry >= 5 ? 2 : 1, rows: [['🛒 Cards answered', Q.length], ['🪙 Right on the first try', `${firstTry} of ${Q.length}`]],
+        hint: 'Get 8 or more right on the first try for ★★★' });
+      return;
+    }
+    ask();
+  }
+  function render() {
+    if (done) return;
+    draw(() => {
+      d.bg('#fff6e0', '#ffe8c0');
+      d.rect(140, 60, 680, 60, { r: 0, fill: RED });
+      for (let i = 0; i < 9; i++) d.rect(140 + i * 76, 60, 38, 60, { r: 0, fill: '#fff' });
+      d.text('MARKET DAY', 480, 92, { size: 32, color: INK, font: "'Bungee', sans-serif", stroke: '#fff', lw: 6 });
+      d.rect(160, 120, 640, 280, { r: 0, fill: '#fffdf6', stroke: INK, lw: 3 });
+      d.rect(140, 400, 680, 60, { r: 6, fill: '#a86a34', stroke: INK, lw: 3 });
+      d.circle(480, 260, 110, { fill: '#fff', stroke: RED, lw: 5 });
+      d.emoji(Q[qi][0], 480, 260 + Math.sin(t * 2) * 6, 130);
+      for (let i = 0; i < coins; i++) d.emoji('🪙', 200 + (i % 5) * 36, 380 - Math.floor(i / 5) * 22, 36);
+      d.text('tip jar', 270, 470, { size: 18, weight: 700, color: '#fff' });
+      if (wait > 0) d.text('⭐', 480 + Math.cos(t * 6) * 150, 260 + Math.sin(t * 6) * 120, { size: 40 });
+    });
+  }
+  ask(); render();
+  return {
+    tick(dt) { t += dt; if (wait > 0) { wait -= dt; if (wait <= 0) { api.$('md-why').textContent = ''; next(); } } render(); },
+    key(k) { const n = '12'.indexOf(k); if (n >= 0) pick(n); },
+    bot() { if (wait > 0) { this.tick(1); return; } if (!done) pick(opts.indexOf(Q[qi][2])); },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g2_social', grade: '2nd Grade · Social Studies', title: 'Our Community & Country', icon: '🗺️', home: 'index.html', homeTitle: 'Back to the 2nd grade folder',
+  tagline: 'Being a **good citizen**, families and traditions, **famous Americans**, reading **maps**, and how **producers** and **consumers** work together.',
+  certTitle: 'Community Champion', certText: 'knows how to be a good citizen, reads maps, remembers famous Americans and understands goods, services, needs and wants!',
+  shareText: 'Learn about citizens, maps and famous Americans on RoboBandit! 🗺️',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'citizen', icon: '🤝', name: 'Being a Good Citizen', sub: 'Rules, kindness & voting', badge: 'Super Citizen',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Members of a community', d: 'ci-what', p: 'A **community** is a place where people live, work and play together, like your class, school or town. A **citizen** is a member of a community.', v: [['community', 'people who live, work and play together'], ['citizen', 'a member of a community']] },
+        { k: 'WHY DO WE CARE?', t: 'Everyone does their part', d: 'ci-why', p: 'When every citizen does their part, like picking up litter, helping neighbors and following rules, our community is **safe**, **fair** and **fun** for everyone.' },
+        { t: 'Rules and laws', d: 'ci-rules', p: '**Rules** tell us how to act at home and school. **Laws** are rules for a whole town, state or country. Rules and laws keep people **safe** and make things **fair**.', v: [['law', 'a rule everyone in a community must follow']] },
+        { t: 'Safe, kind and respectful', d: 'ci-ssr', p: 'Good citizens are **safe** (walking feet, hands to yourself), **kind** (include others, use kind words, share) and **respectful** (listen when others talk, raise your hand, take care of supplies).' },
+        { t: 'Voting', d: 'ci-vote', p: 'When a group has to decide something, people can **vote**. Everyone gets one vote, and the choice with the **most votes** wins. Voting is a fair way for everyone to have a say.', v: [['vote', 'to make a choice that gets counted']] },
+        { t: 'Leaders', d: 'ci-leaders', p: 'Communities have **leaders** who help make decisions. A school has a **principal**, a town has a **mayor**, a state has a **governor**, and our country has a **president**. Grown-up citizens vote for many leaders.' },
+      ],
+      quiz: [
+        { q: 'What is a citizen?', a: ['A member of a community', 'A kind of building', 'Someone who never follows rules'], why: 'Citizens belong to a community and help it.' },
+        { q: 'Why do we have rules and laws?', a: ['To keep us safe and be fair', 'To stop all fun', 'So nobody has to listen'], why: 'Rules and laws protect people and make things fair.' },
+        { q: 'Which shows being KIND?', a: ['Inviting someone to play', 'Cutting in line', 'Grabbing a toy'], why: 'Including others is kind.' },
+        { q: 'In a vote, which choice wins?', a: ['The one with the most votes', 'The one the loudest person likes', 'The first one named'], why: 'Majority rules: most votes wins.' },
+        { q: 'Who is the leader of a town or city?', a: ['The mayor', 'The president', 'The principal'], why: 'Mayors lead towns and cities.' },
+        { q: 'Which is a LAW?', a: ['Stop at a stop sign', 'Raise your hand in class', 'Line up for recess'], why: 'Traffic laws are for everyone in the community.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'families', icon: '👨‍👩‍👧', name: 'Families & Traditions', sub: 'Then and now', badge: 'Tradition Keeper',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Every family is special', d: 'ft-what', p: 'A **family** is a group of people who love and care for each other. Families come in **all shapes and sizes**: big, small, with grandparents, with one grown-up or two, and sometimes with pets!' },
+        { k: 'WHY DO WE CARE?', t: 'Where we come from', d: 'ft-why', p: '**Traditions** connect us to our families and to people who lived long ago. Learning about other families\' traditions helps us **understand** and **respect** each other.' },
+        { t: 'Traditions', d: 'ft-trad', p: 'A **tradition** is something a family or group does again and again, often passed down from grandparents. It might be a holiday, a special food, a song or a story.', v: [['tradition', 'a special way of doing things, passed down over time']] },
+        { t: 'Past, present and future', d: 'ft-time', p: 'The **past** is what already happened. The **present** is now. The **future** is what hasn\'t happened yet. A **timeline** shows events in the order they happened.', v: [['timeline', 'a line that shows events in order']] },
+        { t: 'Then and now', d: 'ft-then', p: 'Long ago, phones hung on the wall, people used candles for light and rode horses. **Now** we have smartphones, electric lights and cars. Life changes over time, but families still care for each other.' },
+      ],
+      quiz: [
+        { q: 'What is a tradition?', a: ['Something a family does again and again', 'A brand-new toy', 'A kind of map'], why: 'Traditions are passed down over time.' },
+        { q: 'Which is part of the PAST?', a: ['When you were a baby', 'Right now', 'When you grow up'], why: 'The past already happened.' },
+        { q: 'What does a timeline show?', a: ['Events in order', 'Where places are', 'How much things cost'], why: 'Timelines put events in the order they happened.' },
+        { q: 'Long ago, people used ___ for light. Now we use electric lights.', a: ['Candles', 'Phones', 'Cars'], why: 'Before electricity, people lit candles and lamps.' },
+        { q: 'Families are…', a: ['All different shapes and sizes', 'All exactly the same', 'Only big groups'], why: 'Every family is special in its own way.' },
+        { q: 'Why learn about other people\'s traditions?', a: ['To understand and respect each other', 'To make fun of them', 'To copy their homework'], why: 'Learning about others builds respect.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'famous', icon: '🇺🇸', name: 'Famous Americans', sub: 'People who made a difference', badge: 'History Hero',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'People who made a difference', d: 'fa-what', p: '**Famous Americans** are people whose ideas, courage or kindness changed our country. Some were leaders, some were inventors, and some were ordinary people, even kids, who did something brave.' },
+        { k: 'WHY DO WE CARE?', t: 'Anyone can make a difference', d: 'fa-why', p: 'Their stories teach us to be **brave**, **honest** and **kind**, and to stand up for what\'s right. They show that **anyone** can make a difference!' },
+        { t: 'Washington and Lincoln', d: 'fa-lead', p: '**George Washington** was our **first president**. **Abraham Lincoln**, our 16th president, kept the country together and worked to **end slavery**. You can find their faces on our money!', v: [['president', 'the leader of our country']] },
+        { t: 'Benjamin Franklin', d: 'fa-franklin', p: '**Benjamin Franklin** was a curious inventor. His famous **kite experiment** showed that lightning is electricity. He invented the **lightning rod** and helped **start our country**.', v: [['inventor', 'a person who makes something new']] },
+        { t: 'Harriet Tubman', d: 'fa-tubman', p: '**Harriet Tubman** escaped slavery. Then she went back again and again to lead others to freedom on the **Underground Railroad**, a secret path of safe houses. She followed the **North Star** at night.', v: [['freedom', 'being free to make your own choices']] },
+        { t: 'Ruby Bridges', d: 'fa-ruby', p: 'In 1960, six-year-old **Ruby Bridges** was the first Black child at an all-white school in New Orleans. Crowds shouted at her, but she walked in **bravely** every day. She helped make schools fair for everyone.' },
+      ],
+      quiz: [
+        { q: 'Who was the first president of the United States?', a: ['George Washington', 'Benjamin Franklin', 'Ruby Bridges'], why: 'George Washington was our first president.' },
+        { q: 'What did Benjamin Franklin\'s kite experiment show?', a: ['Lightning is electricity', 'Kites can reach the Moon', 'Rain is made of sugar'], why: 'He showed lightning is a kind of electricity.' },
+        { q: 'Harriet Tubman led people to freedom on the…', a: ['Underground Railroad', 'Subway', 'Mayflower'], why: 'It was a secret path of safe houses, not a real train.' },
+        { q: 'How old was Ruby Bridges when she started at her new school?', a: ['6', '16', '60'], why: 'She was just six, a bit younger than a 2nd grader!' },
+        { q: 'Which president worked to end slavery?', a: ['Abraham Lincoln', 'George Washington', 'Benjamin Franklin'], why: 'Lincoln, our 16th president, worked to end slavery.' },
+        { q: 'What do their stories teach us?', a: ['Anyone can make a difference', 'Only grown-ups matter', 'Never try new things'], why: 'Leaders, inventors and brave kids all made a difference.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'maps', icon: '🗺️', name: 'Maps & Globes', sub: 'Keys, compass & continents', badge: 'Map Master',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'A bird\'s-eye view', d: 'mp-what', p: 'A **map** is a flat drawing of a place, as if you were a bird looking **down from above**. Maps can show a room, a neighborhood, a town or the whole world. A **globe** is a round model of Earth.', v: [['map', 'a flat drawing of a place from above'], ['globe', 'a round model of Earth']] },
+        { k: 'WHY DO WE CARE?', t: 'Find your way', d: 'mp-why', p: 'Maps help us **find our way**, **plan trips** and **learn about places** we\'ve never been. Phones and cars use maps to give directions!' },
+        { t: 'The map key', d: 'mp-key', p: 'Maps use little pictures called **symbols**. The **map key** (or legend) tells you what each symbol means: a tree for a park, a book for the library, a blue line for a river.', v: [['symbol', 'a picture that stands for something real'], ['map key', 'tells what the symbols mean']] },
+        { t: 'The compass rose', d: 'mp-compass', p: 'A **compass rose** shows the four **cardinal directions**: **North**, **East**, **South** and **West**. On most maps, north is up. To remember the order, say: **N**ever **E**at **S**oggy **W**affles!' },
+        { t: 'Continents and oceans', d: 'mp-world', p: 'Earth has **7 continents**: North America, South America, Europe, Africa, Asia, Australia and Antarctica. It has **5 oceans**: Pacific, Atlantic, Indian, Arctic and Southern. We live in **North America**.', v: [['continent', 'one of Earth\'s 7 big pieces of land']] },
+        { t: 'Landforms on maps', d: 'mp-land', p: 'Maps use **colors** to show the land and water: **blue** for oceans, lakes and rivers, **green** for low, flat land, and **brown** for mountains. You can spot the **landforms** you learned about in science!' },
+      ],
+      quiz: [
+        { q: 'What does a map key tell you?', a: ['What the symbols mean', 'How old the map is', 'Who drew the map'], why: 'The key explains each symbol.' },
+        { q: 'On most maps, which direction is up?', a: ['North', 'South', 'West'], why: 'North is usually at the top.' },
+        { q: 'How many continents are there?', a: ['7', '5', '50'], why: 'There are 7 continents (and 5 oceans).' },
+        { q: 'Which continent do we live on?', a: ['North America', 'Africa', 'Antarctica'], why: 'The United States is in North America.' },
+        { q: 'A map is a drawing of a place seen from…', a: ['Above', 'Underground', 'Inside a box'], why: 'It\'s a bird\'s-eye view.' },
+        { q: 'Which is the right order on a compass rose, going around?', a: ['North, East, South, West', 'North, South, East, West', 'East, North, West, South'], why: 'Never Eat Soggy Waffles!' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'econ', icon: '🛒', name: 'Consumers & Producers', sub: 'Goods, services, needs & wants', badge: 'Smart Shopper',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Makers and buyers', d: 'ec-what', p: 'A **producer** grows or makes things to sell, like a farmer growing apples. A **consumer** buys and uses things, like you buying an apple. The apple goes one way, and the **money** goes the other!', v: [['producer', 'someone who makes or grows things'], ['consumer', 'someone who buys and uses things']] },
+        { k: 'WHY DO WE CARE?', t: 'We need each other', d: 'ec-why', p: 'Everyone is a **consumer**, and many grown-ups are **producers** at their jobs. Farmers, bakers, teachers and doctors all help each other. A community works because we **depend on each other**.' },
+        { t: 'Goods and services', d: 'ec-goods', p: '**Goods** are things you can **touch**, like bread, toys and shoes. **Services** are **work** someone does for you, like a haircut, a checkup or teaching a class.', v: [['goods', 'things you can touch'], ['services', 'work done for others']] },
+        { t: 'Needs and wants', d: 'ec-needs', p: '**Needs** are things we must have to live: **food**, **water**, **shelter** and **clothing**. **Wants** are nice to have, like toys, candy and video games. Needs come first!', v: [['need', 'something you must have to live'], ['want', 'something nice to have']] },
+        { t: 'Making choices', d: 'ec-choice', p: 'We can\'t buy everything we want, so we have to **choose**. You could spend your $5 on a ball or a book, or **save** it in a piggy bank to buy something bigger later.', v: [['save', 'keep money to use later']] },
+      ],
+      quiz: [
+        { q: 'A farmer who grows apples is a…', a: ['Producer', 'Consumer', 'Mayor'], why: 'Producers grow or make things.' },
+        { q: 'You buy a sandwich. You are a…', a: ['Consumer', 'Producer', 'Service'], why: 'Consumers buy and use things.' },
+        { q: 'Which is a SERVICE?', a: ['A haircut', 'A bike', 'A loaf of bread'], why: 'A haircut is work someone does for you.' },
+        { q: 'Which is a NEED?', a: ['Food', 'A video game', 'Candy'], why: 'We need food to live.' },
+        { q: 'Which is a GOOD?', a: ['A pair of shoes', 'A doctor\'s checkup', 'A bus ride'], why: 'You can touch shoes.' },
+        { q: 'Why do people save money?', a: ['To buy something later', 'To throw it away', 'Because money is a need'], why: 'Saving lets you buy something bigger later.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'quest', icon: '🧭', name: 'Map Quest', sub: 'Follow the compass', badge: 'Compass Captain',
+      how: [['🤖', 'Help the robot walk around town using the <b>compass rose</b>.'],
+        ['🧭', 'Press <b>North</b>, <b>South</b>, <b>East</b> or <b>West</b> to move one block.'], ['⌨️', '<span class="key-only">Arrow keys work too!</span><span class="touch-only">Tap the arrows.</span>'], ['⭐', '150 points for taking the shortest way.']],
+      make: mapGame,
+    },
+    {
+      kind: 'game', id: 'market', icon: '🛒', name: 'Market Day', sub: 'Goods, services, needs & wants', badge: 'Market Expert',
+      how: [['🛒', 'Welcome to the market! Answer each card.'],
+        ['🤔', 'Is it a <b>good</b> or a <b>service</b>? A <b>need</b> or a <b>want</b>? A <b>producer</b> or a <b>consumer</b>?'], ['⌨️', '<span class="key-only">You can press <b>1</b> or <b>2</b>.</span><span class="touch-only">Tap an answer.</span>'], ['⭐', '100 points for every first-try answer.']],
+      make: marketGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>

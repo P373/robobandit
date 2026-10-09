@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Story Detectives | RoboBandit 2nd Grade</title>
+<meta name="description" content="2nd grade reading and language arts: retelling and sequence, main idea, compare and contrast, predicting and inferring, author's purpose and genres, and spelling patterns. Lessons, quizzes and games.">
+<link rel="canonical" href="https://robobandit.com/2nd-grade/reading.html">
+<meta name="theme-color" content="#e0682a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/2nd-grade/reading.html">
+<meta property="og:title" content="Story Detectives | RoboBandit 2nd Grade">
+<meta property="og:description" content="Retell stories, find the main idea, compare, predict and build words. 2nd grade reading lessons, quizzes and games.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>:root { --c: #e0682a; --c2: #ffd84a; --bg: #c0501c; }</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', ORANGE = '#e0682a', BLUE = '#3d8ff0', GREEN = '#2fae5a', PINK = '#e8457a', YELLOW = '#ffd84a', PURPLE = '#7b4bd6', RED = '#e8453a';
+
+// ---------- Drawing helpers ----------
+const paper = (d, a = '#fffaf0', b = '#fff1d6') => d.bg(a, b);
+function panel(d, x, y, w, h, o = {}) { d.rect(x, y, w, h, { r: 18, fill: o.fill || '#fff', stroke: o.stroke || INK, lw: o.lw || 3 }); }
+// a speech or thought bubble with words in it, tail pointing down-left toward (tx, ty)
+function bubble(d, s, x, y, w, o = {}) {
+  const lines = Math.ceil(s.length * (o.size || 24) * 0.5 / w) || 1, h = lines * (o.size || 24) * 1.3 + 30;
+  if (o.think) { d.circle(o.tx, o.ty, 7, { fill: '#fff', stroke: INK, lw: 2 }); d.circle(o.tx + 12, o.ty - 18, 11, { fill: '#fff', stroke: INK, lw: 2 }); }
+  else if (o.tx != null) d.poly([[x - w / 2 + 40, y + h / 2 - 4], [o.tx, o.ty], [x - w / 2 + 80, y + h / 2 - 4]], { close: true, fill: '#fff', stroke: INK, lw: 3 });
+  d.rect(x - w / 2, y - h / 2, w, h, { r: 22, fill: '#fff', stroke: INK, lw: 3 });
+  d.wrap(s, x, y - h / 2 + 15, w - 30, { size: o.size || 24, weight: 700 });
+}
+// letter tiles, centred on x
+function tiles(d, parts, x, y, o = {}) {
+  const sz = o.size || 64, widths = parts.map(p => p.s.length * sz * 0.62 + 20), gap = o.gap == null ? 8 : o.gap;
+  let cx = x - (widths.reduce((a, b) => a + b, 0) + gap * (parts.length - 1)) / 2;
+  parts.forEach((p, i) => {
+    const w = widths[i];
+    d.rect(cx, y - sz * 0.7, w, sz * 1.4, { r: 12, fill: p.bg || '#fff', stroke: INK, lw: 3 });
+    d.text(p.s, cx + w / 2, y + 2, { size: sz, weight: 700, color: p.col || INK });
+    cx += w + gap;
+  });
+}
+// a word with its letter team in orange, centred on x
+function teamWord(d, word, team, x, y, size, col = ORANGE) {
+  const at = word.indexOf(team), parts = [word.slice(0, at), team, word.slice(at + team.length)], c = d.ctx;
+  c.save(); c.font = `700 ${size}px 'Fredoka', system-ui, sans-serif`;
+  const ws = parts.map(p => c.measureText(p).width);
+  c.restore();
+  let cx = x - ws.reduce((a, b) => a + b, 0) / 2;
+  parts.forEach((p, i) => { d.text(p, cx, y, { size, weight: 700, align: 'left', color: i === 1 ? col : INK }); cx += ws[i]; });
+}
+const BALL = (d, x, y, r = 16) => { d.circle(x, y, r, { fill: RED, stroke: INK, lw: 2 }); d.circle(x - r * 0.35, y - r * 0.35, r * 0.25, { fill: 'rgba(255,255,255,.7)' }); };
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  // ----- retell -----
+  'rt-what'(d, t) {
+    paper(d);
+    const P = [['Beginning', 'Pip plays with his red ball.'], ['Middle', 'The ball gets stuck in a tree!'], ['End', 'Kit knocks it down. They play together.']];
+    P.forEach(([h, s], i) => {
+      const x = 20 + i * 310, k = d.in(t, i * 1.2);
+      d.alpha(k, () => {
+        panel(d, x, 70, 300, 290, { fill: '#e8f6ff' });
+        d.rect(x + 3, 290, 294, 67, { r: 0, fill: '#8bd06a' });
+        if (i === 0) { d.emoji('🐶', x + 90, 270, 80); BALL(d, x + 200, 270 - Math.abs(Math.sin(t * 3)) * 100); }
+        if (i === 1) { d.emoji('🌳', x + 180, 200, 200); BALL(d, x + 200, 160); d.emoji('🐶', x + 80, 270 - Math.abs(Math.sin(t * 4)) * 40, 74); }
+        if (i === 2) { d.emoji('🐶', x + 80, 270, 74); d.emoji('🐱', x + 220, 270, 70, { flip: true }); BALL(d, x + 150, 250 - Math.abs(Math.sin(t * 3)) * 60); d.emoji('❤️', x + 150, 130, 40); }
+        d.pill(h, x + 150, 70, { size: 26, bg: [YELLOW, '#ffd8b8', '#c8f0c0'][i] });
+        d.wrap(s, x + 150, 380, 290, { size: 24 });
+      });
+    });
+  },
+  'rt-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    d.person(220, 360, 2.2, { shirt: ORANGE, skin: '#c98d5f', hair: '#3a2a1a' });
+    d.person(760, 360, 2.2, { shirt: BLUE, skin: '#f1c7a0', hair: '#a86a2a' });
+    const lines = ['First, Pip plays with his ball…', 'Then it gets stuck in a tree…', 'At the end, Kit helps!'];
+    const i = Math.floor(t / 2) % 3;
+    bubble(d, lines[i], 420, 110, 420, { tx: 260, ty: 230 });
+    d.alpha(d.in(t, 2), () => d.emoji('💡', 760, 160, 70));
+    d.pill('Retelling shows you understood!', 480, 500, { size: 28, bg: YELLOW });
+  },
+  'rt-cs'(d, t) {
+    paper(d);
+    const C = [['WHO?', 'Characters', ['🐶', '🐱'], 'Pip the puppy and Kit the cat', '#ffd8b8'], ['WHERE?', 'Setting', ['🏡', '🌳'], 'in the backyard', '#c8f0c0'], ['WHEN?', 'Setting', ['☀️', '🌅'], 'on a sunny morning', '#cfe6ff']];
+    C.forEach(([q, s, E, ex, bg], i) => {
+      const x = 170 + i * 310;
+      d.alpha(d.in(t, i * 0.9), () => {
+        panel(d, x - 145, 40, 290, 400, { fill: bg });
+        d.text(q, x, 90, { size: 44, weight: 700, color: ORANGE, font: "'Bungee', sans-serif" });
+        d.text(s, x, 145, { size: 28, weight: 700 });
+        E.forEach((e, j) => d.emoji(e, x - 55 + j * 110, 250 + Math.sin(t * 2 + j) * 6, 86));
+        d.wrap(ex, x, 340, 260, { size: 24 });
+      });
+    });
+    d.text('Characters = who.  Setting = where and when.', 480, 495, { size: 28, weight: 700, color: ORANGE });
+  },
+  'rt-ps'(d, t) {
+    paper(d);
+    panel(d, 30, 40, 400, 380, { fill: '#ffe0dc' });
+    d.text('PROBLEM 😟', 230, 80, { size: 34, weight: 700, color: RED });
+    d.emoji('🌳', 230, 220, 190); BALL(d, 250, 180 + Math.sin(t * 6) * 2);
+    d.emoji('🐶', 120, 330 - Math.abs(Math.sin(t * 4)) * 30, 70);
+    d.wrap('The ball is stuck in a tree!', 230, 360, 360, { size: 26, weight: 700 });
+    d.alpha(d.in(t, 1.5), () => d.arrow(445, 230, 515, 230, { color: ORANGE, lw: 8, head: 26 }));
+    d.alpha(d.in(t, 2.2), () => {
+      panel(d, 530, 40, 400, 380, { fill: '#d8f5d0' });
+      d.text('SOLUTION 😀', 730, 80, { size: 34, weight: 700, color: GREEN });
+      d.emoji('🌳', 730, 220, 190);
+      const k = d.loop(t, 2.5);
+      d.emoji('🐱', 770, 160, 60, { flip: true });
+      BALL(d, 760, 180 + k * 150);
+      d.emoji('🐶', 650, 330, 70);
+      d.wrap('Kit climbs up and knocks it down.', 730, 360, 360, { size: 26, weight: 700 });
+    });
+    d.text('Most stories have a problem, and the end solves it.', 480, 480, { size: 28, weight: 700, color: ORANGE });
+  },
+  'rt-seq'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    const S = [['First', '🥣', 'Get a bowl.'], ['Next', '🥣', 'Pour the cereal.'], ['Then', '🥛', 'Add the milk.'], ['Last', '🥄', 'Eat it up!']];
+    S.forEach(([w, e, s], i) => {
+      const x = 125 + i * 237, k = d.in(t % 8, i * 0.8, 0.5);
+      d.at(x, 230 + (1 - k) * 60, 0, 1, () => d.alpha(k, () => {
+        panel(d, -105, -160, 210, 300, { fill: '#fff' });
+        d.pill(w, 0, -160, { size: 28, bg: [YELLOW, '#ffd8b8', '#cfe6ff', '#c8f0c0'][i] });
+        d.emoji(e, 0, -40, 90);
+        if (i === 1) for (let j = 0; j < 6; j++) d.circle(-30 + j * 12, -70 - (j % 2) * 10, 6, { fill: '#e8b04a' });
+        d.wrap(s, 0, 50, 190, { size: 26, weight: 700 });
+      }));
+      if (i < 3) d.alpha(d.in(t % 8, i * 0.8 + 0.5), () => d.arrow(x + 108, 230, x + 130, 230, { color: GREEN, lw: 5, head: 14 }));
+    });
+    d.text('Signal words tell you the ORDER things happen.', 480, 500, { size: 28, weight: 700, color: GREEN });
+  },
+  // ----- main idea -----
+  'mi-what'(d, t) {
+    paper(d, '#fff9e0', '#ffefb8');
+    d.rect(100, 120, 760, 80, { r: 12, fill: '#c9894a', stroke: INK, lw: 4 });
+    d.text('MAIN IDEA: Bees are busy helpers.', 480, 162, { size: 36, weight: 700, color: '#fff', stroke: INK, lw: 5 });
+    const D = [['They make honey.', '🍯'], ['They carry pollen.', '🌸'], ['They build hives.', '🐝']];
+    D.forEach(([s, e], i) => {
+      const x = 200 + i * 280, k = d.in(t, 0.5 + i * 0.8);
+      d.alpha(k, () => {
+        d.rect(x - 22, 200, 44, 220 * k, { r: 4, fill: '#a86a34', stroke: INK, lw: 3 });
+        d.emoji(e, x, 290, 60);
+        d.pill(s, x, 380, { size: 22, bg: '#fff' });
+      });
+    });
+    d.emoji('🐝', 480 + Math.cos(t * 2) * 300, 70 + Math.sin(t * 3) * 25, 44);
+    d.text('The details hold up the main idea, like legs hold up a table!', 480, 480, { size: 26, weight: 700, color: ORANGE });
+  },
+  'mi-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    const F = ['Bees make honey', 'Bees have 6 legs', 'Bees carry pollen', 'Bees build hives', 'Bees help flowers grow', 'Bees dance to talk'];
+    const T = t % 8, k = d.in(T, 1.5, 2);
+    F.forEach((s, i) => {
+      const sx = 160 + (i % 3) * 320, sy = 70 + Math.floor(i / 3) * 90;
+      d.alpha(1 - k, () => d.pill(s, d.lerp(sx, 480, k), d.lerp(sy, 300, k), { size: 22 }));
+    });
+    d.alpha(d.in(T, 3.2), () => { d.emoji('🐝', 480, 260, 80); d.pill('Bees are busy helpers!', 480, 360, { size: 36, bg: YELLOW }); });
+    d.text('The main idea helps you remember the big point.', 480, 480, { size: 28, weight: 700, color: BLUE });
+  },
+  'mi-topic'(d, t) {
+    paper(d);
+    panel(d, 40, 60, 400, 360, { fill: '#e6dcff' });
+    d.text('TOPIC', 240, 110, { size: 40, color: PURPLE, font: "'Bungee', sans-serif" });
+    d.text('one or two words', 240, 160, { size: 24, color: '#5a6f99' });
+    d.emoji('🐝', 240, 260, 90); d.text('Bees', 240, 360, { size: 50, weight: 700 });
+    d.alpha(d.in(t, 1.2), () => {
+      panel(d, 520, 60, 400, 360, { fill: '#ffe8c8' });
+      d.text('MAIN IDEA', 720, 110, { size: 40, color: ORANGE, font: "'Bungee', sans-serif" });
+      d.text('a whole sentence', 720, 160, { size: 24, color: '#5a6f99' });
+      d.wrap('Bees are busy helpers.', 720, 230, 340, { size: 42 });
+    });
+    d.text('The topic says WHAT. The main idea says what about it.', 480, 480, { size: 26, weight: 700 });
+  },
+  'mi-find'(d, t) {
+    paper(d, '#eaf7ff', '#d6efff');
+    panel(d, 30, 30, 620, 420, { fill: '#fffdf6' });
+    const S = ['Penguins are amazing swimmers.', 'They use their wings like flippers.', 'They can dive deep under the ice.', 'They zoom through the water to catch fish.'];
+    const T = t % 8;
+    S.forEach((s, i) => {
+      const y = 90 + i * 95;
+      if (i === 0) d.alpha(d.in(T, 1, 0.8), () => d.rect(50, y - 30, 580, 62, { r: 10, fill: YELLOW }));
+      d.wrap(s, 340, y - 16, 560, { size: 28, weight: i === 0 ? 700 : 600 });
+    });
+    d.emoji('🐧', 800 + Math.sin(t * 2) * 50, 200 + Math.cos(t * 2) * 30, 110, { rot: 0.6 });
+    for (let i = 0; i < 4; i++) d.circle(720 + i * 40, 320 - d.loop(t + i * 0.3, 1.5) * 200, 8, { stroke: '#7fc4ff', lw: 3 });
+    d.alpha(d.in(T, 2), () => d.wrap('The main idea is often the first or last sentence. The rest are details!', 800, 380, 280, { size: 22, weight: 700, color: ORANGE }));
+  },
+  'mi-odd'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    d.pill('Main idea: Dogs make great pets. 🐶', 480, 50, { size: 30, bg: YELLOW });
+    const D = [['They love to play.', '🎾'], ['They keep you company.', '🛋️'], ['The sky is blue.', '☁️'], ['They can learn tricks.', '🦴']];
+    const T = t % 8;
+    D.forEach(([s, e], i) => {
+      const x = 125 + i * 237, odd = i === 2, k = odd ? d.in(T, 3, 1.4) : 0;
+      d.at(x + (odd && T > 2 && T < 3 ? Math.sin(T * 30) * 6 : 0), 260 + k * 60, 0, 1, () => d.alpha(1 - k, () => {
+        panel(d, -105, -110, 210, 220, { fill: odd && T > 2 ? '#ffe0dc' : '#fff' });
+        d.emoji(e, 0, -40, 70);
+        d.wrap(s, 0, 20, 190, { size: 23, weight: 700 });
+      }));
+      if (odd) d.alpha(d.in(T, 2, 0.3) * (1 - k), () => d.emoji('❌', x, 120, 50));
+    });
+    d.alpha(d.in(T, 4.5), () => d.text('Every detail should tell about the main idea.', 480, 470, { size: 28, weight: 700, color: GREEN }));
+  },
+  // ----- compare & contrast -----
+  'cc-what'(d, t) {
+    paper(d);
+    d.emoji('🐱', 200, 200, 170); d.emoji('🐶', 760, 200, 170);
+    d.text('Cats', 200, 330, { size: 34, weight: 700 }); d.text('Dogs', 760, 330, { size: 34, weight: 700 });
+    const T = t % 8;
+    d.alpha(d.in(T, 0.8), () => { d.pill('ALIKE: both are furry pets', 480, 120, { size: 26, bg: '#c8f0c0' }); });
+    d.alpha(d.in(T, 2.5), () => { d.pill('DIFFERENT: cats meow…', 330, 420, { size: 26, bg: '#ffd8d0' }); d.pill('…but dogs bark!', 680, 420, { size: 26, bg: '#ffd8d0' }); });
+    d.text('Compare = how they are alike.  Contrast = how they are different.', 480, 500, { size: 24, weight: 700, color: ORANGE });
+  },
+  'cc-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    d.emoji('🍎', 240, 210, 170); d.emoji('🍏', 720, 210, 170);
+    const same = ['fruit', 'round', 'has seeds', 'crunchy'], i = Math.floor(t / 1.2) % 4;
+    d.pill('Same: ' + same[i], 480, 110, { size: 28, bg: '#c8f0c0' });
+    d.pill('Different: red or green!', 480, 340, { size: 28, bg: '#ffd8d0' });
+    d.text('Noticing what\'s the same and different', 480, 430, { size: 28, weight: 700 });
+    d.text('helps you understand and remember.', 480, 470, { size: 28, weight: 700 });
+  },
+  'cc-venn'(d, t) {
+    paper(d, '#fffdf6', '#fff6e0');
+    d.alpha(0.85, () => { d.circle(350, 280, 220, { fill: 'rgba(127,196,255,.45)', stroke: BLUE, lw: 5 }); d.circle(610, 280, 220, { fill: 'rgba(255,159,191,.45)', stroke: PINK, lw: 5 }); });
+    d.text('Cats 🐱', 260, 60, { size: 32, weight: 700, color: BLUE }); d.text('Dogs 🐶', 700, 60, { size: 32, weight: 700, color: PINK });
+    d.text('Both', 480, 140, { size: 28, weight: 700, color: PURPLE });
+    const F = [['meow', 240, 220], ['climb trees', 240, 300], ['use a litter box', 240, 380], ['bark', 720, 220], ['play fetch', 720, 300], ['go on walks', 720, 380], ['pets', 480, 220], ['fur', 480, 290], ['4 legs', 480, 360]];
+    F.forEach(([s, x, y], i) => d.alpha(d.in(t, 0.3 + i * 0.4, 0.4), () => d.text(s, x, y, { size: 26, weight: 700 })));
+    d.text('A Venn diagram: the middle shows what\'s the SAME', 480, 515, { size: 24, weight: 700, color: ORANGE });
+  },
+  'cc-words'(d, t) {
+    paper(d);
+    panel(d, 30, 30, 430, 330, { fill: '#d8f5d0' }); panel(d, 500, 30, 430, 330, { fill: '#ffe0dc' });
+    d.text('SAME', 245, 75, { size: 36, color: GREEN, font: "'Bungee', sans-serif" }); d.text('DIFFERENT', 715, 75, { size: 36, color: RED, font: "'Bungee', sans-serif" });
+    ['both', 'alike', 'same', 'also', 'too'].forEach((w, i) => d.alpha(d.in(t, i * 0.3), () => d.pill(w, 130 + (i % 3) * 115, 160 + Math.floor(i / 3) * 80, { size: 28 })));
+    ['but', 'unlike', 'different', 'instead'].forEach((w, i) => d.alpha(d.in(t, 1.5 + i * 0.3), () => d.pill(w, 620 + (i % 2) * 190, 160 + Math.floor(i / 2) * 80, { size: 28 })));
+    d.alpha(d.in(t, 3), () => { d.text('Cats and dogs are BOTH pets.', 480, 420, { size: 30, weight: 700, color: GREEN }); d.text('Cats meow, BUT dogs bark.', 480, 480, { size: 30, weight: 700, color: RED }); });
+  },
+  'cc-stories'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    panel(d, 30, 30, 420, 260, { fill: '#ffe8f0' }); panel(d, 510, 30, 420, 260, { fill: '#e8f3ff' });
+    d.text('The Three Little Pigs', 240, 70, { size: 28, weight: 700 }); d.text('Three Billy Goats Gruff', 720, 70, { size: 28, weight: 700 });
+    for (let i = 0; i < 3; i++) { d.emoji('🐷', 90 + i * 70, 150, 54 + i * 8); d.emoji('🐐', 570 + i * 70, 150, 54 + i * 8); }
+    d.emoji('🐺', 370, 150, 70); d.emoji('🧌', 850, 150, 70);
+    d.text('houses', 240, 240, { size: 24, color: '#5a6f99' }); d.text('a bridge', 720, 240, { size: 24, color: '#5a6f99' });
+    d.alpha(d.in(t, 1), () => d.pill('BOTH: 3 characters, a mean bad guy, the third one wins!', 480, 350, { size: 24, bg: '#c8f0c0' }));
+    d.alpha(d.in(t, 2.5), () => d.pill('DIFFERENT: houses vs. a bridge, a wolf vs. a troll', 480, 430, { size: 24, bg: '#ffd8d0' }));
+    d.alpha(d.in(t, 3.5), () => d.text('You can compare two stories, too!', 480, 505, { size: 26, weight: 700, color: ORANGE }));
+  },
+  // ----- predict & infer -----
+  'pi-what'(d, t) {
+    const T = t % 10, dark = d.in(T, 0.5, 3);
+    d.bg(`rgb(${Math.round(d.lerp(150, 90, dark))},${Math.round(d.lerp(210, 110, dark))},${Math.round(d.lerp(255, 140, dark))})`, '#e6f0ff');
+    d.rect(0, 420, d.W, 120, { r: 0, fill: '#6dbb5c' });
+    for (let i = 0; i < 4; i++) d.emoji('☁️', d.lerp(-200 + i * 80, 120 + i * 220, dark), 80 + (i % 2) * 40, 130, { alpha: 0.4 + dark * 0.6 });
+    d.person(300, 360, 1.8, { shirt: ORANGE, skin: '#8a5a3c', hair: '#1a1a1a' });
+    d.emoji('☂️', 380, 230, 90);
+    bubble(d, 'Dark clouds… I predict it will rain!', 640, 250, 380, { think: true, tx: 380, ty: 320 });
+    if (T > 5.5) for (let i = 0; i < 30; i++) { const y = ((i * 53 + (T - 5.5) * 500) % 420); d.line((i * 97) % 960, y, (i * 97) % 960 - 6, y + 18, { stroke: '#3d8ff0', lw: 3 }); }
+    d.alpha(d.in(T, 6), () => d.pill('My prediction was right! 🌧️', 480, 480, { size: 26, bg: YELLOW }));
+  },
+  'pi-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    d.emoji('📖', 300, 290, 170);
+    d.person(150, 380, 1.8, { shirt: GREEN, skin: '#f1c7a0', hair: '#e0b04a' });
+    ['❓', '🤔', '💡'].forEach((e, i) => d.emoji(e, 520 + i * 130, 170 - Math.abs(Math.sin(t * 2 + i)) * 30, 80));
+    d.wrap('Good readers think ahead: "What will happen next?" Then they read on to find out!', 680, 280, 480, { size: 28, weight: 700 });
+  },
+  'pi-eq'(d, t) {
+    paper(d);
+    const B = [['Clues in the story', ['🥾', '☂️'], 'muddy boots, a wet umbrella', '#cfe6ff'], ['What I know', ['🧠'], 'rain makes things wet and muddy', '#e6dcff'], ['My inference', ['💡'], 'It rained today!', '#c8f0c0']];
+    B.forEach(([h, E, s, bg], i) => {
+      const x = 160 + i * 320;
+      d.alpha(d.in(t, i * 1.2), () => {
+        panel(d, x - 140, 60, 280, 330, { fill: bg });
+        d.text(h, x, 100, { size: 26, weight: 700 });
+        E.forEach((e, j) => d.emoji(e, x + (j - (E.length - 1) / 2) * 100, 200, 90));
+        d.wrap(s, x, 280, 250, { size: 24, weight: 700, color: '#3a4a6a' });
+      });
+      if (i < 2) d.alpha(d.in(t, i * 1.2 + 0.8), () => d.text(i ? '=' : '+', x + 160, 225, { size: 70, weight: 700, color: ORANGE }));
+    });
+    d.text('To INFER, add clues to what you already know.', 480, 470, { size: 30, weight: 700, color: ORANGE });
+  },
+  'pi-check'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    const T = t % 9;
+    panel(d, 40, 60, 400, 300, { fill: '#fff' });
+    d.text('My prediction', 240, 100, { size: 28, weight: 700, color: BLUE });
+    d.emoji('🐶', 180, 200, 80); d.emoji('⛏️', 280, 200, 60);
+    d.wrap('Pip will dig a hole to get the ball.', 240, 270, 360, { size: 24, weight: 700 });
+    d.alpha(d.in(T, 1.5), () => {
+      panel(d, 520, 60, 400, 300, { fill: '#fff' });
+      d.text('What happened', 720, 100, { size: 28, weight: 700, color: ORANGE });
+      d.emoji('🐱', 660, 200, 80); d.emoji('🌳', 780, 200, 80);
+      d.wrap('Kit climbed the tree and knocked it down!', 720, 270, 360, { size: 24, weight: 700 });
+    });
+    d.alpha(d.in(T, 3), () => d.emoji('🔄', 480, 210, 60, { rot: T * 2 }));
+    d.alpha(d.in(T, 4), () => d.pill('Change your prediction as you read. That\'s what good readers do!', 480, 440, { size: 22, bg: YELLOW }));
+  },
+  'pi-pic'(d, t) {
+    paper(d, '#e8f6ff', '#d6efff');
+    d.rect(0, 380, d.W, 160, { r: 0, fill: '#d8c8a8' });
+    d.person(330, 330, 2, { shirt: PINK, skin: '#c98d5f', hair: '#3a2a1a' });
+    d.emoji('😢', 330, 282, 60);
+    d.emoji('🍦', 520, 420, 70, { rot: Math.PI * 0.9 });
+    d.ellipse(520, 450, 60, 14, { fill: '#ffe0ec' });
+    const a = t * 0.9, mx = 430 + Math.cos(a) * 110, my = 330 + Math.sin(a) * 90;
+    d.circle(mx, my, 60, { fill: 'rgba(255,255,255,.25)', stroke: INK, lw: 8 });
+    d.line(mx + 42, my + 42, mx + 90, my + 90, { stroke: '#8a5a34', lw: 16 });
+    d.pill('How does the kid feel?', 780, 100, { size: 26 });
+    d.alpha(d.in(t % 8, 2), () => d.pill('Sad! 😢', 780, 170, { size: 30, bg: '#cfe6ff' }));
+    d.alpha(d.in(t % 8, 3.5), () => d.wrap('Clues: tears, and the ice cream fell on the ground.', 780, 220, 300, { size: 24, weight: 700, color: ORANGE }));
+  },
+  // ----- author's purpose -----
+  'ap-what'(d, t) {
+    paper(d);
+    const cx = 300, cy = 270, R = 200, S = [['P', 'Persuade', '#ff9f6a'], ['I', 'Inform', '#7fc4ff'], ['E', 'Entertain', '#8fe07a']];
+    d.circle(cx, cy + 14, R + 6, { fill: '#c9894a' });
+    S.forEach(([l, w, c], i) => {
+      const a0 = -Math.PI / 2 + i * Math.PI * 2 / 3, a1 = a0 + Math.PI * 2 / 3, pop = Math.floor(t / 1.5) % 3 === i ? 18 : 0, am = (a0 + a1) / 2;
+      const ox = Math.cos(am) * pop, oy = Math.sin(am) * pop;
+      d.ctx.beginPath(); d.ctx.moveTo(cx + ox, cy + oy); d.ctx.arc(cx + ox, cy + oy, R, a0, a1); d.ctx.closePath(); d.paint({ fill: c, stroke: INK, lw: 4 });
+      d.text(l, cx + ox + Math.cos(am) * R * 0.55, cy + oy + Math.sin(am) * R * 0.55, { size: 80, weight: 700, color: '#fff', stroke: INK, lw: 6 });
+      d.pill(w, 740, 140 + i * 110, { size: 34, bg: Math.floor(t / 1.5) % 3 === i ? c : '#fff' });
+    });
+    d.text('Why did the author write it?', 740, 470, { size: 28, weight: 700, color: ORANGE });
+  },
+  'ap-why'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    panel(d, 60, 50, 360, 340, { fill: '#fff3b0' });
+    d.text('BUY NOW!', 240, 110, { size: 44, color: RED, font: "'Bungee', sans-serif" });
+    d.emoji('🍭', 240, 230, 120 + Math.sin(t * 4) * 8);
+    d.text('The BEST candy ever!!!', 240, 340, { size: 26, weight: 700 });
+    panel(d, 540, 50, 360, 340, { fill: '#fff' });
+    d.text('Teeth', 720, 110, { size: 40, weight: 700, color: BLUE });
+    d.emoji('🦷', 720, 210, 90);
+    d.wrap('Too much sugar can cause cavities.', 720, 290, 320, { size: 24 });
+    d.text('Knowing WHY it was written helps you think about what you read.', 480, 460, { size: 24, weight: 700, color: ORANGE });
+  },
+  'ap-p'(d, t) {
+    paper(d, '#fff3e6', '#ffe2c4');
+    panel(d, 220, 30, 520, 380, { fill: '#fff' });
+    d.text('ADOPT A PUPPY!', 480, 90, { size: 46, color: ORANGE, font: "'Bungee', sans-serif" });
+    d.emoji('🐶', 480, 210, 140 + Math.sin(t * 3) * 6);
+    d.text('The best friend you\'ll ever have!', 480, 320, { size: 30, weight: 700 });
+    d.text('Visit the shelter today!', 480, 370, { size: 26, color: PINK, weight: 700 });
+    d.emoji('👉', 160, 210, 70); d.emoji('👈', 800, 210, 70);
+    d.pill('PERSUADE: to make you do or believe something', 480, 470, { size: 26, bg: '#ff9f6a' });
+  },
+  'ap-i'(d, t) {
+    paper(d, '#eaf7ff', '#d6efff');
+    panel(d, 140, 30, 680, 380, { fill: '#fffdf6' });
+    d.text('All About Frogs', 480, 80, { size: 40, weight: 700, color: GREEN });
+    d.emoji('🐸', 700, 230, 120 + Math.abs(Math.sin(t * 3)) * 10);
+    ['Frogs are amphibians.', 'They start life as tadpoles.', 'They catch bugs with long, sticky tongues.'].forEach((s, i) => d.alpha(d.in(t, 0.5 + i * 0.8), () => {
+      d.circle(190, 160 + i * 75, 8, { fill: GREEN });
+      d.wrap(s, 210, 145 + i * 75, 380, { size: 24, align: 'left' });
+    }));
+    d.pill('INFORM: to teach you facts', 480, 470, { size: 28, bg: '#7fc4ff' });
+  },
+  'ap-e'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    const P = [['🐉', '😱', 'Dex the dragon is scared of the dark!', '#2a3a6a'], ['🐉', '🔦', 'Dex tries a flashlight…', '#3a4a7a'], ['🐉', '🔥', '…and lights up the night himself! 😄', '#ffcf7a']];
+    P.forEach(([a, b, s, bg], i) => d.alpha(d.in(t, i * 1.2), () => {
+      const x = 30 + i * 305;
+      d.rect(x, 30, 290, 260, { r: 14, fill: bg, stroke: INK, lw: 4 });
+      d.emoji(a, x + 120, 170, 110, { flip: i === 2 }); d.emoji(b, x + 220, 100, 60);
+      d.wrap(s, x + 145, 310, 280, { size: 23, weight: 700 });
+    }));
+    d.pill('ENTERTAIN: to make you laugh or enjoy a story', 480, 480, { size: 26, bg: '#8fe07a' });
+  },
+  'ap-genre'(d, t) {
+    paper(d, '#fff6e0', '#ffe8c0');
+    d.rect(60, 330, 840, 24, { r: 4, fill: '#8a5a34' });
+    const G = [['Fairy tale', '🏰', '#ff9fbf', 'magic and make-believe'], ['Fiction', '📖', '#7fc4ff', 'a made-up story'], ['Nonfiction', '🔬', '#8fe07a', 'true facts'], ['Poetry', '🎵', '#c9b3ff', 'rhythm and rhyme'], ['Biography', '👤', '#ffcf7a', 'a real person\'s life']];
+    const on = Math.floor(t / 1.6) % G.length;
+    G.forEach(([n, e, c, s], i) => {
+      const x = 100 + i * 160, lift = i === on ? 30 : 0;
+      d.rect(x, 90 - lift, 120, 240, { r: 8, fill: c, stroke: INK, lw: 4 });
+      d.emoji(e, x + 60, 150 - lift, 50);
+      d.at(x + 60, 260 - lift, -Math.PI / 2, 1, () => d.text(n, 0, 0, { size: 24, weight: 700 }));
+    });
+    d.pill(`${G[on][0]}: ${G[on][3]}`, 480, 420, { size: 30, bg: G[on][2] });
+    d.text('Different kinds of books are called GENRES.', 480, 500, { size: 26, weight: 700, color: ORANGE });
+  },
+  // ----- spelling patterns -----
+  'ph-what'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    const T = t % 7, k = d.in(T, 1, 1);
+    tiles(d, [{ s: 'r' }, { s: 'ai', bg: YELLOW, col: ORANGE }, { s: 'n' }], 480, 170, { size: 90, gap: d.lerp(60, 4, k) });
+    d.alpha(d.in(T, 2.3), () => { d.text('rain', 480, 340, { size: 90, weight: 700, color: BLUE }); d.emoji('🌧️', 690, 330, 90); });
+    d.alpha(d.in(T, 3), () => d.text('Letters that team up make one sound.', 480, 470, { size: 30, weight: 700, color: ORANGE }));
+  },
+  'ph-why'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    const steps = [['Learning to read', '🔤'], ['Reading smoothly', '📖'], ['Reading to LEARN!', '🚀']];
+    steps.forEach(([s, e], i) => {
+      const x = 80 + i * 290, y = 380 - i * 110;
+      d.rect(x, y, 280, 540 - y, { r: 6, fill: ['#ffe08a', '#ffcf7a', '#ff9f6a'][i], stroke: INK, lw: 3 });
+      d.text(s, x + 140, y + 40, { size: 26, weight: 700 });
+      d.emoji(e, x + 140, y - 50, 64);
+    });
+    const k = d.loop(t, 6) * 3, step = Math.min(2, Math.floor(k));
+    d.person(80 + step * 290 + 60 + (k - step) * 100, 380 - step * 110 - 72, 1.2, { shirt: BLUE, skin: '#c98d5f', hair: '#3a2a1a' });
+    d.wrap('Knowing patterns helps you read new words fast, so you can read to learn about anything!', 280, 40, 460, { size: 24, weight: 700 });
+  },
+  'ph-e'(d, t) {
+    paper(d, '#fff9e0', '#ffefb8');
+    const W = [['cap', 'cape'], ['kit', 'kite'], ['hop', 'hope'], ['cub', 'cube']];
+    const i = Math.floor(t / 2.5) % W.length, T = t % 2.5, k = d.in(T, 0.4, 0.8);
+    const [a] = W[i];
+    tiles(d, [{ s: a[0] }, { s: a[1], bg: k > 0.95 ? YELLOW : '#fff', col: k > 0.95 ? ORANGE : INK }, { s: a[2] }, { s: k > 0.95 ? 'e' : ' ', col: '#bbb' }], 480, 170, { size: 90 });
+    d.emoji('🪄', d.lerp(860, 690, k), d.lerp(60, 120, k), 70);
+    if (k > 0.95) d.emoji('✨', 690, 90, 50);
+    d.text(k > 0.95 ? W[i][1] : a, 480, 330, { size: 60, weight: 700, color: BLUE });
+    d.wrap('Magic e at the end is silent, but it makes the vowel say its NAME: cap → cape.', 480, 400, 820, { size: 28, weight: 700 });
+  },
+  'ph-team'(d, t) {
+    paper(d, '#f2f7ff', '#e2edff');
+    const V = [['ai', 'rain', '🌧️'], ['ay', 'play', '🛝'], ['ee', 'tree', '🌳'], ['ea', 'leaf', '🍃'], ['oa', 'boat', '⛵'], ['ow', 'snow', '❄️']];
+    const on = Math.floor(t / 1.2) % V.length;
+    V.forEach(([v, w, e], i) => {
+      const x = 90 + (i % 3) * 300, y = 40 + Math.floor(i / 3) * 210;
+      panel(d, x, y, 270, 190, { fill: i === on ? '#fff3b0' : '#fff', lw: i === on ? 5 : 3 });
+      d.text(v, x + 70, y + 70, { size: 64, weight: 700, color: ORANGE });
+      d.emoji(e, x + 200, y + 70, 70);
+      teamWord(d, w, v, x + 135, y + 150, 40);
+    });
+    d.text('Vowel teams: two letters, one sound.', 480, 500, { size: 28, weight: 700, color: ORANGE });
+  },
+  'ph-r'(d, t) {
+    paper(d, '#f2fbf5', '#dff4e6');
+    const R = [['ar', 'car', '🚗'], ['or', 'corn', '🌽'], ['er', 'her', '👧'], ['ir', 'bird', '🐦'], ['ur', 'turtle', '🐢']];
+    R.forEach(([v, w, e], i) => {
+      const x = 100 + i * 190, bob = Math.sin(t * 3 + i) * 8;
+      panel(d, x - 85, 60, 170, 290, { fill: '#fff' });
+      d.text(v, x, 120 + bob, { size: 64, weight: 700, color: GREEN });
+      d.emoji(e, x, 220, 70);
+      teamWord(d, w, v, x, 310, 34, GREEN);
+    });
+    d.emoji('🤠', 100 + (t * 80) % 800, 410, 50);
+    d.text('Bossy R changes the vowel\'s sound! er, ir and ur all sound the same.', 480, 480, { size: 25, weight: 700, color: GREEN });
+  },
+  'ph-hfw'(d, t) {
+    paper(d, '#fff6e0', '#ffe8c0');
+    const W = ['because', 'said', 'could', 'would', 'they', 'there', 'again', 'friend'];
+    const i = Math.floor(t / 1.3) % W.length, k = d.in(t % 1.3, 0, 0.35);
+    // the flash card flips in sideways
+    d.at(480, 200, 0, 1, () => {
+      d.ctx.scale(Math.max(0.05, k), 1);
+      d.rect(-260, -110, 520, 220, { r: 24, fill: '#fff', stroke: ORANGE, lw: 6 });
+      d.text(W[i], 0, 0, { size: 90, weight: 700 });
+    });
+    d.text('Some words don\'t follow the rules.', 480, 380, { size: 30, weight: 700 });
+    d.text('Learn them by heart so you can read them in a snap!', 480, 430, { size: 30, weight: 700, color: ORANGE });
+    d.emoji('⚡', 820 + Math.sin(t * 5) * 6, 120, 60);
+  },
+};
+
+// ---------- Game 1: Word Builder ----------
+function wordGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  // [picture, word, the missing letter team, two wrong teams]
+  const WORDS = shuffle([['🚂', 'train', 'ai', ['oa', 'ur']], ['⛵', 'boat', 'oa', ['ir', 'ar']], ['🌳', 'tree', 'ee', ['oa', 'ai']], ['🍃', 'leaf', 'ea', ['oa', 'ai']], ['❄️', 'snow', 'ow', ['oa', 'ai']],
+    ['⭐', 'star', 'ar', ['or', 'ee']], ['🌽', 'corn', 'or', ['ar', 'ee']], ['🐦', 'bird', 'ir', ['oo', 'ai']], ['🐢', 'turtle', 'ur', ['ar', 'ee']], ['🦷', 'tooth', 'oo', ['ai', 'ow']]]);
+  let wi = 0, score = 0, firstTry = 0, miss = 0, done = false, t = 0, fill = 0, opts = [];
+  root.innerHTML = `<div class="hud"><span id="wb-n"></span><span>🏆 <b id="wb-s">0</b></span></div>
+    <canvas class="board" id="wb-cv"></canvas>
+    <p style="font-weight:600;margin:4px auto">Which letters finish the word?</p><div class="choices" id="wb-c"></div>`;
+  const draw = board(api.$('wb-cv'));
+  function ask() {
+    const [, , team, wrong] = WORDS[wi];
+    opts = shuffle([team, ...wrong]);
+    api.$('wb-n').textContent = `Word ${wi + 1} of ${WORDS.length}`;
+    api.$('wb-c').innerHTML = opts.map((o, k) => `<button class="ans" data-k="${k}" style="font-size:30px">${o}</button>`).join('');
+    api.$('wb-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+    miss = 0; fill = 0;
+  }
+  function pick(k) {
+    if (done || fill > 0) return;
+    RB.audio();
+    const b = api.$('wb-c').children[k];
+    if (opts[k] !== WORDS[wi][2]) { sfx.wrong(); miss++; b.disabled = true; b.classList.add('wrong', 'shake'); return; }
+    sfx.right(); fill = 0.01;
+    if (!miss) { score += 100; firstTry++; } else score += 50;
+    api.$('wb-s').textContent = score;
+  }
+  function next() {
+    wi++;
+    if (wi === WORDS.length) {
+      done = true;
+      api.done({ score, stars: firstTry >= 8 ? 3 : firstTry >= 5 ? 2 : 1, rows: [['🧩 Words built', WORDS.length], ['✅ Right on the first try', `${firstTry} of ${WORDS.length}`]],
+        hint: 'Get 8 or more right on the first try for ★★★' });
+      return;
+    }
+    ask();
+  }
+  function render() {
+    if (done) return;
+    const [e, word, team] = WORDS[wi], at = word.indexOf(team);
+    draw(() => {
+      d.bg('#fff9e0', '#ffefb8');
+      d.circle(480, 170, 120, { fill: '#fff', stroke: ORANGE, lw: 6 });
+      d.emoji(e, 480, 170 + Math.sin(t * 2) * 6, 150);
+      const parts = [];
+      if (at > 0) parts.push({ s: word.slice(0, at) });
+      parts.push({ s: fill > 0 ? team : '__', bg: fill > 0 ? '#c8f0c0' : YELLOW, col: fill > 0 ? GREEN : ORANGE });
+      if (at + 2 < word.length) parts.push({ s: word.slice(at + 2) });
+      tiles(d, parts, 480, 400, { size: 80 });
+      if (fill > 0) d.text('⭐', 480 + Math.cos(t * 6) * 260, 400 + Math.sin(t * 6) * 70, { size: 40 });
+    });
+  }
+  ask(); render();
+  return {
+    tick(dt) { t += dt; if (fill > 0) { fill += dt; if (fill > 0.9) next(); } render(); },
+    key(k) { const n = '123'.indexOf(k); if (n >= 0) pick(n); },
+    bot() { if (fill > 0) { this.tick(1); return; } if (!done) pick(opts.indexOf(WORDS[wi][2])); },
+  };
+}
+
+// ---------- Game 2: Story Order ----------
+function orderGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  const STORIES = [
+    ['Planting a Seed', [['🕳️', 'Dig a hole in the dirt.'], ['🌰', 'Drop a seed in the hole.'], ['💧', 'Water it every day.'], ['🌻', 'A flower grows!']]],
+    ['Pip\'s Ball', [['⚽', 'Pip plays with his ball.'], ['🌳', 'The ball gets stuck in a tree.'], ['🐱', 'Kit climbs up and knocks it down.'], ['🐶', 'Pip and Kit play together.']]],
+    ['Snow Day', [['❄️', 'It snows all night.'], ['⚪', 'We roll three big snowballs.'], ['⛄', 'We stack them up.'], ['🥕', 'We add a carrot nose!']]],
+  ];
+  const WORDS = ['First', 'Next', 'Then', 'Last'];
+  let si = 0, placed = 0, mistakes = 0, score = 0, perfect = 0, done = false, t = 0, order = [], wait = 0;
+  root.innerHTML = `<div class="hud"><span id="so-n"></span><span>🏆 <b id="so-s">0</b></span></div>
+    <canvas class="board" id="so-cv"></canvas>
+    <p id="so-q" style="font-weight:600;margin:4px auto"></p><div class="choices" id="so-c"></div>`;
+  const draw = board(api.$('so-cv'));
+  function deal() {
+    order = shuffle([0, 1, 2, 3]); placed = 0; mistakes = 0; wait = 0;
+    api.$('so-n').textContent = `Story ${si + 1} of ${STORIES.length}: ${STORIES[si][0]}`;
+    api.$('so-c').innerHTML = order.map(j => `<button class="ans" data-j="${j}">${STORIES[si][1][j][0]} ${api.esc(STORIES[si][1][j][1])}</button>`).join('');
+    api.$('so-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.j, b)));
+    prompt();
+  }
+  const prompt = () => { api.$('so-q').textContent = placed < 4 ? `What happens ${WORDS[placed].toLowerCase()}?` : '🎉 Great retelling!'; };
+  function pick(j, b) {
+    if (done || wait > 0 || placed >= 4) return;
+    RB.audio();
+    b = b || api.$('so-c').querySelector(`[data-j="${j}"]`);
+    if (j !== placed) { sfx.wrong(); mistakes++; b.classList.remove('shake'); void b.offsetWidth; b.classList.add('shake'); return; }
+    sfx.pop(); b.disabled = true; b.classList.add('right');
+    placed++;
+    prompt();
+    if (placed === 4) {
+      sfx.right();
+      const pts = [300, 200, 100][Math.min(mistakes, 2)];
+      score += pts; if (!mistakes) perfect++;
+      api.$('so-s').textContent = score;
+      wait = 1.2;
+    }
+  }
+  function next() {
+    si++;
+    if (si === STORIES.length) {
+      done = true;
+      api.done({ score, stars: score >= 800 ? 3 : score >= 500 ? 2 : 1, rows: [['📚 Stories put in order', STORIES.length], ['🎯 With no mistakes', `${perfect} of ${STORIES.length}`]],
+        hint: 'Put every story in order with at most one slip for ★★★' });
+      return;
+    }
+    deal();
+  }
+  function render() {
+    if (done) return;
+    const S = STORIES[si][1];
+    draw(() => {
+      d.bg('#f2fbf5', '#dff4e6');
+      WORDS.forEach((w, i) => {
+        const x = 125 + i * 237, has = i < placed;
+        d.rect(x - 108, 60, 216, 400, { r: 18, fill: has ? '#fff' : 'rgba(255,255,255,.5)', stroke: i === placed ? ORANGE : INK, lw: i === placed ? 6 : 3, dash: has ? [] : [10, 8] });
+        d.pill(w, x, 60, { size: 28, bg: [YELLOW, '#ffd8b8', '#cfe6ff', '#c8f0c0'][i] });
+        if (has) { d.emoji(S[i][0], x, 190, 90); d.wrap(S[i][1], x, 280, 190, { size: 24, weight: 700 }); }
+        else d.text('?', x, 230, { size: 80, weight: 700, color: '#b9c6e0' });
+      });
+      if (wait > 0) d.text('⭐ ⭐ ⭐', 480, 505, { size: 36, alpha: Math.min(1, wait) });
+    });
+  }
+  deal(); render();
+  return {
+    tick(dt) { t += dt; if (wait > 0) { wait -= dt; if (wait <= 0) next(); } render(); },
+    key(k) { const n = '1234'.indexOf(k); if (n >= 0 && n < order.length) pick(order[n]); },
+    bot() { if (wait > 0) { this.tick(1.3); return; } if (!done) pick(placed); },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g2_reading', grade: '2nd Grade · Language Arts', title: 'Story Detectives', icon: '📚', home: 'index.html', homeTitle: 'Back to the 2nd grade folder',
+  tagline: 'Retell stories, find the **main idea**, compare, predict, learn **why authors write**, and build words with **spelling patterns**.',
+  certTitle: 'Super Story Detective', certText: 'can retell stories, find the main idea, compare and contrast, make inferences and read tricky spelling patterns!',
+  shareText: 'Become a story detective on RoboBandit! 📚',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'retell', icon: '📚', name: 'Retell a Story', sub: 'Beginning, middle & end', badge: 'Story Teller',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Tell it back in order', d: 'rt-what', p: 'To **retell** a story, you tell what happened **in your own words** and in the **right order**: the **beginning**, the **middle** and the **end**.', v: [['retell', 'tell a story again in your own words']] },
+        { k: 'WHY DO WE CARE?', t: 'Show what you know', d: 'rt-why', p: 'Retelling shows you really **understood** what you read. It helps you **remember** stories and share them with friends and family.' },
+        { t: 'Characters and setting', d: 'rt-cs', p: '**Characters** are the people or animals in a story: here, **Pip** the puppy and **Kit** the cat. The **setting** is **where** and **when** the story happens.', v: [['character', 'who the story is about'], ['setting', 'where and when it happens']] },
+        { t: 'Problem and solution', d: 'rt-ps', p: 'Most stories have a **problem**: Pip\'s ball is stuck in a tree! The **solution** is how the problem gets fixed: Kit climbs up and knocks it down. Tell both when you retell.' },
+        { t: 'Signal words', d: 'rt-seq', p: 'Words like **first**, **next**, **then** and **last** (or **finally**) show the **order** things happen. Use them when you retell, so your listener can follow along.', v: [['sequence', 'the order things happen']] },
+      ],
+      quiz: [
+        { q: 'What does it mean to retell a story?', a: ['Tell what happened in your own words, in order', 'Read it again silently', 'Make up a new ending'], why: 'A retell tells the beginning, middle and end in your own words.' },
+        { q: 'The setting of a story is…', a: ['Where and when it happens', 'Who it is about', 'The problem'], why: 'Setting is the place and the time.' },
+        { q: 'Who were the characters in Pip\'s story?', a: ['Pip the puppy and Kit the cat', 'The tree and the ball', 'The sun and the yard'], why: 'Characters are the people or animals in the story.' },
+        { q: 'Which word tells what happens at the end?', a: ['Last', 'First', 'Next'], why: '"Last" or "finally" tells the end.' },
+        { q: 'In Pip\'s story, how was the problem solved?', a: ['Kit knocked the ball down', 'Pip got a new ball', 'The tree fell over'], why: 'The solution is how the problem gets fixed.' },
+        { q: 'What is the right order for a story?', a: ['Beginning, middle, end', 'End, middle, beginning', 'Middle, beginning, end'], why: 'Stories go from beginning to middle to end.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'mainidea', icon: '🎯', name: 'Main Idea', sub: 'What is it mostly about?', badge: 'Main Idea Master',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'The big idea', d: 'mi-what', p: 'The **main idea** is what a text is **mostly about**. The **details** tell more about it and hold it up, like the legs of a table hold up the top.', v: [['main idea', 'what the text is mostly about'], ['detail', 'a fact that tells more']] },
+        { k: 'WHY DO WE CARE?', t: 'Remember the big point', d: 'mi-why', p: 'Books are full of facts. Finding the main idea helps you **remember the most important part** and tell others what you learned.' },
+        { t: 'Topic or main idea?', d: 'mi-topic', p: 'The **topic** is one or two words: **Bees**. The **main idea** is a whole sentence about the topic: **Bees are busy helpers.**' },
+        { t: 'Finding the main idea', d: 'mi-find', p: 'Read the whole paragraph and ask, "What is it **mostly** about?" The main idea is often the **first** or **last** sentence. The other sentences are details.' },
+        { t: 'Details that don\'t belong', d: 'mi-odd', p: 'Every detail should tell about the main idea. "The sky is blue" doesn\'t tell why dogs make great pets, so it **doesn\'t belong**!' },
+      ],
+      quiz: [
+        { q: 'The main idea is…', a: ['What the text is mostly about', 'The first word', 'The longest sentence'], why: 'The main idea is the big point.' },
+        { q: 'Which is a TOPIC, not a main idea?', a: ['Frogs', 'Frogs are great jumpers.', 'Frogs live near water.'], why: 'A topic is just one or two words.' },
+        { q: 'Main idea: "Penguins are amazing swimmers." Which detail fits?', a: ['They use their wings like flippers.', 'Penguins are black and white.', 'I like the zoo.'], why: 'Using wings as flippers tells HOW penguins swim well.' },
+        { q: 'Details are like a table\'s…', a: ['Legs', 'Plates', 'Chairs'], why: 'Details hold up the main idea.' },
+        { q: 'Where is the main idea often found?', a: ['In the first or last sentence', 'Only in the title', 'In the pictures only'], why: 'Authors often state the main idea at the start or end.' },
+        { q: 'Main idea: "Dogs make great pets." Which detail does NOT belong?', a: ['The sky is blue.', 'They love to play.', 'They can learn tricks.'], why: 'The sky doesn\'t tell anything about dogs as pets.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'compare', icon: '⚖️', name: 'Compare & Contrast', sub: 'Same and different', badge: 'Venn Viewer',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Alike and different', d: 'cc-what', p: 'When you **compare**, you tell how things are **alike**. When you **contrast**, you tell how they are **different**. Cats and dogs are both pets, but cats meow and dogs bark!', v: [['compare', 'tell how things are alike'], ['contrast', 'tell how things are different']] },
+        { k: 'WHY DO WE CARE?', t: 'Notice more', d: 'cc-why', p: 'Comparing helps you **notice details** and **understand** new things by thinking about things you already know.' },
+        { t: 'The Venn diagram', d: 'cc-venn', p: 'A **Venn diagram** is two circles that overlap. Write what\'s only true of one thing in its own circle. Write what\'s true of **both** in the **middle**.' },
+        { t: 'Clue words', d: 'cc-words', p: 'Words like **both**, **alike**, **same** and **also** tell you things are alike. Words like **but**, **unlike** and **different** tell you they are different.' },
+        { t: 'Comparing stories', d: 'cc-stories', p: 'You can compare **stories**, too! The Three Little Pigs and The Three Billy Goats Gruff both have **three** characters and a mean bad guy. But one has houses and a wolf, and the other has a bridge and a troll.' },
+      ],
+      quiz: [
+        { q: 'To compare means to tell how things are…', a: ['Alike', 'Different', 'Funny'], why: 'Compare = alike. Contrast = different.' },
+        { q: 'In a Venn diagram, what goes in the middle?', a: ['What is true of both', 'The title', 'What is only true of one'], why: 'The overlap shows what both share.' },
+        { q: 'Which word is a clue that things are DIFFERENT?', a: ['but', 'both', 'also'], why: '"Cats meow, but dogs bark."' },
+        { q: 'How are an apple and an orange alike?', a: ['They are both fruit', 'They are both red', 'They both bark'], why: 'Both are fruits that grow on trees.' },
+        { q: 'Which word shows things are ALIKE?', a: ['both', 'unlike', 'but'], why: '"Both" means the same thing is true of each.' },
+        { q: 'How are The Three Little Pigs and The Three Billy Goats Gruff alike?', a: ['Both have three characters and a bad guy', 'Both have a troll', 'Both have a bridge'], why: 'Three pigs and three goats each face a bad guy.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'infer', icon: '🔍', name: 'Predict & Infer', sub: 'Be a story detective', badge: 'Clue Finder',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Make a smart guess', d: 'pi-what', p: 'To **predict** is to make a smart guess about **what will happen next**, using **clues**. Dark clouds are rolling in, so you predict it will rain!', v: [['predict', 'guess what will happen next']] },
+        { k: 'WHY DO WE CARE?', t: 'Think ahead', d: 'pi-why', p: 'Predicting keeps your brain **busy and curious** while you read. Readers who think ahead **understand** and **remember** more.' },
+        { t: 'Clues + what I know', d: 'pi-eq', p: 'Authors don\'t tell you everything! To **infer**, add the **clues** in the story to **what you already know**. Muddy boots + a wet umbrella + "rain makes mud" = **it rained!**', v: [['infer', 'figure out something the author didn\'t say']] },
+        { t: 'Check and change', d: 'pi-check', p: 'As you read, **check** your predictions. Were you right? If not, that\'s OK! **Change** your prediction using the new clues. Good readers do it all the time.' },
+        { t: 'Picture clues', d: 'pi-pic', p: 'Pictures have clues too. The kid has **tears** and the **ice cream** is on the ground. You can infer the kid feels **sad**, even if the words don\'t say it.' },
+      ],
+      quiz: [
+        { q: 'To predict means to…', a: ['Make a smart guess about what will happen', 'Read the last page first', 'Draw a picture'], why: 'Predictions use clues to guess what\'s next.' },
+        { q: 'A girl puts on her coat, hat and mittens. What can you infer?', a: ['It is cold outside', 'It is very hot', 'She is going swimming'], why: 'Clues (warm clothes) + what you know (we bundle up in the cold).' },
+        { q: 'What do you need to make an inference?', a: ['Clues + what I know', 'Only the title', 'A dictionary'], why: 'Add story clues to what you already know.' },
+        { q: 'Your prediction was wrong. What should you do?', a: ['Change it using new clues', 'Stop reading', 'Erase the book'], why: 'Good readers change their predictions.' },
+        { q: 'A boy is smiling and jumping up and down. How does he feel?', a: ['Happy and excited', 'Sad', 'Sleepy'], why: 'Smiling and jumping are clues that he\'s excited.' },
+        { q: 'Dark clouds fill the sky. What will probably happen next?', a: ['It will rain', 'It will snow candy', 'The sun will get hotter'], why: 'Dark clouds are a clue that rain is coming.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'purpose', icon: '✍️', name: 'Author\'s Purpose', sub: 'P.I.E. & genres', badge: 'Purpose Pro',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Why did the author write it?', d: 'ap-what', p: 'The **author\'s purpose** is the **reason** they wrote. Remember **P.I.E.**: authors write to **Persuade**, to **Inform**, or to **Entertain**.', v: [['author', 'the person who wrote it']] },
+        { k: 'WHY DO WE CARE?', t: 'Read with your thinking cap on', d: 'ap-why', p: 'An ad wants you to **buy** something. A science book wants to **teach** you. Knowing **why** something was written helps you think carefully about what you read.' },
+        { t: 'P is for Persuade', d: 'ap-p', p: 'To **persuade** means to try to get you to **do** something or **believe** something. Ads, posters and letters asking for help are often written to persuade.' },
+        { t: 'I is for Inform', d: 'ap-i', p: 'To **inform** means to **teach facts**. Books about animals, space or history are written to inform. They are **nonfiction**: they tell what\'s true.', v: [['nonfiction', 'true information']] },
+        { t: 'E is for Entertain', d: 'ap-e', p: 'To **entertain** means to give you a story you\'ll **enjoy**: something funny, exciting or surprising. Most storybooks and comics are written to entertain.' },
+        { t: 'Exploring genres', d: 'ap-genre', p: 'Books come in different **genres**, or kinds: **fairy tales**, **fiction**, **nonfiction**, **poetry** and **biographies**. Try them all to find your favorites!', v: [['genre', 'a kind of book or writing'], ['fiction', 'a made-up story']] },
+      ],
+      quiz: [
+        { q: 'What does P.I.E. stand for?', a: ['Persuade, Inform, Entertain', 'Pictures, Ideas, Endings', 'Pets, Insects, Elephants'], why: 'The three main reasons authors write.' },
+        { q: 'A book called "All About Sharks" with lots of facts was written to…', a: ['Inform', 'Persuade', 'Entertain'], why: 'Teaching facts is informing.' },
+        { q: 'A poster says "Vote for me for class helper!" Its purpose is to…', a: ['Persuade', 'Inform', 'Entertain'], why: 'It wants you to do something: vote!' },
+        { q: 'A funny story about a dragon afraid of the dark was written to…', a: ['Entertain', 'Inform', 'Persuade'], why: 'Funny made-up stories are written to entertain.' },
+        { q: 'A true book about a real person\'s life is a…', a: ['Biography', 'Fairy tale', 'Poem'], why: 'A biography tells about a real person\'s life.' },
+        { q: 'Nonfiction books are…', a: ['True', 'Made-up', 'Always poems'], why: 'Nonfiction gives true information.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'phonics', icon: '🔤', name: 'Spelling Patterns', sub: 'Magic e, vowel teams & more', badge: 'Word Wizard',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Letters that team up', d: 'ph-what', p: 'A **spelling pattern** is a group of letters that work together to make a sound. In **rain**, the letters **a** and **i** team up to say the long **a** sound.', v: [['pattern', 'something that repeats in a way you can learn']] },
+        { k: 'WHY DO WE CARE?', t: 'Read to learn', d: 'ph-why', p: 'When you know patterns, you can **sound out** new words fast and read **smoothly**. In 2nd grade, you start to shift from **learning to read** to **reading to learn**!', v: [['fluency', 'reading smoothly, at a good speed, with expression']] },
+        { t: 'Magic e', d: 'ph-e', p: 'An **e** at the end of a word is usually **silent**, but it\'s magic: it makes the vowel before it **say its name**. **cap** becomes **cape**, **kit** becomes **kite**, **hop** becomes **hope**!' },
+        { t: 'Vowel teams', d: 'ph-team', p: 'In a **vowel team**, two letters make one sound: **ai** (rain), **ay** (play), **ee** (tree), **ea** (leaf), **oa** (boat) and **ow** (snow). Often the first vowel says its name.' },
+        { t: 'Bossy R', d: 'ph-r', p: 'When **r** comes after a vowel, it\'s **bossy**: it changes the vowel\'s sound! Listen: **ar** (car), **or** (corn), and **er**, **ir**, **ur** (her, bird, turtle) all sound the same.' },
+        { t: 'Words to know by heart', d: 'ph-hfw', p: 'Some words we read all the time don\'t follow the rules, like **said**, **because** and **friend**. These **high-frequency words** are best learned **by heart**, so you can read them in a snap.' },
+      ],
+      quiz: [
+        { q: 'What does the magic e do in "kite"?', a: ['Makes the i say its name', 'Makes a loud "e" sound', 'Nothing at all'], why: 'Silent e makes the vowel long: kit → kite.' },
+        { q: 'Which word has the vowel team "oa"?', a: ['boat', 'bird', 'cake'], why: 'b-oa-t: the o and a team up to say long o.' },
+        { q: 'Add a magic e to "hop". What word do you get?', a: ['hope', 'hoop', 'hip'], why: 'hop + e = hope.' },
+        { q: 'Which word has bossy R?', a: ['car', 'cat', 'cap'], why: 'In "car", the r changes the a\'s sound.' },
+        { q: 'Which two letters make the long e sound in "tree"?', a: ['ee', 'tr', 're'], why: 'The vowel team ee says long e.' },
+        { q: 'Why learn words like "said" and "because" by heart?', a: ['They don\'t follow the usual rules', 'They are very long', 'They are only in poems'], why: 'Tricky high-frequency words are easiest to just know.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'words', icon: '🧩', name: 'Word Builder', sub: 'Finish each word', badge: 'Word Builder',
+      how: [['🖼️', 'Look at the picture and the word with a missing piece.'],
+        ['🧩', 'Pick the letter team that finishes the word: vowel teams and bossy R!'], ['⌨️', '<span class="key-only">You can press <b>1</b>, <b>2</b> or <b>3</b> to answer.</span><span class="touch-only">Tap an answer.</span>'], ['⭐', '100 points for every first-try answer.']],
+      make: wordGame,
+    },
+    {
+      kind: 'game', id: 'order', icon: '🗂️', name: 'Story Order', sub: 'First, next, then, last', badge: 'Sequence Star',
+      how: [['📚', 'Each story got mixed up! Put it back in order.'],
+        ['👆', 'Tap what happens <b>first</b>, then <b>next</b>, then <b>then</b>, then <b>last</b>.'], ['⭐', '300 points for a story with no mistakes.']],
+      make: orderGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>
