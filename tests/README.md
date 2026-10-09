@@ -11,7 +11,7 @@
 - **Web Hero**: just holding chains swings across the city, bonks bots and beats the Big Bandit; three falls end the game
 - **Sparkle Meadow**: following the pink arrow makes all six animal friends (and saves them); sparkles unlock the unicorn horn
 - **Witch Way Out**: flying the friendly line (with shields in the storm) escapes the pumpkin without being caught; doing nothing gets caught but the pumpkin eases off so everyone can finish
-- **Flight School**: every lesson diagram draws; autopilots win all seven rounds and every round ends even with no input; the quiz scores, saves and unlocks the next level; on a phone, holding fires the burner, STAGE stages and the joystick flies the lander
+- **Flight School**: every lesson diagram draws (sliders at both ends); autopilots (`tests/flight-bots.js`) win all 14 rounds in Easy and Toddler modes, and every round ends even with no input in all three modes; the quiz gives second chances, saves stars and Flight Cards and unlocks the next level; Toddler mode opens every level and skips quizzes; a perfect final exam earns the honors certificate; on a phone, holding fires the burner, STAGE stages and the joystick flies the helicopter
 - muting one game mutes them all
 
 The autopilots call each game's own `update()` in a loop, so a whole game takes a few seconds.
