@@ -12,6 +12,7 @@ const url = f => 'file://' + path.join(ROOT, f);
 
 const results = [];
 async function test(name, fn) {
+  if (process.env.ONLY && !name.toLowerCase().includes(process.env.ONLY.toLowerCase())) return;   // ONLY=witch runs just the matching tests
   const t0 = Date.now();
   try { await fn(); results.push([true, name, Date.now() - t0]); }
   catch (e) { results.push([false, name, Date.now() - t0, e.message]); }
@@ -359,7 +360,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
   await test('Witch Way Out: flying the line escapes the pumpkin; ignoring the storm gets you caught', async () => {
     const p = await open(browser, 'witch-way-out.html', { viewport: { width: 480, height: 270 } });
     const fly = strat => p.evaluate(strat => {
-      startGame(); introT = 0;
+      startGame(); introT = 0; countT = 0;
       for (let i = 0; i < 60 * 300 && state === 'fly'; i++) {
         keys.l = keys.r = keys.u = keys.d = false;
         if (strat === 'pilot') {
@@ -368,13 +369,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
           const wp = Math.atan2(lineY(z) - pos.y, 35);
           if (wp - pitch > 0.05) keys.u = true; else if (wp - pitch < -0.05) keys.d = true;
           if (strike && strike.t < 0.6) castShield();
+          if (projectiles.some(h => h.kind === 'rival' && h.mesh.position.distanceTo(pos) < 10)) castShield();
         }
         update(1 / 60);
       }
-      return { state, caught: caughtCount, rings: ringCount };
+      return { state, caught: caughtCount, rings: ringCount, place };
     }, strat);
     const good = await fly('pilot');
-    check(good.state === 'over' && good.caught === 0, 'pilot: ' + JSON.stringify(good));
+    check(good.state === 'over' && good.caught === 0 && good.place >= 1 && good.place <= 6, 'pilot: ' + JSON.stringify(good));
     const idle = await fly('idle');
     check(idle.caught > 0, 'doing nothing should get caught at least once: ' + JSON.stringify(idle));
     check(idle.state === 'over', 'the pumpkin should ease off so everyone can finish: ' + JSON.stringify(idle));
@@ -588,7 +590,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1200);
     // the right stick reaches the game through common.js
-    await p.evaluate(() => { startGame(); introT = 0; });
+    await p.evaluate(() => { startGame(); introT = 0; countT = 0; });
     await p.evaluate(() => { __pad.axes[2] = 1; }); await p.waitForTimeout(400);
     check(await p.evaluate(() => cam.yaw < -0.05), 'pushing the right stick right should swing the camera');
     await p.evaluate(() => { __pad.axes[2] = 0; });
@@ -599,7 +601,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const r = await p.evaluate(() => {
       const out = {};
       for (const [name, cy] of [['behind', 0], ['front', Math.PI]]) {   // push right: she moves right on screen
-        startGame(); introT = 0;
+        startGame(); introT = 0; countT = 0;
         for (let i = 0; i < 120; i++) { update(1 / 60); updateVisuals(1 / 60); }
         cam.yaw = cam.yawS = cy;
         for (let i = 0; i < 30; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
@@ -701,6 +703,71 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { localStorage.removeItem('rb_pad'); });
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await p.screenshot({ path: path.join(OUT, 'witch-controller.png') });
+    await ctx.close();
+  });
+
+  await test('Witch Way Out race: hat bonks a witch and comes back, LT boosts with dust, boxes give power-ups, a racer using them wins', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    // the countdown holds everyone on the line
+    const c = await p.evaluate(() => { startGame(); const z = pos.z, fz = friends[0].z; for (let i = 0; i < 60; i++) update(1 / 60); return { moved: pos.z !== z || friends[0].z !== fz, countT }; });
+    check(!c.moved && c.countT > 1, 'nobody should move before GO: ' + JSON.stringify(c));
+    // Ⓧ throws the hat at a witch in range: she falls off, and the hat comes back
+    await p.evaluate(() => { countT = 0; introT = 0; for (let i = 0; i < 10; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      const f = friends[0]; f.z = pos.z - 18; f.off = pos.x - lineX(f.z); f.offY = pos.y - lineY(f.z); f.ph = -clock * 0.35; f.knockT = 0; f.nextThrow = 99;
+      friends.slice(1).forEach(o => { o.z = pos.z - 300; }); update(1 / 60); updateVisuals(1 / 60); });
+    check(await p.evaluate(() => lockMesh.visible), 'a witch just ahead should be marked as in range');
+    await padTap(p, 'X');
+    const h = await p.evaluate(() => {
+      const out = { thrown: projectiles.some(x => x.kind === 'hat') && !me.userData.hat.visible };
+      for (let i = 0; i < 60 * 4 && !(out.hit && me.userData.hat.visible); i++) { update(1 / 60); updateVisuals(1 / 60); if (friends[0].knockT > 0) out.hit = true; }
+      out.back = me.userData.hat.visible && !projectiles.some(x => x.kind === 'hat');
+      return out;
+    });
+    check(h.thrown && h.hit && h.back, 'the hat should fly, bonk the witch and come back: ' + JSON.stringify(h));
+    // LT boosts: faster, the meter drains, magic dust behind
+    await p.evaluate(() => { magic = 1; });
+    await padHold(p, 'LT', true); await p.waitForTimeout(500);
+    const b = await p.evaluate(() => { for (let i = 0; i < 40; i++) { update(1 / 60); updateVisuals(1 / 60); } let lit = 0; for (let i = 0; i < DUST_N; i++) if (dustAge[i] < DUST_LIFE) lit++; return { boosting, magic, speed, lit }; });
+    await padHold(p, 'LT', false);
+    check(b.boosting && b.magic < 0.95 && b.speed > 36 && b.lit > 20, 'LT should boost with a dust trail: ' + JSON.stringify(b));
+    // a magic box rolls a power-up; Ⓑ uses it (the bats chase the leader)
+    const it = await p.evaluate(() => {
+      const box = boxes.find(x => x.z < pos.z - 30); pos.set(box.x, box.mesh.position.y, box.z + 0.5); friends.forEach(f => { f.knockT = 0; });
+      update(1 / 60);
+      for (let i = 0; i < 80; i++) update(1 / 60);
+      const got = item;
+      item = 'bats'; const lead = friends[2]; friends.forEach(f => { f.z = pos.z + 20; f.nextThrow = 99; }); lead.z = pos.z - 60;
+      return { got, lead: lead.name };
+    });
+    check(it.got && ['rocket', 'bats', 'potion', 'cloak', 'triple', 'web'].includes(it.got), 'a box should give a power-up: ' + JSON.stringify(it));
+    await padTap(p, 'B');
+    const bats = await p.evaluate(lead => { const f = friends.find(x => x.name === lead); let hit = false;
+      for (let i = 0; i < 60 * 6 && !hit; i++) { update(1 / 60); if (f.knockT > 0) hit = true; } return { used: item === null, hit }; }, it.lead);
+    check(bats.used && bats.hit, 'Ⓑ should send the bats after the leader: ' + JSON.stringify(bats));
+    await p.screenshot({ path: path.join(OUT, 'witch-race.png') });
+    // a racer who boosts, throws hats and uses power-ups beats everyone
+    const race = await p.evaluate(() => {
+      startGame(); countT = 0; introT = 0;
+      for (let i = 0; i < 60 * 300 && state === 'fly'; i++) {
+        keys.l = keys.r = keys.u = keys.d = false;
+        const z = pos.z - 35, wantYaw = Math.atan2(-(lineX(z) - pos.x), -(z - pos.z));
+        if (wantYaw - yaw < -0.05) keys.r = true; else if (wantYaw - yaw > 0.05) keys.l = true;
+        const wp = Math.atan2(lineY(z) - pos.y, 35);
+        if (wp - pitch > 0.05) keys.u = true; else if (wp - pitch < -0.05) keys.d = true;
+        if ((strike && strike.t < 0.6) || projectiles.some(x => x.kind === 'rival' && x.mesh.position.distanceTo(pos) < 10)) castShield();
+        keys.boost = magic > 0.5 || (boosting && magic > 0.05);
+        if (lockMesh.visible) throwHat();
+        if (item) useItem();
+        update(1 / 60); if (i % 3 === 0) updateVisuals(1 / 60);
+      }
+      return { state, place, hits: hatsHit, podium: document.querySelectorAll('.podium li').length };
+    });
+    check(race.state === 'over' && race.place <= 2 && race.hits > 0 && race.podium === 6, 'a racer using everything should finish 1st or 2nd: ' + JSON.stringify(race));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
   });
 

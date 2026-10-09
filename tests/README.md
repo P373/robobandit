@@ -15,6 +15,7 @@
 - **School folders**: the home page links to each grade's folder, and the 5th grade folder lists its subjects with saved stars
 - **5th grade** (reading & rights, math, science, social studies): every lesson picture draws, every quiz can be aced, every game can be won with 3 stars
 - **Xbox controller** (a pretend one): the D-pad and Ⓐ pick games on the arcade page, press menu buttons and lesson buttons; Ⓐ flaps and holds the burner; the left stick steers smoothly; ☰ pauses; crashes rumble
+- **Witch Way Out race**: nobody moves during the 3-2-1 countdown; Ⓧ throws the hat at a witch in range, knocks her off and the hat comes back; LT boosts (faster, the meter drains, magic dust appears); a magic box gives a power-up and Ⓑ sends the bats after the leader; a racer who boosts, throws hats and uses power-ups finishes 1st or 2nd with all six on the results list
 - **Witch Way Out camera**: the right stick swings the camera all the way around the witch at a steady distance, clicking it snaps back, letting go drifts back behind her, and pushing right moves her right on screen from behind and in front
 - pausing silences all music and sound; the controller's ⧉ View button pressed twice goes back to all the games (or a lesson's folder)
 - every page links the shared files with the same `?v=` stamp (run `node tools/bump-version.js` after changing a shared file)
@@ -30,6 +31,7 @@ Screenshots are saved to `tests/output/` (not committed) so you can eyeball the 
 npm install                  # once: installs Playwright
 npx playwright install chromium   # once, if you don't have a browser for it yet
 npm test
+ONLY=witch npm test       # just the tests whose name matches
 ```
 
 After changing any shared file (`common.js`, `common.css`, `touch-stick.js`, `lesson.js`, …) run `node tools/bump-version.js`, so visitors never get a mix of old and new files.

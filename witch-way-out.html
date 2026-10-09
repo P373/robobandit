@@ -50,12 +50,41 @@
   #warn { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font: 700 26px 'Fredoka', system-ui, sans-serif;
     color: #ffe14a; text-shadow: 0 3px 0 #000; animation: blink .4s steps(2) infinite; }
   @keyframes blink { 50% { opacity: .35; } }
-  #spellBtn { position: fixed; z-index: 3; right: max(18px, env(safe-area-inset-right)); bottom: max(70px, calc(env(safe-area-inset-bottom) + 60px));
-    width: 106px; height: 106px; border-radius: 50%; border: 4px solid #e6d2ff; cursor: pointer;
-    font: 700 15px 'Fredoka', system-ui, sans-serif; color: #fff; background: radial-gradient(circle at 40% 35%, #b47cff, #5b2a9c);
-    box-shadow: 0 0 24px rgba(180,124,255,.7); }
-  #spellBtn .ico { display: block; font-size: 32px; }
-  #spellBtn.cool { filter: grayscale(.8) brightness(.7); box-shadow: none; }
+  #tbtns { position: fixed; z-index: 3; right: max(14px, env(safe-area-inset-right)); bottom: max(96px, calc(env(safe-area-inset-bottom) + 86px));
+    display: grid; grid-template-columns: 82px 82px; gap: 10px; }
+  .tbtn { width: 82px; height: 82px; padding: 0; border-radius: 50%; border: 4px solid #e6d2ff; cursor: pointer; touch-action: none;
+    font: 700 13px 'Fredoka', system-ui, sans-serif; color: #fff; background: radial-gradient(circle at 40% 35%, #b47cff, #5b2a9c);
+    box-shadow: 0 0 18px rgba(180,124,255,.6); }
+  .tbtn .ico { display: block; font-size: 28px; line-height: 1.05; }
+  .tbtn.cool { filter: grayscale(.8) brightness(.7); box-shadow: none; }
+  #boostBtn { background: radial-gradient(circle at 40% 35%, #ff9af5, #b02a8c); }
+  #hatBtn { background: radial-gradient(circle at 40% 35%, #ffb347, #a8420a); }
+  #itemBtn { background: radial-gradient(circle at 40% 35%, #7af0ff, #1a6a9c); }
+  #raceBar { position: absolute; left: 50%; top: max(16px, calc(env(safe-area-inset-top) + 6px)); transform: translateX(-50%);
+    width: min(400px, 44vw); height: 10px; border-radius: 5px; background: rgba(255,255,255,.2); }
+  #raceBar .dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -8px 0 0 -8px; border-radius: 50%; border: 2px solid #fff; }
+  #raceBar .dot.me { width: 16px; height: 16px; margin: -10px 0 0 -10px; z-index: 2; box-shadow: 0 0 8px #fff; }
+  #raceBar .dot.pk { border-color: #ff3b1f; background: #ff8a1f; }
+  #raceBar .flag { position: absolute; right: -24px; top: -9px; font-size: 18px; }
+  #hudTR { position: absolute; right: max(14px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 54px);
+    display: flex; gap: 10px; align-items: center; }
+  #hPlaceBig { font: 56px/1 'Creepster', system-ui, sans-serif; color: #ffd84a; text-shadow: 0 4px 0 #3a0a4a, 0 0 14px rgba(255,200,60,.5); }
+  #hPlaceBig small { font-size: 26px; }
+  #itemSlot { width: 64px; height: 64px; border-radius: 16px; border: 3px solid #ffd27a; background: rgba(30,14,52,.75);
+    display: grid; place-items: center; font-size: 38px; box-shadow: 0 0 14px rgba(255,210,122,.4); }
+  #itemSlot.empty { opacity: .5; font: 700 12px 'Fredoka', system-ui, sans-serif; box-shadow: none; }
+  #itemSlot.rolling { animation: pop .12s infinite alternate; }
+  @keyframes pop { to { transform: scale(1.08); } }
+  #magicBar { position: absolute; left: 50%; bottom: calc(max(18px, env(safe-area-inset-bottom)) + 40px); transform: translateX(-50%);
+    width: min(360px, 70vw); padding: 5px 10px; border-radius: 14px; background: rgba(20,10,40,.6); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
+  #magicBar .track { flex: 1; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
+  #magicFill { height: 100%; width: 100%; border-radius: 6px; background: linear-gradient(90deg, #7af0ff, #b47cff, #ff7af5); }
+  #magicBar.on #magicFill { filter: brightness(1.4); }
+  #feed { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font: 700 22px 'Fredoka', system-ui, sans-serif; color: #fff;
+    text-shadow: 0 2px 0 #000, 0 0 10px rgba(0,0,0,.6); padding: 0 12px; transition: opacity .3s; }
+  .podium { list-style: none; padding: 0; margin: 10px auto 0; max-width: 320px; text-align: left; font-size: 19px; }
+  .panel .podium li { padding: 4px 10px 4px 44px; border-radius: 10px; }
+  .podium li.you { background: rgba(255,179,71,.25); font-weight: 700; }
   .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
     background: radial-gradient(ellipse at center, rgba(40,10,60,.35), rgba(10,4,20,.85)); touch-action: pan-y; }
   .panel { margin: auto; width: 100%; max-width: 600px; text-align: center; color: #f3eaff; background: rgba(30,14,52,.92);
@@ -77,36 +106,48 @@
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261009-1434">
+<link rel="stylesheet" href="common.css?v=20261009-1628">
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="topbar"></div>
 
 <div id="hud" class="hidden">
-  <div id="hudTL"><div id="hTime">0:00</div><div class="dim" id="hRings">💍 0 rings</div><div class="dim" id="hPlace"></div><div class="dim" id="hShield"></div></div>
+  <div id="hudTL"><div id="hTime">0:00</div><div class="dim" id="hRings">💍 0 rings</div><div class="dim" id="hHat"></div><div class="dim" id="hShield"></div></div>
+  <div id="raceBar"><span class="flag">🏁</span></div>
+  <div id="hudTR"><div id="hPlaceBig">6<small>th</small></div><div id="itemSlot" class="empty">ITEM</div></div>
+  <div id="magicBar"><span>✨</span><div class="track"><div id="magicFill"></div></div><span id="magicTxt">BOOST</span></div>
+  <div id="feed"></div>
   <div id="pumpkinBar"><span>🧹</span><div class="track"><div id="pumpkinFill"></div></div><span>🎃</span></div>
   <div id="banner" class="spooky hidden"></div>
   <div id="warn" class="hidden">⚡ LIGHTNING! CAST YOUR SHIELD! ⚡</div>
 </div>
-<button id="spellBtn" class="hidden"><span class="ico">🛡️</span>SHIELD</button>
+<div id="tbtns" class="hidden">
+  <button type="button" id="boostBtn" class="tbtn"><span class="ico">✨</span>BOOST</button>
+  <button type="button" id="itemBtn" class="tbtn"><span class="ico" id="itemIco">❔</span>ITEM</button>
+  <button type="button" id="hatBtn" class="tbtn"><span class="ico">🎩</span>HAT</button>
+  <button type="button" id="spellBtn" class="tbtn"><span class="ico">🛡️</span>SHIELD</button>
+</div>
 
 <div id="title" class="screen">
   <div class="panel">
     <h1>Witch Way Out</h1>
-    <div class="sub">🎃 The Great Pumpkin is coming! Fly with your witch friends and escape!</div>
+    <div class="sub">🏁 The great broomstick race! Beat the other witches to the moon… and stay ahead of the Great Pumpkin 🎃</div>
     <ol>
       <li><b>Fly your broomstick</b> anywhere:
         <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn, <kbd>↑</kbd> climb, <kbd>↓</kbd> dive.</span>
         <span class="touch-only">put your thumb down and drag to steer.</span></li>
-      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. Press <b>LB</b>/<b>RB</b> (or click the stick) to swing back behind you.</li>
-      <li><b>Fly through the glowing rings</b> for a speed boost.</li>
-      <li>In the storm, cast your <b>shield spell</b> (<span class="key-only"><kbd>Space</kbd></span><span class="touch-only">purple button</span>) when lightning is coming!</li>
-      <li>Swoop through a <b>backyard</b>, a <b>spooky graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
+      <li>🎩 <b>Throw your hat</b> (🎮 <b>Ⓧ</b><span class="key-only"> or <kbd>X</kbd></span><span class="touch-only">, 🎩 button</span>) at the witches ahead to bonk them off their brooms! It flies back to you like a boomerang.</li>
+      <li>✨ <b>Boost</b> with magic dust (🎮 <b>LT</b><span class="key-only">, <kbd>Z</kbd> or <kbd>Shift</kbd></span><span class="touch-only">, ✨ button</span>). The meter fills up again, faster through the glowing rings.</li>
+      <li>❔ <b>Grab the magic boxes</b> for a power-up, then use it (🎮 <b>Ⓑ</b> / <b>RB</b><span class="key-only">, <kbd>C</kbd></span>):
+        🍬 rocket · 🦇 bats chase the leader · 🧪 boost refill · 👻 ghost cloak · 🎩 triple hat · 🕸️ web trap.</li>
+      <li>🛡️ <b>Shield</b> (🎮 <b>Ⓐ</b><span class="key-only">, <kbd>Space</kbd></span>) blocks lightning in the storm and hats thrown at you.</li>
+      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. <b>LB</b> (or click a stick) swings back behind you.</li>
+      <li>Race through the sky, a storm, a <b>backyard</b>, a <b>graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
     </ol>
     <div class="camopts"><button type="button" id="btnPad">🎮 Controller &amp; camera settings</button></div>
     <div class="stats" id="titleBest"></div>
-    <button class="big-btn" id="btnPlay">🧹 Fly!</button>
+    <button class="big-btn" id="btnPlay">🏁 Race!</button>
   </div>
 </div>
 
@@ -114,13 +155,13 @@
   <div class="panel">
     <h1 id="overTitle">You Escaped!</h1>
     <div class="stats" id="overStats"></div>
-    <button class="big-btn" id="btnAgain">🧹 Fly Again</button>
+    <button class="big-btn" id="btnAgain">🏁 Race Again</button>
   </div>
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261009-1434"></script>
-<script src="touch-stick.js?v=20261009-1434"></script>
+<script src="common.js?v=20261009-1628"></script>
+<script src="touch-stick.js?v=20261009-1628"></script>
 <script>
 'use strict';
 
@@ -452,32 +493,41 @@ function makeWitch(robe, hat, hair) {
   bristles.position.z = 2.1;
   broom.add(bristles);
   g.add(broom);
+  // the rider is a group of her own, so a hat bonk can knock her off the broom (and climb back on)
+  const rider = new THREE.Group();
+  g.add(rider);
   const robeM = mat(robe);
   const body = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.3, 10), robeM);
   body.position.set(0, 0.7, 0.3);
-  g.add(body);
+  rider.add(body);
   const cape = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.4, 4, 4), new THREE.MeshStandardMaterial({ color: robe, side: THREE.DoubleSide }));
   cape.position.set(0, 0.8, 0.75);
   cape.rotation.x = -0.9;
-  g.add(cape);
+  rider.add(cape);
   const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 14, 10), mat('#ffd9b8'));
   head.position.set(0, 1.55, 0.15);
-  g.add(head);
+  rider.add(head);
   const hairM = new THREE.Mesh(new THREE.SphereGeometry(0.36, 12, 8, 0, TAU, 0, Math.PI * 0.6), mat(hair));
   hairM.position.copy(head.position); hairM.position.z += 0.06; hairM.rotation.x = 0.5;
-  g.add(hairM);
-  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.06, 18), mat(hat));
-  brim.position.set(0, 1.78, 0.15);
-  g.add(brim);
-  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.38, 1.1, 14), mat(hat));
-  cone.position.set(0, 2.3, 0.3);
+  rider.add(hairM);
+  const hatG = makeHat(hat);
+  hatG.position.set(0, 1.78, 0.15);
+  rider.add(hatG);
+  for (const ex of [-0.11, 0.11]) add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), glow('#1a1a2a')), ex, 1.6, -0.17, rider);
+  Object.assign(g.userData, { cape, rider, broom, hat: hatG, hatColor: hat });
+  return g;
+}
+// a pointy witch hat (brim at the origin): worn, or thrown like a boomerang
+function makeHat(color) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.06, 18), mat(color)));
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.38, 1.1, 14), mat(color));
+  cone.position.set(0, 0.52, 0.15);
   cone.rotation.x = 0.35;
   g.add(cone);
   const band = new THREE.Mesh(new THREE.CylinderGeometry(0.39, 0.39, 0.1, 14), glow('#ffb347'));
-  band.position.set(0, 1.86, 0.17);
+  band.position.set(0, 0.08, 0.02);
   g.add(band);
-  for (const ex of [-0.11, 0.11]) add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), glow('#1a1a2a')), ex, 1.6, -0.17, g);
-  g.userData.cape = cape;
   return g;
 }
 const WITCH_LOOKS = [
@@ -491,10 +541,13 @@ const WITCH_LOOKS = [
 const NAMES = ['You', 'Willow', 'Ember', 'Luna', 'Pip', 'Hazel'];
 const me = makeWitch(...WITCH_LOOKS[0]);
 scene.add(me);
+// the other racers: a little faster or slower each, and they keep the race close (see moveRivals)
+const RIVAL_SKILL = [31.8, 31.2, 30.6, 29.8, 28.4];
 const friends = WITCH_LOOKS.slice(1).map((look, i) => {
   const w = makeWitch(...look);
   scene.add(w);
-  return { mesh: w, z: -20 - i * 9, off: rand(-14, 14), offY: rand(-5, 5), speed: rand(29, 31.5), ph: Math.random() * TAU, name: NAMES[i + 1] };
+  return { mesh: w, z: -20 - i * 9, x: 0, y: 0, off: rand(-14, 14), offY: rand(-5, 5), v: 0, base: RIVAL_SKILL[i], ph: Math.random() * TAU,
+    name: NAMES[i + 1], color: look[0], knockT: 0, stuckT: 0, boostT: 0, nextBoost: 0, nextThrow: 0, finishT: 0 };
 });
 // a sparkly shield bubble
 const shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(2.4, 20, 14), new THREE.MeshBasicMaterial({ color: '#b47cff', transparent: true, opacity: 0.28, depthWrite: false }));
@@ -570,7 +623,146 @@ function sparkle(p, color = '#ffd27a') {
   sparkT = 0;
 }
 
+// ---------- The race: track markers, magic boxes, dust, hats and power-ups ----------
+const HAT_SPEED = 46, HAT_RANGE = 50, KNOCK = 2.4;
+const BOOST_DRAIN = 0.34, BOOST_FILL = 0.09;   // a full meter is about 3 seconds of boost
+const boxes = [], webs = [], projectiles = [];
+const ITEMS = {
+  rocket: { icon: '🍬', name: 'Candy Rocket', tip: 'Zoom!' },
+  bats: { icon: '🦇', name: 'Bat Swarm', tip: 'The bats chase the leader!' },
+  potion: { icon: '🧪', name: 'Magic Potion', tip: 'Boost meter full!' },
+  cloak: { icon: '👻', name: 'Ghost Cloak', tip: 'Nothing can touch you!' },
+  triple: { icon: '🎩', name: 'Triple Hat', tip: 'Three golden hats!' },
+  web: { icon: '🕸️', name: 'Web Trap', tip: 'A sticky web for the witches behind you' },
+};
+const ITEM_KEYS = Object.keys(ITEMS);
+// like a kart racer: the further back you are, the better the power-ups
+function rollItem(place) {
+  const pool = place <= 2 ? ['web', 'potion', 'web', 'cloak', 'potion', 'triple']
+    : place <= 4 ? ['triple', 'bats', 'potion', 'rocket', 'web', 'cloak']
+    : ['rocket', 'bats', 'triple', 'rocket', 'cloak', 'bats'];
+  return pool[Math.floor(Math.random() * pool.length)];
+}
+
+function buildRace() {
+  // the start: a floating banner between two big jack-o'-lanterns
+  const sz = -30, sx = lineX(sz), sy = lineY(sz);
+  const flag = canvasTex(512, 96, (g, w, h) => {
+    for (let x = 0; x < w; x += 24) for (let y = 0; y < h; y += 24) { g.fillStyle = (x + y) / 24 % 2 ? '#fff' : '#1a1030'; g.fillRect(x, y, 24, 24); }
+    g.fillStyle = 'rgba(30,14,52,.85)'; g.fillRect(90, 14, w - 180, h - 28);
+    g.font = 'bold 54px sans-serif'; g.fillStyle = '#ffb347'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('WITCH RACE', w / 2, h / 2 + 2);
+  });
+  const banner = new THREE.Mesh(new THREE.PlaneGeometry(36, 6.75), new THREE.MeshBasicMaterial({ map: flag, side: THREE.DoubleSide }));
+  add(banner, sx, sy + 9, sz);
+  const lantern = mat('#ff7a1f', { emissive: '#ff5a00', emissiveIntensity: 0.9 });
+  for (const side of [-1, 1]) add(new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 10), lantern), sx + side * 20, sy + 9, sz);
+  // glowing lanterns mark both edges of the racing line all the way to the moon
+  const lgeo = new THREE.SphereGeometry(0.8, 10, 8), lmat = [glow('#ffb347'), glow('#c89cff')];
+  for (let z = -90, k = 0; z > FINISH_Z + 40; z -= 70, k++) {
+    for (const side of [-1, 1]) {
+      const m = new THREE.Mesh(lgeo, lmat[k % 2]);
+      add(m, lineX(z) + side * 27, lineY(z) + 4, z);
+      animated.push(t => { m.position.y = lineY(z) + 4 + Math.sin(t * 2 + z) * 0.6; });
+    }
+  }
+  // spinning magic boxes, a row of four across the line
+  const tex = canvasTex(128, 128, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, w, h);
+    gr.addColorStop(0, '#ff7af5'); gr.addColorStop(0.5, '#b47cff'); gr.addColorStop(1, '#7af0ff');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    g.strokeStyle = '#fff'; g.lineWidth = 8; g.strokeRect(6, 6, w - 12, h - 12);
+    g.font = 'bold 86px sans-serif'; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', w / 2, h / 2 + 4);
+  });
+  const bmat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.92 }), bgeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
+  for (const z of [-160, -400, -620, -860, -1080, -1420, -1640, -1840, -2060, -2300, -2640, -2920]) {
+    for (const dx of [-13, -4.5, 4.5, 13]) {
+      const x = lineX(z) + dx, y = Math.max(lineY(z), groundAt(x, z) + 4), m = new THREE.Mesh(bgeo, bmat);
+      add(m, x, y, z);
+      boxes.push({ mesh: m, x, y, z, gone: 0 });
+    }
+  }
+}
+
+// magic dust: little coloured sparks that hang in the air behind a boosting broom
+const DUST_N = 1200, DUST_LIFE = 0.9;
+const dustPos = new Float32Array(DUST_N * 3), dustCol = new Float32Array(DUST_N * 3), dustBase = new Float32Array(DUST_N * 3), dustVel = new Float32Array(DUST_N * 3);
+const dustAge = new Float32Array(DUST_N).fill(9);
+const dustGeo = new THREE.BufferGeometry();
+dustGeo.setAttribute('position', new THREE.BufferAttribute(dustPos, 3));
+dustGeo.setAttribute('color', new THREE.BufferAttribute(dustCol, 3));
+const dustTex = canvasTex(64, 64, (g, w, h) => {   // a soft round twinkle
+  const gr = g.createRadialGradient(32, 32, 0, 32, 32, 32);
+  gr.addColorStop(0, '#fff'); gr.addColorStop(0.25, 'rgba(255,255,255,.8)'); gr.addColorStop(1, 'rgba(255,255,255,0)');
+  g.fillStyle = gr; g.fillRect(0, 0, w, h);
+});
+const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: 0.7, map: dustTex, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+dust.frustumCulled = false;
+scene.add(dust);
+let dustNext = 0;
+const DUST_COLORS = ['#ff7af5', '#ffd84a', '#7af0ff', '#b47cff', '#9aff7a', '#ffffff'].map(c => new THREE.Color(c));
+const ROCKET_COLORS = ['#ffb347', '#ff7a1f', '#ffe14a', '#ffffff'].map(c => new THREE.Color(c));
+function emitDust(p, n, spread = 1, colors = DUST_COLORS) {
+  for (let k = 0; k < n; k++) {
+    const i = dustNext; dustNext = (dustNext + 1) % DUST_N;
+    dustPos[i * 3] = p.x + rand(-0.3, 0.3) * spread; dustPos[i * 3 + 1] = p.y + rand(-0.3, 0.3) * spread; dustPos[i * 3 + 2] = p.z + rand(-0.3, 0.3);
+    dustVel[i * 3] = rand(-1.5, 1.5) * spread; dustVel[i * 3 + 1] = rand(-0.6, 1.6) * spread; dustVel[i * 3 + 2] = rand(-1, 1);
+    const c = colors[Math.floor(Math.random() * colors.length)];
+    dustBase[i * 3] = c.r; dustBase[i * 3 + 1] = c.g; dustBase[i * 3 + 2] = c.b;
+    dustAge[i] = 0;
+  }
+}
+function updateDust(dt) {
+  for (let i = 0; i < DUST_N; i++) {
+    if (dustAge[i] > DUST_LIFE) continue;
+    dustAge[i] += dt;
+    const f = Math.max(0, 1 - dustAge[i] / DUST_LIFE) * (0.75 + 0.25 * Math.sin(dustAge[i] * 40 + i));
+    for (let a = 0; a < 3; a++) { dustPos[i * 3 + a] += dustVel[i * 3 + a] * dt; dustCol[i * 3 + a] = dustBase[i * 3 + a] * f; }
+  }
+  dustGeo.attributes.position.needsUpdate = true;
+  dustGeo.attributes.color.needsUpdate = true;
+}
+const tailPos = (w, v = new THREE.Vector3()) => { w.updateMatrixWorld(); return w.localToWorld(v.set(0, 0, 2.6)); };
+
+// a ring that hovers over the witch your hat would fly to
+const lockMesh = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.15, 8, 28), new THREE.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.85, depthTest: false }));
+lockMesh.visible = false;
+scene.add(lockMesh);
+// a ghostly glow while the cloak is on
+const cloakMesh = new THREE.Mesh(new THREE.SphereGeometry(2.6, 20, 14), new THREE.MeshBasicMaterial({ color: '#e8f4ff', transparent: true, opacity: 0.2, depthWrite: false }));
+cloakMesh.visible = false;
+cloakMesh.position.y = 1;
+// a little cloud of bats
+function makeBats() {
+  const g = new THREE.Group(), wing = new THREE.MeshBasicMaterial({ color: '#2a1a3a', side: THREE.DoubleSide });
+  for (let k = 0; k < 6; k++) {
+    const b = new THREE.Group();
+    b.add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), wing));
+    for (const s of [-1, 1]) {
+      const w = new THREE.Mesh(new THREE.ConeGeometry(0.35, 1.1, 3), wing);
+      w.rotation.z = s * Math.PI / 2; w.position.x = s * 0.6; w.scale.z = 0.2;
+      b.add(w);
+    }
+    add(new THREE.Mesh(new THREE.SphereGeometry(0.07, 6, 4), glow('#ff3b1f')), 0.1, 0.08, 0.25, b);
+    b.position.set(rand(-1.6, 1.6), rand(-1, 1), rand(-1.2, 1.2));
+    g.add(b);
+  }
+  return g;
+}
+// a sticky web
+const webTex = canvasTex(256, 256, (g, w, h) => {
+  g.strokeStyle = 'rgba(255,255,255,.9)'; g.lineWidth = 4; g.translate(w / 2, h / 2);
+  for (let k = 0; k < 12; k++) { g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(k / 12 * TAU) * 124, Math.sin(k / 12 * TAU) * 124); g.stroke(); }
+  for (let r = 20; r < 124; r += 20) {
+    g.beginPath();
+    for (let k = 0; k <= 12; k++) { const a = k / 12 * TAU, rr = r - (k % 2) * 4; g.lineTo(Math.cos(a) * rr, Math.sin(a) * rr); }
+    g.stroke();
+  }
+});
+const webGeo = new THREE.PlaneGeometry(9, 9), webMat = new THREE.MeshBasicMaterial({ map: webTex, transparent: true, side: THREE.DoubleSide, depthWrite: false });
+
 buildCourse();
+buildRace();
+me.add(cloakMesh);
 
 // ---------- Spooky music ----------
 // A low drone, a creepy music-box tune in a minor key, a deep bell and the odd ghostly "wooo".
@@ -625,11 +817,26 @@ const sfx = {
   caught: () => { RB.beep(300, 60, 0.9, 'sawtooth', 0.12); RB.noise(0.6, 0.3); },
   win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => RB.beep(f, f, 0.25, 'triangle', 0.12, i * 0.12)),
   section: () => RB.beep(220, 110, 0.8, 'triangle', 0.1),
+  count: () => RB.beep(440, 440, 0.25, 'square', 0.08),
+  go: () => { RB.beep(880, 880, 0.5, 'square', 0.09); RB.beep(1320, 1320, 0.5, 'triangle', 0.06); },
+  throw: () => RB.beep(420, 980, 0.18, 'triangle', 0.09),
+  catchHat: () => RB.beep(1200, 1500, 0.08, 'sine', 0.07),
+  bonk: () => { RB.beep(620, 180, 0.22, 'square', 0.1); RB.beep(1500, 900, 0.3, 'sine', 0.06, 0.05); },
+  ouch: () => { RB.beep(300, 120, 0.3, 'square', 0.1); RB.noise(0.15, 0.15); },
+  boost: () => { RB.noise(0.45, 0.12); RB.beep(300, 1200, 0.45, 'sine', 0.07); },
+  box: () => [660, 880, 1100].forEach((f, i) => RB.beep(f, f * 1.2, 0.1, 'triangle', 0.07, i * 0.05)),
+  item: () => [520, 780, 1040, 1560].forEach((f, i) => RB.beep(f, f, 0.12, 'sine', 0.07, i * 0.06)),
+  roll: () => RB.beep(900, 900, 0.03, 'square', 0.03),
+  bats: () => [0, 0.1, 0.2, 0.3].forEach(d => RB.beep(2400, 1800, 0.06, 'sawtooth', 0.04, d)),
+  web: () => RB.beep(200, 400, 0.3, 'triangle', 0.08),
 };
 
 // ---------- Input ----------
 const keys = {};
-const KEYMAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd' };
+const KEYMAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', KeyZ: 'boost', ShiftLeft: 'boost', ShiftRight: 'boost' };
+// 🎮 this game's buttons: Ⓧ / Ⓨ throw the hat, LT boosts, Ⓑ / RB use a power-up, Ⓐ / RT shield (LB and the stick clicks swing the camera back)
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 1: 'KeyC', 2: 'KeyX', 3: 'KeyX', 5: 'KeyC', 6: 'KeyZ' },
+  '<b>Witch Way Out:</b> Ⓧ / Ⓨ 🎩 throw hat · <b>LT</b> ✨ boost · Ⓑ / <b>RB</b> ❔ use power-up · Ⓐ / <b>RT</b> 🛡️ shield · <b>LB</b> or click a stick: camera behind you');
 let state = 'title', paused = false;
 const stick = createTouchStick(canvas, { enabled: () => state === 'fly' && !paused });
 addEventListener('keydown', e => {
@@ -637,6 +844,8 @@ addEventListener('keydown', e => {
   if (e.repeat) return;
   if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
   if (e.code === 'Space') { e.preventDefault(); if (state === 'fly') castShield(); else if (state !== 'fly') startGame(); }
+  if (e.code === 'KeyX') throwHat();
+  if (e.code === 'KeyC') useItem();
   if (e.code === 'Enter' && state !== 'fly') startGame();
   if (e.code === 'KeyP' || e.code === 'Escape') pause();
   if (e.code === 'KeyM') RB.toggleMute();
@@ -662,6 +871,12 @@ canvas.addEventListener('pointerup', endDrag);
 canvas.addEventListener('pointercancel', endDrag);
 const spellBtn = document.getElementById('spellBtn');
 spellBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); castShield(); });
+const tapBtn = (id, fn) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
+tapBtn('hatBtn', () => throwHat());
+tapBtn('itemBtn', () => useItem());
+const boostBtn = document.getElementById('boostBtn');
+boostBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); keys.boost = true; try { boostBtn.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) boostBtn.addEventListener(ev, () => { keys.boost = false; });
 function pause() {
   if (paused || state !== 'fly') return;
   paused = true; stick.reset(); for (const k in keys) keys[k] = false;
@@ -682,12 +897,19 @@ let best = +(RB.store.get('ww_best') || 0);
 let introT = 0;   // a quick look back at the pumpkin when you take off
 let mercy = 0, mercySection = null;   // caught again in the same area? the pumpkin eases off a bit
 let stormTimer = 2, strike = null, boltLine = null, boltT = 0, flashT = 0, laughT = 0;
+// the race
+let countT = 0;                 // 3, 2, 1… GO!
+let magic = 1, boosting = false; // the boost meter (0–1) and whether you're boosting now
+let item = null, rollT = 0, rolled = null, rollTick = 0;   // your power-up, and the box "rolling" before you get it
+let rocketT = 0, cloakT = 0, bonkT = 0, place = 6, hatsHit = 0, finishOrder = [], feedT = 0;
+let bestPlace = +(RB.store.get('ww_place') || 0);
 
 function resetRun(fromZ = 0) {
   pos.set(lineX(fromZ), lineY(fromZ), fromZ);
   yaw = 0; pitch = 0; roll = 0; speed = SPEED; boost = 0; slowT = 0;
   pumpkinZ = fromZ + START_GAP + mercy * 25;
   shieldT = 0; shieldCool = 0; strike = null; warnMesh.visible = false;
+  rocketT = 0; bonkT = 0; boosting = false;
   section = sectionAt(pos.z);
 }
 
@@ -697,15 +919,110 @@ function startGame() {
   document.getElementById('title').classList.add('hidden');
   document.getElementById('over').classList.add('hidden');
   for (const r of rings) { r.got = false; r.mesh.visible = true; }
-  friends.forEach((f, i) => { f.z = -20 - i * 9; });
+  for (const b of boxes) { b.gone = 0; b.mesh.visible = true; }
+  for (const g of ghosts) { g.userData.goneT = 0; g.visible = true; }
+  // line up on the starting grid: two by two, with you at the back
+  friends.forEach((f, i) => {
+    f.z = -8 - Math.floor(i / 2) * 8; f.off = i === 4 ? 0 : i % 2 ? 7 : -7; f.offY = 0; f.v = 0;
+    f.knockT = f.stuckT = f.boostT = f.finishT = 0; f.nextBoost = rand(5, 11); f.nextThrow = rand(12, 18);
+    f.mesh.userData.hat.visible = true;
+  });
+  clearProjectiles();
+  for (const w of webs) scene.remove(w.mesh);
+  webs.length = 0;
   runT = 0; ringCount = 0; caughtCount = 0; mercy = 0; mercySection = null;
+  magic = 1; item = null; rollT = 0; cloakT = 0; hatsHit = 0; finishOrder = []; place = 6;
+  me.userData.hat.visible = true;
   resetRun(0);
   section = null;   // so the first area's name pops up
   state = 'fly';
-  introT = 2.6;
+  countT = 3; introT = 3;
   cam.yaw = cam.yawS = 0; cam.el = cam.elS = CAM.el0; cam.idle = 99; cam.dist = CAM.dist; cam.steerRef = null;
   setTimeout(sfx.laugh, 400);
-  showBanner('Here it comes!', 'Fly, fly, fly!', 2.4);
+  showBanner('3', 'Get ready to race!', 1.1);
+  sfx.count();
+}
+
+// ---- 🎩 your hat: thrown like a boomerang, it bonks the witch it flies into, then comes back to you
+function lockTarget(range = HAT_RANGE, cone = 0.55) {
+  let best = null, bestD = range;
+  for (const f of friends) {
+    if (f.knockT > 0 || f.finishT) continue;
+    tmp2.set(f.x - pos.x, f.y + 1 - pos.y, f.z - pos.z);
+    const d = tmp2.length();
+    if (d < bestD && d > 2 && tmp2.dot(dir) / d > Math.cos(cone)) { best = f; bestD = d; }
+  }
+  return best;
+}
+const tmp2 = new THREE.Vector3();
+function spawn(kind, from, vel, extra = {}) {
+  const mesh = kind === 'bats' ? makeBats() : makeHat(kind === 'gold' ? '#ffd84a' : extra.color || '#2a1a4a');
+  if (kind !== 'bats') mesh.scale.setScalar(1.6);
+  mesh.position.copy(from);
+  scene.add(mesh);
+  const h = { kind, mesh, vel: vel.clone(), t: 0, phase: 'out', target: null, ...extra };
+  projectiles.push(h);
+  return h;
+}
+function clearProjectiles() {
+  for (const h of projectiles) { scene.remove(h.mesh); if (h.owner) h.owner.mesh.userData.hat.visible = true; }
+  projectiles.length = 0;
+}
+function throwHat() {
+  if (state !== 'fly' || paused || countT > 0 || projectiles.some(h => h.kind === 'hat')) return;
+  me.userData.hat.visible = false;
+  const from = me.userData.hat.getWorldPosition(new THREE.Vector3());
+  spawn('hat', from, dir.clone().multiplyScalar(speed + HAT_SPEED), { target: lockTarget(), color: WITCH_LOOKS[0][1] });
+  sfx.throw();
+}
+function knock(f, how) {
+  if (f.knockT > 0) return;
+  f.knockT = KNOCK; f.boostT = 0;
+  if (how !== 'web') hatsHit++;
+  sfx.bonk();
+  sparkle(new THREE.Vector3(f.x, f.y + 1.2, f.z), how === 'bats' ? '#c89cff' : '#ffd84a');
+  feed(`${how === 'bats' ? '🦇' : '🎩'} BONK! ${f.name} fell off the broom!`);
+  if (RB.pad && RB.pad.rumble) RB.pad.rumble(120, 0.45);
+}
+function feed(text, time = 2.2) { const el = $('feed'); el.textContent = text; el.style.opacity = 1; feedT = time; }
+
+// ---- ❔ power-ups
+function useItem() {
+  if (state !== 'fly' || paused || countT > 0 || !item || rollT > 0) return;
+  const it = item;
+  item = null;
+  sfx.item();
+  feed(`${ITEMS[it].icon} ${ITEMS[it].name}! ${ITEMS[it].tip}`);
+  if (it === 'rocket') { rocketT = 2.4; sfx.boost(); }
+  else if (it === 'potion') { magic = 1; sparkle(pos.clone(), '#7af0ff'); }
+  else if (it === 'cloak') cloakT = 5;
+  else if (it === 'triple') {
+    const ahead = friends.filter(f => !f.knockT && !f.finishT && f.z < pos.z && pos.z - f.z < 160).sort((a, b) => b.z - a.z);
+    for (let k = 0; k < 3; k++) {
+      const v = dir.clone().multiplyScalar(speed + 50).add(new THREE.Vector3((k - 1) * 8, 2, 0));
+      spawn('gold', pos.clone().add(new THREE.Vector3(0, 2, 0)), v, { target: ahead[k] || null });
+    }
+    sfx.throw();
+  } else if (it === 'bats') {
+    // the leader, or if that's you, whoever is closest behind
+    const racing = friends.filter(f => !f.knockT && !f.finishT);
+    const lead = racing.sort((a, b) => a.z - b.z)[0];
+    const target = lead && lead.z < pos.z ? lead : racing.filter(f => f.z > pos.z).sort((a, b) => a.z - b.z)[0] || null;
+    spawn('bats', pos.clone().add(new THREE.Vector3(0, 3, 0)), dir.clone().multiplyScalar(speed + 30), { target });
+    sfx.bats();
+  } else if (it === 'web') {
+    const m = new THREE.Mesh(webGeo, webMat);
+    m.position.copy(pos).addScaledVector(dir, -5);
+    scene.add(m);
+    webs.push({ mesh: m, t: 30 });
+    sfx.web();
+  }
+}
+function pickBox(b) {
+  b.gone = 5; b.mesh.visible = false;
+  sparkle(b.mesh.position.clone(), '#ff7af5');
+  sfx.box();
+  if (!item && rollT <= 0) { rollT = 1.1; rolled = rollItem(place); }
 }
 
 function castShield() {
@@ -727,15 +1044,27 @@ function caught() {
 
 function finishRun() {
   state = 'over';
-  sfx.win();
-  const isBest = !best || runT < best;
+  keys.boost = false;
+  clearProjectiles();
+  lockMesh.visible = false;
+  const myPlace = finishOrder.length + 1;
+  place = myPlace;
+  if (myPlace <= 3) sfx.win(); else sfx.section();
+  const isBest = !best || runT < best, isBestPlace = !bestPlace || myPlace < bestPlace;
   if (isBest) { best = runT; RB.store.set('ww_best', best.toFixed(1)); }
-  document.getElementById('overTitle').textContent = 'You Escaped!';
-  document.getElementById('overStats').innerHTML =
-    `TIME <b>${fmt(runT)}</b><br>RINGS <b>${ringCount}</b> of ${rings.length}<br>CAUGHT <b>${caughtCount}</b> time${caughtCount === 1 ? '' : 's'}<br>` +
-    (isBest ? '🏆 <b>NEW BEST TIME!</b>' : `BEST <b>${fmt(best)}</b>`);
-  document.getElementById('over').classList.remove('hidden');
+  if (isBestPlace) { bestPlace = myPlace; RB.store.set('ww_place', myPlace); }
+  // everyone who got there first, you, then the rest in the order they're flying
+  const order = [...finishOrder.map(f => f.name), 'You', ...friends.filter(f => !f.finishT).sort((a, b) => a.z - b.z).map(f => f.name)];
+  const medal = ['🥇', '🥈', '🥉', '', '', ''];
+  $('overTitle').textContent = myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
+  $('overStats').innerHTML = `<ol class="podium">${order.map((n, i) => `<li class="${n === 'You' ? 'you' : ''}">${medal[i]} ${n}</li>`).join('')}</ol>` +
+    `TIME <b>${fmt(runT)}</b> · RINGS <b>${ringCount}</b> · BONKS <b>${hatsHit}</b><br>CAUGHT BY THE PUMPKIN <b>${caughtCount}</b> time${caughtCount === 1 ? '' : 's'}<br>` +
+    (isBestPlace && myPlace === 1 ? '🏆 <b>YOU WON THE RACE!</b>' : isBestPlace ? `🏆 <b>YOUR BEST PLACE YET!</b>` : `BEST <b>${ORD[bestPlace - 1]}</b> place`) +
+    (isBest ? ' · ⏱ <b>NEW BEST TIME!</b>' : '');
+  $('over').classList.remove('hidden');
+  showBestOnTitle();
 }
+const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th'];
 const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 const bannerEl = document.getElementById('banner');
@@ -750,11 +1079,19 @@ function update(dt) {
   for (const f of animated) f(clock);
   for (const g of ghosts) {
     const u = g.userData;
+    if (u.goneT > 0) { u.goneT -= dt; g.visible = u.goneT <= 0; }
     g.position.set(u.x0 + Math.sin(clock * 0.6 + u.ph) * 12, u.y0 + Math.sin(clock * 1.7 + u.ph) * 1.5, u.z);
     g.rotation.y = Math.PI + Math.sin(clock + u.ph) * 0.4;
   }
   for (const b of bulbs) b.scale.setScalar(0.85 + 0.3 * Math.abs(Math.sin(clock * 2 + b.position.x * 0.7)));
   for (const r of rings) r.mesh.rotation.z = clock * 0.6;
+  for (const b of boxes) {
+    b.mesh.rotation.set(0.4, clock * 1.4 + b.x, 0);
+    b.mesh.position.y = b.y + Math.sin(clock * 2 + b.x) * 0.4;
+    if (b.gone > 0 && (b.gone -= dt) <= 0) b.mesh.visible = true;
+  }
+  if (feedT > 0 && (feedT -= dt) <= 0) $('feed').style.opacity = 0;
+  updateDust(dt);
   if (bannerT > 0 && (bannerT -= dt) <= 0) bannerEl.classList.add('hidden');
   flashT = Math.max(0, flashT - dt);
 
@@ -764,11 +1101,29 @@ function update(dt) {
     pos.x = lineX(pos.z); pos.y = lineY(pos.z);
     yaw = 0; pitch = 0;
     pumpkinZ = pos.z + 40;
-    placeFlock(dt, 12);
+    moveRivals(dt, 12);
+    return;
+  }
+  if (countT > 0) {   // 3, 2, 1… everyone waits on the starting line
+    const was = Math.ceil(countT);
+    countT -= dt; introT = Math.max(0, introT - dt);
+    if (countT <= 0) {
+      countT = 0; showBanner('GO!', 'Race to the moon! 🌕', 1.2); sfx.go();
+      if (RB.pad && RB.pad.rumble) RB.pad.rumble(200, 0.5);
+    } else if (Math.ceil(countT) !== was) { showBanner(String(Math.ceil(countT)), 'Get ready to race!', 1.1); sfx.count(); }
+    pumpkinZ = pos.z + START_GAP;
+    moveRivals(dt, null);
     return;
   }
   runT += dt;
   if (introT > 0) introT -= dt;
+  cloakT = Math.max(0, cloakT - dt); bonkT = Math.max(0, bonkT - dt);
+  if (rollT > 0) {   // the box is "rolling" through power-ups…
+    rollT -= dt;
+    if ((rollTick -= dt) <= 0) { sfx.roll(); rollTick = 0.09; }
+    if (rollT <= 0) { item = rolled; sfx.item(); feed(`${ITEMS[item].icon} ${ITEMS[item].name}! Use it with ${RB.pad && RB.pad.connected ? 'Ⓑ' : RB.touch ? 'the ITEM button' : 'C'}`); }
+  }
+  const tough = cloakT > 0 || rocketT > 0;   // nothing slows you down
 
   // --- flying
   const sx = steerInput(), sy = climbInput();
@@ -781,8 +1136,15 @@ function update(dt) {
   yaw -= sx * 1.5 * dt * clamp(Math.cos(cam.steerRef === null ? cam.yawS : cam.steerRef) * 1.6, -1, 1);
   if (!sx) yaw += (0 - yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
   pitch += (sy * 0.65 - pitch) * Math.min(1, dt * 3);
-  roll += (sx * 0.6 - roll) * Math.min(1, dt * 5);
+  roll += (sx * 0.6 - roll) * Math.min(1, dt * 5) + (bonkT > 0 ? Math.sin(bonkT * 30) * 0.15 : 0);
   boost = Math.max(0, boost - dt * 6);
+  // ✨ boost: hold LT (or Z / Shift) to spend the magic meter, leaving a trail of magic dust
+  const wasBoosting = boosting;
+  boosting = !!keys.boost && magic > (boosting ? 0 : 0.08);
+  if (boosting) { magic = Math.max(0, magic - dt * BOOST_DRAIN); boost = Math.max(boost, BOOST); if (!wasBoosting) sfx.boost(); }
+  else magic = Math.min(1, magic + dt * BOOST_FILL);
+  if (rocketT > 0) { rocketT -= dt; boost = Math.max(boost, 24); }
+  if (boosting || rocketT > 0) emitDust(tailPos(me), Math.ceil(dt * 140), 1, rocketT > 0 ? ROCKET_COLORS : DUST_COLORS);
   slowT = Math.max(0, slowT - dt);
   const target = (slowT > 0 ? SPEED * 0.45 : SPEED) + boost;
   speed += (target - speed) * Math.min(1, dt * 3);
@@ -819,12 +1181,12 @@ function update(dt) {
     if (r.got) continue;
     if (Math.abs(pos.z - r.z) < 1.6 && Math.hypot(pos.x - r.x, pos.y - r.y) < r.r) {
       r.got = true; r.mesh.visible = false; ringCount++;
-      boost = BOOST; sfx.ring(); sparkle(pos);
+      boost = BOOST; magic = Math.min(1, magic + 0.3); sfx.ring(); sparkle(pos);
     }
   }
 
   // --- bumping into things
-  if (slowT <= 0) for (const c of colliders) {
+  if (slowT <= 0 && !tough) for (const c of colliders) {
     if (Math.abs(c.z - pos.z) > c.r + 2) continue;
     const d = Math.hypot(pos.x - c.x, pos.y - c.y, pos.z - c.z);
     if (d < c.r + 0.8) {
@@ -835,7 +1197,7 @@ function update(dt) {
     }
   }
   for (const g of ghosts) {
-    if (slowT <= 0 && g.position.distanceTo(pos) < 3) { slowT = 0.9; sfx.bump(); RB.beep(600, 300, 0.4, 'sine', 0.08); }
+    if (slowT <= 0 && !tough && g.visible && g.position.distanceTo(pos) < 3) { slowT = 0.9; sfx.bump(); RB.beep(600, 300, 0.4, 'sine', 0.08); }
   }
 
   // --- the storm: a warning glow, then lightning strikes there
@@ -860,41 +1222,166 @@ function update(dt) {
       boltLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), boltMat);
       scene.add(boltLine); boltT = 0.25;
       if (strike.p.distanceTo(pos) < 12) {
-        if (shieldT > 0) { sparkle(pos, '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); }
+        if (shieldT > 0 || cloakT > 0) { sparkle(pos, '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); }
         else { slowT = 1.3; sfx.zap(); if (navigator.vibrate) navigator.vibrate(150); }
       }
       strike = null; warnMesh.visible = false; stormTimer = rand(1.2, 2.4) * (1 + mercy * 0.6);
     }
   } else if (strike) { strike = null; warnMesh.visible = false; }
   if (boltLine && (boltT -= dt) <= 0) { scene.remove(boltLine); boltLine = null; }
-  document.getElementById('warn').classList.toggle('hidden', !(strike && strike.p.distanceTo(pos) < 30 && shieldT <= 0));
+  const hatComing = projectiles.some(h => h.kind === 'rival' && h.mesh.position.distanceTo(pos) < 22);
+  document.getElementById('warn').classList.toggle('hidden', !((strike && strike.p.distanceTo(pos) < 30 || hatComing) && shieldT <= 0 && cloakT <= 0));
   warnMesh.material.opacity = strike ? 0.1 + 0.15 * Math.abs(Math.sin(clock * 10)) : 0;
 
   // --- the pumpkin closes in when you slow down, and never falls too far behind
   const gap = pumpkinZ - pos.z;
   const ps = gap > MAX_GAP ? 36 : PUMPKIN_SPEED;
   pumpkinZ -= ps * dt;
+  if (cloakT > 0) pumpkinZ = Math.max(pumpkinZ, pos.z + CATCH_GAP + 2);   // the cloak hides you from the pumpkin too
   if (pumpkinZ - pos.z < CATCH_GAP) caught();
   if (gap < 50 && (laughT -= dt) <= 0) { sfx.laugh(); laughT = 4; }
 
   if (pos.z <= FINISH_Z && Math.hypot(pos.x - lineX(FINISH_Z), pos.y - 60) < 30) finishRun();
   else if (pos.z < FINISH_Z - 60) finishRun();
 
-  placeFlock(dt, null);
+  // --- the race: magic boxes, webs, hats and power-ups in flight, and where you are
+  for (const b of boxes) if (!b.gone && Math.abs(b.z - pos.z) < 3 && Math.hypot(b.x - pos.x, b.mesh.position.y - pos.y) < 4) pickBox(b);
+  for (let i = webs.length - 1; i >= 0; i--) {
+    const w = webs[i];
+    w.mesh.rotation.z += dt * 0.5;
+    w.mesh.position.x += (lineX(w.mesh.position.z) - w.mesh.position.x) * Math.min(1, dt * 0.4);   // drifts onto the racing line
+    const hit = friends.find(f => !f.knockT && !f.stuckT && Math.abs(f.z - w.mesh.position.z) < 2.5 && Math.hypot(f.x - w.mesh.position.x, f.y - w.mesh.position.y) < 9);
+    if (hit) { hit.stuckT = 1.8; sfx.web(); feed(`🕸️ ${hit.name} got stuck in your web!`); }
+    if (hit || (w.t -= dt) <= 0) { scene.remove(w.mesh); webs.splice(i, 1); }
+  }
+  updateProjectiles(dt);
+  place = 1 + friends.filter(f => f.finishT || f.z < pos.z).length;
+  const lock = projectiles.some(h => h.kind === 'hat') ? null : lockTarget();
+  lockMesh.visible = !!lock;
+  if (lock) { lockMesh.position.set(lock.x, lock.y + 3.6, lock.z); lockMesh.rotation.set(0, clock * 3, 0); lockMesh.lookAt(camera.position); }
+
+  moveRivals(dt, null);
   music.setWind(Math.min(0.12, speed / 400));
 }
 
-// the other witches fly the friendly line ahead of the pumpkin, weaving a little
-function placeFlock(dt, fixedSpeed) {
+// The other witches race the friendly line. They're a little faster or slower each, boost now and then,
+// grab magic boxes and throw their hats at you if you're just ahead. The race stays close: a witch far ahead
+// eases off a little and one far behind catches up.
+const tailV = new THREE.Vector3();
+function moveRivals(dt, fixedSpeed) {
+  const racing = state === 'fly' && countT <= 0 && !fixedSpeed;
   for (const f of friends) {
-    const sp = fixedSpeed || f.speed + Math.sin(clock * 0.3 + f.ph) * 2;
-    f.z -= sp * dt;
-    if (fixedSpeed && f.z < pos.z - 60) f.z = pos.z + rand(10, 40);
-    if (f.z < FINISH_Z - 200) f.z = FINISH_Z - 200;
-    const x = lineX(f.z) + f.off + Math.sin(clock * 0.8 + f.ph) * 5, y = Math.max(groundAt(x, f.z) + 3, lineY(f.z) + f.offY + Math.sin(clock * 1.1 + f.ph) * 2);
-    f.mesh.position.set(x, y, f.z);
+    const u = f.mesh.userData;
+    if (fixedSpeed) {   // the title screen: drift along with you
+      f.z -= fixedSpeed * dt;
+      if (f.z < pos.z - 60) f.z = pos.z + rand(10, 40);
+      f.knockT = f.stuckT = f.boostT = 0;
+    } else if (racing) {
+      const rel = f.z - pos.z;   // below 0: ahead of you
+      let sp = f.base + Math.sin(clock * 0.3 + f.ph) * 1.2;
+      if (rel < -90) sp -= 6; else if (rel < -40) sp -= 3;
+      if (rel > 25) sp += 4;
+      if (rel > 70) sp += 7;
+      if (f.finishT) sp = 14;
+      else if ((f.nextBoost -= dt) <= 0) { f.boostT = 1.5; f.nextBoost = rand(7, 13); }
+      if (f.boostT > 0) { f.boostT -= dt; sp += 9; emitDust(tailPos(f.mesh, tailV), Math.ceil(dt * 90)); }
+      if (f.stuckT > 0) { f.stuckT -= dt; sp = 7; }
+      if (f.knockT > 0) { f.knockT -= dt; sp = 5; }
+      f.v += (sp - f.v) * Math.min(1, dt * 2);
+      f.z -= f.v * dt;
+      if (!f.finishT && f.z <= FINISH_Z) { f.finishT = runT; finishOrder.push(f); }
+      if (f.z < FINISH_Z - 220) f.z = FINISH_Z - 220;
+      for (const b of boxes) if (!b.gone && Math.abs(b.z - f.z) < 2.5 && Math.hypot(b.x - f.x, b.mesh.position.y - f.y) < 3.2) { b.gone = 5; b.mesh.visible = false; f.boostT = 1.5; }
+      // a hat thrown back at you: only from just behind, one at a time, never in the storm or with the pumpkin close
+      if ((f.nextThrow -= dt) <= 0) {
+        f.nextThrow = rand(9, 15);
+        if (!f.knockT && !f.finishT && rel > 4 && rel < 30 && runT > 12 && section && section.id !== 'storm' &&
+          pumpkinZ - pos.z > 45 && !projectiles.some(h => h.kind === 'rival')) {
+          u.hat.visible = false;
+          const from = u.hat.getWorldPosition(new THREE.Vector3());
+          spawn('rival', from, new THREE.Vector3(0, 2, -(f.v + 14)), { owner: f, color: u.hatColor });
+          sfx.throw();
+        }
+      }
+    }
+    const spread = state === 'fly' && countT > 0 ? 0 : 1;
+    f.x = lineX(f.z) + f.off + spread * Math.sin(clock * 0.35 + f.ph) * 9;
+    f.y = Math.max(groundAt(f.x, f.z) + 3, lineY(f.z) + f.offY + spread * Math.sin(clock * 1.1 + f.ph) * 2);
+    f.mesh.position.set(f.x, f.y, f.z);
     f.mesh.rotation.set(0, 0, Math.sin(clock * 0.8 + f.ph) * 0.25);
-    f.mesh.userData.cape.rotation.x = -0.9 + Math.sin(clock * 10 + f.ph) * 0.15;
+    u.cape.rotation.x = -0.9 + Math.sin(clock * 10 + f.ph) * 0.15;
+    // bonked: she tumbles off, the broom spins, then she floats back up and climbs on
+    const t = KNOCK - f.knockT;
+    if (f.knockT > 0 && t < 1.3) {
+      u.rider.position.set(0, -4.5 * t * t, t * 2);
+      u.rider.rotation.set(t * 7, 0, t * 3);
+      u.broom.rotation.set(0, t * 9, 0);
+    } else if (f.knockT > 0) {
+      const k = (t - 1.3) / (KNOCK - 1.3), e = 1 - k * k;
+      u.rider.position.set(0, -4.5 * 1.69 * e, 2.6 * e);
+      u.rider.rotation.set(1.3 * 7 * e % TAU, 0, 0);
+      u.broom.rotation.set(0, 0, Math.sin(t * 12) * 0.3 * e);
+    } else {
+      u.rider.position.set(0, 0, 0); u.rider.rotation.set(0, 0, 0); u.broom.rotation.set(0, 0, 0);
+    }
+    if (f.stuckT > 0) f.mesh.rotation.z = Math.sin(clock * 20) * 0.2;
+  }
+}
+
+// hats, golden hats, bats and the rivals' hats, all flying at once
+const want = new THREE.Vector3(), hatHome = new THREE.Vector3();
+function updateProjectiles(dt) {
+  for (let i = projectiles.length - 1; i >= 0; i--) {
+    const h = projectiles[i], m = h.mesh;
+    h.t += dt;
+    let done = false;
+    const aim = (f, extra) => want.set(f.x, f.y + 1.2, f.z).sub(m.position).normalize().multiplyScalar(f.v + extra);
+    if (h.kind === 'hat') {
+      me.userData.hat.getWorldPosition(hatHome);
+      if (h.phase === 'out') {
+        if (h.target && !h.target.knockT) h.vel.lerp(aim(h.target, HAT_SPEED), Math.min(1, dt * 10));
+        else h.vel.lerp(want.copy(dir).multiplyScalar(speed), Math.min(1, dt * 4));   // slows to a hover just ahead
+        if (h.t > (h.target ? 1.5 : 0.6)) { h.phase = 'hover'; h.t = 0; }
+      } else if (h.phase === 'hover') {
+        h.vel.copy(dir).multiplyScalar(speed);
+        if (h.t > 0.18) h.phase = 'back';
+      } else {
+        h.vel.copy(hatHome).sub(m.position).normalize().multiplyScalar(speed + 55);
+        if (m.position.distanceTo(hatHome) < 2.2 || h.t > 4) { done = true; me.userData.hat.visible = true; sfx.catchHat(); }
+      }
+      if (h.phase !== 'back') {
+        for (const f of friends) if (!f.knockT && m.position.distanceTo(want.set(f.x, f.y + 1.2, f.z)) < 2.8) { knock(f, 'hat'); h.phase = 'back'; h.t = 0; }
+      }
+      // like a boomerang it also grabs rings and boxes and spooks ghosts away
+      for (const r of rings) if (!r.got && Math.abs(r.z - m.position.z) < 2 && Math.hypot(r.x - m.position.x, r.y - m.position.y) < r.r) {
+        r.got = true; r.mesh.visible = false; ringCount++; boost = BOOST; magic = Math.min(1, magic + 0.3); sfx.ring();
+      }
+      for (const b of boxes) if (!b.gone && m.position.distanceTo(b.mesh.position) < 2.8) pickBox(b);
+      for (const g of ghosts) if (g.visible && m.position.distanceTo(g.position) < 3) { g.userData.goneT = 8; g.visible = false; sparkle(g.position.clone(), '#e8f4ff'); RB.beep(700, 1400, 0.3, 'sine', 0.07); }
+      emitDust(m.position, 1, 0.6, [DUST_COLORS[3], DUST_COLORS[5]]);
+    } else if (h.kind === 'gold' || h.kind === 'bats') {
+      const f = h.target;
+      if (f && !f.knockT) h.vel.lerp(aim(f, h.kind === 'gold' ? 55 : 40), Math.min(1, dt * (h.kind === 'gold' ? 6 : 3)));
+      if (f && !f.knockT && m.position.distanceTo(want.set(f.x, f.y + 1.2, f.z)) < 3) { knock(f, h.kind === 'bats' ? 'bats' : 'hat'); done = true; }
+      if (h.t > (h.kind === 'gold' ? 3 : 7) || (f && f.knockT && !done)) done = true;
+      if (h.kind === 'gold') emitDust(m.position, 1, 0.5, ROCKET_COLORS);
+      else m.children.forEach((b, k) => { b.scale.x = 0.6 + 0.4 * Math.abs(Math.sin(clock * 25 + k)); b.position.y += Math.sin(clock * 9 + k) * dt * 2; });
+    } else {   // a rival's hat, coming for you
+      h.vel.lerp(want.copy(pos).add(new THREE.Vector3(0, 1, 0)).sub(m.position).normalize().multiplyScalar(speed + 16), Math.min(1, dt * 3));
+      if (m.position.distanceTo(want.copy(pos).add(new THREE.Vector3(0, 1, 0))) < 2.3) {
+        done = true;
+        if (shieldT > 0 || cloakT > 0) { sparkle(pos.clone(), '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); feed(`🛡️ Blocked ${h.owner.name}'s hat!`); }
+        else { slowT = 0.9; bonkT = 0.6; sfx.ouch(); feed(`💫 Bonk! ${h.owner.name}'s hat got you!`); if (RB.pad && RB.pad.rumble) RB.pad.rumble(160, 0.7); }
+      }
+      if (h.t > 3.5) done = true;
+    }
+    if (h.kind !== 'bats') m.rotation.y += dt * 16;
+    else m.lookAt(want.copy(m.position).add(h.vel));
+    m.position.addScaledVector(h.vel, dt);
+    if (done) {
+      scene.remove(m); projectiles.splice(i, 1);
+      if (h.owner) h.owner.mesh.userData.hat.visible = true;
+    }
   }
 }
 
@@ -902,11 +1389,11 @@ function placeFlock(dt, fixedSpeed) {
 // An orbit camera, tuned after Super Mario Odyssey and camera-design best practice:
 // - the right stick (or Q/E, or a drag) swings it all the way around the witch; up and down are slower,
 //   stop short of straight overhead / underneath, and ease off near the limits instead of hitting a wall
-// - LB / RB (like Odyssey's L and R), clicking a stick, or R swings it back behind her in a quick, smooth move
+// - LB (like Odyssey's L), clicking a stick, or R swings it back behind her in a quick, smooth move (RB uses a power-up)
 // - after 1.5 s without camera input it springs back behind her, leading a little into her turns
 //   (it never moves on its own while you're holding the stick)
 // - it pulls in close when a tree, gate, crypt or the cliff gets between it and her, then eases back out
-// - a ring boost pulls it back a touch and widens the view, slowly, for a sense of speed
+// - a boost (rings, LT, the candy rocket) pulls it back a touch and widens the view, slowly, for a sense of speed
 // - invert up/down / left-right and camera speed: in the 🎮 controller settings (title screen and pause menu)
 const CAM = { dist: 11, el0: 0.33, minEl: -0.17, maxEl: 1.05, turn: 2.8, tilt: 1.3, idleBack: 1.5, lead: 0.22 };
 // Invert and camera speed live in the shared 🎮 controller settings (common.js applies the stick inversion).
@@ -925,7 +1412,7 @@ function cameraInput(dt, sx) {
     cam.el = clamp(cam.el + softTilt(cam.el, ly * CAM.tilt * sp * dt), CAM.minEl, CAM.maxEl);   // push up: look up from lower down
     cam.idle = 0;
   } else if (!cam.drag) cam.idle += dt;
-  if ((pad.pressed && [4, 5, 10, 11].some(i => pad.pressed(i))) || cam.snap) { cam.yaw = 0; cam.el = CAM.el0; cam.idle = 99; cam.snap = false; }
+  if ((pad.pressed && [4, 10, 11].some(i => pad.pressed(i))) || cam.snap) { cam.yaw = 0; cam.el = CAM.el0; cam.idle = 99; cam.snap = false; }
   cam.yaw = wrapAngle(cam.yaw);
   if (cam.idle > CAM.idleBack) {   // a soft spring back behind her, the short way round, leading into turns
     const k = 1 - Math.exp(-dt / 0.6);
@@ -963,6 +1450,9 @@ function updateVisuals(dt) {
   me.rotateX(pitch);
   me.rotateZ(roll);
   me.userData.cape.rotation.x = -0.9 + Math.sin(clock * 12) * 0.2;
+  cloakMesh.visible = cloakT > 0;
+  cloakMesh.material.opacity = 0.14 + 0.08 * Math.sin(clock * 8);
+  me.userData.rider.visible = !(cloakT > 0 && cloakT < 1.2 && Math.sin(clock * 30) > 0);   // flickers as the cloak wears off
   // pumpkin: follows your line from behind, bobbing and turning to face you
   const py = Math.max(10, pos.y + Math.sin(clock * 1.3) * 2);
   pumpkin.position.lerp(tmp.set(pos.x * 0.8, py, pumpkinZ), Math.min(1, dt * 2));
@@ -1030,12 +1520,34 @@ const $ = id => document.getElementById(id);
 function updateHUD() {
   const fly = state === 'fly';
   $('hud').classList.toggle('hidden', !fly);
-  spellBtn.classList.toggle('hidden', !(fly && RB.touch));
+  $('tbtns').classList.toggle('hidden', !(fly && RB.touch));
   if (!fly) return;
   $('hTime').textContent = `⏱ ${fmt(runT)}`;
-  $('hRings').textContent = `💍 ${ringCount} rings`;
-  const ahead = friends.filter(f => f.z < pos.z).length;
-  $('hPlace').textContent = `🧹 ${['1st', '2nd', '3rd', '4th', '5th', '6th'][ahead]} of 6 witches`;
+  $('hRings').textContent = `💍 ${ringCount} ring${ringCount === 1 ? '' : 's'}`;
+  const hatOut = projectiles.some(h => h.kind === 'hat');
+  $('hHat').textContent = hatOut ? '🎩 Hat flying!' : lockMesh.visible ? '🎩 Throw! A witch is in range' : '🎩 Hat ready';
+  $('hatBtn').classList.toggle('cool', hatOut);
+  $('hPlaceBig').innerHTML = `${place}<small>${ORD[place - 1].slice(-2)}</small>`;
+  const slot = $('itemSlot'), show = rollT > 0 ? ITEMS[ITEM_KEYS[Math.floor(clock * 12) % ITEM_KEYS.length]].icon : item ? ITEMS[item].icon : '';
+  if (slot.textContent !== (show || 'ITEM')) slot.textContent = show || 'ITEM';
+  slot.className = rollT > 0 ? 'rolling' : item ? '' : 'empty';
+  $('itemIco').textContent = show || '❔';
+  $('itemBtn').classList.toggle('cool', !item);
+  $('magicFill').style.width = `${Math.round(magic * 100)}%`;
+  $('magicBar').classList.toggle('on', boosting);
+  $('magicTxt').textContent = rocketT > 0 ? '🍬 ROCKET!' : cloakT > 0 ? '👻 CLOAK' : boosting ? 'ZOOM!' : 'BOOST';
+  $('boostBtn').classList.toggle('cool', magic < 0.08);
+  // everyone's progress along the course
+  const bar = $('raceBar');
+  if (!bar.dots) {
+    bar.dots = [...WITCH_LOOKS.map((l, i) => { const d = document.createElement('div'); d.className = 'dot' + (i ? '' : ' me'); d.style.background = l[0]; bar.appendChild(d); return d; })];
+    bar.pk = document.createElement('div'); bar.pk.className = 'dot pk'; bar.appendChild(bar.pk);
+  }
+  const at = z => `${clamp(z / FINISH_Z, 0, 1) * 100}%`;
+  bar.dots[0].style.left = at(pos.z);
+  friends.forEach((f, i) => { bar.dots[i + 1].style.left = at(f.z); });
+  bar.pk.style.left = at(pumpkinZ);
+  $('warn').textContent = strike ? '⚡ LIGHTNING! CAST YOUR SHIELD! ⚡' : '🎩 A HAT IS COMING! SHIELD! 🛡️';
   $('hShield').textContent = shieldT > 0 ? '🛡️ Shield on!' : shieldCool > 0 ? `🛡️ ready in ${Math.ceil(shieldCool)}` : '🛡️ Shield ready';
   spellBtn.classList.toggle('cool', shieldCool > 0 && shieldT <= 0);
   const gap = pumpkinZ - pos.z;
@@ -1046,7 +1558,13 @@ function updateHUD() {
 $('btnPlay').addEventListener('click', startGame);
 $('btnPad').addEventListener('click', () => RB.controllerScreen());
 $('btnAgain').addEventListener('click', startGame);
-if (best) $('titleBest').innerHTML = `🏆 Best time <b>${fmt(best)}</b>`;
+function showBestOnTitle() {
+  const bits = [];
+  if (bestPlace) bits.push(`🏆 Best place <b>${ORD[bestPlace - 1]}</b>`);
+  if (best) bits.push(`⏱ Best time <b>${fmt(best)}</b>`);
+  $('titleBest').innerHTML = bits.join(' · ');
+}
+showBestOnTitle();
 resetRun(0);
 
 // ---------- Loop ----------

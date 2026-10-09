@@ -148,14 +148,15 @@ const RB = (() => {
 
   // ---------- Game controllers (Xbox and other standard gamepads) ----------
   // During play the controller presses the game's own keys, so every game works without changes:
-  //   left stick / D-pad → arrow keys, Ⓐ or RT → Space, Ⓑ or LT → X, Ⓧ → Space, Ⓨ → H,
+  //   left stick / D-pad → arrow keys, Ⓐ or RT → Space, Ⓑ or LT → X, Ⓧ → Space, Ⓨ → H (a game can change these: setButtons),
   //   ☰ Menu → P (pause), ⧉ View → M (sound).
   // Games with a touch joystick (touch-stick.js) also get the left stick as a smooth analog stick.
   // When a menu, pop-up or page of buttons is showing, the D-pad / stick moves a yellow highlight
   // between buttons, Ⓐ presses the highlighted one and Ⓑ is Escape (back).
   const pad = (() => {
-    const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
+    const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', KeyZ: 'z', KeyC: 'c', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
     const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+    let map = BUTTONS, legend = '';   // a game can give the buttons its own jobs (setButtons)
     const sticks = [];
     // Controller settings, shared by every game (saved as rb_pad): invert each stick's axes,
     // camera speed, how big the stick dead zone is, and vibration.
@@ -348,7 +349,7 @@ const RB = (() => {
           st.stick.x = lx; st.stick.y = ly; st.stick.active = st.driving;
         }
         const want = {};
-        for (const i in BUTTONS) if (btn[i] && !ignore[i]) want[BUTTONS[i]] = true;
+        for (const i in map) if (map[i] && btn[i] && !ignore[i]) want[map[i]] = true;
         if (!st) {
           const on = (v, was) => was ? v > 0.3 : v > 0.5;   // a little stickiness so it doesn't flicker
           if (on(-ly, held.ArrowUp)) want.ArrowUp = true;
@@ -372,6 +373,10 @@ const RB = (() => {
     return {
       // touch-stick.js registers each joystick so the left stick can drive it smoothly
       addStick(stick, enabled) { sticks.push({ stick, enabled, driving: false }); },
+      // e.g. setButtons({ 2: 'KeyX', 6: 'KeyZ' }, 'Ⓧ throw · LT boost'): those buttons press these keys in this game
+      // (null leaves a button doing nothing); the legend is shown on the controller screen
+      setButtons(m, text = '') { map = { ...BUTTONS, ...m }; legend = text; },
+      get legend() { return legend; },
       rumble(ms, strength = 0.6) {
         if (!cfg.rumble) return;
         for (const g of pads()) {
@@ -418,6 +423,7 @@ const RB = (() => {
         ${B(8, 178, 105, 12, '⧉')}${B(9, 242, 105, 12, '☰')}
         ${B(3, 320, 88, 15, 'Y', 'y')}${B(2, 292, 116, 15, 'X', 'x')}${B(1, 348, 116, 15, 'B', 'bb')}${B(0, 320, 144, 15, 'A', 'a')}
       </svg>
+      ${pad.legend ? `<div class="pad-legend">${pad.legend}</div>` : ''}
       <div class="pad-nums" id="padNums"></div>
       <div class="pad-test" id="padTest">✋ <b>Testing:</b> press every button and move both sticks. <b>Hold Ⓑ</b> to finish testing.
         <div class="hold"><div id="padHold"></div></div></div>
@@ -525,6 +531,7 @@ const RB = (() => {
       .pad-svg .b.on text, .pad-svg .trig.on text { fill: #0b2a5c; }
       .pad-svg .knob circle { fill: #8a92a8; }
       .pad-svg .trig .fill { fill: #ffd84a; stroke: none; }
+      .pad-legend { margin: 2px 0 8px; padding: 6px 10px; border-radius: 10px; font-size: 14px; line-height: 1.5; background: #fff6d6; color: #3a2a0a; }
       .pad-nums { font-size: 14px; color: #3a4a6a; }
       .pad-nums .raw span { display: inline-block; min-width: 18px; margin: 3px 1px; padding: 1px 3px; border-radius: 5px; background: #e6ebf5; font-size: 12px; }
       .pad-nums .raw span.on { background: #ffd84a; }
