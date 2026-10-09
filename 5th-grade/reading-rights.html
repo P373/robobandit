@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Esperanza & Human Rights | RoboBandit 5th Grade</title>
+<meta name="description" content="5th grade reading and civics: Esperanza Rising, the Universal Declaration of Human Rights, work rights (safe conditions and fair pay) and an existence worthy of human dignity. Lessons, quizzes and a game.">
+<link rel="canonical" href="https://robobandit.com/5th-grade/reading-rights.html">
+<meta name="theme-color" content="#c23b6e">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/5th-grade/reading-rights.html">
+<meta property="og:title" content="Esperanza & Human Rights | RoboBandit 5th Grade">
+<meta property="og:description" content="Esperanza Rising, human rights, fair work and human dignity. 5th grade lessons, quizzes and a game.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>
+  :root { --c: #c23b6e; --c2: #ffd84a; --bg: #8a2a5a; }
+  .case { margin: 10px auto; max-width: 820px; padding: 22px 24px; border: 4px solid var(--ink); border-radius: 20px; background: #fff;
+    font-size: clamp(21px, 2.6vw, 27px); font-weight: 600; line-height: 1.35; box-shadow: 0 6px 0 var(--ink); }
+  .case .e { display: block; font-size: 56px; margin-bottom: 6px; }
+  .verdict { display: flex; justify-content: center; gap: 14px; flex-wrap: wrap; }
+  .verdict button { min-width: 220px; padding: 16px 20px; border: 4px solid var(--ink); border-radius: 18px; cursor: pointer; box-shadow: 0 6px 0 var(--ink);
+    font: 700 26px 'Fredoka', system-ui, sans-serif; color: var(--ink); }
+  .verdict button:active { transform: translateY(3px); box-shadow: 0 3px 0 var(--ink); }
+  #rd-fair { background: #b8f0b0; } #rd-unfair { background: #ffc4bd; }
+  .verdict button:disabled { opacity: .5; cursor: default; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', ROSE = '#c23b6e', BLUE = '#3d8ff0', GREEN = '#2fae5a', ORANGE = '#f08a24', YELLOW = '#ffd84a', RED = '#e8453a', PURPLE = '#7b4bd6';
+const SKINS = ['#f1c7a0', '#c98d5f', '#8a5a3c', '#e0ac7e', '#5a3a28', '#f5d6b8'], SHIRTS = ['#3d8ff0', '#e8457a', '#2fae5a', '#f08a24', '#7b4bd6', '#ffb400'];
+
+// ---------- Drawing helpers ----------
+function scroll(d, x, y, w, h) {
+  d.rect(x, y, w, h, { r: 8, fill: '#fbf1d8', stroke: '#a8874a', lw: 3 });
+  d.rect(x - 12, y - 10, w + 24, 22, { r: 11, fill: '#e9d3a0', stroke: '#a8874a', lw: 3 });
+  d.rect(x - 12, y + h - 12, w + 24, 22, { r: 11, fill: '#e9d3a0', stroke: '#a8874a', lw: 3 });
+}
+function crowd(d, n, x0, x1, y, s = 1, o = {}) {
+  for (let i = 0; i < n; i++) d.person(x0 + (n === 1 ? 0 : i * (x1 - x0) / (n - 1)), y + (o.bob ? Math.sin(o.t * 4 + i) * 4 : 0), s, { skin: SKINS[i % 6], shirt: SHIRTS[(i + (o.shift || 0)) % 6], hat: o.hats && i % 2 ? '#d8b25a' : null, hair: o.hats && i % 2 ? null : '#2a1a10' });
+}
+function heart(d, x, y, r, col = RED) {
+  d.ctx.beginPath(); d.ctx.moveTo(x, y + r * 0.9);
+  d.ctx.bezierCurveTo(x - r * 1.4, y - r * 0.2, x - r * 0.6, y - r * 1.2, x, y - r * 0.4);
+  d.ctx.bezierCurveTo(x + r * 0.6, y - r * 1.2, x + r * 1.4, y - r * 0.2, x, y + r * 0.9);
+  d.paint({ fill: col, stroke: INK, lw: 2 });
+}
+function bubble(d, s, x, y, o = {}) {
+  const w = d.pill(s, x, y, { size: o.size || 24, bg: o.bg || '#fff', r: 14, alpha: o.alpha });
+  d.alpha(o.alpha == null ? 1 : o.alpha, () => d.poly([[x - 10, y + 18], [x + (o.tail || -20), y + 40], [x + 10, y + 18]], { close: true, fill: o.bg || '#fff', stroke: INK, lw: 3 }));
+  return w;
+}
+function field(d, t) {
+  d.bg('#ffd98a', '#fff3d0');
+  d.rect(0, 300, d.W, 240, { r: 0, fill: '#c8a060' });
+  for (let i = 0; i < 6; i++) { d.line(0, 320 + i * 40, d.W, 300 + i * 46, { stroke: '#4f9a45', lw: 14 }); }
+  d.circle(860, 80, 50, { fill: '#ffcf33', stroke: '#f2a900', lw: 4 });
+  void t;
+}
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  // ----- Esperanza Rising -----
+  'er-book'(d, t) {
+    d.bg('#fff0f5', '#ffdce8');
+    // an open book
+    d.poly([[300, 150], [480, 180], [480, 470], [300, 440]], { close: true, fill: '#fff', stroke: INK, lw: 4 });
+    d.poly([[660, 150], [480, 180], [480, 470], [660, 440]], { close: true, fill: '#fff', stroke: INK, lw: 4 });
+    d.text('Esperanza', 390, 250, { size: 32, weight: 700, color: ROSE }); d.text('Rising', 390, 290, { size: 32, weight: 700, color: ROSE });
+    d.text('Pam Muñoz Ryan', 390, 340, { size: 18 }); d.text('2000', 390, 370, { size: 18 });
+    d.emoji('🌹', 570, 300, 90);
+    const k = d.in(t, 0.5, 1.2);
+    d.alpha(k, () => {
+      d.pill('📅 real history (1930s)', 170, 90, { size: 22, bg: '#cfe0ff' });
+      d.pill('✍️ invented characters', 790, 90, { size: 22, bg: '#ffe3b8' });
+      d.arrow(200, 120, 330, 190, { color: BLUE }); d.arrow(760, 120, 630, 190, { color: ORANGE });
+    });
+    d.alpha(d.in(t, 2), () => d.pill('= HISTORICAL FICTION', 480, 505, { size: 30, bg: YELLOW }));
+  },
+  'er-why'(d, t) {
+    d.bg('#ffcf9a', '#fff1dc');
+    const r = 120 + Math.sin(t) * 6;
+    for (let i = 0; i < 14; i++) { const a = Math.PI + i / 13 * Math.PI; d.line(480 + Math.cos(a) * (r + 15), 420 + Math.sin(a) * (r + 15), 480 + Math.cos(a) * (r + 60), 420 + Math.sin(a) * (r + 60), { stroke: '#ffb400', lw: 7 }); }
+    d.circle(480, 420, r, { fill: '#ffd84a', stroke: '#f2a900', lw: 5 });
+    d.rect(0, 420, d.W, 120, { r: 0, fill: '#c8a060' });
+    const word = 'ESPERANZA', n = Math.floor(d.in(t, 0, 2) * word.length);
+    d.text(word.slice(0, n), 480, 110, { size: 72, color: ROSE, font: "'Bungee', sans-serif" });
+    d.alpha(d.in(t, 2.2), () => d.text('= HOPE', 480, 200, { size: 56, weight: 700 }));
+    d.alpha(d.in(t, 3), () => d.pill('losing everything… and starting over', 480, 480, { size: 26, bg: '#fff' }));
+  },
+  'er-map'(d, t) {
+    d.bg('#7cc6ff');
+    // a simple map: land to the right of the Pacific coast, the border dashed across the middle
+    d.poly([[260, 0], [960, 0], [960, 540], [560, 540], [520, 470], [450, 380], [380, 300], [300, 250], [250, 170], [240, 90]], { close: true, fill: '#a8d888', stroke: '#5a8a3a', lw: 3 });
+    d.poly([[300, 250], [330, 330], [380, 420], [400, 470], [380, 480], [330, 400], [290, 320], [280, 260]], { close: true, fill: '#c8e0a0', stroke: '#5a8a3a', lw: 3 });
+    d.line(300, 245, 960, 265, { stroke: '#8a5a34', lw: 4, dash: [14, 10] });
+    d.text('UNITED STATES', 700, 140, { size: 30, weight: 700, color: '#3a6a2a' });
+    d.text('MEXICO', 760, 360, { size: 34, weight: 700, color: '#3a6a2a' });
+    d.text('Pacific Ocean', 120, 380, { size: 24, weight: 700, color: '#1d5a8a' });
+    const A = [640, 440], B = [330, 120], C = [560, 160];
+    d.circle(...A, 12, { fill: ROSE, stroke: INK, lw: 3 }); d.pill('Aguascalientes, Mexico', A[0] + 30, A[1] + 48, { size: 22, bg: '#fff' });
+    d.circle(...B, 12, { fill: BLUE, stroke: INK, lw: 3 }); d.pill('Arvin, California (San Joaquin Valley)', B[0] + 170, B[1] - 50, { size: 20, bg: '#fff' });
+    d.curve(A[0], A[1], C[0], C[1] + 120, B[0], B[1], { color: '#5a3a1c', lw: 5, dash: [12, 10] });
+    const k = d.loop(t, 6), [x, y] = d.onCurve(A[0], A[1], C[0], C[1] + 120, B[0], B[1], Math.min(1, k * 1.2));
+    d.emoji('🚂', x, y - 24, 48, { flip: true });
+    d.pill('1930: by train, in secret', 640, 300, { size: 22, bg: YELLOW });
+  },
+  'er-people'(d, t) {
+    d.bg('#fff0f5', '#ffe4ee');
+    const P = [['👧', 'Esperanza', 'learns to work'], ['👩', 'Mama', 'brave & strong'], ['👵', 'Abuelita', 'wise grandmother'], ['👦', 'Miguel', 'loyal friend'],
+      ['👩‍🍳', 'Hortensia', 'Miguel\'s mother'], ['👨‍🌾', 'Alfonso', 'Miguel\'s father'], ['👧🏽', 'Isabel', 'Miguel\'s young cousin'], ['✊', 'Marta', 'fights for fair pay']];
+    P.forEach(([e, n, s], i) => {
+      const x = 125 + (i % 4) * 237, y = 140 + Math.floor(i / 4) * 250;
+      d.alpha(d.in(t, i * 0.25), () => {
+        d.rect(x - 105, y - 110, 210, 220, { r: 18, fill: i === 0 ? '#ffe0ec' : '#fff', stroke: INK, lw: i === 0 ? 5 : 3 });
+        d.emoji(e, x, y - 40, 76); d.text(n, x, y + 40, { size: 26, weight: 700, color: ROSE }); d.text(s, x, y + 76, { size: 18 });
+      });
+    });
+  },
+  'er-blanket'(d, t) {
+    d.bg('#fffaf0');
+    // Abuelita's zigzag blanket
+    const cols = ['#e8457a', '#ffb400', '#3d8ff0', '#2fae5a', '#7b4bd6'];
+    for (let r = 0; r < 5; r++) { const pts = []; for (let i = 0; i <= 24; i++) pts.push([i * 40, 30 + r * 16 + (i % 2 ? 0 : 22)]); d.poly(pts, { stroke: cols[r], lw: 12 }); }
+    const E = [['Ranch life', 1], ['Papa dies; house burns', 0], ['Escape to California', 0.75], ['Hard work; Mama gets sick', 0.05], ['Esperanza saves money', 0.7], ['Money orders gone!', 0.2], ['Abuelita arrives!', 1]];
+    const X = i => 90 + i * 130, Y = v => 460 - v * 260;
+    d.poly(E.map(([, v], i) => [X(i), Y(v)]), { stroke: ROSE, lw: 6 });
+    E.forEach(([s, v], i) => { d.circle(X(i), Y(v), 10, { fill: '#fff', stroke: ROSE, lw: 4 }); d.wrap(s, X(i), Y(v) + (v > 0.5 ? -62 : 22), 130, { size: 18, weight: 700 }); });
+    const k = d.loop(t, 7) * (E.length - 1), i = Math.floor(k), f = k - i;
+    d.emoji('👧', X(i) + (X(i + 1) - X(i)) * f, Y(E[i][1]) + (Y(E[i + 1][1]) - Y(E[i][1])) * f - 30, 44);
+    d.text('mountains and valleys', 820, 520, { size: 20, weight: 700, color: '#5a6f99' });
+  },
+  'er-camp'(d, t) {
+    field(d, t);
+    crowd(d, 5, 80, 420, 300, 1, { hats: true });
+    d.person(650, 300, 1.3, { skin: '#c98d5f', shirt: '#e8457a', hair: '#2a1a10' });
+    d.line(690, 290, 690, 140, { stroke: '#8a5a34', lw: 6 });
+    d.rect(610, 80, 170, 80, { r: 8, fill: '#fff', stroke: INK, lw: 3 }); d.text('¡HUELGA!', 695, 108, { size: 26, weight: 700, color: RED }); d.text('MORE PAY', 695, 140, { size: 20, weight: 700 });
+    crowd(d, 3, 780, 900, 320, 0.9, { bob: true, t, shift: 2 });
+    d.pill('Marta', 650, 420, { size: 22, bg: '#ffd0e0' });
+    d.pill('long days, low pay', 240, 440, { size: 22, bg: '#fff' });
+    d.pill('huelga = strike', 860, 210, { size: 20, bg: YELLOW });
+    void t;
+  },
+  'er-phoenix'(d, t) {
+    d.bg('#2a1030', '#5a2040');
+    d.ellipse(480, 470, 200, 36, { fill: '#555', stroke: '#333', lw: 3 });
+    for (let i = 0; i < 9; i++) {
+      const x = 330 + i * 38, h = 80 + Math.sin(t * 8 + i * 1.7) * 25 + (i % 3) * 20;
+      d.poly([[x - 26, 470], [x, 470 - h], [x + 26, 470]], { close: true, fill: i % 2 ? '#ff8a1f' : '#ffcf33' });
+    }
+    const y = 360 - d.in(t % 6, 0.5, 3) * 220, flap = Math.sin(t * 8) * 30;
+    d.poly([[480, y], [380, y - 40 - flap], [420, y + 10]], { close: true, fill: '#ff5a1f', stroke: '#ffcf33', lw: 3 });
+    d.poly([[480, y], [580, y - 40 - flap], [540, y + 10]], { close: true, fill: '#ff5a1f', stroke: '#ffcf33', lw: 3 });
+    d.ellipse(480, y + 6, 30, 22, { fill: '#ff8a1f', stroke: '#ffcf33', lw: 3 });
+    d.circle(480, y - 22, 14, { fill: '#ff8a1f', stroke: '#ffcf33', lw: 3 });
+    d.poly([[470, y + 24], [480, y + 70], [490, y + 24]], { close: true, fill: '#ffcf33' });
+    d.text('"Wait a little bit, and the fruit will fall into your hand."', 480, 40, { size: 24, weight: 700, color: '#fff' });
+    d.text('— Papa', 480, 75, { size: 20, color: '#ffd0e0' });
+    d.pill('RISING from the ashes', 790, 300, { size: 24, bg: YELLOW });
+  },
+  // ----- Human rights -----
+  'hr-what'(d, t) {
+    d.bg('#eaf3ff', '#d6e8ff');
+    scroll(d, 300, 50, 560, 440);
+    d.text('Universal Declaration', 580, 100, { size: 30, weight: 700 }); d.text('of Human Rights · 1948', 580, 140, { size: 26, weight: 700, color: BLUE });
+    const n = Math.floor(d.in(t, 0.3, 3) * 30);
+    for (let i = 0; i < 30; i++) {
+      const x = 380 + (i % 6) * 80, y = 200 + Math.floor(i / 6) * 58;
+      d.circle(x, y, 22, { fill: i < n ? BLUE : '#fff', stroke: '#a8874a', lw: 2 });
+      d.text(String(i + 1), x, y + 1, { size: 18, weight: 700, color: i < n ? '#fff' : '#a8874a' });
+    }
+    d.emoji('🌍', 150, 220, 150 + Math.sin(t * 2) * 6);
+    d.text('30 rights', 150, 360, { size: 34, weight: 700, color: BLUE }); d.text('for every person', 150, 400, { size: 24, weight: 700 });
+  },
+  'hr-why'(d, t) {
+    d.bg('#3a3f58');
+    d.poly([[480, 0], [960, 0], [960, 540], [480, 540]], { close: true, fill: '#cfe9ff' });
+    for (let i = 0; i < 5; i++) d.ellipse(80 + i * 90, 90 + (i % 2) * 30, 70, 34, { fill: '#555a70' });
+    for (let i = 0; i < 6; i++) { const k = d.loop(t * 1.5 + i / 6, 1); d.line(60 + i * 70, 140 + k * 200, 50 + i * 70, 160 + k * 200, { stroke: '#8aa0c0', lw: 3 }); }
+    d.text('1939–1945', 240, 390, { size: 36, weight: 700, color: '#fff' }); d.text('World War II', 240, 435, { size: 28, color: '#d0d6e8' });
+    d.circle(820, 100, 50, { fill: YELLOW, stroke: '#f2a900', lw: 4 });
+    crowd(d, 6, 560, 900, 300, 1.1, { bob: true, t });
+    for (let i = 0; i < 5; i++) d.line(578 + i * 68, 300, 610 + i * 68, 300, { stroke: '#c98d5f', lw: 6 });
+    d.text('1948', 720, 400, { size: 40, weight: 700, color: BLUE }); d.text('the world agrees: never again', 720, 445, { size: 24, weight: 700 });
+    d.arrow(420, 270, 530, 270, { color: '#fff', lw: 8 });
+  },
+  'hr-eleanor'(d, t) {
+    d.bg('#f6f0ff', '#e8ddff');
+    d.ellipse(480, 300, 300, 100, { fill: '#c89660', stroke: '#6a4a24', lw: 4 });
+    for (let i = 0; i < 9; i++) {
+      const a = Math.PI + 0.25 + i / 8 * (Math.PI - 0.5), x = 480 + Math.cos(a) * 330, y = 270 + Math.sin(a) * 140;
+      d.person(x, y, 0.9, { skin: SKINS[i % 6], shirt: SHIRTS[i % 6], hair: '#2a1a10' });
+    }
+    d.person(480, 420, 1.1, { skin: '#f1c7a0', shirt: '#7b4bd6', hair: '#8a8a8a' });
+    d.emoji('📜', 480, 300, 70, { rot: Math.sin(t) * 0.1 });
+    d.pill('Eleanor Roosevelt, chair', 480, 512, { size: 22, bg: YELLOW });
+    d.text('people from many countries wrote it together', 480, 50, { size: 26, weight: 700 });
+  },
+  'hr-art1'(d, t) {
+    d.bg('#fff7e6', '#ffe9c4');
+    d.text('Article 1', 480, 60, { size: 30, weight: 700, color: BLUE });
+    d.text('"All human beings are born free and', 480, 110, { size: 30, weight: 700 }); d.text('equal in dignity and rights."', 480, 150, { size: 30, weight: 700 });
+    for (let i = 0; i < 7; i++) { const x = 140 + i * 113; d.person(x, 380, 1.4, { skin: SKINS[i % 6], shirt: SHIRTS[i % 6], hair: '#2a1a10' }); heart(d, x, 270 + Math.sin(t * 3 + i) * 5, 18); }
+    d.line(80, 490, 880, 490, { lw: 5 });
+    d.pill('no one is worth more than anyone else', 480, 510, { size: 22, bg: '#fff' });
+  },
+  'hr-list'(d, t) {
+    d.bg('#eaf3ff', '#d6e8ff');
+    const R = [['❤️', 3, 'life & safety'], ['⛓️', 4, 'no slavery'], ['⚖️', 10, 'fair trials'], ['🙏', 18, 'religion'], ['🗣️', 19, 'free speech'], ['🛠️', 23, 'fair work'], ['🏠', 25, 'food, home, health'], ['🎓', 26, 'education']];
+    R.forEach(([e, n, s], i) => {
+      const x = 125 + (i % 4) * 237, y = 140 + Math.floor(i / 4) * 250;
+      d.alpha(d.in(t, i * 0.3), () => {
+        d.rect(x - 105, y - 105, 210, 210, { r: 18, fill: '#fff', stroke: INK });
+        d.pill('Art. ' + n, x, y - 78, { size: 20, bg: '#cfe0ff' });
+        d.emoji(e, x, y - 4, 70); d.text(s, x, y + 72, { size: 22, weight: 700 });
+      });
+    });
+  },
+  'hr-duty'(d, t) {
+    d.bg('#f0fff4', '#d8f5e0');
+    d.person(250, 330, 1.6, { skin: SKINS[1], shirt: SHIRTS[0], hair: '#2a1a10' });
+    d.person(710, 330, 1.6, { skin: SKINS[3], shirt: SHIRTS[1], hair: '#2a1a10' });
+    const a = Math.floor(t / 2) % 2;
+    bubble(d, 'My turn to talk!', 250, 160, { alpha: a ? 0.35 : 1 });
+    bubble(d, 'Now I\'ll listen to you.', 710, 160, { alpha: a ? 1 : 0.35, tail: 20 });
+    d.text('⇄', 480, 320, { size: 90, color: GREEN });
+    d.pill('my rights + your rights = respect', 480, 470, { size: 26, bg: YELLOW });
+    d.text('Article 29: we all have duties to our community', 480, 520, { size: 22, weight: 700, color: '#2d7a3a' });
+  },
+  // ----- Work rights -----
+  'wr-what'(d, t) {
+    d.bg('#fff7ef', '#ffe9d1');
+    scroll(d, 40, 50, 480, 440); scroll(d, 580, 50, 340, 440);
+    d.text('Article 23', 280, 100, { size: 32, weight: 700, color: ORANGE }); d.text('Article 24', 750, 100, { size: 32, weight: 700, color: ORANGE });
+    [['💼', 'choose your job'], ['🦺', 'safe, fair conditions'], ['💵', 'fair pay, equal pay'], ['🤝', 'join a union']].forEach(([e, s], i) => d.alpha(d.in(t, 0.3 + i * 0.4), () => { d.emoji(e, 100, 180 + i * 80, 50); d.text(s, 145, 180 + i * 80, { size: 26, weight: 700, align: 'left' }); }));
+    [['🛌', 'rest'], ['⏰', 'reasonable hours'], ['🏖️', 'paid holidays']].forEach(([e, s], i) => d.alpha(d.in(t, 2 + i * 0.4), () => { d.emoji(e, 640, 180 + i * 90, 50); d.text(s, 685, 180 + i * 90, { size: 26, weight: 700, align: 'left' }); }));
+  },
+  'wr-why'(d, t) {
+    d.bg('#f2f7ff', '#e0ecff');
+    const cx = 320, cy = 280, R = 190, parts = [['😴 sleep', 8, '#7fb4ff'], ['🛠️ work', 8, '#ffb86b'], ['🏡 everything else', 8, '#8fe0a8']];
+    let a = -Math.PI / 2;
+    const k = d.in(t, 0, 2);
+    parts.forEach(([s, h, c]) => {
+      const b = a + h / 24 * Math.PI * 2 * k;
+      d.ctx.beginPath(); d.ctx.moveTo(cx, cy); d.ctx.arc(cx, cy, R, a, b); d.ctx.closePath(); d.paint({ fill: c, stroke: INK });
+      const m = (a + b) / 2; d.text(s, cx + Math.cos(m) * R * 0.58, cy + Math.sin(m) * R * 0.58, { size: 22, weight: 700, alpha: k });
+      a = b;
+    });
+    d.text('24 hours', cx, 40, { size: 30, weight: 700 });
+    d.text('About 1/3 of a', 730, 200, { size: 32, weight: 700 }); d.text('grown-up\'s day', 730, 245, { size: 32, weight: 700 }); d.text('is work!', 730, 290, { size: 32, weight: 700, color: ORANGE });
+    d.pill('unfair work hurts whole families', 730, 400, { size: 22, bg: YELLOW });
+  },
+  'wr-safe'(d, t) {
+    d.bg('#ffe2b0', '#fff1d6');
+    d.poly([[480, 0], [960, 0], [960, 540], [480, 540]], { close: true, fill: '#dff6e0' });
+    d.rect(0, 400, d.W, 140, { r: 0, fill: '#c8a060' });
+    // unsafe side: dust and harsh sun
+    d.circle(120, 80, 50, { fill: '#ffcf33', stroke: '#f2a900', lw: 4 });
+    for (let i = 0; i < 7; i++) d.ellipse(60 + ((t * 40 + i * 70) % 420), 330 + (i % 3) * 30, 60, 26, { fill: 'rgba(160,120,70,.45)' });
+    d.person(240, 330, 1.4, { skin: SKINS[1], shirt: '#a0a0a0', hat: '#d8b25a' });
+    d.text('✗', 400, 120, { size: 90, weight: 700, color: RED }); d.pill('dust, heat, no water', 240, 470, { size: 22, bg: '#fff' });
+    // safe side
+    d.line(740, 400, 740, 200, { stroke: '#555', lw: 5 }); d.ellipse(740, 200, 120, 40, { fill: '#e8457a', stroke: INK, lw: 3 });
+    d.person(700, 330, 1.4, { skin: SKINS[2], shirt: GREEN, hat: '#d8b25a' });
+    d.emoji('😷', 700, 296, 30); d.emoji('🚰', 840, 360, 60);
+    d.text('✓', 900, 120, { size: 90, weight: 700, color: GREEN }); d.pill('shade, water, masks, breaks', 740, 470, { size: 22, bg: '#fff' });
+  },
+  'wr-pay'(d, t) {
+    d.bg('#f0fff4', '#d8f5e0');
+    [[170, '#e8457a', 0], [430, '#3d8ff0', 3]].forEach(([x, shirt, s]) => {
+      d.person(x, 250, 1.3, { skin: SKINS[s], shirt, hair: '#2a1a10' });
+      for (let i = 0; i < 3; i++) d.rect(x + 40, 290 - i * 34, 50, 32, { r: 4, fill: '#d8a060', stroke: INK, lw: 2 });
+      const k = d.in(t % 6, 0.5, 1.5);
+      for (let i = 0; i < Math.round(k * 6); i++) d.ellipse(x, 400 - i * 12, 30, 9, { fill: YELLOW, stroke: '#c9971e', lw: 2 });
+    });
+    d.text('=', 300, 380, { size: 70, weight: 700, color: GREEN });
+    d.pill('equal pay for equal work', 300, 480, { size: 24, bg: YELLOW });
+    d.line(600, 60, 600, 500, { stroke: '#b8dcc0', lw: 3, dash: [8, 8] });
+    d.text('fair pay covers…', 780, 70, { size: 28, weight: 700 });
+    [['🍎', 'food'], ['🏠', 'rent'], ['🩺', 'doctor'], ['🎒', 'school things']].forEach(([e, s], i) => { d.emoji(e, 700, 150 + i * 90, 54); d.text(s, 745, 150 + i * 90, { size: 26, weight: 700, align: 'left' }); });
+  },
+  'wr-union'(d, t) {
+    d.bg('#fff0f5', '#ffe0ec');
+    d.person(160, 330, 1.1, { skin: SKINS[1], shirt: '#a0a0a0', hat: '#d8b25a' });
+    d.pill('"Um… a raise, please?"', 170, 200, { size: 18, bg: '#fff', alpha: 0.6 });
+    d.text('one voice', 160, 470, { size: 26, weight: 700, color: '#5a6f99' });
+    d.line(330, 60, 330, 500, { stroke: '#e8b8cc', lw: 3, dash: [8, 8] });
+    for (let r = 0; r < 2; r++) crowd(d, 6, 420 + r * 30, 880 + r * 30, 300 + r * 70, 1, { bob: true, t, shift: r * 3, hats: true });
+    const s = 1 + Math.sin(t * 4) * 0.05;
+    d.at(660, 140, 0, s, () => d.pill('FAIR PAY & SAFE WORK!', 0, 0, { size: 36, bg: YELLOW }));
+    d.text('together = stronger', 660, 520, { size: 28, weight: 700, color: ROSE });
+  },
+  'wr-rest'(d, t) {
+    d.bg('#e6f6ff', '#f2fbff');
+    d.line(100, 330, 100, 180, { stroke: '#8a5a34', lw: 8 }); d.line(400, 330, 400, 180, { stroke: '#8a5a34', lw: 8 });
+    d.curve(100, 200, 250, 300 + Math.sin(t * 2) * 10, 400, 200, { color: '#e8457a', lw: 14, head: 0 });
+    d.person(250, 248 + Math.sin(t * 2) * 8, 0.9, { skin: SKINS[2], shirt: BLUE, hair: '#2a1a10' });
+    d.text('rest & leisure', 250, 380, { size: 28, weight: 700 });
+    d.rect(520, 60, 180, 180, { r: 14, fill: '#fff', stroke: INK }); d.rect(520, 60, 180, 44, { r: 14, fill: RED });
+    d.text('HOLIDAY', 610, 84, { size: 22, weight: 700, color: '#fff' }); d.emoji('🏖️', 610, 170, 80);
+    d.emoji('🎒', 790, 120, 70); d.emoji('⚽', 860, 200, 54);
+    d.pill('kids: school & play, not harmful work', 700, 330, { size: 22, bg: YELLOW });
+    d.text('Convention on the Rights of the Child, 1989', 700, 380, { size: 18, color: '#5a6f99' });
+  },
+  // ----- Dignity -----
+  'dg-what'(d, t) {
+    d.bg('#fff7fb', '#ffe4f0');
+    for (let i = 0; i < 12; i++) { const a = i / 12 * Math.PI * 2 + t * 0.4; d.line(480 + Math.cos(a) * 110, 260 + Math.sin(a) * 110, 480 + Math.cos(a) * 170, 260 + Math.sin(a) * 170, { stroke: 'rgba(255,180,0,.6)', lw: 6 }); }
+    d.person(480, 270, 2, { skin: SKINS[1], shirt: ROSE, hair: '#2a1a10' });
+    heart(d, 480, 120, 30 + Math.sin(t * 3) * 3);
+    d.text('Every person has WORTH', 480, 450, { size: 38, weight: 700, color: ROSE });
+    d.text('"an existence worthy of human dignity" (Article 23)', 480, 500, { size: 24, weight: 700 });
+  },
+  'dg-why'(d, t) {
+    d.bg('#fff0f5', '#ffe4ee');
+    const k = d.in(t % 8, 1.5, 2.5);
+    const top = 160 + k * 150;
+    d.rect(140, top + 70, 160, 380 - top, { r: 4, fill: '#d8a060', stroke: INK });
+    d.person(220, top, 1.2, { skin: SKINS[0], shirt: '#ffd84a', hair: '#2a1a10' });
+    crowd(d, 4, 450, 840, 310, 1.2, { shift: 1 });
+    d.rect(0, 380, d.W, 160, { r: 0, fill: '#c8a060' });
+    d.pill(k < 0.5 ? 'BEFORE: "I am better than them."' : 'AFTER: "We are equal."', 480, 470, { size: 26, bg: k < 0.5 ? '#ffc4bd' : '#b8f0b0' });
+    if (k > 0.9) for (let i = 0; i < 5; i++) heart(d, 220 + i * 155, 180 + Math.sin(t * 3 + i) * 6, 16);
+  },
+  'dg-needs'(d, t) {
+    d.bg('#f2f7ff', '#e0ecff');
+    const B = [['🍎', 'Food', 25], ['👕', 'Clothing', 25], ['🏠', 'A home', 25], ['🩺', 'Medical care', 25], ['🎓', 'Education', 26], ['🛌', 'Rest', 24]];
+    B.forEach(([e, s, a], i) => {
+      const x = 180 + (i % 3) * 200, y = 440 - Math.floor(i / 3) * 130, k = d.in(t, i * 0.5, 0.6);
+      d.alpha(k, () => {
+        d.rect(x - 95, y - 60 - (1 - k) * 80, 190, 120, { r: 12, fill: SHIRTS[i] + '44', stroke: INK });
+        d.emoji(e, x - 50, y - (1 - k) * 80, 50); d.text(s, x + 20, y - 12 - (1 - k) * 80, { size: 22, weight: 700 }); d.text('Art. ' + a, x + 20, y + 20 - (1 - k) * 80, { size: 18, color: '#5a6f99' });
+      });
+    });
+    d.alpha(d.in(t, 3), () => { d.poly([[60, 190], [380, 60], [700, 190]], { close: true, fill: '#ffd0e0', stroke: INK, lw: 4 }); d.text('A dignified life', 380, 150, { size: 30, weight: 700, color: ROSE }); });
+    d.text('needs all of these', 830, 300, { size: 26, weight: 700, maxW: 220 });
+  },
+  'dg-wage'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const fixed = Math.floor(t / 5) % 2 === 1, base = 470, sc = 2.6;
+    const pay = fixed ? 130 : 100;
+    d.rect(170, base - pay * sc, 160, pay * sc, { r: 6, fill: fixed ? '#8fe0a8' : '#ffcf7a', stroke: INK });
+    d.text(`Pay: $${pay}`, 250, base - pay * sc - 26, { size: 28, weight: 700 });
+    let y = base;
+    [['rent', 60, '#7fb4ff'], ['food', 50, '#ff9fbf'], ['medicine', 20, '#c3a6ff']].forEach(([s, v, c]) => { d.rect(500, y - v * sc, 160, v * sc, { r: 0, fill: c, stroke: INK }); d.text(`${s} $${v}`, 580, y - v * sc / 2, { size: 22, weight: 700 }); y -= v * sc; });
+    d.text('Needs: $130', 580, y - 26, { size: 28, weight: 700 });
+    d.line(120, base, 720, base, { lw: 4 });
+    if (!fixed) { d.rect(170, base - 130 * sc, 160, 30 * sc, { r: 0, stroke: RED, lw: 4, dash: [10, 6] }); d.pill('−$30 every week 😟', 830, 160, { size: 24, bg: '#ffc4bd' }); }
+    else d.pill('a LIVING WAGE ✓', 830, 160, { size: 26, bg: '#b8f0b0' });
+    d.text('one family, one week', 830, 260, { size: 22, color: '#5a6f99' });
+  },
+  'dg-respect'(d, t) {
+    d.bg('#f6fff2', '#e4f7dc');
+    const good = ['"Hi, Maria!"', '"What do you think?"', '"Thank you!"', '"Want to join us?"'], bad = ['"Hey, you!"', '"Go away."'];
+    good.forEach((s, i) => d.alpha(d.in(t, i * 0.4), () => d.pill('✓ ' + s, 270, 90 + i * 100, { size: 28, bg: '#b8f0b0' })));
+    bad.forEach((s, i) => d.alpha(d.in(t, 1.8 + i * 0.4), () => { d.pill('✗ ' + s, 700, 160 + i * 140, { size: 28, bg: '#ffc4bd' }); d.line(600, 160 + i * 140, 800, 160 + i * 140, { stroke: RED, lw: 5 }); }));
+    d.text('Dignity = being treated as someone who matters', 480, 505, { size: 26, weight: 700, color: ROSE });
+  },
+  'dg-me'(d, t) {
+    d.bg('#fff7fb', '#ffe4f0');
+    const A = [['🙋', 'Use people\'s names'], ['🤝', 'Include others'], ['✋', 'Stand up for fairness'], ['🙏', 'Thank the people who grow our food']];
+    A.forEach(([e, s], i) => d.alpha(d.in(t, i * 0.6), () => { d.emoji(e, 120, 90 + i * 95, 56); d.text(s, 175, 90 + i * 95, { size: 28, weight: 700, align: 'left' }); }));
+    const n = Math.min(9, Math.floor(t * 2));
+    for (let i = 0; i < n; i++) heart(d, 120 + i * 90, 485 + Math.sin(t * 3 + i) * 4, 20, i % 2 ? '#ff7aa8' : RED);
+    d.pill('you matter!', 800, 230, { size: 32, bg: YELLOW });
+  },
+};
+
+// ---------- Game: Rights Defender ----------
+function rightsGame(api) {
+  const { root, sfx, shuffle } = api;
+  const CASES = [
+    ['👷', 'Ana and Ben do the same job, but Ben is paid more just because he is a boy.', false, 'Article 23: equal pay for equal work.'],
+    ['⛱️', 'On hot days, a farm gives its workers shade, cool water and a break every hour.', true, 'Article 23: just and favorable (safe, healthy) working conditions.'],
+    ['🚫', 'Workers are fired for joining a union.', false, 'Article 23: everyone may form and join trade unions.'],
+    ['🎒', 'A girl is not allowed to go to school because she is a girl.', false, 'Article 26: everyone has the right to education.'],
+    ['⏰', 'A boss makes workers work 14 hours a day with no days off.', false, 'Article 24: rest, leisure and reasonable working hours.'],
+    ['🏖️', 'Every worker gets paid vacation days each year.', true, 'Article 24: periodic holidays with pay.'],
+    ['📰', 'A newspaper prints different opinions about the mayor.', true, 'Article 19: freedom of opinion and expression.'],
+    ['⛓️', 'A man is locked in jail without ever getting a trial.', false, 'Articles 9 and 10: no arbitrary arrest, and a fair trial for everyone.'],
+    ['🍽️', 'A family is told to leave a restaurant because of the language they speak.', false, 'Article 2: rights belong to everyone, whatever their language, race or religion.'],
+    ['🩺', 'A clinic treats sick people even if they can\'t pay much.', true, 'Article 25: medical care is part of a decent standard of living.'],
+    ['💵', 'Workers are paid so little they can\'t buy enough food for their kids.', false, 'Article 23: pay should allow an existence worthy of human dignity.'],
+    ['🔄', 'A worker decides to quit her job and take a different one.', true, 'Article 23: free choice of employment.'],
+    ['🙏', 'People may follow any religion they choose, or none at all.', true, 'Article 18: freedom of thought, conscience and religion.'],
+    ['🚌', 'Workers who went on strike are rounded up and sent to another country.', false, 'Article 9: no one shall be arbitrarily arrested, detained or exiled.'],
+    ['🗳️', 'Students vote for class president, and every vote counts the same.', true, 'Article 21: equal voting in fair elections.'],
+    ['🏭', 'A factory blows toxic smoke where its workers breathe it all day.', false, 'Article 23: safe and healthy working conditions.'],
+  ];
+  const N = 10, TIME = 12, deck = shuffle(CASES).slice(0, N);
+  let i = 0, score = 0, right = 0, streak = 0, left = TIME, answered = false, wait = 0, done = false;
+  root.innerHTML = `<div class="hud"><span id="rd-n"></span><span>🔥 Streak <b id="rd-k">0</b></span><span>🏆 <b id="rd-s">0</b></span></div>
+    <div class="timer"><i id="rd-t"></i></div>
+    <div class="case" id="rd-case"></div>
+    <div class="verdict"><button id="rd-fair">✅ RESPECTS RIGHTS</button><button id="rd-unfair">❌ BREAKS A RIGHT</button></div>
+    <div id="rd-fb" style="min-height:90px;margin-top:12px"></div>`;
+  api.$('rd-fair').addEventListener('click', () => judge(true));
+  api.$('rd-unfair').addEventListener('click', () => judge(false));
+  function show() {
+    const [e, s] = deck[i];
+    api.$('rd-n').textContent = `Case ${i + 1} of ${N}`;
+    api.$('rd-case').innerHTML = `<span class="e">${e}</span>${api.esc(s)}`;
+    api.$('rd-fb').innerHTML = '';
+    api.$('rd-fair').disabled = api.$('rd-unfair').disabled = false;
+    left = TIME; answered = false;
+  }
+  function judge(fair) {
+    if (answered || done) return;
+    answered = true; RB.audio();
+    const [, , ok, why] = deck[i], good = fair === ok;
+    if (good) { right++; streak++; const pts = 100 + Math.round(left / TIME * 50) + Math.min(streak - 1, 5) * 10; score += pts; sfx.right(); }
+    else { streak = 0; sfx.wrong(); }
+    api.$('rd-s').textContent = score; api.$('rd-k').textContent = streak;
+    api.$('rd-fair').disabled = api.$('rd-unfair').disabled = true;
+    api.$('rd-fb').innerHTML = `<div class="why"><b>${fair === null ? '⏰ Time\'s up!' : good ? '✅ Right!' : '❌ Not quite.'}</b> This ${ok ? 'respects' : 'breaks'} a human right. ${api.esc(why)}</div>
+      <button class="btn" id="rd-next">${i === N - 1 ? 'See my score ▶' : 'Next case ▶'}</button>`;
+    api.$('rd-next').addEventListener('click', next);
+    wait = 6;
+  }
+  function next() {
+    if (done || !answered) return;
+    i++; wait = 0;
+    if (i === N) {
+      done = true;
+      api.done({ score, stars: right >= 9 ? 3 : right >= 7 ? 2 : 1, rows: [['🛡️ Cases judged right', `${right} of ${N}`]], hint: 'Judge 9 or more cases right for ★★★' });
+      return;
+    }
+    show();
+  }
+  show();
+  return {
+    tick(dt) {
+      if (done) return;
+      if (!answered) { left = Math.max(0, left - dt); api.$('rd-t').style.width = (left / TIME * 100) + '%'; if (!left) judge(null); }
+      else if (wait > 0) { wait -= dt; if (wait <= 0) next(); }
+    },
+    key(k) { if (k === 'f' || k === 'arrowleft') judge(true); else if (k === 'u' || k === 'arrowright') judge(false); else if (k === 'enter') next(); },
+    bot() { if (answered) next(); else judge(deck[i][2]); },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g5_reading', grade: '5th Grade · Reading & Civics', title: 'Esperanza & Human Rights', icon: '🌹', home: 'index.html', homeTitle: 'Back to the 5th grade folder',
+  tagline: 'Read **Esperanza Rising**, then learn the **human rights** every person has, at work and in life.',
+  certTitle: 'Human Rights Defender', certText: 'understands Esperanza\'s story and the rights that protect every person\'s dignity!',
+  shareText: 'Learn about Esperanza Rising and human rights on RoboBandit! 🌹',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'esperanza', icon: '🌹', name: 'Esperanza Rising', sub: 'The novel by Pam Muñoz Ryan', badge: 'Phoenix Reader',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'A story about starting over', d: 'er-book', p: '**Esperanza Rising** is a novel by **Pam Muñoz Ryan**, published in 2000. It is **historical fiction**: made-up characters living through real history. The author based it on her own grandmother, Esperanza, who moved from Mexico to California.', v: [['historical fiction', 'an invented story set in a real time in history']] },
+        { k: 'WHY DO WE CARE?', t: 'Hope when life turns upside down', d: 'er-why', p: 'Esperanza loses almost everything and has to start over. Her story shows how families, especially **Mexican farm workers** in the 1930s, faced hard times and unfair treatment and still found hope. Her name, **Esperanza**, means **hope** in Spanish.' },
+        { k: 'SETTING', t: 'From a ranch to a farm camp', d: 'er-map', p: 'The story begins at **El Rancho de las Rosas**, a rich ranch in **Aguascalientes, Mexico**. In **1930**, after tragedy strikes, Esperanza and Mama secretly escape by train to a farm workers\' camp in California\'s **San Joaquin Valley**, during the **Great Depression**.', v: [['setting', 'where and when a story happens']] },
+        { k: 'CHARACTERS', t: 'Who\'s who', d: 'er-people', p: '**Esperanza** is a rich girl who must learn to work. **Mama** is brave and strong. **Abuelita**, her grandmother, teaches her to crochet. **Miguel**, the son of the ranch\'s housekeeper **Hortensia** and its foreman **Alfonso**, is her friend. **Marta** is a worker who fights for fair pay.' },
+        { k: 'PLOT', t: 'Mountains and valleys', d: 'er-blanket', p: 'Abuelita\'s crochet blanket has zigzag rows, like **mountains and valleys**. She tells Esperanza that life has ups and downs too. The story follows that shape: Papa dies, the house burns, Mama gets sick… but each valley is followed by a climb.', v: [['plot', 'the events of a story, in order']] },
+        { k: 'LIFE IN THE CAMP', t: 'Hard work and a strike', d: 'er-camp', p: 'In the camp, families live in small cabins and work long days picking and packing crops for little pay. Some workers, like Marta, go on **strike**: they stop working to demand better pay and living conditions. Many strikers were fired, and some were sent to Mexico, even ones who were U.S. citizens.', v: [['strike', 'when workers stop working together to demand fair treatment']] },
+        { k: 'THEMES & SYMBOLS', t: 'Rising like the phoenix', d: 'er-phoenix', p: 'Abuelita tells of the **phoenix**, a bird that rises from the ashes, reborn. Like the phoenix, Esperanza **rises** after losing everything. Papa\'s saying, "Wait a little bit, and the fruit will fall into your hand," reminds her to be patient. **Hope, family and resilience** carry the story.', v: [['symbol', 'a thing that stands for a bigger idea'], ['resilience', 'bouncing back after hard times']] },
+      ],
+      quiz: [
+        { q: 'What does "Esperanza" mean in Spanish?', a: ['Hope', 'Roses', 'Riches'], why: 'Her name is a clue to the book\'s biggest theme.' },
+        { q: 'What kind of book is Esperanza Rising?', a: ['Historical fiction', 'A science textbook', 'A fairy tale with dragons'], why: 'Invented characters live through the real history of the 1930s.' },
+        { q: 'Where do Esperanza and Mama go after they leave Mexico?', a: ['A farm workers\' camp in California', 'A castle in Spain', 'A big city in New York'], why: 'They travel by train to a camp in California\'s San Joaquin Valley.' },
+        { q: 'What do the zigzags in Abuelita\'s blanket stand for?', a: ['Life\'s ups and downs', 'The road to California', 'The rows in a grape field'], why: 'Abuelita calls them mountains and valleys, like the good and hard times in life.' },
+        { q: 'Why did Marta and other workers go on strike?', a: ['To demand better pay and living conditions', 'They wanted a vacation', 'To win a crochet contest'], why: 'Striking is one way workers use their voices together.' },
+        { q: 'During what hard time in U.S. history does most of the story happen?', a: ['The Great Depression', 'The Civil War', 'The Space Race'], why: 'The Great Depression began in 1929; jobs and money were scarce.' },
+        { q: 'Who wrote Esperanza Rising?', a: ['Pam Muñoz Ryan', 'Eleanor Roosevelt', 'John White'], why: 'She based it on her own grandmother\'s life.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'udhr', icon: '🌍', name: 'Human Rights', sub: 'The Universal Declaration', badge: 'Rights Expert',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'A promise for every person', d: 'hr-what', p: 'The **Universal Declaration of Human Rights** (UDHR) is a list of **30 rights** that belong to every person on Earth, just because they are human. The United Nations adopted it on **December 10, 1948**. That day is now **Human Rights Day**.', v: [['human rights', 'freedoms and protections every person has']] },
+        { k: 'WHY DO WE CARE?', t: 'Never again', d: 'hr-why', p: 'It was written right after **World War II**, when millions of people were treated horribly. Countries wanted to agree, together, on how **every** human being must be treated, so it would never happen again. Today it guides laws and constitutions around the world.' },
+        { t: 'Eleanor Roosevelt leads the way', d: 'hr-eleanor', p: '**Eleanor Roosevelt**, a former First Lady of the United States, led the committee that wrote it. People from many countries, religions and cultures helped write it, so it would fit everyone, everywhere.' },
+        { t: 'Article 1: born free and equal', d: 'hr-art1', p: '"All human beings are born **free and equal in dignity and rights**." That means no one is worth more than anyone else, no matter their skin, language, religion, money or where they come from.' },
+        { t: 'Some of the 30 rights', d: 'hr-list', p: 'They include the right to **life and safety** (Article 3), **no slavery** (4), **fair trials** (10), **freedom of religion** (18), **free speech** (19), **fair work** (23), a decent **standard of living** (25) and **education** (26).' },
+        { t: 'Rights come with responsibilities', d: 'hr-duty', p: '**Universal** means for everyone. **Article 29** says we also have **duties** to our community: respecting other people\'s rights is part of the deal. My right to speak doesn\'t mean I can stop you from speaking.', v: [['universal', 'for everyone, everywhere']] },
+      ],
+      quiz: [
+        { q: 'How many articles (rights) are in the UDHR?', a: ['30', '10', '100'], why: 'There are 30 articles.' },
+        { q: 'When did the United Nations adopt it?', a: ['1948', '1776', '2000'], why: 'December 10, 1948, now celebrated as Human Rights Day.' },
+        { q: 'Who led the committee that wrote it?', a: ['Eleanor Roosevelt', 'George Washington', 'Pam Muñoz Ryan'], why: 'Eleanor Roosevelt chaired the committee.' },
+        { q: 'What does "universal" mean here?', a: ['It is for every person, everywhere', 'It is only for adults', 'It is only for one country'], why: 'Human rights belong to everyone just for being human.' },
+        { q: 'Article 1 says all human beings are born…', a: ['Free and equal in dignity and rights', 'Exactly the same in every way', 'Ready to work'], why: 'People are different, but equal in dignity and rights.' },
+        { q: 'Which big event made countries want to write it?', a: ['World War II', 'The invention of the internet', 'The first Moon landing'], why: 'After the horrors of the war, the world said "never again".' },
+        { q: 'Which of these is a right in the UDHR?', a: ['The right to an education', 'The right to a free pony', 'The right to skip all homework'], why: 'Article 26: everyone has the right to education.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'work', icon: '🛠️', name: 'Work Rights', sub: 'Safe work & fair pay', badge: 'Fair Work Champion',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Rights at work', d: 'wr-what', p: '**Article 23** says everyone has the right to work, to **choose** their job, to **just and favorable conditions** of work, to fair and equal pay, and to join a **union**. **Article 24** adds the right to **rest**: reasonable work hours and paid holidays.' },
+        { k: 'WHY DO WE CARE?', t: 'Work is a big part of life', d: 'wr-why', p: 'Grown-ups spend about a third of their day working. When work is unsafe or pays too little, whole families suffer, as they did in Esperanza\'s camp. Work rights protect workers and the kids who depend on them.' },
+        { t: 'A safe and healthy workplace', d: 'wr-safe', p: '"Just and favorable conditions" include a **safe, healthy environment**: clean water, shade and breaks in the heat, safety gear and clean air. In the book, Mama becomes sick with **Valley Fever** after breathing dust from a dust storm.' },
+        { t: 'Remuneration: fair pay', d: 'wr-pay', p: '**Remuneration** is a big word for **pay**: the money you earn by working. Article 23 says pay should be **just and favorable**, enough for workers and their families to live with dignity. And: **equal pay for equal work**.', v: [['remuneration', 'payment for work']] },
+        { t: 'Unions and strikes', d: 'wr-union', p: 'Workers can form and join **trade unions**: groups that speak up together. One worker asking for a raise is easy to ignore; a hundred together are not. In Esperanza Rising, the workers who **strike** are using their voice, even though it is risky.', v: [['trade union', 'a group of workers who speak up together']] },
+        { t: 'Rest, and kids\' rights', d: 'wr-rest', p: '**Article 24**: everyone has the right to **rest and leisure**, reasonable working hours and holidays with pay. For kids, the **Convention on the Rights of the Child** (1989) says children must be protected from harmful work and have the right to go to school and to play.' },
+      ],
+      quiz: [
+        { q: 'What does "remuneration" mean?', a: ['Pay for work', 'A long vacation', 'A kind of crop'], why: 'Remuneration is the money people earn for their work.' },
+        { q: '"Equal pay for equal work" means…', a: ['People doing the same job get the same pay', 'Everyone in the world earns the same', 'Working for free'], why: 'Pay shouldn\'t depend on being a boy or girl, or where you come from.' },
+        { q: 'What does Article 24 protect?', a: ['Rest, leisure and reasonable working hours', 'Free ice cream on Fridays', 'Never having to work'], why: 'Everyone needs time to rest, and holidays with pay.' },
+        { q: 'What is a trade union?', a: ['A group of workers who speak up together', 'A train company', 'A bank'], why: 'Together, workers have a stronger voice.' },
+        { q: 'In the book, what makes Mama sick?', a: ['Valley Fever, after breathing dust from a dust storm', 'Eating too many grapes', 'The cold weather in Mexico'], why: 'Valley Fever is caused by tiny spores in the dust.' },
+        { q: '"Just and favorable conditions" of work include…', a: ['A safe, healthy workplace', 'A boss who is your best friend', 'Working 16 hours a day'], why: 'Shade, clean water, breaks and safety gear keep workers healthy.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'dignity', icon: '💗', name: 'Human Dignity', sub: 'An existence worthy of it', badge: 'Dignity Guardian',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Every person has worth', d: 'dg-what', p: '**Dignity** means every person has value and deserves respect, just for being human. Article 23 says pay should give workers "**an existence worthy of human dignity**": a life that lets them live like the valuable people they are.', v: [['dignity', 'the worth every person has, which deserves respect']] },
+        { k: 'WHY DO WE CARE?', t: 'Respect isn\'t just for the rich', d: 'dg-why', p: 'At the start of the book, Esperanza acts as if she is better than the people who work on her family\'s ranch. When she becomes poor herself, she learns that people are **equal in dignity**, rich or poor. How we treat others shows whether we believe that.' },
+        { t: 'What does a dignified life need?', d: 'dg-needs', p: '**Article 25** says everyone needs enough **food, clothing, a home and medical care**, and help if they are sick, out of work or old. Add **education** (Article 26) and **rest** (Article 24). Without these, it is very hard to live a full human life.' },
+        { t: 'A living wage', d: 'dg-wage', p: 'A **living wage** is pay that covers those basic needs. Imagine a family that earns $100 a week but needs $130 for rent, food and medicine. Every week they fall $30 further behind, no matter how hard they work. That\'s why fair pay is about dignity.', v: [['living wage', 'pay that covers a family\'s basic needs']] },
+        { t: 'Dignity is also respect', d: 'dg-respect', p: 'Dignity isn\'t only about money. It means being called by your name, being listened to, being treated fairly, and never being bullied or made to feel small. In the camp, workers were sometimes treated as if they didn\'t matter. **Every person matters.**' },
+        { t: 'How can I protect dignity?', d: 'dg-me', p: 'Use people\'s names. Include others. Stand up when someone is treated unfairly. Thank the people who grow, pick and serve our food. Small actions say: **you matter**.' },
+      ],
+      quiz: [
+        { q: 'What does dignity mean?', a: ['Every person has worth and deserves respect', 'Being the richest person', 'Being famous'], why: 'Dignity belongs to everyone, rich or poor.' },
+        { q: 'Which article lists food, clothing, housing and medical care?', a: ['Article 25', 'Article 4', 'Article 19'], why: 'Article 25 is about a decent standard of living.' },
+        { q: 'A living wage is pay that…', a: ['Covers a family\'s basic needs', 'Is only for people over 60', 'Is paid once a year'], why: 'If pay doesn\'t cover the basics, a family falls behind.' },
+        { q: 'At the start of the book, how does Esperanza treat the people who work for her family?', a: ['As if she is better than them', 'As her best friends', 'She has never met them'], why: 'She learns, after losing everything, that people are equal in dignity.' },
+        { q: 'Which of these protects someone\'s dignity?', a: ['Using their name and including them', 'Ignoring them', 'Laughing at their clothes'], why: 'Small acts of respect show people that they matter.' },
+        { q: 'A family earns $100 a week but needs $130. What happens?', a: ['They fall $30 behind every week', 'They save $30 every week', 'Nothing changes'], why: '$130 − $100 = $30 short, every single week.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'defender', icon: '🛡️', name: 'Rights Defender', sub: 'Fair or unfair?', badge: 'Rights Defender',
+      how: [['📋', 'Read each case. Does it <b>respect</b> human rights, or <b>break</b> one?'], ['⏱️', 'Answer before the timer runs out. Faster answers and streaks earn bonus points!'],
+        ['⌨️', '<span class="key-only">Press <b>F</b> or ← for respects, <b>U</b> or → for breaks.</span><span class="touch-only">Tap a button.</span>'], ['📜', 'After each case, see which article of the UDHR it\'s about.']],
+      make: rightsGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>

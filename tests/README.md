@@ -12,6 +12,8 @@
 - **Sparkle Meadow**: following the pink arrow makes all six animal friends (and saves them); sparkles unlock the unicorn horn
 - **Witch Way Out**: flying the friendly line (with shields in the storm) escapes the pumpkin without being caught; doing nothing gets caught but the pumpkin eases off so everyone can finish
 - **Flight School**: every lesson diagram draws; autopilots win all seven rounds and every round ends even with no input; the quiz scores, saves and unlocks the next level; on a phone, holding fires the burner, STAGE stages and the joystick flies the lander
+- **School folders**: the home page links to each grade's folder, and the 5th grade folder lists its subjects with saved stars
+- **5th grade** (reading & rights, math, science, social studies): every lesson picture draws, every quiz can be aced, every game can be won with 3 stars
 - muting one game mutes them all
 
 The autopilots call each game's own `update()` in a loop, so a whole game takes a few seconds.

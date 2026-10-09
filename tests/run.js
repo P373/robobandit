@@ -388,12 +388,62 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p, 'flight-school-phone.png');
   });
 
+  await test('school folders: the home page links to each grade, and 5th grade lists its subjects', async () => {
+    const p = await open(browser, 'index.html');
+    const links = await p.$$eval('.folder', els => els.map(e => e.getAttribute('href')));
+    check(links.length === 3, links.length + ' folders');
+    for (const l of links) check(fs.existsSync(path.join(ROOT, l)), 'missing folder page ' + l);
+    await p.close();
+    const f = await open(browser, '5th-grade/index.html');
+    const subjects = await f.evaluate(() => SUBJECTS);
+    check(subjects.length === 4, subjects.length + ' subjects');
+    for (const s of subjects) check(fs.existsSync(path.join(ROOT, '5th-grade', s.url)), 'missing subject page ' + s.url);
+    await f.evaluate(() => { localStorage.setItem('rb_g5_math', JSON.stringify({ stars: { mult: 3, algo: 2 } })); render(); });
+    check((await f.textContent('#subjects')).includes('5 of 18 stars'), 'saved stars not shown');
+    await done(f, '5th-grade.png');
+  });
+
+  // Each 5th grade subject: every slide's picture draws, every quiz can be aced, and every game can be won.
+  for (const page of ['reading-rights', 'math', 'science', 'social-studies']) {
+    await test(`5th grade ${page}: every lesson draws, every quiz and game earns 3 stars`, async () => {
+      const p = await open(browser, `5th-grade/${page}.html`, { viewport: { width: 1280, height: 800 } });
+      const r = await p.evaluate(() => {
+        const T = School.test, items = T.unit.items, out = { slides: 0, stars: {}, modes: [] };
+        items.forEach((it, i) => {
+          if (it.kind !== 'lesson') return;
+          it.slides.forEach((_, s) => { T.slide(i, s); T.draw(0.5); T.draw(9); out.slides++; });
+          T.open(i);
+          it.slides.forEach(() => T.fwd());
+          for (let q = 0; q < 4; q++) { T.pick(true); T.nextQ(); }
+          out.modes.push(T.mode);
+        });
+        return out;
+      });
+      check(r.slides >= 15, r.slides + ' slides');
+      check(r.modes.every(m => m === 'done'), 'a quiz did not finish: ' + r.modes);
+      const games = await p.evaluate(() => School.test.unit.items.map((it, i) => it.kind === 'game' ? i : -1).filter(i => i >= 0));
+      for (const g of games) {
+        await p.evaluate(i => School.test.open(i), g);
+        await p.click('#go');
+        await p.waitForTimeout(100);
+        await p.screenshot({ path: path.join(OUT, `5th-${page}-game${g}.png`) });
+        await p.evaluate(() => { for (let n = 0; n < 600 && School.test.mode === 'game'; n++) { School.test.game.bot(); School.test.tick(0.05); } });
+        await p.waitForTimeout(1800);   // a game may wait a moment before showing its score
+      }
+      const save = await p.evaluate(() => ({ stars: School.test.save.stars, items: School.test.unit.items.map(it => it.id) }));
+      for (const id of save.items) check(save.stars[id] === 3, `${id}: ${save.stars[id]} stars`);
+      await p.evaluate(() => School.test.mapScreen());
+      check((await p.textContent('#card')).includes('My certificate'), 'certificate button missing once everything is done');
+      await done(p, `5th-${page}.png`);
+    });
+  }
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

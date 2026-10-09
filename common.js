@@ -86,7 +86,8 @@ const RB = (() => {
   }
 
   // ---------- Corner buttons: 🏠 ⏸ 🔊 🔗 ----------
-  function topbar({ onPause, shareInfo } = {}) {
+  // home / homeTitle: where 🏠 goes (pages inside a folder point it at that folder's index.html).
+  function topbar({ onPause, shareInfo, home = 'index.html', homeTitle = 'All RoboBandit games' } = {}) {
     let bar = document.getElementById('topbar');
     if (!bar) { bar = document.createElement('div'); bar.id = 'topbar'; document.body.appendChild(bar); }
     bar.className = 'rb-topbar';
@@ -94,14 +95,14 @@ const RB = (() => {
     const add = (tag, id, icon, title, onClick) => {
       const el = document.createElement(tag);
       el.id = id; el.textContent = icon; el.title = title;
-      if (tag === 'a') el.href = 'index.html';
+      if (tag === 'a') el.href = home;
       else el.type = 'button';
       if (onClick) el.addEventListener('click', e => { e.stopPropagation(); el.blur(); onClick(); });
       el.addEventListener('pointerdown', e => e.stopPropagation());
       bar.appendChild(el);
       return el;
     };
-    add('a', 'btnHome', '🏠', 'All RoboBandit games');
+    add('a', 'btnHome', '🏠', homeTitle);
     if (onPause) add('button', 'btnPause', '⏸\uFE0F', 'Pause (P)', onPause);
     add('button', 'btnMute', muted ? '🔇' : '🔊', 'Sound on/off (M)', () => { audio(); setMuted(!muted); });
     if (shareInfo) add('button', 'btnShare', '🔗', 'Share this game', () => share(shareInfo));

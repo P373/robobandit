@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Multiply & Volume | RoboBandit 5th Grade</title>
+<meta name="description" content="5th grade math: multiply multi-digit numbers with the area model and the standard algorithm, then find volume with unit cubes and V = l × w × h. Lessons, quizzes and games.">
+<link rel="canonical" href="https://robobandit.com/5th-grade/math.html">
+<meta name="theme-color" content="#7b4bd6">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/5th-grade/math.html">
+<meta property="og:title" content="Multiply & Volume | RoboBandit 5th Grade">
+<meta property="og:description" content="Multiply big numbers and build boxes of cubes! 5th grade math lessons, quizzes and games.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>
+  :root { --c: #7b4bd6; --c2: #ffd84a; --bg: #5b3bb0; }
+  .dims { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 26px; margin-top: 8px; }
+  .dim { display: flex; align-items: center; gap: 8px; font-size: 20px; font-weight: 700; }
+  .dim button { width: 48px; height: 48px; border: 3px solid var(--ink); border-radius: 12px; background: #fff; font: 700 26px 'Fredoka', sans-serif;
+    box-shadow: 0 3px 0 var(--ink); cursor: pointer; color: var(--ink); }
+  .dim button:active { transform: translateY(2px); box-shadow: 0 1px 0 var(--ink); }
+  .dim b { min-width: 28px; font-size: 28px; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', PURPLE = '#7b4bd6', BLUE = '#3d8ff0', GREEN = '#2fae5a', ORANGE = '#f08a24', PINK = '#e8457a', YELLOW = '#ffd84a';
+const BOX_COLORS = ['#cfe0ff', '#ffe3b8', '#d4f5d0', '#ffd0e0', '#e6dcff', '#fff3b0'];
+const fmt = n => n.toLocaleString('en-US');
+
+// ---------- Drawing helpers ----------
+// Isometric unit cubes. Cube (i, j, k): i runs along the length, j along the width, k up.
+function iso(ox, oy, s) {
+  const cx = s * 0.866, cy = s * 0.5;
+  return (x, y, z) => [ox + (x - y) * cx, oy + (x + y) * cy - z * s];
+}
+function shade(hex, f) {
+  const n = parseInt(hex.slice(1), 16), c = [n >> 16, (n >> 8) & 255, n & 255].map(v => Math.round(f > 1 ? v + (255 - v) * (f - 1) : v * f));
+  return `rgb(${c.join(',')})`;
+}
+function cube(d, P, i, j, k, col, o = {}) {
+  const lw = o.lw || 2, st = o.line || INK;
+  d.poly([P(i, j, k + 1), P(i + 1, j, k + 1), P(i + 1, j + 1, k + 1), P(i, j + 1, k + 1)], { close: true, fill: shade(col, 1.25), stroke: st, lw });
+  d.poly([P(i + 1, j, k), P(i + 1, j + 1, k), P(i + 1, j + 1, k + 1), P(i + 1, j, k + 1)], { close: true, fill: shade(col, 0.78), stroke: st, lw });
+  d.poly([P(i, j + 1, k), P(i + 1, j + 1, k), P(i + 1, j + 1, k + 1), P(i, j + 1, k + 1)], { close: true, fill: col, stroke: st, lw });
+}
+// draws a list of [i, j, k, colour] cubes in the right order (back first)
+function cubes(d, P, list, o) {
+  list.slice().sort((a, b) => (a[0] + a[1] + a[2]) - (b[0] + b[1] + b[2])).forEach(([i, j, k, col]) => cube(d, P, i, j, k, col, o));
+}
+function boxList(l, w, h, col, n = Infinity, off = [0, 0, 0]) {
+  const out = [];
+  for (let k = 0; k < h; k++) for (let j = 0; j < w; j++) for (let i = 0; i < l; i++) if (out.length < n) out.push([i + off[0], j + off[1], k + off[2], typeof col === 'function' ? col(i, j, k) : col]);
+  return out;
+}
+// dashed outline of a whole box
+function wire(d, P, l, w, h, o = {}) {
+  const e = [[[0, 0, 0], [l, 0, 0]], [[l, 0, 0], [l, w, 0]], [[l, w, 0], [0, w, 0]], [[0, w, 0], [0, 0, 0]],
+    [[0, 0, h], [l, 0, h]], [[l, 0, h], [l, w, h]], [[l, w, h], [0, w, h]], [[0, w, h], [0, 0, h]],
+    [[0, 0, 0], [0, 0, h]], [[l, 0, 0], [l, 0, h]], [[l, w, 0], [l, w, h]], [[0, w, 0], [0, w, h]]];
+  e.forEach(([a, b]) => d.line(...P(...a), ...P(...b), { stroke: o.color || '#8a97b8', lw: 2, dash: [8, 6] }));
+}
+// puts a box of size l×w×h in the middle of the rect (x, y, bw, bh); returns its projector
+function fitBox(l, w, h, x, y, bw, bh, maxS = 70) {
+  const s = Math.min(maxS, bw / ((l + w) * 0.866), bh / ((l + w) * 0.5 + h));
+  const cx = s * 0.866, cy = s * 0.5;
+  const ox = x + bw / 2 - (l - w) * cx / 2, oy = y + (bh - ((l + w) * cy + h * s)) / 2 + h * s;
+  return iso(ox, oy, s);
+}
+// a stacked multiplication: rows of digits lined up by place value, right edge at x
+function digits(d, s, x, y, o = {}) {
+  const gap = o.gap || 50;
+  [...String(s)].reverse().forEach((ch, i) => d.text(ch, x - i * gap, y, { size: o.size || 54, color: (o.colors && o.colors[i]) || o.color || INK, weight: 700, alpha: o.alpha }));
+}
+// an area model: columns split one number, rows split the other
+function areaModel(d, x, y, cols, rows, widths, heights, fill, t0 = -9, t = 99) {
+  let yy = y;
+  rows.forEach((r, ri) => {
+    let xx = x;
+    cols.forEach((c, ci) => {
+      const k = d.in(t, t0 + (ri * cols.length + ci) * 0.5, 0.5);
+      d.rect(xx, yy, widths[ci], heights[ri], { r: 0, fill: BOX_COLORS[(ri * cols.length + ci) % BOX_COLORS.length], stroke: INK, lw: 3 });
+      if (fill) d.text(fmt(c * r), xx + widths[ci] / 2, yy + heights[ri] / 2, { size: Math.min(34, widths[ci] / 2.1), weight: 700, alpha: k });
+      xx += widths[ci];
+    });
+    yy += heights[ri];
+  });
+  let xx = x;
+  cols.forEach((c, ci) => { d.text(fmt(c), xx + widths[ci] / 2, y - 24, { size: 28, color: BLUE, weight: 700 }); xx += widths[ci]; });
+  yy = y;
+  rows.forEach((r, ri) => { d.text(fmt(r), x - 14, yy + heights[ri] / 2, { size: 28, color: PINK, weight: 700, align: 'right' }); yy += heights[ri]; });
+}
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  // 34 × 27 as an array of dots, then split by place value
+  'mx-what'(d, t) {
+    d.bg('#f4f0ff', '#e4dcff');
+    d.text('34 × 27 = ?', 230, 70, { size: 56, weight: 700, color: PURPLE });
+    d.wrap('34 groups of 27 dots… that\'s a LOT to count!', 40, 120, 380, { size: 28, align: 'left' });
+    const x0 = 470, y0 = 50, g = 12.5, shown = Math.floor(d.in(t, 0, 2.5) * 27 * 34);
+    d.ctx.fillStyle = PURPLE;
+    for (let n = 0; n < shown; n++) { const r = Math.floor(n / 34), c = n % 34; d.ctx.fillRect(x0 + c * g, y0 + r * g, 7, 7); }
+    const s = d.in(t, 3, 0.8);
+    if (s > 0) d.alpha(s, () => {
+      d.line(x0 + 30 * g - 3, y0 - 14, x0 + 30 * g - 3, y0 + 27 * g + 6, { stroke: PINK, lw: 5 });
+      d.line(x0 - 10, y0 + 20 * g - 3, x0 + 34 * g + 6, y0 + 20 * g - 3, { stroke: PINK, lw: 5 });
+      d.text('30', x0 + 15 * g, y0 + 27 * g + 30, { size: 26, color: BLUE, weight: 700 });
+      d.text('4', x0 + 32 * g, y0 + 27 * g + 30, { size: 26, color: BLUE, weight: 700 });
+      d.text('20', x0 - 22, y0 + 10 * g, { size: 26, color: PINK, weight: 700 });
+      d.text('7', x0 - 22, y0 + 23.5 * g, { size: 26, color: PINK, weight: 700 });
+    });
+    const s2 = d.in(t, 4.2, 0.8);
+    if (s2 > 0) d.alpha(s2, () => {
+      d.text('Split by place value:', 230, 260, { size: 28 });
+      d.text('34 = 30 + 4', 230, 320, { size: 40, weight: 700, color: BLUE });
+      d.text('27 = 20 + 7', 230, 380, { size: 40, weight: 700, color: PINK });
+      d.pill('4 easy problems instead of 1 hard one!', 230, 460, { size: 22, bg: YELLOW });
+    });
+  },
+  'mx-why'(d, t) {
+    d.bg('#fff7e0', '#ffe8b0');
+    const S = [['📦', '✏️', '24 boxes × 36 pencils', '864 pencils'], ['📅', '⏰', '365 days × 24 hours', '8,760 hours in a year'], ['🏟️', '💺', '48 rows × 125 seats', '6,000 seats']];
+    const i = Math.floor(t / 3.5) % 3, k = (t % 3.5) / 3.5, [a, b, q, ans] = S[i];
+    d.emoji(a, 300, 200, 150 + Math.sin(t * 3) * 6);
+    d.emoji(b, 640, 200, 130, { rot: Math.sin(t * 2) * 0.1 });
+    d.text('×', 470, 200, { size: 90, weight: 700, color: PURPLE });
+    d.text(q, 480, 370, { size: 44, weight: 700 });
+    d.alpha(d.in(k, 0.35, 0.15), () => d.pill('= ' + ans, 480, 450, { size: 36, bg: '#b8f0b0' }));
+    S.forEach((_, n) => d.circle(450 + n * 30, 515, 8, { fill: n === i ? PURPLE : '#d8cdea' }));
+  },
+  // base-ten blocks
+  'mx-place'(d, t) {
+    d.bg('#eef7ff', '#d9ecff');
+    const rod = (x, y, col) => { for (let n = 0; n < 10; n++) d.rect(x, y + n * 22, 22, 22, { r: 2, fill: col, stroke: INK, lw: 2 }); };
+    const unit = (x, y, col) => d.rect(x, y, 22, 22, { r: 2, fill: col, stroke: INK, lw: 2 });
+    const show = (num, tens, ones, x, col, at) => {
+      d.text(String(num), x + 150, 50, { size: 54, weight: 700, color: col });
+      for (let r = 0; r < tens; r++) d.alpha(d.in(t, at + r * 0.35), () => rod(x + 20 + r * 40, 110, col));
+      for (let u = 0; u < ones; u++) d.alpha(d.in(t, at + tens * 0.35 + u * 0.15), () => unit(x + 40 + tens * 40 + (u % 4) * 30, 308 - Math.floor(u / 4) * 30, col));
+      d.alpha(d.in(t, at + 2.4), () => {
+        d.text(`${tens} tens + ${ones} ones`, x + 150, 380, { size: 30 });
+        d.text(`${tens * 10} + ${ones}`, x + 150, 440, { size: 48, weight: 700, color: col });
+      });
+    };
+    show(34, 3, 4, 70, BLUE, 0.2);
+    show(27, 2, 7, 520, PINK, 1.6);
+    d.line(480, 40, 480, 480, { stroke: '#b9c6e0', lw: 3, dash: [10, 8] });
+    d.alpha(d.in(t, 4.5), () => d.text('This is called expanded form', 480, 505, { size: 26, color: PURPLE, weight: 700 }));
+  },
+  'mx-area'(d, t) {
+    d.bg('#ffffff', '#f2f0ff');
+    const x = 150, y = 70, u = 12.2, W1 = 30 * u, W2 = 4 * u, H1 = 20 * u, H2 = 7 * u;
+    const draw = d.in(t, 0, 0.8);
+    d.alpha(draw, () => areaModel(d, x, y, [30, 4], [20, 7], [W1, W2], [H1, H2], false));
+    const parts = [['30 × 20', 600, x + W1 / 2, y + H1 / 2], ['4 × 20', 80, x + W1 + W2 / 2, y + H1 / 2], ['30 × 7', 210, x + W1 / 2, y + H1 + H2 / 2], ['4 × 7', 28, x + W1 + W2 / 2, y + H1 + H2 / 2]];
+    parts.forEach(([e, v, px, py], n) => {
+      const k = d.in(t, 1.2 + n * 1.1, 0.6);
+      if (k <= 0) return;
+      d.alpha(k, () => {
+        d.text(fmt(v), px, py, { size: n % 2 ? 22 : 40, weight: 700, color: INK });
+        d.text(`${e} = ${v}`, 790, 140 + n * 80, { size: 34, weight: 700, color: [BLUE, ORANGE, GREEN, PINK][n] });
+      });
+    });
+    d.alpha(d.in(t, 6), () => d.pill('4 small rectangles!', 790, 470, { size: 26, bg: YELLOW }));
+  },
+  'mx-partial'(d, t) {
+    d.bg('#ffffff', '#f2f0ff');
+    const x = 70, y = 90, u = 9, W1 = 30 * u, W2 = 4 * u + 14, H1 = 20 * u, H2 = 7 * u + 10;
+    areaModel(d, x, y, [30, 4], [20, 7], [W1, W2], [H1, H2], false);
+    const src = [[x + W1 / 2, y + H1 / 2], [x + W1 + W2 / 2, y + H1 / 2], [x + W1 / 2, y + H1 + H2 / 2], [x + W1 + W2 / 2, y + H1 + H2 / 2]];
+    const vals = [600, 80, 210, 28], cols = [BLUE, ORANGE, GREEN, PINK], R = 720;
+    vals.forEach((v, n) => {
+      const k = d.in(t, 0.6 + n * 0.9, 0.8), tx = lerpX(src[n][0], R, k), ty = lerpX(src[n][1], 90 + n * 70, k);
+      d.text(String(v), src[n][0], src[n][1], { size: 24, weight: 700, alpha: 1 - k * 0.6 });
+      if (k > 0) digits(d, v, tx, ty, { color: cols[n], size: 50, gap: 34 });
+    });
+    d.alpha(d.in(t, 4.2), () => {
+      d.text('+', R - 150, 300, { size: 50, weight: 700 });
+      d.line(R - 160, 340, R + 30, 340, { lw: 5 });
+    });
+    d.alpha(d.in(t, 5), () => digits(d, 918, R, 390, { size: 58, gap: 36, color: PURPLE }));
+    d.alpha(d.in(t, 5.8), () => d.pill('34 × 27 = 918', 640, 480, { size: 32, bg: '#b8f0b0' }));
+    function lerpX(a, b, k) { return a + (b - a) * k; }
+  },
+  'mx-big'(d, t) {
+    d.bg('#ffffff', '#f2f0ff');
+    const cols = [200, 40, 3], rows = [10, 6], W = [300, 130, 70], H = [170, 120];
+    areaModel(d, 110, 80, cols, rows, W, H, true, 0.3, t);
+    d.text('(not to scale)', 360, 400, { size: 20, color: '#8a97b8' });
+    d.text('243 × 16', 790, 90, { size: 48, weight: 700, color: PURPLE });
+    const sums = ['2,000 + 400 + 30', '+ 1,200 + 240 + 18', '= 3,888'];
+    sums.forEach((s, n) => d.alpha(d.in(t, 3.4 + n * 0.8), () => d.text(s, 790, 190 + n * 60, { size: n === 2 ? 52 : 30, weight: 700, color: n === 2 ? GREEN : INK })));
+    d.alpha(d.in(t, 6), () => d.pill('3 × 2 = 6 boxes', 790, 450, { size: 26, bg: YELLOW }));
+  },
+  // the standard algorithm, start to finish
+  'sa-what'(d, t) {
+    d.bg('#f4f0ff', '#e4dcff');
+    const R = 560;
+    digits(d, 34, R, 90); digits(d, 27, R, 160); d.text('×', R - 160, 160, { size: 54, weight: 700 });
+    d.line(R - 190, 200, R + 30, 200, { lw: 5 });
+    d.alpha(d.in(t, 0.8), () => { digits(d, 238, R, 250, { color: GREEN }); d.text('← 34 × 7', R + 70, 250, { size: 28, align: 'left', color: GREEN }); });
+    d.alpha(d.in(t, 2), () => { digits(d, 680, R, 320, { color: BLUE }); d.text('+', R - 160, 320, { size: 54, weight: 700 }); d.text('← 34 × 20', R + 70, 320, { size: 28, align: 'left', color: BLUE }); });
+    d.alpha(d.in(t, 3.2), () => { d.line(R - 190, 360, R + 30, 360, { lw: 5 }); digits(d, 918, R, 410, { color: PURPLE }); d.text('← add!', R + 70, 410, { size: 28, align: 'left', color: PURPLE }); });
+    d.alpha(d.in(t, 4.4), () => d.text('ones  →  tens  →  add', 480, 500, { size: 28, weight: 700, color: '#8a97b8' }));
+  },
+  'sa-why'(d, t) {
+    d.bg('#ffffff', '#f2f0ff');
+    const x = 70, y = 110, u = 8;
+    const W = [30 * u, 4 * u + 20], H = [20 * u, 7 * u + 16];
+    d.rect(x, y, W[0], H[0], { r: 0, fill: '#cfe0ff', stroke: INK }); d.rect(x + W[0], y, W[1], H[0], { r: 0, fill: '#cfe0ff', stroke: INK });
+    d.rect(x, y + H[0], W[0], H[1], { r: 0, fill: '#d4f5d0', stroke: INK }); d.rect(x + W[0], y + H[0], W[1], H[1], { r: 0, fill: '#d4f5d0', stroke: INK });
+    d.text('600', x + W[0] / 2, y + H[0] / 2, { size: 34, weight: 700 }); d.text('80', x + W[0] + W[1] / 2, y + H[0] / 2, { size: 22, weight: 700 });
+    d.text('210', x + W[0] / 2, y + H[0] + H[1] / 2, { size: 30, weight: 700 }); d.text('28', x + W[0] + W[1] / 2, y + H[0] + H[1] / 2, { size: 22, weight: 700 });
+    d.text('Area model', x + 150, 60, { size: 30, weight: 700, color: PURPLE });
+    d.text('Standard algorithm', 700, 60, { size: 30, weight: 700, color: PURPLE });
+    const R = 760;
+    digits(d, 34, R, 130, { size: 46, gap: 40 }); digits(d, 27, R, 190, { size: 46, gap: 40 }); d.text('×', R - 130, 190, { size: 46 });
+    d.line(R - 150, 225, R + 20, 225, { lw: 4 });
+    digits(d, 238, R, 270, { size: 46, gap: 40, color: GREEN }); digits(d, 680, R, 330, { size: 46, gap: 40, color: BLUE });
+    d.line(R - 150, 365, R + 20, 365, { lw: 4 }); digits(d, 918, R, 405, { size: 46, gap: 40, color: PURPLE });
+    const p = d.loop(t, 4) < 0.5;
+    d.curve(x + 330, p ? y + H[0] + H[1] / 2 : y + H[0] / 2, 560, p ? 360 : 200, R - 120, p ? 270 : 330, { color: p ? GREEN : BLUE, lw: 5, dash: [10, 8] });
+    d.pill(p ? '210 + 28 = 238' : '600 + 80 = 680', 300, 470, { size: 28, bg: p ? '#d4f5d0' : '#cfe0ff' });
+    d.text('Same pieces, fewer steps!', 700, 480, { size: 28, weight: 700 });
+  },
+  'sa-step1'(d, t) {
+    d.bg('#f4f0ff', '#e4dcff');
+    const R = 420, T = t % 9;
+    digits(d, 34, R, 130, { colors: [T < 4 ? PINK : INK, T >= 4 && T < 8 ? PINK : INK] });
+    digits(d, 27, R, 210, { colors: [GREEN, INK] }); d.text('×', R - 140, 210, { size: 54, weight: 700 });
+    d.line(R - 170, 250, R + 30, 250, { lw: 5 });
+    if (T > 1.2) { d.text('8', R, 300, { size: 54, weight: 700, color: GREEN }); }
+    if (T > 2.2 && T < 6.5) d.text('2', R - 50, 78, { size: 34, weight: 700, color: ORANGE });
+    if (T > 6.2) { d.text('3', R - 50, 300, { size: 54, weight: 700, color: GREEN }); d.text('2', R - 100, 300, { size: 54, weight: 700, color: GREEN }); }
+    const say = T < 1.2 ? ['7 × 4 = 28', ''] : T < 4 ? ['7 × 4 = 28', 'Write the 8, carry the 2'] : T < 6.2 ? ['7 × 3 = 21', '21 + the carried 2 = 23'] : ['34 × 7 = 238', 'First row done!'];
+    d.rect(560, 120, 360, 200, { r: 20, fill: '#fff', stroke: INK });
+    d.text(say[0], 740, 185, { size: 44, weight: 700, color: PURPLE });
+    d.text(say[1], 740, 255, { size: 26 });
+    d.text('Step 1: multiply by the ONES digit', 480, 470, { size: 30, weight: 700, color: GREEN });
+  },
+  'sa-step2'(d, t) {
+    d.bg('#f4f0ff', '#e4dcff');
+    const R = 420, T = t % 8;
+    digits(d, 34, R, 110, { colors: [T > 2 && T < 4 ? PINK : INK, T >= 4 && T < 6 ? PINK : INK] });
+    digits(d, 27, R, 180, { colors: [INK, BLUE] }); d.text('×', R - 140, 180, { size: 54, weight: 700 });
+    d.line(R - 170, 220, R + 30, 220, { lw: 5 });
+    digits(d, 238, R, 270, { color: GREEN, alpha: 0.6 });
+    if (T > 0.8) d.text('0', R, 340, { size: 54, weight: 700, color: ORANGE });
+    if (T > 2.6) d.text('8', R - 50, 340, { size: 54, weight: 700, color: BLUE });
+    if (T > 4.6) d.text('6', R - 100, 340, { size: 54, weight: 700, color: BLUE });
+    const say = T < 2 ? ['The 2 means 20!', 'Write a 0 placeholder first'] : T < 4 ? ['2 × 4 = 8', 'Write it in the tens place'] : T < 6 ? ['2 × 3 = 6', 'Write it in the hundreds place'] : ['34 × 20 = 680', 'Second row done!'];
+    d.rect(560, 120, 360, 200, { r: 20, fill: '#fff', stroke: INK });
+    d.text(say[0], 740, 185, { size: 42, weight: 700, color: PURPLE });
+    d.text(say[1], 740, 255, { size: 26 });
+    d.text('Step 2: multiply by the TENS digit', 480, 470, { size: 30, weight: 700, color: BLUE });
+  },
+  'sa-step3'(d, t) {
+    d.bg('#f4f0ff', '#e4dcff');
+    const R = 420, T = t % 8;
+    digits(d, 238, R, 130, { color: GREEN }); digits(d, 680, R, 200, { color: BLUE });
+    d.text('+', R - 140, 200, { size: 54, weight: 700 }); d.line(R - 170, 240, R + 30, 240, { lw: 5 });
+    if (T > 1) d.text('8', R, 290, { size: 54, weight: 700, color: PURPLE });
+    if (T > 2.6) d.text('1', R - 50, 290, { size: 54, weight: 700, color: PURPLE });
+    if (T > 2.6 && T < 5) d.text('1', R - 100, 82, { size: 32, weight: 700, color: ORANGE });
+    if (T > 4.4) d.text('9', R - 100, 290, { size: 54, weight: 700, color: PURPLE });
+    const say = T < 1 ? ['Add the rows', 'Start with the ones'] : T < 2.6 ? ['8 + 0 = 8', 'Ones'] : T < 4.4 ? ['3 + 8 = 11', 'Write 1, carry 1'] : ['2 + 6 + 1 = 9', 'So 34 × 27 = 918!'];
+    d.rect(560, 90, 360, 180, { r: 20, fill: '#fff', stroke: INK });
+    d.text(say[0], 740, 150, { size: 42, weight: 700, color: PURPLE });
+    d.text(say[1], 740, 215, { size: 26 });
+    d.alpha(d.in(t, 4.4), () => {
+      d.text('238 = 210 + 28', 740, 340, { size: 30, weight: 700, color: GREEN });
+      d.text('680 = 600 + 80', 740, 390, { size: 30, weight: 700, color: BLUE });
+      d.text('The same partial products!', 740, 450, { size: 26 });
+    });
+  },
+  'sa-est'(d, t) {
+    d.bg('#fffdf0', '#fff1c4');
+    d.text('34 × 27', 250, 70, { size: 46, weight: 700 });
+    d.alpha(d.in(t, 0.6), () => { d.arrow(205, 100, 175, 160, { color: BLUE }); d.arrow(295, 100, 325, 160, { color: PINK }); d.text('≈ 30', 160, 190, { size: 38, weight: 700, color: BLUE }); d.text('≈ 30', 340, 190, { size: 38, weight: 700, color: PINK }); });
+    d.alpha(d.in(t, 1.6), () => d.pill('30 × 30 = 900', 250, 270, { size: 34, bg: YELLOW }));
+    // number line
+    const y = 420;
+    d.text('Which answer makes sense?', 480, 350, { size: 28, weight: 700 });
+    d.line(80, y, 900, y, { lw: 4 });
+    const X = v => 80 + v / 10000 * 820;
+    [0, 2000, 4000, 6000, 8000, 10000].forEach(v => { d.line(X(v), y - 10, X(v), y + 10, { lw: 3 }); d.text(fmt(v), X(v), y + 34, { size: 20, color: '#5a6f99' }); });
+    d.alpha(d.in(t, 2.4), () => {
+      d.circle(X(900), y, 10, { fill: YELLOW, stroke: INK });
+      d.circle(X(918), y, 8, { fill: GREEN, stroke: INK });
+      d.text('900 ≈ 918 ✅', X(900) - 10, y - 32, { size: 26, weight: 700, color: GREEN, align: 'left' });
+      d.circle(X(9180), y, 10, { fill: PINK, stroke: INK }); d.text('9,180 ❌', X(9180), y - 30, { size: 24, color: PINK, weight: 700 });
+    });
+  },
+  // ----- volume -----
+  'vo-what'(d, t) {
+    d.bg('#eefaf3', '#d6f2e2');
+    const P = fitBox(4, 3, 3, 40, 40, 520, 460, 64), n = Math.min(36, Math.floor(d.loop(t, 9) * 9 / 6 * 36) + 1);
+    wire(d, P, 4, 3, 3);
+    cubes(d, P, boxList(4, 3, 3, (i, j, k) => ['#7fc4ff', '#8fe0a8', '#ffcf7a'][k], n));
+    d.text(`Cubes: ${n}`, 740, 170, { size: 48, weight: 700, color: GREEN });
+    d.wrap('Fill the box with unit cubes and count them. That number is the volume!', 760, 240, 320, { size: 28 });
+    d.alpha(n === 36 ? 1 : 0, () => d.pill('Volume = 36 cubic units', 740, 450, { size: 26, bg: YELLOW }));
+  },
+  'vo-why'(d, t) {
+    d.bg('#f0f7ff', '#d9ecff');
+    const panel = (x, y, e, s) => { d.rect(x, y, 420, 220, { r: 18, fill: '#fff', stroke: INK }); d.emoji(e, x + 90, y + 105, 100); d.wrap(s, x + 170, y + 60, 230, { size: 26, align: 'left' }); };
+    panel(40, 30, '🐠', 'How much water fills the fish tank?');
+    panel(500, 30, '🚚', 'How many boxes fit in the truck?');
+    panel(40, 280, '🏖️', 'How much sand for the sandbox?');
+    panel(500, 280, '🥣', 'How much cereal is in the box?');
+    // water rising in the fish tank, boxes filling the truck
+    const k = d.loop(t, 4);
+    d.rect(40 + 22, 30 + 175 - 40 * k, 136, 40 * k, { r: 4, fill: 'rgba(61,143,240,.35)' });
+    for (let b = 0; b < Math.floor(k * 6); b++) d.emoji('📦', 670 + (b % 3) * 40, 215 - Math.floor(b / 3) * 34, 30);
+  },
+  'vo-unit'(d, t) {
+    d.bg('#fff7ef', '#ffe9d1');
+    const P = iso(250, 400, 170);
+    d.at(0, Math.sin(t * 2) * 6, 0, 1, () => {
+      cube(d, P, -0.5, -0.5, 0, '#ffb86b', { lw: 4 });
+      const mid = (a, b) => [(a[0] + b[0]) / 2, (a[1] + b[1]) / 2];
+      const [ax, ay] = mid(P(-0.5, 0.5, 0), P(0.5, 0.5, 0)); d.pill('1 cm', ax - 40, ay + 34, { size: 24 });
+      const [bx, by] = mid(P(0.5, -0.5, 0), P(0.5, 0.5, 0)); d.pill('1 cm', bx + 50, by + 30, { size: 24 });
+      const [cx, cy] = mid(P(0.5, 0.5, 0), P(0.5, 0.5, 1)); d.pill('1 cm', cx + 60, cy, { size: 24 });
+    });
+    d.text('1 cm³', 250, 70, { size: 56, weight: 700, color: ORANGE });
+    d.text('"one cubic centimeter"', 250, 120, { size: 26 });
+    const units = [['cm³', 'cubic centimeters'], ['in³', 'cubic inches'], ['ft³', 'cubic feet'], ['m³', 'cubic meters']];
+    units.forEach(([a, b], n) => d.alpha(d.in(t, 0.5 + n * 0.5), () => { d.text(a, 620, 130 + n * 80, { size: 44, weight: 700, color: PURPLE }); d.text(b, 680, 130 + n * 80, { size: 28, align: 'left' }); }));
+    d.alpha(d.in(t, 3), () => d.text('³ = 3 dimensions: length, width, height', 690, 480, { size: 24, weight: 700, color: '#5a6f99' }));
+  },
+  'vo-layers'(d, t) {
+    d.bg('#eefaf3', '#d6f2e2');
+    const T = t % 10, layers = Math.min(5, Math.max(1, Math.floor(T / 1.4) + 1));
+    const P = fitBox(4, 3, 5, 60, 20, 480, 500, 60);
+    wire(d, P, 4, 3, 5);
+    const cols = ['#7fc4ff', '#8fe0a8', '#ffcf7a', '#ff9fbf', '#c3a6ff'];
+    const one = T < 1.4 ? Math.ceil(d.in(T, 0, 1.2) * 12) : 12;
+    cubes(d, P, boxList(4, 3, layers, (i, j, k) => cols[k], (layers - 1) * 12 + one));
+    d.text('1 layer = 4 × 3 = 12', 750, 90, { size: 34, weight: 700, color: BLUE });
+    for (let k = 0; k < layers; k++) d.text(`Layer ${k + 1}: ${12 * (k + 1)} cubes`, 750, 160 + k * 52, { size: 28, color: cols[k] === '#8fe0a8' ? GREEN : INK, weight: 700 });
+    if (layers === 5) d.pill('5 layers × 12 = 60', 750, 470, { size: 28, bg: YELLOW });
+  },
+  'vo-gaps'(d, t) {
+    d.bg('#ffffff', '#f2f0ff');
+    // flat area
+    for (let i = 0; i < 4; i++) for (let j = 0; j < 3; j++) d.rect(70 + i * 70, 130 + j * 70, 70, 70, { r: 0, fill: '#cfe0ff', stroke: INK });
+    d.text('AREA', 210, 70, { size: 40, weight: 700, color: BLUE, font: "'Bungee', sans-serif" });
+    d.text('4 × 3 = 12 square units', 210, 390, { size: 28, weight: 700 });
+    d.text('flat, like a floor', 210, 435, { size: 26, color: '#5a6f99' });
+    const P = fitBox(4, 3, 2, 520, 90, 400, 280, 60);
+    cubes(d, P, boxList(4, 3, 2, (i, j, k) => k ? '#ffcf7a' : '#8fe0a8', Math.ceil(d.in(t, 0.3, 2.5) * 24)));
+    d.text('VOLUME', 720, 70, { size: 40, weight: 700, color: GREEN, font: "'Bungee', sans-serif" });
+    d.text('4 × 3 × 2 = 24 cubic units', 720, 390, { size: 28, weight: 700 });
+    d.text('fills space, like a room', 720, 435, { size: 26, color: '#5a6f99' });
+    d.pill('No gaps, no overlaps!', 480, 495, { size: 24, bg: YELLOW });
+  },
+  'vf-what'(d, t) {
+    d.bg('#f4f0ff', '#e4dcff');
+    const P = fitBox(4, 3, 5, 60, 30, 420, 480, 60);
+    cubes(d, P, boxList(4, 3, 5, '#c3a6ff'), { lw: 1.5 });
+    const [lx, ly] = P(2, 3, 0), [wx, wy] = P(4, 1.5, 0), [hx, hy] = P(4, 3, 2.5);
+    d.pill('l = 4', lx - 40, ly + 40, { size: 26, bg: '#cfe0ff' });
+    d.pill('w = 3', wx + 60, wy + 30, { size: 26, bg: '#ffd0e0' });
+    d.pill('h = 5', hx + 60, hy, { size: 26, bg: '#d4f5d0' });
+    d.text('V = l × w × h', 720, 120, { size: 52, weight: 700, color: PURPLE });
+    d.alpha(d.in(t, 1), () => d.text('V = 4 × 3 × 5', 720, 220, { size: 42, weight: 700 }));
+    d.alpha(d.in(t, 2), () => d.text('V = 12 × 5', 720, 300, { size: 42, weight: 700 }));
+    d.alpha(d.in(t, 3), () => d.pill('V = 60 cm³', 720, 400, { size: 40, bg: YELLOW }));
+  },
+  'vf-why'(d, t) {
+    d.bg('#e6f6ff', '#bfe6ff');
+    const P = iso(480, 170, 30);
+    // an above-ground swimming pool 10 × 5 × 2
+    d.poly([P(10, 0, 0), P(10, 5, 0), P(10, 5, 2), P(10, 0, 2)], { close: true, fill: '#2f7fc8', stroke: INK, lw: 3 });
+    d.poly([P(0, 5, 0), P(10, 5, 0), P(10, 5, 2), P(0, 5, 2)], { close: true, fill: '#3a8fd8', stroke: INK, lw: 3 });
+    d.poly([P(0, 0, 2), P(10, 0, 2), P(10, 5, 2), P(0, 5, 2)], { close: true, fill: '#7cc6ff', stroke: INK, lw: 3 });
+    for (let i = 0; i < 5; i++) { const [x, y] = P(1 + i * 2 + Math.sin(t * 2 + i) * 0.3, 2.5, 2); d.ellipse(x, y, 18, 5, { stroke: 'rgba(255,255,255,.9)', lw: 2 }); }
+    d.pill('10 m', ...P(5, 5, 0).map((v, n) => v + (n ? 30 : -30)), { size: 22 });
+    d.pill('5 m', ...P(10, 2.5, 0).map((v, n) => v + (n ? 30 : 30)), { size: 22 });
+    d.pill('2 m', ...P(10, 0, 1).map((v, n) => v + (n ? 0 : 40)), { size: 22 });
+    d.emoji('🏊', ...P(5 + Math.sin(t * 0.7) * 3, 2.5, 2), 46);
+    d.text('10 m long × 5 m wide × 2 m deep', 480, 60, { size: 30, weight: 700 });
+    d.alpha(d.in(t, 1), () => d.pill('V = 10 × 5 × 2 = 100 m³', 480, 470, { size: 34, bg: YELLOW }));
+  },
+  'vf-base'(d, t) {
+    d.bg('#eefaf3', '#d6f2e2');
+    const P = fitBox(4, 3, 5, 60, 30, 420, 480, 60), up = d.in(t, 1.5, 2.5);
+    cubes(d, P, [...boxList(4, 3, 1, '#ff9fbf'), ...boxList(4, 3, 4, '#8fe0a8', Math.floor(up * 48), [0, 0, 1])], { lw: 1.5 });
+    d.text('B = area of the base', 720, 90, { size: 32, weight: 700, color: PINK });
+    d.text('B = 4 × 3 = 12', 720, 145, { size: 36, weight: 700 });
+    d.alpha(d.in(t, 1.5), () => d.text('h = 5 layers', 720, 230, { size: 36, weight: 700, color: GREEN }));
+    d.alpha(d.in(t, 4), () => { d.text('V = B × h', 720, 320, { size: 46, weight: 700, color: PURPLE }); d.pill('V = 12 × 5 = 60', 720, 410, { size: 34, bg: YELLOW }); });
+  },
+  'vf-order'(d, t) {
+    d.bg('#fff7ef', '#ffe9d1');
+    const boxes = [[4, 3, 5], [5, 4, 3], [3, 5, 4]], cols = ['#7fc4ff', '#ffcf7a', '#c3a6ff'];
+    boxes.forEach(([l, w, h], n) => {
+      const bob = Math.sin(t * 2 + n) * 6;
+      const P = fitBox(l, w, h, 20 + n * 310, 40 + bob, 300, 340, 34);
+      cubes(d, P, boxList(l, w, h, cols[n]), { lw: 1 });
+      d.text(`${l} × ${w} × ${h}`, 170 + n * 310, 420, { size: 32, weight: 700 });
+      d.text('= 60', 170 + n * 310, 470, { size: 36, weight: 700, color: GREEN });
+    });
+  },
+  'vf-composite'(d, t) {
+    d.bg('#f0f7ff', '#d9ecff');
+    const P = iso(330, 330, 44), apart = Math.max(0, Math.sin(t * 1.2)) * 1.6;
+    cubes(d, P, [...boxList(4, 3, 2, '#7fc4ff'), ...boxList(2, 3, 3, '#ffcf7a', Infinity, [4 + apart, 0, 0])], { lw: 1.5 });
+    d.pill('A: 4 × 3 × 2 = 24', 180, 470, { size: 28, bg: '#cfe0ff' });
+    d.pill('B: 2 × 3 × 3 = 18', 520, 470, { size: 28, bg: '#ffe3b8' });
+    d.text('A + B', 800, 140, { size: 44, weight: 700, color: PURPLE });
+    d.text('24 + 18', 800, 210, { size: 40, weight: 700 });
+    d.pill('= 42 cubic units', 800, 290, { size: 32, bg: YELLOW });
+  },
+};
+
+// ---------- Game 1: Area Model Builder ----------
+function areaGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  const N = 5, problems = [];
+  const r = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const ranges = [[11, 19, 11, 19], [21, 39, 12, 29], [23, 49, 21, 39], [31, 69, 24, 49], [52, 98, 34, 89]];
+  for (let n = 0; n < N; n++) {
+    const [a0, a1, b0, b1] = ranges[n];
+    let a, b;
+    do { a = r(a0, a1); b = r(b0, b1); } while (a % 10 === 0 || b % 10 === 0);
+    problems.push([a, b]);
+  }
+  let pi = 0, step = 0, score = 0, miss = 0, firstTry = 0, flash = 0, opts = [], done = false;
+  root.innerHTML = `<div class="hud"><span id="ag-p"></span><span>🏆 <b id="ag-s">0</b></span></div>
+    <canvas class="board" id="ag-cv"></canvas><p id="ag-q" style="font-weight:700"></p><div class="choices" id="ag-c"></div>`;
+  const draw = board(api.$('ag-cv'));
+  const parts = () => { const [a, b] = problems[pi], at = a - a % 10, ao = a % 10, bt = b - b % 10, bo = b % 10; return { a, b, cols: [at, ao], rows: [bt, bo] }; };
+  const answerOf = s => { const { a, b, cols, rows } = parts(); return s < 4 ? cols[s % 2] * rows[Math.floor(s / 2)] : a * b; };
+  function wrongs(v, s) {
+    const { cols, rows } = parts();
+    const c = cols[s % 2], rw = rows[Math.floor(s / 2)];
+    const cand = s < 4 ? [v * 10, v / 10, (c + (c >= 10 ? 10 : 1)) * rw, c * (rw + (rw >= 10 ? 10 : 1)), v + 10, v - (c >= 10 && rw >= 10 ? 100 : 2)]
+      : [v + 10, v - 10, v + 100, v - 100, v + 1000];
+    return shuffle(cand.filter(x => Number.isInteger(x) && x > 0 && x !== v)).filter((x, i, arr) => arr.indexOf(x) === i).slice(0, 2);
+  }
+  function ask() {
+    const v = answerOf(step);
+    opts = shuffle([v, ...wrongs(v, step)]);
+    const { cols, rows } = parts();
+    api.$('ag-p').textContent = `Problem ${pi + 1} of ${N}`;
+    api.$('ag-q').textContent = step < 4 ? `What is ${cols[step % 2]} × ${rows[Math.floor(step / 2)]}?` : 'Add the partial products! What is the total?';
+    api.$('ag-c').innerHTML = opts.map((o, k) => `<button class="ans" data-k="${k}">${fmt(o)}</button>`).join('');
+    api.$('ag-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+    miss = 0;
+  }
+  function pick(k) {
+    if (done) return;
+    RB.audio();
+    const btn = api.$('ag-c').children[k];
+    if (opts[k] !== answerOf(step)) { sfx.wrong(); miss++; btn.disabled = true; btn.classList.add('wrong', 'shake'); return; }
+    sfx.right();
+    if (!miss) { score += 100; firstTry++; }
+    api.$('ag-s').textContent = score;
+    flash = 1; step++;
+    if (step === 5) {
+      step = 0; pi++;
+      if (pi === N) { done = true; finish(); return; }
+    }
+    ask();
+  }
+  function finish() {
+    const max = N * 500;
+    api.done({ score, stars: score >= max * 0.88 ? 3 : score >= max * 0.6 ? 2 : 1,
+      rows: [['✅ First-try answers', `${firstTry} of ${N * 5}`], ['🧮 Problems solved', N]], hint: 'Get 22 or more right on the first try for ★★★' });
+  }
+  function render() {
+    if (done) return;
+    draw(() => {
+      d.bg('#ffffff', '#f2f0ff');
+      const { a, b, cols, rows } = parts();
+      d.text(`${a} × ${b}`, 760, 70, { size: 50, weight: 700, color: PURPLE });
+      const W = [Math.max(150, cols[0] * 5.2), Math.max(90, cols[1] * 14)], H = [Math.max(120, rows[0] * 3.6), Math.max(80, rows[1] * 11)];
+      const sc = Math.min(540 / (W[0] + W[1]), 400 / (H[0] + H[1]));
+      const w = W.map(v => v * sc), h = H.map(v => v * sc), x = 80, y = 80;
+      areaModel(d, x, y, cols, rows, w, h, false);
+      for (let s = 0; s < 4; s++) {
+        const ci = s % 2, ri = Math.floor(s / 2), bx = x + (ci ? w[0] : 0), by = y + (ri ? h[0] : 0);
+        if (s < step) d.text(fmt(cols[ci] * rows[ri]), bx + w[ci] / 2, by + h[ri] / 2, { size: Math.min(34, w[ci] / 2.6), weight: 700 });
+        if (s === step) { d.rect(bx + 4, by + 4, w[ci] - 8, h[ri] - 8, { r: 6, stroke: PINK, lw: 5, dash: [10, 6] }); d.text('?', bx + w[ci] / 2, by + h[ri] / 2, { size: 40, weight: 700, color: PINK }); }
+      }
+      const done4 = Math.min(step, 4);
+      for (let s = 0; s < done4; s++) d.text(fmt(answerOf(s)), 860, 150 + s * 56, { size: 34, weight: 700, color: [BLUE, ORANGE, GREEN, PINK][s], align: 'right' });
+      if (step >= 4) { d.line(700, 370, 880, 370, { lw: 4 }); d.text('+', 690, 320, { size: 40 }); d.text('?', 860, 410, { size: 42, weight: 700, color: PINK, align: 'right' }); }
+      if (flash > 0) d.alpha(flash, () => d.text('✅', 480, 270, { size: 120 }));
+    });
+  }
+  ask(); render();
+  return {
+    tick(dt) { flash = Math.max(0, flash - dt * 2); render(); },
+    key(k) { const n = '123'.indexOf(k); if (n >= 0 && n < opts.length) pick(n); },
+    bot() { pick(opts.indexOf(answerOf(step))); },
+  };
+}
+
+// ---------- Game 2: Box Builder ----------
+function boxGame(api) {
+  const { root, board, sfx, d } = api;
+  const GOALS = [
+    { s: 'Build a box with a volume of **12** cubic units.', ok: (l, w, h) => l * w * h === 12 },
+    { s: 'Build a box with a volume of **24** that is exactly **2** cubes tall.', ok: (l, w, h) => h === 2 && l * w * h === 24 },
+    { s: 'Build a box with a volume of **30** and a length of **5**.', ok: (l, w, h) => l === 5 && l * w * h === 30 },
+    { s: 'Build a **cube** (length, width and height all the same) with a volume of **27**.', ok: (l, w, h) => l === w && w === h && l * w * h === 27 },
+    { s: 'Build a box with a volume of **48** and a base area (l × w) of **16**.', ok: (l, w, h) => l * w === 16 && l * w * h === 48 },
+    { s: 'Build a box with a volume of **60** that is **3** wide.', ok: (l, w, h) => w === 3 && l * w * h === 60 },
+  ];
+  let gi = 0, dim = { l: 1, w: 1, h: 1 }, tries = 0, score = 0, perfect = 0, done = false, cheer = 0, t = 0;
+  root.innerHTML = `<div class="hud"><span id="bb-r"></span><span>🏆 <b id="bb-s">0</b></span></div>
+    <p id="bb-g" style="font-weight:600;margin:4px auto"></p>
+    <canvas class="board" id="bb-cv" style="width:min(100%, calc((100vh - 420px) * 16 / 9))"></canvas>
+    <div class="dims">${[['l', 'Length'], ['w', 'Width'], ['h', 'Height']].map(([k, n]) => `<div class="dim">${n} <button data-k="${k}" data-v="-1">−</button><b id="bb-${k}">1</b><button data-k="${k}" data-v="1">+</button></div>`).join('')}</div>
+    <button class="btn" id="bb-go">✅ Check my box</button>`;
+  const draw = board(api.$('bb-cv'));
+  root.querySelectorAll('.dim button').forEach(b => b.addEventListener('click', () => { RB.audio(); set(b.dataset.k, dim[b.dataset.k] + +b.dataset.v); }));
+  api.$('bb-go').addEventListener('click', check);
+  function set(k, v) { dim[k] = Math.max(1, Math.min(6, v)); api.$('bb-' + k).textContent = dim[k]; sfx.pop(); }
+  function goal() {
+    api.$('bb-r').textContent = `Box ${gi + 1} of ${GOALS.length}`;
+    api.$('bb-g').innerHTML = '🎯 ' + api.rich(GOALS[gi].s);
+    tries = 0;
+  }
+  function check() {
+    if (done) return;
+    RB.audio();
+    const { l, w, h } = dim;
+    if (!GOALS[gi].ok(l, w, h)) { tries++; sfx.wrong(); api.$('bb-cv').classList.remove('shake'); void api.$('bb-cv').offsetWidth; api.$('bb-cv').classList.add('shake'); return; }
+    sfx.right(); cheer = 1.2;
+    const pts = [200, 100, 50][Math.min(tries, 2)];
+    score += pts; if (!tries) perfect++;
+    api.$('bb-s').textContent = score;
+    gi++;
+    if (gi === GOALS.length) {
+      done = true;
+      api.done({ score, stars: score >= 1100 ? 3 : score >= 800 ? 2 : 1, rows: [['📦 Boxes built', GOALS.length], ['🎯 Right on the first try', `${perfect} of ${GOALS.length}`]],
+        hint: 'Build at least 5 boxes right on the first try for ★★★' });
+      return;
+    }
+    goal();
+  }
+  function render() {
+    if (done) return;
+    const { l, w, h } = dim;
+    draw(() => {
+      d.bg('#eefaf3', '#d6f2e2');
+      const P = fitBox(l, w, h, 30, 20, 520, 500, 90);
+      const cols = ['#7fc4ff', '#8fe0a8', '#ffcf7a', '#ff9fbf', '#c3a6ff', '#ffe066'];
+      cubes(d, P, boxList(l, w, h, (i, j, k) => cols[k]), { lw: 1.5 });
+      d.text(`${l} × ${w} × ${h}`, 760, 160, { size: 52, weight: 700, color: PURPLE });
+      d.text(`= ${l * w * h}`, 760, 240, { size: 60, weight: 700 });
+      d.text('cubic units', 760, 300, { size: 28, color: '#5a6f99' });
+      d.text(`Base: ${l} × ${w} = ${l * w}`, 760, 370, { size: 28, color: PINK, weight: 700 });
+      if (cheer > 0) d.alpha(Math.min(1, cheer), () => { d.emoji('🎉', 760, 450 - (1.2 - cheer) * 40, 80); });
+    });
+  }
+  goal(); render();
+  return {
+    tick(dt) { t += dt; cheer = Math.max(0, cheer - dt); render(); },
+    bot() {
+      for (let l = 1; l <= 6; l++) for (let w = 1; w <= 6; w++) for (let h = 1; h <= 6; h++) if (GOALS[gi].ok(l, w, h)) { set('l', l); set('w', w); set('h', h); check(); return; }
+    },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g5_math', grade: '5th Grade · Math', title: 'Multiply & Volume', icon: '🧮', home: 'index.html', homeTitle: 'Back to the 5th grade folder',
+  tagline: 'Multiply **big numbers** without breaking a sweat, then measure the **space inside** things.',
+  certTitle: 'Math Master', certText: 'can multiply multi-digit numbers and find the volume of any box!',
+  shareText: 'Learn to multiply big numbers and find volume on RoboBandit! 🧮',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'mult', icon: '✖️', name: 'Multiplying Big Numbers', sub: 'Place value & the area model', badge: 'Area Model Ace',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Multiplying multi-digit numbers', d: 'mx-what', p: 'Multiplying is a fast way to add **equal groups**. **34 × 27** means 34 groups of 27. With big numbers, we split them up by **place value**, so one hard problem becomes a few easy ones.' },
+        { k: 'WHY DO WE CARE?', t: 'Big numbers are everywhere', d: 'mx-why', p: 'A school orders **24 boxes** of **36 pencils**. A year has **365 days** of **24 hours**. A stadium has **48 rows** of **125 seats**. Multiplying finds the answer in seconds, instead of adding 36 + 36 + 36… twenty-four times!' },
+        { t: 'Place value: break it apart', d: 'mx-place', p: 'Every digit has a place. **34** is **3 tens and 4 ones**: 30 + 4. **27** is **20 + 7**. Writing numbers this way is called **expanded form**, and it\'s the secret to multiplying big numbers.', v: [['expanded form', 'a number written as a sum of its place values']] },
+        { t: 'The area model', d: 'mx-area', p: 'Draw a rectangle **34** wide and **27** tall. Split the sides into 30 + 4 and 20 + 7. Now there are **four smaller rectangles**, each an easy multiplication: 30 × 20 = **600**, 4 × 20 = **80**, 30 × 7 = **210**, 4 × 7 = **28**.' },
+        { t: 'Add the partial products', d: 'mx-partial', p: 'Each small rectangle\'s answer is a **partial product**. Add them up to get the whole area: 600 + 80 + 210 + 28 = **918**. So **34 × 27 = 918**.', v: [['partial product', 'the answer to one small piece of a bigger multiplication']] },
+        { t: 'Bigger: 3 digits × 2 digits', d: 'mx-big', p: '**243 × 16**: split 243 into 200 + 40 + 3, and 16 into 10 + 6. That makes **six** boxes: 2,000 + 400 + 30 + 1,200 + 240 + 18 = **3,888**. More digits just means more boxes!' },
+      ],
+      quiz: [
+        { q: 'In expanded form, 46 is…', a: ['40 + 6', '4 + 6', '400 + 6'], why: '46 is 4 tens and 6 ones: 40 + 6.' },
+        { q: 'In the area model for 34 × 27, what goes in the 30 × 20 box?', a: ['600', '60', '6,000'], why: '3 × 2 = 6, and there are two zeros (one from 30, one from 20), so 30 × 20 = 600.' },
+        { q: 'What are partial products?', a: ['The answers to the small multiplications, which you add together', 'Numbers you subtract at the end', 'The digits in the ones place'], why: 'Each piece of the area model gives a partial product. Their sum is the full answer.' },
+        { q: 'Which partial products are right for 23 × 12?', a: ['200 + 30 + 40 + 6', '20 + 3 + 10 + 2', '200 + 40 + 6'], why: '20 × 10 = 200, 3 × 10 = 30, 20 × 2 = 40, 3 × 2 = 6. Together: 276.' },
+        { q: 'How many boxes does the area model for 243 × 16 have?', a: ['6', '4', '5'], why: '243 splits into 3 parts and 16 into 2 parts: 3 × 2 = 6 boxes.' },
+        { q: 'What is 15 × 12?', a: ['180', '170', '1,512'], why: '10 × 10 = 100, 5 × 10 = 50, 10 × 2 = 20, 5 × 2 = 10. 100 + 50 + 20 + 10 = 180.' },
+        { q: '34 × 27 = ?', a: ['918', '818', '9,018'], why: '600 + 80 + 210 + 28 = 918.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'algo', icon: '📝', name: 'The Standard Algorithm', sub: 'The column method & estimating', badge: 'Algorithm Ace',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'The standard algorithm', d: 'sa-what', p: 'The **standard algorithm** is the stacked, column way to multiply. It\'s the area model squeezed into fewer steps: multiply by the **ones** digit, then by the **tens** digit, then **add**.', v: [['algorithm', 'a set of steps that always solves a kind of problem']] },
+        { k: 'WHY DO WE CARE?', t: 'Fast, and works for any size', d: 'sa-why', p: 'Once you know it, the standard algorithm is quick to write and works for numbers of any size, even 4,382 × 579. The area model shows you **why** it works: the rows are the same partial products, just added up early.' },
+        { k: 'STEP 1', t: 'Multiply by the ones', d: 'sa-step1', p: 'Stack **34** over **27**. Multiply 34 by the **7**: 7 × 4 = 28, so write the **8** and carry the **2**. Then 7 × 3 = 21, plus the carried 2 makes **23**. First row: **238**.' },
+        { k: 'STEP 2', t: 'Multiply by the tens', d: 'sa-step2', p: 'Now multiply by the **2**, which really means **20**. First write a **0** in the ones place as a **placeholder**, because we\'re multiplying by tens. Then 2 × 4 = 8 and 2 × 3 = 6. Second row: **680**.', v: [['placeholder', 'a 0 that holds a place so the other digits land in the right column']] },
+        { k: 'STEP 3', t: 'Add the rows', d: 'sa-step3', p: 'Add the two rows: **238 + 680 = 918**. Look familiar? 238 is 210 + 28 and 680 is 600 + 80: the very same partial products from the area model!' },
+        { t: 'Estimate to check', d: 'sa-est', p: 'Round to make a quick guess: 34 × 27 is about **30 × 30 = 900**. Our answer, 918, is close, so it makes sense. If we had gotten 9,180, the estimate would warn us that something went wrong.', v: [['estimate', 'a close guess, made by rounding']] },
+      ],
+      quiz: [
+        { q: 'When you multiply by the tens digit, why do you write a 0 first?', a: ['Because you are really multiplying by tens', 'To make the number look bigger', 'Zero is a lucky number'], why: 'The 2 in 27 means 20. The 0 placeholder makes every digit land in the right place.' },
+        { q: '34 × 7 = ?', a: ['238', '218', '2,138'], why: '7 × 4 = 28 (write 8, carry 2), then 7 × 3 = 21, plus 2 is 23. So 238.' },
+        { q: 'In 34 × 27, what is the second row?', a: ['680', '68', '6,800'], why: '34 × 20 = 680. The placeholder 0 makes it 680, not 68.' },
+        { q: 'Which is a good estimate for 52 × 19?', a: ['50 × 20 = 1,000', '5 × 2 = 10', '52 + 19 = 71'], why: 'Round each number to the nearest ten: 52 ≈ 50 and 19 ≈ 20. The real answer is 988, close to 1,000.' },
+        { q: 'What is 238 + 680?', a: ['918', '818', '908'], why: '8 + 0 = 8, 3 + 8 = 11 (write 1, carry 1), 2 + 6 + 1 = 9. So 918.' },
+        { q: 'Someone says 48 × 21 = 10,080. How can you tell it\'s wrong?', a: ['The estimate is 50 × 20 = 1,000, so 10,080 is way too big', 'It has a zero in it', 'You can\'t tell without a calculator'], why: 'Estimating catches big mistakes. The real answer is 1,008.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'area-game', icon: '🧩', name: 'Area Model Builder', sub: 'Fill in the boxes!', badge: 'Box Filler',
+      how: [['🧩', 'Each problem is split into an <b>area model</b> with four boxes.'], ['👆', 'Pick the right answer for each box, then add up the <b>partial products</b>.'],
+        ['⌨️', '<span class="key-only">You can press <b>1</b>, <b>2</b> or <b>3</b> to answer.</span><span class="touch-only">Tap an answer.</span>'], ['⭐', '100 points for every first-try answer. Watch out for place-value traps!']],
+      make: areaGame,
+    },
+    {
+      kind: 'lesson', id: 'volume', icon: '🧊', name: 'What Is Volume?', sub: 'Unit cubes & layers', badge: 'Cube Counter',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Volume is the space inside', d: 'vo-what', p: '**Volume** is how much space a 3D object takes up, or how much it can hold. We measure it by counting how many **unit cubes** fit inside: cubes that are 1 unit long, 1 unit wide and 1 unit tall.', v: [['volume', 'the amount of space a solid shape takes up']] },
+        { k: 'WHY DO WE CARE?', t: 'How much fits?', d: 'vo-why', p: 'Volume tells you how much water fills a **fish tank**, how many boxes fit in a **moving truck**, how much sand goes in a **sandbox**, and how much cereal is in the box. Builders, shippers, cooks and scientists use it every day.' },
+        { t: 'Unit cubes and cubic units', d: 'vo-unit', p: 'A cube that is 1 cm on every side has a volume of **1 cubic centimeter**, written **1 cm³**. Bigger things use bigger cubes: **cubic inches (in³)**, **cubic feet (ft³)** and **cubic meters (m³)**. The little ³ stands for three dimensions.' },
+        { t: 'Count by layers', d: 'vo-layers', p: 'Counting cubes one by one is slow. Count **one layer** instead: a box 4 long and 3 wide has **12 cubes** on the bottom. If it\'s 5 layers tall, that\'s 12 + 12 + 12 + 12 + 12 = **60 cubes**.' },
+        { t: 'Area vs. volume', d: 'vo-gaps', p: 'Pack the cubes with **no gaps and no overlaps**, or the count will be wrong. Don\'t mix up volume and **area**: area is flat and measured in **square units**, like a floor. Volume fills space and is measured in **cubic units**, like a room.' },
+      ],
+      quiz: [
+        { q: 'What is volume?', a: ['The amount of space a 3D object takes up', 'The distance around a shape', 'How heavy something is'], why: 'Volume measures space in three dimensions, counted in cubic units.' },
+        { q: 'A box has 12 cubes in each layer and 5 layers. What is its volume?', a: ['60 cubic units', '17 cubic units', '12 cubic units'], why: '5 layers of 12 cubes: 12 × 5 = 60.' },
+        { q: 'What does cm³ mean?', a: ['Cubic centimeters', 'Centimeters times 3', 'Three centimeters'], why: 'cm³ is read "cubic centimeters": cubes 1 cm on every side.' },
+        { q: 'Which would you measure in cubic units?', a: ['How much water fits in a fish tank', 'How long a pencil is', 'How much carpet covers a floor'], why: 'Water fills space, so it\'s volume. A pencil\'s length is in units, and a floor\'s area is in square units.' },
+        { q: 'Why must the cubes have no gaps?', a: ['So the count shows the true space inside', 'So they look nicer', 'Gaps make the box heavier'], why: 'Gaps would leave space you didn\'t count, so the volume would come out wrong.' },
+        { q: 'A layer has 3 rows of 4 cubes. How many cubes are in the layer?', a: ['12', '7', '34'], why: '3 rows × 4 cubes = 12.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'formula', icon: '📦', name: 'Volume Formulas', sub: 'V = l × w × h', badge: 'Formula Pro',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'V = l × w × h', d: 'vf-what', p: 'For a **rectangular prism** (a box shape), you don\'t have to count cubes. Multiply **length × width × height**: **V = l × w × h**. A box 4 cm long, 3 cm wide and 5 cm tall has a volume of 4 × 3 × 5 = **60 cm³**.', v: [['rectangular prism', 'a solid shaped like a box, with 6 rectangle faces']] },
+        { k: 'WHY DO WE CARE?', t: 'Measure anything box-shaped', d: 'vf-why', p: 'The formula works for things far too big to fill with cubes: a room, a shipping container, a swimming pool. A pool 10 m long, 5 m wide and 2 m deep holds 10 × 5 × 2 = **100 cubic meters** of water. Just measure three edges and multiply!' },
+        { t: 'V = B × h', d: 'vf-base', p: 'Another way: find the **area of the base** (**B** = l × w), then multiply by the **height**: **V = B × h**. It\'s the same as counting layers: B is how many cubes fit in one layer, and h is how many layers there are.' },
+        { t: 'Any order works', d: 'vf-order', p: 'Multiply in any order and you get the same volume: 4 × 3 × 5 = 5 × 4 × 3 = 3 × 5 × 4 = **60**. Turning a box on its side doesn\'t change how much space it takes up.' },
+        { t: 'Shapes made of boxes', d: 'vf-composite', p: 'Some solids are two boxes stuck together, like a building with a tall part and a short part. Split it into two rectangular prisms, find each volume, then **add**: 4 × 3 × 2 = 24 and 2 × 3 × 3 = 18, so the whole shape is 24 + 18 = **42 cubic units**.' },
+      ],
+      quiz: [
+        { q: 'What is the formula for the volume of a rectangular prism?', a: ['V = l × w × h', 'V = l + w + h', 'V = 2 × (l + w)'], why: 'Multiply all three dimensions: length, width and height.' },
+        { q: 'What is the volume of a box 2 × 3 × 4?', a: ['24 cubic units', '9 cubic units', '14 cubic units'], why: '2 × 3 = 6, and 6 × 4 = 24.' },
+        { q: 'A box\'s base has an area of 20 cm² and it is 6 cm tall. What is its volume?', a: ['120 cm³', '26 cm³', '200 cm³'], why: 'V = B × h = 20 × 6 = 120 cm³.' },
+        { q: 'A solid is made of a 24 cubic-unit box and an 18 cubic-unit box. What is its total volume?', a: ['42 cubic units', '6 cubic units', '432 cubic units'], why: 'Volumes of joined boxes add up: 24 + 18 = 42.' },
+        { q: 'What happens to a box\'s volume when you turn it on its side?', a: ['It stays the same', 'It doubles', 'It becomes zero'], why: 'The box still takes up the same space, and l × w × h gives the same answer in any order.' },
+        { q: 'A pool is 10 m long, 5 m wide and 2 m deep. How much water fills it?', a: ['100 m³', '17 m³', '50 m³'], why: '10 × 5 × 2 = 100 cubic meters.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'box-game', icon: '🏗️', name: 'Box Builder', sub: 'Build boxes to order!', badge: 'Master Builder',
+      how: [['🎯', 'Each round asks for a box with a certain <b>volume</b>, and sometimes a certain length, width or height.'],
+        ['➕', 'Use the <b>+</b> and <b>−</b> buttons to change the length, width and height (up to 6 each).'], ['✅', 'Press <b>Check my box</b> when you think it\'s right.'], ['⭐', '200 points for a first-try box, 100 for a second try.']],
+      make: boxGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>

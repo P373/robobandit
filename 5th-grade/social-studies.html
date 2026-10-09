@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>History Detectives | RoboBandit 5th Grade</title>
+<meta name="description" content="5th grade social studies: why we study history, perspective, timelines and maps, and the mystery of the Lost Colony of Roanoke. Lessons, quizzes and a game.">
+<link rel="canonical" href="https://robobandit.com/5th-grade/social-studies.html">
+<meta name="theme-color" content="#b5642a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/5th-grade/social-studies.html">
+<meta property="og:title" content="History Detectives | RoboBandit 5th Grade">
+<meta property="og:description" content="Why history matters, timelines and maps, and the Lost Colony of Roanoke. 5th grade social studies lessons, quizzes and a game.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>
+  :root { --c: #b5642a; --c2: #ffd84a; --bg: #7a4420; }
+  .events { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; margin: 10px auto 0; max-width: 980px; }
+  .ev { flex: 0 1 220px; padding: 10px 12px; border: 3px solid var(--ink); border-radius: 14px; background: #fff; box-shadow: 0 4px 0 var(--ink);
+    font: 600 18px 'Fredoka', system-ui, sans-serif; color: var(--ink); cursor: pointer; }
+  .ev .e { display: block; font-size: 30px; }
+  .ev.wrong { background: #ffc4bd; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', RUST = '#b5642a', SEA = '#5ab0e8', SAND = '#f2dca0', LAND = '#9ccf7a', BLUE = '#3d8ff0', GREEN = '#2fae5a', PINK = '#e8457a', YELLOW = '#ffd84a', PAPER = '#f5e6c4';
+
+// ---------- Drawing helpers ----------
+// The North Carolina coast around Roanoke Island (simplified, north at the top)
+const MAP = { roanoke: [585, 215], croatoan: [770, 372], siteX: [215, 150], secotan: [330, 420], cape: [770, 372] };
+function coast(d, o = {}) {
+  d.bg(o.sea || SEA);
+  d.poly([[0, 0], [520, 0], [545, 80], [470, 130], [520, 190], [480, 260], [540, 330], [470, 420], [420, 540], [0, 540]], { close: true, fill: o.land || LAND, stroke: '#5a8a3a', lw: 3 });
+  // Albemarle Sound reaching inland, and two rivers flowing into it
+  d.poly([[190, 125], [470, 112], [520, 160], [300, 190], [190, 170]], { close: true, fill: o.sea || SEA });
+  d.poly([[200, 140], [140, 90], [120, 0]], { stroke: o.sea || SEA, lw: 10 });
+  d.poly([[200, 160], [100, 190], [0, 175]], { stroke: o.sea || SEA, lw: 10 });
+  d.poly([[470, 420], [300, 400], [200, 430]], { stroke: o.sea || SEA, lw: 12 });
+  // the Outer Banks: long thin barrier islands
+  d.poly([[625, 0], [655, 100], [695, 200], [735, 290], [775, 370], [740, 420], [680, 470], [600, 540]], { stroke: o.sand || SAND, lw: 16 });
+  d.ellipse(585, 215, 18, 40, { fill: o.sand || SAND, stroke: '#c9a860', lw: 2 });
+  if (o.labels !== false) {
+    d.text('Atlantic Ocean', 880, 230, { size: 22, weight: 700, color: '#1d5a8a', maxW: 150 });
+    d.text('Albemarle Sound', 360, 150, { size: 18, color: '#1d5a8a' });
+    d.text('Pamlico Sound', 620, 330, { size: 18, color: '#1d5a8a', maxW: 120 });
+  }
+}
+function compass(d, x, y, r = 40) {
+  d.circle(x, y, r, { fill: 'rgba(255,255,255,.85)', stroke: INK, lw: 2 });
+  d.poly([[x, y - r + 4], [x + 8, y], [x, y + r - 4], [x - 8, y]], { close: true, fill: '#e8457a', stroke: INK, lw: 1.5 });
+  d.poly([[x - r + 4, y], [x, y - 8], [x + r - 4, y], [x, y + 8]], { close: true, fill: '#fff', stroke: INK, lw: 1.5 });
+  [['N', 0, -1], ['S', 0, 1], ['E', 1, 0], ['W', -1, 0]].forEach(([s, dx, dy]) => d.text(s, x + dx * (r + 14), y + dy * (r + 14), { size: 20, weight: 700 }));
+}
+function star(d, x, y, r, col = '#e8457a') {
+  const pts = [];
+  for (let i = 0; i < 10; i++) { const a = -Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r; pts.push([x + Math.cos(a) * rr, y + Math.sin(a) * rr]); }
+  d.poly(pts, { close: true, fill: col, stroke: INK, lw: 2 });
+}
+// a timeline from year a to b across x0..x1; returns the year → x function
+function timeline(d, x0, x1, y, a, b, every, o = {}) {
+  const X = yr => x0 + (yr - a) / (b - a) * (x1 - x0);
+  d.line(x0 - 10, y, x1 + 10, y, { lw: 6, stroke: o.color || INK });
+  for (let yr = Math.ceil(a / every) * every; yr <= b; yr += every) {
+    const big = o.label ? yr % o.label === 0 : true;
+    d.line(X(yr), y - (big ? 14 : 8), X(yr), y + (big ? 14 : 8), { lw: big ? 4 : 2 });
+    if (big) d.text(String(yr), X(yr), y + 36, { size: 20, color: '#5a6f99' });
+  }
+  return X;
+}
+// a longhouse, the kind of home Algonquian towns had
+function longhouse(d, x, y, w = 90) {
+  d.ctx.beginPath(); d.ctx.moveTo(x, y); d.ctx.lineTo(x, y - 30); d.ctx.quadraticCurveTo(x + w / 2, y - 70, x + w, y - 30); d.ctx.lineTo(x + w, y); d.ctx.closePath();
+  d.paint({ fill: '#c9a26a', stroke: '#6a4a24', lw: 3 });
+  for (let i = 1; i < 4; i++) d.line(x + i * w / 4, y - 40 - (i === 2 ? 8 : 0), x + i * w / 4, y, { stroke: 'rgba(106,74,36,.5)', lw: 2 });
+  d.rect(x + w / 2 - 10, y - 26, 20, 26, { r: 3, fill: '#5a3a1c' });
+}
+function ship(d, x, y, s = 1, col = '#8a5a34', sail = '#fff8e6', flag = null) {
+  d.at(x, y, Math.sin(Date.now() / 600 + x) * 0.03, s, () => {
+    d.poly([[-70, 0], [70, 0], [50, 30], [-50, 30]], { close: true, fill: col, stroke: INK, lw: 2 });
+    d.line(-10, 0, -10, -110, { lw: 4 }); d.line(30, 0, 30, -80, { lw: 3 });
+    d.poly([[-45, -100], [25, -100], [20, -20], [-40, -20]], { close: true, fill: sail, stroke: INK, lw: 2 });
+    d.poly([[10, -72], [55, -72], [52, -16], [12, -16]], { close: true, fill: sail, stroke: INK, lw: 2 });
+    if (flag) d.rect(-10, -125, 26, 16, { r: 2, fill: flag, stroke: INK, lw: 1.5 });
+  });
+}
+const parchment = d => { d.bg('#f8ecd0', '#ecd6a8'); d.rect(12, 12, d.W - 24, d.H - 24, { r: 14, stroke: '#c9a860', lw: 3 }); };
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  'wh-what'(d, t) {
+    parchment(d);
+    d.arrow(80, 300, 880, 300, { color: RUST, lw: 10, head: 30 });
+    d.text('LONG AGO', 110, 350, { size: 24, weight: 700, color: RUST }); d.text('TODAY', 850, 350, { size: 24, weight: 700, color: RUST });
+    const items = [['🏺', 'objects'], ['🏛️', 'buildings'], ['🗺️', 'maps'], ['📜', 'letters'], ['📔', 'diaries'], ['📷', 'photos']];
+    items.forEach(([e, s], i) => d.alpha(d.in(t, i * 0.5), () => { d.emoji(e, 140 + i * 135, 220 + Math.sin(t * 2 + i) * 5, 70); d.text(s, 140 + i * 135, 400, { size: 22 }); }));
+    const mx = 140 + (Math.sin(t * 0.8) * 0.5 + 0.5) * 675;
+    d.emoji('🔍', mx, 160, 80);
+    d.text('History = the true story of the past, built from EVIDENCE', 480, 60, { size: 28, weight: 700 });
+    d.pill('evidence: clues people left behind', 480, 470, { size: 24, bg: YELLOW });
+  },
+  'wh-why'(d, t) {
+    d.bg('#eaf6ff', '#f6efe4');
+    d.rect(0, 330, d.W, 210, { r: 0, fill: '#c8a070' });
+    // roots = the past, trunk = today, branches = what comes next
+    for (let i = 0; i < 7; i++) d.curve(480, 340, 480 + (i - 3) * 40, 420, 480 + (i - 3) * 110, 500, { color: '#6a4a24', lw: 8, head: 0 });
+    d.rect(455, 160, 50, 180, { r: 8, fill: '#8a5a34' });
+    d.circle(480, 140, 130, { fill: '#5cbf6a', stroke: '#2d7a3a', lw: 4 });
+    const leaves = [['⚖️', 'laws', 400, 90], ['🗣️', 'languages', 560, 90], ['🏙️', 'cities', 390, 180], ['🎉', 'holidays', 570, 180]];
+    leaves.forEach(([e, s, x, y], i) => d.alpha(d.in(t, 0.5 + i * 0.4), () => { d.emoji(e, x, y - 10, 44); d.text(s, x, y + 26, { size: 18, weight: 700 }); }));
+    d.pill('TODAY', 480, 290, { size: 22, bg: '#fff' });
+    d.pill('THE PAST (roots)', 480, 505, { size: 24, bg: YELLOW });
+    d.text('Learn from', 140, 120, { size: 26, weight: 700 }); d.text('mistakes ✏️', 140, 155, { size: 26, weight: 700 });
+    d.text('Know who', 820, 120, { size: 26, weight: 700 }); d.text('we are 🪞', 820, 155, { size: 26, weight: 700 });
+    d.text('Understand others 🤝', 160, 280, { size: 24, weight: 700 }); d.text('Spot patterns 🔁', 810, 280, { size: 24, weight: 700 });
+  },
+  'wh-detective'(d, t) {
+    parchment(d);
+    d.emoji('🕵️', 160, 280, 170);
+    const Q = ['Who?', 'What?', 'When?', 'Where?', 'Why?'];
+    Q.forEach((q, i) => { const a = -1.1 + i * 0.55, x = 560 + Math.cos(a) * 260, y = 280 + Math.sin(a) * 200; d.alpha(d.in(t, i * 0.5), () => d.pill(q, x, y, { size: 36, bg: ['#ffe3b8', '#cfe0ff', '#d4f5d0', '#ffd0e0', '#fff3b0'][i] })); });
+    d.emoji('🔍', 520 + Math.cos(t) * 40, 280 + Math.sin(t * 1.3) * 30, 100);
+    d.text('clues → questions → best explanation', 480, 500, { size: 26, weight: 700, color: RUST });
+  },
+  'wh-primary'(d, t) {
+    d.bg('#f6efe4', '#e9dcc4');
+    d.text('PRIMARY SOURCES', 480, 50, { size: 34, color: RUST, font: "'Bungee', sans-serif" });
+    d.text('made by people who were there, at the time', 480, 95, { size: 24 });
+    // John White's painting of an Algonquian town, in a frame
+    d.rect(60, 140, 380, 280, { r: 6, fill: '#7a4e2c' }); d.rect(78, 158, 344, 244, { r: 2, fill: '#f3e7c9' });
+    longhouse(d, 110, 300, 100); longhouse(d, 260, 290, 120);
+    for (let i = 0; i < 3; i++) d.person(140 + i * 90, 360, 0.7, { shirt: '#c98d5f', pants: '#8a5a34', hair: '#2a1a10' });
+    d.text('John White, 1585', 250, 450, { size: 22, weight: 700 }); d.text('painting of an Algonquian town', 250, 480, { size: 20 });
+    const S = [['📜', 'letters'], ['📔', 'diaries'], ['🗺️', 'maps'], ['📷', 'photos'], ['🪓', 'tools'], ['🎙️', 'interviews']];
+    S.forEach(([e, s], i) => { const x = 560 + (i % 3) * 130, y = 200 + Math.floor(i / 3) * 150; d.alpha(d.in(t, 0.3 + i * 0.3), () => { d.emoji(e, x, y, 64); d.text(s, x, y + 54, { size: 22, weight: 700 }); }); });
+  },
+  'wh-secondary'(d, t) {
+    d.bg('#eef4ff', '#dce8ff');
+    d.text('SECONDARY SOURCES', 480, 50, { size: 32, color: BLUE, font: "'Bungee', sans-serif" });
+    d.text('made later, by studying primary sources', 480, 95, { size: 24 });
+    const P = [['📜', 150, 180], ['📔', 150, 290], ['🗺️', 150, 400]];
+    P.forEach(([e, x, y], i) => { d.emoji(e, x, y, 60); const k = d.loop(t * 0.6 + i / 3, 1); d.circle(x + 50 + k * 270, y + (300 - y) * k, 8, { fill: YELLOW, stroke: RUST, lw: 2 }); d.arrow(x + 40, y, 440, 300, { color: 'rgba(181,100,42,.4)', lw: 4, head: 14 }); });
+    d.rect(450, 200, 200, 200, { r: 20, fill: '#fff', stroke: INK }); d.emoji('📚', 550, 280, 100); d.text('textbook', 550, 370, { size: 22, weight: 700 });
+    [['🎬', 'documentary'], ['🌐', 'websites'], ['📝', 'this lesson!']].forEach(([e, s], i) => { d.emoji(e, 760, 180 + i * 110, 54); d.text(s, 820, 180 + i * 110, { size: 22, align: 'left' }); });
+    d.pill('Always ask: what evidence is this based on?', 480, 480, { size: 24, bg: YELLOW });
+  },
+  'wh-future'(d, t) {
+    parchment(d);
+    const X = timeline(d, 100, 860, 300, 1500, 2100, 50, { label: 100 });
+    d.emoji('🏝️', X(1587), 230, 50); d.emoji('📜', X(1776), 230, 50); d.emoji('🌕', X(1969), 230, 50);
+    const k = d.loop(t, 6);
+    d.circle(X(2026), 300, 14, { fill: YELLOW, stroke: INK, lw: 3 });
+    d.emoji('🧒', X(2026), 200 - Math.abs(Math.sin(t * 3)) * 10, 70);
+    d.pill('YOU, today', X(2026), 120, { size: 22, bg: '#fff' });
+    d.alpha(0.5 + 0.5 * Math.sin(k * Math.PI * 2), () => d.text('?', X(2075), 220, { size: 70, weight: 700, color: RUST }));
+    d.text('Today\'s choices are tomorrow\'s history.', 480, 430, { size: 32, weight: 700 });
+    d.text('Knowing the past helps you choose wisely.', 480, 475, { size: 24, color: '#5a6f99' });
+  },
+  'pv-what'(d, t) {
+    d.bg('#dff2d8', '#c8e8bc');
+    d.ellipse(480, 280, 170, 110, { fill: '#b8d8a8', stroke: '#8ab07a', lw: 3 });
+    d.text('6', 480, 285, { size: 170, weight: 700, color: '#fff', stroke: INK, lw: 8 });
+    d.emoji('🧒', 480, 470, 80);
+    d.emoji('👧', 480, 80, 80, { rot: Math.PI });
+    const a = Math.floor(t / 2) % 2;
+    d.alpha(a ? 0.4 : 1, () => d.pill('"It\'s a 6!"', 680, 470, { size: 30, bg: '#cfe0ff' }));
+    d.alpha(a ? 1 : 0.4, () => d.pill('"No, it\'s a 9!"', 690, 80, { size: 30, bg: '#ffd0e0' }));
+    d.text('Same thing,', 140, 250, { size: 28, weight: 700 }); d.text('different view', 140, 290, { size: 28, weight: 700 });
+  },
+  'pv-why'(d, t) {
+    d.bg(SEA);
+    d.poly([[480, 0], [960, 0], [960, 540], [480, 540]], { close: true, fill: '#9ccf7a' });
+    d.poly([[440, 540], [520, 0], [560, 0], [480, 540]], { close: true, fill: SAND });
+    ship(d, 220 + Math.sin(t) * 10, 330, 1.3, '#8a5a34', '#fff8e6', '#d62828');
+    longhouse(d, 640, 330, 110); longhouse(d, 790, 360, 100);
+    d.person(700, 410, 1.1, { shirt: '#c98d5f', pants: '#8a5a34', hair: '#2a1a10' });
+    d.pill('"A New World!"', 220, 90, { size: 30, bg: '#fff' });
+    d.pill('"Strangers in our home."', 730, 90, { size: 30, bg: '#fff' });
+    d.text('English view', 220, 480, { size: 26, weight: 700, color: '#fff', stroke: INK, lw: 4 });
+    d.text('Algonquian view', 740, 480, { size: 26, weight: 700, color: '#fff', stroke: INK, lw: 4 });
+  },
+  'pv-timeline'(d, t) {
+    parchment(d);
+    const X = timeline(d, 90, 870, 300, 1580, 1600, 1, { label: 5 });
+    const E = [[1584, '🔭', 'explorers'], [1585, '🏰', 'fort'], [1587, '🏝️', 'colony'], [1588, '⚔️', 'Armada'], [1590, '🪵', 'CROATOAN']];
+    E.forEach(([y, e, s], i) => d.alpha(d.in(t, 0.4 + i * 0.6), () => {
+      const up = i % 2 === 0;
+      d.line(X(y), 300, X(y), up ? 220 : 380, { lw: 3, stroke: RUST });
+      d.emoji(e, X(y), up ? 180 : 420, 48); d.text(String(y), X(y), up ? 130 : 470, { size: 22, weight: 700, color: RUST }); d.text(s, X(y) + (up ? 0 : 0), up ? 100 : 500, { size: 18 });
+    }));
+    d.text('1 tick = 1 year', 160, 60, { size: 22, color: '#5a6f99' });
+    d.pill('decade = 10 years · century = 100 years', 680, 60, { size: 20, bg: '#fff' });
+  },
+  'pv-read'(d, t) {
+    parchment(d);
+    const X = timeline(d, 90, 870, 330, 1580, 1610, 1, { label: 10 });
+    const second = Math.floor(t / 4) % 2;
+    const [a, b, ea, eb, la, lb] = second ? [1587, 1607, '🏝️', '⚓', 'Roanoke colony', 'Jamestown'] : [1587, 1590, '⛵', '🪵', 'White leaves', 'White returns'];
+    [[a, ea, la, 0], [b, eb, lb, 1]].forEach(([y, e, s, n]) => { d.line(X(y), 330, X(y), 250, { lw: 3, stroke: RUST }); d.emoji(e, X(y), 215, 48); d.text(`${y}`, X(y), 170, { size: 24, weight: 700, color: RUST }); d.text(s, X(y) + (n ? 14 : -14), 140, { size: 20, align: n ? 'left' : 'right' }); });
+    d.poly([[X(a), 400], [X(a), 420], [X(b), 420], [X(b), 400]], { stroke: BLUE, lw: 4 });
+    d.pill(`${b} − ${a} = ${b - a} years`, (X(a) + X(b)) / 2 + (second ? 0 : 140), 470, { size: 30, bg: YELLOW });
+    d.text('To find the time between: subtract!', 480, 60, { size: 28, weight: 700 });
+  },
+  'pv-map'(d, t) {
+    coast(d);
+    // a faint latitude/longitude grid
+    for (let i = 1; i < 5; i++) { d.line(0, i * 108, 960, i * 108, { stroke: 'rgba(255,255,255,.35)', lw: 1.5 }); d.line(i * 192, 0, i * 192, 540, { stroke: 'rgba(255,255,255,.35)', lw: 1.5 }); }
+    star(d, ...MAP.roanoke, 16);
+    d.text('Roanoke Island', MAP.roanoke[0] - 30, MAP.roanoke[1] + 56, { size: 18, weight: 700, stroke: '#fff', lw: 4 });
+    compass(d, 880, 80 + Math.sin(t) * 2);
+    // key (legend)
+    d.rect(30, 380, 230, 140, { r: 12, fill: 'rgba(255,255,255,.9)', stroke: INK });
+    d.text('KEY', 145, 400, { size: 20, weight: 700 });
+    star(d, 60, 435, 12); d.text('settlement', 82, 435, { size: 18, align: 'left' });
+    d.rect(48, 458, 24, 16, { r: 3, fill: SEA }); d.text('water', 82, 466, { size: 18, align: 'left' });
+    d.rect(48, 486, 24, 16, { r: 3, fill: LAND }); d.text('land', 82, 494, { size: 18, align: 'left' });
+    // scale bar: about 96 px for 20 miles on this map
+    d.rect(770, 470, 48, 12, { r: 0, fill: INK }); d.rect(818, 470, 48, 12, { r: 0, fill: '#fff', stroke: INK, lw: 2 });
+    d.text('0', 770, 500, { size: 16 }); d.text('20 miles', 866, 500, { size: 16 });
+    const k = Math.floor(t / 2) % 4;
+    const callouts = [['compass rose → directions', 760, 160], ['key → what symbols mean', 290, 360], ['scale → distance', 760, 440], ['grid → latitude & longitude', 300, 60]];
+    d.pill(callouts[k][0], callouts[k][1], callouts[k][2], { size: 22, bg: YELLOW });
+  },
+  'pv-mapmaker'(d, t) {
+    coast(d, { sea: '#d9cfae', land: '#e9ddb8', sand: '#cdb98a', labels: false });
+    d.rect(12, 12, d.W - 24, d.H - 24, { r: 14, stroke: '#a88a50', lw: 4 });
+    d.text('La Virginea Pars', 720, 450, { size: 36, weight: 700, color: '#6a4a24', font: 'Georgia, serif' });
+    d.text('John White, 1580s', 720, 490, { size: 22, color: '#6a4a24', font: 'Georgia, serif' });
+    const [fx, fy] = [MAP.siteX[0] + 30, MAP.siteX[1] - 10];
+    // the hidden fort symbol under a paper patch
+    d.poly([[fx - 18, fy + 14], [fx - 18, fy - 6], [fx, fy - 20], [fx + 18, fy - 6], [fx + 18, fy + 14]], { close: true, fill: '#d62828', stroke: '#4a2a10', lw: 2 });
+    d.circle(fx, fy - 2, 6, { fill: '#2a4a9a' });
+    const lift = d.in(t % 8, 2, 1.5) * (t % 8 < 6.5 ? 1 : 0);
+    d.at(fx - 40, fy - 40, -lift * 0.8, 1, () => d.rect(0, 0, 80, 80, { r: 2, fill: '#e3d4ac', stroke: '#a88a50', lw: 2 }));
+    d.alpha(lift, () => { d.pill('A hidden fort symbol! (found 2012)', fx + 260, fy + 40, { size: 24, bg: YELLOW }); d.arrow(fx + 90, fy + 30, fx + 26, fy + 6, { color: PINK, lw: 5 }); });
+    star(d, ...MAP.roanoke, 12, '#8a5a34');
+  },
+  // ----- Roanoke -----
+  'rc-what'(d, t) {
+    coast(d);
+    star(d, ...MAP.roanoke, 18 + Math.sin(t * 3) * 2);
+    d.pill('Roanoke Island, 1587', MAP.roanoke[0] - 20, MAP.roanoke[1] - 70, { size: 24, bg: '#fff' });
+    d.text('North Carolina', 230, 330, { size: 28, weight: 700, color: '#3a6a2a' });
+    // a carved post appears
+    const k = d.in(t, 1.5, 1);
+    d.alpha(k, () => {
+      d.rect(110, 380, 360, 120, { r: 16, fill: '#fff8e6', stroke: INK });
+      d.rect(140, 395, 50, 90, { r: 4, fill: '#9a6a3f', stroke: '#5a3a1c' });
+      const word = 'CROATOAN', n = Math.floor(d.in(t, 2.2, 2.5) * word.length);
+      d.text(word.slice(0, n), 330, 440, { size: 40, weight: 700, color: '#5a3a1c', font: 'Georgia, serif' });
+      d.text('carved on a post', 330, 478, { size: 18, color: '#5a6f99' });
+    });
+    d.emoji('❓', 860, 450, 70);
+  },
+  'rc-why'(d, t) {
+    parchment(d);
+    const X = timeline(d, 100, 860, 310, 1580, 1630, 5, { label: 10 });
+    const E = [[1587, '🏝️', 'Roanoke'], [1607, '⚓', 'Jamestown'], [1620, '🚢', 'Plymouth']];
+    E.forEach(([y, e, s], i) => d.alpha(d.in(t, i * 0.7), () => { d.line(X(y), 310, X(y), 230, { lw: 3, stroke: RUST }); d.emoji(e, X(y), 190, 60); d.text(`${s} ${y}`, X(y), 130, { size: 24, weight: 700 }); }));
+    d.pill('One of England\'s FIRST tries', X(1587), 420, { size: 24, bg: YELLOW });
+    d.text('20 years before Jamestown', 480, 490, { size: 26, weight: 700, color: RUST });
+  },
+  'rc-native'(d, t) {
+    coast(d);
+    [['Roanoke', ...MAP.roanoke, -50], ['Croatoan', ...MAP.croatoan, 50], ['Secotan', ...MAP.secotan, -40]].forEach(([s, x, y, dy]) => {
+      d.circle(x, y, 12, { fill: '#c98d5f', stroke: INK, lw: 2 });
+      d.pill(s, x + (s === 'Croatoan' ? 40 : 0), y + dy, { size: 22, bg: '#fff3dc' });
+    });
+    longhouse(d, 280, 300, 70); longhouse(d, 370, 300, 60);
+    d.rect(20, 400, 340, 120, { r: 14, fill: 'rgba(255,255,255,.92)', stroke: INK });
+    d.person(60, 480, 0.8, { shirt: '#c98d5f', pants: '#8a5a34', hair: '#2a1a10' }); d.person(210, 480, 0.8, { shirt: '#c98d5f', pants: '#8a5a34', hair: '#2a1a10' });
+    d.text('Manteo', 90, 440, { size: 22, weight: 700, align: 'left' }); d.text('friend 🤝', 90, 472, { size: 18, align: 'left' });
+    d.text('Wanchese', 240, 440, { size: 22, weight: 700, align: 'left' }); d.text('opponent', 240, 472, { size: 18, align: 'left' });
+    d.pill('lived here for thousands of years', 640, 500, { size: 22, bg: YELLOW });
+  },
+  'rc-1587'(d, t) {
+    d.bg('#cfe9ff', '#eaf6ff');
+    d.rect(0, 350, d.W, 190, { r: 0, fill: '#9ccf7a' });
+    d.rect(600, 300, 360, 60, { r: 0, fill: SEA });
+    // palisade and cabins
+    for (let i = 0; i < 16; i++) d.poly([[60 + i * 26, 360], [60 + i * 26, 270], [73 + i * 26, 255], [86 + i * 26, 270], [86 + i * 26, 360]], { close: true, fill: '#b08a5a', stroke: '#5a3a1c', lw: 2 });
+    d.person(160, 420, 1.1, { shirt: '#2a4a9a', hat: '#333' }); d.text('John White', 160, 510, { size: 22, weight: 700 });
+    d.emoji('👶', 330, 430, 60);
+    d.pill('Virginia Dare · born Aug 18, 1587', 330, 360, { size: 22, bg: '#ffd0e0' });
+    const k = d.loop(t, 8);
+    ship(d, 640 + k * 400, 330, 0.9, '#8a5a34', '#fff8e6', '#d62828');
+    d.pill('White sails to England for supplies →', 700, 200, { size: 22, bg: '#fff' });
+  },
+  'rc-armada'(d, t) {
+    d.bg('#5a7a9a', '#2a4a6a');
+    for (let i = 0; i < 4; i++) d.curve(0, 380 + i * 40, 480, 360 + i * 40 + Math.sin(t + i) * 10, 960, 380 + i * 40, { color: 'rgba(255,255,255,.25)', lw: 4, head: 0 });
+    ship(d, 260, 330, 1.1, '#6a3a1c', '#fff8e6', '#d62828');
+    ship(d, 690, 330, 1.3, '#4a2a10', '#f2c46a', '#f2c400');
+    d.emoji('💥', 480 + Math.sin(t * 5) * 30, 250, 60);
+    d.text('England', 260, 420, { size: 26, weight: 700, color: '#fff' }); d.text('Spain', 690, 430, { size: 26, weight: 700, color: '#fff' });
+    const yr = 1587 + Math.floor(d.loop(t, 6) * 4);
+    d.rect(380, 30, 200, 90, { r: 14, fill: '#fff', stroke: INK }); d.text(String(yr), 480, 76, { size: 48, weight: 700, color: RUST });
+    d.pill('1588: the Spanish Armada', 480, 160, { size: 24, bg: YELLOW });
+    d.pill('every ship must stay and fight!', 480, 490, { size: 24, bg: '#fff' });
+  },
+  'rc-croatoan'(d, t) {
+    d.bg('#c8d8e0', '#e6eef0');
+    d.rect(0, 380, d.W, 160, { r: 0, fill: '#a8b880' });
+    for (let i = 0; i < 9; i++) if (i !== 3 && i !== 6) d.poly([[60 + i * 30, 390], [60 + i * 30, 300], [73 + i * 30, 285], [86 + i * 30, 300], [86 + i * 30, 390]], { close: true, fill: '#a08060', stroke: '#5a3a1c', lw: 2 });
+    // the tree with CRO carved into it
+    d.rect(650, 140, 70, 260, { r: 10, fill: '#7a5a3a', stroke: '#4a2a10', lw: 3 });
+    d.circle(685, 120, 110, { fill: '#5a8a4a', stroke: '#2d5a2a', lw: 3 });
+    d.text('CRO'.slice(0, Math.floor(d.in(t, 0.5, 1.5) * 3)), 685, 300, { size: 26, weight: 700, color: '#f2dca0', font: 'Georgia, serif' });
+    // the post with the whole word
+    d.rect(400, 200, 60, 200, { r: 4, fill: '#9a6a3f', stroke: '#5a3a1c', lw: 3 });
+    const w = 'CROATOAN'.slice(0, Math.floor(d.in(t, 2, 2.5) * 8));
+    [...w].forEach((ch, i) => d.text(ch, 430, 220 + i * 22, { size: 22, weight: 700, color: '#f2dca0', font: 'Georgia, serif' }));
+    d.alpha(d.in(t, 4.8), () => { d.text('✝', 850, 260, { size: 90, color: '#5a3a1c' }); d.line(800, 210, 900, 320, { stroke: '#d62828', lw: 10 }); d.pill('no cross = no danger sign', 820, 380, { size: 22, bg: YELLOW }); });
+    d.pill('August 1590', 170, 60, { size: 28, bg: '#fff' });
+  },
+  'rc-theories'(d, t) {
+    parchment(d);
+    const T = [['🤝', 'Joined the', 'Croatoan people'], ['🧭', 'Moved inland', 'to "Site X"'], ['🌊', 'Lost at sea', 'sailing home'], ['🤒', 'Disease, hunger', 'or war']];
+    T.forEach(([e, a, b], i) => {
+      const x = 130 + i * 233, on = Math.floor(t / 1.5) % 4 === i;
+      d.at(x, 260, 0, on ? 1.07 : 1, () => {
+        d.rect(-105, -150, 210, 300, { r: 18, fill: on ? '#fff3b0' : '#fff', stroke: INK, lw: on ? 5 : 3 });
+        d.emoji(e, 0, -60, 80); d.text(a, 0, 50, { size: 22, weight: 700 }); d.text(b, 0, 80, { size: 22, weight: 700 });
+      });
+    });
+    d.text('What do YOU think? Weigh the evidence!', 480, 470, { size: 30, weight: 700, color: RUST });
+  },
+};
+
+// ---------- Game: Time Detective ----------
+function timeGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  const ROUNDS = [
+    ['Warm-up: big moments', [[1492, '⛵', 'Columbus sails to the Caribbean'], [1587, '🏝️', 'Roanoke colonists arrive'], [1776, '📜', 'Declaration of Independence'], [1969, '🌕', 'People walk on the Moon']]],
+    ['The Roanoke story', [[1584, '🔭', 'English explorers first visit Roanoke'], [1585, '🏰', 'English soldiers build a fort on Roanoke Island'], [1587, '👶', 'Virginia Dare is born'], [1588, '⚔️', 'The Spanish Armada attacks England'], [1590, '🪵', 'John White finds "CROATOAN"']]],
+    ['Colonies & rights', [[1587, '🏝️', 'The Roanoke colony'], [1607, '⚓', 'Jamestown is founded'], [1620, '🚢', 'The Mayflower reaches Plymouth'], [1948, '🌍', 'The Universal Declaration of Human Rights'], [2000, '📚', 'Esperanza Rising is published']]],
+    ['Up, up and away', [[1783, '🎈', 'First people fly in a hot-air balloon'], [1903, '🛩️', 'The Wright brothers fly'], [1929, '📉', 'The Great Depression begins'], [1945, '🕊️', 'World War II ends'], [1969, '🌕', 'People walk on the Moon'], [1995, '🐺', 'Wolves return to Yellowstone']]],
+  ];
+  const TOTAL = ROUNDS.reduce((a, r) => a + r[1].length, 0);
+  let ri = 0, placed = [], cards = [], miss = false, score = 0, firstTry = 0, done = false, wait = 0, t = 0;
+  root.innerHTML = `<div class="hud"><span id="td-r"></span><span>🏆 <b id="td-s">0</b></span></div>
+    <canvas class="board" id="td-cv" style="width:min(100%, calc((100vh - 470px) * 16 / 9))"></canvas>
+    <p id="td-q" style="font-weight:600;margin:6px auto"></p><div class="events" id="td-c"></div>`;
+  const draw = board(api.$('td-cv'));
+  function round() {
+    placed = []; cards = shuffle(ROUNDS[ri][1]);
+    api.$('td-r').textContent = `Case ${ri + 1} of ${ROUNDS.length}: ${ROUNDS[ri][0]}`;
+    api.$('td-q').textContent = 'Tap the events in order, from the EARLIEST to the LATEST.';
+    cardsHtml();
+  }
+  function cardsHtml() {
+    const c = api.$('td-c');
+    c.innerHTML = cards.map((e, k) => `<button class="ev" data-k="${k}"><span class="e">${e[1]}</span>${api.esc(e[2])}</button>`).join('');
+    c.querySelectorAll('.ev').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+  }
+  const nextYear = () => Math.min(...cards.map(c => c[0]));
+  function pick(k) {
+    if (done || wait > 0) return;
+    RB.audio();
+    const e = cards[k];
+    if (e[0] !== nextYear()) {
+      sfx.wrong(); miss = true;
+      const b = api.$('td-c').children[k]; b.classList.remove('shake'); void b.offsetWidth; b.classList.add('wrong', 'shake');
+      return;
+    }
+    sfx.right();
+    if (!miss) { score += 100; firstTry++; }
+    miss = false;
+    api.$('td-s').textContent = score;
+    placed.push({ e, t: 0 });
+    cards.splice(k, 1);
+    cardsHtml();
+    if (!cards.length) {
+      api.$('td-q').textContent = ri < ROUNDS.length - 1 ? '🎉 Case closed! Next case coming up…' : '🎉 All cases closed!';
+      wait = 1.8;
+    }
+  }
+  function render() {
+    draw(() => {
+      parchment(d);
+      const ev = ROUNDS[ri][1], a = Math.min(...ev.map(e => e[0])), b = Math.max(...ev.map(e => e[0])), span = b - a;
+      const every = span > 300 ? 50 : span > 60 ? 10 : span > 20 ? 5 : 1, lab = span > 300 ? 100 : span > 60 ? 50 : span > 20 ? 10 : 2;
+      const lo = Math.floor((a - span * 0.08 - 1) / every) * every, hi = Math.ceil((b + span * 0.08 + 1) / every) * every;
+      const X = timeline(d, 70, 890, 300, lo, hi, every, { label: lab });
+      placed.forEach(({ e, t: pt }, i) => {
+        const k = d.in(pt, 0, 0.5), up = i % 2 === 0, x = X(e[0]);
+        d.alpha(k, () => {
+          d.line(x, 300, x, up ? 220 : 380, { lw: 3, stroke: RUST });
+          d.emoji(e[1], x, (up ? 180 : 420) - (1 - k) * 30, 46);
+          d.text(String(e[0]), x, up ? 130 : 470, { size: 24, weight: 700, color: RUST });
+          d.wrap(e[2], x, up ? 40 : 490, 170, { size: 16, lh: 1.1 });
+        });
+      });
+      d.text(`${placed.length} of ${ev.length} placed`, 880, 520, { size: 18, color: '#5a6f99', align: 'right' });
+    });
+  }
+  round(); render();
+  return {
+    tick(dt) {
+      t += dt; placed.forEach(p => { p.t += dt; });
+      if (wait > 0) {
+        wait -= dt;
+        if (wait <= 0) {
+          wait = 0; ri++;
+          if (ri === ROUNDS.length) {
+            done = true;
+            api.done({ score, stars: score >= TOTAL * 90 ? 3 : score >= TOTAL * 60 ? 2 : 1, rows: [['🕵️ Cases closed', ROUNDS.length], ['✅ Placed on the first try', `${firstTry} of ${TOTAL}`]],
+              hint: 'Place 18 or more events right on the first try for ★★★' });
+            return;
+          }
+          round();
+        }
+      }
+      if (!done) render();
+    },
+    bot() { if (wait > 0) { this.tick(wait + 0.01); return; } const y = nextYear(); pick(cards.findIndex(c => c[0] === y)); },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g5_social', grade: '5th Grade · Social Studies', title: 'History Detectives', icon: '🕵️', home: 'index.html', homeTitle: 'Back to the 5th grade folder',
+  tagline: 'Why the past matters, how to read **timelines and maps**, and America\'s oldest mystery: the **Lost Colony**.',
+  certTitle: 'History Detective', certText: 'can weigh evidence, read timelines and maps, and see more than one side of the story!',
+  shareText: 'Become a History Detective and crack the mystery of the Lost Colony on RoboBandit! 🕵️',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'why-history', icon: '📜', name: 'Why Study History?', sub: 'Evidence & sources', badge: 'Source Sleuth',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'History is the story of the past', d: 'wh-what', p: '**History** is the true story of what people did, made and believed in the past, from yesterday to thousands of years ago. Historians piece it together from **evidence**: letters, maps, diaries, photos, objects and the things people built.', v: [['evidence', 'facts or objects that show what really happened']] },
+        { k: 'WHY DO WE CARE?', t: 'The past explains the present', d: 'wh-why', p: 'History explains **how today came to be**: why we have the laws, languages, cities and holidays we have. It lets us **learn from mistakes** and successes, understand people who are different from us, and figure out **who we are**.' },
+        { t: 'Historians are detectives', d: 'wh-detective', p: 'Like detectives, historians ask questions: **Who? What? When? Where? Why?** They hunt for clues, compare them, and build the most likely explanation. Sometimes the clues run out, and a mystery stays unsolved.' },
+        { t: 'Primary sources', d: 'wh-primary', p: 'A **primary source** was made by someone who was there at the time: a diary, a letter, a photo, a map, a tool. John White\'s 1585 paintings of Algonquian towns are primary sources about the people of the Roanoke area.', v: [['primary source', 'made at the time, by someone who was there']] },
+        { t: 'Secondary sources', d: 'wh-secondary', p: 'A **secondary source** was made later by someone who studied primary sources: a textbook, an encyclopedia, a documentary, even this lesson! They help explain things, but always ask: **what evidence is this based on?**', v: [['secondary source', 'made later, by studying primary sources']] },
+        { t: 'Past, present, future', d: 'wh-future', p: 'The choices people make today will be history tomorrow. Knowing history helps you be a better **citizen**: you can spot patterns, ask good questions and make wiser choices for the future.' },
+      ],
+      quiz: [
+        { q: 'What is a primary source?', a: ['Something made by a person who was there at the time', 'A book written 200 years later', 'The first page of a textbook'], why: 'Diaries, letters, photos and maps from the time are primary sources.' },
+        { q: 'Which is a secondary source?', a: ['A textbook about the Roanoke colony', 'A diary written in 1587', 'A photo from your grandparents\' wedding'], why: 'A textbook is written later by people who studied the primary sources.' },
+        { q: 'What do historians use to learn about the past?', a: ['Evidence like letters, maps and objects', 'Only their imagination', 'Fortune tellers'], why: 'History is built from evidence, like a detective\'s case.' },
+        { q: 'Which question would a history detective ask?', a: ['Why did it happen?', 'What\'s for lunch?', 'Who will win the game tonight?'], why: 'Who, what, when, where and why are the big history questions.' },
+        { q: 'Why study history?', a: ['To understand how today came to be and learn from the past', 'Because nothing ever changes', 'Only to memorize dates'], why: 'History explains the present and helps us make better choices.' },
+        { q: 'John White\'s 1585 paintings of Algonquian towns are…', a: ['Primary sources', 'Secondary sources', 'Made-up stories'], why: 'White painted what he saw while he was there.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'perspective', icon: '🧭', name: 'Perspective', sub: 'Points of view, timelines & maps', badge: 'Map Master',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Perspective = point of view', d: 'pv-what', p: '**Perspective** is the way someone sees something, based on who they are and where they stand. A number on the ground looks like a 6 from one side and a 9 from the other. Historians collect **many perspectives** to get the full picture.', v: [['perspective', 'the way someone sees an event or idea']] },
+        { k: 'WHY DO WE CARE?', t: 'One story is never the whole story', d: 'pv-why', p: 'When English ships reached Roanoke in 1584, the English saw a "**New World**". The **Algonquian** peoples, who had lived there for thousands of years, saw strangers arriving in **their** homeland. Both views are part of the true story.' },
+        { t: 'Timelines', d: 'pv-timeline', p: 'A **timeline** shows events in order along a line, like a ruler for time. The marks are evenly spaced: years, **decades** (10 years) or **centuries** (100 years). Timelines show **what came first**, what came next, and how far apart things were.', v: [['decade', '10 years'], ['century', '100 years']] },
+        { t: 'Reading a timeline', d: 'pv-read', p: 'To find the time between two events, **subtract**. John White left Roanoke in **1587** and got back in **1590**: 1590 − 1587 = **3 years**. Jamestown was founded in **1607**, 20 years after the Roanoke colonists arrived.' },
+        { t: 'Maps', d: 'pv-map', p: 'A map shows places from above. The **compass rose** shows directions (N, S, E, W). The **scale** helps measure distance. The **key** (or legend) explains the symbols. Lines of **latitude** and **longitude** make a grid that can pinpoint any place on Earth.', v: [['key / legend', 'the box that explains a map\'s symbols']] },
+        { t: 'Maps have a perspective too', d: 'pv-mapmaker', p: 'Every map is made by someone, for a reason, and shows what that person chose to show. In 2012, researchers studying **John White\'s map** of the area found a **fort symbol** hidden under a patch: a clue to where the lost colonists may have gone!' },
+      ],
+      quiz: [
+        { q: 'What is perspective?', a: ['The way someone sees things, based on who they are', 'The exact time something happened', 'A kind of map'], why: 'Two people can see the same event very differently.' },
+        { q: 'What does a timeline show?', a: ['Events in the order they happened', 'Directions like north and south', 'Only the future'], why: 'A timeline is like a ruler for time.' },
+        { q: 'John White left in 1587 and returned in 1590. How many years was he gone?', a: ['3 years', '4 years', '1,587 years'], why: '1590 − 1587 = 3.' },
+        { q: 'What does a compass rose show?', a: ['Directions: north, south, east and west', 'How far apart places are', 'What the symbols mean'], why: 'The scale shows distance and the key explains symbols.' },
+        { q: 'How many years are in a century?', a: ['100', '10', '1,000'], why: 'A decade is 10 years; a century is 100 years.' },
+        { q: 'Why should historians look at many perspectives?', a: ['To get the most complete and fair picture', 'Because only one view is ever true', 'To make history shorter'], why: 'Each perspective adds evidence about what really happened.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'roanoke', icon: '🏝️', name: 'The Lost Colony', sub: 'Roanoke, 1587', badge: 'Mystery Solver',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'America\'s oldest mystery', d: 'rc-what', p: 'In **1587**, about **115** English men, women and children settled on **Roanoke Island**, in what is now **North Carolina**. Three years later they had vanished, leaving behind one word carved into a post: **CROATOAN**. No one knows for sure what happened.' },
+        { k: 'WHY DO WE CARE?', t: 'One of England\'s first tries', d: 'rc-why', p: 'Roanoke was one of England\'s first attempts at a colony in America, **20 years before Jamestown**. Its story shows how hard and risky early colonies were, how much settlers depended on **Native peoples**, and how historians work with missing evidence.', v: [['colony', 'a settlement ruled by a faraway country']] },
+        { t: 'The people who already lived there', d: 'rc-native', p: '**Algonquian**-speaking peoples, including the **Roanoke**, **Secotan** and **Croatoan**, had lived on this coast for thousands of years. Two Native men, **Manteo** (Croatoan) and **Wanchese** (Roanoke), sailed to England in 1584. Manteo became a friend to the English; Wanchese became their opponent.' },
+        { t: 'The colony of 1587', d: 'rc-1587', p: '**Sir Walter Raleigh** paid for the colony, and **John White**, an artist, was its governor. On **August 18, 1587**, his granddaughter **Virginia Dare** was born, the first English child born in the Americas. Supplies ran low, so White sailed back to England for help.' },
+        { t: 'Stuck in England', d: 'rc-armada', p: 'White got home just as England and Spain went to war. In **1588**, Queen Elizabeth I ordered ships to stay and fight the **Spanish Armada**, a huge fleet of warships. White couldn\'t get back to Roanoke for **three years**.' },
+        { t: '"CROATOAN"', d: 'rc-croatoan', p: 'In **August 1590**, on Virginia Dare\'s 3rd birthday, White finally returned. The houses had been taken down and everyone was gone. "**CRO**" was carved on a tree and "**CROATOAN**" on a post. They had agreed to carve a **cross** if they left in danger. There was no cross.' },
+        { t: 'What happened? The theories', d: 'rc-theories', p: 'Did they **join the Croatoan** people on what is now Hatteras Island? Move **inland**, maybe to the "Site X" fort on White\'s map? Get lost at sea trying to sail home? Die from **disease, hunger or war**? Archaeologists are still digging for evidence. What do **you** think?' },
+      ],
+      quiz: [
+        { q: 'What word was carved on a post at the empty settlement?', a: ['CROATOAN', 'ROANOKE', 'HELP'], why: 'Croatoan was the name of a nearby island and of Manteo\'s people.' },
+        { q: 'Who was the first English child born in the Americas?', a: ['Virginia Dare', 'Pocahontas', 'Eleanor Roosevelt'], why: 'Virginia Dare was born on Roanoke Island on August 18, 1587.' },
+        { q: 'Why couldn\'t John White come back sooner?', a: ['England was at war with Spain', 'He forgot the way', 'His ship was too small to float'], why: 'Ships were kept in England to fight the Spanish Armada in 1588.' },
+        { q: 'Roanoke Island is in which modern-day state?', a: ['North Carolina', 'California', 'Florida'], why: 'It sits between the mainland and the Outer Banks of North Carolina.' },
+        { q: 'What sign was supposed to mean the colonists had left in danger?', a: ['A carved cross', 'A painted star', 'A flag on the beach'], why: 'White found no cross, so he hoped they had left safely.' },
+        { q: 'Who lived on the coast before the English came?', a: ['Algonquian peoples like the Croatoan and Secotan', 'No one', 'Spanish soldiers'], why: 'Native peoples had lived there for thousands of years.' },
+        { q: 'When did the colonists arrive on Roanoke Island?', a: ['1587', '1776', '1492'], why: '1587, twenty years before Jamestown.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'time-detective', icon: '⏳', name: 'Time Detective', sub: 'Put history in order', badge: 'Timeline Ace',
+      how: [['🕵️', 'Crack four cases by putting events on the <b>timeline</b> in the right order.'], ['👆', 'Tap the <b>earliest</b> event first, then the next one, all the way to the latest.'],
+        ['🗓️', 'Each event jumps onto the timeline with its year, so you can check your thinking.'], ['⭐', '100 points for every event placed right on the first try.']],
+      make: timeGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>

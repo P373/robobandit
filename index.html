@@ -108,6 +108,19 @@
   footer { margin-top: 44px; font-size: 14px; color: #7d8aa3; }
   footer a { color: #7fd0ff; }
 
+  /* school folders: one manila folder per grade */
+  .section { margin: 0 0 16px; font-size: 22px; letter-spacing: 2px; color: #ffd84a; text-align: left; max-width: 1008px; margin-inline: auto; }
+  .folders { display: grid; gap: 24px; grid-template-columns: repeat(auto-fit, minmax(240px, 320px)); justify-content: center; margin-bottom: 44px; }
+  .folder { position: relative; display: block; padding-top: 22px; text-decoration: none; color: #3a2a0a; text-align: left; transition: transform .15s; }
+  .folder::before { content: ""; position: absolute; top: 0; left: 18px; width: 42%; height: 30px; border-radius: 12px 12px 0 0; background: var(--tab); }
+  .folder .body { position: relative; border-radius: 4px 18px 18px 18px; padding: 18px 18px 16px; min-height: 170px; background: var(--paper);
+    box-shadow: 0 6px 0 rgba(0,0,0,.35), 0 12px 30px rgba(0,0,0,.4); border: 3px solid rgba(0,0,0,.15); }
+  .folder:hover, .folder:focus-visible { transform: translateY(-6px) rotate(-1deg); outline: none; }
+  .folder .ic { font-size: 52px; line-height: 1; }
+  .folder h2 { margin: 6px 0 2px; font-size: 26px; }
+  .folder p { margin: 0; font-size: 15px; line-height: 1.4; opacity: .85; }
+  .folder .count { position: absolute; top: 16px; right: 16px; padding: 3px 10px; border-radius: 999px; font-size: 13px; font-weight: 800; background: rgba(255,255,255,.7); }
+
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation: none !important; transition: none !important; }
   }
@@ -120,6 +133,17 @@
   <h1>ROBOBANDIT</h1>
   <div class="tag">🎮 A NEW GAME EVERY DAY!</div>
 
+  <h2 class="section">📚 SCHOOL FOLDERS</h2>
+  <div class="folders">
+    <a class="folder" href="5th-grade/index.html" style="--tab:#e8b04a;--paper:#ffd77a"><div class="body"><span class="count">4 subjects</span>
+      <div class="ic">🎒</div><h2>5th Grade</h2><p>Esperanza Rising, human rights, multiplying, volume, ecosystems and the Lost Colony.</p></div></a>
+    <a class="folder" href="2nd-grade/index.html" style="--tab:#5fb0e8;--paper:#a8dcff"><div class="body"><span class="count">coming soon</span>
+      <div class="ic">✏️</div><h2>2nd Grade</h2><p>Lessons and games for 2nd graders.</p></div></a>
+    <a class="folder" href="preschool/index.html" style="--tab:#e87aa8;--paper:#ffc4dc"><div class="body"><span class="count">coming soon</span>
+      <div class="ic">🧸</div><h2>Preschool</h2><p>Learning games for little ones.</p></div></a>
+  </div>
+
+  <h2 class="section">🎮 GAMES</h2>
   <div class="grid" id="games"></div>
 
   <footer>Made with 🤖 by RoboBandit · Free to play in your browser · <a href="share.html">🔗 Share RoboBandit</a></footer>

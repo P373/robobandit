@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>5th Grade | RoboBandit</title>
+<meta name="description" content="Free 5th grade lessons and learning games: Esperanza Rising and human rights, multiplying multi-digit numbers and volume, ecosystems and nurse logs, and the Lost Colony of Roanoke.">
+<link rel="canonical" href="https://robobandit.com/5th-grade/">
+<meta name="theme-color" content="#070b18">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/5th-grade/">
+<meta property="og:title" content="5th Grade | RoboBandit">
+<meta property="og:description" content="Free 5th grade lessons and learning games: reading, human rights, math, science and social studies.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../folder.css">
+<style>:root { --tab: #e8b04a; --paper: #ffd77a; }</style>
+</head>
+<body>
+<main>
+  <a class="back" href="../index.html">← All RoboBandit games</a>
+  <div class="folder"><div class="inside">
+    <h1>🎒 5th Grade</h1>
+    <p class="lead">Pick a subject. Each one has short lessons with moving pictures, a quiz after every lesson, and games to play.</p>
+    <div class="subjects" id="subjects"></div>
+  </div></div>
+  <footer>Made with 🤖 by RoboBandit · Free to use at home and in class</footer>
+</main>
+<script>
+'use strict';
+// One entry per subject page in this folder. key is where the page saves progress (see lesson.js);
+// lessons and games are how many of each it has (3 stars each).
+const SUBJECTS = [
+  { title: 'Esperanza & Human Rights', tag: 'Reading & Civics', url: 'reading-rights.html', key: 'rb_g5_reading', icon: '🌹🌍', color: '#ffb3cf', lessons: 4, games: 1,
+    blurb: 'Read Esperanza Rising, then learn the rights every person has.', list: ['📖 Esperanza Rising', '🌍 The Universal Declaration of Human Rights', '🛠️ Work rights: safe conditions & fair pay', '💗 An existence worthy of human dignity'] },
+  { title: 'Multiply & Volume', tag: 'Math', url: 'math.html', key: 'rb_g5_math', icon: '✖️🧊', color: '#c9b3ff', lessons: 4, games: 2,
+    blurb: 'Multiply multi-digit numbers, then measure the space inside things.', list: ['✖️ The area model & partial products', '📝 The standard algorithm', '🧊 What is volume?', '📦 V = l × w × h'] },
+  { title: 'Forest Ecosystems', tag: 'Science', url: 'science.html', key: 'rb_g5_science', icon: '🌲🍄', color: '#a8e6b4', lessons: 3, games: 1,
+    blurb: 'Food webs, the fallen trees that become homes, and the matter cycle.', list: ['🦌 Ecosystems & food webs', '🪵 Nurse logs', '♻️ Matter cycling'] },
+  { title: 'History Detectives', tag: 'Social Studies', url: 'social-studies.html', key: 'rb_g5_social', icon: '🕵️🏝️', color: '#f5c79a', lessons: 3, games: 1,
+    blurb: 'Why history matters, timelines and maps, and the Lost Colony of Roanoke.', list: ['📜 Why study history?', '🧭 Perspective: timelines & maps', '🏝️ The Lost Colony of Roanoke'] },
+];
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const starsOf = s => { try { const v = JSON.parse(localStorage.getItem(s.key)); return Object.values((v && v.stars) || {}).reduce((a, b) => a + b, 0); } catch (e) { return 0; } };
+const render = () => document.getElementById('subjects').innerHTML = SUBJECTS.map(s => {
+  const have = starsOf(s), max = (s.lessons + s.games) * 3;
+  return `<a class="subject" href="${esc(s.url)}" style="--c:${s.color}">
+    <div class="art"><span>${s.icon}</span><span class="tag">${esc(s.tag)}</span></div>
+    <div class="info"><h2>${esc(s.title)}</h2><p>${esc(s.blurb)}</p>
+      <ul>${s.list.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
+      <div class="prog"><i style="width:${Math.round(have / max * 100)}%"></i></div>
+      <div class="stars">⭐ ${have} of ${max} stars · ${s.lessons} lessons · ${s.games} game${s.games > 1 ? 's' : ''}</div></div></a>`;
+}).join('');
+render();
+addEventListener('pageshow', e => { if (e.persisted) render(); });
+</script>
+</body>
+</html>

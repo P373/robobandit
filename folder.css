@@ -1,0 +1,46 @@
+/* Shared by the grade folder pages (5th-grade/index.html, 2nd-grade/index.html, preschool/index.html).
+   Each page sets --tab and --paper (its folder colours) on :root. */
+* { box-sizing: border-box; }
+html { background: #070b18; }
+body {
+  margin: 0; min-height: 100vh; color: #3a2a0a; overflow-x: hidden;
+  font-family: 'Fredoka', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  background: radial-gradient(ellipse at top, #1d2d50, #070b18 65%) fixed;
+}
+main { max-width: 1080px; margin: 0 auto; padding: 24px 16px 48px; }
+.back { display: inline-block; margin-bottom: 18px; color: #7fd0ff; font-weight: 700; text-decoration: none; font-size: 17px; }
+.back:hover { text-decoration: underline; }
+
+/* the open folder everything sits in */
+.folder { position: relative; padding-top: 34px; }
+.folder::before { content: ""; position: absolute; top: 0; left: 24px; width: min(320px, 50%); height: 40px; border-radius: 16px 16px 0 0; background: var(--tab); }
+.inside { position: relative; border-radius: 6px 24px 24px 24px; padding: 26px clamp(16px, 3vw, 34px) 30px; background: var(--paper);
+  box-shadow: 0 8px 0 rgba(0,0,0,.35), 0 16px 40px rgba(0,0,0,.45); }
+.inside h1 { margin: 0; font: clamp(34px, 6vw, 56px)/1.05 'Bungee', system-ui, sans-serif; color: #3a2a0a; }
+.inside .lead { margin: 6px 0 22px; font-size: clamp(18px, 2.2vw, 21px); }
+
+.subjects { display: grid; gap: 20px; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); }
+.subject {
+  display: block; text-decoration: none; color: #14254d; background: #fffdf6; border: 4px solid #14254d; border-radius: 20px; overflow: hidden;
+  box-shadow: 0 6px 0 #14254d; transition: transform .15s;
+}
+.subject:hover, .subject:focus-visible { transform: translateY(-5px) rotate(-1deg); outline: none; }
+.subject:nth-child(even):hover { transform: translateY(-5px) rotate(1deg); }
+.subject .art { position: relative; height: 150px; display: grid; place-items: center; font-size: 78px; background: var(--c); }
+.subject .art span { filter: drop-shadow(0 4px 0 rgba(0,0,0,.2)); }
+.subject .tag { position: absolute; top: 10px; left: 10px; padding: 3px 10px; border-radius: 8px; font-size: 13px; font-weight: 700; color: #fff; background: rgba(0,0,0,.35); }
+.subject .info { padding: 14px 16px 16px; }
+.subject h2 { margin: 0 0 4px; font-size: 24px; }
+.subject p { margin: 0; font-size: 16px; line-height: 1.4; color: #3a4a6a; }
+.subject ul { margin: 10px 0 0; padding: 0; list-style: none; font-size: 15px; color: #3a4a6a; }
+.subject li { margin: 3px 0; }
+.subject .prog { margin-top: 10px; height: 12px; border-radius: 6px; background: #e3e9f5; overflow: hidden; }
+.subject .prog i { display: block; height: 100%; background: #f2a900; }
+.subject .stars { margin-top: 4px; font-size: 14px; font-weight: 700; color: #a87400; }
+
+.empty { padding: 40px 20px; text-align: center; border: 4px dashed rgba(58,42,10,.35); border-radius: 20px; font-size: 20px; }
+.empty .ic { font-size: 72px; }
+footer { margin-top: 36px; text-align: center; font-size: 14px; color: #7d8aa3; }
+footer a { color: #7fd0ff; }
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }

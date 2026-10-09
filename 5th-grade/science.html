@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Forest Ecosystems | RoboBandit 5th Grade</title>
+<meta name="description" content="5th grade science: ecosystems and food webs, nurse logs (the fallen trees that become homes), and how matter cycles. Lessons, quizzes and a game.">
+<link rel="canonical" href="https://robobandit.com/5th-grade/science.html">
+<meta name="theme-color" content="#2f8a4e">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/5th-grade/science.html">
+<meta property="og:title" content="Forest Ecosystems | RoboBandit 5th Grade">
+<meta property="og:description" content="Ecosystems, nurse logs and the matter cycle. 5th grade science lessons, quizzes and a game.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css">
+<link rel="stylesheet" href="../lesson.css">
+<style>:root { --c: #2f8a4e; --c2: #ffd84a; --bg: #2a6e45; }</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js"></script>
+<script src="../lesson.js"></script>
+<script>
+'use strict';
+const INK = '#14254d', GREEN = '#2f8a4e', LEAF = '#4fb85f', BROWN = '#8a5a34', SKY = '#3d8ff0', ORANGE = '#f08a24', YELLOW = '#ffd84a', PINK = '#e8457a';
+
+// ---------- Drawing helpers ----------
+function sky(d, top = '#9fd6ff', bot = '#e6f6ff') { d.bg(top, bot); }
+function ground(d, y = 440, col = '#6dbb5c') {
+  d.rect(0, y, d.W, d.H - y, { r: 0, fill: col });
+  d.rect(0, y + 40, d.W, d.H - y, { r: 0, fill: '#8a5a34' });
+}
+function sun(d, x, y, t, r = 40) {
+  for (let i = 0; i < 10; i++) { const a = i / 10 * Math.PI * 2 + t * 0.3; d.line(x + Math.cos(a) * (r + 8), y + Math.sin(a) * (r + 8), x + Math.cos(a) * (r + 22), y + Math.sin(a) * (r + 22), { stroke: '#ffb400', lw: 5 }); }
+  d.circle(x, y, r, { fill: '#ffd84a', stroke: '#f2a900', lw: 4 });
+}
+// an evergreen tree, base at (x, y)
+function tree(d, x, y, h, col = '#2f8a4e') {
+  d.rect(x - h * 0.05, y - h * 0.25, h * 0.1, h * 0.25, { r: 2, fill: BROWN });
+  for (let i = 0; i < 3; i++) {
+    const w = h * (0.42 - i * 0.1), top = y - h * (0.5 + i * 0.22), bot = y - h * (0.18 + i * 0.22);
+    d.poly([[x, top], [x + w, bot], [x - w, bot]], { close: true, fill: col, stroke: '#1d5a32', lw: 2 });
+  }
+}
+// a fallen log lying from x to x + len, middle at y
+function log(d, x, y, len, r = 34, o = {}) {
+  d.alpha(o.alpha == null ? 1 : o.alpha, () => {
+    d.rect(x, y - r, len, r * 2, { r, fill: o.col || '#9a6a3f', stroke: '#5a3a1c', lw: 3 });
+    for (let i = 1; i < 6; i++) d.line(x + len * i / 6, y - r + 8, x + len * i / 6 + 20, y + r - 8, { stroke: 'rgba(90,58,28,.35)', lw: 3 });
+    d.ellipse(x + len, y, r * 0.55, r, { fill: '#d9a56a', stroke: '#5a3a1c', lw: 3 });
+    d.ellipse(x + len, y, r * 0.3, r * 0.55, { stroke: '#a8743f', lw: 2 });
+    if (o.moss !== false) for (let i = 0; i < len / 40; i++) d.ellipse(x + 20 + i * 40, y - r + 4, 24, 10, { fill: '#5cbf4a' });
+  });
+}
+// a carbon dioxide molecule: carbon in the middle, two oxygens
+function co2(d, x, y, s = 1) {
+  d.circle(x - 16 * s, y, 10 * s, { fill: '#ff5a4a', stroke: INK, lw: 2 });
+  d.circle(x + 16 * s, y, 10 * s, { fill: '#ff5a4a', stroke: INK, lw: 2 });
+  d.circle(x, y, 12 * s, { fill: '#333', stroke: INK, lw: 2 });
+}
+const lbl = (d, s, x, y, bg = '#fff', size = 22) => d.pill(s, x, y, { size, bg });
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  'ec-what'(d, t) {
+    sky(d); sun(d, 110, 90, t); ground(d);
+    d.ellipse(700, 470, 150, 28, { fill: '#5ab0f0', stroke: '#2f7fc8', lw: 3 });
+    d.ellipse(330, 445, 50, 26, { fill: '#9aa3b5', stroke: INK, lw: 2 });
+    tree(d, 220, 445, 260); tree(d, 860, 445, 300); tree(d, 540, 445, 200, '#3a9a58');
+    d.emoji('🦌', 440, 405, 80, { flip: true }); d.emoji('🐇', 620, 425, 44); d.emoji('🦉', 860, 260, 46);
+    d.emoji('🍄', 140, 455, 40); d.emoji('🐛', 300, 470, 30); d.emoji('🐟', 700 + Math.sin(t) * 60, 472, 30);
+    for (let i = 0; i < 3; i++) { const x = (t * 60 + i * 300) % 1100 - 100; d.curve(x, 160 + i * 30, x + 40, 145 + i * 30, x + 80, 160 + i * 30, { color: 'rgba(255,255,255,.9)', lw: 4, head: 0 }); }
+    const living = Math.floor(t / 3) % 2 === 0;
+    if (living) {
+      d.pill('🌱 LIVING', 480, 40, { size: 30, bg: '#c8f0c0' });
+      [['tree', 220, 230], ['deer', 440, 340], ['owl', 860, 210], ['mushroom', 140, 410], ['rabbit', 620, 385], ['fish', 760, 520]].forEach(([s, x, y]) => lbl(d, s, x, y, '#c8f0c0'));
+    } else {
+      d.pill('🪨 NONLIVING', 480, 40, { size: 30, bg: '#cfe6ff' });
+      [['sunlight', 110, 165], ['air', 300, 130], ['water', 700, 520], ['rock', 330, 400], ['soil', 520, 505]].forEach(([s, x, y]) => lbl(d, s, x, y, '#cfe6ff'));
+    }
+  },
+  'ec-why'(d, t) {
+    sky(d, '#f2fbff', '#dff1ff');
+    const N = [['🐺', 'Wolves return', '(1995)'], ['🦌', 'Elk move around', 'more'], ['🌿', 'Willows grow', 'back'], ['🦫', 'Beavers build', 'dams'], ['🏞️', 'Rivers and fish', 'change']];
+    const T = t % 10;
+    N.forEach(([e, a, b], i) => {
+      const x = 100 + i * 190, k = d.in(T, i * 1.3, 0.6);
+      d.alpha(0.25 + 0.75 * k, () => {
+        d.circle(x, 220, 72, { fill: '#fff', stroke: GREEN, lw: 4 });
+        d.emoji(e, x, 220, 80);
+        d.text(a, x, 330, { size: 24, weight: 700 }); d.text(b, x, 362, { size: 24, weight: 700 });
+      });
+      if (i < 4) d.alpha(d.in(T, i * 1.3 + 0.7, 0.5), () => d.arrow(x + 76, 220, x + 116, 220, { color: GREEN }));
+    });
+    d.text('Yellowstone National Park', 480, 70, { size: 34, weight: 700, color: GREEN });
+    d.alpha(d.in(T, 6.5), () => d.pill('Change one part, and the others change too!', 480, 460, { size: 26, bg: YELLOW }));
+  },
+  'ec-prod'(d, t) {
+    sky(d); sun(d, 110, 90, t, 46); ground(d, 400);
+    // a big leafy plant
+    d.line(520, 470, 520, 220, { stroke: '#3a8a3a', lw: 12 });
+    [[-1, 330], [1, 290], [-1, 250], [1, 215]].forEach(([s, y]) => d.ellipse(520 + s * 90, y, 90, 34, { fill: LEAF, stroke: '#2d7a3a', lw: 3, rot: s * -0.35 }));
+    for (let i = 0; i < 4; i++) { const k = d.loop(t + i * 0.3, 1.2); d.arrow(160 + k * 40, 130 + k * 30, 380 + k * 40, 200 + k * 50, { color: '#ffb400', lw: 4, head: 14 }); }
+    for (let i = 0; i < 3; i++) { const k = d.loop(t * 0.5 + i / 3, 1); co2(d, 880 - k * 230, 120 + i * 60 + k * 90, 0.9); }
+    for (let i = 0; i < 4; i++) { const k = d.loop(t * 0.6 + i / 4, 1); d.emoji('💧', 520, 500 - k * 230, 22); }
+    d.pill('sunlight', 220, 220, { size: 22, bg: '#fff3b0' }); d.pill('carbon dioxide (air)', 790, 90, { size: 22, bg: '#ffe0dc' }); d.pill('water (roots)', 640, 500, { size: 22, bg: '#cfe6ff' });
+    d.alpha(d.in(t, 1.5), () => { d.pill('→ sugar 🍬 + oxygen', 520, 150, { size: 26, bg: '#c8f0c0' }); });
+    d.text('PHOTOSYNTHESIS', 480, 40, { size: 30, weight: 700, color: GREEN, font: "'Bungee', sans-serif" });
+  },
+  'ec-cons'(d, t) {
+    sky(d, '#fff9ec', '#ffefd0');
+    const col = (x, title, pairs, bg) => {
+      d.rect(x - 140, 30, 280, 280, { r: 18, fill: bg, stroke: INK });
+      d.text(title, x, 64, { size: 28, weight: 700 });
+      pairs.forEach(([a, b], i) => { d.emoji(a, x - 60, 140 + i * 90, 64); d.text('eats', x + 4, 140 + i * 90, { size: 22 }); d.emoji(b, x + 70, 140 + i * 90, 50); });
+    };
+    col(170, 'Herbivores', [['🦌', '🌿'], ['🐇', '🥕']], '#d4f5d0');
+    col(480, 'Carnivores', [['🦉', '🐁'], ['🐆', '🦌']], '#ffd8d0');
+    col(790, 'Omnivores', [['🐻', '🫐'], ['🧒', '🍎']], '#e6dcff');
+    // a food chain with energy moving along it
+    const xs = [250, 480, 710];
+    ['🌾', '🐇', '🦊'].forEach((e, i) => { d.emoji(e, xs[i], 430, 70); if (i < 2) d.arrow(xs[i] + 50, 430, xs[i + 1] - 50, 430, { color: ORANGE }); });
+    const k = d.loop(t, 2.4) * 2, seg = Math.floor(k), f = k - seg;
+    d.circle(xs[seg] + 50 + f * (xs[seg + 1] - xs[seg] - 100), 430, 10, { fill: YELLOW, stroke: ORANGE, lw: 3 });
+    d.text('Food chain: arrows show where the energy goes', 480, 510, { size: 24, weight: 700 });
+  },
+  'ec-decomp'(d, t) {
+    sky(d); ground(d, 300, '#6dbb5c');
+    d.rect(0, 340, d.W, 200, { r: 0, fill: '#7a4e2c' });
+    log(d, 120, 300, 420, 40, { col: '#7d6040' });
+    d.emoji('🍂', 650, 312, 56); d.emoji('🍂', 760, 318, 44, { rot: 0.6 });
+    d.emoji('🍄', 200, 252, 50); d.emoji('🍄', 470, 256, 40);
+    d.emoji('🪱', 300 + Math.sin(t) * 40, 400, 44); d.emoji('🐛', 600 + Math.sin(t * 1.3) * 30, 290, 38); d.emoji('🪲', 380 + Math.cos(t) * 50, 288, 36);
+    // nutrients sinking into the soil and up into a plant's roots
+    for (let i = 0; i < 14; i++) {
+      const k = d.loop(t * 0.4 + i / 14, 1), x = 160 + (i * 61) % 640;
+      d.circle(x + k * (820 - x) * 0.6, 350 + k * 120, 7, { fill: YELLOW, stroke: ORANGE, lw: 2 });
+    }
+    d.line(860, 300, 860, 200, { stroke: '#3a8a3a', lw: 8 }); d.ellipse(830, 210, 40, 16, { fill: LEAF, rot: 0.4 }); d.ellipse(890, 190, 40, 16, { fill: LEAF, rot: -0.4 });
+    for (let i = 0; i < 4; i++) d.line(860, 340, 820 + i * 25, 470, { stroke: '#e8d2a8', lw: 4 });
+    d.pill('dead stuff', 330, 210, { size: 24 }); d.pill('nutrients in the soil', 480, 505, { size: 24, bg: YELLOW }); d.pill('new plant', 860, 150, { size: 24, bg: '#c8f0c0' });
+    d.text('DECOMPOSERS = RECYCLERS', 480, 50, { size: 32, color: GREEN, font: "'Bungee', sans-serif" });
+  },
+  'ec-web'(d, t) {
+    sky(d, '#f2fbff', '#e2f4e6');
+    const N = { grass: ['🌾', 140, 450], tree: ['🌳', 380, 450], berry: ['🫐', 640, 450], rabbit: ['🐇', 120, 290], squirrel: ['🐿️', 360, 290], deer: ['🦌', 560, 290], bird: ['🐦', 800, 290],
+      fox: ['🦊', 260, 120], owl: ['🦉', 520, 110], bear: ['🐻', 780, 120], fungi: ['🍄', 880, 470] };
+    const E = [['grass', 'rabbit'], ['grass', 'deer'], ['tree', 'squirrel'], ['tree', 'deer'], ['berry', 'bird'], ['berry', 'bear'], ['berry', 'squirrel'],
+      ['rabbit', 'fox'], ['rabbit', 'owl'], ['squirrel', 'owl'], ['squirrel', 'fox'], ['bird', 'fox'], ['deer', 'bear']];
+    E.forEach(([a, b], i) => {
+      const [, x1, y1] = N[a], [, x2, y2] = N[b], k = d.loop(t * 0.6 + i * 0.13, 1);
+      d.arrow(x1, y1 - 36, x2, y2 + 38, { color: 'rgba(240,138,36,.75)', lw: 4, head: 14 });
+      d.circle(x1 + (x2 - x1) * k, y1 - 36 + (y2 + 38 - y1 + 36) * k, 6, { fill: YELLOW, stroke: ORANGE, lw: 2 });
+    });
+    ['fox', 'owl', 'bear'].forEach(a => d.curve(N[a][1] + 40, N[a][2], 940, 200, 890, 425, { color: 'rgba(138,90,52,.5)', lw: 3, dash: [8, 6], head: 12 }));
+    Object.values(N).forEach(([e, x, y]) => { d.circle(x, y, 40, { fill: '#fff', stroke: GREEN, lw: 3 }); d.emoji(e, x, y, 50); });
+    d.pill('decomposers', 880, 525, { size: 20, bg: '#ead8c4' });
+  },
+  // ----- nurse logs -----
+  'nl-what'(d, t) {
+    sky(d, '#6fae7a', '#cfe8c8');
+    d.alpha(0.45, () => { for (let i = 0; i < 6; i++) tree(d, 60 + i * 175, 380, 300 + (i % 2) * 60, '#1d5a32'); });
+    ground(d, 380, '#4f9a45');
+    log(d, 140, 400, 640, 46);
+    const g = d.in(t, 0, 4);
+    [[230, 0.8], [380, 1.1], [520, 0.9], [650, 1.2]].forEach(([x, s]) => tree(d, x, 356, 30 + 110 * s * g, '#4fb85f'));
+    d.emoji('🌿', 300, 345, 40); d.emoji('🌿', 600, 345, 36); d.emoji('🍄', 760, 380, 36); d.emoji('🍄', 170, 372, 30);
+    d.pill('NURSE LOG', 470, 470, { size: 30, bg: YELLOW });
+    d.pill('seedlings', 520, 200, { size: 24, bg: '#c8f0c0' });
+  },
+  'nl-why'(d, t) {
+    sky(d, '#f2fbff', '#e2f4e6');
+    const P = [['Year 0', 'A big tree falls'], ['Year 50', 'Moss and seedlings move in'], ['Year 300', 'A row of young trees']];
+    P.forEach(([y, s], i) => {
+      const x = 30 + i * 310, k = d.in(t, i * 1.2);
+      d.alpha(k, () => {
+        d.rect(x, 40, 280, 330, { r: 18, fill: '#e6f4dc', stroke: INK });
+        d.rect(x, 290, 280, 80, { r: 0, fill: '#6dbb5c' });
+        if (i === 0) { log(d, x + 30, 280, 200, 26, { moss: false }); tree(d, x + 230, 290, 120); d.emoji('💨', x + 60, 120, 44); }
+        if (i === 1) { log(d, x + 30, 280, 200, 26); [70, 130, 190].forEach(dx => tree(d, x + dx, 258, 50, LEAF)); }
+        if (i === 2) { log(d, x + 30, 280, 200, 22, { alpha: 0.35, col: '#b08a60' }); [70, 140, 210].forEach(dx => tree(d, x + dx, 290, 210, '#2f8a4e')); }
+        d.text(y, x + 140, 410, { size: 30, weight: 700, color: GREEN });
+        d.text(s, x + 140, 450, { size: 22 });
+      });
+      if (i < 2) d.alpha(d.in(t, i * 1.2 + 0.8), () => d.arrow(x + 285, 200, x + 305, 200, { color: GREEN, lw: 5, head: 14 }));
+    });
+    d.alpha(d.in(t, 4), () => d.pill('Death feeds new life ♻️', 480, 505, { size: 26, bg: YELLOW }));
+  },
+  'nl-up'(d, t) {
+    d.bg('#1f3d2a', '#2c5236');
+    // shafts of light
+    d.poly([[560, 0], [760, 0], [700, 420], [600, 420]], { close: true, fill: 'rgba(255,240,170,.28)' });
+    d.rect(0, 420, d.W, 120, { r: 0, fill: '#3e6b34' });
+    for (let i = 0; i < 18; i++) d.ellipse(i * 55, 420, 40, 22, { fill: '#4f8a3a' });
+    // left: a seedling stuck on the dark floor
+    tree(d, 200, 425, 40, '#6a9a5a');
+    d.pill('dark & crowded 😟', 200, 330, { size: 22 });
+    // right: on the log, up in the light
+    log(d, 480, 380, 360, 50);
+    tree(d, 650, 332, 90 + Math.sin(t) * 3, '#5fd06a');
+    d.pill('up in the light 😀', 650, 190, { size: 22, bg: '#fff3b0' });
+    for (let i = 0; i < 5; i++) { const k = d.loop(t * 0.5 + i / 5, 1); d.emoji('💧', 520 + i * 60, 360 + Math.sin(k * 6) * 4, 20, { alpha: 0.9 }); }
+    d.pill('wet like a sponge 💧 + nutrients', 660, 480, { size: 22, bg: '#cfe6ff' });
+  },
+  'nl-crew'(d, t) {
+    d.bg('#f6efe4', '#eadbc4');
+    // a log cut open to show what's inside
+    d.rect(80, 120, 800, 260, { r: 40, fill: '#c89660', stroke: '#5a3a1c', lw: 4 });
+    for (let i = 0; i < 6; i++) d.line(100, 150 + i * 40, 860, 150 + i * 40, { stroke: 'rgba(90,58,28,.25)', lw: 3 });
+    // fungal threads (hyphae) branching through the wood
+    const g = d.in(t, 0, 5);
+    const branch = (x, y, a, len, depth) => {
+      if (depth === 0 || len < 8) return;
+      const x2 = x + Math.cos(a) * len * g, y2 = y + Math.sin(a) * len * g;
+      d.line(x, y, x2, y2, { stroke: 'rgba(255,255,255,.95)', lw: depth });
+      branch(x2, y2, a - 0.5, len * 0.7, depth - 1); branch(x2, y2, a + 0.45, len * 0.7, depth - 1);
+    };
+    branch(150, 250, 0, 120, 5); branch(520, 330, -0.6, 100, 4);
+    // beetle tunnels
+    d.poly([[600, 160], [640, 200], [610, 240], [660, 280], [640, 330]], { stroke: '#7a4e2c', lw: 14 });
+    d.emoji('🪲', 640 + Math.sin(t) * 6, 330, 40); d.emoji('🐜', 300 + (t * 40) % 300, 360, 30);
+    d.emoji('🍄', 200, 100, 56); d.emoji('🍄', 750, 104, 44);
+    d.emoji('🦠', 420, 200, 36, { rot: t }); d.emoji('🦠', 780, 250, 30, { rot: -t });
+    d.pill('fungi & their hyphae', 230, 440, { size: 24, bg: '#fff' }); d.pill('beetles & ants tunnel', 640, 440, { size: 24, bg: '#ffe3b8' }); d.pill('bacteria', 420, 160, { size: 22, bg: '#e6dcff' });
+    d.text('THE DECOMPOSER CREW', 480, 500, { size: 30, color: BROWN, font: "'Bungee', sans-serif" });
+  },
+  'nl-home'(d, t) {
+    sky(d, '#7cb88a', '#cfe8c8'); ground(d, 380, '#4f9a45');
+    log(d, 120, 380, 700, 60);
+    d.emoji('🦎', 300 + Math.sin(t) * 20, 420, 50); d.emoji('🐦', 560, 300 - Math.abs(Math.sin(t * 4)) * 20, 50); d.emoji('🐌', 720 - (t * 8) % 100, 322, 36);
+    d.emoji('🐜', 420 + (t * 30) % 200, 336, 26); d.emoji('🐿️', 870, 440, 50); d.emoji('🕷️', 200, 340, 30); d.emoji('🍄', 650, 324, 34);
+    d.pill('salamander hides in damp wood', 300, 490, { size: 22 }); d.pill('bird pecks for bugs', 560, 230, { size: 22 });
+    d.pill('snail', 720, 270, { size: 20 }); d.pill('squirrel shelters', 830, 510, { size: 20 });
+    d.text('A whole ecosystem in one log!', 480, 60, { size: 34, weight: 700, color: '#1d5a32' });
+  },
+  'nl-stilts'(d, t) {
+    sky(d, '#e6f6ff', '#f2fbff');
+    const T = t % 12, k = d.in(T, 0.5, 8);
+    d.rect(0, 420, d.W, 120, { r: 0, fill: '#6dbb5c' });
+    log(d, 140, 384, 680, 36, { alpha: 1 - d.in(T, 4, 4), moss: true });
+    [260, 480, 700].forEach(x => {
+      const h = 60 + 300 * k, base = 344;
+      // roots reaching down around the log to the soil
+      if (k > 0.2) { const r = Math.min(1, (k - 0.2) * 2); d.line(x - 10, base, x - 50, base + 76 * r, { stroke: BROWN, lw: 9 }); d.line(x + 10, base, x + 50, base + 76 * r, { stroke: BROWN, lw: 9 }); }
+      tree(d, x, base, h, '#2f8a4e');
+    });
+    d.text(`Year ${Math.round(k * 200)}`, 120, 60, { size: 40, weight: 700, color: GREEN });
+    d.alpha(d.in(T, 8), () => { d.pill('trees on stilts, in a row: a colonnade', 480, 490, { size: 26, bg: YELLOW }); d.pill('the log was here', 480, 395, { size: 20, bg: '#fff' }); });
+  },
+  // ----- matter cycling -----
+  'mc-what'(d, t) {
+    d.bg('#f2fbff', '#e2f4e6');
+    const N = [['☁️', 'Air & water'], ['🌳', 'Plants'], ['🦌', 'Animals'], ['🍄', 'Decomposers'], ['🟫', 'Soil']], cx = 480, cy = 275, R = 190;
+    const pos = i => { const a = -Math.PI / 2 + i / N.length * Math.PI * 2; return [cx + Math.cos(a) * R * 1.25, cy + Math.sin(a) * R]; };
+    for (let i = 0; i < N.length; i++) {
+      const [x1, y1] = pos(i), [x2, y2] = pos((i + 1) % N.length);
+      d.curve(x1, y1, (x1 + x2) / 2 + ((x1 + x2) / 2 - cx) * 0.35, (y1 + y2) / 2 + ((y1 + y2) / 2 - cy) * 0.35, x2, y2, { color: 'rgba(47,138,78,.5)', lw: 6, head: 0 });
+    }
+    for (let i = 0; i < 10; i++) {
+      const k = (t * 0.25 + i / 10) % 1, seg = Math.floor(k * N.length), f = k * N.length - seg;
+      const [x1, y1] = pos(seg), [x2, y2] = pos((seg + 1) % N.length);
+      const [x, y] = d.onCurve(x1, y1, (x1 + x2) / 2 + ((x1 + x2) / 2 - cx) * 0.35, (y1 + y2) / 2 + ((y1 + y2) / 2 - cy) * 0.35, x2, y2, f);
+      d.circle(x, y, 9, { fill: YELLOW, stroke: ORANGE, lw: 3 });
+    }
+    N.forEach(([e, s], i) => { const [x, y] = pos(i); d.circle(x, y, 52, { fill: '#fff', stroke: GREEN, lw: 4 }); d.emoji(e, x, y - 4, 54); d.pill(s, x, y + 62, { size: 20 }); });
+    d.text('Matter', cx, cy - 18, { size: 36, weight: 700, color: GREEN }); d.text('goes round', cx, cy + 22, { size: 30, weight: 700, color: GREEN });
+  },
+  'mc-why'(d, t) {
+    d.bg('#0b1638', '#1d2d60');
+    for (let i = 0; i < 40; i++) d.circle((i * 211) % 960, (i * 97) % 540, 1.5, { fill: 'rgba(255,255,255,.7)' });
+    sun(d, 110, 270, t, 70);
+    for (let i = 0; i < 3; i++) { const k = d.loop(t + i * 0.4, 1.2); d.arrow(200 + k * 120, 230 + i * 40, 330 + k * 120, 230 + i * 40, { color: '#ffb400', lw: 5 }); }
+    d.circle(620, 270, 130, { fill: '#3d8ff0', stroke: '#9fd6ff', lw: 4 });
+    d.ellipse(580, 230, 60, 40, { fill: '#4fb85f' }); d.ellipse(680, 320, 50, 34, { fill: '#4fb85f' });
+    const a = t * 1.2;
+    d.ctx.save(); d.ctx.strokeStyle = '#7fff9a'; d.ctx.lineWidth = 6; d.ctx.setLineDash([16, 12]); d.ctx.lineDashOffset = -t * 30;
+    d.ctx.beginPath(); d.ctx.ellipse(620, 270, 175, 165, 0, 0, Math.PI * 2); d.ctx.stroke(); d.ctx.restore();
+    d.circle(620 + Math.cos(a) * 175, 270 + Math.sin(a) * 165, 12, { fill: YELLOW, stroke: ORANGE, lw: 3 });
+    d.pill('☀️ new ENERGY every day', 250, 120, { size: 24, bg: '#fff3b0' });
+    d.pill('♻️ the SAME matter, recycled', 620, 480, { size: 24, bg: '#c8f0c0' });
+    d.emoji('🦕', 870, 70, 56); d.text('your atoms were', 870, 125, { size: 20, color: '#fff' }); d.text('once in a dinosaur!', 870, 150, { size: 20, color: '#fff' });
+  },
+  'mc-air'(d, t) {
+    sky(d); ground(d, 440);
+    tree(d, 420, 445, 400);
+    for (let i = 0; i < 6; i++) { const k = d.loop(t * 0.35 + i / 6, 1); co2(d, 660 - k * 220, 70 + (i % 3) * 50 + k * 110, 0.9); }
+    for (let i = 0; i < 4; i++) { const k = d.loop(t * 0.5 + i / 4, 1); d.emoji('💧', 420, 510 - k * 200, 20); }
+    d.pill('carbon dioxide from the AIR', 560, 40, { size: 24, bg: '#ffe0dc' });
+    d.pill('water', 520, 500, { size: 22, bg: '#cfe6ff' });
+    // mass pie: mostly from air
+    const cx = 790, cy = 330;
+    d.circle(cx, cy, 90, { fill: '#cfe6ff', stroke: INK });
+    d.ctx.beginPath(); d.ctx.moveTo(cx, cy); d.ctx.arc(cx, cy, 90, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * 0.9 * d.in(t, 0.5, 2)); d.ctx.closePath(); d.paint({ fill: '#ffb3a8', stroke: INK });
+    d.text('Where does a', cx, 195, { size: 22, weight: 700 }); d.text("tree's mass come from?", cx, 222, { size: 22, weight: 700 });
+    d.text('mostly AIR!', cx, cy, { size: 26, weight: 700 });
+    d.text('(plus water and a little from soil)', cx, 450, { size: 18, color: '#3a4a6a' });
+  },
+  'mc-eat'(d, t) {
+    sky(d, '#fff9ec', '#ffefd0'); ground(d, 400, '#8bc96a');
+    const xs = [170, 470, 780];
+    d.emoji('🌿', xs[0], 340, 110); d.emoji('🦌', xs[1], 330, 120, { flip: true }); d.emoji('🐆', xs[2], 340, 120, { flip: true });
+    ['leaves', 'deer', 'cougar'].forEach((s, i) => d.pill(s, xs[i], 440, { size: 24 }));
+    d.arrow(xs[0] + 70, 300, xs[1] - 80, 300, { color: GREEN }); d.arrow(xs[1] + 80, 300, xs[2] - 80, 300, { color: GREEN });
+    const k = d.loop(t, 3) * 2, seg = Math.floor(k), f = k - seg;
+    for (let i = 0; i < 4; i++) d.circle(xs[seg] + 70 + f * (xs[seg + 1] - xs[seg] - 150) + i * 12, 300 + (i % 2) * 12, 7, { fill: YELLOW, stroke: ORANGE, lw: 2 });
+    // breathing out carbon dioxide
+    [1, 2].forEach(i => { const p = d.loop(t * 0.6 + i * 0.3, 1); co2(d, xs[i] + 40, 260 - p * 180, 0.7); });
+    d.pill('breathe out CO₂ ↑', 640, 80, { size: 22, bg: '#ffe0dc' });
+    for (let i = 0; i < 3; i++) { const p = d.loop(t * 0.5 + i / 3, 1); d.circle(xs[1] - 30 + i * 30, 400 + p * 90, 6, { fill: BROWN }); }
+    d.pill('waste → soil ↓', 470, 510, { size: 22, bg: '#ead8c4' });
+  },
+  'mc-loop'(d, t) {
+    sky(d, '#e6f6ff', '#f2fbff'); ground(d, 360, '#6dbb5c');
+    d.rect(0, 400, d.W, 140, { r: 0, fill: '#7a4e2c' });
+    log(d, 80, 340, 380, 34, { col: '#7d6040' });
+    d.emoji('🍄', 160, 296, 46); d.emoji('🍄', 360, 298, 40);
+    tree(d, 760, 365, 260);
+    for (let i = 0; i < 4; i++) d.line(760, 400, 700 + i * 40, 500, { stroke: '#e8d2a8', lw: 4 });
+    const k = d.loop(t, 4);
+    for (let i = 0; i < 8; i++) { const f = (k + i / 8) % 1; d.circle(260 + f * 480, 430 + Math.sin(f * Math.PI) * 50, 7, { fill: YELLOW, stroke: ORANGE, lw: 2 }); }
+    for (let i = 0; i < 3; i++) { const f = d.loop(t * 0.5 + i / 3, 1); co2(d, 260 + i * 60, 270 - f * 200, 0.7); }
+    d.pill('CO₂ back to the air', 200, 40, { size: 22, bg: '#ffe0dc' });
+    d.pill('nutrients → roots', 500, 510, { size: 22, bg: YELLOW });
+    d.curve(380, 60, 560, 20, 740, 120, { color: 'rgba(47,138,78,.6)', lw: 5, dash: [10, 8] });
+    d.pill('plants take CO₂ in again', 580, 110, { size: 20, bg: '#c8f0c0' });
+  },
+  'mc-energy'(d, t) {
+    d.bg('#fffaf0', '#f2fbff');
+    d.text('ENERGY: one way', 240, 50, { size: 30, color: ORANGE, font: "'Bungee', sans-serif" });
+    d.text('MATTER: round & round', 720, 50, { size: 26, color: GREEN, font: "'Bungee', sans-serif" });
+    const ys = [130, 230, 330, 430], E = [['☀️', 'Sun'], ['🌿', 'plant'], ['🐇', 'rabbit'], ['🔥', 'heat']];
+    E.forEach(([e, s], i) => { d.emoji(e, 160, ys[i], 60); d.text(s, 230, ys[i], { size: 26, align: 'left' }); if (i < 3) d.arrow(160, ys[i] + 36, 160, ys[i + 1] - 36, { color: ORANGE, lw: 6 }); });
+    const k = d.loop(t, 3) * 3, seg = Math.floor(k), f = k - seg;
+    d.circle(160, ys[seg] + 36 + f * 28, 9, { fill: YELLOW, stroke: ORANGE, lw: 3 });
+    d.line(480, 90, 480, 480, { stroke: '#d5def0', lw: 3, dash: [8, 8] });
+    const cx = 720, cy = 290, M = [['☁️', -Math.PI / 2], ['🌿', 0], ['🐇', Math.PI / 2], ['🍄', Math.PI]];
+    d.ctx.save(); d.ctx.strokeStyle = GREEN; d.ctx.lineWidth = 6; d.ctx.setLineDash([16, 10]); d.ctx.lineDashOffset = -t * 30;
+    d.ctx.beginPath(); d.ctx.arc(cx, cy, 150, 0, Math.PI * 2); d.ctx.stroke(); d.ctx.restore();
+    M.forEach(([e, a]) => { d.circle(cx + Math.cos(a) * 150, cy + Math.sin(a) * 150, 40, { fill: '#fff', stroke: GREEN, lw: 3 }); d.emoji(e, cx + Math.cos(a) * 150, cy + Math.sin(a) * 150, 46); });
+    d.circle(cx + Math.cos(t) * 150, cy + Math.sin(t) * 150, 10, { fill: YELLOW, stroke: ORANGE, lw: 3 });
+    d.text('♻️', cx, cy, { size: 70 });
+  },
+};
+
+// ---------- Game: Carbon's Journey ----------
+function carbonGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  const SPOTS = { air: [480, 80], fern: [110, 380], deer: [300, 380], cougar: [470, 390], tree: [850, 220], log: [690, 440], fungi: [590, 420], seedling: [760, 380] };
+  const STEPS = [
+    ['air', 'Carby the carbon atom is floating in the air, inside a carbon dioxide molecule. What happens next?', 'fern', 'A fern\'s leaf takes it in and makes sugar using sunlight', ['A deer breathes it in and keeps it forever', 'It sinks into a rock'], 'Plants pull carbon dioxide out of the air to build sugar. That\'s photosynthesis!'],
+    ['fern', 'Carby is now part of a sugar in the fern\'s leaf.', 'deer', 'A deer eats the fern', ['The Sun eats the fern', 'Carby turns into sunlight'], 'Eating moves matter from one living thing into another.'],
+    ['deer', 'Carby is now part of the deer\'s muscle.', 'cougar', 'A cougar eats the deer', ['The deer makes sugar from sunlight', 'Carby vanishes when the deer runs'], 'Matter keeps moving up the food chain. It never just vanishes.'],
+    ['cougar', 'The cougar\'s body uses sugar from its food for energy.', 'air', 'The cougar breathes Carby out as carbon dioxide', ['The cougar turns Carby into sunlight', 'Carby is stuck inside the cougar forever'], 'Animals breathe out carbon dioxide, sending carbon back to the air.'],
+    ['air', 'Carby is back in the air!', 'tree', 'A giant hemlock tree takes it in and builds it into wood', ['A mushroom takes it in to make sugar with sunlight', 'It floats off to the Moon'], 'Trees are made mostly of carbon from the air. Mushrooms can\'t photosynthesize.'],
+    ['tree', 'Carby has been part of the tree\'s wood for 400 years. Then a big storm comes…', 'log', 'The tree falls and becomes a nurse log', ['The wood turns into air instantly', 'The tree walks away'], 'A fallen tree can feed the forest for hundreds of years.'],
+    ['log', 'Carby is in the dead wood of the nurse log.', 'fungi', 'Fungi send hyphae into the wood and digest it', ['The dead log makes sugar from sunlight', 'A cougar eats the log'], 'Decomposers like fungi break down dead wood.'],
+    ['fungi', 'The fungi use the wood\'s sugar for energy, just like animals do.', 'air', 'The fungi breathe Carby out as carbon dioxide', ['Carby is destroyed and disappears', 'The fungi turn Carby into a rock'], 'Matter is never destroyed. Decomposers send carbon back to the air.'],
+    ['air', 'Carby is in the air again, right above the nurse log.', 'seedling', 'A seedling growing on the nurse log takes it in to grow', ['It jumps back into the dead log by itself', 'A cougar breathes it in to make wood'], 'Full circle! The same atom has been air, fern, deer, cougar, tree, log, fungus… and now a new tree.'],
+  ];
+  let si = 0, score = 0, firstTry = 0, miss = 0, opts = [], pos = SPOTS.air.slice(), from = null, to = null, mv = 1, done = false, t = 0, trail = [];
+  root.innerHTML = `<div class="hud"><span id="cj-n"></span><span>🏆 <b id="cj-s">0</b></span></div>
+    <canvas class="board" id="cj-cv"></canvas>
+    <p id="cj-q" style="font-weight:600;margin:6px auto"></p><div class="choices" id="cj-c"></div><p id="cj-why" style="font-size:18px;color:var(--soft)"></p>`;
+  const draw = board(api.$('cj-cv'));
+  function ask() {
+    const [, q, , right, wrong] = STEPS[si];
+    opts = shuffle([{ s: right, ok: true }, ...wrong.map(s => ({ s, ok: false }))]);
+    api.$('cj-n').textContent = `Step ${si + 1} of ${STEPS.length}`;
+    api.$('cj-q').textContent = q;
+    api.$('cj-c').innerHTML = opts.map((o, k) => `<button class="ans" data-k="${k}">${api.esc(o.s)}</button>`).join('');
+    api.$('cj-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+    miss = 0;
+  }
+  function pick(k) {
+    if (done || mv < 1) return;
+    RB.audio();
+    const b = api.$('cj-c').children[k];
+    if (!opts[k].ok) { sfx.wrong(); miss++; b.disabled = true; b.classList.add('wrong', 'shake'); return; }
+    sfx.right();
+    if (!miss) { score += 100; firstTry++; }
+    api.$('cj-s').textContent = score;
+    api.$('cj-why').textContent = '✅ ' + STEPS[si][5];
+    from = SPOTS[STEPS[si][0]]; to = SPOTS[STEPS[si][2]]; mv = 0;
+    si++;
+    if (si === STEPS.length) { api.$('cj-c').innerHTML = ''; api.$('cj-q').textContent = '🎉 Carby came full circle!'; setTimeout(end, 1600); }
+    else ask();
+  }
+  function end() {
+    if (done) return;
+    done = true;
+    api.done({ score, stars: score >= 800 ? 3 : score >= 500 ? 2 : 1, rows: [['♻️ Steps through the cycle', STEPS.length], ['✅ Right on the first try', `${firstTry} of ${STEPS.length}`]],
+      hint: 'Get 8 or more right on the first try for ★★★' });
+  }
+  function render() {
+    draw(() => {
+      sky(d, '#bfe6ff', '#eaf7ff'); sun(d, 90, 70, t, 34); ground(d, 430);
+      tree(d, SPOTS.tree[0], 435, 330);
+      log(d, 560, 440, 220, 26);
+      if (si >= 9 || (si === 8 && mv < 1)) tree(d, SPOTS.seedling[0], 418, 40 + (si >= 9 ? 40 * Math.min(1, mv) : 0), '#5fd06a');
+      d.emoji('🌿', SPOTS.fern[0], SPOTS.fern[1], 80); d.emoji('🦌', SPOTS.deer[0], SPOTS.deer[1], 76, { flip: true }); d.emoji('🐆', SPOTS.cougar[0], SPOTS.cougar[1], 70, { flip: true });
+      d.emoji('🍄', SPOTS.fungi[0], SPOTS.fungi[1] - 20, 44); d.emoji('☁️', SPOTS.air[0], SPOTS.air[1], 110);
+      [['air', 'air'], ['fern', 'fern'], ['deer', 'deer'], ['cougar', 'cougar'], ['tree', 'hemlock'], ['fungi', 'fungi'], ['log', 'nurse log']].forEach(([k, s]) => d.text(s, SPOTS[k][0], SPOTS[k][1] + (k === 'air' ? 56 : 52), { size: 20, weight: 700, stroke: '#fff', lw: 5 }));
+      trail.forEach(([x, y], i) => d.circle(x, y, 4 + i * 0.3, { fill: `rgba(255,200,40,${i / trail.length * 0.6})` }));
+      const [x, y] = pos;
+      d.circle(x, y, 22 + Math.sin(t * 5) * 2, { fill: 'rgba(255,216,74,.4)' });
+      d.circle(x, y, 16, { fill: '#333', stroke: YELLOW, lw: 4 });
+      d.circle(x - 5, y - 3, 3, { fill: '#fff' }); d.circle(x + 5, y - 3, 3, { fill: '#fff' });
+      d.text('C', x, y + 22, { size: 16, weight: 700 });
+    });
+  }
+  ask(); render();
+  return {
+    tick(dt) {
+      t += dt;
+      if (mv < 1 && from) {
+        mv = Math.min(1, mv + dt / 1.2);
+        const cx = (from[0] + to[0]) / 2, cy = Math.min(from[1], to[1]) - 120;
+        pos = d.onCurve(from[0], from[1], cx, cy, to[0], to[1], 1 - (1 - mv) ** 2);
+        trail.push(pos.slice()); if (trail.length > 24) trail.shift();
+      } else if (trail.length) trail.shift();
+      if (!done) render();
+    },
+    key(k) { const n = '123'.indexOf(k); if (n >= 0 && n < opts.length) pick(n); },
+    bot() { if (mv < 1) { this.tick(1.3); } if (si < STEPS.length) pick(opts.findIndex(o => o.ok)); else end(); },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g5_science', grade: '5th Grade · Science', title: 'Forest Ecosystems', icon: '🌲', home: 'index.html', homeTitle: 'Back to the 5th grade folder',
+  tagline: 'Who eats whom, why a **dead tree** is full of life, and how **matter** goes round and round.',
+  certTitle: 'Ecosystem Expert', certText: 'knows how forests work, from food webs to nurse logs to the matter cycle!',
+  shareText: 'Learn about ecosystems, nurse logs and the matter cycle on RoboBandit! 🌲',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'eco', icon: '🦌', name: 'Ecosystems', sub: 'Producers, consumers & decomposers', badge: 'Food Web Wizard',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Living things and their home', d: 'ec-what', p: 'An **ecosystem** is all the **living things** in a place (plants, animals, fungi, bacteria) plus the **nonliving things** (sunlight, water, air, soil, rocks), all interacting. A forest, a pond, a desert, even one rotting log can be an ecosystem.', v: [['ecosystem', 'living and nonliving things interacting in one place']] },
+        { k: 'WHY DO WE CARE?', t: 'Everything is connected', d: 'ec-why', p: 'Change one part of an ecosystem and the others change too. When wolves were brought back to **Yellowstone** in 1995, scientists saw elk change where they grazed, and in some places willows and beavers came back. Understanding ecosystems helps us protect the food, water and air we all need.' },
+        { t: 'Producers make food', d: 'ec-prod', p: '**Producers** make their own food. Plants use **sunlight**, **water** and **carbon dioxide** from the air to make sugar. This is called **photosynthesis**. Almost every food chain starts with a producer, and the energy in it started out as **sunlight**.', v: [['photosynthesis', 'how plants make sugar from light, water and air']] },
+        { t: 'Consumers eat food', d: 'ec-cons', p: '**Consumers** can\'t make their own food, so they eat it. **Herbivores** eat plants, **carnivores** eat animals, and **omnivores** eat both. In a **food chain**, the arrows point the way the energy goes: grass → rabbit → fox.' },
+        { t: 'Decomposers recycle', d: 'ec-decomp', p: '**Decomposers** like fungi and bacteria, with helpers like worms and beetles, break down dead plants, dead animals and waste. They\'re nature\'s **recyclers**: they turn dead things into **nutrients** in the soil that plants use again.', v: [['decomposer', 'a living thing that breaks down dead things']] },
+        { t: 'Food webs', d: 'ec-web', p: 'Real ecosystems have many food chains linked into a **food web**. If one species disappears, everything that eats it, or is eaten by it, is affected. A web with lots of connections is stronger, like a net with many knots.' },
+      ],
+      quiz: [
+        { q: 'What is an ecosystem?', a: ['Living and nonliving things interacting in a place', 'Only the animals in a forest', 'A kind of rock'], why: 'Ecosystems include living things (plants, animals, fungi) and nonliving things (sun, water, air, soil).' },
+        { q: 'Which of these is a producer?', a: ['A fern', 'A fox', 'A mushroom'], why: 'Ferns make their own food by photosynthesis. Foxes are consumers and mushrooms are decomposers.' },
+        { q: 'What do decomposers do?', a: ['Break down dead things into nutrients for the soil', 'Make food from sunlight', 'Hunt other animals'], why: 'Decomposers are nature\'s recyclers.' },
+        { q: 'In a food chain, the arrows point…', a: ['The way the energy goes', 'From the biggest animal to the smallest', 'Toward the Sun'], why: 'Grass → rabbit means the rabbit gets energy by eating the grass.' },
+        { q: 'A bear eats berries and fish. What is it?', a: ['An omnivore', 'A herbivore', 'A producer'], why: 'Omnivores eat both plants and animals.' },
+        { q: 'Where does the energy in almost every food chain come from?', a: ['The Sun', 'The soil', 'The Moon'], why: 'Producers capture the Sun\'s energy, and it passes along the chain.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'nurse', icon: '🪵', name: 'Nurse Logs', sub: 'A fallen tree becomes a home', badge: 'Log Lover',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'A tree that becomes a nursery', d: 'nl-what', p: 'A **nurse log** is a fallen tree that slowly rots and becomes a home and garden for new life. Moss, ferns, fungi and **tree seedlings** grow right on top of it. In rainforests like Washington\'s **Hoh Rain Forest**, lots of trees start life on nurse logs.' },
+        { k: 'WHY DO WE CARE?', t: 'Death feeds life', d: 'nl-why', p: 'A nurse log shows that nothing in nature goes to waste. One dead tree can feed and shelter living things for **hundreds of years**, and its matter becomes part of the next generation of trees.' },
+        { t: 'Why grow on a log?', d: 'nl-up', p: 'The forest floor is dark, crowded and covered in thick moss. A log lifts seedlings **up off the ground**, closer to the light and away from competition. The rotting wood holds water like a **sponge** and is full of nutrients.' },
+        { t: 'The decomposer crew', d: 'nl-crew', p: '**Fungi** grow threads called **hyphae** through the wood and digest it. **Bacteria** help break it down too. **Beetles, termites and ants** tunnel in, letting in water and air. Slowly, the hard log turns soft and crumbly.', v: [['hyphae', 'thin threads a fungus grows to feed']] },
+        { t: 'A home for animals', d: 'nl-home', p: 'Salamanders hide in the damp wood, insects lay eggs inside it, birds peck for bugs and small animals shelter under it. A nurse log is a whole **ecosystem** of its own.' },
+        { t: 'Trees on stilts', d: 'nl-stilts', p: 'Seedlings send roots down around the log into the soil. After a long time the log rots away completely, leaving a **row of trees** standing in a straight line, some up on **root stilts** with a hollow where the log used to be. This row is called a **colonnade**.', v: [['colonnade', 'a straight row of trees that grew on a nurse log']] },
+      ],
+      quiz: [
+        { q: 'What is a nurse log?', a: ['A fallen tree that new plants and animals live on', 'A tree that only grows near hospitals', 'A log used to build houses'], why: 'As it rots, a nurse log becomes a nursery for seedlings and a home for animals.' },
+        { q: 'Why do seedlings do well on nurse logs?', a: ['They\'re lifted toward the light and get water and nutrients', 'Logs are warm like ovens', 'Animals plant them there on purpose'], why: 'Up on the log, seedlings escape the dark, crowded, mossy forest floor.' },
+        { q: 'What are hyphae?', a: ['Threads that fungi grow through wood', 'Tiny birds', 'Tree roots on stilts'], why: 'Fungi spread hyphae through dead wood to digest it.' },
+        { q: 'A straight row of trees that grew on a nurse log is called a…', a: ['Colonnade', 'Food chain', 'Thermal'], why: 'When the log rots away, the trees that grew on it are left standing in a line.' },
+        { q: 'How long can a nurse log take to rot away?', a: ['Hundreds of years', 'About a week', 'One day'], why: 'Big logs in cool, wet forests decay very slowly.' },
+        { q: 'Which is part of the decomposer crew?', a: ['Fungi', 'Hawks', 'Sunlight'], why: 'Fungi and bacteria do most of the decomposing, with help from insects.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'matter', icon: '♻️', name: 'Matter Cycling', sub: 'Energy flows, matter cycles', badge: 'Cycle Champion',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Matter goes round and round', d: 'mc-what', p: '**Matter** is the stuff everything is made of: tiny **atoms**. In an ecosystem, matter moves in a **cycle**: from air, water and soil into plants, then into animals, then into decomposers, and back to the air and soil. Then it starts again!', v: [['matter', 'anything that has mass and takes up space']] },
+        { k: 'WHY DO WE CARE?', t: 'Earth doesn\'t get deliveries', d: 'mc-why', p: 'Earth gets new **energy** from the Sun every day, but almost **no new matter**. The atoms in your body have been in rocks, oceans, plants and maybe even dinosaurs! Without recycling, life would run out of building blocks.' },
+        { t: 'Trees are made of air!', d: 'mc-air', p: 'Where does a giant tree\'s mass come from? Not mostly the soil! A plant takes in **carbon dioxide** from the air, plus **water**, and uses sunlight to build sugar and wood. Most of a tree\'s dry mass is carbon that came **from the air**.' },
+        { t: 'Eating moves matter', d: 'mc-eat', p: 'When a deer eats leaves, matter from the leaves becomes part of the deer. When a cougar eats the deer, the matter moves again. Animals also **breathe out** carbon dioxide and leave **waste**, sending matter back to the air and soil.' },
+        { t: 'Decomposers close the loop', d: 'mc-loop', p: 'When living things die, decomposers break them down. Some matter goes back to the air as **carbon dioxide**, and some becomes **nutrients** in the soil. Plants take them in again, and the cycle starts over. A nurse log is the cycle you can see!' },
+        { t: 'Energy flows, matter cycles', d: 'mc-energy', p: 'Energy goes **one way**: from the Sun, to plants, to animals, and finally away as **heat**. Matter goes **around and around**. That\'s why the Sun has to keep shining, and why decomposers are so important.' },
+      ],
+      quiz: [
+        { q: 'Most of a tree\'s mass comes from…', a: ['Carbon dioxide in the air', 'The soil', 'Sunlight'], why: 'Plants build sugar and wood from carbon dioxide and water. Sunlight is the energy, not the material.' },
+        { q: 'What happens to matter in an ecosystem?', a: ['It cycles around and gets used again', 'It gets used up forever', 'It floats off into space'], why: 'Atoms are recycled through air, plants, animals, decomposers and soil.' },
+        { q: 'How does matter get from a plant into a deer?', a: ['The deer eats the plant', 'The deer breathes on the plant', 'Through the sunlight'], why: 'Eating moves matter from one living thing into another.' },
+        { q: 'Which living things return nutrients to the soil?', a: ['Decomposers', 'Producers only', 'Clouds'], why: 'Decomposers break down dead things into nutrients.' },
+        { q: 'Finish the saying: "Energy flows, matter…"', a: ['…cycles', '…disappears', '…freezes'], why: 'Energy passes through one way and leaves as heat. Matter goes round and round.' },
+        { q: 'When animals breathe out, what do they return to the air?', a: ['Carbon dioxide', 'Soil', 'Sunlight'], why: 'Animals (and fungi) breathe out carbon dioxide, which plants can take in again.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'carbon', icon: '⚛️', name: 'Carbon\'s Journey', sub: 'Follow one atom around the forest', badge: 'Atom Tracker',
+      how: [['⚛️', 'Meet <b>Carby</b>, a carbon atom. Follow Carby all the way around the forest\'s matter cycle!'],
+        ['👆', 'At each step, choose where Carby can really go next.'], ['⌨️', '<span class="key-only">You can press <b>1</b>, <b>2</b> or <b>3</b> to answer.</span><span class="touch-only">Tap an answer.</span>'], ['⭐', '100 points for every first-try answer.']],
+      make: carbonGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>
