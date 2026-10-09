@@ -303,88 +303,91 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p, 'witch-way-out.png');
   });
 
-  await test('Flight School: every lesson draws, autopilots fly each round, the quiz saves progress', async () => {
+  await test('Flight School: every lesson draws, and autopilots win all 14 rounds in each mode', async () => {
     const p = await open(browser, 'flight-school.html', { viewport: { width: 960, height: 600 } });
+    await p.addScriptTag({ path: path.join(__dirname, 'flight-bots.js') });
     await p.click('#go');
-    // every lesson slide and its animated diagram
-    const slides = await p.evaluate(() => {
+    const slides = await p.evaluate(() => {   // every lesson slide, its diagram, and its slider at both ends
       let n = 0;
-      LEVELS.forEach((L, i) => L.slides.forEach((_, s) => { cur = i; slide = s; lessonScreen(); drawDiagram(1.3); n++; }));
+      LEVELS.forEach((L, i) => L.slides.forEach((S, s) => { cur = i; slide = s; lessonScreen(); for (const v of [0, 1]) { diaV = v; drawDiagram(1.3); } n++; }));
       return n;
     });
-    check(slides >= 25, slides + ' slides');
-    // autopilots: each round can be won, and every round ends even if you do nothing
-    const runs = await p.evaluate(() => {
-      const bot = (i, r) => {
-        const px = PX();
-        if (i === 0 || i === 2 || i === 3) {
-          let tgt = [220, 0, 260, 230][i];
-          const bad = r.objs.filter(o => ['bird', 'gull', 'storm'].includes(o.k) && o.x - r.dist > px - 40 && o.x - r.dist < px + (i ? 260 : 330)).sort((a, b) => a.x - b.x)[0];
-          if (bad && Math.abs(bad.y - tgt) < 90) tgt = bad.y > tgt ? bad.y - 110 : bad.y + 110;
-          const fuel = r.objs.find(o => o.k === 'fuel' && o.x - r.dist > px && o.x - r.dist < px + 250);
-          if (fuel && !bad) tgt = fuel.y;
-          tgt = clamp(tgt, 100, H - 150);
-          keys.Space = r.y + r.vy * (i ? 0.15 : 0.8) > tgt;
-        }
-        if (i === 1) { const th = r.therm.find(t => Math.abs(t.x - (r.dist + px)) < t.w / 2); keys.Space = !r.stall && (th ? r.v > 110 : (r.v > 200 && r.y > 200)); }
-        if (i === 4) { const ring = r.objs.find(o => o.k === 'ring' && !o.passed); if (ring) { keys.ArrowUp = ring.y < r.y - 8; keys.ArrowDown = ring.y > r.y + 8; } }
-        if (i === 5) {
-          if (r.fuel <= 0 && r.launch <= 0 && r.emptyT > 0.3) r.tap();
-          const bad = r.objs.filter(o => o.k !== 'star' && o.y + r.scroll < H * 0.68 && o.y + r.scroll > H * 0.68 - 260 && Math.abs(o.x - r.x) < 60)[0];
-          if (bad) keys[bad.x > r.x ? 'ArrowLeft' : 'ArrowRight'] = true;
-        }
-        if (i === 6) {
-          const dx = (r.pad.x1 + r.pad.x2) / 2 - r.x, want = clamp(dx * 0.4, -40, 40);
-          // until over the pad, stay well above any peak between here and it
-          const lo = Math.min(r.x, r.pad.x1) - 40, hi = Math.max(r.x, r.pad.x2) + 40;
-          const peak = Math.min(...r.pts.filter(q => q.x > lo && q.x < hi && (q.x < r.pad.x1 || q.x > r.pad.x2)).map(q => q.y), r.pad.y);
-          const h = Math.abs(dx) > 30 ? peak - 70 - r.y : r.pad.y - r.y;
-          keys.ArrowRight = r.vx < want - 4; keys.ArrowLeft = r.vx > want + 4;
-          keys.ArrowUp = r.vy > Math.min(60, 12 + h * 0.12) || (Math.abs(dx) > 40 && h < 120 && r.vy > 0);
-        }
-      };
-      const out = [];
-      for (const pilot of [true, false]) for (let i = 0; i < 7; i++) {
-        cur = i; startRound(true);
-        for (let f = 0; f < 60 * 150 && mode === 'play'; f++) { clearInput(); if (pilot) bot(i, round); update(1 / 60); }
-        out.push({ i, pilot, ended: mode === 'roundEnd', win: round.win, score: round.results().reduce((a, r) => a + r[1], 0) });
-      }
-      return out;
-    });
-    for (const r of runs) {
-      check(r.ended, `level ${r.i + 1} round never ended: ` + JSON.stringify(r));
-      if (r.pilot) check(r.win, `autopilot lost level ${r.i + 1}: ` + JSON.stringify(r));
+    check(slides >= 56, slides + ' slides');
+    for (const m of ['easy', 'toddler']) {
+      const runs = await p.evaluate(m => { settings.mode = m; return LEVELS.map((_, i) => runFlight(i)); }, m);
+      for (const r of runs) check(r.ended && r.win, `${m}: autopilot didn't win ${r.id}: ${JSON.stringify(r)}`);
     }
-    // quiz: 3 of 4 right gives 2 stars, saves the score and unlocks the next level
-    await p.evaluate(() => { localStorage.clear(); save.best = []; save.stars = []; save.unlocked = 1; cur = 0; startRound(true); round.over = true; round.end = 'test'; round.endT = 2; update(0.01); });
-    await p.click('#quiz');
-    for (let q = 0; q < 4; q++) {
-      const k = await p.evaluate(() => quiz[qi].opts.findIndex(o => o.right));
-      await p.click(`.ans[data-k="${q === 0 ? (k + 1) % 3 : k}"]`);
-      await p.click('#nextQ');
+    // doing nothing still ends every round (no getting stuck), in every mode
+    for (const m of ['easy', 'toddler', 'challenge']) {
+      const idle = await p.evaluate(m => {
+        settings.mode = m; askSignal = (sig, tod, done) => done(false);
+        return LEVELS.map((L, i) => {
+          cur = i; startRound(true);
+          for (let f = 0; f < 60 * 400 && mode === 'play'; f++) {
+            for (const k in keys) keys[k] = false;
+            if (L.id === 'aliens') FSBOT.aliens(round);   // the telescope needs moving to find anything
+            update(1 / 60);
+          }
+          return [L.id, mode];
+        }).filter(([, md]) => md === 'play').map(([id]) => id);
+      }, m);
+      check(idle.length === 0, `${m}: these rounds never end without input: ${idle}`);
     }
-    const saved = await p.evaluate(() => [JSON.parse(localStorage.getItem('fs_save')), +localStorage.getItem('fs_best'), save.best[0]]);
-    check(saved[0].stars[0] === 2 && saved[0].unlocked === 2 && saved[1] === saved[2] && saved[2] >= 300, JSON.stringify(saved));
     await done(p, 'flight-school.png');
   });
 
-  await test('Flight School on a phone: hold to fire the burner, STAGE button, joystick lander', async () => {
+  await test('Flight School: quiz with second chances, stars, cards, final exam and certificate', async () => {
+    const p = await open(browser, 'flight-school.html', { viewport: { width: 960, height: 700 } });
+    await p.evaluate(() => { settings.mode = 'easy'; cur = 0; startRound(true); round.over = true; round.win = true; round.end = 'test'; round.endT = 2; update(0.01); });
+    await p.click('#quiz');
+    check(await p.$$eval('.ans', a => a.length) === 4, 'questions should have 4 choices');
+    for (let q = 0; q < 4; q++) {   // miss the first one
+      const k = await p.evaluate(() => quiz[qi].opts.findIndex(o => o.right));
+      await p.click(`.ans[data-k="${q === 0 ? (k + 1) % 4 : k}"]`);
+      await p.click('#nextQ');
+    }
+    check(await p.isVisible('text=Second chance!'), 'missed questions should come back');
+    await p.click('#go');
+    const k = await p.evaluate(() => quiz[qi].opts.findIndex(o => o.right));
+    await p.click(`.ans[data-k="${k}"]`); await p.click('#nextQ');
+    const s1 = await p.evaluate(() => JSON.parse(localStorage.getItem('fs_save')));
+    check(s1.modes.easy.stars.balloon === 2 && s1.cards.balloon[0] && !s1.cards.balloon[1], 'stars/cards: ' + JSON.stringify(s1));
+    check(s1.modes.easy.best.balloon >= 3 * 100 + 50, 'quiz points: ' + s1.modes.easy.best.balloon);
+    check(await p.evaluate(() => unlocked(1) && !unlocked(2)), 'level 2 should unlock next');
+    // toddler mode: everything open and no quiz after the round
+    await p.evaluate(() => { settings.mode = 'toddler'; cur = 5; startRound(true); round.over = true; round.end = 'test'; round.endT = 2; update(0.01); });
+    check(await p.evaluate(() => unlocked(13)), 'toddler mode unlocks every level');
+    check((await p.textContent('#quiz')).includes('Finish level'), 'toddler mode skips the quiz');
+    // finish every level, then the exam and certificate
+    await p.evaluate(() => { settings.mode = 'easy'; for (const L of LEVELS) { prog().stars[L.id] = 3; prog().best[L.id] = 500; } persist(); mapScreen(); });
+    await p.click('#exam');
+    for (let i = 0; i < 6; i++) { const s = await p.evaluate(() => examState.order[examState.placed].s); await p.click(`.ans[data-s="${s.replace(/"/g, '\\"')}"]`); }
+    for (let i = 0; i < 8; i++) { const k2 = await p.evaluate(() => examState.qs[examState.qi].opts.findIndex(o => o.right)); await p.click(`.ans[data-k="${k2}"]`); await p.click('#n'); }
+    check(await p.evaluate(() => prog().exam === 1100), 'perfect exam should score 1100');
+    await p.click('#cert');
+    check((await p.textContent('#certBox')).includes('with Honors'), 'honors certificate');
+    check(+(await p.evaluate(() => localStorage.getItem('fs_best'))) === 14 * 500 + 1100, 'fs_best total');
+    await done(p, 'flight-school-cert.png');
+  });
+
+  await test('Flight School on a phone: hold for the burner, STAGE button, joystick helicopter', async () => {
     const p = await open(browser, 'flight-school.html', PHONE);
     await p.evaluate(() => { cur = 0; startRound(true); });
     const up = await touchDrag(p, 200, 400, 200, 400);
     await p.waitForTimeout(600);
     const heat = await p.evaluate(() => round.heat);
     await up();
-    check(heat > 0.7, 'holding the screen should heat the balloon: ' + heat);
-    await p.evaluate(() => { cur = 5; startRound(true); for (let f = 0; f < 60 * 9; f++) update(1 / 60); });
+    check(heat > 0.6, 'holding the screen should heat the balloon: ' + heat);
+    await p.evaluate(() => { cur = 7; startRound(true); for (let f = 0; f < 60 * 20 && round.stage === 0; f++) { update(1 / 60); if (round.burn >= 130) break; } });
+    check(await p.isVisible('#actBtn'), 'STAGE button should show');
     await p.tap('#actBtn');
     check(await p.evaluate(() => round.stage === 1), 'STAGE button did not stage');
-    await p.evaluate(() => { cur = 6; startRound(true); });
-    const up2 = await touchDrag(p, 150, 500, 190, 440);
-    await p.waitForTimeout(200);
-    const l = await p.evaluate(() => [round.flame, round.side]);
+    await p.evaluate(() => { cur = 5; startRound(true); });
+    const up2 = await touchDrag(p, 150, 500, 210, 440);
+    for (let i = 0; i < 20; i++) await p.evaluate(() => update(1 / 60));
+    const h = await p.evaluate(() => [round.landed, round.tilt]);
     await up2();
-    check(l[0] === 1 && l[1] === 1, 'dragging up-right should fire the engine and slide right: ' + l);
+    check(!h[0] && h[1] > 0.1, 'dragging up-right should lift off and tilt right: ' + h);
     await done(p, 'flight-school-phone.png');
   });
 
