@@ -43,6 +43,19 @@ async function touchDrag(page, x0, y0, x1, y1) {
   return () => tp('touchEnd');
 }
 const PHONE = { ...devices['iPhone 13'] };
+// A pretend Xbox controller: tests press its buttons and move its stick through window.__pad.
+const fakePad = () => {
+  const gp = { id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+    buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })),
+    vibrationActuator: { playEffect: () => { window.__rumbles = (window.__rumbles || 0) + 1; return Promise.resolve('complete'); } } };
+  window.__pad = gp;
+  navigator.getGamepads = () => [gp, null, null, null];
+};
+const PAD = { A: 0, B: 1, X: 2, Y: 3, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+const padHold = async (p, b, on) => { await p.evaluate(([i, on]) => { __pad.buttons[i] = { pressed: on, value: on ? 1 : 0 }; }, [PAD[b], on]); await p.waitForTimeout(90); };
+const padTap = async (p, b) => { await padHold(p, b, true); await padHold(p, b, false); };
+const padStick = async (p, x, y) => { await p.evaluate(([x, y]) => { __pad.axes[0] = x; __pad.axes[1] = y; }, [x, y]); await p.waitForTimeout(150); };
+const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-pad-focus'); return e ? e.id || e.textContent.trim().slice(0, 30) : null; });
 
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--ignore-gpu-blocklist'] });
@@ -453,6 +466,55 @@ const PHONE = { ...devices['iPhone 13'] };
       await done(p, `5th-${page}.png`);
     });
   }
+
+  await test('Xbox controller: menus, buttons, analog stick and pause in every kind of page', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1100, height: 700 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    // arcade page: the newest game is highlighted, the D-pad moves, Ⓐ opens it
+    await p.goto(url('index.html')); await p.waitForTimeout(400);
+    const first = await padFocus(p);
+    await padTap(p, 'RIGHT');
+    check(first && (await padFocus(p)) !== first, 'D-pad should move the highlight on the game list');
+    await padTap(p, 'A'); await p.waitForTimeout(500);
+    check(/\.html$/.test(p.url()) && !p.url().endsWith('index.html'), 'Ⓐ should open the highlighted game: ' + p.url());
+    // Floppy Bird: Ⓐ flaps
+    await p.goto(url('floppy-bird.html')); await p.waitForTimeout(400);
+    await padTap(p, 'A');
+    check(await p.evaluate(() => mode === 'play' && bird.vy < 0), 'Ⓐ should flap');
+    // Sparkle Meadow: Ⓐ presses the title button; the stick rides the pony smoothly; ☰ pauses, Ⓐ resumes
+    await p.goto(url('sparkle-meadow.html')); await p.waitForTimeout(400);
+    check((await padFocus(p)) === 'btnPlay', 'the Play button should be highlighted');
+    await padTap(p, 'A'); await p.waitForTimeout(200);
+    for (let i = 0; i < 8 && (await p.evaluate(() => mode)) !== 'play'; i++) { await padTap(p, 'DOWN'); await padTap(p, 'DOWN'); await padTap(p, 'DOWN'); await padTap(p, 'A'); await p.waitForTimeout(150); }
+    check(await p.evaluate(() => mode === 'play'), 'should reach the meadow with the controller');
+    await padStick(p, 0.6, 0);
+    const sx = await p.evaluate(() => stick.x);
+    check(sx > 0.3 && sx < 0.9, 'the left stick should steer smoothly (analog), got ' + sx);
+    await padStick(p, 0, 0);
+    await padTap(p, 'MENU');
+    check(await p.evaluate(() => paused), '☰ should pause');
+    await padTap(p, 'A');
+    check(await p.evaluate(() => !paused), 'Ⓐ on Keep Playing should resume');
+    await p.evaluate(() => RB.noise(0.3, 0.5)); await p.waitForTimeout(50);
+    check(await p.evaluate(() => window.__rumbles > 0), 'crashes should rumble the controller');
+    // Flight School: menus with the D-pad, hold Ⓐ for the burner
+    await p.goto(url('flight-school.html')); await p.waitForTimeout(400);
+    await padTap(p, 'A'); await p.waitForTimeout(150);
+    check(await p.evaluate(() => mode === 'map'), 'Ⓐ should start Flight School');
+    await p.evaluate(() => { cur = 0; startRound(true); }); await p.waitForTimeout(150);
+    await padHold(p, 'A', true); await p.waitForTimeout(300);
+    check(await p.evaluate(() => holding()), 'holding Ⓐ should hold the burner');
+    await padHold(p, 'A', false);
+    // a 5th grade lesson: the start button is highlighted and Ⓐ presses it
+    await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(400);
+    const lessonBtn = await padFocus(p);
+    await padTap(p, 'A'); await p.waitForTimeout(200);
+    check(lessonBtn && (await padFocus(p)) !== lessonBtn, 'Ⓐ should press the lesson button');
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
 
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();

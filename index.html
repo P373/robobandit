@@ -224,7 +224,7 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
       ${i === GAMES.length - 1 ? '<span class="new">NEW!</span>' : ''}
     </div>
     <div class="info"><h2>${esc(g.title)}</h2><p>${esc(g.blurb)}</p>
-      <div class="meta">${bestOf(g) ? `<span class="best">🏆 Best ${bestOf(g)}</span>` : ''}<span title="Play with a keyboard">⌨️ Keys</span><span title="Play on a phone or tablet">📱 Touch</span></div>
+      <div class="meta">${bestOf(g) ? `<span class="best">🏆 Best ${bestOf(g)}</span>` : ''}<span title="Play with a keyboard">⌨️ Keys</span><span title="Play on a phone or tablet">📱 Touch</span><span title="Play with an Xbox or other game controller">🎮 Controller</span></div>
     </div>
   </a>`).reverse().join('') + `
   <div class="card soon">
@@ -234,5 +234,6 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
 render();
 addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
+<script src="common.js"></script>
 </body>
 </html>
