@@ -626,6 +626,46 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('pausing silences all sound; the controller View button (twice) goes home; pages load matching shared files', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const view = async () => { try { await padTap(p, 'VIEW'); } catch (e) { /* the page went away: that's the point */ } };
+    await p.goto(url('flight-school.html')); await p.waitForTimeout(400);
+    await p.evaluate(() => { cur = 0; startRound(true); });   // a balloon waiting on the ground: the round can't end by itself
+    await padTap(p, 'A');
+    check(await p.evaluate(() => RB.audio().state) === 'running', 'sound should be on while playing');
+    await padTap(p, 'MENU');
+    check(await p.evaluate(() => paused && RB.audio().state === 'suspended'), 'pausing should silence the music and sounds');
+    await padTap(p, 'MENU');
+    check(await p.evaluate(() => !paused && RB.audio().state === 'running'), 'carrying on should bring the sound back');
+    await view();
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pad-focus')?.classList.contains('rb-home')), 'View once should pause with "All games" highlighted');
+    await view(); await p.waitForTimeout(500);
+    check(p.url().endsWith('/index.html'), 'View twice should go back to all the games: ' + p.url());
+    await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(400);
+    await view(); await view(); await p.waitForTimeout(500);
+    check(p.url().endsWith('5th-grade/index.html'), 'from a lesson, View twice goes back to its folder: ' + p.url());
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    // every page links our shared files with the same ?v= stamp, so a browser never mixes old and new copies
+    const stamps = new Set(), missing = [];
+    const walk = d => fs.readdirSync(d, { withFileTypes: true }).forEach(e => {
+      if (e.name.startsWith('.') || ['node_modules', 'tests', 'tools', 'vendor'].includes(e.name)) return;
+      const f = path.join(d, e.name);
+      if (e.isDirectory()) return walk(f);
+      if (!e.name.endsWith('.html')) return;
+      for (const m of fs.readFileSync(f, 'utf8').matchAll(/(?:src|href)="((?!https?:|data:)[^"]+\.(?:js|css))(\?v=[^"]*)?"/g)) {
+        if (m[1].includes('vendor/')) continue;
+        if (!m[2]) missing.push(path.relative(ROOT, f) + ': ' + m[1]); else stamps.add(m[2]);
+      }
+    });
+    walk(ROOT);
+    check(!missing.length, 'shared files without a ?v= stamp (run node tools/bump-version.js): ' + missing.join(', '));
+    check(stamps.size === 1, 'pages disagree on the shared-file version (run node tools/bump-version.js): ' + [...stamps].join(' '));
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();

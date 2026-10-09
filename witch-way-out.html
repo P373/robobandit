@@ -71,11 +71,13 @@
     border: 3px solid #ffd27a; color: #1a0a2a; background: linear-gradient(#ffb347, #ff7a1f); box-shadow: 0 6px 0 #8a3a0a; }
   .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a3a0a; }
   .stats { font-size: 20px; line-height: 1.6; margin: 10px 0 0; }
+  .camopts { margin-top: 12px; font-size: 16px; }
+  .camopts button { font: 700 15px system-ui, sans-serif; padding: 6px 12px; margin: 4px 2px; border-radius: 10px; border: 2px solid #c89cff; color: #f3eaff; background: rgba(60,20,90,.7); cursor: pointer; }
   .stats b { color: #ffb347; }
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css">
+<link rel="stylesheet" href="common.css?v=20261009-1421">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -97,11 +99,12 @@
       <li><b>Fly your broomstick</b> anywhere:
         <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn, <kbd>↑</kbd> climb, <kbd>↓</kbd> dive.</span>
         <span class="touch-only">put your thumb down and drag to steer.</span></li>
-      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. Click the stick to snap back behind you.</li>
+      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. Press <b>LB</b>/<b>RB</b> (or click the stick) to swing back behind you.</li>
       <li><b>Fly through the glowing rings</b> for a speed boost.</li>
       <li>In the storm, cast your <b>shield spell</b> (<span class="key-only"><kbd>Space</kbd></span><span class="touch-only">purple button</span>) when lightning is coming!</li>
       <li>Swoop through a <b>backyard</b>, a <b>spooky graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
     </ol>
+    <div class="camopts">🎥 Camera: <button type="button" id="camInv"></button> <button type="button" id="camSpd"></button></div>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">🧹 Fly!</button>
   </div>
@@ -116,8 +119,8 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js"></script>
-<script src="touch-stick.js"></script>
+<script src="common.js?v=20261009-1421"></script>
+<script src="touch-stick.js?v=20261009-1421"></script>
 <script>
 'use strict';
 
@@ -171,7 +174,7 @@ const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 1500);
 function resize() {
   renderer.setSize(innerWidth, innerHeight, false);
   camera.aspect = innerWidth / innerHeight;
-  camera.fov = camera.aspect < 0.8 ? 80 : 65;
+  camera.fov = camera.userData.fov0 = camera.aspect < 0.8 ? 80 : 65;
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
@@ -650,7 +653,7 @@ canvas.addEventListener('pointerdown', e => {
 canvas.addEventListener('pointermove', e => {
   const d = cam.drag;
   if (!d || e.pointerId !== d.id) return;
-  cam.yaw -= (e.clientX - d.x) * 0.008; cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005, CAM.minEl, CAM.maxEl);
+  cam.yaw -= (e.clientX - d.x) * 0.008; cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005 * (camOpts.invertY ? -1 : 1), CAM.minEl, CAM.maxEl);
   d.x = e.clientX; d.y = e.clientY; cam.idle = 0;
 });
 const endDrag = e => { if (cam.drag && e.pointerId === cam.drag.id) cam.drag = null; };
@@ -699,7 +702,7 @@ function startGame() {
   section = null;   // so the first area's name pops up
   state = 'fly';
   introT = 2.6;
-  cam.yaw = cam.yawS = 0; cam.el = cam.elS = CAM.el0; cam.idle = 99;
+  cam.yaw = cam.yawS = 0; cam.el = cam.elS = CAM.el0; cam.idle = 99; cam.dist = CAM.dist; cam.steerRef = null;
   setTimeout(sfx.laugh, 400);
   showBanner('Here it comes!', 'Fly, fly, fly!', 2.4);
 }
@@ -713,7 +716,7 @@ function castShield() {
 
 function caught() {
   caughtCount++;
-  if (mercySection === section) mercy = Math.min(4, mercy + 1); else { mercy = 1; mercySection = section; }
+  if (mercySection === section) mercy = Math.min(6, mercy + 1); else { mercy = 1; mercySection = section; }
   sfx.caught();
   flashT = 0.6;
   // back to the start of this area, with the pumpkin a safe way behind
@@ -770,7 +773,11 @@ function update(dt) {
   const sx = steerInput(), sy = climbInput();
   // left and right are the screen's left and right, wherever the camera is (like Mario Odyssey):
   // seen from in front, pushing right turns the witch toward her own left
-  yaw -= sx * 1.5 * dt * clamp(Math.cos(cam.yawS) * 1.6, -1, 1);
+  // The camera angle is "latched" while the stick is held the same way, so a camera that is still
+  // swinging around never changes which way you're turning.
+  if (!sx) cam.steerRef = null;
+  else if (cam.steerRef === null || Math.sign(sx) !== cam.steerSign) { cam.steerRef = cam.yawS; cam.steerSign = Math.sign(sx); }
+  yaw -= sx * 1.5 * dt * clamp(Math.cos(cam.steerRef === null ? cam.yawS : cam.steerRef) * 1.6, -1, 1);
   if (!sx) yaw += (0 - yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
   pitch += (sy * 0.65 - pitch) * Math.min(1, dt * 3);
   roll += (sx * 0.6 - roll) * Math.min(1, dt * 5);
@@ -839,6 +846,7 @@ function update(dt) {
       // aim just ahead of where you're going
       const p = pos.clone().addScaledVector(dir, speed * 1.4);
       p.x += rand(-4, 4); p.y += rand(-3, 3);
+      if (mercy >= 3) p.x += (Math.random() < 0.5 ? -1 : 1) * 12;   // caught a lot here? the storm takes pity and misses
       strike = { p, t: 1.4 };
       warnMesh.position.copy(p); warnMesh.visible = true;
     }
@@ -890,31 +898,69 @@ function placeFlock(dt, fixedSpeed) {
 }
 
 // ---------- Camera, visuals, HUD ----------
-// An orbit camera: the right stick (or Q/E, or a drag) swings it all the way around the witch.
-// yaw is the angle around her (0 = behind), el is how high it looks down from. Let go and it
-// drifts back behind her after a few seconds; clicking the right stick (or R) snaps it back.
-const CAM = { dist: 11, el0: 0.4, minEl: -0.25, maxEl: 1.3, turn: 2.8, tilt: 1.7, idleBack: 2.5 };
-const cam = { yaw: 0, el: CAM.el0, yawS: 0, elS: CAM.el0, idle: 99, snap: false, drag: null };
+// An orbit camera, tuned after Super Mario Odyssey and camera-design best practice:
+// - the right stick (or Q/E, or a drag) swings it all the way around the witch; up and down are slower,
+//   stop short of straight overhead / underneath, and ease off near the limits instead of hitting a wall
+// - LB / RB (like Odyssey's L and R), clicking a stick, or R swings it back behind her in a quick, smooth move
+// - after 1.5 s without camera input it springs back behind her, leading a little into her turns
+//   (it never moves on its own while you're holding the stick)
+// - it pulls in close when a tree, gate, crypt or the cliff gets between it and her, then eases back out
+// - a ring boost pulls it back a touch and widens the view, slowly, for a sense of speed
+// - options on the title screen: invert up/down, and camera speed
+const CAM = { dist: 11, el0: 0.33, minEl: -0.17, maxEl: 1.05, turn: 2.8, tilt: 1.3, idleBack: 1.5, lead: 0.22 };
+const camOpts = (() => {
+  const o = { invertY: false, speed: 1 };
+  try { Object.assign(o, JSON.parse(RB.store.get('ww_cam') || '{}')); } catch (e) { /* defaults */ }
+  return o;
+})();
+const SPEEDS = [['Slow', 0.65], ['Normal', 1], ['Fast', 1.45]];
+function showCamOpts() {
+  $('camInv').textContent = `Up/down: ${camOpts.invertY ? 'Inverted' : 'Normal'}`;
+  $('camSpd').textContent = `Speed: ${(SPEEDS[camOpts.speed] || SPEEDS[1])[0]}`;
+  RB.store.set('ww_cam', JSON.stringify(camOpts));
+}
+const cam = { yaw: 0, el: CAM.el0, yawS: 0, elS: CAM.el0, idle: 99, snap: false, drag: null, dist: CAM.dist, speedK: 0, steerRef: null, steerSign: 0 };
 const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
-function cameraInput(dt) {
-  const L = RB.pad.look;
-  const lx = clamp(L.x + (keys.camR ? 1 : 0) - (keys.camL ? 1 : 0), -1, 1), ly = L.y;
+// near the top and bottom limits the tilt slows down, so it settles instead of slamming into a stop
+const softTilt = (el, d) => d * clamp((d > 0 ? CAM.maxEl - el : el - CAM.minEl) / 0.25, 0.15, 1);
+function cameraInput(dt, sx) {
+  const pad = RB.pad || {}, L = pad.look || { x: 0, y: 0 };   // (an old cached common.js has no right stick)
+  const sp = (SPEEDS[camOpts.speed] || SPEEDS[1])[1];
+  const lx = clamp(L.x + (keys.camR ? 1 : 0) - (keys.camL ? 1 : 0), -1, 1), ly = L.y * (camOpts.invertY ? -1 : 1);
   if (lx || ly) {
-    cam.yaw -= lx * CAM.turn * dt;   // push right: the view swings right
-    cam.el = clamp(cam.el + ly * CAM.tilt * dt, CAM.minEl, CAM.maxEl);   // push up: look up from lower down
+    cam.yaw -= lx * CAM.turn * sp * dt;   // push right: the view swings right
+    cam.el = clamp(cam.el + softTilt(cam.el, ly * CAM.tilt * sp * dt), CAM.minEl, CAM.maxEl);   // push up: look up from lower down
     cam.idle = 0;
   } else if (!cam.drag) cam.idle += dt;
-  if (RB.pad.pressed(11) || RB.pad.pressed(10) || cam.snap) { cam.yaw = 0; cam.el = CAM.el0; cam.idle = 99; cam.snap = false; }
+  if ((pad.pressed && [4, 5, 10, 11].some(i => pad.pressed(i))) || cam.snap) { cam.yaw = 0; cam.el = CAM.el0; cam.idle = 99; cam.snap = false; }
   cam.yaw = wrapAngle(cam.yaw);
-  if (cam.idle > CAM.idleBack) {   // ease back behind her, the short way round
-    const k = Math.min(1, dt * 1.2);
-    cam.yaw += (0 - cam.yaw) * k; cam.el += (CAM.el0 - cam.el) * k;
+  if (cam.idle > CAM.idleBack) {   // a soft spring back behind her, the short way round, leading into turns
+    const k = 1 - Math.exp(-dt / 0.6);
+    cam.yaw += wrapAngle(-sx * CAM.lead - cam.yaw) * k; cam.el += (CAM.el0 - cam.el) * k;
   }
-  // smooth the angles themselves, so the camera glides around the witch on a circle
-  cam.yawS += wrapAngle(cam.yaw - cam.yawS) * Math.min(1, dt * 10);
-  cam.yawS = wrapAngle(cam.yawS);
+  // smooth the angles themselves, so the camera glides around her on a circle (and a reset is a quick swing)
+  cam.yawS = wrapAngle(cam.yawS + wrapAngle(cam.yaw - cam.yawS) * Math.min(1, dt * 10));
   cam.elS += (cam.el - cam.elS) * Math.min(1, dt * 10);
 }
+// How far the camera can be from her before something (scenery or the ground) gets in the way.
+const camRay = new THREE.Vector3(), camOrigin = new THREE.Vector3();
+function clearDistance(origin, dirC, want) {
+  let free = want;
+  for (const c of colliders) {
+    if (Math.abs(c.z - origin.z) > want + c.r) continue;
+    const ox = origin.x - c.x, oy = origin.y - c.y, oz = origin.z - c.z, rr = c.r + 0.8;
+    const bb = ox * dirC.x + oy * dirC.y + oz * dirC.z, cc = ox * ox + oy * oy + oz * oz - rr * rr, disc = bb * bb - cc;
+    if (disc <= 0) continue;
+    const t = -bb - Math.sqrt(disc);
+    if (t > 0 && t < free) free = t;
+  }
+  for (let t = 2; t < free; t += 1) {   // the ground (and the cliff) along the way
+    const x = origin.x + dirC.x * t, y = origin.y + dirC.y * t, z = origin.z + dirC.z * t;
+    if (y < (z < -2895 ? groundAt(x, z) : 0) + 1) { free = t; break; }
+  }
+  return Math.max(3.5, free - 0.5);
+}
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const camPos = new THREE.Vector3(0, 50, 30), camLook = new THREE.Vector3();
 const tmp = new THREE.Vector3();
 function updateVisuals(dt) {
@@ -939,9 +985,14 @@ function updateVisuals(dt) {
     camLook.lerp(new THREE.Vector3(pos.x, pos.y + 1, (pos.z + pumpkin.position.z) / 2), Math.min(1, dt * 4));
   } else {
     // orbit camera: a point on a sphere around the witch, measured from behind her
-    cameraInput(dt);
+    cameraInput(dt, steerInput());
     const a = yaw + cam.yawS, el = clamp(cam.elS - pitch * 0.25, CAM.minEl, CAM.maxEl);
-    const want = new THREE.Vector3(pos.x + Math.sin(a) * Math.cos(el) * CAM.dist, pos.y + 0.3 + Math.sin(el) * CAM.dist, pos.z + Math.cos(a) * Math.cos(el) * CAM.dist);
+    cam.speedK += (clamp(boost / BOOST, 0, 1) - cam.speedK) * Math.min(1, dt * 2);   // eased over about half a second
+    camOrigin.set(pos.x, pos.y + 0.3, pos.z);
+    camRay.set(Math.sin(a) * Math.cos(el), Math.sin(el), Math.cos(a) * Math.cos(el));
+    const free = clearDistance(camOrigin, camRay, CAM.dist * (1 + 0.15 * cam.speedK));
+    cam.dist += (free - cam.dist) * Math.min(1, dt * (free < cam.dist ? 20 : 2));   // pull in fast, ease back out slowly
+    const want = camOrigin.clone().addScaledVector(camRay, cam.dist);
     const floor = (want.z < -2895 ? groundAt(want.x, want.z) : 0) + 1.2;
     if (want.y < floor) want.y = floor;   // never dip under the ground
     camPos.lerp(want, Math.min(1, dt * 9));
@@ -952,7 +1003,9 @@ function updateVisuals(dt) {
   }
   camera.position.copy(camPos);
   camera.lookAt(camLook);
-  if (flashT > 0) camera.position.x += (Math.random() - 0.5) * flashT * 2;
+  if (flashT > 0 && !REDUCED) camera.position.x += (Math.random() - 0.5) * flashT * 0.6;   // just a little shake
+  const fov = camera.userData.fov0 + 5 * cam.speedK;
+  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
   sky.position.set(camPos.x, 0, camPos.z);
   // rain falls around you in the storm
   const inStorm = section && section.id === 'storm';
@@ -998,6 +1051,9 @@ function updateHUD() {
 
 // ---------- Screens ----------
 $('btnPlay').addEventListener('click', startGame);
+$('camInv').addEventListener('click', () => { camOpts.invertY = !camOpts.invertY; showCamOpts(); });
+$('camSpd').addEventListener('click', () => { camOpts.speed = (camOpts.speed + 1) % SPEEDS.length; showCamOpts(); });
+showCamOpts();
 $('btnAgain').addEventListener('click', startGame);
 if (best) $('titleBest').innerHTML = `🏆 Best time <b>${fmt(best)}</b>`;
 resetRun(0);
@@ -1007,13 +1063,17 @@ let last = performance.now();
 function frame(now) {
   const dt = Math.min(0.033, (now - last) / 1000);
   last = now;
-  if (!paused) {
-    update(dt);
-    updateVisuals(dt);
+  requestAnimationFrame(frame);   // ask for the next frame first, so one error can never freeze the game
+  try {
+    if (!paused) {
+      update(dt);
+      updateVisuals(dt);
+    }
+    updateHUD();
+    renderer.render(scene, camera);
+  } catch (e) {
+    if (!frame.warned) { frame.warned = true; console.error(e); }
   }
-  updateHUD();
-  renderer.render(scene, camera);
-  requestAnimationFrame(frame);
 }
 requestAnimationFrame(frame);
 </script>

@@ -2,6 +2,8 @@
 // Load it (with common.css) before a game's own script; everything lives on the RB object.
 const RB = (() => {
   const touch = ('ontouchstart' in window) || matchMedia('(pointer: coarse)').matches;
+  // the arcade's front page, worked out from where this file lives (works from folders and from file://)
+  const SITE_HOME = new URL('index.html', (document.currentScript && document.currentScript.src) || location.href).href;
   const store = {
     get: k => { try { return localStorage.getItem(k); } catch (e) { return null; } },
     set: (k, v) => { try { localStorage.setItem(k, v); } catch (e) { /* private mode */ } },
@@ -17,7 +19,7 @@ const RB = (() => {
       if (!AC) return null;
       ac = new AC();
     }
-    if (ac.state === 'suspended') ac.resume();   // phones start audio suspended until a tap
+    if (ac.state === 'suspended' && !pauseEl) ac.resume();   // phones start audio suspended until a tap (but stay quiet while paused)
     return ac;
   }
   function beep(f1, f2, dur, type = 'triangle', vol = 0.12, delay = 0) {
@@ -110,6 +112,12 @@ const RB = (() => {
     return bar;
   }
 
+  // Where 🏠 goes on this page: its own 🏠 button if it has one (folder pages point at their folder), else the arcade.
+  function homeHref() {
+    const a = document.querySelector('#btnHome[href], .rb-topbar a[href]');
+    return a ? a.href : SITE_HOME;
+  }
+
   // ---------- Pausing ----------
   let pauseEl = null;
   function showPause(onResume) {
@@ -117,13 +125,19 @@ const RB = (() => {
     pauseEl = document.createElement('div');
     pauseEl.className = 'rb-pause';
     pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>
-      <button type="button">▶ KEEP PLAYING</button><a href="index.html">🏠 All games</a>
-      <div class="rb-hint">${touch ? 'Tap the button to carry on' : 'Press P or Space to carry on'}</div></div>`;
+      <button type="button">▶ KEEP PLAYING</button><a href="${homeHref()}" class="rb-home">🏠 All games</a>
+      <div class="rb-hint">${pad.connected ? '🎮 ☰ Menu to carry on · ⧉ View twice for all games' : touch ? 'Tap the button to carry on' : 'Press P or Space to carry on'}</div></div>`;
+    pauseEl.querySelector('.rb-home').addEventListener('click', () => dispatchEvent(new Event('rb-leave')));
     pauseEl.addEventListener('pointerdown', e => e.stopPropagation());
     pauseEl.querySelector('button').addEventListener('click', () => { hidePause(); onResume(); });
     document.body.appendChild(pauseEl);
+    if (ac && ac.state === 'running') ac.suspend();   // music, wind and sound effects all stop while paused
   }
-  function hidePause() { if (pauseEl) { pauseEl.remove(); pauseEl = null; } }
+  function hidePause() {
+    if (!pauseEl) return;
+    pauseEl.remove(); pauseEl = null;
+    if (ac && ac.state === 'suspended') ac.resume();
+  }
   // Calls fn when the player switches tabs or apps, or the window loses focus.
   function onHide(fn) {
     document.addEventListener('visibilitychange', () => { if (document.hidden) fn(); });
@@ -140,10 +154,10 @@ const RB = (() => {
   // between buttons, Ⓐ presses the highlighted one and Ⓑ is Escape (back).
   const pad = (() => {
     const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
-    const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 8: 'KeyM', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+    const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
     const sticks = [];
     const look = { x: 0, y: 0 };   // the right stick, for games with a camera to swing around
-    let pressedNow = [];
+    let pressedNow = [], ignore = [];   // ignore: buttons still held from before a menu opened or closed
     let running = false, held = {}, prevBtn = [], menuMode = false, focusEl = null, styled = false, last = { dir: null, t: 0, next: 0 }, cache = { t: 0, list: [] };
     try { if ('gamepadInputEmulation' in navigator) navigator.gamepadInputEmulation = 'gamepad'; } catch (e) { /* old Xbox Edge only */ }
 
@@ -151,10 +165,12 @@ const RB = (() => {
     function key(type, code) {
       const ev = new KeyboardEvent(type, { code, key: KEYNAME[code] || code, bubbles: true, cancelable: true });
       (document.body || document).dispatchEvent(ev);
+      cache.t = 0;   // the game may open or close a menu now: look again next frame
     }
     function press(code, on) {
       if (!!held[code] === on) return;
       held[code] = on;
+      cache.t = 0;   // the game may open or close a menu now: look again next frame
       key(on ? 'keydown' : 'keyup', code);
     }
     const releaseAll = () => { for (const c in held) if (held[c]) press(c, false); };
@@ -244,6 +260,22 @@ const RB = (() => {
       }
     }
 
+    // ---- ⧉ View: back to all the games (press twice, so nobody leaves by accident) ----
+    // The Xbox button itself belongs to the console, so web pages never see it.
+    let leaveAt = -1e9, wantHome = 0;
+    function leaveRequest(now) {
+      const href = homeHref();
+      if (href.split('#')[0] === location.href.split('#')[0]) return;   // already home
+      if (now - leaveAt < 3000) {
+        dispatchEvent(new Event('rb-leave'));   // lets a game save before we go
+        location.href = href;
+        return;
+      }
+      leaveAt = now; wantHome = now + 1500;
+      if (!menuMode) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); cache.t = 0; }   // pause the game while you decide
+      toast('🏠 Press ⧉ View again to go back to all the games');
+    }
+
     // ---- the polling loop ----
     function frame(now) {
       const list = pads();
@@ -262,10 +294,16 @@ const RB = (() => {
       // a button press always looks at the screen as it is right now (a menu may have just closed)
       const anyEdge = btn.some((b, i) => b && !prevBtn[i]);
       const menu = choices(anyEdge).length > 0;
-      if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); }
+      if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); ignore = btn.slice(); }
+      ignore = ignore.map((b, i) => b && btn[i]);   // a button counts again once it's let go
+      if (edge(8)) leaveRequest(now);
       if (menu) {
         const opts = choices();
         if (focusEl && !opts.includes(focusEl)) setFocus(null);
+        if (now < wantHome) {   // just pressed View: highlight the way home in the pause menu
+          const home = opts.find(el => el.matches('.rb-home, [data-pad-home]') || (el.tagName === 'A' && el.href === homeHref()));
+          if (home) { setFocus(home); wantHome = 0; }
+        }
         if (!focusEl) setFocus(pickDefault(opts));
         const dir = btn[12] || ly < -0.5 ? 'ArrowUp' : btn[13] || ly > 0.5 ? 'ArrowDown' : btn[14] || lx < -0.5 ? 'ArrowLeft' : btn[15] || lx > 0.5 ? 'ArrowRight' : null;
         if (dir && (dir !== last.dir || now >= last.next)) { move(dir, opts); last.next = now + (dir === last.dir ? 130 : 380); }
@@ -273,7 +311,6 @@ const RB = (() => {
         if (edge(0) || edge(2) || edge(7)) activate();
         if (edge(1)) { key('keydown', 'Escape'); key('keyup', 'Escape'); }
         if (edge(9)) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); }
-        if (edge(8)) { key('keydown', 'KeyM'); key('keyup', 'KeyM'); }
       } else {
         // the left stick: smooth analog steering where the game has a joystick, arrow keys everywhere else
         const st = sticks.find(s => s.stick.id === null && s.enabled());
@@ -283,7 +320,7 @@ const RB = (() => {
           st.stick.x = lx; st.stick.y = ly; st.stick.active = st.driving;
         }
         const want = {};
-        for (const i in BUTTONS) if (btn[i]) want[BUTTONS[i]] = true;
+        for (const i in BUTTONS) if (btn[i] && !ignore[i]) want[BUTTONS[i]] = true;
         if (!st) {
           const on = (v, was) => was ? v > 0.3 : v > 0.5;   // a little stickiness so it doesn't flicker
           if (on(-ly, held.ArrowUp)) want.ArrowUp = true;
