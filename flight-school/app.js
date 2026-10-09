@@ -8,7 +8,7 @@ const MODES = {
 };
 
 // ---------- Saved progress ----------
-// fs_save v2: { v: 2, modes: { easy: { best: {id: n}, stars: {id: n}, exam: n } }, cards: { id: [a, b] }, name, settings }
+// fs_save v2: { v: 2, modes: { easy: { best: {id: n}, stars: {id: n}, exam: n } }, cards: { id: [a, b] }, name, settings, unlockAll }
 const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('fs_save') || 'null'); } catch (e) { /* fresh start */ }
@@ -17,7 +17,7 @@ const save = (() => {
   for (const m of Object.keys(MODES)) out.modes[m] = { best: {}, stars: {}, exam: 0 };
   if (s.v === 2) {
     for (const m of Object.keys(MODES)) if (s.modes && s.modes[m]) Object.assign(out.modes[m], s.modes[m]);
-    out.cards = s.cards || {}; out.settings = s.settings || {};
+    out.cards = s.cards || {}; out.settings = s.settings || {}; out.unlockAll = !!s.unlockAll;
   } else if (Array.isArray(s.best)) {   // first version: 7 levels saved in order
     ['balloon', 'wing', 'wright', 'prop', 'jet', 'rocket', 'space'].forEach((id, i) => {
       if (s.best[i]) out.modes.easy.best[id] = +s.best[i];
@@ -30,7 +30,8 @@ Object.assign(settings, { mode: MODES[save.settings.mode] ? save.settings.mode :
 const prog = () => save.modes[settings.mode];
 const starsOf = i => prog().stars[LEVELS[i].id] || 0;
 const bestOf = i => prog().best[LEVELS[i].id] || 0;
-const unlocked = i => settings.mode === 'toddler' || i === 0 || starsOf(i) > 0 || starsOf(i - 1) > 0;
+// "Unlock all" opens every level and the exam, for players whose progress is saved on another device.
+const unlocked = i => save.unlockAll || settings.mode === 'toddler' || i === 0 || starsOf(i) > 0 || starsOf(i - 1) > 0;
 const totalScore = (m = settings.mode) => Object.values(save.modes[m].best).reduce((a, b) => a + (+b || 0), 0) + (save.modes[m].exam || 0);
 const allDone = () => LEVELS.every((_, i) => starsOf(i) > 0);
 function persist() {
@@ -259,7 +260,8 @@ function mapScreen() {
       ${locked ? '<span class="ic">🔒</span>' : levelImg(i)}<b>${i + 1}. ${esc(l.name)}</b><small>${l.year}</small>
       <span class="st">${starStr(st)}</span>${bestOf(i) ? `<small>Best ${bestOf(i)}</small>` : ''}</button>`;
   }).join('');
-  const examReady = allDone() && settings.mode !== 'toddler';
+  const examReady = (allDone() || save.unlockAll) && settings.mode !== 'toddler';
+  const anyLocked = LEVELS.some((_, i) => !unlocked(i)) || (!examReady && settings.mode !== 'toddler');
   show(`<h2>🗺️ The Story of Flight</h2>
     <p style="margin:0">🏆 Total: <b>${totalScore()}</b> · ${LEVELS.filter((_, i) => starsOf(i)).length} of ${LEVELS.length} levels · ${modeChip()}</p>
     <div class="levels">${tiles}
@@ -267,10 +269,12 @@ function mapScreen() {
     </div>
     ${next >= 0 ? `<button class="btn" id="next">▶ Level ${next + 1}: ${esc(LEVELS[next].name)}</button>` : ''}
     ${allDone() ? '<button class="btn" id="cert">🎓 My certificate</button>' : ''}
-    <button class="btn alt" id="cards">🃏 Flight Cards</button>`, 'wide');
+    <button class="btn alt" id="cards">🃏 Flight Cards</button>
+    ${anyLocked ? '<button class="btn alt" id="unlockAll" title="Played on another device? Open every level here.">🔓 Unlock all levels</button>' : ''}`, 'wide');
   card.querySelectorAll('.lvl[data-i]').forEach(b => b.addEventListener('click', () => { if (b.disabled) return; RB.audio(); sfx.click(); startLesson(+b.dataset.i); }));
   on('next', () => startLesson(next)); on('cert', certScreen); on('exam', examStart);
   on('cards', () => cardsScreen(mapScreen)); on('modeChip', () => settingsScreen(mapScreen));
+  on('unlockAll', () => { save.unlockAll = true; persist(); mapScreen(); RB.toast('🔓 Every level is open!'); });
 }
 
 function startLesson(i) { cur = i; slide = 0; music.play(LEVELS[i].era, 0.4); lessonScreen(); }

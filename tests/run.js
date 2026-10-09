@@ -391,6 +391,19 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p, 'flight-school-phone.png');
   });
 
+  await test('Flight School: "Unlock all levels" opens every level and the exam, and stays unlocked', async () => {
+    const p = await open(browser, 'flight-school.html', { viewport: { width: 960, height: 600 } });
+    await p.evaluate(() => mapScreen());
+    check(await p.$$eval('.lvl.locked', els => els.length) > 0, 'a fresh game should start with locked levels');
+    await p.click('#unlockAll');
+    check(await p.$$eval('.lvl.locked', els => els.length) === 0, 'levels still locked after Unlock all');
+    check(!(await p.$('#unlockAll')), 'the button should go away once everything is open');
+    await p.reload(); await p.waitForTimeout(500);
+    await p.evaluate(() => mapScreen());
+    check(await p.$$eval('.lvl.locked', els => els.length) === 0, 'Unlock all was not saved');
+    await done(p, 'flight-school-unlocked.png');
+  });
+
   await test('school folders: the home page links to each grade, and 5th grade lists its subjects', async () => {
     const p = await open(browser, 'index.html');
     const links = await p.$$eval('.folder', els => els.map(e => e.getAttribute('href')));
