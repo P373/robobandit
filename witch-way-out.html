@@ -1,0 +1,970 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Witch Way Out | RoboBandit</title>
+<meta name="description" content="Fly your broomstick through a foggy Halloween night and escape the giant pumpkin in Witch Way Out, a free RoboBandit game.">
+<link rel="canonical" href="https://robobandit.com/witch-way-out.html">
+<meta name="theme-color" content="#1a1030">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/witch-way-out.html">
+<meta property="og:title" content="Witch Way Out | RoboBandit">
+<meta property="og:description" content="Fly your broomstick through a spooky night and escape the giant pumpkin!">
+<meta property="og:image" content="https://robobandit.com/previews/witch-way-out.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Witch Way Out | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/witch-way-out.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Creepster&family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #120a22; color: #fff;
+    font-family: 'Fredoka', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+  .hidden { display: none !important; }
+  .spooky { font-family: 'Creepster', 'Fredoka', system-ui, sans-serif; letter-spacing: 1px; }
+  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  #hudTL { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top));
+    font-size: 18px; font-weight: 700; line-height: 1.35; text-shadow: 0 2px 0 #000; }
+  #hudTL .dim { color: #c9b6ff; font-size: 15px; }
+  #pumpkinBar { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+    width: min(360px, 70vw); padding: 6px 10px; border-radius: 14px; background: rgba(20,10,40,.6); display: flex; align-items: center; gap: 8px; }
+  #pumpkinBar .track { flex: 1; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
+  #pumpkinFill { height: 100%; width: 50%; border-radius: 6px; background: linear-gradient(90deg, #ff8a1f, #ff3b1f); }
+  #banner { position: absolute; left: 0; right: 0; top: 22%; text-align: center; font-size: 54px; line-height: 1.05;
+    color: #ffb347; text-shadow: 0 4px 0 #2a0a3a, 0 0 24px rgba(255,140,40,.6); padding: 0 12px; }
+  #banner small { display: block; font: 700 20px 'Fredoka', system-ui, sans-serif; color: #fff; margin-top: 10px; text-shadow: 0 2px 0 #000; }
+  #warn { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font: 700 26px 'Fredoka', system-ui, sans-serif;
+    color: #ffe14a; text-shadow: 0 3px 0 #000; animation: blink .4s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .35; } }
+  #spellBtn { position: fixed; z-index: 3; right: max(18px, env(safe-area-inset-right)); bottom: max(70px, calc(env(safe-area-inset-bottom) + 60px));
+    width: 106px; height: 106px; border-radius: 50%; border: 4px solid #e6d2ff; cursor: pointer;
+    font: 700 15px 'Fredoka', system-ui, sans-serif; color: #fff; background: radial-gradient(circle at 40% 35%, #b47cff, #5b2a9c);
+    box-shadow: 0 0 24px rgba(180,124,255,.7); }
+  #spellBtn .ico { display: block; font-size: 32px; }
+  #spellBtn.cool { filter: grayscale(.8) brightness(.7); box-shadow: none; }
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
+    background: radial-gradient(ellipse at center, rgba(40,10,60,.35), rgba(10,4,20,.85)); touch-action: pan-y; }
+  .panel { margin: auto; width: 100%; max-width: 600px; text-align: center; color: #f3eaff; background: rgba(30,14,52,.92);
+    border: 3px solid #ff8a1f; border-radius: 24px; box-shadow: 0 0 40px rgba(255,138,31,.35); padding: 20px 22px 24px; }
+  .panel h1 { margin: 0; font: 64px/1 'Creepster', system-ui, sans-serif; color: #ff8a1f; text-shadow: 0 4px 0 #3a0a4a, 0 0 20px rgba(255,140,40,.6); }
+  .panel .sub { margin: 8px 0 14px; font-weight: 700; color: #c9b6ff; }
+  .panel ol { text-align: left; margin: 0; padding: 0; list-style: none; counter-reset: s; }
+  .panel li { position: relative; padding: 7px 0 7px 44px; counter-increment: s; line-height: 1.4; font-size: 16px; }
+  .panel li::before { content: counter(s); position: absolute; left: 0; top: 6px; width: 30px; height: 30px; border-radius: 50%;
+    display: grid; place-items: center; font-weight: 700; color: #1a0a2a; background: #ff8a1f; }
+  kbd { display: inline-block; padding: 0 6px; font: bold 14px system-ui, sans-serif; color: #1a0a2a; background: #f3eaff; border-radius: 4px; }
+  .big-btn { margin-top: 16px; font: 30px 'Creepster', system-ui, sans-serif; letter-spacing: 1px; padding: 10px 30px; cursor: pointer; border-radius: 18px;
+    border: 3px solid #ffd27a; color: #1a0a2a; background: linear-gradient(#ffb347, #ff7a1f); box-shadow: 0 6px 0 #8a3a0a; }
+  .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #8a3a0a; }
+  .stats { font-size: 20px; line-height: 1.6; margin: 10px 0 0; }
+  .stats b { color: #ffb347; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+</style>
+<link rel="stylesheet" href="common.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar"></div>
+
+<div id="hud" class="hidden">
+  <div id="hudTL"><div id="hTime">0:00</div><div class="dim" id="hRings">💍 0 rings</div><div class="dim" id="hPlace"></div><div class="dim" id="hShield"></div></div>
+  <div id="pumpkinBar"><span>🧹</span><div class="track"><div id="pumpkinFill"></div></div><span>🎃</span></div>
+  <div id="banner" class="spooky hidden"></div>
+  <div id="warn" class="hidden">⚡ LIGHTNING! CAST YOUR SHIELD! ⚡</div>
+</div>
+<button id="spellBtn" class="hidden"><span class="ico">🛡️</span>SHIELD</button>
+
+<div id="title" class="screen">
+  <div class="panel">
+    <h1>Witch Way Out</h1>
+    <div class="sub">🎃 The Great Pumpkin is coming! Fly with your witch friends and escape!</div>
+    <ol>
+      <li><b>Fly your broomstick</b> anywhere:
+        <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn, <kbd>↑</kbd> climb, <kbd>↓</kbd> dive.</span>
+        <span class="touch-only">put your thumb down and drag to steer.</span></li>
+      <li><b>Fly through the glowing rings</b> for a speed boost.</li>
+      <li>In the storm, cast your <b>shield spell</b> (<span class="key-only"><kbd>Space</kbd></span><span class="touch-only">purple button</span>) when lightning is coming!</li>
+      <li>Swoop through a <b>backyard</b>, a <b>spooky graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
+    </ol>
+    <div class="stats" id="titleBest"></div>
+    <button class="big-btn" id="btnPlay">🧹 Fly!</button>
+  </div>
+</div>
+
+<div id="over" class="screen hidden">
+  <div class="panel">
+    <h1 id="overTitle">You Escaped!</h1>
+    <div class="stats" id="overStats"></div>
+    <button class="big-btn" id="btnAgain">🧹 Fly Again</button>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="common.js"></script>
+<script src="touch-stick.js"></script>
+<script>
+'use strict';
+
+// ---------- Tuning (metres, seconds) ----------
+const SPEED = 30;            // broom cruising speed
+const BOOST = 14;            // extra speed from a ring, fading over a couple of seconds
+const PUMPKIN_SPEED = 29;    // just a little slower than you… so every crash lets it gain
+const CATCH_GAP = 18;        // the pumpkin catches you this close
+const START_GAP = 80;
+const MAX_GAP = 100;         // it never falls further behind than this
+const WIDTH = 70;            // the course is ±WIDTH wide
+const CEILING = 95;
+const SHIELD_TIME = 2.6, SHIELD_COOL = 3.5;
+const TAU = Math.PI * 2;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+
+// The course runs from z = 0 toward negative z, through five areas.
+// line(z) is the friendly flying path the other witches follow (and a good line for you too).
+const SECTIONS = [
+  { id: 'sky', name: 'The Foggy Sky', sub: 'Fly through the glowing rings!', z0: 0, z1: -700, fog: '#3a3352', near: 30, far: 260 },
+  { id: 'storm', name: 'Storm Clouds', sub: 'Lightning! Cast your shield spell!', z0: -700, z1: -1300, fog: '#241f38', near: 20, far: 200 },
+  { id: 'yard', name: 'The Backyard', sub: 'Swoop under the garden lights!', z0: -1300, z1: -1900, fog: '#1d2a3a', near: 40, far: 260 },
+  { id: 'grave', name: 'The Spooky Graveyard', sub: 'Watch out for ghosts…', z0: -1900, z1: -2500, fog: '#1f3328', near: 20, far: 200 },
+  { id: 'cliff', name: 'The House on the Hill', sub: 'Almost there! Fly past the house!', z0: -2500, z1: -3200, fog: '#1b2440', near: 50, far: 340 },
+];
+const FINISH_Z = -3150;
+const sectionAt = z => SECTIONS.find(s => z <= s.z0 && z > s.z1) || SECTIONS[SECTIONS.length - 1];
+function lineY(z) {
+  if (z > -1250) return 42 + Math.sin(z * 0.012) * 10;
+  if (z > -1360) return 42 - (( -1250 - z) / 110) * 32;          // dive into the backyard
+  if (z > -2560) return 9 + Math.sin(z * 0.02) * 2;
+  if (z > -2860) return 9 + ((-2560 - z) / 300) * 50;             // climb toward the house on the hill
+  return 60;
+}
+const lineX = z => Math.sin(z * 0.004) * 22;
+function groundAt(x, z) {
+  // cliff top around the house on the hill
+  if (z < -2880 && z > -3060 && x < 40) return 46;
+  return 0;
+}
+
+// ---------- Three.js setup ----------
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+scene.fog = new THREE.Fog('#3a3352', 30, 260);
+scene.background = new THREE.Color('#14102a');
+const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 1500);
+function resize() {
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight;
+  camera.fov = camera.aspect < 0.8 ? 80 : 65;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+
+scene.add(new THREE.HemisphereLight('#8a7ac8', '#1a1430', 0.65));
+const moonLight = new THREE.DirectionalLight('#c8d4ff', 0.7);
+moonLight.position.set(-40, 120, -200);
+scene.add(moonLight);
+
+const mat = (color, extra = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.8, ...extra });
+const glow = (color) => new THREE.MeshBasicMaterial({ color });
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  return new THREE.CanvasTexture(c);
+}
+function add(mesh, x, y, z, parent = scene) { mesh.position.set(x, y, z); parent.add(mesh); return mesh; }
+
+// Night sky: gradient dome, stars and a big moon far ahead
+const sky = new THREE.Group();
+{
+  const tex = canvasTex(4, 256, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, '#05030f'); gr.addColorStop(0.45, '#241a48'); gr.addColorStop(0.55, '#4a3a6a'); gr.addColorStop(1, '#4a3a6a');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+  sky.add(new THREE.Mesh(new THREE.SphereGeometry(1200, 32, 16), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false })));
+  const sg = new THREE.BufferGeometry(), pts = [];
+  for (let i = 0; i < 600; i++) {
+    const a = Math.random() * TAU, e = Math.random() * 1.2 + 0.1, r = 1100;
+    pts.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r);
+  }
+  sg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
+  sky.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: 2.2, sizeAttenuation: false, fog: false })));
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 16), new THREE.MeshBasicMaterial({ color: '#fff4cc', fog: false }));
+  moon.position.set(-120, 260, -1000);
+  sky.add(moon);
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(90, 32, 16), new THREE.MeshBasicMaterial({ color: '#fff0b0', transparent: true, opacity: 0.12, fog: false }));
+  halo.position.copy(moon.position);
+  sky.add(halo);
+}
+scene.add(sky);
+
+// ---------- The course ----------
+const colliders = [];        // spheres you bump into: { x, y, z, r }
+const rings = [];
+const ghosts = [], bulbs = [], strikes = [];
+const animated = [];         // things that wobble or twinkle: fn(t)
+
+function ground(color, z0, z1, y = 0) {
+  const len = z0 - z1;
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(600, len, 1, 1), mat(color));
+  m.rotation.x = -Math.PI / 2;
+  add(m, 0, y, (z0 + z1) / 2);
+  return m;
+}
+
+function buildCourse() {
+  // --- 1. foggy sky: misty fields far below, glowing rings
+  ground('#231d33', 60, -1300);
+  for (let i = 0; i < 14; i++) {
+    const z = -90 - i * 80 - (i > 7 ? 60 : 0);
+    addRing(lineX(z) + Math.sin(i * 1.7) * 14, lineY(z) + Math.cos(i * 1.1) * 8, z);
+  }
+  // drifting fog banks
+  const fogMat = new THREE.MeshBasicMaterial({ color: '#8a80a8', transparent: true, opacity: 0.18, depthWrite: false });
+  for (let i = 0; i < 40; i++) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(rand(14, 30), 10, 8), fogMat);
+    m.scale.y = 0.35;
+    add(m, rand(-90, 90), rand(10, 70), rand(-40, -1250));
+  }
+
+  // --- 2. storm clouds overhead with rain
+  const cloudMat = mat('#3a3550', { flatShading: true });
+  for (let i = 0; i < 46; i++) {
+    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(rand(12, 24), 1), cloudMat);
+    add(c, rand(-90, 90), rand(70, 100), rand(-700, -1300));
+  }
+
+  // --- 3. the backyard: lawn, trees, a fence, hanging garden lights and the house's back porch
+  ground('#2f6a3a', -1300, -1900);
+  const trunkMat = mat('#5a3a28'), leafMats = [mat('#2f8a3e', { flatShading: true }), mat('#3fa04a', { flatShading: true }), mat('#257a36', { flatShading: true })];
+  const treeAt = (x, z, s = 1) => {
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.6 * s, 0.9 * s, 7 * s, 8), trunkMat), x, 3.5 * s, z);
+    const leaf = leafMats[Math.floor(Math.random() * 3)];
+    add(new THREE.Mesh(new THREE.IcosahedronGeometry(4.5 * s, 1), leaf), x, 9 * s, z);
+    add(new THREE.Mesh(new THREE.IcosahedronGeometry(3.4 * s, 1), leaf), x + 2 * s, 11.5 * s, z + 1);
+    colliders.push({ x, y: 10 * s, z, r: 5 * s }, { x, y: 3.5 * s, z, r: 1.2 * s });
+  };
+  for (let z = -1320; z > -1880; z -= 34) {
+    treeAt(-40 + rand(-8, 8), z + rand(-8, 8), rand(1, 1.4));
+    treeAt(40 + rand(-8, 8), z + rand(-8, 8), rand(1, 1.4));
+    if (Math.random() < 0.55) treeAt(rand(-24, 24), z - 17, rand(0.8, 1.1));
+  }
+  // fences down both sides
+  const fenceMat = mat('#e8dcc8');
+  for (const side of [-1, 1]) {
+    for (let z = -1300; z > -1900; z -= 6) add(new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.4, 0.3), fenceMat), side * 58, 1.2, z);
+    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 600), fenceMat);
+    add(rail, side * 58, 1.8, -1600);
+  }
+  // strings of warm garden lights swooping between posts across the yard
+  const postMat = mat('#3a2a20');
+  const bulbGeo = new THREE.SphereGeometry(0.28, 8, 6);
+  const bulbColors = ['#ffe9a8', '#ffd27a', '#fff4d6', '#ffcf9a'];
+  for (let k = 0; k < 7; k++) {
+    const z = -1360 - k * 75;
+    const h = rand(13, 17);
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, h, 6), postMat), -46, h / 2, z);
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, h, 6), postMat), 46, h / 2, z - 20);
+    // a sagging wire with bulbs every couple of metres
+    const pts = [];
+    for (let i = 0; i <= 40; i++) {
+      const t = i / 40, x = -46 + 92 * t, zz = z - 20 * t, y = h - Math.sin(t * Math.PI) * 6;
+      pts.push(new THREE.Vector3(x, y, zz));
+      if (i % 2 === 0) {
+        const b = new THREE.Mesh(bulbGeo, glow(bulbColors[i % 4]));
+        add(b, x, y - 0.45, zz);
+        bulbs.push(b);
+      }
+    }
+    const wire = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: '#1a1410' }));
+    scene.add(wire);
+  }
+  // the back of the house, porch light glowing
+  const house = new THREE.Group();
+  add(new THREE.Mesh(new THREE.BoxGeometry(40, 16, 14), mat('#6a5a7a')), 0, 8, 0, house);
+  const roof = new THREE.Mesh(new THREE.ConeGeometry(28, 10, 4), mat('#3a2a3a'));
+  roof.rotation.y = Math.PI / 4; roof.scale.z = 0.5;
+  add(roof, 0, 21, 0, house);
+  for (let i = -2; i <= 2; i++) add(new THREE.Mesh(new THREE.PlaneGeometry(3.4, 4), glow('#ffd27a')), i * 7, 9, 7.05, house);
+  house.position.set(-82, 0, -1420);
+  house.rotation.y = Math.PI / 2;
+  scene.add(house);
+  const porch = new THREE.PointLight('#ffb35a', 1.2, 70);
+  add(porch, -70, 10, -1420);
+
+  // --- 4. the graveyard: gate, tombstones, crooked trees, a crypt, ghosts and green mist
+  ground('#20302a', -1900, -2500);
+  const stoneMat = mat('#7a7a88'), ironMat = mat('#1a1a22', { metalness: 0.6, roughness: 0.4 });
+  // the iron gate arch you fly through, centred on the flying line
+  const gx = lineX(-1905);
+  for (const side of [-1, 1]) {
+    add(new THREE.Mesh(new THREE.BoxGeometry(3, 18, 3), stoneMat), gx + side * 16, 9, -1905);
+    colliders.push({ x: gx + side * 16, y: 9, z: -1905, r: 3 }, { x: gx + side * 16, y: 15, z: -1905, r: 3 });
+  }
+  const arch = new THREE.Mesh(new THREE.TorusGeometry(16, 0.8, 8, 32, Math.PI), ironMat);
+  add(arch, gx, 18, -1905);
+  for (let x = -58; x <= 58; x += 2.5) {
+    if (Math.abs(x - gx) < 17) continue;
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4, 4), ironMat), x, 2, -1905);
+  }
+  // rows of tombstones with little glowing jack-o'-lanterns
+  const pumpkinMat = mat('#ff7a1f', { emissive: '#7a2a00', emissiveIntensity: 0.7 });
+  for (let z = -1930; z > -2470; z -= 22) {
+    for (let x = -50; x <= 50; x += rand(12, 20)) {
+      if (Math.random() < 0.3) continue;
+      const g = new THREE.Group();
+      const h = rand(2.2, 3.6);
+      add(new THREE.Mesh(new THREE.BoxGeometry(1.8, h, 0.5), stoneMat), 0, h / 2, 0, g);
+      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.5, 12, 1, false, 0, Math.PI), stoneMat);
+      top.rotation.x = Math.PI / 2; top.rotation.z = Math.PI / 2;
+      add(top, 0, h, 0, g);
+      g.rotation.set(rand(-0.15, 0.15), rand(-0.3, 0.3), rand(-0.12, 0.12));
+      add(g, x + rand(-3, 3), 0, z + rand(-4, 4));
+      if (Math.random() < 0.18) add(new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), pumpkinMat), x + 1.6, 0.6, z + 1);
+    }
+  }
+  // crooked dead trees
+  const deadMat = mat('#2a2230');
+  const deadTree = (x, z) => {
+    const g = new THREE.Group();
+    add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1.1, 14, 6), deadMat), 0, 7, 0, g);
+    for (let k = 0; k < 5; k++) {
+      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.4, rand(5, 8), 5), deadMat);
+      b.position.set(0, rand(8, 13), 0);
+      b.rotation.set(rand(-1, 1), rand(0, TAU), rand(0.7, 1.3) * (k % 2 ? 1 : -1));
+      g.add(b);
+    }
+    add(g, x, 0, z);
+    colliders.push({ x, y: 7, z, r: 2 }, { x, y: 12, z, r: 4 });
+  };
+  for (let z = -1950; z > -2480; z -= 60) { deadTree(rand(-55, -25), z + rand(-15, 15)); deadTree(rand(25, 55), z + rand(-15, 15)); }
+  // a crypt in the middle: fly over it or round it
+  const crypt = new THREE.Group();
+  add(new THREE.Mesh(new THREE.BoxGeometry(12, 9, 14), stoneMat), 0, 4.5, 0, crypt);
+  const cr = new THREE.Mesh(new THREE.ConeGeometry(10, 5, 4), mat('#5a5a68'));
+  cr.rotation.y = Math.PI / 4; cr.scale.z = 1.2;
+  add(cr, 0, 11.5, 0, crypt);
+  add(new THREE.Mesh(new THREE.PlaneGeometry(3, 5), glow('#7aff9a')), 0, 3, 7.05, crypt);
+  crypt.position.set(lineX(-2200) + 26, 0, -2200);
+  scene.add(crypt);
+  colliders.push({ x: crypt.position.x, y: 5, z: -2200, r: 9 });
+  // floating ghosts
+  const ghostMat = new THREE.MeshStandardMaterial({ color: '#f4f8ff', emissive: '#9ab8ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.8 });
+  for (let i = 0; i < 9; i++) {
+    const g = new THREE.Group();
+    add(new THREE.Mesh(new THREE.SphereGeometry(1.6, 14, 10), ghostMat), 0, 1.6, 0, g);
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.4, 14, 1, true), ghostMat);
+    tail.rotation.x = Math.PI;
+    add(tail, 0, -0.2, 0, g);
+    for (const ex of [-0.55, 0.55]) add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), glow('#111')), ex, 1.9, 1.4, g);
+    const z = -1980 - i * 55;
+    g.userData = { x0: rand(-30, 30), y0: rand(5, 14), z, ph: Math.random() * TAU };
+    add(g, g.userData.x0, g.userData.y0, z);
+    ghosts.push(g);
+  }
+  // green ground mist
+  const mistMat = new THREE.MeshBasicMaterial({ color: '#7affb0', transparent: true, opacity: 0.08, depthWrite: false });
+  for (let i = 0; i < 30; i++) {
+    const m = new THREE.Mesh(new THREE.SphereGeometry(rand(10, 18), 10, 6), mistMat);
+    m.scale.y = 0.2;
+    add(m, rand(-60, 60), 1.5, rand(-1910, -2490));
+  }
+
+  // --- 5. the lonely house on the hill, on a ledge over the water
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(800, 900, 60, 60), new THREE.MeshPhongMaterial({ color: '#1a3a6a', specular: '#9ab8ff', shininess: 80, flatShading: true }));
+  water.rotation.x = -Math.PI / 2;
+  add(water, 0, 0, -2950);
+  const waterBase = water.geometry.attributes.position.array.slice();
+  animated.push(t => {
+    const p = water.geometry.attributes.position.array;
+    for (let i = 0; i < p.length; i += 3) p[i + 2] = Math.sin(waterBase[i] * 0.05 + t) * 0.5 + Math.cos(waterBase[i + 1] * 0.06 + t * 0.8) * 0.5;
+    water.geometry.attributes.position.needsUpdate = true;
+    water.geometry.computeVertexNormals();
+  });
+  // the cliff and the hill on top
+  const rockMat = mat('#3a3448', { flatShading: true });
+  const cliff = new THREE.Mesh(new THREE.BoxGeometry(160, 46, 180, 6, 3, 6), rockMat);
+  const cp = cliff.geometry.attributes.position;
+  for (let i = 0; i < cp.count; i++) cp.setX(i, cp.getX(i) + (Math.random() - 0.5) * 6), cp.setZ(i, cp.getZ(i) + (Math.random() - 0.5) * 6);
+  cliff.geometry.computeVertexNormals();
+  add(cliff, -40, 23, -2970);
+  const hill = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 10, 0, TAU, 0, Math.PI / 2), mat('#2a3a30', { flatShading: true }));
+  hill.scale.y = 0.25;
+  add(hill, -40, 46, -2970);
+  // the house itself, perched right at the edge
+  const hs = new THREE.Group();
+  add(new THREE.Mesh(new THREE.BoxGeometry(14, 12, 12), mat('#4a3a5a')), 0, 6, 0, hs);
+  add(new THREE.Mesh(new THREE.BoxGeometry(5, 18, 5), mat('#4a3a5a')), -6, 9, -3, hs);   // tower
+  const r1 = new THREE.Mesh(new THREE.ConeGeometry(11, 7, 4), mat('#2a1a2a')); r1.rotation.y = Math.PI / 4;
+  add(r1, 0, 15.5, 0, hs);
+  add(new THREE.Mesh(new THREE.ConeGeometry(4, 8, 4), mat('#2a1a2a')), -6, 22, -3, hs);
+  for (const [wx, wy] of [[-3, 5], [3, 5], [-3, 9.5], [3, 9.5]]) add(new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.6), glow('#ffd27a')), wx, wy, 6.05, hs);
+  add(new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2), glow('#ffd27a')), -6, 15, -0.45, hs);
+  hs.position.set(28, 46, -2960);
+  hs.scale.setScalar(1.7);
+  scene.add(hs);
+  colliders.push({ x: 28, y: 56, z: -2960, r: 16 }, { x: 18, y: 72, z: -2965, r: 7 });
+  add(new THREE.PointLight('#ffc070', 1.5, 90), 28, 58, -2950);
+  // the finish: a great ring of moonlight
+  const finish = new THREE.Mesh(new THREE.TorusGeometry(16, 1.4, 12, 48), glow('#cfe0ff'));
+  add(finish, lineX(FINISH_Z), 60, FINISH_Z);
+  animated.push(t => { finish.rotation.z = t * 0.5; finish.scale.setScalar(1 + Math.sin(t * 3) * 0.04); });
+}
+
+function addRing(x, y, z) {
+  const m = new THREE.Mesh(new THREE.TorusGeometry(7, 0.7, 10, 36), glow('#ffb347'));
+  add(m, x, y, z);
+  const inner = new THREE.Mesh(new THREE.RingGeometry(0.1, 6.3, 36), new THREE.MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: 0.08, side: THREE.DoubleSide }));
+  m.add(inner);
+  rings.push({ mesh: m, x, y, z, r: 7, got: false });
+}
+
+// ---------- Witches ----------
+function makeWitch(robe, hat, hair) {
+  const g = new THREE.Group();
+  const broom = new THREE.Group();
+  const stick = new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, 3.4, 6), mat('#7a4a28'));
+  stick.rotation.x = Math.PI / 2;
+  broom.add(stick);
+  const bristles = new THREE.Mesh(new THREE.ConeGeometry(0.45, 1.2, 10), mat('#d9b25a'));
+  bristles.rotation.x = -Math.PI / 2;
+  bristles.position.z = 2.1;
+  broom.add(bristles);
+  g.add(broom);
+  const robeM = mat(robe);
+  const body = new THREE.Mesh(new THREE.ConeGeometry(0.55, 1.3, 10), robeM);
+  body.position.set(0, 0.7, 0.3);
+  g.add(body);
+  const cape = new THREE.Mesh(new THREE.PlaneGeometry(1, 1.4, 4, 4), new THREE.MeshStandardMaterial({ color: robe, side: THREE.DoubleSide }));
+  cape.position.set(0, 0.8, 0.75);
+  cape.rotation.x = -0.9;
+  g.add(cape);
+  const head = new THREE.Mesh(new THREE.SphereGeometry(0.34, 14, 10), mat('#ffd9b8'));
+  head.position.set(0, 1.55, 0.15);
+  g.add(head);
+  const hairM = new THREE.Mesh(new THREE.SphereGeometry(0.36, 12, 8, 0, TAU, 0, Math.PI * 0.6), mat(hair));
+  hairM.position.copy(head.position); hairM.position.z += 0.06; hairM.rotation.x = 0.5;
+  g.add(hairM);
+  const brim = new THREE.Mesh(new THREE.CylinderGeometry(0.7, 0.7, 0.06, 18), mat(hat));
+  brim.position.set(0, 1.78, 0.15);
+  g.add(brim);
+  const cone = new THREE.Mesh(new THREE.ConeGeometry(0.38, 1.1, 14), mat(hat));
+  cone.position.set(0, 2.3, 0.3);
+  cone.rotation.x = 0.35;
+  g.add(cone);
+  const band = new THREE.Mesh(new THREE.CylinderGeometry(0.39, 0.39, 0.1, 14), glow('#ffb347'));
+  band.position.set(0, 1.86, 0.17);
+  g.add(band);
+  for (const ex of [-0.11, 0.11]) add(new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 4), glow('#1a1a2a')), ex, 1.6, -0.17, g);
+  g.userData.cape = cape;
+  return g;
+}
+const WITCH_LOOKS = [
+  ['#7a3fc8', '#2a1a4a', '#ff7a3a'],   // you: purple robe, red hair
+  ['#2fa860', '#1a2a1a', '#3a2a1a'],
+  ['#ff7a1f', '#2a1a1a', '#ffe08a'],
+  ['#2a9ad0', '#101a3a', '#1a1a1a'],
+  ['#e04a9a', '#3a0a2a', '#7a4a2a'],
+  ['#d0d0e0', '#1a1a1a', '#ffffff'],
+];
+const NAMES = ['You', 'Willow', 'Ember', 'Luna', 'Pip', 'Hazel'];
+const me = makeWitch(...WITCH_LOOKS[0]);
+scene.add(me);
+const friends = WITCH_LOOKS.slice(1).map((look, i) => {
+  const w = makeWitch(...look);
+  scene.add(w);
+  return { mesh: w, z: -20 - i * 9, off: rand(-14, 14), offY: rand(-5, 5), speed: rand(29, 31.5), ph: Math.random() * TAU, name: NAMES[i + 1] };
+});
+// a sparkly shield bubble
+const shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(2.4, 20, 14), new THREE.MeshBasicMaterial({ color: '#b47cff', transparent: true, opacity: 0.28, depthWrite: false }));
+shieldMesh.visible = false;
+me.add(shieldMesh);
+shieldMesh.position.y = 1;
+
+// The Great Pumpkin
+const pumpkin = new THREE.Group();
+{
+  const body = mat('#ff7a1f', { emissive: '#5a1a00', emissiveIntensity: 0.6, flatShading: true });
+  for (let k = 0; k < 8; k++) {
+    const lobe = new THREE.Mesh(new THREE.SphereGeometry(7, 16, 12), body);
+    lobe.scale.set(0.55, 1, 1);
+    lobe.position.set(Math.cos(k / 8 * TAU) * 4, 0, Math.sin(k / 8 * TAU) * 4);
+    lobe.rotation.y = -k / 8 * TAU;
+    pumpkin.add(lobe);
+  }
+  const stem = new THREE.Mesh(new THREE.CylinderGeometry(0.8, 1.4, 4, 8), mat('#3a5a20'));
+  stem.position.y = 8; stem.rotation.z = 0.3;
+  pumpkin.add(stem);
+  // a carved, glowing face looking toward you
+  const face = canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#000'; g.fillRect(0, 0, w, h);
+    g.fillStyle = '#ffe14a';
+    g.beginPath(); g.moveTo(50, 110); g.lineTo(95, 50); g.lineTo(110, 115); g.fill();
+    g.beginPath(); g.moveTo(206, 110); g.lineTo(161, 50); g.lineTo(146, 115); g.fill();
+    g.beginPath(); g.moveTo(128, 120); g.lineTo(112, 150); g.lineTo(144, 150); g.fill();
+    g.beginPath(); g.moveTo(40, 165);
+    for (let i = 0; i <= 8; i++) g.lineTo(40 + i * 22, i % 2 ? 190 : 165 + (i === 0 || i === 8 ? 0 : 6));
+    g.lineTo(216, 165); g.quadraticCurveTo(128, 250, 40, 165); g.fill();
+  });
+  const faceM = new THREE.Mesh(new THREE.CircleGeometry(6.4, 32), new THREE.MeshBasicMaterial({ map: face, transparent: true, blending: THREE.AdditiveBlending }));
+  faceM.position.z = -7.6;
+  faceM.rotation.y = Math.PI;
+  pumpkin.add(faceM);
+  pumpkin.userData.face = faceM;
+  const pl = new THREE.PointLight('#ff8a1f', 2, 80);
+  pl.position.z = -10;
+  pumpkin.add(pl);
+  pumpkin.userData.light = pl;
+}
+scene.add(pumpkin);
+
+// rain for the storm
+const RAIN_N = 1400;
+const rainGeo = new THREE.BufferGeometry();
+rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(RAIN_N * 3), 3));
+const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({ color: '#b8c8f0', size: 0.35, transparent: true, opacity: 0.75 }));
+scene.add(rain);
+// lightning bolts and the warning glow where they'll strike
+const boltMat = new THREE.LineBasicMaterial({ color: '#fffbd0' });
+const warnMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 20, 12), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.15, depthWrite: false }));
+warnMesh.visible = false;
+scene.add(warnMesh);
+
+// sparkles from rings and spells
+const SPARK_N = 200;
+const sparkGeo = new THREE.BufferGeometry();
+sparkGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(SPARK_N * 3), 3));
+const sparks = new THREE.Points(sparkGeo, new THREE.PointsMaterial({ color: '#ffd27a', size: 0.5, transparent: true }));
+scene.add(sparks);
+let sparkVel = [], sparkT = 9;
+function sparkle(p, color = '#ffd27a') {
+  const a = sparkGeo.attributes.position.array;
+  sparkVel = [];
+  for (let i = 0; i < SPARK_N; i++) {
+    a[i * 3] = p.x; a[i * 3 + 1] = p.y; a[i * 3 + 2] = p.z;
+    const u = Math.random() * TAU, v = Math.acos(2 * Math.random() - 1), s = rand(4, 14);
+    sparkVel.push([Math.sin(v) * Math.cos(u) * s, Math.cos(v) * s, Math.sin(v) * Math.sin(u) * s]);
+  }
+  sparks.material.color.set(color);
+  sparkT = 0;
+}
+
+buildCourse();
+
+// ---------- Spooky music ----------
+// A low drone, a creepy music-box tune in a minor key, a deep bell and the odd ghostly "wooo".
+const music = (() => {
+  let ac = null, out = null, timer = null, step = 0, wind = null;
+  const CHORDS = [[220, 261.6, 329.6, 415.3], [174.6, 220, 261.6, 349.2], [146.8, 174.6, 220, 293.7], [164.8, 207.7, 246.9, 329.6]];   // Am, F, Dm, E
+  function note(f, t, dur, type, vol) {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(out); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function start() {
+    ac = RB.audio();
+    if (!ac || out) return;
+    out = ac.createGain();
+    out.gain.value = RB.muted ? 0 : 0.5;
+    out.connect(ac.destination);
+    RB.onMute(m => { out.gain.value = m ? 0 : 0.5; });
+    // drone: two slightly out-of-tune low notes through a dark filter
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 260;
+    const dg = ac.createGain(); dg.gain.value = 0.05;
+    for (const f of [55, 55.35, 82.4]) { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(); }
+    lp.connect(dg).connect(out);
+    wind = RB.ambient(500);
+    timer = setInterval(tick, 300);
+  }
+  function tick() {
+    if (!ac || paused) return;
+    const t = ac.currentTime + 0.05, bar = Math.floor(step / 8) % 4, ch = CHORDS[bar], i = step % 8;
+    const pattern = [0, 2, 1, 3, 2, 1, 3, 2];
+    note(ch[pattern[i]] * 2, t, 0.5, 'triangle', 0.045);           // music box
+    if (i === 0) note(ch[0] / 2, t, 2.6, 'sine', 0.09);               // deep bell
+    if (step % 32 === 20) {                                           // the ghost: a wobbly glide
+      const o = ac.createOscillator(), g = ac.createGain(), lfo = ac.createOscillator(), lg = ac.createGain();
+      o.type = 'sine'; o.frequency.setValueAtTime(500, t); o.frequency.linearRampToValueAtTime(820, t + 1); o.frequency.linearRampToValueAtTime(420, t + 2.4);
+      lfo.frequency.value = 6; lg.gain.value = 18; lfo.connect(lg).connect(o.frequency);
+      g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(0.04, t + 0.4); g.gain.exponentialRampToValueAtTime(0.0001, t + 2.4);
+      o.connect(g).connect(out); o.start(t); lfo.start(t); o.stop(t + 2.5); lfo.stop(t + 2.5);
+    }
+    step++;
+  }
+  return { start, setWind: v => { if (wind) wind.gain.value = v; } };
+})();
+const sfx = {
+  ring: () => { RB.beep(880, 1320, 0.15, 'sine', 0.1); RB.beep(1320, 1760, 0.2, 'sine', 0.08, 0.08); },
+  shield: () => { RB.beep(300, 900, 0.4, 'sine', 0.1); RB.noise(0.4, 0.08); },
+  thunder: () => { RB.noise(1.2, 0.5); RB.beep(70, 30, 1.2, 'sawtooth', 0.15); },
+  zap: () => RB.beep(900, 100, 0.4, 'square', 0.1),
+  bump: () => RB.beep(160, 60, 0.25, 'sine', 0.25),
+  laugh: () => [0, 0.22, 0.44].forEach(d => RB.beep(140, 100, 0.18, 'sawtooth', 0.08, d)),
+  caught: () => { RB.beep(300, 60, 0.9, 'sawtooth', 0.12); RB.noise(0.6, 0.3); },
+  win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => RB.beep(f, f, 0.25, 'triangle', 0.12, i * 0.12)),
+  section: () => RB.beep(220, 110, 0.8, 'triangle', 0.1),
+};
+
+// ---------- Input ----------
+const keys = {};
+const KEYMAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd' };
+let state = 'title', paused = false;
+const stick = createTouchStick(canvas, { enabled: () => state === 'fly' && !paused });
+addEventListener('keydown', e => {
+  if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
+  if (e.repeat) return;
+  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
+  if (e.code === 'Space') { e.preventDefault(); if (state === 'fly') castShield(); else if (state !== 'fly') startGame(); }
+  if (e.code === 'Enter' && state !== 'fly') startGame();
+  if (e.code === 'KeyP' || e.code === 'Escape') pause();
+  if (e.code === 'KeyM') RB.toggleMute();
+});
+addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
+addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+canvas.addEventListener('pointerdown', () => RB.audio());
+const spellBtn = document.getElementById('spellBtn');
+spellBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); castShield(); });
+function pause() {
+  if (paused || state !== 'fly') return;
+  paused = true; stick.reset(); for (const k in keys) keys[k] = false;
+  RB.showPause(resume);
+}
+function resume() { paused = false; RB.hidePause(); last = performance.now(); }
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Witch Way Out | RoboBandit', text: 'Fly your broomstick and escape the giant pumpkin! 🎃🧙‍♀️' },
+});
+RB.onHide(pause);
+
+// ---------- Game state ----------
+const pos = new THREE.Vector3(), dir = new THREE.Vector3();
+let yaw = 0, pitch = 0, roll = 0, speed = SPEED, boost = 0, slowT = 0, pumpkinZ = START_GAP;
+let shieldT = 0, shieldCool = 0, clock = 0, runT = 0, ringCount = 0, caughtCount = 0, section = null, bannerT = 0;
+let best = +(RB.store.get('ww_best') || 0);
+let introT = 0;   // a quick look back at the pumpkin when you take off
+let mercy = 0, mercySection = null;   // caught again in the same area? the pumpkin eases off a bit
+let stormTimer = 2, strike = null, boltLine = null, boltT = 0, flashT = 0, laughT = 0;
+
+function resetRun(fromZ = 0) {
+  pos.set(lineX(fromZ), lineY(fromZ), fromZ);
+  yaw = 0; pitch = 0; roll = 0; speed = SPEED; boost = 0; slowT = 0;
+  pumpkinZ = fromZ + START_GAP + mercy * 25;
+  shieldT = 0; shieldCool = 0; strike = null; warnMesh.visible = false;
+  section = sectionAt(pos.z);
+}
+
+function startGame() {
+  RB.audio();
+  music.start();
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('over').classList.add('hidden');
+  for (const r of rings) { r.got = false; r.mesh.visible = true; }
+  friends.forEach((f, i) => { f.z = -20 - i * 9; });
+  runT = 0; ringCount = 0; caughtCount = 0; mercy = 0; mercySection = null;
+  resetRun(0);
+  section = null;   // so the first area's name pops up
+  state = 'fly';
+  introT = 2.6;
+  setTimeout(sfx.laugh, 400);
+  showBanner('Here it comes!', 'Fly, fly, fly!', 2.4);
+}
+
+function castShield() {
+  if (state !== 'fly' || shieldCool > 0) return;
+  shieldT = SHIELD_TIME; shieldCool = SHIELD_TIME + SHIELD_COOL;
+  sfx.shield();
+  sparkle(me.position.clone().add(new THREE.Vector3(0, 1, 0)), '#c89cff');
+}
+
+function caught() {
+  caughtCount++;
+  if (mercySection === section) mercy = Math.min(4, mercy + 1); else { mercy = 1; mercySection = section; }
+  sfx.caught();
+  flashT = 0.6;
+  // back to the start of this area, with the pumpkin a safe way behind
+  showBanner('CAUGHT!', 'The pumpkin got you… try this part again!', 2.2);
+  resetRun(section ? section.z0 - 10 : 0);
+}
+
+function finishRun() {
+  state = 'over';
+  sfx.win();
+  const isBest = !best || runT < best;
+  if (isBest) { best = runT; RB.store.set('ww_best', best.toFixed(1)); }
+  document.getElementById('overTitle').textContent = 'You Escaped!';
+  document.getElementById('overStats').innerHTML =
+    `TIME <b>${fmt(runT)}</b><br>RINGS <b>${ringCount}</b> of ${rings.length}<br>CAUGHT <b>${caughtCount}</b> time${caughtCount === 1 ? '' : 's'}<br>` +
+    (isBest ? '🏆 <b>NEW BEST TIME!</b>' : `BEST <b>${fmt(best)}</b>`);
+  document.getElementById('over').classList.remove('hidden');
+}
+const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
+
+const bannerEl = document.getElementById('banner');
+function showBanner(t, sub, time = 2.6) { bannerEl.innerHTML = `${t}<small>${sub}</small>`; bannerEl.classList.remove('hidden'); bannerT = time; }
+
+// ---------- Update ----------
+function steerInput() { return clamp((keys.r ? 1 : 0) - (keys.l ? 1 : 0) + stick.x, -1, 1); }
+function climbInput() { return clamp((keys.u ? 1 : 0) - (keys.d ? 1 : 0) - stick.y, -1, 1); }
+
+function update(dt) {
+  clock += dt;
+  for (const f of animated) f(clock);
+  for (const g of ghosts) {
+    const u = g.userData;
+    g.position.set(u.x0 + Math.sin(clock * 0.6 + u.ph) * 12, u.y0 + Math.sin(clock * 1.7 + u.ph) * 1.5, u.z);
+    g.rotation.y = Math.PI + Math.sin(clock + u.ph) * 0.4;
+  }
+  for (const b of bulbs) b.scale.setScalar(0.85 + 0.3 * Math.abs(Math.sin(clock * 2 + b.position.x * 0.7)));
+  for (const r of rings) r.mesh.rotation.z = clock * 0.6;
+  if (bannerT > 0 && (bannerT -= dt) <= 0) bannerEl.classList.add('hidden');
+  flashT = Math.max(0, flashT - dt);
+
+  if (state !== 'fly') {
+    // the title screen: drift through the fog with the flock
+    pos.z -= 12 * dt; if (pos.z < -1200) pos.z = 0;
+    pos.x = lineX(pos.z); pos.y = lineY(pos.z);
+    yaw = 0; pitch = 0;
+    pumpkinZ = pos.z + 40;
+    placeFlock(dt, 12);
+    return;
+  }
+  runT += dt;
+  if (introT > 0) introT -= dt;
+
+  // --- flying
+  const sx = steerInput(), sy = climbInput();
+  yaw -= sx * 1.5 * dt;
+  if (!sx) yaw += (0 - yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
+  pitch += (sy * 0.65 - pitch) * Math.min(1, dt * 3);
+  roll += (sx * 0.6 - roll) * Math.min(1, dt * 5);
+  boost = Math.max(0, boost - dt * 6);
+  slowT = Math.max(0, slowT - dt);
+  const target = (slowT > 0 ? SPEED * 0.45 : SPEED) + boost;
+  speed += (target - speed) * Math.min(1, dt * 3);
+  dir.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
+  pos.addScaledVector(dir, speed * dt);
+  // soft walls: the fog thickens and gently turns you back
+  if (Math.abs(pos.x) > WIDTH) { pos.x = Math.sign(pos.x) * WIDTH; yaw += Math.sign(pos.x) * dt * 1.5; }
+  if (pos.y > CEILING) { pos.y = CEILING; pitch = Math.min(pitch, 0); }
+  const gy = (pos.z < -2895 ? groundAt(pos.x, pos.z) : 0) + 1.5;
+  if (pos.y < gy) { pos.y = gy; pitch = Math.max(pitch, 0.25); }
+  if (pos.z > 40) { pos.z = 40; yaw = 0; }
+  // flying into the cliff face from below: bump back and tip upward
+  if (pos.z < -2878 && pos.z > -2895 && pos.x < 40 && pos.y < 47) {
+    pos.z = -2877; pitch = 0.6;
+    if (slowT <= 0) { slowT = 0.9; sfx.bump(); showBanner('CLIMB!', 'Fly up over the cliff!', 1.4); }
+  }
+
+  // --- areas
+  const sec = sectionAt(pos.z);
+  if (sec !== section && introT <= 0) {
+    if (section && sec !== mercySection) mercy = 0;   // made it to a new area: back to normal
+    section = sec;
+    showBanner(sec.name, sec.sub);
+    sfx.section();
+  }
+  // fog colour eases toward each area's mood
+  scene.fog.color.lerp(new THREE.Color(sec.fog), Math.min(1, dt * 1.5));
+  scene.fog.near += (sec.near - scene.fog.near) * Math.min(1, dt);
+  scene.fog.far += (sec.far - scene.fog.far) * Math.min(1, dt);
+  scene.background.copy(scene.fog.color).multiplyScalar(0.6);
+
+  // --- rings
+  for (const r of rings) {
+    if (r.got) continue;
+    if (Math.abs(pos.z - r.z) < 1.6 && Math.hypot(pos.x - r.x, pos.y - r.y) < r.r) {
+      r.got = true; r.mesh.visible = false; ringCount++;
+      boost = BOOST; sfx.ring(); sparkle(pos);
+    }
+  }
+
+  // --- bumping into things
+  if (slowT <= 0) for (const c of colliders) {
+    if (Math.abs(c.z - pos.z) > c.r + 2) continue;
+    const d = Math.hypot(pos.x - c.x, pos.y - c.y, pos.z - c.z);
+    if (d < c.r + 0.8) {
+      slowT = 0.9; sfx.bump();
+      pos.y += 3; pos.x += pos.x > c.x ? 2 : -2;
+      if (navigator.vibrate) navigator.vibrate(60);
+      break;
+    }
+  }
+  for (const g of ghosts) {
+    if (slowT <= 0 && g.position.distanceTo(pos) < 3) { slowT = 0.9; sfx.bump(); RB.beep(600, 300, 0.4, 'sine', 0.08); }
+  }
+
+  // --- the storm: a warning glow, then lightning strikes there
+  shieldT = Math.max(0, shieldT - dt); shieldCool = Math.max(0, shieldCool - dt);
+  shieldMesh.visible = shieldT > 0;
+  shieldMesh.material.opacity = 0.2 + 0.1 * Math.sin(clock * 12);
+  if (sec.id === 'storm') {
+    if (!strike && (stormTimer -= dt) <= 0) {
+      // aim just ahead of where you're going
+      const p = pos.clone().addScaledVector(dir, speed * 1.4);
+      p.x += rand(-4, 4); p.y += rand(-3, 3);
+      strike = { p, t: 1.4 };
+      warnMesh.position.copy(p); warnMesh.visible = true;
+    }
+    if (strike && (strike.t -= dt) <= 0) {
+      sfx.thunder(); flashT = 0.35;
+      // draw a jagged bolt from the clouds down to the strike point
+      const pts = [], top = new THREE.Vector3(strike.p.x + rand(-10, 10), 100, strike.p.z);
+      for (let i = 0; i <= 10; i++) pts.push(new THREE.Vector3().lerpVectors(top, strike.p, i / 10).add(new THREE.Vector3(i && i < 10 ? rand(-4, 4) : 0, 0, i && i < 10 ? rand(-3, 3) : 0)));
+      if (boltLine) scene.remove(boltLine);
+      boltLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), boltMat);
+      scene.add(boltLine); boltT = 0.25;
+      if (strike.p.distanceTo(pos) < 12) {
+        if (shieldT > 0) { sparkle(pos, '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); }
+        else { slowT = 1.3; sfx.zap(); if (navigator.vibrate) navigator.vibrate(150); }
+      }
+      strike = null; warnMesh.visible = false; stormTimer = rand(1.2, 2.4) * (1 + mercy * 0.6);
+    }
+  } else if (strike) { strike = null; warnMesh.visible = false; }
+  if (boltLine && (boltT -= dt) <= 0) { scene.remove(boltLine); boltLine = null; }
+  document.getElementById('warn').classList.toggle('hidden', !(strike && strike.p.distanceTo(pos) < 30 && shieldT <= 0));
+  warnMesh.material.opacity = strike ? 0.1 + 0.15 * Math.abs(Math.sin(clock * 10)) : 0;
+
+  // --- the pumpkin closes in when you slow down, and never falls too far behind
+  const gap = pumpkinZ - pos.z;
+  const ps = gap > MAX_GAP ? 36 : PUMPKIN_SPEED;
+  pumpkinZ -= ps * dt;
+  if (pumpkinZ - pos.z < CATCH_GAP) caught();
+  if (gap < 50 && (laughT -= dt) <= 0) { sfx.laugh(); laughT = 4; }
+
+  if (pos.z <= FINISH_Z && Math.hypot(pos.x - lineX(FINISH_Z), pos.y - 60) < 30) finishRun();
+  else if (pos.z < FINISH_Z - 60) finishRun();
+
+  placeFlock(dt, null);
+  music.setWind(Math.min(0.12, speed / 400));
+}
+
+// the other witches fly the friendly line ahead of the pumpkin, weaving a little
+function placeFlock(dt, fixedSpeed) {
+  for (const f of friends) {
+    const sp = fixedSpeed || f.speed + Math.sin(clock * 0.3 + f.ph) * 2;
+    f.z -= sp * dt;
+    if (fixedSpeed && f.z < pos.z - 60) f.z = pos.z + rand(10, 40);
+    if (f.z < FINISH_Z - 200) f.z = FINISH_Z - 200;
+    const x = lineX(f.z) + f.off + Math.sin(clock * 0.8 + f.ph) * 5, y = Math.max(groundAt(x, f.z) + 3, lineY(f.z) + f.offY + Math.sin(clock * 1.1 + f.ph) * 2);
+    f.mesh.position.set(x, y, f.z);
+    f.mesh.rotation.set(0, 0, Math.sin(clock * 0.8 + f.ph) * 0.25);
+    f.mesh.userData.cape.rotation.x = -0.9 + Math.sin(clock * 10 + f.ph) * 0.15;
+  }
+}
+
+// ---------- Camera, visuals, HUD ----------
+const camPos = new THREE.Vector3(0, 50, 30), camLook = new THREE.Vector3();
+const tmp = new THREE.Vector3();
+function updateVisuals(dt) {
+  me.position.copy(pos);
+  me.rotation.set(0, 0, 0);
+  me.rotateY(yaw);
+  me.rotateX(pitch);
+  me.rotateZ(roll);
+  me.userData.cape.rotation.x = -0.9 + Math.sin(clock * 12) * 0.2;
+  // pumpkin: follows your line from behind, bobbing and turning to face you
+  const py = Math.max(10, pos.y + Math.sin(clock * 1.3) * 2);
+  pumpkin.position.lerp(tmp.set(pos.x * 0.8, py, pumpkinZ), Math.min(1, dt * 2));
+  pumpkin.position.z = pumpkinZ;
+  pumpkin.rotation.y = Math.atan2(pos.x - pumpkin.position.x, pos.z - pumpkin.position.z) + Math.PI;
+  pumpkin.rotation.z = Math.sin(clock * 2) * 0.08;
+  pumpkin.userData.light.intensity = 1.6 + Math.sin(clock * 9) * 0.4;
+  const back = tmp.set(Math.sin(yaw), 0, Math.cos(yaw));
+  if (state !== 'fly' || introT > 0.6) {
+    // look back from ahead of the flock at the pumpkin chasing everyone
+    const want = pos.clone().add(new THREE.Vector3(9, 5, -24));
+    camPos.lerp(want, Math.min(1, dt * (state === 'fly' ? 6 : 2)));
+    camLook.lerp(new THREE.Vector3(pos.x, pos.y + 1, (pos.z + pumpkin.position.z) / 2), Math.min(1, dt * 4));
+  } else {
+    // chase camera, a little above and behind
+    const want = pos.clone().addScaledVector(back, 10).add(new THREE.Vector3(0, 4.2 - pitch * 3, 0));
+    camPos.lerp(want, Math.min(1, dt * 5));
+    camLook.lerp(pos.clone().addScaledVector(dir.lengthSq() ? dir : back.clone().negate(), 10).add(new THREE.Vector3(0, 1.5, 0)), Math.min(1, dt * 6));
+  }
+  camera.position.copy(camPos);
+  camera.lookAt(camLook);
+  if (flashT > 0) camera.position.x += (Math.random() - 0.5) * flashT * 2;
+  sky.position.set(camPos.x, 0, camPos.z);
+  // rain falls around you in the storm
+  const inStorm = section && section.id === 'storm';
+  rain.visible = inStorm;
+  if (inStorm) {
+    const a = rainGeo.attributes.position.array;
+    for (let i = 0; i < RAIN_N; i++) {
+      a[i * 3 + 1] -= 60 * dt;
+      if (a[i * 3 + 1] < pos.y - 30 || Math.abs(a[i * 3 + 2] - pos.z) > 60) {
+        a[i * 3] = pos.x + rand(-50, 50); a[i * 3 + 1] = pos.y + rand(-10, 40); a[i * 3 + 2] = pos.z + rand(-60, 20);
+      }
+    }
+    rainGeo.attributes.position.needsUpdate = true;
+  }
+  // lightning flash brightens the whole sky for a moment
+  scene.background.offsetHSL(0, 0, flashT * 0.6);
+  // sparkles
+  if (sparkT < 1.2) {
+    sparkT += dt;
+    const a = sparkGeo.attributes.position.array;
+    for (let i = 0; i < SPARK_N; i++) { a[i * 3] += sparkVel[i][0] * dt; a[i * 3 + 1] += sparkVel[i][1] * dt; a[i * 3 + 2] += sparkVel[i][2] * dt; }
+    sparkGeo.attributes.position.needsUpdate = true;
+    sparks.material.opacity = Math.max(0, 1 - sparkT / 1.2);
+  }
+  sparks.visible = sparkT < 1.2;
+}
+
+const $ = id => document.getElementById(id);
+function updateHUD() {
+  const fly = state === 'fly';
+  $('hud').classList.toggle('hidden', !fly);
+  spellBtn.classList.toggle('hidden', !(fly && RB.touch));
+  if (!fly) return;
+  $('hTime').textContent = `⏱ ${fmt(runT)}`;
+  $('hRings').textContent = `💍 ${ringCount} rings`;
+  const ahead = friends.filter(f => f.z < pos.z).length;
+  $('hPlace').textContent = `🧹 ${['1st', '2nd', '3rd', '4th', '5th', '6th'][ahead]} of 6 witches`;
+  $('hShield').textContent = shieldT > 0 ? '🛡️ Shield on!' : shieldCool > 0 ? `🛡️ ready in ${Math.ceil(shieldCool)}` : '🛡️ Shield ready';
+  spellBtn.classList.toggle('cool', shieldCool > 0 && shieldT <= 0);
+  const gap = pumpkinZ - pos.z;
+  $('pumpkinFill').style.width = `${clamp(100 - (gap - CATCH_GAP) / (MAX_GAP - CATCH_GAP) * 100, 4, 100)}%`;
+}
+
+// ---------- Screens ----------
+$('btnPlay').addEventListener('click', startGame);
+$('btnAgain').addEventListener('click', startGame);
+if (best) $('titleBest').innerHTML = `🏆 Best time <b>${fmt(best)}</b>`;
+resetRun(0);
+
+// ---------- Loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+  if (!paused) {
+    update(dt);
+    updateVisuals(dt);
+  }
+  updateHUD();
+  renderer.render(scene, camera);
+  requestAnimationFrame(frame);
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -64,7 +64,7 @@ const PHONE = { ...devices['iPhone 13'] };
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -278,12 +278,37 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p);
   });
 
+  await test('Witch Way Out: flying the line escapes the pumpkin; ignoring the storm gets you caught', async () => {
+    const p = await open(browser, 'witch-way-out.html', { viewport: { width: 480, height: 270 } });
+    const fly = strat => p.evaluate(strat => {
+      startGame(); introT = 0;
+      for (let i = 0; i < 60 * 300 && state === 'fly'; i++) {
+        keys.l = keys.r = keys.u = keys.d = false;
+        if (strat === 'pilot') {
+          const z = pos.z - 35, wantYaw = Math.atan2(-(lineX(z) - pos.x), -(z - pos.z));
+          if (wantYaw - yaw < -0.05) keys.r = true; else if (wantYaw - yaw > 0.05) keys.l = true;
+          const wp = Math.atan2(lineY(z) - pos.y, 35);
+          if (wp - pitch > 0.05) keys.u = true; else if (wp - pitch < -0.05) keys.d = true;
+          if (strike && strike.t < 0.6) castShield();
+        }
+        update(1 / 60);
+      }
+      return { state, caught: caughtCount, rings: ringCount };
+    }, strat);
+    const good = await fly('pilot');
+    check(good.state === 'over' && good.caught === 0, 'pilot: ' + JSON.stringify(good));
+    const idle = await fly('idle');
+    check(idle.caught > 0, 'doing nothing should get caught at least once: ' + JSON.stringify(idle));
+    check(idle.state === 'over', 'the pumpkin should ease off so everyone can finish: ' + JSON.stringify(idle));
+    await done(p, 'witch-way-out.png');
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

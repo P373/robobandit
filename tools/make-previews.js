@@ -13,6 +13,7 @@ const GAMES = [
   { file: 'hamglider', title: 'HAMGLIDER', tag: 'Glide Pip the hamster onto the bullseye!', color: '#ff9a3c' },
   { file: 'web-hero', title: 'WEB HERO', tag: 'Swing across the city, bonk the Bandit Bots!', color: '#b98cff' },
   { file: 'sparkle-meadow', title: 'SPARKLE MEADOW', tag: 'Ride your pony and make animal friends!', color: '#ff8fc8' },
+  { file: 'witch-way-out', title: 'WITCH WAY OUT', tag: 'Fly your broomstick and escape the giant pumpkin!', color: '#ff8a1f' },
 ];
 
 const page = body => `<!doctype html><html><head><meta charset="utf-8">
