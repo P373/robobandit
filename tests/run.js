@@ -64,7 +64,7 @@ const PHONE = { ...devices['iPhone 13'] };
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -303,12 +303,97 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p, 'witch-way-out.png');
   });
 
+  await test('Flight School: every lesson draws, autopilots fly each round, the quiz saves progress', async () => {
+    const p = await open(browser, 'flight-school.html', { viewport: { width: 960, height: 600 } });
+    await p.click('#go');
+    // every lesson slide and its animated diagram
+    const slides = await p.evaluate(() => {
+      let n = 0;
+      LEVELS.forEach((L, i) => L.slides.forEach((_, s) => { cur = i; slide = s; lessonScreen(); drawDiagram(1.3); n++; }));
+      return n;
+    });
+    check(slides >= 25, slides + ' slides');
+    // autopilots: each round can be won, and every round ends even if you do nothing
+    const runs = await p.evaluate(() => {
+      const bot = (i, r) => {
+        const px = PX();
+        if (i === 0 || i === 2 || i === 3) {
+          let tgt = [220, 0, 260, 230][i];
+          const bad = r.objs.filter(o => ['bird', 'gull', 'storm'].includes(o.k) && o.x - r.dist > px - 40 && o.x - r.dist < px + (i ? 260 : 330)).sort((a, b) => a.x - b.x)[0];
+          if (bad && Math.abs(bad.y - tgt) < 90) tgt = bad.y > tgt ? bad.y - 110 : bad.y + 110;
+          const fuel = r.objs.find(o => o.k === 'fuel' && o.x - r.dist > px && o.x - r.dist < px + 250);
+          if (fuel && !bad) tgt = fuel.y;
+          tgt = clamp(tgt, 100, H - 150);
+          keys.Space = r.y + r.vy * (i ? 0.15 : 0.8) > tgt;
+        }
+        if (i === 1) { const th = r.therm.find(t => Math.abs(t.x - (r.dist + px)) < t.w / 2); keys.Space = !r.stall && (th ? r.v > 110 : (r.v > 200 && r.y > 200)); }
+        if (i === 4) { const ring = r.objs.find(o => o.k === 'ring' && !o.passed); if (ring) { keys.ArrowUp = ring.y < r.y - 8; keys.ArrowDown = ring.y > r.y + 8; } }
+        if (i === 5) {
+          if (r.fuel <= 0 && r.launch <= 0 && r.emptyT > 0.3) r.tap();
+          const bad = r.objs.filter(o => o.k !== 'star' && o.y + r.scroll < H * 0.68 && o.y + r.scroll > H * 0.68 - 260 && Math.abs(o.x - r.x) < 60)[0];
+          if (bad) keys[bad.x > r.x ? 'ArrowLeft' : 'ArrowRight'] = true;
+        }
+        if (i === 6) {
+          const dx = (r.pad.x1 + r.pad.x2) / 2 - r.x, want = clamp(dx * 0.4, -40, 40);
+          // until over the pad, stay well above any peak between here and it
+          const lo = Math.min(r.x, r.pad.x1) - 40, hi = Math.max(r.x, r.pad.x2) + 40;
+          const peak = Math.min(...r.pts.filter(q => q.x > lo && q.x < hi && (q.x < r.pad.x1 || q.x > r.pad.x2)).map(q => q.y), r.pad.y);
+          const h = Math.abs(dx) > 30 ? peak - 70 - r.y : r.pad.y - r.y;
+          keys.ArrowRight = r.vx < want - 4; keys.ArrowLeft = r.vx > want + 4;
+          keys.ArrowUp = r.vy > Math.min(60, 12 + h * 0.12) || (Math.abs(dx) > 40 && h < 120 && r.vy > 0);
+        }
+      };
+      const out = [];
+      for (const pilot of [true, false]) for (let i = 0; i < 7; i++) {
+        cur = i; startRound(true);
+        for (let f = 0; f < 60 * 150 && mode === 'play'; f++) { clearInput(); if (pilot) bot(i, round); update(1 / 60); }
+        out.push({ i, pilot, ended: mode === 'roundEnd', win: round.win, score: round.results().reduce((a, r) => a + r[1], 0) });
+      }
+      return out;
+    });
+    for (const r of runs) {
+      check(r.ended, `level ${r.i + 1} round never ended: ` + JSON.stringify(r));
+      if (r.pilot) check(r.win, `autopilot lost level ${r.i + 1}: ` + JSON.stringify(r));
+    }
+    // quiz: 3 of 4 right gives 2 stars, saves the score and unlocks the next level
+    await p.evaluate(() => { localStorage.clear(); save.best = []; save.stars = []; save.unlocked = 1; cur = 0; startRound(true); round.over = true; round.end = 'test'; round.endT = 2; update(0.01); });
+    await p.click('#quiz');
+    for (let q = 0; q < 4; q++) {
+      const k = await p.evaluate(() => quiz[qi].opts.findIndex(o => o.right));
+      await p.click(`.ans[data-k="${q === 0 ? (k + 1) % 3 : k}"]`);
+      await p.click('#nextQ');
+    }
+    const saved = await p.evaluate(() => [JSON.parse(localStorage.getItem('fs_save')), +localStorage.getItem('fs_best'), save.best[0]]);
+    check(saved[0].stars[0] === 2 && saved[0].unlocked === 2 && saved[1] === saved[2] && saved[2] >= 300, JSON.stringify(saved));
+    await done(p, 'flight-school.png');
+  });
+
+  await test('Flight School on a phone: hold to fire the burner, STAGE button, joystick lander', async () => {
+    const p = await open(browser, 'flight-school.html', PHONE);
+    await p.evaluate(() => { cur = 0; startRound(true); });
+    const up = await touchDrag(p, 200, 400, 200, 400);
+    await p.waitForTimeout(600);
+    const heat = await p.evaluate(() => round.heat);
+    await up();
+    check(heat > 0.7, 'holding the screen should heat the balloon: ' + heat);
+    await p.evaluate(() => { cur = 5; startRound(true); for (let f = 0; f < 60 * 9; f++) update(1 / 60); });
+    await p.tap('#actBtn');
+    check(await p.evaluate(() => round.stage === 1), 'STAGE button did not stage');
+    await p.evaluate(() => { cur = 6; startRound(true); });
+    const up2 = await touchDrag(p, 150, 500, 190, 440);
+    await p.waitForTimeout(200);
+    const l = await p.evaluate(() => [round.flame, round.side]);
+    await up2();
+    check(l[0] === 1 && l[1] === 1, 'dragging up-right should fire the engine and slide right: ' + l);
+    await done(p, 'flight-school-phone.png');
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

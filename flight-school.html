@@ -1,0 +1,2060 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Flight School | RoboBandit</title>
+<meta name="description" content="Learn how flying works, from hot air balloons to the Moon! Seven levels: learn, fly, then ace the quiz. A free RoboBandit browser game.">
+<link rel="canonical" href="https://robobandit.com/flight-school.html">
+<meta name="theme-color" content="#3d8ff0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/flight-school.html">
+<meta property="og:title" content="Flight School | RoboBandit">
+<meta property="og:description" content="Learn how flying works, from hot air balloons to the Moon! Seven levels: learn, fly, then ace the quiz.">
+<meta property="og:image" content="https://robobandit.com/previews/flight-school.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Flight School | RoboBandit">
+<meta name="twitter:description" content="Learn how flying works, from hot air balloons to the Moon! Seven levels: learn, fly, then ace the quiz.">
+<meta name="twitter:image" content="https://robobandit.com/previews/flight-school.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #3d8ff0;
+    font-family: 'Fredoka', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  #game { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+  .hidden { display: none !important; }
+
+  #actBtn { position: fixed; z-index: 3; right: max(18px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom));
+    min-width: 104px; height: 104px; padding: 0 12px; border-radius: 52px; border: 4px solid #fff; cursor: pointer;
+    font: 700 17px 'Fredoka', system-ui, sans-serif; color: #fff; background: linear-gradient(#ff9a3d, #e8453a);
+    box-shadow: 0 6px 0 #a8281f; line-height: 1.1; touch-action: none; }
+  #actBtn.on, #actBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #a8281f; }
+  #actBtn .ico { display: block; font-size: 30px; }
+
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 14px;
+    padding-top: max(64px, calc(env(safe-area-inset-top) + 58px)); box-sizing: border-box;
+    background: rgba(10,30,70,.35); touch-action: pan-y; }
+  .card { margin: auto; width: 100%; max-width: 680px; box-sizing: border-box; text-align: center; color: #0b2a5c;
+    background: #fffdf4; border: 4px solid #0b2a5c; border-radius: 22px; box-shadow: 0 8px 0 #0b2a5c; padding: 18px 20px 20px; }
+  .card h1 { margin: 0; font: 38px/1.05 'Bungee', system-ui, sans-serif; letter-spacing: 1px; color: #e8453a;
+    text-shadow: 0 3px 0 #ffd84a; }
+  .card h2 { margin: 4px 0 8px; font-size: 26px; font-weight: 700; line-height: 1.15; }
+  .card p { margin: 8px 0; font-size: 19px; line-height: 1.4; }
+  .chip { display: inline-block; padding: 3px 12px; border-radius: 999px; font-weight: 700; font-size: 15px; color: #fff; background: #3d8ff0; }
+  .btn { display: inline-block; margin: 8px 5px 0; padding: 12px 22px; border: 3px solid #0b2a5c; border-radius: 14px; cursor: pointer;
+    font: 700 20px 'Fredoka', system-ui, sans-serif; color: #0b2a5c; background: #ffd84a; box-shadow: 0 5px 0 #0b2a5c; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #0b2a5c; }
+  .btn.alt { background: #fff; font-size: 17px; }
+  .btn:disabled { opacity: .45; cursor: default; }
+  #dia { display: block; position: static; margin: 6px auto; width: min(100%, calc(40vh * 16 / 9)); aspect-ratio: 16 / 9;
+    border-radius: 14px; border: 3px solid #0b2a5c; background: #cfe9ff; }
+  .dots { margin: 6px 0 2px; font-size: 14px; letter-spacing: 4px; color: #9fb3d6; }
+  .dots b { color: #e8453a; }
+  .levels { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); margin: 12px 0 6px; }
+  .lvl { position: relative; padding: 10px 8px; border: 3px solid #0b2a5c; border-radius: 16px; cursor: pointer; background: #fff;
+    font: inherit; color: inherit; box-shadow: 0 4px 0 #0b2a5c; }
+  .lvl .ic { font-size: 36px; display: block; }
+  .lvl b { display: block; font-size: 17px; }
+  .lvl small { display: block; font-size: 14px; color: #5a6f99; }
+  .lvl .st { display: block; color: #f2a900; font-size: 16px; letter-spacing: 1px; }
+  .lvl.next { background: #fff3b0; animation: glow 1.2s ease-in-out infinite alternate; }
+  .lvl.locked { cursor: default; opacity: .5; box-shadow: none; }
+  @keyframes glow { to { box-shadow: 0 4px 0 #0b2a5c, 0 0 18px #ffd84a; } }
+  .how { text-align: left; margin: 10px auto; max-width: 520px; padding: 0; list-style: none; font-size: 18px; }
+  .how li { margin: 8px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .how .e { font-size: 24px; line-height: 1; }
+  .answers { display: grid; gap: 10px; margin: 12px 0; }
+  .ans { padding: 12px 14px; border: 3px solid #0b2a5c; border-radius: 14px; cursor: pointer; text-align: left;
+    font: 600 19px 'Fredoka', system-ui, sans-serif; color: #0b2a5c; background: #fff; box-shadow: 0 4px 0 #0b2a5c; }
+  .ans.right { background: #b8f0b0; }
+  .ans.wrong { background: #ffc4bd; }
+  .ans:disabled { cursor: default; }
+  .why { padding: 10px 14px; border-radius: 14px; background: #e8f3ff; font-size: 18px; line-height: 1.4; text-align: left; }
+  .rows { margin: 10px auto; max-width: 420px; font-size: 18px; }
+  .rows div { display: flex; justify-content: space-between; padding: 4px 2px; border-bottom: 2px dashed #d5def0; }
+  .rows .tot { font-weight: 700; font-size: 22px; border: 0; }
+  .big { font: 44px 'Bungee', system-ui, sans-serif; color: #e8453a; margin: 6px 0; }
+  .stars { font-size: 38px; color: #f2a900; letter-spacing: 4px; }
+  .cert { border: 6px double #c9971e; border-radius: 16px; padding: 14px; background: linear-gradient(#fffaf0, #fff1cf); }
+  .cert .nm { font: 700 30px 'Fredoka', system-ui, sans-serif; color: #0b2a5c; border-bottom: 2px solid #c9971e; display: inline-block; min-width: 60%; padding: 0 10px; }
+  .badges { font-size: 30px; letter-spacing: 6px; }
+  input[type=text] { font: 600 20px 'Fredoka', system-ui, sans-serif; padding: 8px 12px; border: 3px solid #0b2a5c; border-radius: 12px; width: 220px; max-width: 70%; }
+  @media (max-height: 500px) {
+    .card h1 { font-size: 30px; } .card h2 { font-size: 21px; } .card p { font-size: 17px; }
+    #dia { width: min(100%, calc(46vh * 16 / 9)); }
+  }
+</style>
+<link rel="stylesheet" href="common.css">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar"></div>
+<button id="actBtn" class="hidden" type="button"><span class="ico" id="actIco">🔥</span><span id="actLbl">THRUST</span></button>
+<div id="screen" class="screen"><div class="card" id="card"></div></div>
+
+<script src="common.js"></script>
+<script src="touch-stick.js"></script>
+<script>
+'use strict';
+
+// ---------- Canvas ----------
+const H = 540, MIN_W = 420, TAU = Math.PI * 2;
+const canvas = document.getElementById('game');
+const gameCtx = canvas.getContext('2d');
+let ctx = gameCtx;   // drawing helpers draw on ctx, which the lesson diagrams briefly swap out
+let W = 800, VH = H, OFFY = 0, scale = 1;
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  scale = Math.min(canvas.height / H, canvas.width / MIN_W);
+  W = canvas.width / scale;
+  VH = canvas.height / scale;
+  OFFY = (VH - H) / 2;
+}
+addEventListener('resize', resize);
+resize();
+
+// ---------- Small helpers ----------
+const $ = id => document.getElementById(id);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const lerp = (a, b, t) => a + (b - a) * t;
+const rand = (a, b) => a + Math.random() * (b - a);
+const rnd = (i, k = 0) => { const s = Math.sin(i * 127.1 + k * 311.7) * 43758.5453; return s - Math.floor(s); };
+const mod = (a, n) => ((a % n) + n) % n;
+const hexRGB = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16));
+const mix = (c1, c2, t) => { const a = hexRGB(c1), b = hexRGB(c2); return `rgb(${a.map((v, i) => Math.round(v + (b[i] - v) * t)).join(',')})`; };
+function circle(x, y, r) { ctx.beginPath(); ctx.arc(x, y, Math.max(0, r), 0, TAU); ctx.fill(); }
+function rrect(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function txt(s, x, y, size, color, align = 'center', weight = 700, font = 'Fredoka') {
+  ctx.font = `${weight} ${size}px '${font}', system-ui, sans-serif`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+function outlined(s, x, y, size, color, align = 'center', font = 'Fredoka') {
+  ctx.font = `700 ${size}px '${font}', system-ui, sans-serif`;
+  ctx.textAlign = align; ctx.textBaseline = 'middle';
+  ctx.lineJoin = 'round'; ctx.lineWidth = Math.max(3, size / 6); ctx.strokeStyle = '#0b2a5c';
+  ctx.strokeText(s, x, y); ctx.fillStyle = color; ctx.fillText(s, x, y);
+}
+function arrow(x1, y1, x2, y2, color, w = 6) {
+  const a = Math.atan2(y2 - y1, x2 - x1), hl = w * 2.6;
+  ctx.strokeStyle = color; ctx.fillStyle = color; ctx.lineWidth = w; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2 - Math.cos(a) * hl * 0.6, y2 - Math.sin(a) * hl * 0.6); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(x2, y2);
+  ctx.lineTo(x2 - Math.cos(a - 0.45) * hl, y2 - Math.sin(a - 0.45) * hl);
+  ctx.lineTo(x2 - Math.cos(a + 0.45) * hl, y2 - Math.sin(a + 0.45) * hl); ctx.fill();
+}
+function star(x, y, r, fill = '#ffd84a', rot = 0) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const a = rot - Math.PI / 2 + i * Math.PI / 5, rr = i % 2 ? r * 0.45 : r;
+    ctx.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr);
+  }
+  ctx.closePath(); ctx.fillStyle = fill; ctx.fill();
+  ctx.strokeStyle = 'rgba(160,100,0,.6)'; ctx.lineWidth = 1.5; ctx.stroke();
+}
+function heart(x, y, s, full) {
+  ctx.beginPath();
+  ctx.moveTo(x, y + s * 0.9);
+  ctx.bezierCurveTo(x - s * 1.3, y, x - s * 0.7, y - s * 0.9, x, y - s * 0.3);
+  ctx.bezierCurveTo(x + s * 0.7, y - s * 0.9, x + s * 1.3, y, x, y + s * 0.9);
+  ctx.fillStyle = full ? '#ff4d6d' : 'rgba(255,255,255,.35)'; ctx.fill();
+}
+function cloud(x, y, s, color = 'rgba(255,255,255,.9)') {
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.ellipse(x, y, 60 * s, 18 * s, 0, 0, TAU);
+  ctx.ellipse(x + 26 * s, y - 14 * s, 34 * s, 22 * s, 0, 0, TAU);
+  ctx.ellipse(x - 24 * s, y - 8 * s, 26 * s, 16 * s, 0, 0, TAU);
+  ctx.fill();
+}
+function bird(x, y, s, t, color = '#2b2b3a') {
+  const f = Math.sin(t * 10) * 7 * s;
+  ctx.strokeStyle = color; ctx.lineWidth = 3 * s; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(x - 13 * s, y - f); ctx.quadraticCurveTo(x - 6 * s, y - 6 * s, x, y);
+  ctx.quadraticCurveTo(x + 6 * s, y - 6 * s, x + 13 * s, y - f); ctx.stroke();
+}
+function sky(top, bottom) {
+  const g = ctx.createLinearGradient(0, -OFFY, 0, H + OFFY);
+  g.addColorStop(0, top); g.addColorStop(1, bottom);
+  ctx.fillStyle = g; ctx.fillRect(-2, -OFFY - 2, W + 4, VH + 4);
+}
+
+// ---------- Flying machines (all face right; ang > 0 is nose up) ----------
+function balloonShape(x, y, r) {
+  ctx.beginPath();
+  ctx.moveTo(x - r * 0.32, y + r * 1.15);
+  ctx.bezierCurveTo(x - r * 1.3, y + r * 0.35, x - r * 1.1, y - r * 1.08, x, y - r * 1.08);
+  ctx.bezierCurveTo(x + r * 1.1, y - r * 1.08, x + r * 1.3, y + r * 0.35, x + r * 0.32, y + r * 1.15);
+  ctx.closePath();
+}
+function drawBalloon(x, y, r, flame = 0, c1 = '#ff6b3d', c2 = '#ffd84a', t = 0) {
+  ctx.strokeStyle = '#5a3b1e'; ctx.lineWidth = 1.5;
+  ctx.beginPath();
+  ctx.moveTo(x - r * 0.3, y + r * 1.13); ctx.lineTo(x - r * 0.3, y + r * 1.5);
+  ctx.moveTo(x + r * 0.3, y + r * 1.13); ctx.lineTo(x + r * 0.3, y + r * 1.5); ctx.stroke();
+  if (flame > 0) {
+    const fh = r * (0.35 + 0.15 * Math.sin(t * 40)) * flame;
+    ctx.fillStyle = 'rgba(255,190,40,.9)';
+    ctx.beginPath(); ctx.moveTo(x - r * 0.12, y + r * 1.48); ctx.quadraticCurveTo(x, y + r * 1.48 - fh * 2, x + r * 0.12, y + r * 1.48); ctx.fill();
+    ctx.fillStyle = 'rgba(80,160,255,.9)';
+    ctx.beginPath(); ctx.moveTo(x - r * 0.06, y + r * 1.48); ctx.quadraticCurveTo(x, y + r * 1.48 - fh, x + r * 0.06, y + r * 1.48); ctx.fill();
+  }
+  ctx.fillStyle = '#a8692e'; rrect(x - r * 0.36, y + r * 1.5, r * 0.72, r * 0.45, 3); ctx.fill();
+  ctx.fillStyle = '#7a4a1e'; ctx.fillRect(x - r * 0.38, y + r * 1.5, r * 0.76, r * 0.09);
+  balloonShape(x, y, r); ctx.fillStyle = c1; ctx.fill();
+  ctx.save(); balloonShape(x, y, r); ctx.clip();
+  ctx.fillStyle = c2;
+  for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.ellipse(x + k * r * 0.62, y, r * 0.14, r * 1.3, 0, 0, TAU); ctx.fill(); }
+  ctx.fillRect(x - r * 1.5, y + r * 0.25, r * 3, r * 0.16);
+  ctx.fillStyle = 'rgba(255,255,255,.25)'; ctx.beginPath(); ctx.ellipse(x - r * 0.42, y - r * 0.45, r * 0.22, r * 0.42, 0.4, 0, TAU); ctx.fill();
+  ctx.restore();
+  balloonShape(x, y, r); ctx.strokeStyle = 'rgba(0,0,0,.25)'; ctx.lineWidth = 2; ctx.stroke();
+}
+function drawGlider(x, y, s, ang) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-ang); ctx.scale(s, s);
+  ctx.fillStyle = '#f4f6fb';
+  ctx.beginPath(); ctx.moveTo(30, 0); ctx.quadraticCurveTo(24, -7, 6, -6); ctx.lineTo(-30, -2); ctx.lineTo(-30, 2); ctx.lineTo(6, 5); ctx.quadraticCurveTo(24, 6, 30, 0); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-24, -2); ctx.lineTo(-34, -16); ctx.lineTo(-28, -16); ctx.lineTo(-18, -2); ctx.fill();   // tail fin
+  ctx.fillStyle = '#e8453a'; ctx.fillRect(-33, -16, 6, 4); ctx.fillRect(-6, -1, 20, 2);
+  ctx.fillStyle = '#7fc8ff'; ctx.beginPath(); ctx.ellipse(16, -5, 8, 4, -0.1, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#c9d3e6'; ctx.beginPath(); ctx.ellipse(2, -3, 26, 3, 0, 0, TAU); ctx.fill();   // long wing, edge on
+  ctx.restore();
+}
+function drawFlyer(x, y, s, ang, t) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-ang); ctx.scale(s, s);
+  ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 1.6;
+  ctx.beginPath();
+  for (const sx of [-16, -2, 12]) { ctx.moveTo(sx, -12); ctx.lineTo(sx, 7); }
+  ctx.moveTo(14, -10); ctx.lineTo(40, -4); ctx.moveTo(14, 6); ctx.lineTo(40, -1);   // booms to the front elevator
+  ctx.moveTo(-18, -10); ctx.lineTo(-40, -4); ctx.moveTo(-18, 6); ctx.lineTo(-40, 0); // booms to the rudder
+  ctx.stroke();
+  ctx.fillStyle = '#efe2c0';
+  ctx.fillRect(-20, -14, 38, 3); ctx.fillRect(-20, 6, 38, 3);   // two wings
+  ctx.fillRect(34, -7, 14, 2); ctx.fillRect(34, -2, 14, 2);     // elevator out front
+  ctx.fillRect(-44, -12, 3, 16); ctx.fillRect(-39, -12, 3, 16); // rudder behind
+  ctx.fillStyle = 'rgba(90,90,90,.75)';
+  const blade = Math.abs(Math.cos(t * 30)) * 10 + 2;
+  ctx.beginPath(); ctx.ellipse(-25, -6, 2.5, blade, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#5a4630'; ctx.fillRect(-6, 1, 14, 4);   // pilot lying on the lower wing
+  ctx.fillStyle = '#e8b98a'; circle(10, 2, 3.2);
+  ctx.fillStyle = '#333'; ctx.fillRect(-4, -6, 6, 6);     // engine
+  ctx.restore();
+}
+function drawProp(x, y, s, ang, t, color = '#c9d1dc') {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-ang); ctx.scale(s, s);
+  ctx.fillStyle = color;
+  ctx.beginPath(); ctx.moveTo(30, -4); ctx.quadraticCurveTo(32, 4, 26, 7); ctx.lineTo(-30, 2); ctx.lineTo(-32, -4); ctx.quadraticCurveTo(0, -10, 30, -4); ctx.fill();
+  ctx.beginPath(); ctx.moveTo(-22, -4); ctx.lineTo(-34, -18); ctx.lineTo(-27, -18); ctx.lineTo(-14, -4); ctx.fill();   // fin
+  ctx.fillStyle = '#9aa6b8'; ctx.fillRect(-12, -11, 30, 4);   // high wing
+  ctx.fillStyle = '#2b4a7a'; ctx.fillRect(-26, -2, 22, 2); ctx.fillRect(4, -2, 22, 2);
+  ctx.strokeStyle = '#555'; ctx.lineWidth = 1.5;
+  ctx.beginPath(); ctx.moveTo(8, 5); ctx.lineTo(4, 13); ctx.moveTo(8, 5); ctx.lineTo(14, 13); ctx.stroke();
+  ctx.fillStyle = '#222'; circle(4, 13, 3); circle(14, 13, 3);
+  ctx.fillStyle = '#7a8597'; circle(31, 1, 3.5);
+  ctx.fillStyle = 'rgba(60,60,60,.55)';
+  ctx.beginPath(); ctx.ellipse(33, 1, 2, Math.abs(Math.cos(t * 35)) * 12 + 3, 0, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+function drawJet(x, y, s, ang, flame = 0, t = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.rotate(-ang); ctx.scale(s, s);
+  if (flame > 0) {
+    const fl = (14 + Math.sin(t * 50) * 4) * flame;
+    ctx.fillStyle = 'rgba(255,150,40,.85)';
+    ctx.beginPath(); ctx.moveTo(-30, -4); ctx.lineTo(-30 - fl, 0); ctx.lineTo(-30, 4); ctx.fill();
+    ctx.fillStyle = 'rgba(120,190,255,.9)';
+    ctx.beginPath(); ctx.moveTo(-30, -2); ctx.lineTo(-30 - fl * 0.5, 0); ctx.lineTo(-30, 2); ctx.fill();
+  }
+  ctx.fillStyle = '#8fa3bf';
+  ctx.beginPath(); ctx.moveTo(42, 0); ctx.quadraticCurveTo(30, -7, 8, -7); ctx.lineTo(-30, -5); ctx.lineTo(-30, 5); ctx.lineTo(8, 6); ctx.quadraticCurveTo(30, 6, 42, 0); ctx.fill();
+  ctx.fillStyle = '#6f84a3';
+  ctx.beginPath(); ctx.moveTo(-14, -5); ctx.lineTo(-30, -24); ctx.lineTo(-22, -24); ctx.lineTo(-2, -5); ctx.fill();   // swept fin
+  ctx.beginPath(); ctx.moveTo(10, 2); ctx.lineTo(-12, 14); ctx.lineTo(-20, 14); ctx.lineTo(-6, 2); ctx.fill();         // swept wing
+  ctx.fillStyle = '#e8453a'; ctx.fillRect(-10, -1, 34, 2);
+  ctx.fillStyle = '#2c3e5c'; ctx.beginPath(); ctx.ellipse(20, -6, 9, 4, -0.08, 0, TAU); ctx.fill();
+  ctx.fillStyle = 'rgba(255,255,255,.5)'; ctx.beginPath(); ctx.ellipse(22, -7, 4, 1.6, -0.08, 0, TAU); ctx.fill();
+  ctx.restore();
+}
+// A three-stage rocket standing up; x,y is the bottom of the lowest stage still attached.
+function drawRocket(x, y, s, stagesLeft, flame = 0, t = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (flame > 0) {
+    const fl = (26 + Math.sin(t * 45) * 6) * flame;
+    ctx.fillStyle = 'rgba(255,140,30,.9)';
+    ctx.beginPath(); ctx.moveTo(-8, 0); ctx.quadraticCurveTo(0, fl * 1.6, 8, 0); ctx.fill();
+    ctx.fillStyle = 'rgba(255,240,150,.95)';
+    ctx.beginPath(); ctx.moveTo(-4, 0); ctx.quadraticCurveTo(0, fl * 0.8, 4, 0); ctx.fill();
+  }
+  let yy = 0;
+  const stageCol = ['#f4f6fb', '#e8ecf4', '#f4f6fb'];
+  for (let k = 3 - stagesLeft; k < 3; k++) {   // k = 0 is the first (bottom) stage
+    const w = 12 - k * 1.5, h = 26 - k * 3;
+    if (k === 3 - stagesLeft) {   // fins on the lowest stage still attached
+      ctx.fillStyle = '#e8453a';
+      ctx.beginPath(); ctx.moveTo(-w, yy); ctx.lineTo(-w - 7, yy + 2); ctx.lineTo(-w, yy - 12); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(w, yy); ctx.lineTo(w + 7, yy + 2); ctx.lineTo(w, yy - 12); ctx.fill();
+    }
+    ctx.fillStyle = stageCol[k]; ctx.fillRect(-w, yy - h, w * 2, h);
+    ctx.fillStyle = '#20253a'; ctx.fillRect(-w, yy - h, w * 2, 2.5);
+    if (k === 0) { ctx.fillStyle = '#20253a'; ctx.fillRect(-w, yy - h * 0.6, w * 0.6, h * 0.25); ctx.fillRect(w * 0.4, yy - h * 0.6, w * 0.6, h * 0.25); }
+    yy -= h;
+  }
+  ctx.fillStyle = '#3d8ff0';   // capsule and nose
+  ctx.beginPath(); ctx.moveTo(-7, yy); ctx.lineTo(0, yy - 22); ctx.lineTo(7, yy); ctx.fill();
+  ctx.fillStyle = '#ffd84a'; circle(0, yy - 7, 2.2);
+  ctx.restore();
+}
+function drawLander(x, y, s, flame = 0, side = 0, t = 0) {
+  ctx.save(); ctx.translate(x, y); ctx.scale(s, s);
+  if (flame > 0) {
+    const fl = (16 + Math.sin(t * 50) * 4) * flame;
+    ctx.fillStyle = 'rgba(255,170,60,.9)';
+    ctx.beginPath(); ctx.moveTo(-5, 10); ctx.quadraticCurveTo(0, 10 + fl * 1.7, 5, 10); ctx.fill();
+  }
+  if (side) {
+    ctx.fillStyle = 'rgba(220,240,255,.9)';
+    const sx = side > 0 ? -15 : 15;
+    ctx.beginPath(); ctx.moveTo(sx, -6); ctx.lineTo(sx - Math.sign(side) * 10, -8); ctx.lineTo(sx - Math.sign(side) * 10, -4); ctx.fill();
+  }
+  ctx.strokeStyle = '#b8bfc9'; ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(-9, 4); ctx.lineTo(-17, 18); ctx.moveTo(9, 4); ctx.lineTo(17, 18);
+  ctx.moveTo(-21, 18); ctx.lineTo(-13, 18); ctx.moveTo(13, 18); ctx.lineTo(21, 18); ctx.stroke();
+  ctx.fillStyle = '#d9a72b'; ctx.beginPath(); ctx.moveTo(-13, 0); ctx.lineTo(-9, 8); ctx.lineTo(9, 8); ctx.lineTo(13, 0); ctx.lineTo(9, -6); ctx.lineTo(-9, -6); ctx.fill();
+  ctx.fillStyle = '#555'; ctx.beginPath(); ctx.moveTo(-4, 8); ctx.lineTo(-6, 12); ctx.lineTo(6, 12); ctx.lineTo(4, 8); ctx.fill();
+  ctx.fillStyle = '#e4e7ec'; ctx.beginPath(); ctx.moveTo(-11, -6); ctx.lineTo(-8, -18); ctx.lineTo(8, -18); ctx.lineTo(11, -6); ctx.fill();
+  ctx.fillStyle = '#20253a'; ctx.beginPath(); ctx.moveTo(-5, -10); ctx.lineTo(-3, -15); ctx.lineTo(3, -15); ctx.lineTo(5, -10); ctx.fill();
+  ctx.restore();
+}
+function drawEarth(x, y, r, t = 0) {
+  ctx.fillStyle = '#2f7de0'; circle(x, y, r);
+  ctx.save(); ctx.beginPath(); ctx.arc(x, y, r, 0, TAU); ctx.clip();
+  ctx.fillStyle = '#4fbf6a';
+  for (let i = 0; i < 7; i++) {
+    const a = rnd(i, 1) * TAU + t * 0.15, px = x + Math.cos(a) * r * 0.55, py = y + (rnd(i, 2) - 0.5) * r * 1.4;
+    if (Math.cos(a) > -0.3) { ctx.beginPath(); ctx.ellipse(px, py, r * (0.18 + rnd(i, 3) * 0.2) * (0.5 + 0.5 * Math.cos(a)), r * 0.16, 0, 0, TAU); ctx.fill(); }
+  }
+  ctx.fillStyle = 'rgba(255,255,255,.7)';
+  for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(x + (rnd(i, 5) - 0.5) * r * 1.6, y + (rnd(i, 6) - 0.5) * r * 1.6, r * 0.22, r * 0.05, 0.2, 0, TAU); ctx.fill(); }
+  const g = ctx.createRadialGradient(x - r * 0.4, y - r * 0.4, r * 0.2, x, y, r * 1.05);
+  g.addColorStop(0, 'rgba(255,255,255,0)'); g.addColorStop(1, 'rgba(0,0,40,.55)');
+  ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
+  ctx.restore();
+  ctx.strokeStyle = 'rgba(140,200,255,.6)'; ctx.lineWidth = Math.max(2, r * 0.04); ctx.beginPath(); ctx.arc(x, y, r + ctx.lineWidth / 2, 0, TAU); ctx.stroke();
+}
+function spaceStars(n, seed, w, h, t = 0) {
+  for (let i = 0; i < n; i++) {
+    ctx.fillStyle = `rgba(255,255,255,${0.4 + 0.6 * Math.abs(Math.sin(t * 1.5 + i))})`;
+    ctx.fillRect(rnd(i, seed) * w, rnd(i, seed + 1) * h, 1.6, 1.6);
+  }
+}
+
+// ---------- The seven levels ----------
+// Each level: lesson slides (a title, a few kid-sized sentences and an animated diagram),
+// then a round to fly, then a quiz. Quiz answers list the right one first; they get shuffled.
+const LEVELS = [
+  {
+    id: 'balloon', icon: '🎈', name: 'Hot Air Balloons', year: '1783', badge: 'Balloon Boss',
+    slides: [
+      { t: 'Hot air is lighter!', d: 'b-heat', p: 'When you heat air, its tiny bits zoom around faster and spread out. A balloon full of spread-out hot air is lighter than the cool air around it, so it floats up, like a beach ball pops up in a pool.' },
+      { t: 'A sheep, a duck and a rooster', d: 'b-animals', p: 'In 1783 two French brothers, Joseph and Étienne Montgolfier, built a giant balloon. The very first passengers were a sheep, a duck and a rooster! They flew for 8 minutes and landed safely.' },
+      { t: 'People take to the sky', d: 'b-people', p: 'Two months later, on November 21, 1783, two men floated over Paris for about 25 minutes. They were the first people ever to fly!' },
+      { t: 'How do you steer a balloon?', d: 'b-steer', p: 'You can\'t, really! Turn up the burner to heat the air and go up. Let the air cool to come down. The wind decides where you go, so pilots go up or down to find wind blowing the right way.' },
+    ],
+    how: {
+      goal: 'Float across the French countryside to the town. Grab ⭐ stars, and stay away from the birds and the ground!',
+      keys: 'Hold <b>Space</b> (or ↑) to fire the burner. Let go to cool down.',
+      touch: 'Hold your finger on the screen to fire the burner. Let go to cool down.',
+      tip: 'Hot air takes a moment to heat up and cool down, so plan ahead!',
+    },
+    quiz: [
+      { q: 'Why does a hot air balloon go up?', a: ['Hot air is lighter than the cool air around it', 'The basket has tiny wings', 'The fire pushes it like a rocket'], why: 'Heated air spreads out, so a balloon full of it weighs less than the same space of cool air. The heavier cool air pushes it up.' },
+      { q: 'Who were the very first balloon passengers?', a: ['A sheep, a duck and a rooster', 'Two pilots from Paris', 'A cat and a dog'], why: 'In September 1783 the Montgolfier brothers sent up a sheep, a duck and a rooster to make sure flying was safe.' },
+      { q: 'Who built the first hot air balloons?', a: ['The Montgolfier brothers', 'The Wright brothers', 'Isaac Newton'], why: 'Joseph and Étienne Montgolfier were paper makers in France. Their balloons were made of cloth lined with paper.' },
+      { q: 'What happens to air when you heat it?', a: ['It spreads out and gets lighter', 'It shrinks and gets heavier', 'It turns into water'], why: 'Heat makes the tiny bits of air move faster and spread apart, so hot air is less dense.' },
+      { q: 'How does a balloon pilot come down?', a: ['Lets the air inside cool off', 'Flaps the basket', 'Heats the air even more'], why: 'Cooler air is heavier, so the balloon slowly sinks. More heat would make it rise.' },
+      { q: 'When did people first fly in a hot air balloon?', a: ['1783', '1903', '1969'], why: 'On November 21, 1783, two men flew over Paris. That\'s 120 years before the first airplane!' },
+    ],
+  },
+  {
+    id: 'wing', icon: '🪽', name: 'Wings & Gliders', year: '1800s', badge: 'Wing Wizard',
+    slides: [
+      { t: 'The four forces of flight', d: 'w-forces', p: 'Everything that flies has four forces. LIFT pushes it up. WEIGHT pulls it down. THRUST pushes it forward. DRAG holds it back. To fly, lift has to beat weight!' },
+      { t: 'Bernoulli\'s big idea', d: 'w-bernoulli', p: 'In 1738 Daniel Bernoulli found that fast-moving air has LOWER pressure. A wing is shaped and tilted so air rushes faster over the top. Lower pressure on top, higher underneath: the wing gets pushed up!' },
+      { t: 'Wings push air down', d: 'w-down', p: 'A tilted wing also shoves air downward. Push air down, and the air pushes the wing up. Put your hand out of a car window and tilt it a little. You can feel it lift!' },
+      { t: 'The Glider King', d: 'w-lilienthal', p: 'In the 1890s Otto Lilienthal of Germany made about 2,000 glider flights by jumping off a hill he built. Gliders have no engine. They trade height for speed, and ride bubbles of warm rising air called thermals.' },
+    ],
+    how: {
+      goal: 'Glide as far as you can! There\'s no engine, so ride the shimmering thermals to climb.',
+      keys: 'Hold <b>Space</b> (or ↑) to lift the nose. Let go to dive and speed up.',
+      touch: 'Hold your finger on the screen to lift the nose. Let go to dive and speed up.',
+      tip: 'Nose up too long and you\'ll slow down and STALL. Dive to get your speed back!',
+    },
+    quiz: [
+      { q: 'What are the four forces of flight?', a: ['Lift, weight, thrust and drag', 'Push, pull, spin and stop', 'Wind, rain, sun and snow'], why: 'Lift and weight fight up and down. Thrust and drag fight forward and back.' },
+      { q: 'Bernoulli found that fast-moving air has…', a: ['Lower pressure', 'Higher pressure', 'No pressure change at all'], why: 'Air rushing over the top of a wing has lower pressure than the air underneath, so the wing is pushed up.' },
+      { q: 'A tilted wing pushes air down. What does the air do?', a: ['Pushes the wing up', 'Turns into a cloud', 'Makes the wing heavier'], why: 'Every push has a push back. Shove air down and it shoves the wing up.' },
+      { q: 'What is a stall?', a: ['When the wing tilts up too much and loses lift', 'A place to buy snacks at the airport', 'When the engine gets too hot'], why: 'Tilt a wing too far and the air can\'t flow smoothly over the top any more, so the lift suddenly drops.' },
+      { q: 'Who made about 2,000 glider flights in the 1890s?', a: ['Otto Lilienthal', 'Amelia Earhart', 'Neil Armstrong'], why: 'Lilienthal\'s careful notes and photos helped inspire the Wright brothers.' },
+      { q: 'What is a thermal?', a: ['A bubble of warm rising air', 'A warm jacket for pilots', 'A type of engine'], why: 'Sun-warmed ground heats the air above it, which rises. Gliders and big birds circle in thermals to climb for free.' },
+      { q: 'Which force pulls an airplane down?', a: ['Weight', 'Lift', 'Thrust'], why: 'Weight is gravity pulling down on the plane. Lift has to be at least as strong to stay up.' },
+    ],
+  },
+  {
+    id: 'wright', icon: '🛩️', name: 'The Wright Brothers', year: '1903', badge: 'Kitty Hawk Hero',
+    slides: [
+      { t: 'Two brothers with a bike shop', d: 'r-shop', p: 'Wilbur and Orville Wright fixed bicycles in Dayton, Ohio. They built their own wind tunnel, a box with a fan, and tested more than 200 little wing shapes to find the best one.' },
+      { t: 'The secret: control!', d: 'r-control', p: 'Other inventors just tried to get up in the air. The Wrights figured out how to STEER. Their plane could tip its nose up and down (pitch), roll its wings (roll) and turn left and right (yaw).' },
+      { t: 'December 17, 1903', d: 'r-first', p: 'At Kitty Hawk, North Carolina, Orville flew the Wright Flyer for 12 seconds and 120 feet. It was the first flight of an airplane with an engine! Later that day Wilbur flew for 59 seconds.' },
+    ],
+    how: {
+      goal: 'Fly the Wright Flyer over the sand dunes! Try to stay up longer than Orville\'s 12 seconds.',
+      keys: 'Hold <b>Space</b> (or ↑) to climb. Let go to drop.',
+      touch: 'Hold your finger on the screen to climb. Let go to drop.',
+      tip: 'Watch out for gusts of wind (the swirly arrows), seagulls and the tall dunes.',
+    },
+    quiz: [
+      { q: 'Where did the Wright brothers make the first airplane flight?', a: ['Kitty Hawk, North Carolina', 'Paris, France', 'Dayton, Ohio'], why: 'They lived in Dayton, but flew at Kitty Hawk because it had strong, steady winds and soft sand for landing.' },
+      { q: 'How long was the very first airplane flight?', a: ['12 seconds', '12 minutes', '12 hours'], why: 'Orville\'s first flight lasted 12 seconds and went 120 feet, about the length of a blue whale.' },
+      { q: 'What business did the Wright brothers run?', a: ['A bicycle shop', 'A bakery', 'A toy store'], why: 'Fixing bikes taught them about balance, chains and light, strong parts.' },
+      { q: 'What did they build to test over 200 wing shapes?', a: ['A wind tunnel', 'A rocket', 'A submarine'], why: 'Their wind tunnel was a wooden box with a fan. It showed them which wing shapes made the most lift.' },
+      { q: 'What was the Wright brothers\' big secret?', a: ['Controlling the plane: pitch, roll and yaw', 'A super-strong engine', 'Painting the wings gold'], why: 'Being able to steer and balance in the air is what made their airplane really work.' },
+      { q: 'In what year did the first airplane fly?', a: ['1903', '1783', '1969'], why: 'December 17, 1903. Just 66 years later, people walked on the Moon!' },
+    ],
+  },
+  {
+    id: 'prop', icon: '✈️', name: 'Propeller Planes', year: '1920s', badge: 'Atlantic Ace',
+    slides: [
+      { t: 'A propeller is a spinning wing', d: 'p-prop', p: 'Each propeller blade is shaped like a little wing. When the engine spins it, the blades push air backward and the plane gets pulled forward. That push is called THRUST.' },
+      { t: 'Brave pilots', d: 'p-pilots', p: 'In 1921 Bessie Coleman became the first African American woman to earn a pilot\'s license. In 1932 Amelia Earhart became the first woman to fly alone across the Atlantic Ocean.' },
+      { t: 'Across the ocean!', d: 'p-atlantic', p: 'In 1927 Charles Lindbergh flew alone, without stopping, from New York to Paris in his plane, the Spirit of St. Louis. It took 33 and a half hours! Soon airlines were carrying passengers all over the world.' },
+    ],
+    how: {
+      goal: 'Fly like Lindbergh from New York to Paris! Grab ⛽ fuel cans so you don\'t run dry.',
+      keys: 'Hold <b>Space</b> (or ↑) to climb. Let go to dive.',
+      touch: 'Hold your finger on the screen to climb. Let go to dive.',
+      tip: 'Dodge the storm clouds and don\'t touch the ocean!',
+    },
+    quiz: [
+      { q: 'A propeller is like a…', a: ['Spinning wing that pulls the plane forward', 'Fan to keep the pilot cool', 'Wheel for driving on the runway'], why: 'Propeller blades are shaped like wings. Spinning, they push air back, which pulls the plane forward.' },
+      { q: 'Who flew alone, nonstop, from New York to Paris in 1927?', a: ['Charles Lindbergh', 'Orville Wright', 'Yuri Gagarin'], why: 'Lindbergh flew the Spirit of St. Louis across the Atlantic and became world famous.' },
+      { q: 'About how long did Lindbergh\'s flight take?', a: ['33 and a half hours', '10 minutes', '3 weeks'], why: 'He had to stay awake for the whole flight, more than a day and a night!' },
+      { q: 'Who was the first woman to fly alone across the Atlantic?', a: ['Amelia Earhart', 'Bessie Coleman', 'Valentina Tereshkova'], why: 'Amelia Earhart did it in 1932, flying from Canada to Northern Ireland.' },
+      { q: 'Bessie Coleman was the first African American woman to…', a: ['Earn a pilot\'s license', 'Walk on the Moon', 'Build a jet engine'], why: 'No flight school in America would teach her, so she learned French and trained in France. She got her license in 1921.' },
+      { q: 'What force does a propeller make?', a: ['Thrust', 'Weight', 'Drag'], why: 'Thrust is the forward push. The propeller makes it by throwing air backward.' },
+    ],
+  },
+  {
+    id: 'jet', icon: '🛫', name: 'Jet Engines', year: '1939', badge: 'Sound Barrier Breaker',
+    slides: [
+      { t: 'Suck, squeeze, bang, blow!', d: 'j-engine', p: 'A jet engine SUCKS in air with a big fan, SQUEEZES it tight, adds fuel and BANGS it into fire, then BLOWS the hot gas out the back super fast. The first jet plane flew in 1939.' },
+      { t: 'Newton\'s third law', d: 'j-newton', p: 'Isaac Newton said every push has an equal push back the other way. Let go of a blown-up balloon: air shoots out one way, the balloon zooms the other. A jet blasts gas backward, so it zooms forward!' },
+      { t: 'Faster than sound', d: 'j-mach', p: 'Sound travels about 1,235 km/h. That speed is called Mach 1. On October 14, 1947, Chuck Yeager flew faster than sound for the first time. Going that fast makes a loud SONIC BOOM!' },
+      { t: 'Jumbo jets', d: 'j-747', p: 'In 1969 the Boeing 747 "Jumbo Jet" took off. It could carry hundreds of people. Jets made it possible to cross the ocean in hours instead of days.' },
+    ],
+    how: {
+      goal: 'Fly through the rings to speed up and break the sound barrier: Mach 1!',
+      keys: 'Use <b>↑</b> and <b>↓</b> to fly up and down.',
+      touch: 'Put your thumb down and drag up or down to steer.',
+      tip: 'Every ring makes you faster. Weather balloons slow you down!',
+    },
+    quiz: [
+      { q: 'What are the four steps of a jet engine?', a: ['Suck, squeeze, bang, blow', 'Run, jump, hop, skip', 'Spin, stop, go, slow'], why: 'In: suck air in. Squeeze: compress it. Bang: burn it with fuel. Blow: hot gas blasts out the back.' },
+      { q: 'Newton\'s third law says…', a: ['Every push has an equal push back the other way', 'What goes up never comes down', 'Heavy things always fall faster'], why: 'A jet pushes gas backward, and the gas pushes the jet forward.' },
+      { q: 'What is Mach 1?', a: ['The speed of sound', 'The speed of light', 'The top of a mountain'], why: 'Mach 1 is about 1,235 km/h near the ground. Mach 2 is twice as fast.' },
+      { q: 'Who first flew faster than sound, in 1947?', a: ['Chuck Yeager', 'Charles Lindbergh', 'Wilbur Wright'], why: 'Chuck Yeager flew the Bell X-1 past Mach 1 on October 14, 1947.' },
+      { q: 'What is a sonic boom?', a: ['A loud bang when something goes faster than sound', 'Thunder from a storm', 'The sound of an engine starting'], why: 'Sound waves pile up in front of a plane until they make a shock wave you hear as a BOOM.' },
+      { q: 'A blown-up balloon zooms away when you let go because…', a: ['Air rushes out one way, so it goes the other way', 'Balloons are lighter than air', 'The wind blows it'], why: 'That\'s Newton\'s third law, the same idea that makes jets and rockets go!' },
+    ],
+  },
+  {
+    id: 'rocket', icon: '🚀', name: 'Rockets', year: '1926', badge: 'Rocket Scientist',
+    slides: [
+      { t: 'Fire arrows', d: 'k-arrows', p: 'The very first rockets were invented in China about 800 years ago. They were arrows with tubes of gunpowder tied on. When the powder burned, hot gas blasted out the back and the arrow shot forward.' },
+      { t: 'Rockets bring their own air', d: 'k-oxygen', p: 'Fire needs oxygen. Jets grab it from the air, but there is no air in space! So rockets carry their own oxygen in a tank, next to their fuel. That\'s why rockets can fly in space.' },
+      { t: 'The first liquid-fuel rocket', d: 'k-goddard', p: 'On March 16, 1926, Robert Goddard launched the first rocket that burned liquid fuel. It flew for just 2 and a half seconds and went 41 feet high. Every big space rocket since then grew from his idea!' },
+      { t: 'Stages', d: 'k-stages', p: 'Big rockets come in stages, stacked like blocks. When one runs out of fuel, it drops off so the rocket is lighter, and the next one fires. The Saturn V Moon rocket had three stages and was 111 meters tall!' },
+    ],
+    how: {
+      goal: 'Blast off and reach space, 100 km up! Dodge birds, planes and balloons on the way.',
+      keys: 'Steer with <b>←</b> <b>→</b>. When a stage runs out of fuel, press <b>Space</b> to STAGE!',
+      touch: 'Drag your thumb left and right to steer. When the fuel runs out, tap <b>STAGE</b>!',
+      tip: 'Stage quickly when the fuel bar is empty for a Perfect Staging bonus.',
+    },
+    quiz: [
+      { q: 'Why can rockets fly in space but jets can\'t?', a: ['Rockets carry their own oxygen', 'Rockets are painted white', 'Jets are too heavy'], why: 'Fire needs oxygen. Jets take it from the air, and there\'s no air in space, so rockets bring their own.' },
+      { q: 'Why do big rockets have stages?', a: ['Dropping empty stages makes the rocket lighter', 'To give astronauts more rooms', 'So they look cool'], why: 'Carrying empty tanks is a waste. Dropping them lets the rest of the rocket go faster.' },
+      { q: 'Who launched the first liquid-fuel rocket in 1926?', a: ['Robert Goddard', 'Chuck Yeager', 'Amelia Earhart'], why: 'Robert Goddard\'s little rocket flew for 2.5 seconds in a field in Massachusetts.' },
+      { q: 'Where were the first rockets invented?', a: ['China', 'America', 'Australia'], why: 'Chinese inventors made gunpowder fire arrows about 800 years ago.' },
+      { q: 'About how high up does space begin?', a: ['100 km', '1 km', 'At the top of the clouds'], why: 'Most people say space begins about 100 km (62 miles) up. The air there is almost gone.' },
+      { q: 'How does a rocket push itself forward?', a: ['It blasts hot gas out the back', 'It flaps its fins', 'It floats on hot air'], why: 'Newton\'s third law again! Gas shoots down, rocket goes up.' },
+    ],
+  },
+  {
+    id: 'space', icon: '🌙', name: 'Into Space', year: '1957', badge: 'Moonwalker',
+    slides: [
+      { t: 'What is an orbit?', d: 's-orbit', p: 'Throw a ball and it falls. Throw it faster and it lands farther away. Throw it SUPER fast, about 28,000 km/h, and the Earth curves away as fast as it falls. It falls around and around the Earth forever. That\'s an orbit!' },
+      { t: 'Firsts in space', d: 's-firsts', p: 'In 1957 Sputnik 1 became the first satellite. In 1961 Yuri Gagarin became the first person in space. In 1963 Valentina Tereshkova became the first woman in space.' },
+      { t: 'One giant leap', d: 's-moon', p: 'On July 20, 1969, Apollo 11 landed on the Moon. Neil Armstrong and Buzz Aldrin walked on it while Michael Collins circled above. The Moon\'s gravity is only one sixth of Earth\'s, so they bounced!' },
+      { t: 'Living in space', d: 's-iss', p: 'Since the year 2000, astronauts have lived on the International Space Station. It orbits the Earth about every 90 minutes, so they see 16 sunrises every day!' },
+    ],
+    how: {
+      goal: 'Land the lunar module gently on the glowing landing pad, just like Apollo 11!',
+      keys: 'Hold <b>↑</b> or <b>Space</b> to fire the engine. Use <b>←</b> <b>→</b> to slide sideways.',
+      touch: 'Drag your thumb to steer: up fires the engine, left and right slide. Or hold <b>THRUST</b>.',
+      tip: 'Land slowly! The speed numbers turn green when it\'s safe. You get 3 tries.',
+    },
+    quiz: [
+      { q: 'What does it mean to be in orbit?', a: ['Falling around the Earth while zooming sideways super fast', 'Floating because there is no gravity', 'Hanging from a really long rope'], why: 'Gravity still pulls on astronauts in orbit. They\'re falling, but moving sideways so fast they keep missing the Earth!' },
+      { q: 'What was the first satellite, in 1957?', a: ['Sputnik 1', 'Apollo 11', 'The Hubble Telescope'], why: 'Sputnik 1 was a shiny metal ball with antennas. It went "beep beep" as it orbited.' },
+      { q: 'Who was the first person in space?', a: ['Yuri Gagarin', 'Neil Armstrong', 'Buzz Aldrin'], why: 'Yuri Gagarin orbited the Earth once on April 12, 1961.' },
+      { q: 'Who was the first woman in space?', a: ['Valentina Tereshkova', 'Amelia Earhart', 'Sally Ride'], why: 'Valentina Tereshkova flew in 1963 and orbited Earth 48 times. (Sally Ride was the first American woman, in 1983.)' },
+      { q: 'Who was the first person to walk on the Moon?', a: ['Neil Armstrong', 'Yuri Gagarin', 'Charles Lindbergh'], why: 'On July 20, 1969, Neil Armstrong stepped onto the Moon, followed by Buzz Aldrin.' },
+      { q: 'How strong is gravity on the Moon?', a: ['About one sixth as strong as on Earth', 'Twice as strong', 'Exactly the same'], why: 'If you can jump 1 foot high on Earth, you could jump about 6 feet on the Moon!' },
+      { q: 'What is the International Space Station?', a: ['A home in orbit where astronauts live and work', 'A rocket engine', 'An airport on the Moon'], why: 'People have lived on the ISS since the year 2000. It goes around the Earth about every 90 minutes.' },
+    ],
+  },
+];
+const QUIZ_LEN = 4, PER_RIGHT = 100;
+
+// ---------- Saved progress ----------
+const save = (() => {
+  let s = null;
+  try { s = JSON.parse(RB.store.get('fs_save') || 'null'); } catch (e) { /* fresh start */ }
+  s = s || {};
+  return {
+    best: Array.isArray(s.best) ? s.best.slice(0, 7) : [],
+    stars: Array.isArray(s.stars) ? s.stars.slice(0, 7) : [],
+    unlocked: clamp(+s.unlocked || 1, 1, 7),
+    name: typeof s.name === 'string' ? s.name.slice(0, 24) : '',
+  };
+})();
+const totalScore = () => save.best.reduce((a, b) => a + (+b || 0), 0);
+const allDone = () => LEVELS.every((_, i) => save.stars[i] > 0);
+function persist() {
+  RB.store.set('fs_save', JSON.stringify(save));
+  RB.store.set('fs_best', String(totalScore()));
+}
+
+// ---------- Sound ----------
+const sfx = {
+  click: () => RB.beep(600, 800, 0.06, 'square', 0.05),
+  star: () => { RB.beep(880, 1320, 0.12, 'triangle', 0.12); RB.beep(1320, 1760, 0.12, 'triangle', 0.1, 0.07); },
+  bump: () => { RB.beep(220, 70, 0.3, 'sawtooth', 0.12); RB.noise(0.25, 0.25); },
+  right: () => { [523, 659, 784].forEach((f, i) => RB.beep(f, f, 0.14, 'triangle', 0.13, i * 0.09)); },
+  wrong: () => { RB.beep(330, 220, 0.25, 'square', 0.07); RB.beep(247, 165, 0.3, 'square', 0.07, 0.15); },
+  win: () => { [523, 659, 784, 1047, 784, 1047].forEach((f, i) => RB.beep(f, f, 0.16, 'triangle', 0.12, i * 0.11)); },
+  boom: () => { RB.noise(0.9, 0.7); RB.beep(120, 30, 0.8, 'sine', 0.35); },
+  stage: () => { RB.noise(0.35, 0.4); RB.beep(300, 900, 0.25, 'sawtooth', 0.08); },
+  fuel: () => { RB.beep(500, 1000, 0.15, 'sine', 0.12); },
+  ring: () => { RB.beep(700, 1400, 0.1, 'sine', 0.11); },
+  milestone: () => { [784, 988, 1175].forEach((f, i) => RB.beep(f, f, 0.12, 'square', 0.06, i * 0.08)); },
+};
+let wind = null;   // a soft rushing-air bed during rounds
+function setWind(v) { if (wind) wind.gain.value = v; }
+
+// ---------- Input ----------
+const keys = {};
+let ptrHeld = false, btnHeld = false;
+let mouse = null;   // { x } in logical coords while a mouse button is down on the canvas
+const stickLevel = () => mode === 'play' && !paused && LEVELS[cur].stick;
+const stick = createTouchStick(canvas, { enabled: stickLevel });
+const holding = () => !!(keys.Space || keys.ArrowUp || keys.KeyW || ptrHeld || btnHeld);
+const steerX = () => {
+  const k = (keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0);
+  return k || (stick.active ? stick.x : 0);
+};
+const steerY = () => {
+  const k = (keys.ArrowDown || keys.KeyS ? 1 : 0) - (keys.ArrowUp || keys.KeyW ? 1 : 0);
+  return k || (stick.active ? stick.y : 0);
+};
+addEventListener('keydown', e => {
+  if (e.target && e.target.tagName === 'INPUT') return;
+  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.preventDefault();
+  keys[e.code] = true;
+  if (e.repeat) return;
+  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) resume(); return; }
+  if (e.code === 'KeyM') RB.toggleMute();
+  if (mode === 'play') {
+    if (e.code === 'KeyP' || e.code === 'Escape') pause();
+    else if (e.code === 'Space' || e.code === 'Enter') round.tap && round.tap();
+  }
+});
+addEventListener('keyup', e => { keys[e.code] = false; });
+const toLogical = e => (e.clientX * (canvas.width / innerWidth)) / scale;
+canvas.addEventListener('pointerdown', e => {
+  RB.audio();
+  if (mode !== 'play' || paused) return;
+  if (e.pointerType === 'mouse') { mouse = { x: toLogical(e) }; canvas.setPointerCapture(e.pointerId); }
+  if (!LEVELS[cur].stick) ptrHeld = true;
+  else if (e.pointerType === 'mouse') round.tap && round.tap();
+});
+canvas.addEventListener('pointermove', e => { if (mouse && e.pointerType === 'mouse') mouse.x = toLogical(e); });
+const release = e => { ptrHeld = false; if (e.pointerType === 'mouse') mouse = null; };
+canvas.addEventListener('pointerup', release);
+canvas.addEventListener('pointercancel', release);
+const act = $('actBtn');
+act.addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation(); RB.audio();
+  btnHeld = true; act.classList.add('on');
+  if (mode === 'play' && !paused && round.tap) round.tap();
+});
+const actUp = () => { btnHeld = false; act.classList.remove('on'); };
+act.addEventListener('pointerup', actUp);
+act.addEventListener('pointercancel', actUp);
+act.addEventListener('pointerleave', actUp);
+function clearInput() { for (const k in keys) keys[k] = false; ptrHeld = false; mouse = null; actUp(); stick.reset(); }
+addEventListener('blur', clearInput);
+
+let paused = false;
+function pause() {
+  if (paused || mode !== 'play') return;
+  paused = true; clearInput(); setWind(0);
+  RB.showPause(resume);
+}
+function resume() { paused = false; RB.hidePause(); last = performance.now(); }
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Flight School | RoboBandit', text: 'Learn how flying works, from hot air balloons to the Moon! ✈️🚀' },
+});
+RB.onHide(pause);
+
+// ---------- Shared round bits ----------
+let pops = [], parts = [];
+function pop(x, y, s, color = '#ffd84a', size = 26) { pops.push({ x, y, s, color, size, t: 0 }); }
+function puff(x, y, n, colors, spd = 140, up = 0) {
+  for (let i = 0; i < n; i++) {
+    const a = Math.random() * TAU, s = rand(spd * 0.3, spd);
+    parts.push({ x, y, vx: Math.cos(a) * s, vy: Math.sin(a) * s - up, life: rand(0.5, 1.1), max: 1.1, c: colors[i % colors.length], r: rand(2, 5) });
+  }
+}
+function stepFx(dt) {
+  for (const p of pops) { p.t += dt; p.y -= 40 * dt; }
+  pops = pops.filter(p => p.t < 1.2);
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += 120 * dt; p.life -= dt; }
+  parts = parts.filter(p => p.life > 0);
+}
+function drawFx() {
+  for (const p of parts) { ctx.globalAlpha = clamp(p.life / p.max * 1.5, 0, 1); ctx.fillStyle = p.c; circle(p.x, p.y, p.r); }
+  ctx.globalAlpha = 1;
+  for (const p of pops) { ctx.globalAlpha = clamp(1.6 - p.t * 1.4, 0, 1); outlined(p.s, p.x, p.y, p.size, p.color); }
+  ctx.globalAlpha = 1;
+}
+let banner = null;
+function showBanner(big, small = '', time = 2.2, color = '#ffd84a') { banner = { big, small, t: 0, time, color }; }
+function drawBanner(dt) {
+  if (!banner) return;
+  banner.t += dt;
+  if (banner.t > banner.time) { banner = null; return; }
+  const a = clamp(Math.min(banner.t * 5, (banner.time - banner.t) * 3), 0, 1);
+  ctx.globalAlpha = a;
+  outlined(banner.big, W / 2, H * 0.3, Math.min(46, W / 11), banner.color, 'center', 'Bungee');
+  if (banner.small) outlined(banner.small, W / 2, H * 0.3 + 42, Math.min(22, W / 20), '#fff');
+  ctx.globalAlpha = 1;
+}
+// Top-left HUD: score, hearts and any extra lines.
+function hud(score, lives, extra = []) {
+  const top = -OFFY + Math.max(12, (VH - H) > 0 ? 12 : 12);
+  ctx.fillStyle = 'rgba(11,42,92,.55)';
+  rrect(10, top, 170, 44 + extra.length * 24 + (lives != null ? 26 : 0), 14); ctx.fill();
+  txt(`⭐ ${score}`, 22, top + 22, 24, '#fff', 'left');
+  let y = top + 48;
+  if (lives != null) { for (let i = 0; i < 3; i++) heart(30 + i * 26, y - 2, 9, i < lives); y += 26; }
+  for (const e of extra) { txt(e, 22, y, 17, '#e6f1ff', 'left', 600); y += 24; }
+}
+// Where a centered gauge of width w goes: top middle, or under the corner buttons on narrow screens.
+function gaugeAt(w) { return W < 700 ? [W - w - 10, -OFFY + 64] : [W / 2 - w / 2, -OFFY + 14]; }
+// Progress bar along the bottom of the play area.
+function progressBar(f, left, right, color = '#ffd84a') {
+  const x = 20, w = W - 40, y = H + OFFY - 28 - Math.min(OFFY, 0);
+  ctx.fillStyle = 'rgba(11,42,92,.5)'; rrect(x, y - 9, w, 18, 9); ctx.fill();
+  ctx.fillStyle = color; rrect(x + 3, y - 6, Math.max(12, (w - 6) * clamp(f, 0, 1)), 12, 6); ctx.fill();
+  txt(left, x + 10, y - 22, 15, '#fff', 'left'); txt(right, x + w - 10, y - 22, 15, '#fff', 'right');
+}
+// Objects in side-scrolling rounds sit at world x; the player sits at screen x = PX.
+const PX = () => Math.min(W * 0.3, 260);
+function hit(ax, ay, ar, bx, by, br) { const dx = ax - bx, dy = ay - by; return dx * dx + dy * dy < (ar + br) * (ar + br); }
+
+// ---------- Round 1: hot air balloon ----------
+function balloonRound() {
+  const GOAL = 4400, SPEED = 110, GROUND = H - 56;
+  const r = { score: 0, lives: 3, stars: 0, dist: 0, y: 220, vy: 0, heat: 0.45, inv: 0, objs: [], next: 300, t: 0, over: false, win: false };
+  const groundY = x => GROUND - 18 - Math.sin(x * 0.004) * 16 - Math.sin(x * 0.011 + 1) * 8;
+  r.update = dt => {
+    r.t += dt;
+    const hold = holding();
+    r.heat = clamp(r.heat + (hold ? 0.7 : -0.42) * dt, 0, 1);
+    r.vy += -(r.heat - 0.45) * 300 * dt;
+    r.vy *= 1 - 1.3 * dt;
+    r.vy = clamp(r.vy, -150, 150);
+    r.y += r.vy * dt;
+    if (r.y < 50) { r.y = 50; r.vy = Math.max(0, r.vy); }
+    r.dist += SPEED * dt;
+    r.inv -= dt;
+    const px = PX(), gx = groundY(r.dist + px);
+    if (r.y + 58 > gx) {   // basket bottom touches the ground
+      r.y = gx - 58; r.vy = -120; r.heat = Math.max(r.heat, 0.8);
+      if (r.inv <= 0) { r.lives--; r.inv = 1.5; sfx.bump(); pop(px, r.y - 50, 'Bump!', '#ff8a7a'); }
+    }
+    while (r.next < r.dist + W + 100) {
+      const x = r.next;
+      if (rnd(x, 1) < 0.7) r.objs.push({ k: 'star', x, y: 70 + rnd(x, 2) * (H - 230) });
+      else r.objs.push({ k: 'bird', x, y: 80 + rnd(x, 3) * (H - 240), vx: -20 - rnd(x, 4) * 35, ph: rnd(x, 5) * 6 });
+      r.next += 190 + rnd(x, 6) * 120;
+    }
+    for (const o of r.objs) {
+      if (o.k === 'bird') { o.x += o.vx * dt; o.y += Math.sin(r.t * 2 + o.ph) * 20 * dt; }
+      const sx = o.x - r.dist;
+      if (o.dead || sx < px - 80 || sx > px + 80) continue;
+      const envHit = hit(sx, o.y, o.k === 'star' ? 14 : 12, px, r.y - 4, 34), basketHit = hit(sx, o.y, 12, px, r.y + 48, 12);
+      if (!envHit && !basketHit) continue;
+      if (o.k === 'star') { o.dead = true; r.stars++; r.score += 50; sfx.star(); pop(sx, o.y - 20, '+50'); puff(sx, o.y, 10, ['#ffd84a', '#fff']); }
+      else if (r.inv <= 0) { o.dead = true; r.lives--; r.inv = 1.5; sfx.bump(); pop(px, r.y - 50, 'Ouch! A bird!', '#ff8a7a', 22); puff(sx, o.y, 12, ['#444', '#888']); }
+    }
+    r.objs = r.objs.filter(o => !o.dead && o.x - r.dist > -100);
+    if (r.lives <= 0) { r.over = true; r.end = 'The balloon came down.'; }
+    if (r.dist >= GOAL) { r.over = true; r.win = true; r.end = 'You floated all the way to town!'; }
+    setWind(0.04 + r.heat * 0.03);
+  };
+  r.draw = () => {
+    sky('#69b7ff', '#fff1d6');
+    ctx.fillStyle = '#fff6c9'; circle(W * 0.8, 90, 40);
+    for (let i = 0; i < 6; i++) cloud(mod(rnd(i, 1) * 1600 - r.dist * 0.2, 1600) - 150, 50 + rnd(i, 2) * 160, 0.7 + rnd(i, 3) * 0.6);
+    // far hills, then fields
+    ctx.fillStyle = '#8fc98a';
+    ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+    for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, GROUND - 70 - Math.sin((x + r.dist * 0.3) * 0.006) * 30);
+    ctx.lineTo(W, H + OFFY); ctx.fill();
+    // the town at the finish
+    const tx = GOAL + PX() - r.dist + 120;
+    if (tx < W + 300) {
+      for (let i = 0; i < 6; i++) {
+        const hx = tx - 120 + i * 50, hh = 40 + rnd(i, 9) * 50;
+        ctx.fillStyle = ['#f2d7b0', '#e8c49a', '#f5e1c4'][i % 3]; ctx.fillRect(hx, GROUND - 30 - hh, 42, hh + 30);
+        ctx.fillStyle = '#c4553a'; ctx.beginPath(); ctx.moveTo(hx - 4, GROUND - 30 - hh); ctx.lineTo(hx + 21, GROUND - 56 - hh); ctx.lineTo(hx + 46, GROUND - 30 - hh); ctx.fill();
+      }
+      ctx.fillStyle = '#7d8aa3'; ctx.fillRect(tx + 190, GROUND - 170, 14, 140);
+      ctx.beginPath(); ctx.moveTo(tx + 186, GROUND - 170); ctx.lineTo(tx + 197, GROUND - 210); ctx.lineTo(tx + 208, GROUND - 170); ctx.fill();
+      outlined('🏁', tx, GROUND - 150, 40, '#fff');
+    }
+    ctx.fillStyle = '#5fae4f';
+    ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+    for (let x = 0; x <= W + 10; x += 10) ctx.lineTo(x, groundY(r.dist + x));
+    ctx.lineTo(W, H + OFFY); ctx.fill();
+    ctx.fillStyle = 'rgba(255,230,120,.35)';
+    for (let i = 0; i < 12; i++) { const fx = mod(i * 160 - r.dist, 1920) - 100; ctx.fillRect(fx, groundY(r.dist + fx) + 14, 90, 6); }
+    for (const o of r.objs) {
+      const sx = o.x - r.dist;
+      if (o.k === 'star') star(sx, o.y + Math.sin(r.t * 3 + o.x) * 4, 14, '#ffd84a', r.t);
+      else bird(sx, o.y, 1.2, r.t + o.ph);
+    }
+    const px = PX();
+    if (r.inv > 0 && Math.floor(r.inv * 10) % 2) ctx.globalAlpha = 0.5;
+    drawBalloon(px, r.y, 34, holding() ? 1 : 0, '#3d6fe0', '#ffd84a', r.t);
+    ctx.globalAlpha = 1;
+    // heat gauge
+    const gx = px + 52, gy = r.y - 30;
+    ctx.fillStyle = 'rgba(11,42,92,.5)'; rrect(gx, gy, 12, 60, 6); ctx.fill();
+    ctx.fillStyle = mix('#7fc8ff', '#ff5a2a', r.heat); rrect(gx + 2, gy + 58 - 56 * r.heat, 8, 56 * r.heat, 4); ctx.fill();
+    txt('🔥', gx + 6, gy - 10, 14, '#fff');
+    drawFx();
+    hud(r.score, r.lives);
+    progressBar(r.dist / GOAL, '🎈 Start', '🏁 Town');
+  };
+  r.results = () => {
+    const rows = [[`⭐ Stars × ${r.stars}`, r.stars * 50]];
+    if (r.win) rows.push(['🏁 Made it to town', 300], [`❤️ Hearts left × ${r.lives}`, r.lives * 100]);
+    else rows.push(['📏 Distance', Math.round(r.dist / 20)]);
+    return rows;
+  };
+  return r;
+}
+
+// ---------- Round 2: glider ----------
+function gliderRound() {
+  const GOAL = 6200, GROUND = H - 40, STALL = 95;
+  const r = { score: 0, stars: 0, dist: 0, y: 160, v: 175, pitch: 0, stall: false, objs: [], next: 260, therm: [], nextT: 380, t: 0, over: false, win: false };
+  const hillY = x => GROUND - 30 - Math.max(0, Math.sin(x * 0.0021) * 60 + Math.sin(x * 0.0057 + 2) * 30);
+  r.update = dt => {
+    r.t += dt;
+    r.pitch += (holding() ? 1.5 : -1.15) * dt;
+    if (r.v < STALL) { r.stall = true; }
+    if (r.stall) { r.pitch -= 2.6 * dt; if (r.v > STALL + 30) r.stall = false; }
+    r.pitch = clamp(r.pitch, -0.6, 0.48);
+    r.v += (-230 * Math.sin(r.pitch) - 0.0008 * r.v * r.v + 18) * dt;
+    r.v = clamp(r.v, 40, 320);
+    const px = PX();
+    let lift = 0;
+    for (const th of r.therm) if (Math.abs(th.x - (r.dist + px)) < th.w / 2) lift = th.p;
+    const vy = -r.v * Math.sin(r.pitch) + 36 + (r.stall ? 70 : 0) - lift;
+    r.y += vy * dt;
+    if (r.y < 40) { r.y = 40; r.pitch = Math.min(r.pitch, 0); }
+    r.dist += r.v * Math.cos(r.pitch) * dt;
+    while (r.nextT < r.dist + W + 200) {
+      r.therm.push({ x: r.nextT, w: 150 + rnd(r.nextT, 1) * 40, p: 140 + rnd(r.nextT, 2) * 30 });
+      r.nextT += 470 + rnd(r.nextT, 3) * 200;
+    }
+    while (r.next < r.dist + W + 100) {
+      r.objs.push({ k: 'star', x: r.next, y: 70 + rnd(r.next, 4) * (H - 240) });
+      r.next += 220 + rnd(r.next, 5) * 160;
+    }
+    for (const o of r.objs) {
+      const sx = o.x - r.dist;
+      if (!o.dead && Math.abs(sx - px) < 40 && hit(sx, o.y, 14, px, r.y, 22)) {
+        o.dead = true; r.stars++; r.score += 50; sfx.star(); pop(sx, o.y - 20, '+50'); puff(sx, o.y, 10, ['#ffd84a', '#fff']);
+      }
+    }
+    r.objs = r.objs.filter(o => !o.dead && o.x - r.dist > -60);
+    r.therm = r.therm.filter(th => th.x - r.dist > -200);
+    if (r.y + 6 > hillY(r.dist + px)) {
+      r.y = hillY(r.dist + px) - 6; r.over = true;
+      r.end = r.dist > 2500 ? 'Nice glide! You touched down safely.' : 'You touched down. Gliders always come down in the end!';
+      sfx.bump();
+    }
+    if (r.dist >= GOAL) { r.over = true; r.win = true; r.end = 'You glided all the way to the landing field!'; }
+    setWind(0.03 + r.v / 320 * 0.06);
+  };
+  r.draw = () => {
+    sky('#4aa6ff', '#d8f0ff');
+    for (let i = 0; i < 7; i++) cloud(mod(rnd(i, 1) * 1800 - r.dist * 0.25, 1800) - 150, 40 + rnd(i, 2) * 150, 0.6 + rnd(i, 3) * 0.6);
+    ctx.fillStyle = '#9ccf9a';
+    ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+    for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, GROUND - 90 - Math.sin((x + r.dist * 0.35) * 0.005) * 40);
+    ctx.lineTo(W, H + OFFY); ctx.fill();
+    for (const th of r.therm) {   // shimmering columns of rising warm air
+      const sx = th.x - r.dist;
+      const g = ctx.createLinearGradient(sx - th.w / 2, 0, sx + th.w / 2, 0);
+      g.addColorStop(0, 'rgba(255,180,90,0)'); g.addColorStop(0.5, 'rgba(255,180,90,.28)'); g.addColorStop(1, 'rgba(255,180,90,0)');
+      ctx.fillStyle = g; ctx.fillRect(sx - th.w / 2, -OFFY, th.w, H + OFFY);
+      ctx.strokeStyle = 'rgba(255,255,255,.7)'; ctx.lineWidth = 3;
+      for (let k = 0; k < 5; k++) {
+        const ay = mod(H - (r.t * 90 + k * 110), H + 40) - 20, ax = sx + Math.sin(k * 2 + r.t * 3) * th.w * 0.25;
+        ctx.beginPath(); ctx.moveTo(ax - 8, ay + 8); ctx.lineTo(ax, ay); ctx.lineTo(ax + 8, ay + 8); ctx.stroke();
+      }
+    }
+    // landing field flag
+    const fx = GOAL + PX() - r.dist;
+    if (fx < W + 100) { outlined('🏁', fx, hillY(GOAL + PX()) - 30, 40, '#fff'); }
+    ctx.fillStyle = '#5fae4f';
+    ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+    for (let x = 0; x <= W + 10; x += 10) ctx.lineTo(x, hillY(r.dist + x));
+    ctx.lineTo(W, H + OFFY); ctx.fill();
+    ctx.fillStyle = '#3f8a3a';
+    for (let i = 0; i < 14; i++) { const tx = mod(i * 137 - r.dist, 1918) - 60, ty = hillY(r.dist + tx); circle(tx, ty - 10, 12); ctx.fillRect(tx - 2, ty - 6, 4, 8); }
+    for (const o of r.objs) star(o.x - r.dist, o.y + Math.sin(r.t * 3 + o.x) * 4, 14, '#ffd84a', r.t);
+    const px = PX();
+    drawGlider(px, r.y, 1.3, r.pitch);
+    if (r.stall) outlined('STALL! Let go to dive!', px, r.y - 40, 20, '#ff6b5a');
+    drawFx();
+    hud(r.score, null, [`💨 Speed ${Math.round(r.v)}`, `📏 ${Math.round(r.dist / 10)} m`]);
+    progressBar(r.dist / GOAL, '⛰️ Hill', '🏁 Field');
+  };
+  r.results = () => {
+    const rows = [['📏 Distance', Math.round(r.dist / 10)], [`⭐ Stars × ${r.stars}`, r.stars * 50]];
+    if (r.win) rows.push(['🏁 Reached the field', 300]);
+    return rows;
+  };
+  return r;
+}
+
+// ---------- Rounds 3 & 4 share a "hold to climb" engine ----------
+function climberRound(opts) {
+  const r = { score: 0, lives: 3, stars: 0, dist: 0, y: opts.startY, vy: 0, ang: 0, inv: 0, objs: [], next: 400, t: 0, over: false, win: false, fuel: 100, cans: 0, gusts: 0, bonus: 0 };
+  r.update = dt => {
+    r.t += dt;
+    const engine = !opts.fuel || r.fuel > 0;
+    let a = engine ? (holding() ? -opts.climb : opts.fall) : opts.fall * 0.7;
+    const px = PX();
+    for (const o of r.objs) if (o.k === 'gust' && Math.abs(o.x - r.dist - px) < o.w / 2) a += o.p;
+    r.vy = clamp(r.vy + a * dt, -opts.maxV, opts.maxV);
+    r.vy *= 1 - 0.6 * dt;
+    r.y += r.vy * dt;
+    if (r.y < opts.ceiling) { r.y = opts.ceiling; r.vy = Math.max(0, r.vy); }
+    r.ang = lerp(r.ang, clamp(-r.vy / 300, -0.45, 0.45), 8 * dt);
+    const speed = engine ? opts.speed : opts.speed * 0.7;
+    r.dist += speed * dt;
+    r.inv -= dt;
+    if (opts.fuel && engine) r.fuel = Math.max(0, r.fuel - opts.burn * dt);
+    if (opts.fuel && r.fuel <= 0 && !r.dry) { r.dry = true; showBanner('OUT OF FUEL!', 'Gliding down…', 2, '#ff8a7a'); }
+    const gy = opts.ground(r.dist + px);
+    if (r.y + 10 > gy) {
+      if (r.dry) { r.over = true; r.end = opts.dryEnd; sfx.bump(); puff(px, gy, 20, ['#fff', '#9fd4ff']); return; }
+      r.y = gy - 12; r.vy = -opts.climb * 0.45;
+      if (r.inv <= 0) { r.lives--; r.inv = 1.5; sfx.bump(); pop(px, r.y - 40, opts.groundSay, '#ff8a7a', 22); puff(px, gy, 12, opts.groundPuff); }
+    }
+    while (r.next < r.dist + W + 150) opts.spawn(r, r.next);
+    for (const o of r.objs) {
+      if (o.vx) o.x += o.vx * dt;
+      const sx = o.x - r.dist;
+      if (o.dead || o.k === 'gust' || Math.abs(sx - px) > (o.r || 20) + 40) continue;
+      if (!hit(sx, o.y, o.r || 14, px, r.y, 16)) continue;
+      if (o.k === 'star') { o.dead = true; r.stars++; r.score += 50; sfx.star(); pop(sx, o.y - 20, '+50'); puff(sx, o.y, 10, ['#ffd84a', '#fff']); }
+      else if (o.k === 'fuel') { o.dead = true; r.cans++; r.score += 30; r.fuel = Math.min(100, r.fuel + 38); r.dry = false; sfx.fuel(); pop(sx, o.y - 20, '⛽ +fuel', '#9fffa8', 22); }
+      else if (r.inv <= 0) { r.lives--; r.inv = 1.5; sfx.bump(); pop(px, r.y - 40, o.say, '#ff8a7a', 22); puff(px, r.y, 12, o.puff || ['#666', '#aaa']); }
+    }
+    r.objs = r.objs.filter(o => !o.dead && o.x - r.dist > -300);
+    opts.extra && opts.extra(r, dt);
+    if (r.lives <= 0) { r.over = true; r.end = opts.crashEnd; }
+    if (opts.goal && r.dist >= opts.goal) { r.over = true; r.win = true; r.end = opts.winEnd; }
+    setWind(engine ? 0.06 : 0.03);
+  };
+  r.draw = () => {
+    opts.drawBack(r);
+    for (const o of r.objs) {
+      const sx = o.x - r.dist;
+      if (sx < -200 || sx > W + 200) continue;
+      opts.drawObj(o, sx, r);
+    }
+    const px = PX();
+    if (r.inv > 0 && Math.floor(r.inv * 10) % 2) ctx.globalAlpha = 0.5;
+    opts.drawPlane(px, r.y, r.ang, r.t, r);
+    ctx.globalAlpha = 1;
+    drawFx();
+    opts.drawHud(r);
+  };
+  return r;
+}
+
+function wrightRound() {
+  const GROUND = H - 40, DUR = 45;
+  const dune = x => GROUND - 30 - Math.max(0, Math.sin(x * 0.006) * 40 + Math.sin(x * 0.017 + 1) * 22) - (rnd(Math.floor(x / 700), 7) < 0.5 ? 0 : Math.max(0, Math.sin(x * Math.PI / 700) * 60));
+  const r = climberRound({
+    startY: 330, climb: 430, fall: 300, maxV: 160, ceiling: 120, speed: 125,
+    ground: dune, groundSay: 'Crunch! Sand!', groundPuff: ['#f2d79a', '#e0c07a'],
+    crashEnd: 'The Flyer bumped down into the sand.',
+    spawn: (r, x) => {
+      const k = rnd(x, 1);
+      if (k < 0.45) r.objs.push({ k: 'star', x, y: 150 + rnd(x, 2) * (H - 300), r: 14 });
+      else if (k < 0.75) r.objs.push({ k: 'gull', x, y: 140 + rnd(x, 3) * (H - 300), vx: -35, r: 14, say: 'Squawk! A seagull!', puff: ['#fff', '#ccc'], ph: rnd(x, 4) * 6 });
+      else r.objs.push({ k: 'gust', x, w: 140, p: rnd(x, 5) < 0.5 ? -260 : 300 });
+      r.next += 200 + rnd(x, 6) * 120;
+    },
+    extra: (r, dt) => {
+      r.secs = r.t;
+      if (!r.m12 && r.t >= 12) { r.m12 = true; r.bonus += 200; sfx.milestone(); showBanner('12 SECONDS!', 'You matched Orville\'s first flight! +200'); }
+      if (!r.m30 && r.t >= 30) { r.m30 = true; r.bonus += 200; sfx.milestone(); showBanner('30 SECONDS!', 'Wilbur flew 59 seconds that day. Keep going! +200'); }
+      if (r.t >= DUR) { r.over = true; r.win = true; r.end = 'What a flight! You\'re a true aviator.'; }
+    },
+    drawBack: r => {
+      sky('#7fc4ff', '#fff4dc');
+      for (let i = 0; i < 6; i++) cloud(mod(rnd(i, 1) * 1600 - r.dist * 0.2, 1600) - 150, 40 + rnd(i, 2) * 140, 0.7 + rnd(i, 3) * 0.5);
+      ctx.fillStyle = '#5aa8d8'; ctx.fillRect(0, GROUND - 120, W, 30);   // the ocean behind the dunes
+      ctx.fillStyle = 'rgba(255,255,255,.5)';
+      for (let i = 0; i < 10; i++) ctx.fillRect(mod(i * 97 - r.dist * 0.3, W + 60) - 30, GROUND - 112 + (i % 3) * 8, 26, 2);
+      ctx.fillStyle = '#ead09a';
+      ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+      for (let x = 0; x <= W + 10; x += 10) ctx.lineTo(x, dune(r.dist + x));
+      ctx.lineTo(W, H + OFFY); ctx.fill();
+      ctx.strokeStyle = '#8fae5a'; ctx.lineWidth = 2;
+      for (let i = 0; i < 18; i++) { const gx = mod(i * 111 - r.dist, 1998) - 40, gy = dune(r.dist + gx); ctx.beginPath(); ctx.moveTo(gx, gy); ctx.lineTo(gx - 4, gy - 10); ctx.moveTo(gx, gy); ctx.lineTo(gx + 5, gy - 9); ctx.stroke(); }
+      if (r.t < 4) {   // the launch rail
+        const sx = 120 - r.dist + PX() - 40;
+        ctx.fillStyle = '#8a5a2b'; ctx.fillRect(sx - 80, dune(r.dist + sx) - 4, 160, 4);
+      }
+    },
+    drawObj: (o, sx, r) => {
+      if (o.k === 'star') star(sx, o.y + Math.sin(r.t * 3 + o.x) * 4, 14, '#ffd84a', r.t);
+      else if (o.k === 'gull') bird(sx, o.y, 1.3, r.t + o.ph, '#f4f4f4');
+      else if (o.k === 'gust') {
+        ctx.strokeStyle = o.p < 0 ? 'rgba(255,255,255,.75)' : 'rgba(80,110,160,.6)'; ctx.lineWidth = 3;
+        for (let k = 0; k < 4; k++) {
+          const yy = mod((o.p < 0 ? -1 : 1) * r.t * 80 + k * 120, H - 120) + 60, xx = sx + Math.sin(k + r.t * 2) * 30;
+          ctx.beginPath(); ctx.arc(xx, yy, 12, 0, Math.PI * 1.5); ctx.stroke();
+          arrow(xx, yy, xx, yy + (o.p < 0 ? -24 : 24), ctx.strokeStyle, 3);
+        }
+      }
+    },
+    drawPlane: (x, y, a, t) => drawFlyer(x, y, 1.35, a, t),
+    drawHud: r => {
+      hud(r.score + r.bonus, r.lives, [`⏱️ ${r.t.toFixed(1)} s`]);
+      progressBar(r.t / DUR, '⏱️ 0 s', `${DUR} s`);
+    },
+  });
+  r.results = () => {
+    const rows = [[`⏱️ Flight time ${r.t.toFixed(1)} s`, Math.round(r.t) * 10], [`⭐ Stars × ${r.stars}`, r.stars * 50]];
+    if (r.bonus) rows.push(['🏆 Milestones', r.bonus]);
+    if (r.win) rows.push([`❤️ Hearts left × ${r.lives}`, r.lives * 100]);
+    return rows;
+  };
+  return r;
+}
+
+function propRound() {
+  const SEA = H - 46, GOAL = 9200;
+  const r = climberRound({
+    startY: 240, climb: 520, fall: 340, maxV: 210, ceiling: 70, speed: 195, fuel: true, burn: 3.4, goal: GOAL,
+    ground: () => SEA - 4, groundSay: 'Splash!', groundPuff: ['#fff', '#9fd4ff'],
+    crashEnd: 'The plane had to ditch in the ocean.', dryEnd: 'Out of fuel! Splashdown in the ocean.',
+    winEnd: 'Bonjour, Paris! You crossed the Atlantic!',
+    spawn: (r, x) => {
+      const k = rnd(x, 1);
+      if (k < 0.38) r.objs.push({ k: 'star', x, y: 100 + rnd(x, 2) * (H - 230), r: 14 });
+      else if (k < 0.72) r.objs.push({ k: 'storm', x, y: 110 + rnd(x, 3) * (H - 260), r: 34, say: 'Zap! A storm!', puff: ['#ffe14a', '#556'] });
+      else r.objs.push({ k: 'fuel', x, y: 100 + rnd(x, 4) * (H - 230), r: 16 });
+      r.next += 210 + rnd(x, 5) * 140;
+    },
+    drawBack: r => {
+      const f = r.dist / GOAL, night = Math.sin(clamp(f, 0, 1) * Math.PI);   // day → night over the ocean → sunrise at Paris
+      sky(mix('#5aa8ff', '#0d1640', night), mix('#cfeaff', '#3a3f8a', night));
+      if (night > 0.3) spaceStars(70, 3, W, H * 0.7, r.t);
+      if (night > 0.4) { ctx.fillStyle = `rgba(250,245,210,${night})`; circle(W * 0.75, 80, 26); }
+      for (let i = 0; i < 6; i++) cloud(mod(rnd(i, 1) * 1800 - r.dist * 0.25, 1800) - 150, 40 + rnd(i, 2) * 160, 0.7 + rnd(i, 3) * 0.6, `rgba(255,255,255,${0.85 - night * 0.55})`);
+      const sx0 = 300 - r.dist, sx1 = GOAL + PX() + 60 - r.dist;   // coast of New York, coast of France
+      ctx.fillStyle = '#4d8a46';
+      if (sx0 > -400) { ctx.fillRect(sx0 - 600, SEA - 30, 600, 40); for (let i = 0; i < 6; i++) ctx.fillRect(sx0 - 560 + i * 70, SEA - 30 - 20 - rnd(i, 4) * 60, 40, 80); }
+      if (sx1 < W + 100) {
+        ctx.fillRect(sx1, SEA - 30, 900, 40);
+        ctx.strokeStyle = '#5a5a6a'; ctx.lineWidth = 3;   // Eiffel tower (it was there by 1927!)
+        const ex = sx1 + 160, ey = SEA - 30;
+        ctx.beginPath(); ctx.moveTo(ex - 30, ey); ctx.lineTo(ex, ey - 150); ctx.lineTo(ex + 30, ey); ctx.moveTo(ex - 18, ey - 50); ctx.lineTo(ex + 18, ey - 50); ctx.moveTo(ex - 9, ey - 95); ctx.lineTo(ex + 9, ey - 95); ctx.stroke();
+      }
+      const sea = ctx.createLinearGradient(0, SEA, 0, H + OFFY);
+      sea.addColorStop(0, mix('#2f7fc4', '#123064', night)); sea.addColorStop(1, mix('#1c4f8a', '#08183a', night));
+      ctx.fillStyle = sea; ctx.fillRect(0, SEA, W, H + OFFY - SEA + 4);
+      ctx.fillStyle = 'rgba(255,255,255,.45)';
+      for (let i = 0; i < 16; i++) ctx.fillRect(mod(i * 83 - r.dist * 0.9, W + 60) - 30, SEA + 6 + (i % 4) * 9, 22, 2);
+    },
+    drawObj: (o, sx, r) => {
+      if (o.k === 'star') star(sx, o.y + Math.sin(r.t * 3 + o.x) * 4, 14, '#ffd84a', r.t);
+      else if (o.k === 'fuel') {
+        ctx.fillStyle = '#e8453a'; rrect(sx - 11, o.y - 14, 22, 28, 4); ctx.fill();
+        ctx.fillStyle = '#ffd84a'; ctx.fillRect(sx - 7, o.y - 4, 14, 8);
+        ctx.fillStyle = '#333'; ctx.fillRect(sx + 3, o.y - 19, 6, 6);
+      } else if (o.k === 'storm') {
+        cloud(sx, o.y, 0.85, '#5b6178'); cloud(sx + 6, o.y + 6, 0.6, '#454a5e');
+        if (Math.sin(r.t * 6 + o.x) > 0.6) {
+          ctx.strokeStyle = '#ffe14a'; ctx.lineWidth = 3;
+          ctx.beginPath(); ctx.moveTo(sx, o.y + 10); ctx.lineTo(sx - 8, o.y + 28); ctx.lineTo(sx + 4, o.y + 28); ctx.lineTo(sx - 6, o.y + 48); ctx.stroke();
+        }
+      }
+    },
+    drawPlane: (x, y, a, t, r) => drawProp(x, y, 1.4, a, r.fuel > 0 ? t : 0),
+    drawHud: r => {
+      hud(r.score, r.lives);
+      const [x, y] = gaugeAt(160);
+      ctx.fillStyle = 'rgba(11,42,92,.55)'; rrect(x, y, 160, 32, 12); ctx.fill();
+      txt('⛽', x + 18, y + 16, 18, '#fff');
+      ctx.fillStyle = 'rgba(255,255,255,.25)'; rrect(x + 34, y + 9, 114, 14, 7); ctx.fill();
+      ctx.fillStyle = r.fuel > 30 ? '#6be06b' : (Math.sin(r.t * 10) > 0 ? '#ff5a4a' : '#ffd84a');
+      rrect(x + 34, y + 9, Math.max(6, 114 * r.fuel / 100), 14, 7); ctx.fill();
+      progressBar(r.dist / GOAL, '🗽 New York', 'Paris 🗼');
+    },
+  });
+  r.results = () => {
+    const rows = [['📏 Distance', Math.round(r.dist / 20)], [`⭐ Stars × ${r.stars}`, r.stars * 50], [`⛽ Fuel cans × ${r.cans}`, r.cans * 30]];
+    if (r.win) rows.push(['🗼 Reached Paris', 400], [`❤️ Hearts left × ${r.lives}`, r.lives * 100]);
+    return rows;
+  };
+  return r;
+}
+
+// ---------- Round 5: jet ----------
+function jetRound() {
+  const DUR = 45, MACH = 1235, GROUND = H - 30;
+  const r = { score: 0, pops: 0, kmh: 640, top: 640, rings: 0, boom: false, y: 260, vy: 0, ang: 0, dist: 0, t: 0, inv: 0, objs: [], next: 500, ringY: 260, over: false, win: false, flash: 0 };
+  r.update = dt => {
+    r.t += dt;
+    let sy = steerY();
+    if (!sy && mouse) sy = -1;   // mouse held: climb
+    r.vy = lerp(r.vy, sy * 270, 6 * dt);
+    r.y = clamp(r.y + r.vy * dt, 60, GROUND - 40);
+    r.ang = lerp(r.ang, clamp(-r.vy / 600, -0.35, 0.35), 8 * dt);
+    r.kmh = Math.max(560, r.kmh - 6 * dt);
+    const speed = r.kmh * 0.3;
+    r.dist += speed * dt;
+    r.inv -= dt; r.flash -= dt;
+    while (r.next < r.dist + W + 200) {
+      const x = r.next;
+      r.ringY = clamp(r.ringY + (rnd(x, 1) - 0.5) * 220, 110, GROUND - 110);
+      r.objs.push({ k: 'ring', x, y: r.ringY });
+      if (rnd(x, 2) < 0.55) r.objs.push({ k: 'wb', x: x + 170 + rnd(x, 3) * 60, y: clamp(r.ringY + (rnd(x, 4) < 0.5 ? -1 : 1) * (90 + rnd(x, 5) * 60), 80, GROUND - 70), ph: rnd(x, 6) * 6 });
+      r.next += 340 + rnd(x, 7) * 60;
+    }
+    const px = PX();
+    for (const o of r.objs) {
+      const sx = o.x - r.dist;
+      if (o.dead) continue;
+      if (o.k === 'ring' && !o.passed && sx < px) {
+        o.passed = true;
+        if (Math.abs(o.y - r.y) < 42) {
+          r.rings++; r.score += 20; r.kmh = Math.min(1900, r.kmh + 52); sfx.ring(); pop(px + 30, r.y - 40, '+52 km/h', '#9fe8ff', 20);
+          puff(sx, o.y, 12, ['#7ff0ff', '#fff']);
+        }
+      }
+      if (o.k === 'wb' && r.inv <= 0 && Math.abs(sx - px) < 40 && hit(sx, o.y, 20, px, r.y, 18)) {
+        o.dead = true; r.pops++; r.inv = 1.2; r.kmh = Math.max(560, r.kmh - 140); sfx.bump();
+        pop(px, r.y - 40, 'Pop! Slowed down!', '#ff8a7a', 20); puff(sx, o.y, 16, ['#fff', '#ddd']);
+      }
+    }
+    r.objs = r.objs.filter(o => !o.dead && o.x - r.dist > -100);
+    r.top = Math.max(r.top, r.kmh);
+    if (!r.boom && r.kmh >= MACH) {
+      r.boom = true; r.flash = 0.6; sfx.boom();
+      showBanner('SONIC BOOM!', 'You broke the sound barrier! Mach 1! +500', 3);
+      puff(px, r.y, 40, ['#fff', '#cfe9ff', '#ffd84a'], 260);
+    }
+    if (r.t >= DUR) { r.over = true; r.win = true; r.end = r.boom ? 'Supersonic! You\'re a real jet pilot!' : 'Good flying! Grab more rings next time to break Mach 1.'; }
+    setWind(0.04 + clamp(r.kmh / 2000, 0, 0.08));
+  };
+  r.draw = () => {
+    const m = clamp(r.kmh / MACH, 0, 1.3);
+    sky(mix('#2f7fe0', '#163d9c', clamp(m - 0.5, 0, 1)), '#bfe3ff');
+    // streaking cloud layers sell the speed
+    for (let i = 0; i < 9; i++) cloud(mod(rnd(i, 1) * 2400 - r.dist * (0.3 + rnd(i, 4) * 0.4), 2400) - 200, 40 + rnd(i, 2) * (H - 180), 0.5 + rnd(i, 3) * 0.6, 'rgba(255,255,255,.75)');
+    ctx.fillStyle = '#e8f6ff';
+    ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+    for (let x = 0; x <= W + 20; x += 20) ctx.lineTo(x, GROUND - 6 - Math.sin((x + r.dist * 0.9) * 0.01) * 6 - Math.sin((x + r.dist * 0.9) * 0.023) * 4);
+    ctx.lineTo(W, H + OFFY); ctx.fill();   // a sea of cloud below
+    const px = PX();
+    for (const o of r.objs) {
+      const sx = o.x - r.dist;
+      if (sx < -80 || sx > W + 80) continue;
+      if (o.k === 'ring') {
+        ctx.lineWidth = 7; ctx.strokeStyle = o.passed ? 'rgba(160,255,190,.5)' : '#4ae0ff';
+        ctx.beginPath(); ctx.ellipse(sx, o.y, 14, 46, 0, 0, TAU); ctx.stroke();
+        ctx.lineWidth = 2; ctx.strokeStyle = 'rgba(255,255,255,.8)'; ctx.beginPath(); ctx.ellipse(sx, o.y, 14, 46, 0, -1.5, 1.5); ctx.stroke();
+      } else {
+        const y = o.y + Math.sin(r.t * 2 + o.ph) * 6;
+        ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(sx, y + 20); ctx.lineTo(sx, y + 46); ctx.stroke();
+        ctx.fillStyle = '#ff5a4a'; ctx.fillRect(sx - 6, y + 46, 12, 8);
+        ctx.fillStyle = '#fbfbff'; circle(sx, y, 20);
+        ctx.fillStyle = 'rgba(0,0,0,.08)'; circle(sx + 6, y + 4, 14);
+      }
+    }
+    if (r.kmh > MACH * 0.85) {   // a vapor cone forms near the speed of sound
+      ctx.fillStyle = `rgba(255,255,255,${clamp((r.kmh / MACH - 0.85) * 3, 0, 0.55)})`;
+      ctx.beginPath(); ctx.moveTo(px + 20, r.y - 2); ctx.quadraticCurveTo(px - 10, r.y - 34, px - 34, r.y - 30); ctx.lineTo(px - 34, r.y + 30); ctx.quadraticCurveTo(px - 10, r.y + 34, px + 20, r.y + 2); ctx.fill();
+    }
+    if (r.inv > 0 && Math.floor(r.inv * 10) % 2) ctx.globalAlpha = 0.5;
+    drawJet(px, r.y, 1.4, r.ang, 0.7 + clamp(r.kmh / MACH - 0.5, 0, 1) * 0.6, r.t);
+    ctx.globalAlpha = 1;
+    if (r.flash > 0) { ctx.fillStyle = `rgba(255,255,255,${r.flash})`; ctx.fillRect(0, -OFFY, W, VH); }
+    drawFx();
+    hud(r.score + (r.boom ? 500 : 0), null, [`⏱️ ${Math.max(0, DUR - r.t).toFixed(0)} s left`]);
+    // speedometer with the Mach 1 line
+    const w = 220, [x, y] = gaugeAt(w);
+    ctx.fillStyle = 'rgba(11,42,92,.6)'; rrect(x, y, w, 48, 12); ctx.fill();
+    txt(`${Math.round(r.kmh)} km/h`, x + w / 2, y + 14, 17, '#fff');
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; rrect(x + 10, y + 27, w - 20, 12, 6); ctx.fill();
+    ctx.fillStyle = r.boom ? '#ffd84a' : '#4ae0ff'; rrect(x + 10, y + 27, Math.max(6, (w - 20) * clamp(r.kmh / 2000, 0, 1)), 12, 6); ctx.fill();
+    const mx = x + 10 + (w - 20) * MACH / 2000;
+    ctx.fillStyle = '#ff5a4a'; ctx.fillRect(mx - 1.5, y + 23, 3, 20);
+    txt('MACH 1', mx, y + 54, 12, '#ff5a4a');
+  };
+  r.results = () => {
+    const rows = [[`⭕ Rings × ${r.rings}`, r.rings * 20], [`💨 Top speed ${Math.round(r.top)} km/h`, Math.round(r.top / 10)]];
+    if (r.boom) rows.push(['💥 Sonic boom!', 500]);
+    if (!r.pops) rows.push(['🎈 No balloons hit!', 200]);
+    return rows;
+  };
+  return r;
+}
+
+// ---------- Round 6: rocket ----------
+function rocketRound() {
+  const BURN = 7, ACC = [0.3, 0.35, 0.45], GOAL = 100;
+  const r = { score: 0, lives: 3, stars: 0, x: W / 2, vx: 0, alt: 0, vel: 0, stage: 0, fuel: BURN, emptyT: 0, perfect: 0, quick: 0, t: 0, inv: 0, objs: [], scroll: 0, nextY: 300, drops: [], over: false, win: false, launch: 1.2 };
+  const RY = () => H * 0.68;
+  const bands = [[0, 10, 'bird'], [8, 16, 'plane'], [16, 48, 'wb'], [48, 101, 'rock']];
+  r.tap = () => {
+    if (r.over || r.launch > 0) return;
+    if (r.fuel > 0) { pop(r.x, RY() - 90, 'Still has fuel!', '#fff', 18); return; }
+    if (r.stage >= 2) return;
+    r.drops.push({ x: r.x, y: RY(), vy: 0, vx: rand(-30, 30), rot: 0, k: r.stage });
+    r.stage++; r.fuel = BURN; sfx.stage();
+    if (r.emptyT < 0.8) { r.perfect++; r.score += 200; pop(r.x, RY() - 100, 'PERFECT STAGING! +200', '#ffd84a', 22); }
+    else if (r.emptyT < 2) { r.quick++; r.score += 100; pop(r.x, RY() - 100, 'Nice staging! +100', '#9fffa8', 22); }
+    else pop(r.x, RY() - 100, 'Stage ' + (r.stage + 1) + ' fired!', '#fff', 22);
+    puff(r.x, RY() + 10, 24, ['#fff', '#ddd', '#ffb347'], 160);
+  };
+  r.update = dt => {
+    r.t += dt;
+    if (r.launch > 0) { r.launch -= dt; if (r.launch <= 0) showBanner('LIFTOFF!', '', 1.4); return; }
+    let sx = steerX();
+    if (!sx && mouse) sx = clamp((mouse.x - r.x) / 60, -1, 1);
+    r.vx = lerp(r.vx, sx * 240, 7 * dt);
+    r.x = clamp(r.x + r.vx * dt, 30, W - 30);
+    if (r.fuel > 0) {
+      r.fuel -= dt; r.vel += ACC[r.stage] * dt;
+      if (r.fuel <= 0) { r.fuel = 0; r.emptyT = 0; if (r.stage < 2) showBanner('FUEL EMPTY!', RB.touch ? 'Tap STAGE!' : 'Press SPACE to stage!', 1.6, '#ff8a7a'); }
+    } else {
+      r.emptyT += dt; r.vel = Math.max(0, r.vel - 0.5 * dt);
+      if (r.stage < 2 && r.emptyT > 4) { r.tap(); pop(r.x, RY() - 130, 'Mission Control staged for you!', '#fff', 18); }
+    }
+    r.alt += r.vel * dt;
+    const pxs = 140 + r.vel * 70;
+    r.scroll += pxs * dt;
+    r.inv -= dt;
+    // spawn by altitude band
+    while (r.nextY < r.scroll + VH) {
+      const aAt = r.alt + (r.nextY - r.scroll) / Math.max(pxs, 1) * r.vel;
+      const band = bands.find(b => aAt >= b[0] && aAt < b[1]) || bands[3];
+      const x = 30 + Math.random() * (W - 60);
+      if (Math.random() < 0.45) r.objs.push({ k: 'star', x, y: -r.nextY, r: 14 });
+      else r.objs.push({ k: band[2], x, y: -r.nextY, r: band[2] === 'plane' ? 24 : 18, vx: band[2] === 'plane' || band[2] === 'bird' ? (Math.random() < 0.5 ? -1 : 1) * rand(40, 80) : rand(-20, 20), ph: Math.random() * 6 });
+      r.nextY += rand(110, 170);
+    }
+    const ry = RY();
+    for (const o of r.objs) {
+      o.x += o.vx ? o.vx * dt : 0;
+      if (o.k !== 'star' && (o.x < 10 || o.x > W - 10)) o.vx = -o.vx;
+      const sy = o.y + r.scroll;
+      if (o.dead || Math.abs(sy - ry + 30) > 70) continue;
+      if (!hit(o.x, sy, o.r, r.x, ry - 30, 16)) continue;
+      if (o.k === 'star') { o.dead = true; r.stars++; r.score += 50; sfx.star(); pop(o.x, sy - 20, '+50'); puff(o.x, sy, 10, ['#ffd84a', '#fff']); }
+      else if (r.inv <= 0) {
+        o.dead = true; r.lives = Math.max(0, r.lives - 1); r.inv = 1.3; r.vel = Math.max(0.2, r.vel - 0.4); sfx.bump();
+        pop(r.x, ry - 90, { bird: 'Bonk! A bird!', plane: 'Whoa! A plane!', wb: 'Pop! A balloon!', rock: 'Clang! Space rock!' }[o.k], '#ff8a7a', 20);
+        puff(o.x, sy, 14, ['#888', '#ccc', '#ffb347']);
+      }
+    }
+    r.objs = r.objs.filter(o => !o.dead && o.y + r.scroll < VH + 60);
+    for (const d of r.drops) { d.vy += 200 * dt; d.y += d.vy * dt; d.x += d.vx * dt; d.rot += dt * 2; }
+    r.drops = r.drops.filter(d => d.y < VH + 100);
+    if (r.alt >= GOAL) { r.alt = GOAL; r.over = true; r.win = true; r.end = 'You reached SPACE! 100 km up!'; sfx.win(); }
+    else if (r.stage === 2 && r.fuel <= 0 && r.vel <= 0) { r.over = true; r.end = `You made it to ${Math.round(r.alt)} km. So close to space!`; }
+    setWind(r.fuel > 0 ? 0.09 * clamp(1 - r.alt / 80, 0.1, 1) : 0.02);
+  };
+  r.draw = () => {
+    const f = clamp(r.alt / 70, 0, 1);
+    sky(mix('#3d8ff0', '#02030c', f), mix('#bfe3ff', '#0d1a4a', f));
+    if (f > 0.35) { ctx.globalAlpha = (f - 0.35) / 0.65; spaceStars(110, 9, W, VH, r.t); ctx.globalAlpha = 1; }
+    if (r.alt < 6) {   // the ground and launch pad slide away under you
+      const gy = H * 0.68 + 30 + r.scroll * 0.9;
+      ctx.fillStyle = '#5fae4f'; ctx.fillRect(0, gy, W, VH);
+      ctx.fillStyle = '#8a8f9a'; ctx.fillRect(W / 2 - 50, gy - 6, 100, 10);
+      ctx.fillStyle = '#c4553a'; ctx.fillRect(W / 2 + 34, gy - 120, 8, 116);
+    }
+    if (r.alt > 30) {   // the curve of the Earth far below
+      const k = clamp((r.alt - 30) / 70, 0, 1);
+      ctx.save(); ctx.globalAlpha = k;
+      drawEarth(W / 2, H + OFFY + 900 - k * 140, 1000, r.t * 0.1);
+      ctx.restore();
+    }
+    for (let i = 0; i < 8; i++) {   // clouds rush past low down
+      if (r.alt > 14) break;
+      const y = mod(rnd(i, 2) * 900 + r.scroll * 0.7, VH + 200) - 100 - OFFY;
+      cloud(rnd(i, 1) * W, y, 0.9, `rgba(255,255,255,${0.8 * (1 - r.alt / 14)})`);
+    }
+    for (const o of r.objs) {
+      const sy = o.y + r.scroll;
+      if (o.k === 'star') star(o.x, sy, 14, '#ffd84a', r.t);
+      else if (o.k === 'bird') bird(o.x, sy, 1.3, r.t + o.ph);
+      else if (o.k === 'plane') { ctx.save(); ctx.translate(o.x, sy); ctx.scale(o.vx < 0 ? -1 : 1, 1); drawJet(0, 0, 0.9, 0, 0.5, r.t); ctx.restore(); }
+      else if (o.k === 'wb') { ctx.fillStyle = '#fbfbff'; circle(o.x, sy, 18); ctx.strokeStyle = '#ddd'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(o.x, sy + 18); ctx.lineTo(o.x, sy + 40); ctx.stroke(); ctx.fillStyle = '#ff5a4a'; ctx.fillRect(o.x - 5, sy + 40, 10, 7); }
+      else {
+        ctx.fillStyle = '#8a7a6a'; ctx.beginPath();
+        for (let k = 0; k < 8; k++) { const a = k / 8 * TAU + r.t * 0.5, rr = o.r * (0.75 + rnd(o.ph * 10 + k, 1) * 0.35); ctx.lineTo(o.x + Math.cos(a) * rr, sy + Math.sin(a) * rr); }
+        ctx.fill(); ctx.fillStyle = '#6a5c50'; circle(o.x - 4, sy - 3, 4); circle(o.x + 5, sy + 4, 3);
+      }
+    }
+    for (const d of r.drops) {
+      ctx.save(); ctx.translate(d.x, d.y); ctx.rotate(d.rot);
+      ctx.fillStyle = '#d8dce6'; ctx.fillRect(-11 + d.k * 1.5, -12, 22 - d.k * 3, 24);
+      ctx.fillStyle = '#20253a'; ctx.fillRect(-11 + d.k * 1.5, -12, 22 - d.k * 3, 2.5);
+      ctx.restore();
+    }
+    const ry = RY();
+    if (r.inv > 0 && Math.floor(r.inv * 10) % 2) ctx.globalAlpha = 0.5;
+    const shake = r.launch > 0 ? rand(-1.5, 1.5) : 0;
+    drawRocket(r.x + shake, ry, 1.5, 3 - r.stage, r.fuel > 0 ? (r.launch > 0 ? 0.6 : 1) : 0, r.t);
+    ctx.globalAlpha = 1;
+    if (r.fuel <= 0 && r.stage < 2 && Math.sin(r.t * 8) > 0) outlined(RB.touch ? 'TAP STAGE!' : 'PRESS SPACE TO STAGE!', r.x, ry + 46, 18, '#ffd84a');
+    if (r.launch > 0) outlined(Math.ceil(r.launch / 0.4) + '…', W / 2, H * 0.35, 56, '#fff', 'center', 'Bungee');
+    drawFx();
+    hud(r.score, r.lives, [`🔥 Stage ${r.stage + 1} of 3`, `💨 ${r.vel.toFixed(1)} km/s`]);
+    // fuel and altitude gauges
+    const [x, y] = gaugeAt(160);
+    ctx.fillStyle = 'rgba(11,42,92,.55)'; rrect(x, y, 160, 32, 12); ctx.fill();
+    txt('⛽', x + 18, y + 16, 18, '#fff');
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; rrect(x + 34, y + 9, 114, 14, 7); ctx.fill();
+    ctx.fillStyle = r.fuel > 2 ? '#6be06b' : '#ff5a4a'; if (r.fuel > 0) { rrect(x + 34, y + 9, Math.max(6, 114 * r.fuel / BURN), 14, 7); ctx.fill(); }
+    progressBar(r.alt / GOAL, `🚀 ${Math.round(r.alt)} km`, '🌌 100 km', '#c9a0ff');
+  };
+  r.results = () => {
+    const rows = [[`📈 Altitude ${Math.round(r.alt)} km`, Math.round(r.alt) * 3], [`⭐ Stars × ${r.stars}`, r.stars * 50]];
+    if (r.perfect || r.quick) rows.push(['🔥 Staging bonus', r.perfect * 200 + r.quick * 100]);
+    if (r.win) rows.push(['🌌 Reached space', 500], [`❤️ Hearts left × ${r.lives}`, r.lives * 100]);
+    return rows;
+  };
+  return r;
+}
+
+// ---------- Round 7: lunar lander ----------
+function landerRound() {
+  const G = 26, THRUST = 66, SIDE = 34, SAFE_VY = 42, SAFE_VX = 28;
+  const r = { score: 0, tries: 3, fuel: 100, t: 0, over: false, win: false, boomT: 0, landedT: 0 };
+  function newTerrain() {
+    const n = 24, pts = [], padI = 6 + Math.floor(Math.random() * (n - 12));
+    for (let i = 0; i <= n; i++) pts.push({ x: i / n * W, y: H - 60 - Math.random() * 130 });
+    pts[padI + 1].y = pts[padI].y;   // a flat pad two points wide
+    pts[padI + 2].y = pts[padI].y;
+    r.pts = pts; r.pad = { x1: pts[padI].x, x2: pts[padI + 2].x, y: pts[padI].y };
+  }
+  function reset() { r.x = W * 0.18; r.y = 70; r.vx = 40; r.vy = 0; r.fuel = 100; r.state = 'fly'; r.flame = 0; r.side = 0; }
+  newTerrain(); reset();
+  const groundAt = x => {
+    const p = r.pts;
+    for (let i = 0; i < p.length - 1; i++) if (x >= p[i].x && x <= p[i + 1].x) return lerp(p[i].y, p[i + 1].y, (x - p[i].x) / (p[i + 1].x - p[i].x || 1));
+    return H - 60;
+  };
+  r.update = dt => {
+    r.t += dt;
+    if (r.state === 'boom') {
+      r.boomT -= dt;
+      if (r.boomT <= 0) { if (r.tries > 0) { reset(); showBanner(`TRY ${4 - r.tries} OF 3`, 'Slow and steady!', 1.6); } else { r.over = true; r.end = 'The lander crashed. Landing on the Moon is tricky!'; } }
+      return;
+    }
+    if (r.state === 'landed') { r.landedT += dt; if (r.landedT > 2.4) r.over = true; return; }
+    let sx = steerX(), up = holding() || (stick.active && stick.y < -0.35);
+    if (!sx && mouse) sx = clamp((mouse.x - r.x) / 60, -1, 1);
+    if (mouse) up = true;
+    r.flame = r.fuel > 0 && up ? 1 : 0;
+    r.side = r.fuel > 0 && Math.abs(sx) > 0.2 ? Math.sign(sx) : 0;
+    r.vy += (G - r.flame * THRUST) * dt;
+    r.vx += r.side * SIDE * dt;
+    r.fuel = Math.max(0, r.fuel - (r.flame * 7.5 + Math.abs(r.side) * 2.5) * dt);
+    r.x += r.vx * dt; r.y += r.vy * dt;
+    if (r.x < 20) { r.x = 20; r.vx = Math.abs(r.vx) * 0.3; }
+    if (r.x > W - 20) { r.x = W - 20; r.vx = -Math.abs(r.vx) * 0.3; }
+    if (r.y < 30) { r.y = 30; r.vy = Math.max(0, r.vy); }
+    const feet = r.y + 18 * 1.3, gl = groundAt(r.x - 20), gr = groundAt(r.x + 20);
+    if (feet >= Math.min(gl, gr) || feet >= groundAt(r.x)) {
+      const onPad = r.x - 16 >= r.pad.x1 && r.x + 16 <= r.pad.x2;
+      if (onPad && r.vy < SAFE_VY && Math.abs(r.vx) < SAFE_VX) {
+        r.y = r.pad.y - 18 * 1.3; r.state = 'landed'; r.win = true; r.flame = 0;
+        r.soft = r.vy < SAFE_VY / 2;
+        r.end = 'The Eagle has landed! 🇺🇸 You landed on the Moon!';
+        sfx.win(); showBanner('THE EAGLE HAS LANDED!', 'One small step…', 2.4);
+        puff(r.x, r.pad.y, 20, ['#ccc', '#aaa'], 80);
+      } else {
+        r.tries--; r.state = 'boom'; r.boomT = 1.8; sfx.boom();
+        puff(r.x, r.y, 40, ['#ffb347', '#ff5a4a', '#ddd', '#888'], 220, 60);
+        pop(r.x, r.y - 50, !onPad ? 'Missed the pad!' : 'Too fast!', '#ff8a7a', 22);
+      }
+    }
+    setWind(0);
+  };
+  r.draw = () => {
+    sky('#02030c', '#0b1030');
+    spaceStars(120, 5, W, VH, r.t);
+    ctx.save(); ctx.translate(0, -OFFY); drawEarth(W * 0.78, (W < 700 ? 200 : 90) + OFFY * 0.3, 34, r.t); ctx.restore();
+    ctx.fillStyle = '#9a9aa2';
+    ctx.beginPath(); ctx.moveTo(0, H + OFFY);
+    for (const p of r.pts) ctx.lineTo(p.x, p.y);
+    ctx.lineTo(W, H + OFFY); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.12)';
+    for (let i = 0; i < 10; i++) { const cx = rnd(i, 3) * W; ctx.beginPath(); ctx.ellipse(cx, groundAt(cx) + 30 + rnd(i, 4) * 60, 18 + rnd(i, 5) * 20, 5, 0, 0, TAU); ctx.fill(); }
+    const glow = 0.6 + 0.4 * Math.sin(r.t * 4);
+    ctx.fillStyle = `rgba(80,255,160,${glow})`; ctx.fillRect(r.pad.x1, r.pad.y - 3, r.pad.x2 - r.pad.x1, 5);
+    ctx.fillStyle = '#ffd84a'; ctx.fillRect(r.pad.x1, r.pad.y - 14, 3, 14); ctx.fillRect(r.pad.x2 - 3, r.pad.y - 14, 3, 14);
+    if (r.state !== 'boom') drawLander(r.x, r.y, 1.3, r.flame, r.side, r.t);
+    if (r.state === 'landed') {
+      ctx.strokeStyle = '#ddd'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(r.x + 40, r.pad.y); ctx.lineTo(r.x + 40, r.pad.y - 40); ctx.stroke();
+      ctx.fillStyle = '#fff'; ctx.fillRect(r.x + 40, r.pad.y - 40, 22, 14);
+      ctx.fillStyle = '#e8453a'; for (let k = 0; k < 3; k++) ctx.fillRect(r.x + 40, r.pad.y - 40 + k * 5, 22, 2);
+      ctx.fillStyle = '#3d5ab8'; ctx.fillRect(r.x + 40, r.pad.y - 40, 9, 7);
+    }
+    drawFx();
+    const okY = r.vy < SAFE_VY, okX = Math.abs(r.vx) < SAFE_VX;
+    hud(r.score, null, [`🚀 Tries left: ${r.tries}`]);
+    const [x, y] = gaugeAt(220);
+    ctx.fillStyle = 'rgba(11,42,92,.65)'; rrect(x, y, 220, 76, 12); ctx.fill();
+    txt(`⬇️ Fall speed ${Math.max(0, Math.round(r.vy))}`, x + 12, y + 16, 16, okY ? '#7dff9a' : '#ff8a7a', 'left');
+    txt(`↔️ Side speed ${Math.round(Math.abs(r.vx))}`, x + 12, y + 38, 16, okX ? '#7dff9a' : '#ff8a7a', 'left');
+    txt('⛽', x + 18, y + 60, 15, '#fff');
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; rrect(x + 34, y + 54, 174, 12, 6); ctx.fill();
+    ctx.fillStyle = r.fuel > 25 ? '#6be06b' : '#ff5a4a'; rrect(x + 34, y + 54, Math.max(4, 174 * r.fuel / 100), 12, 6); ctx.fill();
+  };
+  r.results = () => {
+    if (!r.win) return [['🚀 Brave try!', 100]];
+    const rows = [['🌙 Landed on the Moon', 600], [`⛽ Fuel left ${Math.round(r.fuel)}%`, Math.round(r.fuel) * 4], [`🚀 Tries left × ${r.tries}`, r.tries * 150]];
+    if (r.soft) rows.push(['🪶 Feather-soft landing', 200]);
+    return rows;
+  };
+  return r;
+}
+
+const ROUNDS = [balloonRound, gliderRound, wrightRound, propRound, jetRound, rocketRound, landerRound];
+LEVELS[4].stick = LEVELS[5].stick = LEVELS[6].stick = true;
+LEVELS[5].button = { ico: '🔥', lbl: 'STAGE' };
+LEVELS[6].button = { ico: '🔥', lbl: 'THRUST' };
+
+// ---------- Lesson diagrams (drawn at 480 × 270) ----------
+const DW = 480, DH = 270;
+function dLabel(s, x, y, size = 17, color = '#0b2a5c', align = 'center') { txt(s, x, y, size, color, align, 700); }
+function dBubble(s, x, y, size = 16, bg = '#fff', fg = '#0b2a5c') {
+  ctx.font = `700 ${size}px 'Fredoka', system-ui, sans-serif`;
+  const w = ctx.measureText(s).width + 18;
+  ctx.fillStyle = bg; rrect(x - w / 2, y - size * 0.85, w, size * 1.7, 10); ctx.fill();
+  ctx.strokeStyle = '#0b2a5c'; ctx.lineWidth = 2; ctx.stroke();
+  dLabel(s, x, y, size, fg);
+}
+function dSky(top = '#8fd0ff', bottom = '#e8f6ff') {
+  const g = ctx.createLinearGradient(0, 0, 0, DH); g.addColorStop(0, top); g.addColorStop(1, bottom);
+  ctx.fillStyle = g; ctx.fillRect(0, 0, DW, DH);
+}
+function dGround(y, color = '#6cbf5a') { ctx.fillStyle = color; ctx.fillRect(0, y, DW, DH - y); }
+function dSpace(t) { ctx.fillStyle = '#060a1e'; ctx.fillRect(0, 0, DW, DH); spaceStars(80, 2, DW, DH, t); }
+// air "molecules": n dots bouncing inside a box, speed set by temperature
+function molecules(seed, n, x, y, w, h, spd, color, t, r = 3) {
+  ctx.fillStyle = color;
+  for (let i = 0; i < n; i++) {
+    const px = x + Math.abs(mod(rnd(i, seed) * 2 * w + t * spd * (0.6 + rnd(i, seed + 1)), 2 * w) - w);
+    const py = y + Math.abs(mod(rnd(i, seed + 2) * 2 * h + t * spd * (0.6 + rnd(i, seed + 3)), 2 * h) - h);
+    circle(px, py, r);
+  }
+}
+function airfoil(cx, cy, len, ang) {
+  ctx.save(); ctx.translate(cx, cy); ctx.rotate(ang);
+  ctx.beginPath(); ctx.moveTo(-len / 2, 0);
+  ctx.bezierCurveTo(-len / 2, -len * 0.16, len * 0.05, -len * 0.2, len / 2, 0);
+  ctx.bezierCurveTo(len * 0.05, -len * 0.04, -len / 2, len * 0.08, -len / 2, 0);
+  ctx.fillStyle = '#e8453a'; ctx.fill(); ctx.strokeStyle = '#0b2a5c'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.restore();
+}
+const DIAGRAMS = {
+  'b-heat': t => {
+    dSky('#bfe3ff', '#eef8ff');
+    molecules(1, 40, 10, 10, DW - 20, DH - 20, 18, 'rgba(60,110,200,.55)', t, 3);   // cool air: slow and packed
+    ctx.save(); balloonShape(240, 110, 78); ctx.fillStyle = 'rgba(255,170,90,.35)'; ctx.fill(); ctx.clip();
+    ctx.fillStyle = '#fff2e2'; ctx.fillRect(0, 0, DW, DH);
+    molecules(5, 14, 160, 30, 160, 150, 120, '#ff6b3d', t, 4);   // hot air: fast and spread out
+    ctx.restore();
+    balloonShape(240, 110, 78); ctx.strokeStyle = '#0b2a5c'; ctx.lineWidth = 3; ctx.stroke();
+    ctx.strokeStyle = '#5a3b1e'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(215, 200); ctx.lineTo(220, 225); ctx.moveTo(265, 200); ctx.lineTo(260, 225); ctx.stroke();
+    ctx.fillStyle = '#a8692e'; ctx.fillRect(218, 225, 44, 30);
+    ctx.fillStyle = 'rgba(255,190,40,.9)'; ctx.beginPath(); ctx.moveTo(232, 224); ctx.quadraticCurveTo(240, 190 - Math.sin(t * 30) * 6, 248, 224); ctx.fill();
+    arrow(240, 60, 240, 22, '#2fa84f', 7);
+    dBubble('Hot air: fast & spread out', 240, 120, 15, '#fff2e2');
+    dBubble('Cool air: slow & packed', 90, 245, 14);
+    dBubble('UP!', 300, 36, 16, '#c9f5d3');
+  },
+  'b-animals': t => {
+    dSky('#8fd0ff', '#fff4dc'); dGround(232, '#7cc46a');
+    ctx.fillStyle = '#d9c7a8'; ctx.fillRect(330, 170, 130, 62); ctx.fillStyle = '#7d8aa3'; ctx.fillRect(330, 160, 130, 12);   // palace of Versailles
+    for (let i = 0; i < 6; i++) { ctx.fillStyle = '#6a7fa8'; ctx.fillRect(340 + i * 20, 184, 10, 20); }
+    const y = 130 - mod(t * 12, 70);
+    drawBalloon(170, y, 54, 0, '#2a55b8', '#ffd84a');
+    const by = y + 54 * 1.5;
+    outlined('🐑', 154, by - 2, 16, '#fff'); outlined('🦆', 170, by - 6, 14, '#fff'); outlined('🐓', 186, by - 2, 16, '#fff');
+    dBubble('Versailles, France · 1783', 360, 24, 15);
+    dBubble('8 minutes in the air!', 380, 140, 14, '#fff3b0');
+  },
+  'b-people': t => {
+    dSky('#ffcf9a', '#fff1d6'); dGround(238, '#8ab06a');
+    for (let i = 0; i < 12; i++) {   // Paris rooftops
+      const x = i * 42, h = 30 + rnd(i, 2) * 40;
+      ctx.fillStyle = '#e8d2b0'; ctx.fillRect(x, 238 - h, 38, h);
+      ctx.fillStyle = '#6a7fa8'; ctx.fillRect(x - 2, 238 - h - 8, 42, 9);
+    }
+    const x = 60 + mod(t * 30, 400);
+    drawBalloon(x, 90 + Math.sin(t) * 6, 46, 0.7, '#3d6fe0', '#ffd84a', t);
+    ctx.fillStyle = '#5a3b1e'; circle(x - 6, 90 + 46 * 1.5 - 2 + Math.sin(t) * 6, 4); circle(x + 7, 90 + 46 * 1.5 - 2 + Math.sin(t) * 6, 4);
+    dBubble('Paris · November 21, 1783', 240, 24, 15);
+    dBubble('First people to fly! ~25 minutes', 240, 256, 14, '#fff3b0');
+  },
+  'b-steer': t => {
+    dSky(); dGround(240);
+    const ph = mod(t, 6) < 3, k = mod(t, 3) / 3;
+    const y = ph ? 190 - k * 110 : 80 + k * 110;
+    const x = 120 + mod(t * 20, 200);
+    drawBalloon(x, y - 60, 40, ph ? 1 : 0, '#ff6b3d', '#ffd84a', t);
+    dBubble(ph ? '🔥 Burner ON → hotter → UP' : '❄️ Burner OFF → cooler → DOWN', 240, 26, 15, ph ? '#ffe2c8' : '#d8ecff');
+    arrow(x + 70, y - 60, x + 70, y - 60 + (ph ? -40 : 40), ph ? '#2fa84f' : '#3d6fe0', 6);
+    for (let i = 0; i < 3; i++) arrow(20, 70 + i * 50, 80, 70 + i * 50, 'rgba(255,255,255,.95)', 4);
+    dBubble('The wind steers!', 70, 224, 14);
+  },
+  'w-forces': t => {
+    dSky();
+    for (let i = 0; i < 4; i++) cloud(mod(i * 150 - t * 60, 640) - 80, 40 + i * 50, 0.5);
+    drawProp(240, 140, 2.6, 0, t);
+    const p = 1 + Math.sin(t * 3) * 0.08;
+    arrow(240, 110, 240, 110 - 70 * p, '#2fa84f', 8); dLabel('LIFT', 240, 26, 18, '#2fa84f');
+    arrow(240, 170, 240, 170 + 60 * p, '#e8453a', 8); dLabel('WEIGHT', 240, 252, 18, '#e8453a');
+    arrow(330, 142, 330 + 70 * p, 142, '#3d6fe0', 8); dLabel('THRUST', 430, 112, 18, '#3d6fe0');
+    arrow(150, 142, 150 - 60 * p, 142, '#f08a00', 8); dLabel('DRAG', 60, 112, 18, '#f08a00');
+  },
+  'w-bernoulli': t => {
+    dSky('#d6eeff', '#f2f9ff');
+    // streamlines: dots go faster over the top
+    for (let row = 0; row < 7; row++) {
+      const yb = 50 + row * 30, top = yb < 135, spd = top ? 170 - Math.abs(yb - 120) * 0.9 : 90;
+      for (let i = 0; i < 8; i++) {
+        const x = mod(i * 70 + t * spd, DW + 40) - 20;
+        const bulge = Math.exp(-((x - 240) ** 2) / 9000);
+        const y = yb + (top ? -bulge * (30 - (120 - yb) * 0.2) : bulge * 6);
+        ctx.fillStyle = top ? '#3d6fe0' : '#7aa0d8'; circle(x, y, top ? 3.5 : 3);
+      }
+    }
+    airfoil(240, 135, 220, -0.08);
+    arrow(240, 120, 240, 40, '#2fa84f', 8);
+    dBubble('Fast air on top = LOW pressure', 120, 22, 14, '#d8ecff');
+    dBubble('Slower air below = HIGHER pressure', 240, 250, 14, '#ffe2c8');
+    dLabel('LIFT', 280, 52, 20, '#2fa84f');
+  },
+  'w-down': t => {
+    dSky();
+    airfoil(200, 120, 200, -0.22);
+    for (let i = 0; i < 6; i++) {
+      const k = mod(t * 0.8 + i / 6, 1), x = lerp(20, 460, k);
+      const y = 150 + (x > 260 ? (x - 260) * 0.45 : 0) + (i % 3) * 14;
+      arrow(x - 26, y - (x > 260 ? 12 : 0), x, y, 'rgba(61,111,224,.8)', 4);
+    }
+    arrow(200, 96, 200, 30, '#2fa84f', 8);
+    dBubble('Wing pushes air DOWN ⬇️', 360, 240, 15, '#d8ecff');
+    dBubble('Air pushes wing UP ⬆️', 320, 40, 15, '#c9f5d3');
+  },
+  'w-lilienthal': t => {
+    dSky('#a8dcff', '#f0f9ff');
+    ctx.fillStyle = '#7cc46a'; ctx.beginPath(); ctx.moveTo(0, DH); ctx.lineTo(0, 120); ctx.quadraticCurveTo(80, 110, 150, 180); ctx.lineTo(DW, 240); ctx.lineTo(DW, DH); ctx.fill();
+    const k = mod(t * 0.25, 1), x = 40 + k * 400, y = 105 + k * 110 + Math.sin(k * 9) * 6;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(0.12);
+    ctx.fillStyle = '#f4ead2'; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.quadraticCurveTo(0, -18, 40, 0); ctx.quadraticCurveTo(0, -8, -40, 0); ctx.fill();
+    ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.beginPath(); ctx.moveTo(-10, -4); ctx.lineTo(-44, -6); ctx.stroke();
+    ctx.fillStyle = '#f4ead2'; ctx.fillRect(-48, -14, 6, 12);
+    ctx.fillStyle = '#333'; ctx.fillRect(-2, -2, 4, 20); circle(0, -4, 4);
+    ctx.restore();
+    dBubble('Otto Lilienthal · 1890s', 330, 28, 15);
+    dBubble('~2,000 glider flights!', 330, 64, 14, '#fff3b0');
+  },
+  'r-shop': t => {
+    ctx.fillStyle = '#f3e2c4'; ctx.fillRect(0, 0, DW, DH);
+    ctx.fillStyle = '#d9c09a'; ctx.fillRect(0, 210, DW, 60);
+    ctx.strokeStyle = '#3a3a3a'; ctx.lineWidth = 3;   // a bicycle
+    for (const wx of [70, 150]) { ctx.beginPath(); ctx.arc(wx, 180, 30, 0, TAU); ctx.stroke(); }
+    ctx.beginPath(); ctx.moveTo(70, 180); ctx.lineTo(105, 140); ctx.lineTo(150, 180); ctx.lineTo(115, 180); ctx.lineTo(105, 140); ctx.lineTo(140, 135); ctx.stroke();
+    ctx.save(); ctx.translate(70, 180); ctx.rotate(t * 3); ctx.beginPath(); ctx.moveTo(-30, 0); ctx.lineTo(30, 0); ctx.moveTo(0, -30); ctx.lineTo(0, 30); ctx.stroke(); ctx.restore();
+    ctx.fillStyle = '#9a6a3a'; ctx.fillRect(230, 100, 220, 80);   // the wind tunnel
+    ctx.fillStyle = '#cfe9ff'; ctx.fillRect(250, 112, 180, 56);
+    ctx.save(); ctx.translate(240, 140); ctx.rotate(t * 20); ctx.fillStyle = '#555'; ctx.fillRect(-3, -24, 6, 48); ctx.restore();
+    for (let i = 0; i < 6; i++) { const x = 260 + mod(t * 160 + i * 30, 170); ctx.fillStyle = 'rgba(61,111,224,.6)'; ctx.fillRect(x, 120 + (i % 3) * 16, 14, 2); }
+    const shape = Math.floor(t / 0.8) % 5;
+    airfoil(350, 142, 40 + shape * 4, -0.1 - shape * 0.03);
+    dBubble('Dayton, Ohio · bicycle shop', 140, 30, 15);
+    dBubble(`Wind tunnel: wing shape #${(Math.floor(t / 0.8) % 200) + 1}`, 340, 72, 14, '#fff3b0');
+    dBubble('200+ shapes tested!', 340, 205, 14);
+  },
+  'r-control': t => {
+    dSky();
+    const phase = Math.floor(t / 2.5) % 3, k = Math.sin(t * 2.4);
+    const labels = [['PITCH', 'nose up & down', 'elevator'], ['ROLL', 'tip the wings', 'wing warping'], ['YAW', 'turn left & right', 'rudder']];
+    ctx.save(); ctx.translate(240, 140);
+    if (phase === 0) { ctx.rotate(k * 0.3); drawFlyer(0, 0, 3, 0, t); }
+    else if (phase === 1) {   // seen from the front: wings tip
+      ctx.rotate(k * 0.35);
+      ctx.fillStyle = '#efe2c0'; ctx.fillRect(-150, -30, 300, 6); ctx.fillRect(-150, 10, 300, 6);
+      ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 2; ctx.beginPath(); for (let x = -140; x <= 140; x += 40) { ctx.moveTo(x, -24); ctx.lineTo(x, 10); } ctx.stroke();
+      ctx.fillStyle = '#e8b98a'; circle(0, 6, 7);
+    } else {   // seen from above: nose swings
+      ctx.rotate(k * 0.3);
+      ctx.fillStyle = '#efe2c0'; ctx.fillRect(-26, -150, 40, 300);
+      ctx.fillRect(70, -30, 20, 60); ctx.fillRect(-110, -6, 8, 12);
+      ctx.strokeStyle = '#8a5a2b'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(14, -10); ctx.lineTo(70, -10); ctx.moveTo(14, 10); ctx.lineTo(70, 10); ctx.moveTo(-26, 0); ctx.lineTo(-104, 0); ctx.stroke();
+    }
+    ctx.restore();
+    const [a, b, c] = labels[phase];
+    dBubble(`${a}: ${b}`, 240, 28, 18, '#fff3b0');
+    dBubble(`controlled by the ${c}`, 240, 246, 15);
+  },
+  'r-first': t => {
+    dSky('#bfe3ff', '#f4f8ff');
+    ctx.fillStyle = '#ead09a'; ctx.beginPath(); ctx.moveTo(0, DH); for (let x = 0; x <= DW; x += 10) ctx.lineTo(x, 220 - Math.sin(x * 0.02) * 10); ctx.lineTo(DW, DH); ctx.fill();
+    const k = mod(t, 7) / 6, kk = Math.min(1, k);
+    const x = 40 + kk * 380, y = 200 - Math.sin(kk * Math.PI) * 40 - (kk < 1 ? 0 : 0);
+    ctx.fillStyle = '#8a5a2b'; ctx.fillRect(20, 214, 80, 4);
+    drawFlyer(x, y, 1.6, Math.cos(kk * Math.PI) * 0.15, t);
+    dBubble(`⏱️ ${(kk * 12).toFixed(1)} s   📏 ${Math.round(kk * 120)} ft`, 240, 30, 17, '#fff3b0');
+    dBubble('Kitty Hawk · Dec 17, 1903', 240, 70, 14);
+  },
+  'p-prop': t => {
+    dSky();
+    ctx.save(); ctx.translate(130, 135);   // front view: a spinning propeller
+    ctx.fillStyle = '#b8bfc9'; circle(0, 0, 12);
+    for (let i = 0; i < 2; i++) {
+      ctx.save(); ctx.rotate(t * 4 + i * Math.PI);
+      ctx.fillStyle = '#7a5a3a'; ctx.beginPath(); ctx.ellipse(0, -48, 12, 44, 0.15, 0, TAU); ctx.fill();
+      ctx.restore();
+    }
+    ctx.restore();
+    dLabel('Front view', 130, 250, 15);
+    drawProp(350, 135, 2.2, 0, t);
+    for (let i = 0; i < 5; i++) { const x = 400 - mod(t * 150 + i * 40, 200); arrow(x + 0, 110 + (i % 3) * 24, x - 30, 110 + (i % 3) * 24, 'rgba(61,111,224,.7)', 4); }
+    arrow(420, 70, 470, 70, '#3d6fe0', 7); dLabel('THRUST', 430, 46, 17, '#3d6fe0');
+    dBubble('Each blade is a little wing!', 240, 24, 15, '#fff3b0');
+  },
+  'p-pilots': t => {
+    ctx.fillStyle = '#fdf3e0'; ctx.fillRect(0, 0, DW, DH);
+    const cards = [['🎓', 'Bessie Coleman', '1921', 'first African American woman with a pilot\'s license'], ['✈️', 'Charles Lindbergh', '1927', 'first solo nonstop across the Atlantic'], ['🌊', 'Amelia Earhart', '1932', 'first woman to fly solo across the Atlantic']];
+    const on = Math.floor(t / 2.2) % 3;
+    cards.forEach(([ic, nm, yr, what], i) => {
+      const x = 16 + i * 154, y = 30 + (i === on ? -8 : 0);
+      ctx.fillStyle = i === on ? '#fff3b0' : '#fff'; rrect(x, y, 140, 210, 14); ctx.fill();
+      ctx.strokeStyle = '#0b2a5c'; ctx.lineWidth = i === on ? 4 : 2; ctx.stroke();
+      txt(ic, x + 70, y + 40, 38, '#000');
+      dLabel(nm, x + 70, y + 92, 15);
+      dLabel(yr, x + 70, y + 118, 22, '#e8453a');
+      ctx.font = "600 13px 'Fredoka', system-ui"; ctx.fillStyle = '#334';
+      const words = what.split(' '); let line = '', ly = y + 148;
+      for (const w of words) { if (ctx.measureText(line + w).width > 124) { ctx.fillText(line, x + 70, ly); line = ''; ly += 17; } line += w + ' '; }
+      ctx.fillText(line, x + 70, ly);
+    });
+  },
+  'p-atlantic': t => {
+    ctx.fillStyle = '#3f84c8'; ctx.fillRect(0, 0, DW, DH);
+    ctx.fillStyle = '#6cbf5a';
+    ctx.beginPath(); ctx.moveTo(0, 20); ctx.lineTo(90, 30); ctx.lineTo(120, 90); ctx.lineTo(95, 150); ctx.lineTo(70, 230); ctx.lineTo(0, 270); ctx.fill();   // North America
+    ctx.beginPath(); ctx.moveTo(480, 30); ctx.lineTo(400, 50); ctx.lineTo(380, 100); ctx.lineTo(395, 140); ctx.lineTo(370, 200); ctx.lineTo(420, 270); ctx.lineTo(480, 270); ctx.fill();   // Europe & Africa
+    ctx.beginPath(); ctx.ellipse(355, 80, 14, 22, 0.3, 0, TAU); ctx.fill();   // Ireland & Britain
+    const a = [110, 115], b = [392, 105];
+    ctx.setLineDash([6, 6]); ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+    ctx.beginPath(); ctx.moveTo(a[0], a[1]); ctx.quadraticCurveTo(250, 40, b[0], b[1]); ctx.stroke(); ctx.setLineDash([]);
+    const k = mod(t * 0.18, 1), q = 1 - k;
+    const px = q * q * a[0] + 2 * q * k * 250 + k * k * b[0], py = q * q * a[1] + 2 * q * k * 40 + k * k * b[1];
+    drawProp(px, py, 0.9, -0.1, t);
+    ctx.fillStyle = '#e8453a'; circle(a[0], a[1], 5); circle(b[0], b[1], 5);
+    dBubble('New York', 80, 140, 14); dBubble('Paris', 420, 128, 14);
+    dBubble(`⏱️ ${(k * 33.5).toFixed(1)} hours`, 240, 230, 16, '#fff3b0');
+    dLabel('ATLANTIC OCEAN', 240, 180, 16, 'rgba(255,255,255,.75)');
+  },
+  'j-engine': t => {
+    ctx.fillStyle = '#eaf2fb'; ctx.fillRect(0, 0, DW, DH);
+    const step = Math.floor(t / 1.2) % 4, zones = [[40, 140, 'SUCK', '#3d6fe0'], [140, 260, 'SQUEEZE', '#7a5ad8'], [260, 350, 'BANG', '#e8453a'], [350, 450, 'BLOW', '#f08a00']];
+    ctx.fillStyle = '#9aa6b8'; ctx.beginPath(); ctx.moveTo(40, 70); ctx.lineTo(260, 95); ctx.lineTo(350, 95); ctx.lineTo(450, 110); ctx.lineTo(450, 160); ctx.lineTo(350, 175); ctx.lineTo(260, 175); ctx.lineTo(40, 200); ctx.fill();
+    zones.forEach(([x1, x2, nm, c], i) => {
+      ctx.fillStyle = i === step ? c : 'rgba(255,255,255,.35)'; ctx.globalAlpha = i === step ? 0.35 : 1;
+      ctx.fillRect(x1, 60, x2 - x1, 150); ctx.globalAlpha = 1;
+      dLabel(nm, (x1 + x2) / 2, 236, i === step ? 20 : 15, i === step ? c : '#7d8aa3');
+    });
+    for (let i = 0; i < 4; i++) { ctx.save(); ctx.translate(60 + i * 50, 135); ctx.scale(1, 1); ctx.fillStyle = '#556'; ctx.fillRect(-3, -50 + i * 8, 6, 100 - i * 16); ctx.restore(); }
+    ctx.fillStyle = `rgba(255,${120 + Math.sin(t * 30) * 60},40,.9)`; ctx.beginPath(); ctx.ellipse(305, 135, 32, 22 + Math.sin(t * 20) * 4, 0, 0, TAU); ctx.fill();
+    for (let i = 0; i < 14; i++) {   // air squeezes as it goes through, then rushes out hot
+      const x = mod(t * 160 + i * 34, 480);
+      const spread = x < 260 ? lerp(60, 26, x / 260) : lerp(26, 40, (x - 260) / 190);
+      ctx.fillStyle = x > 300 ? '#ff8a3d' : '#3d6fe0'; circle(x, 135 + (rnd(i, 1) - 0.5) * spread * 2, 3);
+    }
+    dBubble('Jet engine · first jet plane flew in 1939', 240, 26, 14);
+  },
+  'j-newton': t => {
+    dSky('#fff3e0', '#fffaf2');
+    const k = mod(t * 0.4, 1), x = 80 + k * 330;
+    for (let i = 0; i < 10; i++) { const d = mod(t * 3 + i / 10, 1); ctx.fillStyle = `rgba(61,111,224,${1 - d})`; circle(x - 46 - d * 70, 135 + (rnd(i, 3) - 0.5) * d * 50, 4); }
+    ctx.fillStyle = '#e8453a'; ctx.beginPath(); ctx.ellipse(x, 135, 46 * (1 - k * 0.4), 34 * (1 - k * 0.4), 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#c4322a'; ctx.beginPath(); ctx.moveTo(x - 44 * (1 - k * 0.4), 135); ctx.lineTo(x - 56 * (1 - k * 0.4), 127); ctx.lineTo(x - 56 * (1 - k * 0.4), 143); ctx.fill();
+    arrow(x + 50, 80, x + 110, 80, '#2fa84f', 7); dLabel('Balloon goes →', x + 60, 56, 15, '#2fa84f');
+    arrow(x - 60, 200, x - 120, 200, '#3d6fe0', 7); dLabel('← Air goes', x - 80, 226, 15, '#3d6fe0');
+    dBubble('Every push has a push back!', 240, 24, 15, '#fff3b0');
+  },
+  'j-mach': t => {
+    dSky();
+    const k = mod(t * 0.25, 1), mach = 0.5 + k * 0.8;
+    const x = 120 + k * 260, y = 135;
+    for (let i = 1; i <= 7; i++) {   // sound circles left behind at earlier moments
+      const back = i * 0.35, ox = x - back * mach * 60, rr = back * 60;
+      ctx.strokeStyle = `rgba(61,111,224,${0.8 - i * 0.09})`; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(ox, y, rr, 0, TAU); ctx.stroke();
+    }
+    drawJet(x, y, 1.3, 0, 1, t);
+    dBubble(`Mach ${mach.toFixed(2)}  ·  ${Math.round(mach * 1235)} km/h`, 240, 26, 17, mach >= 1 ? '#ffd84a' : '#fff');
+    dBubble(mach >= 1 ? 'Sound waves pile up: BOOM!' : 'Sound waves race ahead of the plane', 240, 246, 14);
+  },
+  'j-747': t => {
+    dSky('#9fd4ff', '#eaf6ff'); dGround(225, '#7aa86a');
+    ctx.fillStyle = '#555'; ctx.fillRect(0, 222, DW, 10);
+    const k = mod(t * 0.2, 1), x = -60 + k * 600, y = 210 - Math.max(0, k - 0.35) * 260;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(-Math.min(0.2, Math.max(0, k - 0.35) * 0.6)); ctx.scale(1.6, 1.6);
+    ctx.fillStyle = '#f4f6fb';
+    ctx.beginPath(); ctx.moveTo(60, 0); ctx.quadraticCurveTo(58, -14, 34, -16); ctx.quadraticCurveTo(20, -24, 0, -18); ctx.lineTo(-56, -10); ctx.lineTo(-70, -34); ctx.lineTo(-60, -34); ctx.lineTo(-44, -10); ctx.lineTo(-60, 0); ctx.quadraticCurveTo(0, 8, 60, 0); ctx.fill();
+    ctx.fillStyle = '#3d6fe0'; ctx.fillRect(-56, -6, 110, 3);
+    ctx.fillStyle = '#c9d3e6'; ctx.beginPath(); ctx.moveTo(10, -2); ctx.lineTo(-20, 12); ctx.lineTo(-30, 12); ctx.lineTo(-8, -2); ctx.fill();
+    ctx.fillStyle = '#8fa3bf'; ctx.fillRect(-14, 6, 14, 6);
+    ctx.fillStyle = '#2c3e5c'; for (let i = 0; i < 10; i++) ctx.fillRect(-40 + i * 8, -10, 4, 3);
+    ctx.restore();
+    dBubble('Boeing 747 "Jumbo Jet" · 1969', 240, 26, 16);
+    dBubble('Hundreds of passengers!', 240, 64, 14, '#fff3b0');
+  },
+  'k-arrows': t => {
+    dSky('#2a2448', '#8a5a6a');
+    ctx.fillStyle = '#3a2a3a'; ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(0, 200); ctx.lineTo(60, 180); ctx.lineTo(140, 210); ctx.lineTo(260, 190); ctx.lineTo(480, 220); ctx.lineTo(480, 270); ctx.fill();
+    for (let i = 0; i < 4; i++) {
+      const k = mod(t * 0.5 + i * 0.27, 1), x = 40 + k * 440, y = 200 - k * 150 + i * 14;
+      ctx.save(); ctx.translate(x, y); ctx.rotate(-0.33);
+      ctx.strokeStyle = '#d9b77a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(-40, 0); ctx.lineTo(20, 0); ctx.stroke();
+      ctx.fillStyle = '#888'; ctx.beginPath(); ctx.moveTo(20, -5); ctx.lineTo(30, 0); ctx.lineTo(20, 5); ctx.fill();
+      ctx.fillStyle = '#c4322a'; ctx.fillRect(-6, -6, 18, 7);
+      ctx.fillStyle = 'rgba(255,190,60,.9)'; ctx.beginPath(); ctx.moveTo(-6, -4); ctx.lineTo(-30 - Math.sin(t * 40 + i) * 6, -2); ctx.lineTo(-6, 0); ctx.fill();
+      ctx.restore();
+    }
+    dBubble('China · about 800 years ago', 240, 26, 16, '#fff3b0');
+    dBubble('Gunpowder fire arrows', 240, 246, 15);
+  },
+  'k-oxygen': t => {
+    dSky('#0b1238', '#2a3470'); spaceStars(40, 4, DW, DH, t);
+    ctx.save(); ctx.translate(140, 135); ctx.scale(2.6, 2.6);
+    ctx.fillStyle = '#f4f6fb'; ctx.fillRect(-14, -36, 28, 72);
+    ctx.fillStyle = '#ff8a3d'; ctx.fillRect(-12, -32, 24, 30);
+    ctx.fillStyle = '#7fc8ff'; ctx.fillRect(-12, 0, 24, 30);
+    ctx.fillStyle = '#3d8ff0'; ctx.beginPath(); ctx.moveTo(-14, -36); ctx.lineTo(0, -54); ctx.lineTo(14, -36); ctx.fill();
+    ctx.fillStyle = '#e8453a'; ctx.beginPath(); ctx.moveTo(-14, 36); ctx.lineTo(-22, 40); ctx.lineTo(-14, 22); ctx.fill(); ctx.beginPath(); ctx.moveTo(14, 36); ctx.lineTo(22, 40); ctx.lineTo(14, 22); ctx.fill();
+    ctx.fillStyle = 'rgba(255,170,40,.9)'; ctx.beginPath(); ctx.moveTo(-8, 36); ctx.quadraticCurveTo(0, 60 + Math.sin(t * 30) * 5, 8, 36); ctx.fill();
+    ctx.restore();
+    dBubble('FUEL', 140, 92, 14, '#ffe2c8'); dBubble('OXYGEN', 140, 172, 14, '#d8ecff');
+    dBubble('🔥 Fire needs fuel + oxygen', 340, 70, 15, '#fff3b0');
+    dBubble('No air in space…', 340, 130, 15);
+    dBubble('…so rockets bring their own!', 340, 172, 15, '#c9f5d3');
+  },
+  'k-goddard': t => {
+    dSky('#cfe4f5', '#f2f6f0'); dGround(232, '#d8e8d0');
+    ctx.fillStyle = '#fff'; for (let i = 0; i < 8; i++) { ctx.beginPath(); ctx.ellipse(rnd(i, 1) * DW, 236 + rnd(i, 2) * 30, 30, 4, 0, 0, TAU); ctx.fill(); }   // snowy field
+    ctx.strokeStyle = '#555'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(200, 232); ctx.lineTo(220, 150); ctx.lineTo(240, 232); ctx.moveTo(210, 190); ctx.lineTo(230, 190); ctx.stroke();
+    const k = mod(t, 4.5), up = k < 2.5 ? (k / 2.5) ** 1.3 : 1, x = 220 + up * 120, y = 160 - Math.sin(up * Math.PI * 0.8) * 120 + up * 40;
+    if (k < 3.4) {
+      ctx.save(); ctx.translate(x, y); ctx.rotate(up * 1.2);
+      ctx.strokeStyle = '#444'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, -18); ctx.lineTo(0, 10); ctx.moveTo(-6, -18); ctx.lineTo(6, -18); ctx.stroke();
+      ctx.fillStyle = '#d9d9d9'; ctx.fillRect(-3, -28, 6, 10);
+      if (k < 2.5) { ctx.fillStyle = 'rgba(255,170,40,.9)'; ctx.beginPath(); ctx.moveTo(-3, -18); ctx.quadraticCurveTo(0, -4 + Math.sin(t * 40) * 3, 3, -18); ctx.fill(); }
+      ctx.restore();
+    }
+    dBubble(`⏱️ ${Math.min(2.5, k).toFixed(1)} s   📏 ${Math.round(up * 41)} ft high`, 240, 26, 16, '#fff3b0');
+    dBubble('Robert Goddard · March 16, 1926', 240, 252, 14);
+  },
+  'k-stages': t => {
+    const k = mod(t, 6), alt = k * 30;
+    dSky(mix('#5aa8ff', '#060a1e', clamp(k / 5, 0, 1)), mix('#cfeaff', '#1a2a5a', clamp(k / 5, 0, 1)));
+    if (k > 2.5) spaceStars(60, 6, DW, DH, t);
+    const left = k < 2 ? 3 : k < 4 ? 2 : 1;
+    drawRocket(240, 200 - Math.min(k, 1) * 30, 2.2, left, 1, t);
+    for (let s = 0; s < 3 - left; s++) {   // dropped stages tumbling away
+      const since = k - (s === 0 ? 2 : 4), dx = (s ? 1 : -1) * since * 30, dy = since * since * 30;
+      ctx.save(); ctx.translate(240 + dx, 230 + dy); ctx.rotate(since * (s ? 1 : -1));
+      ctx.fillStyle = '#d8dce6'; ctx.fillRect(-24 + s * 3, -26, 48 - s * 6, 52); ctx.restore();
+    }
+    dBubble(`Stage ${4 - left} firing`, 380, 40, 16, '#fff3b0');
+    if (left < 3) dBubble('Empty stage drops off!', 110, 220, 14);
+    dBubble('Saturn V: 3 stages, 111 m tall', 120, 30, 13);
+    void alt;
+  },
+  's-orbit': t => {
+    dSpace(t);
+    drawEarth(240, 150, 70, t);
+    ctx.fillStyle = '#7a6a5a'; ctx.beginPath(); ctx.moveTo(222, 82); ctx.lineTo(240, 58); ctx.lineTo(258, 82); ctx.fill();   // Newton's mountain
+    const speeds = [0.25, 0.45, 0.7, 1];
+    const k = mod(t * 0.35, speeds.length), i = Math.floor(k), f = k - i;
+    for (let j = 0; j <= i; j++) {
+      const s = speeds[j], end = j < i ? 1 : f;
+      ctx.strokeStyle = j === 3 ? '#ffd84a' : 'rgba(255,255,255,.65)'; ctx.lineWidth = 2;
+      ctx.beginPath();
+      let bx = 0, by = 0;
+      for (let u = 0; u <= end; u += 0.01) {
+        let ang, rr;
+        if (j === 3) { ang = -Math.PI / 2 + u * TAU; rr = 92; }
+        else { ang = -Math.PI / 2 + u * s * 2.2; rr = 92 - u * 22 / (s * 0.8 + 0.2); if (rr < 70) break; }
+        bx = 240 + Math.cos(ang) * rr; by = 150 + Math.sin(ang) * rr;
+        u === 0 ? ctx.moveTo(bx, by) : ctx.lineTo(bx, by);
+      }
+      ctx.stroke();
+      if (j === i) { ctx.fillStyle = '#ffd84a'; circle(bx, by, 4); }
+    }
+    dBubble(i === 3 ? '28,000 km/h: it falls AROUND the Earth!' : 'Faster throw → lands farther away', 240, 252, 14, i === 3 ? '#fff3b0' : '#fff');
+  },
+  's-firsts': t => {
+    dSpace(t);
+    drawEarth(130, 140, 70, t);
+    const a = t * 1.2, sx = 130 + Math.cos(a) * 100, sy = 140 + Math.sin(a) * 40;
+    ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.ellipse(130, 140, 100, 40, 0, 0, TAU); ctx.stroke();
+    ctx.fillStyle = '#d9d9d9'; circle(sx, sy, 6);
+    ctx.strokeStyle = '#d9d9d9'; ctx.lineWidth = 1.5; for (let k = 0; k < 4; k++) { ctx.beginPath(); ctx.moveTo(sx, sy); ctx.lineTo(sx - 14 - k * 2, sy + 4 + k * 3); ctx.stroke(); }
+    if (Math.sin(a) < 0) drawEarth(130, 140, 70, t);   // Sputnik passes behind the Earth
+    if (Math.sin(t * 6) > 0.3) dLabel('beep!', sx + 18, sy - 12, 13, '#9fffa8');
+    const items = [['🛰️', '1957', 'Sputnik 1'], ['👨‍🚀', '1961', 'Yuri Gagarin'], ['👩‍🚀', '1963', 'Valentina Tereshkova']];
+    items.forEach(([ic, yr, nm], i) => {
+      const y = 50 + i * 72, on = Math.floor(t / 2) % 3 === i;
+      ctx.fillStyle = on ? '#fff3b0' : 'rgba(255,255,255,.9)'; rrect(260, y - 28, 205, 56, 12); ctx.fill();
+      txt(ic, 286, y, 26, '#000');
+      dLabel(yr, 340, y - 10, 18, '#e8453a'); dLabel(nm, 380, y + 12, 14, '#0b2a5c');
+    });
+  },
+  's-moon': t => {
+    dSpace(t);
+    drawEarth(390, 60, 30, t);
+    ctx.fillStyle = '#a8a8b0'; ctx.beginPath(); ctx.moveTo(0, 270); ctx.lineTo(0, 200); for (let x = 0; x <= DW; x += 20) ctx.lineTo(x, 200 + Math.sin(x * 0.05) * 4); ctx.lineTo(DW, 270); ctx.fill();
+    ctx.fillStyle = 'rgba(0,0,0,.12)'; for (let i = 0; i < 6; i++) { ctx.beginPath(); ctx.ellipse(rnd(i, 1) * DW, 225 + rnd(i, 2) * 35, 20, 4, 0, 0, TAU); ctx.fill(); }
+    drawLander(150, 172, 1.6);
+    ctx.strokeStyle = '#ddd'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(230, 204); ctx.lineTo(230, 150); ctx.stroke();
+    ctx.fillStyle = '#fff'; ctx.fillRect(230, 150, 32, 20); ctx.fillStyle = '#e8453a'; for (let k = 0; k < 4; k++) ctx.fillRect(230, 150 + k * 5, 32, 2.5);
+    ctx.fillStyle = '#3d5ab8'; ctx.fillRect(230, 150, 13, 10);
+    const hop = Math.abs(Math.sin(t * 1.6)) * 30, ax = 300 + mod(t * 18, 120);
+    ctx.fillStyle = '#f4f6fb'; rrect(ax - 9, 172 - hop, 18, 26, 6); ctx.fill(); circle(ax, 166 - hop, 9);
+    ctx.fillStyle = '#ffd84a'; circle(ax + 3, 166 - hop, 5);
+    ctx.fillStyle = 'rgba(0,0,0,.25)'; for (let i = 0; i < 5; i++) ctx.fillRect(300 + i * 24, 214, 8, 3);
+    dBubble('Apollo 11 · July 20, 1969', 160, 30, 16, '#fff3b0');
+    dBubble('Moon gravity: just 1/6 of Earth\'s', 300, 250, 13);
+  },
+  's-iss': t => {
+    dSpace(t);
+    drawEarth(240, 330, 220, t * 0.3);
+    const a = -Math.PI / 2 + Math.sin(t * 0.3) * 0.5, x = 240 + Math.cos(a) * 250, y = 330 + Math.sin(a) * 250;
+    ctx.save(); ctx.translate(x, y); ctx.rotate(a + Math.PI / 2);
+    ctx.fillStyle = '#d9d9d9'; ctx.fillRect(-60, -2, 120, 4);
+    ctx.fillStyle = '#c9a63a'; for (const sx of [-58, -40, 28, 46]) ctx.fillRect(sx, -22, 14, 44);
+    ctx.fillStyle = '#eee'; ctx.fillRect(-18, -7, 36, 14); ctx.fillRect(-6, -14, 12, 28);
+    ctx.restore();
+    dBubble('International Space Station', 240, 26, 16, '#fff3b0');
+    dBubble('Around the Earth every 90 minutes!', 240, 196, 14);
+  },
+};
+
+// ---------- Screens ----------
+let mode = 'title', cur = 0, slide = 0, round = null, roundBest = 0, lastRows = [], quiz = [], qi = 0, qRight = 0, answered = false;
+let diaCtx = null;
+const card = $('card'), scr = $('screen');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+function show(html) { scr.classList.remove('hidden'); card.innerHTML = html; scr.scrollTop = 0; diaCtx = null; }
+function hideScreen() { scr.classList.add('hidden'); }
+function on(id, fn) { const el = $(id); if (el) el.addEventListener('click', () => { RB.audio(); sfx.click(); fn(); }); }
+const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+
+function titleScreen() {
+  mode = 'title'; cur = Math.min(save.unlocked - 1, 6);
+  show(`<h1>FLIGHT<br>SCHOOL</h1>
+    <p style="font-size:21px">✈️ How do things fly? 🚀</p>
+    <p>Travel through the whole story of flight, from the first hot air balloon all the way to the Moon!
+    Each level: <b>learn</b> 📖, <b>fly</b> 🕹️, then ace the <b>quiz</b> 🧠.</p>
+    <p style="font-size:30px;letter-spacing:6px">${LEVELS.map(l => l.icon).join(' ')}</p>
+    ${totalScore() ? `<p>🏆 Your total score: <b>${totalScore()}</b></p>` : ''}
+    <button class="btn" id="go">${totalScore() ? '▶ Keep going' : '▶ Start flying!'}</button>`);
+  on('go', mapScreen);
+}
+
+function mapScreen() {
+  mode = 'map'; hideAct();
+  const next = LEVELS.findIndex((_, i) => !(save.stars[i] > 0));
+  const tiles = LEVELS.map((l, i) => {
+    const locked = i >= save.unlocked, st = save.stars[i] || 0;
+    return `<button class="lvl${locked ? ' locked' : ''}${i === next && !locked ? ' next' : ''}" data-i="${i}" ${locked ? 'disabled' : ''}>
+      <span class="ic">${locked ? '🔒' : l.icon}</span><b>${i + 1}. ${esc(l.name)}</b><small>${l.year}</small>
+      <span class="st">${starStr(st)}</span>${save.best[i] ? `<small>Best ${save.best[i]}</small>` : ''}</button>`;
+  }).join('');
+  show(`<h2>🗺️ The Story of Flight</h2>
+    <p style="margin:0">🏆 Total score: <b>${totalScore()}</b> · ${save.stars.filter(s => s > 0).length} of 7 levels done</p>
+    <div class="levels">${tiles}</div>
+    ${allDone() ? '<button class="btn" id="cert">🎓 My Flight Expert certificate</button>' : ''}
+    ${next >= 0 ? `<button class="btn" id="next">▶ Level ${next + 1}: ${esc(LEVELS[next].name)}</button>` : ''}`);
+  card.querySelectorAll('.lvl').forEach(b => b.addEventListener('click', () => { if (b.disabled) return; RB.audio(); sfx.click(); startLesson(+b.dataset.i); }));
+  on('next', () => startLesson(next));
+  on('cert', certScreen);
+}
+
+function startLesson(i) { cur = i; slide = 0; lessonScreen(); }
+function lessonScreen() {
+  mode = 'lesson';
+  const L = LEVELS[cur], S = L.slides[slide], lastSlide = slide === L.slides.length - 1;
+  show(`<span class="chip">Level ${cur + 1} · ${L.icon} ${esc(L.name)} · ${L.year}</span>
+    <h2>${esc(S.t)}</h2>
+    <canvas id="dia"></canvas>
+    <p>${esc(S.p)}</p>
+    <div class="dots">${L.slides.map((_, k) => k === slide ? '<b>●</b>' : '●').join('')}</div>
+    <button class="btn alt" id="back">◀ ${slide ? 'Back' : 'Map'}</button>
+    <button class="btn" id="fwd">${lastSlide ? 'Let\'s fly! ✈️' : 'Next ▶'}</button>`);
+  const c = $('dia'), dpr = Math.min(devicePixelRatio || 1, 2);
+  c.width = DW * dpr; c.height = DH * dpr;
+  diaCtx = c.getContext('2d'); diaCtx.scale(dpr, dpr);
+  diaT = 0;
+  on('back', () => { if (slide) { slide--; lessonScreen(); } else mapScreen(); });
+  on('fwd', () => { if (lastSlide) readyScreen(); else { slide++; lessonScreen(); } });
+}
+let diaT = 0;
+function drawDiagram(dt) {
+  if (!diaCtx || !diaCtx.canvas.isConnected) return;
+  diaT += dt;
+  const key = LEVELS[cur].slides[slide].d;
+  ctx = diaCtx;
+  ctx.save(); ctx.beginPath(); ctx.rect(0, 0, DW, DH); ctx.clip();
+  try { DIAGRAMS[key](diaT); } finally { ctx.restore(); ctx = gameCtx; }
+}
+
+function readyScreen() {
+  mode = 'ready';
+  const L = LEVELS[cur], h = L.how;
+  show(`<span class="chip">Level ${cur + 1} · Flight test</span>
+    <h2>${L.icon} Time to fly!</h2>
+    <ul class="how">
+      <li><span class="e">🎯</span><span>${h.goal}</span></li>
+      <li><span class="e">🕹️</span><span><span class="key-only">${h.keys}</span><span class="touch-only">${h.touch}</span></span></li>
+      <li><span class="e">💡</span><span>${h.tip}</span></li>
+    </ul>
+    <button class="btn alt" id="back">◀ Lesson</button>
+    <button class="btn" id="go">Start round ▶</button>`);
+  on('back', () => { slide = L.slides.length - 1; lessonScreen(); });
+  on('go', () => startRound(true));
+}
+
+function hideAct() { act.classList.add('hidden'); actUp(); }
+function startRound(fresh) {
+  if (fresh) roundBest = 0;
+  clearInput(); pops = []; parts = []; banner = null;
+  round = ROUNDS[cur]();
+  mode = 'play'; paused = false;
+  hideScreen();
+  const B = LEVELS[cur].button;
+  if (B && (RB.touch || cur === 5 || cur === 6)) { $('actIco').textContent = B.ico; $('actLbl').textContent = B.lbl; act.classList.remove('hidden'); }
+  else hideAct();
+  if (!wind) wind = RB.ambient(500);
+  showBanner(`LEVEL ${cur + 1}`, LEVELS[cur].name, 1.8);
+  last = performance.now();
+}
+function endRound() {
+  mode = 'roundEnd'; hideAct(); setWind(0); clearInput();
+  const rows = round.results(), total = rows.reduce((a, r) => a + r[1], 0);
+  roundBest = Math.max(roundBest, total);
+  lastRows = rows;
+  if (round.win) sfx.win();
+  show(`<span class="chip">Level ${cur + 1} · Flight test</span>
+    <h2>${round.win ? '🎉 ' : ''}${esc(round.end || 'Round over!')}</h2>
+    <div class="rows">${rows.map(([k, v]) => `<div><span>${esc(k)}</span><b>${v}</b></div>`).join('')}
+      <div class="tot"><span>Round score</span><span>${total}</span></div></div>
+    ${roundBest > total ? `<p>Your best try this time: <b>${roundBest}</b> (that's the one that counts!)</p>` : ''}
+    <button class="btn alt" id="again">↺ Fly again</button>
+    <button class="btn" id="quiz">Quiz time! 🧠</button>`);
+  on('again', () => startRound(false));
+  on('quiz', startQuiz);
+}
+
+function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+function startQuiz() {
+  quiz = shuffle(LEVELS[cur].quiz).slice(0, QUIZ_LEN).map(q => ({ ...q, opts: shuffle(q.a.map((s, k) => ({ s, right: k === 0 }))) }));
+  qi = 0; qRight = 0; quizScreen();
+}
+function quizScreen() {
+  mode = 'quiz'; answered = false;
+  const q = quiz[qi];
+  show(`<span class="chip">🧠 Quiz · Question ${qi + 1} of ${quiz.length}</span>
+    <h2>${esc(q.q)}</h2>
+    <div class="answers">${q.opts.map((o, k) => `<button class="ans" data-k="${k}">${'ABC'[k]}. ${esc(o.s)}</button>`).join('')}</div>
+    <div id="fb"></div>`);
+  card.querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => answer(+b.dataset.k)));
+}
+function answer(k) {
+  if (answered) return;
+  answered = true; RB.audio();
+  const q = quiz[qi], right = q.opts[k].right;
+  if (right) { qRight++; sfx.right(); } else sfx.wrong();
+  card.querySelectorAll('.ans').forEach((b, j) => {
+    b.disabled = true;
+    if (q.opts[j].right) b.classList.add('right');
+    else if (j === k) b.classList.add('wrong');
+  });
+  const lastQ = qi === quiz.length - 1;
+  $('fb').innerHTML = `<div class="why"><b>${right ? '✅ Right! +100' : '❌ Not quite.'}</b> ${esc(q.why)}</div>
+    <button class="btn" id="nextQ">${lastQ ? 'See my score ▶' : 'Next question ▶'}</button>`;
+  on('nextQ', () => { if (lastQ) levelEnd(); else { qi++; quizScreen(); } });
+  $('nextQ').scrollIntoView({ block: 'nearest' });
+}
+
+function levelEnd() {
+  mode = 'levelEnd';
+  const quizPts = qRight * PER_RIGHT, total = roundBest + quizPts;
+  const stars = 1 + (qRight >= 3 ? 1 : 0) + (qRight === quiz.length && roundBest >= 600 ? 1 : 0);
+  const newBest = total > (save.best[cur] || 0);
+  save.best[cur] = Math.max(save.best[cur] || 0, total);
+  save.stars[cur] = Math.max(save.stars[cur] || 0, stars);
+  save.unlocked = Math.max(save.unlocked, Math.min(7, cur + 2));
+  persist();
+  sfx.win();
+  const L = LEVELS[cur], finished = cur === 6;
+  show(`<span class="chip">Level ${cur + 1} complete!</span>
+    <h2>${L.icon} You earned the <b>${esc(L.badge)}</b> badge!</h2>
+    <div class="stars">${starStr(stars)}</div>
+    <div class="rows"><div><span>🕹️ Flight test</span><b>${roundBest}</b></div>
+      <div><span>🧠 Quiz: ${qRight} of ${quiz.length} right</span><b>${quizPts}</b></div>
+      <div class="tot"><span>Level score</span><span>${total}</span></div></div>
+    ${newBest ? '<p>🎉 New best for this level!</p>' : ''}
+    <p>🏆 Total score: <b>${totalScore()}</b></p>
+    ${stars < 3 ? '<p style="font-size:16px;color:#5a6f99">Get every quiz question right and a great flight score for ★★★</p>' : ''}
+    <button class="btn alt" id="map">🗺️ Map</button>
+    ${finished ? '<button class="btn" id="cert">🎓 Get my certificate!</button>' : `<button class="btn" id="next">Next: ${LEVELS[cur + 1].icon} ${esc(LEVELS[cur + 1].name)} ▶</button>`}`);
+  on('map', mapScreen);
+  on('next', () => startLesson(cur + 1));
+  on('cert', certScreen);
+}
+
+function certScreen() {
+  mode = 'cert'; hideAct();
+  const done = allDone(), when = new Date().toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+  show(`<div class="cert">
+      <div style="font-size:40px">🎓</div>
+      <h1 style="font-size:26px">Certified<br>Flight Expert</h1>
+      <p>This certifies that</p>
+      <div class="nm" id="nm">${esc(save.name || 'Super Pilot')}</div>
+      <p>${done ? 'flew through the whole story of flight, from hot air balloons to the Moon!' : 'is on the way to becoming a flight expert!'}</p>
+      <div class="badges">${LEVELS.map((l, i) => save.stars[i] ? l.icon : '⬜').join('')}</div>
+      <p>⭐ ${save.stars.reduce((a, b) => a + (b || 0), 0)} of 21 stars · 🏆 ${totalScore()} points</p>
+      <p style="font-size:15px;color:#7a6a3a">${when} · RoboBandit Flight School</p>
+    </div>
+    <p><input type="text" id="name" maxlength="24" placeholder="Type your name" value="${esc(save.name)}"></p>
+    <button class="btn alt" id="map">🗺️ Map</button>
+    <button class="btn" id="share">🔗 Share</button>`);
+  const inp = $('name');
+  inp.addEventListener('input', () => { save.name = inp.value.slice(0, 24); $('nm').textContent = save.name || 'Super Pilot'; persist(); });
+  on('map', mapScreen);
+  on('share', () => RB.share({ title: 'Flight School | RoboBandit', text: `I'm a Certified Flight Expert with ${totalScore()} points! Can you beat me? ✈️🚀` }));
+}
+
+// ---------- Main loop ----------
+let last = performance.now(), idleT = 0;
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  update(dt);
+  draw(dt);
+  requestAnimationFrame(frame);
+}
+function update(dt) {
+  if (mode === 'play' && !paused) {
+    round.update(dt);
+    stepFx(dt);
+    if (round.over && !round.endT) round.endT = 0.001;
+    if (round.endT) { round.endT += dt; if (round.endT > 1.4) endRound(); }
+  } else if (mode !== 'play') idleT += dt;
+}
+function draw(dt) {
+  ctx = gameCtx;
+  ctx.setTransform(scale, 0, 0, scale, 0, OFFY * scale);
+  if (mode === 'play' && round) {
+    round.draw();
+    drawBanner(paused ? 0 : dt);
+  } else {
+    // behind the menus: the current level's flying machine drifting through the sky
+    const L = cur;
+    const top = ['#69b7ff', '#4aa6ff', '#7fc4ff', '#5aa8ff', '#2f7fe0', '#1a2a6a', '#02030c'][L], bot = ['#fff1d6', '#d8f0ff', '#fff4dc', '#cfeaff', '#bfe3ff', '#5a6fb0', '#0b1030'][L];
+    sky(top, bot);
+    if (L >= 5) spaceStars(80, 7, W, VH, idleT);
+    for (let i = 0; i < 6; i++) cloud(mod(rnd(i, 1) * 1800 - idleT * 30, 1800) - 150, -OFFY + 60 + rnd(i, 2) * (VH - 120), 0.6 + rnd(i, 3) * 0.6, `rgba(255,255,255,${L >= 5 ? 0.15 : 0.8})`);
+    const x = mod(idleT * 60, W + 300) - 150, y = H * 0.5 + Math.sin(idleT) * 30;
+    [() => drawBalloon(x, y - 40, 40, 0.5, '#3d6fe0', '#ffd84a', idleT), () => drawGlider(x, y, 2, 0.05), () => drawFlyer(x, y, 2, 0.05, idleT),
+      () => drawProp(x, y, 2, 0.05, idleT), () => drawJet(x, y, 2, 0.05, 1, idleT), () => drawRocket(W * 0.5, mod(-idleT * 90, VH + 200) + 100 - OFFY, 2, 3, 1, idleT),
+      () => drawLander(x, y, 2, 0.5, 0, idleT)][L]();
+    if (mode === 'lesson') drawDiagram(dt);
+  }
+}
+titleScreen();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
