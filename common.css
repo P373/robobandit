@@ -11,6 +11,44 @@
 }
 .rb-topbar a:hover, .rb-topbar button:hover { background: #fff; }
 .rb-topbar a:active, .rb-topbar button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.25); }
+/* ☰ the RoboBandit menu button, first in every game's top bar */
+.rb-topbar .rb-menubtn { width: auto; padding: 0 12px; gap: 6px; grid-auto-flow: column; font: 800 18px system-ui, sans-serif; color: #111; background: #ffd84a; }
+.rb-topbar .rb-menubtn span { font-size: 13px; letter-spacing: 1px; }
+.rb-topbar .rb-menubtn:hover { background: #ffe680; }
+@media (max-width: 520px) {
+  .rb-topbar .rb-menubtn span { display: none; }
+  .rb-topbar .rb-menubtn { width: 44px; padding: 0; }
+  .rb-topbar #btnShare, .rb-topbar #btnFs { display: none; }   /* on a phone these two live in the ☰ menu */
+}
+
+/* the menu itself: every game, the school folders and the settings */
+.rb-menu {
+  position: fixed; inset: 0; z-index: 12; display: grid; place-items: start center; overflow-y: auto; padding: 16px;
+  background: rgba(7,11,24,.72); font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+.rb-menu-panel {
+  width: 100%; max-width: 640px; margin: max(4px, env(safe-area-inset-top)) auto 16px; box-sizing: border-box; padding: 16px 18px 20px;
+  color: #e6eefc; background: #121a33; border: 3px solid #2a3a66; border-radius: 20px; box-shadow: 0 8px 0 #0b1024, 0 16px 40px rgba(0,0,0,.5);
+}
+.rb-menu-head { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.rb-menu-logo { display: flex; align-items: center; gap: 10px; font: 900 26px system-ui, sans-serif; letter-spacing: 3px; color: #ffd84a; text-decoration: none;
+  text-shadow: 0 0 14px rgba(255,200,40,.45), 0 3px 0 #b4770c; border-radius: 12px; padding: 2px 6px; }
+.rb-menu-logo img { width: 44px; height: 44px; }
+.rb-menu-x { width: 44px; height: 44px; border: 0; border-radius: 12px; font-size: 20px; cursor: pointer; background: rgba(255,255,255,.12); color: #fff; }
+.rb-menu h3 { margin: 16px 0 8px; font-size: 15px; letter-spacing: 2px; color: #7fd0ff; text-transform: uppercase; }
+.rb-menu-games { display: grid; gap: 8px; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+.rb-menu-game { display: grid; grid-template-columns: auto 1fr; align-items: center; column-gap: 8px; padding: 10px 12px; line-height: 1.2; border-radius: 14px; text-decoration: none; color: #fff;
+  font-weight: 800; font-size: 16px; background: #1b2650; border: 2px solid #2a3a66; }
+.rb-menu-game span { font-size: 24px; }
+.rb-menu-game span { grid-row: span 2; }
+.rb-menu-game small { grid-column: 2; font-size: 12px; font-weight: 700; color: #ffd84a; }
+.rb-menu-game:hover, .rb-menu-game:focus-visible { border-color: #ffd84a; outline: none; }
+.rb-menu-game.cur { border-color: #ffd84a; background: #2a3466; }
+.rb-menu-set { display: flex; flex-wrap: wrap; gap: 8px; }
+.rb-menu-set button, .rb-menu-set a { padding: 10px 14px; border-radius: 12px; border: 2px solid #2a3a66; cursor: pointer; text-decoration: none;
+  font: 800 15px system-ui, sans-serif; color: #fff; background: #1b2650; }
+.rb-menu-back { display: block; width: 100%; margin-top: 18px; padding: 14px; border: 3px solid #0b2a5c; border-radius: 14px; cursor: pointer;
+  font: 900 20px system-ui, sans-serif; color: #0b2a5c; background: #ffe14a; box-shadow: 0 5px 0 #0b2a5c; }
 
 .rb-pause {
   position: fixed; inset: 0; z-index: 9; display: grid; place-items: center; padding: 16px;

@@ -178,16 +178,19 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Hamglider: autopilot lands on the target in every round of all three worlds', async () => {
+  await test('Hamglider: autopilot lands on the target in every round of all four worlds (boosting down the Cape Cod Canal)', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 480, height: 270 } });
     const r = await p.evaluate(() => {
       const out = [];
-      for (let w = 0; w < 3; w++) {
+      for (let w = 0; w < WORLDS.length; w++) {
         startGame(w);
         const landed = [];
-        let last = '';
+        let last = '', boosted = false;
         for (let i = 0; i < 60 * 600 && state !== 'end'; i++) {
           if (state === 'intro') action();
+          // the canal is too far to glide: boost while the target is still a long way off
+          keys.boost = !!world.boost && (state === 'air' || state === 'ramp') && fuel > 0 && Math.hypot(targetPos.x - pos.x, targetPos.z - pos.z) > 120 + pos.y * 4;
+          if (boosting) boosted = true;
           if (state === 'air') {
             const dx = targetPos.x - pos.x, dz = targetPos.z - pos.z, dist = Math.hypot(dx, dz);
             if (!wings && vel.y < 0 && dist > 25 && pos.y > 8) action();
@@ -203,7 +206,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
           if (state !== last && state === 'roll' && surf.target) landed.push(round + 1);
           last = state;
         }
-        out.push({ world: world.id, state, total, landed: landed.length, stars: save.stars[world.id] });
+        keys.boost = false;
+        out.push({ world: world.id, state, total, landed: landed.length, stars: save.stars[world.id], boosted });
       }
       return out;
     });
@@ -211,6 +215,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(w.state === 'end', w.world + ' did not finish');
       check(w.landed === 3, `${w.world}: landed on the target in ${w.landed} of 3 rounds`);
       check(w.total > 0 && w.stars >= 1, `${w.world}: total ${w.total}, stars ${w.stars}`);
+      check(w.world !== 'canal' || w.boosted, 'the canal autopilot should have boosted');
     }
     await done(p, 'hamglider-end.png');
   });
@@ -248,11 +253,27 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const lava = [];
       for (let i = 0; i < 60 * 6 && state !== 'result'; i++) { update(1 / 60); if (lava[lava.length - 1] !== state) lava.push(state); }
       out.lava = { seen: lava, text: roundScores[0].text };
+      // Cape Cod Canal: the old small islands are gone; the canal bank is a safe landing; the railroad bridge is solid
+      startGame(3); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      pos.set(CANAL_HALF + 30, 6, -150); vel.set(0, -2, 0); wings = false; curve = 0;
+      for (let i = 0; i < 60 * 10 && state !== 'result'; i++) update(1 / 60);
+      const bank = roundScores[0];
+      setupRound(1); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      pos.set(0, 50, RR_Z + 12); vel.set(0, 0, -30); wings = false; curve = 0;
+      for (let i = 0; i < 30; i++) update(1 / 60);
+      out.canal = { bank, stoppedBy: pos.z > RR_Z - 6.5, ledge: ledgeLight.parent === isleGroup };
+      startGame(0);
+      out.oceanIsles = isles.filter(s => !s.secret).map(s => Math.hypot(s.x, s.z) - Math.hypot(targetPos.x, targetPos.z));
       return out;
     });
     check(r.curve[0] < -8 && r.curve[2] > 8 && Math.abs(r.curve[1]) < 1, 'takeoff did not curve: ' + r.curve.map(Math.round));
     check(r.island && r.island.pts === 15, 'island landing scored ' + JSON.stringify(r.island));
     check(r.secret.found && r.secret.egg && r.secret.ball, 'secret: ' + JSON.stringify(r.secret));
+    check(r.canal.bank && r.canal.bank.pts === 15 && /canal bank/.test(r.canal.bank.text), 'canal bank landing: ' + JSON.stringify(r.canal));
+    check(r.canal.stoppedBy && r.canal.ledge, 'the railroad bridge should be solid, the lighthouse in place: ' + JSON.stringify(r.canal));
+    check(r.oceanIsles.length === 2 && r.oceanIsles.every(d => d > 20), 'the landing islands should be out past the target: ' + JSON.stringify(r.oceanIsles));
     check(r.replay.pts === 100 && r.replay.seen.includes('replay') && r.replay.round === 1, 'replay: ' + JSON.stringify(r.replay));
     check(r.lava.seen.includes('burn') && r.lava.text === 'TOO HOT!', 'lava: ' + JSON.stringify(r.lava));
     await done(p, 'hamglider-features.png');
@@ -261,7 +282,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
   await test('Hamglider: worlds unlock in order, and "Unlock all" opens every world and ball', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
     await p.click('#btnPlay');
-    check(await p.$$eval('.world.locked', els => els.length) === 2, 'lava and storm should start locked');
+    check(await p.$$eval('.world.locked', els => els.length) === 3, 'lava, storm and the canal should start locked');
     await p.click('#btnUnlock');
     check(await p.$$eval('.world.locked', els => els.length) === 0, 'worlds still locked');
     await p.click('#btnBalls');
@@ -818,6 +839,37 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return { state, place, hits: hatsHit, podium: document.querySelectorAll('.podium li').length };
     });
     check(race.state === 'over' && race.place <= 2 && race.hits > 0 && race.podium === 6, 'a racer using everything should finish 1st or 2nd: ' + JSON.stringify(race));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('every game has the ☰ menu: it pauses, lists every game and folder, and closes with Esc or Ⓑ', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+      await p.goto(url(f)); await p.waitForTimeout(300);
+      check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
+    }
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(500);
+    await p.evaluate(() => { startGame(); countT = 0; introT = 0; });
+    await p.click('#btnMenu'); await p.waitForTimeout(150);
+    const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
+      pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
+    check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
+    check(m.games === 11 && m.cur.includes('Witch Way Out'), 'the menu should list 8 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
+    await padTap(p, 'B'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !document.querySelector('.rb-menu') && paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ should close the menu, back to the pause screen');
+    // from a lesson in a folder, the links still point at the arcade's pages
+    await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(300);
+    await p.click('#btnMenu'); await p.waitForTimeout(100);
+    const lesson = await p.evaluate(() => [...document.querySelectorAll('.rb-menu a')].map(a => a.href));
+    check(lesson.every(h => fs.existsSync(h.replace('file://', ''))) && lesson.some(h => h.endsWith('/hamglider.html')), 'lesson menu links: ' + lesson.join(' '));
+    await p.keyboard.press('Escape');
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
   });

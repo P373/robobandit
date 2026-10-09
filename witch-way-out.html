@@ -66,6 +66,7 @@
   #raceBar .dot.me { width: 16px; height: 16px; margin: -10px 0 0 -10px; z-index: 2; box-shadow: 0 0 8px #fff; }
   #raceBar .dot.pk { border-color: #ff3b1f; background: #ff8a1f; }
   #raceBar .flag { position: absolute; right: -24px; top: -9px; font-size: 18px; }
+  @media (max-width: 700px) { #raceBar { left: max(14px, env(safe-area-inset-left)); transform: none; top: calc(max(10px, env(safe-area-inset-top)) + 112px); width: 38vw; } }
   #hudTR { position: absolute; right: max(14px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 54px);
     display: flex; gap: 10px; align-items: center; }
   #hPlaceBig { font: 56px/1 'Creepster', system-ui, sans-serif; color: #ffd84a; text-shadow: 0 4px 0 #3a0a4a, 0 0 14px rgba(255,200,60,.5); }
@@ -106,7 +107,7 @@
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261009-1911">
+<link rel="stylesheet" href="common.css?v=20261009-2141">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -160,9 +161,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261009-1911"></script>
-<script src="orbit-cam.js?v=20261009-1911"></script>
-<script src="touch-stick.js?v=20261009-1911"></script>
+<script src="common.js?v=20261009-2141"></script>
+<script src="orbit-cam.js?v=20261009-2141"></script>
+<script src="touch-stick.js?v=20261009-2141"></script>
 <script>
 'use strict';
 
@@ -1282,7 +1283,7 @@ function moveRivals(dt, fixedSpeed) {
       if ((f.nextThrow -= dt) <= 0) {
         f.nextThrow = rand(9, 15);
         if (!f.knockT && !f.finishT && rel > 4 && rel < 30 && runT > 12 && section && section.id !== 'storm' &&
-          pumpkinZ - pos.z > 45 && !projectiles.some(h => h.kind === 'rival')) {
+          pumpkinZ - pos.z > 65 && !projectiles.some(h => h.kind === 'rival')) {
           u.hat.visible = false;
           const from = u.hat.getWorldPosition(new THREE.Vector3());
           spawn('rival', from, new THREE.Vector3(0, 2, -(f.v + 14)), { owner: f, color: u.hatColor });

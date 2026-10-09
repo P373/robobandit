@@ -68,6 +68,13 @@
     width: 104px; height: 104px; border-radius: 50%; border: 4px solid #0b2a5c; cursor: pointer;
     font: 15px 'Bungee', system-ui, sans-serif; color: #0b2a5c; background: #ffe14a; box-shadow: 0 6px 0 #0b2a5c;
   }
+  #boostBtn {
+    position: fixed; z-index: 3; right: max(134px, calc(env(safe-area-inset-right) + 134px)); bottom: max(80px, calc(env(safe-area-inset-bottom) + 70px));
+    width: 92px; height: 92px; border-radius: 50%; border: 4px solid #0b2a5c; cursor: pointer; touch-action: none;
+    font: 13px 'Bungee', system-ui, sans-serif; color: #fff; background: #ff7a3a; box-shadow: 0 6px 0 #0b2a5c;
+  }
+  #boostBtn.empty { filter: grayscale(.8) brightness(.8); }
+  #gauges .boost i { display: block; height: 8px; margin-top: 4px; border-radius: 4px; background: linear-gradient(90deg, #ffe14a, #ff7a3a); }
   #wingBtn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0b2a5c; }
   .screen {
     position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
@@ -125,7 +132,7 @@
   .ball.locked { cursor: default; opacity: .55; }
   .ball.locked i { filter: grayscale(1); }
 </style>
-<link rel="stylesheet" href="common.css?v=20261009-1911">
+<link rel="stylesheet" href="common.css?v=20261009-2141">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -140,11 +147,13 @@
     <div>SPEED<b id="gSpeed">0</b></div>
     <div>HEIGHT<b id="gAlt">0</b></div>
     <div>TARGET<b id="gDist">0</b></div>
+    <div class="boost hidden" id="gBoostBox">🚀 BOOST<i id="gBoost"></i></div>
   </div>
   <div id="prompt" class="hidden"></div>
   <div id="banner" class="hidden"></div>
 </div>
 <button id="wingBtn" class="hidden">WINGS</button>
+<button id="boostBtn" class="hidden">🚀<br>BOOST</button>
 
 <div id="title" class="screen">
   <div class="panel">
@@ -159,8 +168,9 @@
         <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn. <kbd>↑</kbd> float. <kbd>↓</kbd> dive.</span>
         <span class="touch-only">Drag to steer: left/right to turn, up to float, down to dive.</span></li>
       <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>: the camera swings all the way round Pip. <b>LB</b> (or click a stick) swings it back behind.</li>
-      <li><b>Drop onto the dartboard.</b> Close your wings to fall straight down. Can't make it? Land safely on an <b>island</b> instead!</li>
-      <li>Grab 🌻 seeds, beat <b>3 worlds</b>, unlock new <b>hamster balls</b>… and look for a <b>secret</b> hidden in each world. 🤫</li>
+      <li><b>Drop onto the dartboard.</b> Close your wings to fall straight down. Overshot it? Land safely on one of the <b>big islands</b> out past the target!</li>
+      <li><b>Cape Cod Canal:</b> roll off the top of the Bourne Bridge, past the railroad bridge, all the way to Cleveland Ledge Light! Hold <span class="key-only"><kbd>Shift</kbd> (or 🎮 <b>LT</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
+      <li>Grab 🌻 seeds, beat <b>4 worlds</b>, unlock new <b>hamster balls</b>… and look for a <b>secret</b> hidden in each world. 🤫</li>
     </ol>
     <div class="rings">
       <span style="background:#ff4d4d;color:#fff">100</span><span style="background:#ffe14a">50</span><span style="background:#fff">30</span>
@@ -188,9 +198,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261009-1911"></script>
-<script src="orbit-cam.js?v=20261009-1911"></script>
-<script src="touch-stick.js?v=20261009-1911"></script>
+<script src="common.js?v=20261009-2141"></script>
+<script src="orbit-cam.js?v=20261009-2141"></script>
+<script src="touch-stick.js?v=20261009-2141"></script>
 <script>
 'use strict';
 
@@ -222,6 +232,12 @@ const WORLDS = [
     sky: ['#1a2230', '#46536a', '#7a8798'], fog: '#5a6678', fogNear: 60, fogFar: 380, hemi: ['#b8c6d8', '#1a2a3a', 0.6], sun: ['#c8d6ea', 0.6],
     rounds: [{ dist: 180, side: -20, wind: 2.5 }, { dist: 225, side: 30, wind: 3 }, { dist: 265, side: -35, wind: 3.5 }],
     gusts: true, rain: true, secret: { x: -68, z: -(RAMP_LEN + 215), name: 'rainbow orb', ball: 'rainbow' }, card: 'linear-gradient(#7a8798, #1a2230)' },
+  // a real place: roll off the top of the Bourne Bridge, fly down the Cape Cod Canal under (or over!) the
+  // railroad lift bridge, and out into Buzzards Bay to Cleveland Ledge Light. It's a long way: boost!
+  { id: 'canal', name: 'Cape Cod Canal', icon: '🌉', tag: 'Bourne Bridge to Cleveland Ledge Light. Boost to get there!',
+    sky: ['#3a8ad8', '#9ad0f0', '#d8eef8'], fog: '#bcd8e8', fogNear: 220, fogFar: 1100, hemi: ['#e8f4ff', '#4a6a50', 0.8], sun: ['#fff8e8', 1],
+    rounds: [{ dist: 345, side: -40, wind: 1 }, { dist: 420, side: -75, wind: 2 }, { dist: 495, side: -105, wind: 2.5 }],
+    boost: true, canal: true, secret: { x: 58, z: -(RAMP_LEN + 95), name: 'golden striped bass', ball: 'striper' }, card: 'linear-gradient(#5ab0e8, #2a6a8a)' },
 ];
 // Hamster balls to collect: unlocked by stars, or by finding a world's secret.
 const BALLS = [
@@ -233,6 +249,7 @@ const BALLS = [
   { id: 'gold', name: 'Golden', ball: '#ffe680', wing: '#ffc21a', band: '#b8860b', egg: 'ocean' },
   { id: 'magma', name: 'Magma', ball: '#ffb08a', wing: '#ff4d1a', band: '#2a0e06', egg: 'lava' },
   { id: 'rainbow', name: 'Rainbow', ball: '#ffffff', wing: '#ff7eb6', band: '#7b4bd6', egg: 'storm', rainbow: true },
+  { id: 'striper', name: 'Striper', ball: '#e4ecf2', wing: '#5a7a9a', band: '#2a3a4a', egg: 'canal' },
 ];
 
 // ---------- Saved progress ----------
@@ -321,26 +338,67 @@ for (const w of WORLDS) {
 const OCEAN_SIZE = 900, OCEAN_SEG = 70;
 const oceanGeo = new THREE.PlaneGeometry(OCEAN_SIZE, OCEAN_SIZE, OCEAN_SEG, OCEAN_SEG);
 oceanGeo.rotateX(-Math.PI / 2);
-const lavaTex = canvasTex(512, 512, (g, w, h) => {
-  // glowing cracks between dark crust plates
-  g.fillStyle = '#e8550a'; g.fillRect(0, 0, w, h);
-  const r = rng(7);
-  for (let i = 0; i < 120; i++) {
-    const x = r() * w, y = r() * h, s = 22 + r() * 38;
-    g.fillStyle = i % 3 ? '#2b1208' : '#3d180a';
-    g.beginPath();
-    for (let k = 0; k < 7; k++) { const a = k / 7 * Math.PI * 2, rr = s * (0.7 + r() * 0.4); g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
-    g.fill();
+// Lava: drawn by a shader in world space, so it never jumps when the sea sheet follows the camera.
+// Mostly dark, cooling crust; glowing cracks between the plates and a few molten pools that brighten and
+// dim slowly, everything creeping along like a real lava lake.
+const LAVA_VERT = `
+  varying vec3 vWorld;
+  #include <fog_pars_vertex>
+  void main() {
+    vec4 wp = modelMatrix * vec4(position, 1.0);
+    vWorld = wp.xyz;
+    vec4 mvPosition = viewMatrix * wp;
+    gl_Position = projectionMatrix * mvPosition;
+    #include <fog_vertex>
+  }`;
+const LAVA_FRAG = `
+  uniform float time;
+  varying vec3 vWorld;
+  #include <fog_pars_fragment>
+  vec2 hash2(vec2 p) { p = vec2(dot(p, vec2(127.1, 311.7)), dot(p, vec2(269.5, 183.3))); return fract(sin(p) * 43758.5453); }
+  float hash1(vec2 p) { return fract(sin(dot(p, vec2(41.3, 289.1))) * 15731.743); }
+  float noise(vec2 p) {
+    vec2 i = floor(p), f = fract(p), u = f * f * (3.0 - 2.0 * f);
+    return mix(mix(hash1(i), hash1(i + vec2(1, 0)), u.x), mix(hash1(i + vec2(0, 1)), hash1(i + vec2(1, 1)), u.x), u.y);
   }
-  g.fillStyle = 'rgba(255,230,120,.5)';
-  for (let i = 0; i < 40; i++) { g.beginPath(); g.arc(r() * w, r() * h, 2 + r() * 4, 0, Math.PI * 2); g.fill(); }
+  float fbm(vec2 p) { float v = 0.0, a = 0.5; for (int k = 0; k < 4; k++) { v += a * noise(p); p *= 2.03; a *= 0.5; } return v; }
+  // crust plates: distance to the nearest crack (cell edge), and which cell we're in
+  vec3 cells(vec2 p) {
+    vec2 i = floor(p), f = fract(p);
+    float d1 = 8.0, d2 = 8.0; vec2 id = vec2(0.0);
+    for (int y = -1; y <= 1; y++) for (int x = -1; x <= 1; x++) {
+      vec2 g = vec2(float(x), float(y)), o = hash2(i + g);
+      o = 0.5 + 0.38 * sin(time * 0.05 + 6.2831 * o);   // the plates drift very slowly
+      float d = length(g + o - f);
+      if (d < d1) { d2 = d1; d1 = d; id = i + g; } else if (d < d2) d2 = d;
+    }
+    return vec3(d2 - d1, hash1(id), 0.0);
+  }
+  void main() {
+    vec2 p = vWorld.xz * 0.055 + vec2(time * 0.012, time * 0.006);
+    p += (vec2(fbm(p * 0.6 + time * 0.02), fbm(p * 0.6 + 7.3 - time * 0.015)) - 0.5) * 1.4;   // a slow, lazy flow
+    vec3 c = cells(p);
+    float crack = 1.0 - smoothstep(0.0, 0.11, c.x);                  // thin glowing seams
+    float pool = smoothstep(0.62, 0.8, fbm(vWorld.xz * 0.012 + time * 0.008));   // a few big molten patches
+    float pulse = 0.75 + 0.25 * sin(time * 0.6 + c.y * 6.2831);      // each seam breathes slowly
+    float heat = clamp(crack * pulse + pool * 0.85, 0.0, 1.0);
+    float grain = fbm(vWorld.xz * 0.35);
+    vec3 crust = mix(vec3(0.07, 0.035, 0.03), vec3(0.2, 0.08, 0.045), grain * (0.6 + 0.4 * c.y));
+    crust += vec3(0.35, 0.08, 0.0) * (1.0 - smoothstep(0.0, 0.3, c.x)) * 0.35;   // plates glow a little at their edges
+    vec3 hot = mix(vec3(0.85, 0.2, 0.02), vec3(1.0, 0.62, 0.15), heat);
+    hot = mix(hot, vec3(1.0, 0.86, 0.45), smoothstep(0.85, 1.0, heat) * 0.6);
+    gl_FragColor = vec4(mix(crust, hot, heat), 1.0);
+    #include <fog_fragment>
+  }`;
+const lavaMat = new THREE.ShaderMaterial({
+  uniforms: THREE.UniformsUtils.merge([THREE.UniformsLib.fog, { time: { value: 0 } }]),
+  vertexShader: LAVA_VERT, fragmentShader: LAVA_FRAG, fog: true,
 });
-lavaTex.wrapS = lavaTex.wrapT = THREE.RepeatWrapping;
-lavaTex.repeat.set(9, 9);
 const SEA_MATS = {
   ocean: new THREE.MeshPhongMaterial({ color: '#1f8fe0', specular: '#bfe8ff', shininess: 60, flatShading: true }),
-  lava: new THREE.MeshStandardMaterial({ map: lavaTex, emissive: '#ffffff', emissiveMap: lavaTex, emissiveIntensity: 0.6, roughness: 0.9, flatShading: true }),
+  lava: lavaMat,
   storm: new THREE.MeshPhongMaterial({ color: '#2a5a78', specular: '#9fb8d0', shininess: 40, flatShading: true }),
+  canal: new THREE.MeshPhongMaterial({ color: '#2f7896', specular: '#cfe6f5', shininess: 70, flatShading: true }),
 };
 const ocean = new THREE.Mesh(oceanGeo, SEA_MATS.ocean);
 ocean.receiveShadow = true;
@@ -358,7 +416,7 @@ function updateOcean(t, cx, cz) {
   for (let i = 0; i < p.length; i += 3) p[i + 1] = waveH(oceanBase[i] + ocean.position.x, oceanBase[i + 2] + ocean.position.z, t) - (waveAmp > 1.5 ? 1.2 : 0);
   oceanGeo.attributes.position.needsUpdate = true;
   oceanGeo.computeVertexNormals();
-  if (world && world.id === 'lava') { lavaTex.offset.x = t * 0.004; lavaTex.offset.y = t * 0.002; }
+  if (world && world.id === 'lava') lavaMat.uniforms.time.value = t;
 }
 
 // Ramp: candy-striped track on stilts, with rails
@@ -529,11 +587,16 @@ const decor = {};
   const s = make('storm'), srock = mat('#4a5260', { flatShading: true });
   ring(s, 7, i => { const m = new THREE.Mesh(new THREE.ConeGeometry(28 + i * 4, 40 + (i % 3) * 18, 6), srock); m.position.y = 14; return m; });
   clouds(s, '#3a4250', 75, 22);
+  // the canal: built further down (buildCanal), once its helpers exist
+  const c = make('canal');
+  clouds(c, '#ffffff', 150, 12);
 }
 
 // ---------- Islands you can land on, thermals (lava) and the secret treasure ----------
 const isleGroup = new THREE.Group(); scene.add(isleGroup);
-let isles = [];       // { x, z, r, top, secret }
+let isles = [];       // { x, z, r, top, secret } or { rect: [x0, x1, z0, z1], top, label }
+let ledgeSolids = [];  // Cleveland Ledge Light, wherever it stands this round
+const onSurface = (s, x, z) => s.rect ? x >= s.rect[0] && x <= s.rect[1] && z >= s.rect[2] && z <= s.rect[3] : Math.hypot(x - s.x, z - s.z) <= s.r;
 function palm(r) {
   const g = new THREE.Group(), trunk = mat('#9a6a3f'), leaf = mat('#3fbf5a', { flatShading: true, side: THREE.DoubleSide });
   let x = 0, y = 0;
@@ -568,21 +631,31 @@ function lighthouse() {
 // one landable island: a flat top of radius r, with props at the edge
 function makeIsle(kind, r, seed) {
   const g = new THREE.Group(), rr = rng(seed);
-  const topMat = kind === 'lava' ? mat('#3a2a2a', { flatShading: true }) : kind === 'storm' ? mat('#8a8f80', { flatShading: true }) : mat('#ffe7a3', { flatShading: true });
+  const topMat = kind === 'lava' ? mat('#3a2a2a', { flatShading: true }) : kind === 'storm' || kind === 'canal' ? mat('#8a8f80', { flatShading: true }) : mat('#ffe7a3', { flatShading: true });
   const top = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 2.5, 3, 18), topMat);
   top.position.y = ISLE_TOP - 1.5; top.receiveShadow = true; g.add(top);
   if (kind === 'ocean') {
     const grass = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.55, r * 0.6, 0.5, 14), mat('#5fd17a', { flatShading: true }));
     grass.position.set(r * 0.2, ISLE_TOP + 0.05, 0); g.add(grass);
-    const p = palm(rr() > 0.5 ? 1 : -1); p.position.set(r * 0.62, ISLE_TOP, -r * 0.3); g.add(p);
+    const palms = r > 14 ? 5 : 1;
+    for (let k = 0; k < palms; k++) {
+      const a = k / palms * Math.PI * 2 + rr(), pr = palms > 1 ? r * (0.25 + rr() * 0.35) : r * 0.68;
+      const p = palm(rr() > 0.5 ? 1 : -1); p.position.set(palms > 1 ? r * 0.2 + Math.cos(a) * pr : r * 0.62, ISLE_TOP, palms > 1 ? Math.sin(a) * pr : -r * 0.3);
+      p.rotation.y = rr() * Math.PI * 2; g.add(p);
+    }
     const foam = new THREE.Mesh(new THREE.TorusGeometry(r + 3, 0.6, 6, 40), glowMat('#ffffff', 0.5));
     foam.rotation.x = Math.PI / 2; foam.position.y = 0.15; foam.userData.foam = true; g.add(foam);
   } else if (kind === 'lava') {
     const crack = new THREE.Mesh(new THREE.TorusGeometry(r + 1.2, 0.5, 6, 40), new THREE.MeshBasicMaterial({ color: '#ffb030' }));
     crack.rotation.x = Math.PI / 2; crack.position.y = 0.2; g.add(crack);
-    for (let i = 0; i < 4; i++) {
+    for (let i = 0; i < (r > 14 ? 10 : 4); i++) {
       const c = new THREE.Mesh(new THREE.OctahedronGeometry(0.8 + rr() * 0.8), new THREE.MeshStandardMaterial({ color: '#ff5a1f', emissive: '#ff3a00', emissiveIntensity: 0.8 }));
       const a = rr() * Math.PI * 2; c.position.set(Math.cos(a) * r * 0.8, ISLE_TOP + 0.6, Math.sin(a) * r * 0.8); g.add(c);
+    }
+  } else if (kind === 'canal') {   // a granite boulder sticking out of the canal
+    for (let k = 0; k < 5; k++) {
+      const b = new THREE.Mesh(new THREE.DodecahedronGeometry(r * 0.35 + rr() * 1.5, 0), mat('#8a8780', { flatShading: true }));
+      const a = k / 5 * Math.PI * 2; b.position.set(Math.cos(a) * r * 0.75, ISLE_TOP - 1, Math.sin(a) * r * 0.75); g.add(b);
     }
   } else {
     const lh = lighthouse(); lh.position.set(r * 0.65, ISLE_TOP, 0); g.add(lh);
@@ -604,6 +677,13 @@ function makeTreasure(id) {
   } else if (id === 'lava') {
     const egg = new THREE.Mesh(new THREE.SphereGeometry(1, 20, 16), mat('#ffd030', { metalness: 0.7, roughness: 0.2, emissive: '#8a5a00' }));
     egg.scale.set(0.8, 1.1, 0.8); egg.position.y = 1.2; g.add(egg);
+  } else if (id === 'canal') {   // a golden striped bass, the canal's famous fish
+    const gold = mat('#ffc21a', { metalness: 0.6, roughness: 0.3, emissive: '#7a5000' });
+    const fish = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(1, 18, 12), gold); body.scale.set(0.45, 0.6, 1.6); fish.add(body);
+    const tail = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1, 4), gold); tail.rotation.x = -Math.PI / 2; tail.scale.set(0.2, 1, 1); tail.position.z = 1.9; fish.add(tail);
+    for (let k = -2; k <= 2; k++) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.47, 0.06, 2.6 - Math.abs(k) * 0.5), mat('#6a4a00')); st.position.y = k * 0.17; fish.add(st); }
+    fish.position.y = 1.4; fish.rotation.z = 0.3; g.add(fish);
   } else {
     const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 2), new THREE.MeshNormalMaterial({ flatShading: true }));
     orb.position.y = 1.5; g.add(orb);
@@ -631,6 +711,171 @@ function makeThermal() {
   pts.userData.rise = true; pts.frustumCulled = false; g.add(pts);
   return g;
 }
+
+// ---------- Cape Cod Canal: the Bourne Bridge, the railroad lift bridge and Buzzards Bay ----------
+// Facing down the ramp is facing west along the canal: the mainland (north) bank is on your right (+x),
+// the Cape (south) bank on your left. The canal opens into Buzzards Bay at CANAL_END, and Cleveland Ledge
+// Light stands out in the bay beside each round's target.
+const CANAL_HALF = 72, CANAL_END = -(RAMP_LEN + 300), RR_Z = -(RAMP_LEN + 150), BANK_TOP = 2;
+const solids = [];   // things you bump into in the canal world: { box: [x0, x1, y0, y1, z0, z1] } or { cyl: [x, z, r, y0, y1] }
+const box = (w, h, dpt, m) => new THREE.Mesh(new THREE.BoxGeometry(w, h, dpt), m);
+// a straight steel beam from a to b (THREE.Vector3s)
+function beam(a, b, t, m) {
+  const len = a.distanceTo(b), mesh = new THREE.Mesh(new THREE.BoxGeometry(t, t, len), m);
+  mesh.position.copy(a).add(b).multiplyScalar(0.5);
+  mesh.lookAt(b);
+  return mesh;
+}
+const V = (x, y, z) => new THREE.Vector3(x, y, z);
+function buildCanal(g) {
+  const grass = mat('#5f9a4a', { flatShading: true }), sandM = mat('#d8c89a', { flatShading: true }), rock = mat('#8a8780', { flatShading: true });
+  const road = mat('#6a6a6e'), pine = mat('#2f5a34', { flatShading: true }), oak = mat('#3f7a3a', { flatShading: true }), trunkM = mat('#5a4030');
+  const r = rng(42);
+  // --- the two banks of the canal, with granite riprap at the water and the bike path along the top
+  for (const side of [-1, 1]) {
+    const land = box(700, 7, 700, grass); land.position.set(side * (CANAL_HALF + 350), BANK_TOP - 3.5, (250 + CANAL_END) / 2); land.scale.z = (250 - CANAL_END) / 700;
+    land.receiveShadow = true; g.add(land);
+    for (let z = 240; z > CANAL_END; z -= 6) {
+      const rk = new THREE.Mesh(new THREE.DodecahedronGeometry(1.6 + r() * 1.2, 0), rock);
+      rk.position.set(side * (CANAL_HALF + 1 + r() * 3), 0.6 + r(), z + r() * 4); rk.rotation.set(r() * 3, r() * 3, 0); g.add(rk);
+    }
+    const path = box(5, 0.2, 250 - CANAL_END, road); path.position.set(side * (CANAL_HALF + 10), BANK_TOP + 0.1, (250 + CANAL_END) / 2); g.add(path);
+    // pine and oak woods along both banks
+    for (let k = 0; k < 140; k++) {
+      const x = side * (CANAL_HALF + 22 + r() * 220), z = 240 - r() * (240 - CANAL_END);
+      const t = new THREE.Group(), h = 6 + r() * 6;
+      const trunk = new THREE.Mesh(new THREE.CylinderGeometry(0.3, 0.45, h * 0.5, 6), trunkM); trunk.position.y = h * 0.25; t.add(trunk);
+      if (k % 3) { const c = new THREE.Mesh(new THREE.ConeGeometry(2.2 + r(), h, 7), pine); c.position.y = h * 0.75; t.add(c); }
+      else { const c = new THREE.Mesh(new THREE.IcosahedronGeometry(2.8 + r() * 1.5, 0), oak); c.position.y = h * 0.8; t.add(c); }
+      t.position.set(x, BANK_TOP, z); g.add(t);
+    }
+  }
+  // --- Buzzards Bay: the shore turns away on both sides past the canal's mouth, with beaches and far hills
+  for (const [x, z, w, dd] of [[260, CANAL_END - 90, 260, 180], [-300, CANAL_END - 60, 300, 120], [520, -900, 500, 500], [-560, -950, 500, 400]]) {
+    const land = box(w, 6, dd, grass); land.position.set(x, BANK_TOP - 3, z); g.add(land);
+    const beach = box(w + 12, 1, dd + 12, sandM); beach.position.set(x, 0.3, z); g.add(beach);
+  }
+  const hills = mat('#4a6a52', { flatShading: true });
+  for (let k = 0; k < 9; k++) {
+    const h = new THREE.Mesh(new THREE.SphereGeometry(80 + r() * 60, 10, 6, 0, Math.PI * 2, 0, Math.PI / 2), hills);
+    h.scale.y = 0.18; h.position.set(-700 + k * 175, 0, -1150 - r() * 100); g.add(h);
+  }
+  // a big training ship tied up at the north bank near the canal's mouth
+  const ship = new THREE.Group(), hullM = mat('#2a3a4a'), white = mat('#f2f2ee');
+  const hull = box(16, 9, 140, hullM); hull.position.y = 3; ship.add(hull);
+  const deck = box(15, 1, 136, mat('#9a8a7a')); deck.position.y = 7.8; ship.add(deck);
+  const sup = box(13, 12, 34, white); sup.position.set(0, 14, 20); ship.add(sup);
+  const sup2 = box(10, 6, 20, white); sup2.position.set(0, 23, 20); ship.add(sup2);
+  const stack = box(5, 8, 7, mat('#c8a040')); stack.position.set(0, 23, 2); ship.add(stack);
+  const mast = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.5, 22, 8), white); mast.position.set(0, 30, 36); ship.add(mast);
+  ship.position.set(CANAL_HALF + 14, 0, CANAL_END + 70); g.add(ship);
+  solids.push({ box: [CANAL_HALF + 6, CANAL_HALF + 22, -2, 36, CANAL_END, CANAL_END + 140] });
+
+  // --- the Bourne Bridge: a gray-green steel arch with the road passing through it. You start on top!
+  const steel = mat('#7d9a8f', { metalness: 0.3, roughness: 0.55 }), concrete = mat('#b8b4aa');
+  const BZ = 10, DECK_Y = 41, SPAN = 98, APEX = 68.6;
+  const archY = x => DECK_Y - 16 + (APEX - DECK_Y + 16) * (1 - (x / SPAN) ** 2);   // springs from the piers below the road
+  for (const zr of [BZ - 7, BZ + 7]) {
+    for (let k = 0; k < 24; k++) {
+      const x0 = -SPAN + k * (2 * SPAN / 24), x1 = x0 + 2 * SPAN / 24;
+      g.add(beam(V(x0, archY(x0), zr), V(x1, archY(x1), zr), 2.2, steel));
+      // hangers from the arch down to the road where the arch is above it
+      if (archY(x1) > DECK_Y + 2) g.add(beam(V(x1, archY(x1), zr), V(x1, DECK_Y, zr), 0.35, steel));
+    }
+  }
+  for (let k = 1; k < 12; k++) {   // bracing between the two arch ribs across the top
+    const x = -SPAN + k * (2 * SPAN / 12), y = archY(x);
+    if (y < DECK_Y + 5) continue;
+    g.add(beam(V(x, y, BZ - 7), V(x, y, BZ + 7), 0.9, steel));
+    const x2 = x + 2 * SPAN / 12;
+    if (archY(x2) > DECK_Y + 5) { g.add(beam(V(x, y, BZ - 7), V(x2, archY(x2), BZ + 7), 0.6, steel)); g.add(beam(V(x, y, BZ + 7), V(x2, archY(x2), BZ - 7), 0.6, steel)); }
+  }
+  // the road deck, its railings, lamps, and deck trusses carrying it over the land on both sides
+  const deckM = box(640, 1.6, 17, concrete); deckM.position.set(0, DECK_Y, BZ); g.add(deckM);
+  for (const zr of [BZ - 8.3, BZ + 8.3]) { const rail = box(640, 1.1, 0.3, steel); rail.position.set(0, DECK_Y + 1.3, zr); g.add(rail); }
+  for (let x = -300; x <= 300; x += 40) { const lamp = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.15, 6, 6), steel); lamp.position.set(x, DECK_Y + 3.8, BZ - 8); g.add(lamp); }
+  for (const side of [-1, 1]) {
+    for (let x = SPAN; x <= 320; x += 32) {
+      const pier = box(5, DECK_Y, 15, concrete); pier.position.set(side * x, DECK_Y / 2 - 1, BZ); g.add(pier);
+      for (const zr of [BZ - 7, BZ + 7]) {   // a deck truss under the road between piers
+        const xa = side * x, xb = side * Math.min(320, x + 32);
+        g.add(beam(V(xa, DECK_Y - 6, zr), V(xb, DECK_Y - 6, zr), 0.7, steel));
+        g.add(beam(V(xa, DECK_Y - 6, zr), V((xa + xb) / 2, DECK_Y - 0.8, zr), 0.5, steel));
+        g.add(beam(V((xa + xb) / 2, DECK_Y - 0.8, zr), V(xb, DECK_Y - 6, zr), 0.5, steel));
+      }
+    }
+    const main = box(10, 30, 20, concrete); main.position.set(side * SPAN, 12, BZ); g.add(main);   // the big piers at the water's edge
+  }
+
+  // --- the Cape Cod Canal Railroad Bridge: a vertical-lift bridge, two tall steel lattice towers and a
+  // truss span that waits up high (it only comes down when a train is crossing)
+  const dark = mat('#4a5258', { metalness: 0.35, roughness: 0.5 }), cw = mat('#9a978e');
+  const TOWER_H = 76, TX = CANAL_HALF + 4, SPAN_Y = 44;
+  for (const side of [-1, 1]) {
+    const cx = side * TX, legs = [[-4, -4], [4, -4], [4, 4], [-4, 4]];
+    const base = box(12, 6, 12, concrete); base.position.set(cx, 1, RR_Z); g.add(base);
+    for (const [lx, lz] of legs) g.add(beam(V(cx + lx * 1.15, 4, RR_Z + lz * 1.15), V(cx + lx * 0.85, TOWER_H, RR_Z + lz * 0.85), 0.9, dark));
+    for (let y = 4; y < TOWER_H; y += 9) {   // lattice: rings of struts with X-bracing on each face
+      const k1 = 1.15 - (y - 4) / (TOWER_H - 4) * 0.3, k2 = 1.15 - Math.min(TOWER_H - 4, y + 5) / (TOWER_H - 4) * 0.3, y2 = Math.min(TOWER_H, y + 9);
+      for (let i = 0; i < 4; i++) {
+        const [ax, az] = legs[i], [bx, bz] = legs[(i + 1) % 4];
+        g.add(beam(V(cx + ax * k1, y, RR_Z + az * k1), V(cx + bx * k1, y, RR_Z + bz * k1), 0.45, dark));
+        g.add(beam(V(cx + ax * k1, y, RR_Z + az * k1), V(cx + bx * k2, y2, RR_Z + bz * k2), 0.3, dark));
+        g.add(beam(V(cx + bx * k1, y, RR_Z + bz * k1), V(cx + ax * k2, y2, RR_Z + az * k2), 0.3, dark));
+      }
+    }
+    const house = box(10, 5, 10, dark); house.position.set(cx, TOWER_H + 2, RR_Z); g.add(house);
+    for (const zr of [-4, 4]) { const wheel = new THREE.Mesh(new THREE.TorusGeometry(3, 0.5, 6, 18), dark); wheel.position.set(cx - side * 3, TOWER_H + 5, RR_Z + zr); g.add(wheel); }
+    const counter = box(7, 10, 7, cw); counter.position.set(cx, TOWER_H - 22, RR_Z); g.add(counter);   // the counterweight hanging in the tower
+    solids.push({ box: [cx - 6, cx + 6, -2, TOWER_H + 6, RR_Z - 6, RR_Z + 6] });
+  }
+  // the lift span: a through truss with zig-zag sides
+  const L = TX - 5, TH = 13;
+  for (const zr of [-5, 5]) {
+    g.add(beam(V(-L, SPAN_Y, RR_Z + zr), V(L, SPAN_Y, RR_Z + zr), 1.2, dark));
+    g.add(beam(V(-L + 10, SPAN_Y + TH, RR_Z + zr), V(L - 10, SPAN_Y + TH, RR_Z + zr), 1.1, dark));
+    g.add(beam(V(-L, SPAN_Y, RR_Z + zr), V(-L + 10, SPAN_Y + TH, RR_Z + zr), 1.1, dark));
+    g.add(beam(V(L, SPAN_Y, RR_Z + zr), V(L - 10, SPAN_Y + TH, RR_Z + zr), 1.1, dark));
+    for (let x = -L + 10, k = 0; x < L - 10; x += 12, k++) {
+      g.add(beam(V(x, SPAN_Y, RR_Z + zr), V(x + 6, SPAN_Y + TH, RR_Z + zr), 0.6, dark));
+      g.add(beam(V(x + 6, SPAN_Y + TH, RR_Z + zr), V(x + 12, SPAN_Y, RR_Z + zr), 0.6, dark));
+    }
+  }
+  for (let x = -L + 10; x <= L - 10; x += 12) g.add(beam(V(x, SPAN_Y + TH, RR_Z - 5), V(x, SPAN_Y + TH, RR_Z + 5), 0.5, dark));
+  const tracks = box(2 * L, 0.8, 9, mat('#5a4a3a')); tracks.position.set(0, SPAN_Y + 0.6, RR_Z); g.add(tracks);
+  solids.push({ box: [-L, L, SPAN_Y - 1.5, SPAN_Y + TH + 1.5, RR_Z - 6.5, RR_Z + 6.5] });
+  // the railroad tracks on the banks, leading to the towers
+  for (const side of [-1, 1]) { const tr = box(300, 0.6, 4, mat('#5a4a3a')); tr.position.set(side * (TX + 150), BANK_TOP + 0.3, RR_Z); g.add(tr); }
+}
+// Cleveland Ledge Light: a round white tower with a black lantern, standing on a round two-storey
+// building on a big concrete caisson, out in Buzzards Bay
+function makeLedgeLight() {
+  const g = new THREE.Group(), white = mat('#f4f4ef'), black = mat('#222'), caisson = mat('#7a6a5a', { flatShading: true }), glass = new THREE.MeshBasicMaterial({ color: '#fff3a0' });
+  const base = new THREE.Mesh(new THREE.CylinderGeometry(10, 10.5, 7, 28), caisson); base.position.y = 1.5; g.add(base);
+  const rail = new THREE.Mesh(new THREE.TorusGeometry(9.8, 0.12, 4, 40), black); rail.rotation.x = Math.PI / 2; rail.position.y = 6.2; g.add(rail);
+  const house = new THREE.Mesh(new THREE.CylinderGeometry(7, 7, 8, 28), white); house.position.y = 9; g.add(house);
+  const roof = new THREE.Mesh(new THREE.CylinderGeometry(7.4, 7.4, 0.6, 28), mat('#dcdcd4')); roof.position.y = 13.2; g.add(roof);
+  for (let k = 0; k < 12; k++) {   // two rows of windows round the house
+    for (const y of [7.5, 11]) {
+      const w = box(1.1, 1.5, 0.2, mat('#2a3a4a')); const a = k / 12 * Math.PI * 2;
+      w.position.set(Math.cos(a) * 7.02, y, Math.sin(a) * 7.02); w.rotation.y = -a + Math.PI / 2; g.add(w);
+    }
+  }
+  const tower = new THREE.Mesh(new THREE.CylinderGeometry(2.4, 2.8, 14, 20), white); tower.position.y = 20.5; g.add(tower);
+  const gallery = new THREE.Mesh(new THREE.CylinderGeometry(3.4, 3.4, 0.5, 20), black); gallery.position.y = 27.7; g.add(gallery);
+  const lantern = new THREE.Mesh(new THREE.CylinderGeometry(1.8, 1.8, 2.6, 8), glass); lantern.position.y = 29.2; g.add(lantern);
+  for (let k = 0; k < 8; k++) { const a = k / 8 * Math.PI * 2; const m = box(0.18, 2.6, 0.18, black); m.position.set(Math.cos(a) * 1.85, 29.2, Math.sin(a) * 1.85); g.add(m); }
+  const cap = new THREE.Mesh(new THREE.ConeGeometry(2.1, 1.8, 8), black); cap.position.y = 31.4; g.add(cap);
+  const beamM = new THREE.Mesh(new THREE.ConeGeometry(5, 40, 16, 1, true), glowMat('#fff3a0', 0.14));
+  beamM.rotation.z = Math.PI / 2; beamM.position.set(20, 29.2, 0);
+  const pivot = new THREE.Group(); pivot.add(beamM); pivot.userData.spin = true; g.add(pivot);
+  const foam = new THREE.Mesh(new THREE.TorusGeometry(11.5, 0.8, 6, 40), glowMat('#ffffff', 0.5)); foam.rotation.x = Math.PI / 2; foam.position.y = 0.2; g.add(foam);
+  g.traverse(o => { if (o.isMesh) o.castShadow = true; });
+  return g;
+}
+const ledgeLight = makeLedgeLight();
+
+buildCanal(decor.canal);
 
 // ---------- Pip the hamster, in a ball whose two halves become wings ----------
 const pip = new THREE.Group();
@@ -803,6 +1048,24 @@ function stepTrail(dt, on) {
   trail.visible = true;
   trail.material.opacity = on ? 0.8 : Math.max(0, trail.material.opacity - dt);
 }
+// 🚀 boost: a stream of hot sparks out of the back of the ball
+const FLAME_N = 90;
+const flame = particles(FLAME_N, 0.7, '#ffb347');
+const flameV = [];
+let flameI = 0;
+function stepFlame(dt, on) {
+  const p = flame.geometry.attributes.position.array;
+  if (on) for (let k = 0; k < 2; k++) {
+    const back = new THREE.Vector3(0, 0, 1.4).applyQuaternion(pip.quaternion);
+    p[flameI * 3] = pos.x + back.x; p[flameI * 3 + 1] = pos.y + back.y; p[flameI * 3 + 2] = pos.z + back.z;
+    flameV[flameI] = [back.x * 6 + (Math.random() - 0.5) * 2, back.y * 6 + (Math.random() - 0.5) * 2, back.z * 6 + (Math.random() - 0.5) * 2];
+    flameI = (flameI + 1) % FLAME_N;
+  }
+  for (let i = 0; i < FLAME_N; i++) if (flameV[i]) { p[i * 3] += flameV[i][0] * dt; p[i * 3 + 1] += flameV[i][1] * dt; p[i * 3 + 2] += flameV[i][2] * dt; }
+  flame.geometry.attributes.position.needsUpdate = true;
+  flame.visible = true;
+  flame.material.opacity = on ? 0.95 : Math.max(0, flame.material.opacity - dt * 2);
+}
 // rain that follows the camera
 const RAIN_N = 1400;
 const rain = particles(RAIN_N, 0.22, '#d6e4f5');
@@ -861,6 +1124,7 @@ const sfx = {
   open: () => { beep(160, 90, 0.18, 'sine', 0.25); swish(300, 1400, 0.35, 0.3); beep(500, 1100, 0.2, 'triangle', 0.08, 0.05); },
   close: () => { beep(900, 300, 0.18, 'sine', 0.1); swish(1200, 300, 0.25, 0.15); },
   whoosh: () => swish(350, 1800, 0.6, 0.25),
+  boost: () => { swish(200, 2400, 0.7, 0.35); beep(220, 660, 0.4, 'sawtooth', 0.04); },
   seed: () => { beep(1300, 1900, 0.08, 'sine', 0.1); beep(1900, 2600, 0.08, 'sine', 0.08, 0.06); },
   thud: () => { RB.pad.rumble(150, 0.5); beep(140, 60, 0.25, 'sine', 0.3); swish(600, 150, 0.2, 0.2, 'lowpass'); },
   bump: () => beep(220, 120, 0.08, 'square', 0.06),
@@ -872,42 +1136,136 @@ const sfx = {
   score: pts => [523, 659, 784, 1047].slice(0, pts >= 100 ? 4 : pts >= 30 ? 3 : 2).forEach((f, i) => beep(f, f, 0.18, 'triangle', 0.13, i * 0.1)),
   go: () => { beep(440, 440, 0.12, 'square', 0.05); beep(660, 660, 0.12, 'square', 0.05, 0.15); beep(880, 880, 0.25, 'square', 0.06, 0.3); },
 };
-// Background music: a little loop for each world (semitones from a root note; null is a rest)
+// Background music: a little band for each world. Every song is 8 bars (A section, then B), 8 eighth-note
+// steps a bar, over a chord for each bar. Melodies are scale steps above the key (null rests, '-' holds).
+// Instruments: drums (kick, snare, shaker / hi-hat), bass, a soft chord pad, an arpeggio and a lead voice.
 const MUSIC = {
-  ocean: { bpm: 104, root: 523.25, bassRoot: 130.8, lead: [0, null, 4, 7, 9, null, 7, 4, 2, null, 4, null, 0, null, null, null, 0, null, 4, 7, 9, null, 12, 9, 7, null, 4, 2, 4, null, null, null],
-    bass: [0, null, null, null, -5, null, null, null, -3, null, null, null, -5, null, null, null] },
-  lava: { bpm: 120, root: 440, bassRoot: 110, lead: [0, null, 3, null, 7, 5, 3, null, 0, null, -2, null, 0, null, null, null, 0, null, 3, null, 7, 8, 7, null, 5, null, 3, null, 2, null, null, null],
-    bass: [0, null, 0, null, -4, null, -4, null, -2, null, -2, null, -5, null, -5, null] },
-  storm: { bpm: 132, root: 293.7, bassRoot: 73.4, lead: [0, null, null, 1, 0, null, null, null, -2, null, null, null, -4, null, -2, null, 0, null, null, 3, 1, null, 0, null, -2, null, -4, null, -5, null, null, null],
-    bass: [0, 0, 0, 0, -1, -1, -1, -1, -3, -3, -3, -3, -2, -2, -2, -2] },
+  // sunny island steel-drum tune in C major
+  ocean: { bpm: 112, key: 60, scale: 'major', lead: 'steel', pad: 'warm',
+    chords: [[0, 'M'], [7, 'M'], [9, 'm'], [5, 'M'], [0, 'M'], [7, 'M'], [5, 'M'], [7, 'M']],
+    melody: [
+      [4, null, 4, 5, 7, null, 5, 4], [2, null, 4, null, 2, 1, null, null], [0, null, 2, 4, 5, null, 4, 2], [3, null, 2, null, 0, null, null, null],
+      [4, null, 7, null, 9, 8, 7, null], [8, null, 7, 6, 4, null, null, null], [5, null, 6, null, 7, null, 5, null], [4, null, 3, null, 1, null, null, null]],
+    drums: { kick: 'x...x...', snare: '..x...x.', hat: 'xxxxxxxx', shaker: true }, arp: true },
+  // a bold adventure march in A minor, toms rumbling like the volcanoes
+  lava: { bpm: 118, key: 57, scale: 'minor', lead: 'brass', pad: 'dark',
+    chords: [[0, 'm'], [0, 'm'], [8, 'M'], [7, 'M'], [5, 'M'], [3, 'M'], [7, 'M'], [7, 'M']],
+    melody: [
+      [0, null, 0, 2, 4, null, 2, 0], [4, null, 5, 4, 2, null, null, null], [5, null, 4, 2, 4, null, 2, 0], [1, null, null, 2, 1, null, null, null],
+      [7, null, 7, 6, 5, null, 4, null], [5, null, 4, 2, 4, null, null, null], [2, 3, 4, null, 6, null, 4, null], [4, null, null, null, null, null, null, null]],
+    drums: { kick: 'x..x..x.', snare: '....x...', hat: 'x.x.x.x.', tom: '......xx' }, arp: false, lift: true },
+  // stormy and dramatic in D minor: tremolo strings and big drums
+  storm: { bpm: 132, key: 62, scale: 'minor', lead: 'strings', pad: 'tremolo',
+    chords: [[0, 'm'], [8, 'M'], [10, 'M'], [7, 'M'], [0, 'm'], [5, 'm'], [8, 'M'], [7, 'M']],
+    melody: [
+      [0, null, null, 2, 3, null, 2, null], [0, null, null, null, -1, null, null, null], [1, null, 2, null, 3, null, 4, null], [2, null, null, null, null, null, null, null],
+      [4, null, null, 5, 4, null, 3, null], [2, null, 3, null, 0, null, null, null], [4, null, 5, null, 6, null, 7, null], [6, null, null, null, 4, null, null, null]],
+    drums: { kick: 'x...x.x.', snare: '....x...', hat: '..x...x.', tom: '.......x' }, arp: true },
+  // a sea shanty for Cape Cod in G major, with a fiddle and a squeezebox
+  canal: { bpm: 104, key: 55, scale: 'major', lead: 'fiddle', pad: 'accordion',
+    chords: [[0, 'M'], [5, 'M'], [0, 'M'], [7, 'M'], [0, 'M'], [5, 'M'], [7, 'M'], [0, 'M']],
+    melody: [
+      [4, null, 4, 4, 4, null, 2, 4], [5, null, 7, null, 5, null, 4, null], [4, null, 2, 0, 2, null, 4, null], [1, null, null, 2, 1, null, null, null],
+      [7, null, 7, 8, 9, null, 7, null], [8, null, 7, null, 5, null, 3, null], [4, null, 5, null, 6, 5, 4, 3], [4, null, null, null, 0, null, null, null]],
+    drums: { kick: 'x...x...', snare: '..x...x.', hat: '.x.x.x.x' }, arp: false, lift: true },
 };
+const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
 const music = (() => {
-  let timer = null, track = null, step = 0, nextT = 0;
-  function note(f, t, dur, type, vol) {
-    const { ac, master } = snd, o = ac.createOscillator(), g = ac.createGain();
-    o.type = type; o.frequency.value = f;
-    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.02); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g).connect(master); o.start(t); o.stop(t + dur + 0.05);
+  let timer = null, track = null, step = 0, nextT = 0, bus = null;
+  const hz = midi => 440 * 2 ** ((midi - 69) / 12);
+  const degree = (m, d) => { const sc = SCALES[m.scale], o = Math.floor(d / 7); return m.key + 12 + sc[((d % 7) + 7) % 7] + 12 * o; };
+  // the music has its own volume and a gentle low-pass, so it sits under the sound effects
+  function out() {
+    if (bus) return bus;
+    const { ac, master } = snd;
+    bus = ac.createGain(); bus.gain.value = 0.9;
+    const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 5200;
+    bus.connect(lp).connect(master);
+    return bus;
+  }
+  function tone(f, t, dur, { type = 'triangle', vol = 0.03, attack = 0.01, detune = 0, cutoff = 0, vib = 0, release = 0 } = {}) {
+    const { ac } = snd, g = ac.createGain(), o = ac.createOscillator();
+    o.type = type; o.frequency.value = f; o.detune.value = detune;
+    let node = o;
+    if (cutoff) { const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(cutoff * 2.5, t); lp.frequency.exponentialRampToValueAtTime(cutoff, t + dur * 0.6); o.connect(lp); node = lp; }
+    if (vib) { const l = ac.createOscillator(), lg = ac.createGain(); l.frequency.value = 5.5; lg.gain.value = vib; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur + release + 0.05); }
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + attack);
+    g.gain.setValueAtTime(vol, t + Math.max(attack, dur * 0.6)); g.gain.exponentialRampToValueAtTime(0.0001, t + dur + release);
+    node.connect(g).connect(out()); o.start(t); o.stop(t + dur + release + 0.05);
+  }
+  function noiseHit(t, dur, vol, type, freq) {
+    const { ac, buf } = snd, src = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    src.buffer = buf; f.type = type; f.frequency.value = freq;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    src.connect(f).connect(g).connect(out()); src.start(t, Math.random()); src.stop(t + dur + 0.02);
+  }
+  function kick(t, vol = 0.22) {
+    const { ac } = snd, o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.14);
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.22);
+    o.connect(g).connect(out()); o.start(t); o.stop(t + 0.25);
+  }
+  function tom(t, f) {
+    const { ac } = snd, o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.setValueAtTime(f, t); o.frequency.exponentialRampToValueAtTime(f * 0.55, t + 0.25);
+    g.gain.setValueAtTime(0.14, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.3);
+    o.connect(g).connect(out()); o.start(t); o.stop(t + 0.32);
+  }
+  // one voice per instrument name
+  function lead(kind, f, t, dur) {
+    if (kind === 'steel') { tone(f, t, dur * 0.5, { type: 'sine', vol: 0.05, release: 0.35 }); tone(f * 2.01, t, dur * 0.2, { type: 'sine', vol: 0.012, release: 0.15 }); tone(f * 3, t, 0.05, { type: 'sine', vol: 0.008, release: 0.08 }); }
+    else if (kind === 'brass') { tone(f, t, dur, { type: 'sawtooth', vol: 0.022, attack: 0.04, cutoff: 1400 }); tone(f, t, dur, { type: 'square', vol: 0.008, attack: 0.04, detune: 7, cutoff: 1100 }); }
+    else if (kind === 'strings') { tone(f, t, dur, { type: 'sawtooth', vol: 0.02, attack: 0.08, cutoff: 1800, vib: 4, release: 0.15 }); tone(f, t, dur, { type: 'sawtooth', vol: 0.014, attack: 0.08, detune: -9, cutoff: 1800, release: 0.15 }); }
+    else { tone(f, t, dur, { type: 'sawtooth', vol: 0.02, attack: 0.03, cutoff: 2200, vib: 5, release: 0.08 }); }   // fiddle
+  }
+  function pad(kind, notes, t, dur) {
+    for (const n of notes) {
+      const f = hz(n);
+      if (kind === 'tremolo') for (let k = 0; k < dur / 0.07; k++) tone(f, t + k * 0.07, 0.06, { type: 'sawtooth', vol: 0.0045, cutoff: 1500 });
+      else if (kind === 'accordion') { tone(f, t, dur * 0.45, { type: 'square', vol: 0.006, attack: 0.03, cutoff: 1300 }); tone(f, t + dur * 0.5, dur * 0.45, { type: 'square', vol: 0.006, attack: 0.03, cutoff: 1300 }); }
+      else tone(f, t, dur, { type: kind === 'dark' ? 'sawtooth' : 'triangle', vol: kind === 'dark' ? 0.005 : 0.009, attack: 0.25, cutoff: kind === 'dark' ? 700 : 1600, release: 0.3 });
+    }
   }
   function tick() {
     if (!snd || !track) return;
     const m = MUSIC[track], st = 60 / m.bpm / 2;
-    while (nextT < snd.ac.currentTime + 0.25) {
-      const l = m.lead[step % m.lead.length], b = m.bass[step % m.bass.length];
-      if (l !== null) note(m.root * 2 ** (l / 12), nextT, st * 1.6, 'triangle', 0.03);
-      if (b !== null && step % 2 === 0) note(m.bassRoot * 2 ** (b / 12), nextT, st * 1.8, 'sine', 0.05);
+    while (nextT < snd.ac.currentTime + 0.3) {
+      const bar = Math.floor(step / 8) % 8, s8 = step % 8, t = nextT;
+      const [root, q] = m.chords[bar], base = m.key + root;
+      const chord = [0, q === 'm' ? 3 : 4, 7].map(x => base + x);
+      // drums
+      const dr = m.drums, hit = (pat, i) => pat && pat[i] === 'x';
+      if (hit(dr.kick, s8)) kick(t);
+      if (hit(dr.snare, s8)) { noiseHit(t, 0.16, 0.09, 'bandpass', 1800); tone(190, t, 0.05, { type: 'triangle', vol: 0.04, release: 0.05 }); }
+      if (hit(dr.hat, s8)) noiseHit(t, dr.shaker ? 0.07 : 0.035, dr.shaker ? 0.03 : 0.04, 'highpass', dr.shaker ? 5000 : 8000);
+      if (hit(dr.tom, s8)) tom(t, s8 === 7 ? 90 : 120);
+      // bass: the chord's root on the beat, the fifth on the "and" of beat 2 and 4
+      if (s8 % 2 === 0) tone(hz(base - 24 + (s8 === 2 || s8 === 6 ? 7 : 0)), t, st * 1.7, { type: track === 'ocean' || track === 'canal' ? 'triangle' : 'sawtooth', vol: 0.05, cutoff: 500 });
+      // pad once a bar, arpeggio every step
+      if (s8 === 0) pad(m.pad, chord, t, st * 8);
+      if (m.arp) tone(hz(chord[s8 % 3] + (s8 >= 4 ? 12 : 0)), t, st * 0.8, { type: 'sine', vol: 0.012 });
+      // the tune (in some songs the second time through goes up an octave)
+      const n = m.melody[bar][s8];
+      if (n !== null) {
+        let len = 1;
+        while (s8 + len < 8 && m.melody[bar][s8 + len] === null && len < 3) len++;
+        lead(m.lead, hz(degree(m, n) + (m.lift && Math.floor(step / 64) % 2 ? 12 : 0)), t, st * len * 0.95);
+      }
       nextT += st; step++;
     }
   }
   return {
-    play(id) { if (!snd) return; if (track !== id) { track = id; step = 0; nextT = snd.ac.currentTime + 0.05; } if (!timer) timer = setInterval(tick, 90); },
+    play(id) { if (!snd || !MUSIC[id]) return; if (track !== id) { track = id; step = 0; nextT = snd.ac.currentTime + 0.08; } if (!timer) timer = setInterval(tick, 90); },
     stop() { clearInterval(timer); timer = null; track = null; },
   };
 })();
 
 // ---------- Input ----------
 const keys = {};
-const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down' };
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', KeyZ: 'boost', ShiftLeft: 'boost', ShiftRight: 'boost' };
+// 🎮 LT or RB boosts (in the Cape Cod Canal world)
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 5: 'KeyZ', 6: 'KeyZ' },
+  '<b>Hamglider:</b> Ⓐ roll / open and close the wings · <b>LT</b> or <b>RB</b> 🚀 boost (Cape Cod Canal) · right stick: look around · <b>LB</b> or click a stick: camera behind');
 addEventListener('keydown', e => {
   if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
   if (e.repeat) return;
@@ -934,6 +1292,9 @@ const CHASE = ['ramp', 'air', 'roll'];
 const cam = createOrbitCam({ canvas, stick, enabled: () => CHASE.includes(state) && !paused, el0: 0.42, minEl: -0.1, maxEl: 1.1, mouseButtons: [2] });
 const wingBtn = document.getElementById('wingBtn');
 wingBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); action(); });
+const boostBtn = document.getElementById('boostBtn');
+boostBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); keys.boost = true; try { boostBtn.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) boostBtn.addEventListener(ev, () => { keys.boost = false; });
 
 function steerInput() { return (keys.right ? 1 : 0) - (keys.left ? 1 : 0) + stick.x; }
 // up = nose up (float), down = nose down (dive). On touch, dragging up means nose up.
@@ -971,6 +1332,8 @@ const pos = new THREE.Vector3(), vel = new THREE.Vector3(), wind = new THREE.Vec
 let wings = false, wingOpen = 0, yaw = 0, gamma = 0, bank = 0, roll = 0, stateT = 0, bonusPts = 0, secretThisRound = false;
 let resultText = '', clock = 0, surf = null, whooshCD = 0, flashT = 0, nextBolt = 5;
 let practice = save.practice;
+let fuel = 1, boosting = false;   // the canal world's boost: a rocket tank that refills slowly
+const BOOST_DRAIN = 0.24, BOOST_FILL = 0.05;
 const targetPos = new THREE.Vector3();
 let ROUNDS = WORLDS[0].rounds;
 
@@ -982,8 +1345,8 @@ function applyWorld(w) {
   hemi.color.set(w.hemi[0]); hemi.groundColor.set(w.hemi[1]); hemi.intensity = w.hemi[2];
   sun.color.set(w.sun[0]); sun.intensity = w.sun[1];
   ocean.material = SEA_MATS[w.id];
-  waveAmp = w.id === 'storm' ? 2 : w.id === 'lava' ? 0.35 : 1;
-  waveSpeed = w.id === 'storm' ? 1.6 : w.id === 'lava' ? 0.4 : 1;
+  waveAmp = w.id === 'storm' ? 2 : w.id === 'lava' ? 0.25 : w.id === 'canal' ? 0.6 : 1;
+  waveSpeed = w.id === 'storm' ? 1.6 : w.id === 'lava' ? 0.15 : 1;   // lava: thick, slow swells
   for (const id in decor) decor[id].visible = id === w.id;
   targetBaseMat.color.set(w.id === 'lava' ? '#4a3a3a' : '#ff8a1f');
   for (const b of buoys) b.visible = w.id !== 'lava';
@@ -1004,9 +1367,20 @@ function buildRound(r, i) {
   const sx = 0, sz = -RAMP_LEN, tx = r.side, tz = -(RAMP_LEN + r.dist), rr = rng(i * 13 + worldI * 101 + 3);
   const ux = tx - sx, uz = tz - sz, len = Math.hypot(ux, uz), px = -uz / len, pz = ux / len;
   isles = [{ x: world.secret.x, z: world.secret.z, r: 6, top: ISLE_TOP, secret: true }];
-  [0.4, 0.68].forEach((f, k) => {
-    const off = (k % 2 ? 1 : -1) * (i % 2 ? -1 : 1) * (17 + rr() * 9), rad = 8 + rr() * 3;
-    const x = sx + ux * f + px * off, z = sz + uz * f + pz * off;
+  // two big islands out past the target, on either side: you see them in the distance all the way there,
+  // and they're a safe place to land if you overshoot or can't quite line up with the dartboard
+  const fx = ux / len, fz = uz / len;
+  ledgeSolids = [];
+  if (world.canal) {
+    // the canal banks and Buzzards Bay's shores are safe to land on; Cleveland Ledge Light stands near the target
+    for (const side of [-1, 1]) isles.push({ rect: side > 0 ? [CANAL_HALF + 4, 2000, CANAL_END, 400] : [-2000, -CANAL_HALF - 4, CANAL_END, 400], top: BANK_TOP, label: 'the canal bank' });
+    isles.push({ rect: [130, 390, CANAL_END - 180, CANAL_END], top: BANK_TOP, label: 'the beach' }, { rect: [-450, -150, CANAL_END - 120, CANAL_END], top: BANK_TOP, label: 'the beach' });
+    const lx = tx + fx * 34 - px * 30, lz = tz + fz * 34 - pz * 30;   // just past the target, off to one side
+    ledgeLight.position.set(lx, 0, lz); isleGroup.add(ledgeLight);
+    ledgeSolids = [{ cyl: [lx, lz, 10.6, -3, 5.4] }, { cyl: [lx, lz, 7.4, 5, 13.6] }, { cyl: [lx, lz, 3.4, 13, 32.5] }];
+  } else [[55, -1], [88, 1]].forEach(([ahead, side], k) => {
+    const flip = i % 2 ? -1 : 1, rad = 19 + rr() * 5, off = side * flip * (46 + rr() * 8);
+    const x = tx + fx * ahead + px * off, z = tz + fz * ahead + pz * off;
     const g = makeIsle(world.id, rad, i * 7 + k); g.position.set(x, 0, z); isleGroup.add(g);
     isles.push({ x, z, r: rad, top: ISLE_TOP });
   });
@@ -1034,7 +1408,7 @@ function setupRound(i) {
   d = 0; rampV = 2; sideV = 0; lean = 0; curve = 0;
   pos.set(0, rampY(0) + R, 0);
   vel.set(0, 0, 0);
-  wings = false; wingOpen = 0; bonusPts = 0; roll = 0; bank = 0; surf = null; secretThisRound = false;
+  wings = false; wingOpen = 0; bonusPts = 0; roll = 0; bank = 0; surf = null; secretThisRound = false; fuel = 1; boosting = false;
   rec.length = 0; replayPending = false;
   state = 'intro'; stateT = 0;
   cam.reset();
@@ -1069,7 +1443,7 @@ function finish(pts, text) {
   roundScores.push({ pts, seeds: bonusPts, text });
   total += pts + bonusPts;
   if (pts > 0) sfx.score(pts);
-  const label = pts >= 100 ? 'BULLSEYE!' : pts === ISLAND_PTS ? 'ISLAND!' : pts > 0 ? `${pts} POINTS!` : text;
+  const label = pts >= 100 ? 'BULLSEYE!' : pts === ISLAND_PTS ? (world.canal ? 'SAFE LANDING!' : 'ISLAND!') : pts > 0 ? `${pts} POINTS!` : text;
   showBanner(label, `${pts > 0 ? text : ''}${bonusPts ? `${pts > 0 ? ' · ' : ''}+${bonusPts} bonus` : ''}`);
   if (pts >= 100) { replayPending = true; burst(pos.x, pos.y, pos.z, { color: '#ffe14a', speed: 9, up: 12, size: 0.7 }); burst(pos.x, pos.y, pos.z, { color: '#ff7eb6', speed: 7, up: 10, size: 0.6 }); }
   else if (pts > 0) burst(pos.x, pos.y, pos.z, { color: '#ffffff', speed: 5, up: 7, size: 0.5 });
@@ -1093,10 +1467,35 @@ function failDown(text) {
   setFace('wow');
 }
 
+// Cape Cod Canal: bounce off the bridges, the ship and the lighthouse (pushed back out, slowed down)
+let bumpAt = -9;
+function bumpSolids() {
+  if (!world || !world.canal) return;
+  for (const s of solids.concat(ledgeSolids)) {
+    if (s.box) {
+      const [x0, x1, y0, y1, z0, z1] = s.box;
+      if (pos.x < x0 - R || pos.x > x1 + R || pos.y < y0 - R || pos.y > y1 + R || pos.z < z0 - R || pos.z > z1 + R) continue;
+      // out through the nearest face
+      const pens = [[pos.x - (x0 - R), 'x', -1], [(x1 + R) - pos.x, 'x', 1], [pos.y - (y0 - R), 'y', -1], [(y1 + R) - pos.y, 'y', 1], [pos.z - (z0 - R), 'z', -1], [(z1 + R) - pos.z, 'z', 1]];
+      const [pen, ax, dirn] = pens.sort((a, b) => a[0] - b[0])[0];
+      pos[ax] += dirn * pen;
+      if (vel[ax] * dirn < 0) vel[ax] *= -0.3;
+    } else {
+      const [cx, cz, r, y0, y1] = s.cyl, dx = pos.x - cx, dz = pos.z - cz, dd = Math.hypot(dx, dz);
+      if (dd > r + R || pos.y < y0 - R || pos.y > y1 + R) continue;
+      if (pos.y > y1 && vel.y <= 0) { pos.y = y1 + R; vel.y = Math.abs(vel.y) * 0.3; }   // bounce off the top
+      else { const k = (r + R) / Math.max(dd, 0.01); pos.x = cx + dx * k; pos.z = cz + dz * k; const vn = (vel.x * dx + vel.z * dz) / Math.max(dd, 0.01); if (vn < 0) { vel.x -= 1.3 * vn * dx / dd; vel.z -= 1.3 * vn * dz / dd; } }
+    }
+    vel.multiplyScalar(0.55);
+    if (wings) { const V = vel.length(); yaw = Math.atan2(vel.x, -vel.z); gamma = Math.atan2(vel.y, Math.hypot(vel.x, vel.z)); void V; }
+    if (clock > bumpAt + 0.4) { sfx.bump(); RB.pad.rumble(120, 0.5); burst(pos.x, pos.y, pos.z, { color: '#ffffff', speed: 3, up: 2, life: 0.5, size: 0.4, n: 40 }); bumpAt = clock; }
+  }
+}
+
 // which landable surface (dartboard or island) is under this spot, if any
 function surfaceUnder(x, z) {
   if (Math.hypot(x - targetPos.x, z - targetPos.z) <= TARGET_R) return { x: targetPos.x, z: targetPos.z, r: TARGET_R, top: TOP, target: true };
-  for (const s of isles) if (Math.hypot(x - s.x, z - s.z) <= s.r) return s;
+  for (const s of isles) if (onSurface(s, x, z)) return s;
   return null;
 }
 
@@ -1108,6 +1507,11 @@ function update(dt) {
   const rawSteer = Math.max(-1, Math.min(1, steerInput()));
   const steer = CHASE.includes(state) ? rawSteer * cam.steer(rawSteer) : rawSteer;   // left/right follow the screen
   const pitch = Math.max(-1, Math.min(1, pitchInput()));
+  // 🚀 boost (Cape Cod Canal): hold Shift / Z / LT / RB while rolling or flying
+  const wasBoosting = boosting;
+  boosting = !!(world && world.boost && keys.boost && fuel > 0 && (state === 'ramp' || state === 'air'));
+  if (boosting) { fuel = Math.max(0, fuel - BOOST_DRAIN * dt); if (!wasBoosting) sfx.boost(); }
+  else if (world && world.boost) fuel = Math.min(1, fuel + BOOST_FILL * dt);
 
   // gusty worlds: the wind swings around and changes strength
   if (world && world.gusts && !practice && PLAYING.includes(state)) {
@@ -1117,7 +1521,7 @@ function update(dt) {
 
   if (state === 'ramp') {
     const slope = rampSlope(d), th = Math.atan(slope);
-    rampV += (-G * Math.sin(th) - 0.35) * dt;
+    rampV += (-G * Math.sin(th) - 0.35 + (boosting ? 8 : 0)) * dt;
     rampV = Math.max(rampV, 1);
     d += rampV * Math.cos(th) * dt;
     // leaning the ball spins it sideways: it drifts across the ramp, and keeps curving after takeoff
@@ -1143,7 +1547,7 @@ function update(dt) {
       if (V < STALL) targetGamma = -0.7;                    // too slow: the nose drops
       gamma += Math.max(-1.3 * dt, Math.min(1.3 * dt, targetGamma - gamma));
       yaw += steer * 1.1 * dt;
-      let nv = V + (-G * Math.sin(gamma) - GLIDE_DRAG * V * V) * dt;
+      let nv = V + (-G * Math.sin(gamma) - GLIDE_DRAG * V * V + (boosting ? 9 : 0)) * dt;
       nv = Math.max(4, nv);
       vel.set(nv * Math.cos(gamma) * Math.sin(yaw), nv * Math.sin(gamma), -nv * Math.cos(gamma) * Math.cos(yaw));
       pos.addScaledVector(wind, dt);
@@ -1154,6 +1558,7 @@ function update(dt) {
     } else {
       vel.y -= G * dt;
       vel.multiplyScalar(1 - 0.03 * dt);
+      if (boosting) { const hs = Math.hypot(vel.x, vel.z) || 1; vel.x += vel.x / hs * 7 * dt; vel.z += vel.z / hs * 7 * dt; vel.y += 3 * dt; }
       // a spinning ball curves sideways (more spin, more curve), fading as the spin wears off
       if (Math.abs(curve) > 0.01) {
         const h = Math.atan2(vel.x, -vel.z);
@@ -1166,8 +1571,9 @@ function update(dt) {
     }
     pos.addScaledVector(vel, dt);
     bank += ((wings ? steer * 0.6 : curve * 0.45) - bank) * Math.min(1, dt * 4);
+    bumpSolids();
     for (const s of seeds) {
-      if (s.visible && s.position.distanceTo(pos) < 2.6) { s.visible = false; bonusPts += 5; sfx.seed(); }
+      if (s.visible && s.position.distanceTo(pos) < 2.6) { s.visible = false; bonusPts += 5; sfx.seed(); if (world.boost) fuel = Math.min(1, fuel + 0.2); }
     }
     checkSecret();
     // touchdown on the dartboard or an island; otherwise the sea (or lava) is waiting
@@ -1189,14 +1595,15 @@ function update(dt) {
     if (sp > 0) { vel.x *= ns / sp; vel.z *= ns / sp; }
     pos.addScaledVector(vel, dt);
     roll -= ns * dt / R;
+    bumpSolids();
     checkSecret();
-    const flat = Math.hypot(pos.x - surf.x, pos.z - surf.z);
-    if (flat > surf.r) { state = 'falloff'; stateT = 0; }
+    const flat = surf.rect ? 0 : Math.hypot(pos.x - surf.x, pos.z - surf.z);
+    if (!onSurface(surf, pos.x, pos.z)) { state = 'falloff'; stateT = 0; }
     else if (ns < 0.05 && stateT > 0.4) {
       if (surf.target) {
         const pts = ringScore(flat);
         finish(pts, pts >= 100 ? 'Right in the middle!' : pts >= 50 ? 'So close!' : 'Nice landing!');
-      } else finish(ISLAND_PTS, surf.secret ? 'You found the secret island!' : 'Safe on the island!');
+      } else finish(ISLAND_PTS, surf.secret ? 'You found the secret island!' : surf.label ? `Safe on ${surf.label}!` : 'Safe on the island!');
     }
   } else if (state === 'falloff') {
     vel.y -= G * dt;
@@ -1367,6 +1774,7 @@ function updateVisuals(dt) {
   });
   for (const id in decor) if (decor[id].visible) decor[id].children.forEach(c => { if (c.userData.drift) { c.position.x += c.userData.drift * dt; if (c.position.x > 420) c.position.x = -420; } });
   stepTrail(dt, state === 'air' && wingOpen > 0.5);
+  stepFlame(dt, boosting);
   stepRain(dt);
   document.getElementById('flash').style.opacity = flashT > 0 ? (flashT > 0.25 || (flashT > 0.1 && flashT < 0.17) ? 0.5 : 0) : 0;
   // practice helper: where would Pip land if the wings closed right now?
@@ -1388,6 +1796,11 @@ function updateHUD() {
   hud.classList.toggle('hidden', !playing);
   wingBtn.classList.toggle('hidden', !(state === 'air' && matchMedia('(pointer: coarse)').matches));
   wingBtn.textContent = wings ? 'CLOSE' : 'WINGS';
+  const canBoost = !!(world && world.boost && (state === 'ramp' || state === 'air'));
+  boostBtn.classList.toggle('hidden', !(canBoost && matchMedia('(pointer: coarse)').matches));
+  boostBtn.classList.toggle('empty', fuel <= 0.02);
+  $('gBoostBox').classList.toggle('hidden', !(world && world.boost));
+  $('gBoost').style.width = `${Math.round(fuel * 100)}%`;
   if (!playing) return;
   $('hudWorld').textContent = `${world.icon} ${world.name.toUpperCase()}${practice ? ' · PRACTICE' : ''}`;
   $('hudRound').textContent = `ROUND ${round + 1}/${ROUNDS.length}`;
@@ -1406,7 +1819,8 @@ function updateHUD() {
   if (state === 'ramp' && d < 45 && round === 0) msg = touch ? 'DRAG TO CURVE!' : '← → TO CURVE!';
   else if (state === 'ramp' && d > 60) msg = 'GET READY…';
   else if (state === 'air' && !wings && stateT < 4 && vel.y > -25) msg = touch ? 'TAP WINGS TO FLY!' : 'SPACE TO OPEN WINGS!';
-  else if (state === 'air' && wings && vel.length() < STALL + 1) msg = 'TOO SLOW! NOSE DOWN';
+  else if (state === 'air' && wings && vel.length() < STALL + 1 && !boosting) msg = 'TOO SLOW! NOSE DOWN';
+  else if (world.boost && (state === 'air' || state === 'ramp') && round === 0 && stateT < 5 && fuel > 0.9) msg = touch ? 'HOLD 🚀 TO BOOST!' : 'HOLD SHIFT TO BOOST!';
   else if (state === 'air' && wings && thermals.some(t => Math.hypot(pos.x - t.x, pos.z - t.z) < t.r)) msg = 'HOT AIR! GOING UP!';
   else if (state === 'air' && wings && pos.y < 14 && Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z) < TARGET_R) msg = touch ? 'CLOSE TO DROP!' : 'SPACE TO DROP!';
   else if (state === 'replay') msg = '⏪ SLOW-MO REPLAY';
@@ -1441,7 +1855,7 @@ function mapScreen() {
 }
 function ballsScreen() {
   const stars = totalStars();
-  $('ballsPanel').innerHTML = `<h2>🔮 HAMSTER BALLS</h2><div class="sub">⭐ You have ${stars} of 9 stars</div>
+  $('ballsPanel').innerHTML = `<h2>🔮 HAMSTER BALLS</h2><div class="sub">⭐ You have ${stars} of ${WORLDS.length * 3} stars</div>
     <div class="balls">${BALLS.map(b => {
       const open = ballOpen(b), bg = b.rainbow ? 'conic-gradient(#ff7eb6, #ffe14a, #7dff7a, #5bd0ff, #b98cff, #ff7eb6)' : `radial-gradient(circle at 35% 30%, #fff, ${b.ball} 40%, ${b.wing})`;
       const how = open ? (save.ball === b.id ? 'Wearing it!' : 'Tap to wear') : b.egg ? `Find the secret in ${WORLDS.find(w => w.id === b.egg).name}` : `Earn ${b.stars} stars`;
@@ -1492,7 +1906,7 @@ $('btnMap').addEventListener('click', mapScreen);
 $('btnNext').addEventListener('click', () => startWorld(worldI + 1));
 {
   const best = +(RB.store.get('hg_best') || 0);
-  if (best) $('bestLine').textContent = `🏆 Best score: ${best} · ⭐ ${totalStars()} of 9 stars`;
+  if (best) $('bestLine').textContent = `🏆 Best score: ${best} · ⭐ ${totalStars()} of ${WORLDS.length * 3} stars`;
 }
 applyWorld(WORLDS[0]);
 applySkin();

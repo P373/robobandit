@@ -105,12 +105,88 @@ const RB = (() => {
       bar.appendChild(el);
       return el;
     };
+    menuButton(bar);
     add('a', 'btnHome', '🏠', homeTitle);
     if (onPause) add('button', 'btnPause', '⏸\uFE0F', 'Pause (P)', onPause);
     add('button', 'btnMute', muted ? '🔇' : '🔊', 'Sound on/off (M)', () => { audio(); setMuted(!muted); });
     if (shareInfo) add('button', 'btnShare', '🔗', 'Share this game', () => share(shareInfo));
+    menuShare = shareInfo || null;
     return bar;
   }
+
+  // ---------- ☰ The RoboBandit menu: every game, the school folders and the settings, on every page ----------
+  const SITE_ROOT = SITE_HOME.replace(/index\.html$/, '');
+  const GAMES = [
+    ['space-wars.html', '🚀', 'Space Wars'], ['floppy-bird.html', '🐦', 'Floppy Bird'], ['surfs-up.html', '🏄', "Surf's Up"],
+    ['hamglider.html', '🐹', 'Hamglider'], ['web-hero.html', '🕸️', 'Web Hero'], ['sparkle-meadow.html', '🦄', 'Sparkle Meadow'],
+    ['witch-way-out.html', '🧙', 'Witch Way Out'], ['flight-school.html', '✈️', 'Flight School'],
+  ];
+  const FOLDERS = [['preschool/index.html', '🧸', 'Preschool'], ['2nd-grade/index.html', '✏️', '2nd Grade'], ['5th-grade/index.html', '🎒', '5th Grade']];
+  let menuEl = null, menuShare = null;
+  function menuButton(bar) {
+    if (bar.querySelector('.rb-menubtn')) return;
+    const b = document.createElement('button');
+    b.type = 'button'; b.className = 'rb-menubtn'; b.id = 'btnMenu'; b.title = 'Menu: all games and settings';
+    b.innerHTML = '☰<span>MENU</span>';
+    b.addEventListener('pointerdown', e => e.stopPropagation());
+    b.addEventListener('click', e => { e.stopPropagation(); b.blur(); openMenu(); });
+    bar.insertBefore(b, bar.firstChild);
+  }
+  function openMenu() {
+    if (menuEl) return;
+    // pause the game: every game already pauses when the window loses focus
+    dispatchEvent(new Event('blur'));
+    const hiddenPause = document.querySelector('.rb-pause');
+    if (hiddenPause) hiddenPause.style.display = 'none';
+    const here = location.href.split(/[?#]/)[0];
+    const link = ([url, icon, name], cls) => {
+      const href = SITE_ROOT + url, cur = here === href || (url.endsWith('index.html') && here === href.replace(/index\.html$/, ''));
+      return `<a class="${cls}${cur ? ' cur' : ''}" href="${href}"><span>${icon}</span>${name}${cur ? '<small>playing now</small>' : ''}</a>`;
+    };
+    menuEl = document.createElement('div');
+    menuEl.className = 'rb-menu';
+    menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="RoboBandit menu">
+      <div class="rb-menu-head"><a href="${SITE_HOME}" class="rb-menu-logo" data-pad-home><img src="${SITE_ROOT}favicon.svg" alt="">ROBOBANDIT</a>
+        <button type="button" class="rb-menu-x" title="Close (Esc)">✕</button></div>
+      <h3>🎮 Games</h3><div class="rb-menu-games">${GAMES.map(g => link(g, 'rb-menu-game')).join('')}</div>
+      <h3>📚 School folders</h3><div class="rb-menu-games">${FOLDERS.map(g => link(g, 'rb-menu-game')).join('')}</div>
+      <h3>⚙️ Settings</h3><div class="rb-menu-set">
+        <button type="button" data-m="sound">${muted ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
+        <button type="button" data-m="pad">🎮 Controller</button>
+        ${document.fullscreenEnabled ? `<button type="button" data-m="fs">⛶ ${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}
+        ${menuShare ? '<button type="button" data-m="share">🔗 Share this game</button>' : ''}
+        <a href="${SITE_HOME}" class="rb-home-all">🏠 All games</a></div>
+      <button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button></div>`;
+    menuEl.addEventListener('pointerdown', e => { e.stopPropagation(); if (e.target === menuEl) closeMenu(); });
+    menuEl.querySelector('.rb-menu-x').addEventListener('click', closeMenu);
+    menuEl.querySelector('.rb-menu-back').addEventListener('click', closeMenu);
+    menuEl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => dispatchEvent(new Event('rb-leave'))));
+    menuEl.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
+      const m = b.dataset.m;
+      if (m === 'sound') { audio(); setMuted(!muted); b.textContent = muted ? '🔇 Sound: off' : '🔊 Sound: on'; }
+      else if (m === 'pad') { closeMenu(); controllerScreen(); }
+      else if (m === 'fs') { closeMenu(); if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); }
+      else if (m === 'share') { closeMenu(); share(menuShare); }
+    }));
+    menuEl.hiddenPause = hiddenPause;
+    document.body.appendChild(menuEl);
+    addEventListener('keydown', menuKeys, true);
+  }
+  function closeMenu() {
+    if (!menuEl) return;
+    if (menuEl.hiddenPause) menuEl.hiddenPause.style.display = '';
+    menuEl.remove(); menuEl = null;
+    removeEventListener('keydown', menuKeys, true);
+  }
+  // while the menu is open, Esc (or 🎮 Ⓑ) closes it and nothing else reaches the game
+  function menuKeys(e) {
+    if (e.code === 'Escape') { e.preventDefault(); closeMenu(); }
+    // (stopping it here doesn't stop Space / Enter from pressing the highlighted menu button)
+    if (['Space', 'Enter', 'Escape', 'KeyP', 'KeyM', 'KeyX', 'KeyZ', 'KeyC', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.stopImmediatePropagation();
+  }
+  // a page with its own corner buttons (Space Wars) still gets the menu
+  const addMenuToBars = () => document.querySelectorAll('.rb-topbar').forEach(menuButton);
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', addMenuToBars); else addMenuToBars();
 
   // Where 🏠 goes on this page: its own 🏠 button if it has one (folder pages point at their folder), else the arcade.
   function homeHref() {
@@ -215,7 +291,7 @@ const RB = (() => {
         }
         return false;
       };
-      const modal = document.querySelector('.rb-padscreen');   // the controller screen covers everything else
+      const modal = document.querySelector('.rb-padscreen, .rb-menu');   // the controller screen and the menu cover everything else
       cache = { t: now, list: modal ? all.filter(el => modal.contains(el)) : game ? all.filter(inPanel) : all };
       return cache.list;
     }
@@ -338,7 +414,7 @@ const RB = (() => {
         if (dir && (dir !== last.dir || now >= last.next)) { move(dir, opts); last.next = now + (dir === last.dir ? 130 : 380); }
         last.dir = dir;
         if (edge(0) || edge(2) || edge(7)) activate();
-        if (edge(1)) { if (padScreen) padScreen.close(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
+        if (edge(1)) { if (padScreen) padScreen.close(); else if (menuEl) closeMenu(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
         if (edge(9)) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); }
       } else {
         // the left stick: smooth analog steering where the game has a joystick, arrow keys everywhere else
@@ -552,7 +628,7 @@ const RB = (() => {
     get muted() { return muted; },
     toggleMute: () => { audio(); setMuted(!muted); },
     onMute: f => muteHooks.push(f),
-    toast, share, topbar, showPause, hidePause, onHide, controllerScreen,
+    toast, share, topbar, showPause, hidePause, onHide, controllerScreen, openMenu, closeMenu,
     get pauseShowing() { return !!pauseEl; },
   };
 })();

@@ -7,7 +7,7 @@
 - **Floppy Bird**: an autopilot scores 9+ points, crashes use up the 3 lives, pause freezes time
 - **Surf's Up**: an autopilot launches aerials and the five judges score the ride; the touch joystick carves
 - **Space Wars**: the touch joystick flies the ship and the fire buttons show
-- **Hamglider**: an autopilot lands on the target in every round of all three worlds (ocean, lava, storm); leaning on the ramp curves the takeoff; islands are safe landings; secrets unlock hamster balls; a bullseye plays a slow-motion replay; lava is a "TOO HOT!" bounce; worlds unlock in order and "Unlock all" opens everything; the joystick and WINGS button work on a phone
+- **Hamglider**: an autopilot lands on the target in every round of all four worlds (ocean, lava, storm, and the Cape Cod Canal, where it has to boost); leaning on the ramp curves the takeoff; islands (out past the target) and the canal banks are safe landings; the railroad bridge is solid; secrets unlock hamster balls; a bullseye plays a slow-motion replay; lava is a "TOO HOT!" bounce; worlds unlock in order and "Unlock all" opens everything; the joystick and WINGS button work on a phone
 - **Web Hero**: just holding chains swings across the city, bonks bots and beats the Big Bandit; three falls end the game
 - **Sparkle Meadow**: following the pink arrow makes all six animal friends (and saves them); sparkles unlock the unicorn horn
 - **Witch Way Out**: flying the friendly line (with shields in the storm) escapes the pumpkin without being caught; doing nothing gets caught but the pumpkin eases off so everyone can finish
@@ -19,6 +19,7 @@
 - **Witch Way Out camera**: the right stick swings the camera all the way around the witch at a steady distance, clicking it snaps back, letting go drifts back behind her, and pushing right moves her right on screen from behind and in front
 - pausing silences all music and sound; the controller's ⧉ View button pressed twice goes back to all the games (or a lesson's folder)
 - every page links the shared files with the same `?v=` stamp (run `node tools/bump-version.js` after changing a shared file)
+- **☰ Menu**: every game and lesson has one menu button; it pauses the game, lists all 8 games and 3 school folders (marking the one you're in, with working links even from inside a folder), keeps keys from reaching the game, and Esc / Ⓑ close it
 - **Hamglider camera**: the right stick swings the shared orbit camera (`orbit-cam.js`) round Pip, LB swings it back, pushing right moves Pip right on screen from behind and in front, and it orbits at a steady distance
 - **Controller screen** (Witch Way Out, from the title and the pause menu): testing lights up the picture without pressing anything, holding Ⓑ finishes, inverting each stick and switching vibration off save and take effect, Ⓑ / Escape go back
 - muting one game mutes them all
