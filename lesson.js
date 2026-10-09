@@ -225,9 +225,9 @@ const School = (() => {
       <p class="say">${rich(S.p)}</p>
       ${S.v ? `<div class="vocab">${S.v.map(([w, m]) => `<span><b>${esc(w)}</b>: ${esc(m)}</span>`).join('')}</div>` : ''}
       <div class="dots">${L.slides.map((_, k) => k === slide ? '<b>●</b>' : '●').join('')}</div>
-      <button class="btn alt" id="back">◀ ${slide ? 'Back' : 'Map'}</button>
-      ${'speechSynthesis' in window ? '<button class="btn alt" id="read">🔈 Read to me</button>' : ''}
-      <button class="btn" id="fwd">${lastSlide ? 'Quiz time! 🧠' : 'Next ▶'}</button>`);
+      <div class="nav"><button class="btn alt" id="back">◀<span class="wide"> ${slide ? 'Back' : 'Map'}</span></button>
+      ${'speechSynthesis' in window ? '<button class="btn alt" id="read" title="Read to me">🔈<span class="wide"> Read to me</span></button>' : ''}
+      <button class="btn go" id="fwd">${lastSlide ? 'Quiz time! 🧠' : 'Next ▶'}</button></div>`);
     drawDia = board($('dia'));
     diaT = 0;
     drawDiagram(0);
@@ -279,9 +279,9 @@ const School = (() => {
     });
     const lastQ = qi === quiz.length - 1;
     $('fb').innerHTML = `<div class="why"><b>${right ? '✅ Right! +100' : '❌ Not quite.'}</b> ${rich(q.why)}</div>
-      <button class="btn" id="nextQ">${lastQ ? 'See my stars ▶' : 'Next question ▶'}</button>`;
+      <div class="nav"><button class="btn go" id="nextQ">${lastQ ? 'See my stars ▶' : 'Next question ▶'}</button></div>`;
     on('nextQ', nextQ);
-    $('nextQ').scrollIntoView({ block: 'nearest' });
+    $('fb').scrollIntoView({ block: 'nearest' });
   }
   function nextQ() {
     if (!answered) return;
@@ -296,8 +296,8 @@ const School = (() => {
     show(`<span class="chip">🎮 Game · ${G.icon} ${esc(G.name)}</span>
       <h2>${G.icon} ${esc(G.name)}</h2>
       <ul class="how">${G.how.map(([e, s]) => `<li><span class="e">${e}</span><span>${s}</span></li>`).join('')}</ul>
-      <button class="btn alt" id="back">◀ Map</button>
-      <button class="btn" id="go">▶ Play!</button>`);
+      <div class="nav"><button class="btn alt" id="back">◀ Map</button>
+      <button class="btn go" id="go">▶ Play!</button></div>`);
     on('back', mapScreen);
     on('go', startGame);
   }
@@ -328,9 +328,9 @@ const School = (() => {
         <div class="tot"><span>Score</span><span>${r.score}</span></div></div>
       ${newBest ? '<p>🎉 New best!</p>' : ''}
       ${r.stars < 3 && r.hint ? `<p style="font-size:17px;color:var(--soft)">${esc(r.hint)}</p>` : ''}
-      <button class="btn alt" id="again">↺ ${it.kind === 'game' ? 'Play again' : 'Review the lesson'}</button>
+      <div class="nav"><button class="btn alt" id="again">↺ ${it.kind === 'game' ? 'Play again' : 'Review'}</button>
       <button class="btn alt" id="map">🗺️ Map</button>
-      ${nxt ? `<button class="btn" id="nextIt">Next: ${nxt.icon} ${esc(nxt.name)} ▶</button>` : '<button class="btn" id="cert">🎓 My certificate</button>'}`);
+      ${nxt ? `<button class="btn go" id="nextIt">Next: ${nxt.icon} ${esc(nxt.name)} ▶</button>` : '<button class="btn go" id="cert">🎓 My certificate</button>'}</div>`);
     on('again', () => open(cur));
     on('map', mapScreen);
     on('nextIt', () => open(cur + 1));
