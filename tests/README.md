@@ -15,6 +15,7 @@
 - **School folders**: the home page links to each grade's folder, and the 5th grade folder lists its subjects with saved stars
 - **5th grade** (reading & rights, math, science, social studies): every lesson picture draws, every quiz can be aced, every game can be won with 3 stars
 - **Xbox controller** (a pretend one): the D-pad and Ⓐ pick games on the arcade page, press menu buttons and lesson buttons; Ⓐ flaps and holds the burner; the left stick steers smoothly; ☰ pauses; crashes rumble
+- **Witch Way Out camera**: the right stick swings the camera all the way around the witch at a steady distance, clicking it snaps back, letting go drifts back behind her, and pushing right moves her right on screen from behind and in front
 - muting one game mutes them all
 
 The autopilots call each game's own `update()` in a loop, so a whole game takes a few seconds.

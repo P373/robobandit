@@ -142,6 +142,8 @@ const RB = (() => {
     const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
     const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 8: 'KeyM', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
     const sticks = [];
+    const look = { x: 0, y: 0 };   // the right stick, for games with a camera to swing around
+    let pressedNow = [];
     let running = false, held = {}, prevBtn = [], menuMode = false, focusEl = null, styled = false, last = { dir: null, t: 0, next: 0 }, cache = { t: 0, list: [] };
     try { if ('gamepadInputEmulation' in navigator) navigator.gamepadInputEmulation = 'gamepad'; } catch (e) { /* old Xbox Edge only */ }
 
@@ -166,9 +168,9 @@ const RB = (() => {
       return getComputedStyle(el).pointerEvents !== 'none';
     }
     const big = el => { const r = el.getBoundingClientRect(); return r.width * r.height > innerWidth * innerHeight * 0.4; };
-    function choices() {
+    function choices(fresh = false) {
       const now = performance.now();
-      if (now - cache.t < 200) return cache.list;
+      if (!fresh && now - cache.t < 200) return cache.list;
       const all = [...document.querySelectorAll('button, a[href], input, select, [role="button"], [tabindex]:not([tabindex="-1"])')].filter(shown);
       const game = [...document.querySelectorAll('canvas')].some(c => shown(c) && big(c));
       // On a game page only buttons inside a big covering panel count (title screens, pause, quizzes);
@@ -231,7 +233,7 @@ const RB = (() => {
       if (best) setFocus(best);
     }
     function activate() {
-      if (!focusEl) return;
+      if (!focusEl || !shown(focusEl)) return;
       if (focusEl.matches('input[type="checkbox"], input[type="radio"]')) focusEl.click();
       else if (focusEl.matches('input, select, textarea')) focusEl.focus();
       else {
@@ -245,17 +247,21 @@ const RB = (() => {
     // ---- the polling loop ----
     function frame(now) {
       const list = pads();
-      if (!list.length) { releaseAll(); running = false; return; }
+      if (!list.length) { releaseAll(); running = false; look.x = look.y = 0; pressedNow = []; return; }
       requestAnimationFrame(frame);
-      const btn = [], A = [0, 0];
+      const btn = [], A = [0, 0, 0, 0];
       for (const g of list) {
         g.buttons.forEach((b, i) => { btn[i] = btn[i] || b.pressed || b.value > 0.5; });
-        for (const i of [0, 1]) if (Math.abs(g.axes[i] || 0) > Math.abs(A[i])) A[i] = g.axes[i] || 0;
+        for (const i of [0, 1, 2, 3]) if (Math.abs(g.axes[i] || 0) > Math.abs(A[i])) A[i] = g.axes[i] || 0;
       }
+      const rmag = Math.hypot(A[2], A[3]), rk = rmag < 0.18 ? 0 : Math.min(1, (rmag - 0.18) / 0.82) / rmag;
+      look.x = A[2] * rk; look.y = A[3] * rk;
       const mag = Math.hypot(A[0], A[1]), dead = 0.22;
       const lx = mag < dead ? 0 : A[0] / mag * Math.min(1, (mag - dead) / (1 - dead)), ly = mag < dead ? 0 : A[1] / mag * Math.min(1, (mag - dead) / (1 - dead));
       const edge = i => btn[i] && !prevBtn[i];
-      const menu = choices().length > 0;
+      // a button press always looks at the screen as it is right now (a menu may have just closed)
+      const anyEdge = btn.some((b, i) => b && !prevBtn[i]);
+      const menu = choices(anyEdge).length > 0;
       if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); }
       if (menu) {
         const opts = choices();
@@ -287,7 +293,7 @@ const RB = (() => {
         }
         for (const c of new Set([...Object.keys(held), ...Object.keys(want)])) press(c, !!want[c]);
       }
-      prevBtn = btn;
+      prevBtn = btn; pressedNow = btn;
     }
     function start() {
       if (running || !pads().length) return;
@@ -308,6 +314,8 @@ const RB = (() => {
         }
       },
       get connected() { return pads().length > 0; },
+      look,   // { x, y } from the right stick, -1 to 1 (y is +1 pulled down)
+      pressed: i => !!pressedNow[i],   // is button i held right now (10 / 11 are the stick clicks)
       get menuMode() { return menuMode; },
     };
   })();

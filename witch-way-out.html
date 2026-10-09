@@ -97,6 +97,7 @@
       <li><b>Fly your broomstick</b> anywhere:
         <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn, <kbd>↑</kbd> climb, <kbd>↓</kbd> dive.</span>
         <span class="touch-only">put your thumb down and drag to steer.</span></li>
+      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. Click the stick to snap back behind you.</li>
       <li><b>Fly through the glowing rings</b> for a speed boost.</li>
       <li>In the storm, cast your <b>shield spell</b> (<span class="key-only"><kbd>Space</kbd></span><span class="touch-only">purple button</span>) when lightning is coming!</li>
       <li>Swoop through a <b>backyard</b>, a <b>spooky graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
@@ -637,9 +638,24 @@ addEventListener('keydown', e => {
   if (e.code === 'KeyP' || e.code === 'Escape') pause();
   if (e.code === 'KeyM') RB.toggleMute();
 });
-addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
+addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; if (CAMKEYS[e.code]) keys[CAMKEYS[e.code]] = false; });
+const CAMKEYS = { KeyQ: 'camL', KeyE: 'camR' };
+addEventListener('keydown', e => { if (CAMKEYS[e.code]) keys[CAMKEYS[e.code]] = true; if (e.code === 'KeyR') cam.snap = true; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
-canvas.addEventListener('pointerdown', () => RB.audio());
+canvas.addEventListener('pointerdown', e => {
+  RB.audio();
+  // drag with the mouse, or a second finger, to swing the camera around (the first finger steers)
+  if (state === 'fly' && !paused && (e.pointerType === 'mouse' || (stick.id !== null && e.pointerId !== stick.id))) cam.drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
+});
+canvas.addEventListener('pointermove', e => {
+  const d = cam.drag;
+  if (!d || e.pointerId !== d.id) return;
+  cam.yaw -= (e.clientX - d.x) * 0.008; cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005, CAM.minEl, CAM.maxEl);
+  d.x = e.clientX; d.y = e.clientY; cam.idle = 0;
+});
+const endDrag = e => { if (cam.drag && e.pointerId === cam.drag.id) cam.drag = null; };
+canvas.addEventListener('pointerup', endDrag);
+canvas.addEventListener('pointercancel', endDrag);
 const spellBtn = document.getElementById('spellBtn');
 spellBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); castShield(); });
 function pause() {
@@ -683,6 +699,7 @@ function startGame() {
   section = null;   // so the first area's name pops up
   state = 'fly';
   introT = 2.6;
+  cam.yaw = cam.yawS = 0; cam.el = cam.elS = CAM.el0; cam.idle = 99;
   setTimeout(sfx.laugh, 400);
   showBanner('Here it comes!', 'Fly, fly, fly!', 2.4);
 }
@@ -751,7 +768,9 @@ function update(dt) {
 
   // --- flying
   const sx = steerInput(), sy = climbInput();
-  yaw -= sx * 1.5 * dt;
+  // left and right are the screen's left and right, wherever the camera is (like Mario Odyssey):
+  // seen from in front, pushing right turns the witch toward her own left
+  yaw -= sx * 1.5 * dt * clamp(Math.cos(cam.yawS) * 1.6, -1, 1);
   if (!sx) yaw += (0 - yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
   pitch += (sy * 0.65 - pitch) * Math.min(1, dt * 3);
   roll += (sx * 0.6 - roll) * Math.min(1, dt * 5);
@@ -871,6 +890,31 @@ function placeFlock(dt, fixedSpeed) {
 }
 
 // ---------- Camera, visuals, HUD ----------
+// An orbit camera: the right stick (or Q/E, or a drag) swings it all the way around the witch.
+// yaw is the angle around her (0 = behind), el is how high it looks down from. Let go and it
+// drifts back behind her after a few seconds; clicking the right stick (or R) snaps it back.
+const CAM = { dist: 11, el0: 0.4, minEl: -0.25, maxEl: 1.3, turn: 2.8, tilt: 1.7, idleBack: 2.5 };
+const cam = { yaw: 0, el: CAM.el0, yawS: 0, elS: CAM.el0, idle: 99, snap: false, drag: null };
+const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
+function cameraInput(dt) {
+  const L = RB.pad.look;
+  const lx = clamp(L.x + (keys.camR ? 1 : 0) - (keys.camL ? 1 : 0), -1, 1), ly = L.y;
+  if (lx || ly) {
+    cam.yaw -= lx * CAM.turn * dt;   // push right: the view swings right
+    cam.el = clamp(cam.el + ly * CAM.tilt * dt, CAM.minEl, CAM.maxEl);   // push up: look up from lower down
+    cam.idle = 0;
+  } else if (!cam.drag) cam.idle += dt;
+  if (RB.pad.pressed(11) || RB.pad.pressed(10) || cam.snap) { cam.yaw = 0; cam.el = CAM.el0; cam.idle = 99; cam.snap = false; }
+  cam.yaw = wrapAngle(cam.yaw);
+  if (cam.idle > CAM.idleBack) {   // ease back behind her, the short way round
+    const k = Math.min(1, dt * 1.2);
+    cam.yaw += (0 - cam.yaw) * k; cam.el += (CAM.el0 - cam.el) * k;
+  }
+  // smooth the angles themselves, so the camera glides around the witch on a circle
+  cam.yawS += wrapAngle(cam.yaw - cam.yawS) * Math.min(1, dt * 10);
+  cam.yawS = wrapAngle(cam.yawS);
+  cam.elS += (cam.el - cam.elS) * Math.min(1, dt * 10);
+}
 const camPos = new THREE.Vector3(0, 50, 30), camLook = new THREE.Vector3();
 const tmp = new THREE.Vector3();
 function updateVisuals(dt) {
@@ -894,10 +938,17 @@ function updateVisuals(dt) {
     camPos.lerp(want, Math.min(1, dt * (state === 'fly' ? 6 : 2)));
     camLook.lerp(new THREE.Vector3(pos.x, pos.y + 1, (pos.z + pumpkin.position.z) / 2), Math.min(1, dt * 4));
   } else {
-    // chase camera, a little above and behind
-    const want = pos.clone().addScaledVector(back, 10).add(new THREE.Vector3(0, 4.2 - pitch * 3, 0));
-    camPos.lerp(want, Math.min(1, dt * 5));
-    camLook.lerp(pos.clone().addScaledVector(dir.lengthSq() ? dir : back.clone().negate(), 10).add(new THREE.Vector3(0, 1.5, 0)), Math.min(1, dt * 6));
+    // orbit camera: a point on a sphere around the witch, measured from behind her
+    cameraInput(dt);
+    const a = yaw + cam.yawS, el = clamp(cam.elS - pitch * 0.25, CAM.minEl, CAM.maxEl);
+    const want = new THREE.Vector3(pos.x + Math.sin(a) * Math.cos(el) * CAM.dist, pos.y + 0.3 + Math.sin(el) * CAM.dist, pos.z + Math.cos(a) * Math.cos(el) * CAM.dist);
+    const floor = (want.z < -2895 ? groundAt(want.x, want.z) : 0) + 1.2;
+    if (want.y < floor) want.y = floor;   // never dip under the ground
+    camPos.lerp(want, Math.min(1, dt * 9));
+    // looking from behind, aim a little ahead of her; swung around, look right at her
+    const ahead = Math.pow(Math.max(0, Math.cos(cam.yawS)), 2) * clamp(1 - Math.abs(cam.elS - CAM.el0) / 0.7, 0, 1);
+    const lookAt = pos.clone().add(new THREE.Vector3(0, 1.2, 0)).addScaledVector(dir.lengthSq() ? dir : back.clone().negate(), 10 * ahead);
+    camLook.lerp(lookAt, Math.min(1, dt * 8));
   }
   camera.position.copy(camPos);
   camera.lookAt(camLook);

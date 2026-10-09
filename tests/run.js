@@ -581,6 +581,51 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Witch Way Out: the right stick swings the camera all the way around, steering follows the screen', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1200);
+    // the right stick reaches the game through common.js
+    await p.evaluate(() => { startGame(); introT = 0; });
+    await p.evaluate(() => { __pad.axes[2] = 1; }); await p.waitForTimeout(400);
+    check(await p.evaluate(() => cam.yaw < -0.05), 'pushing the right stick right should swing the camera');
+    await p.evaluate(() => { __pad.axes[2] = 0; });
+    await padTap(p, 'RIGHT'); // (any button) let the loop settle
+    await p.evaluate(() => { __pad.buttons[11] = { pressed: true, value: 1 }; }); await p.waitForTimeout(120);
+    await p.evaluate(() => { __pad.buttons[11] = { pressed: false, value: 0 }; });
+    check(await p.evaluate(() => Math.abs(cam.yaw) < 0.01), 'clicking the right stick should snap the camera back');
+    const r = await p.evaluate(() => {
+      const out = {};
+      for (const [name, cy] of [['behind', 0], ['front', Math.PI]]) {   // push right: she moves right on screen
+        startGame(); introT = 0;
+        for (let i = 0; i < 120; i++) { update(1 / 60); updateVisuals(1 / 60); }
+        cam.yaw = cam.yawS = cy;
+        for (let i = 0; i < 30; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
+        camera.updateMatrixWorld();
+        const right = new THREE.Vector3().setFromMatrixColumn(camera.matrixWorld, 0), p0 = pos.clone();
+        keys.r = true;
+        for (let i = 0; i < 40; i++) { cam.idle = 0; update(1 / 60); updateVisuals(1 / 60); }
+        keys.r = false;
+        out[name] = pos.clone().sub(p0).dot(right);
+      }
+      // a full circle keeps the camera on its orbit (same distance) and above the ground
+      const d = [];
+      for (let k = 0; k < 8; k++) { cam.yaw = cam.yawS = k / 8 * Math.PI * 2; cam.idle = 0; for (let i = 0; i < 40; i++) { update(1 / 60); updateVisuals(1 / 60); } d.push(camera.position.distanceTo(pos)); }
+      // let go: it drifts back behind her
+      cam.yaw = 2.5; cam.idle = 0;
+      for (let i = 0; i < 60 * 6; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      return { ...out, minD: Math.min(...d), maxD: Math.max(...d), back: cam.yaw };
+    });
+    check(r.behind > 2 && r.front > 2, 'pushing right should move her right on screen from behind and in front: ' + JSON.stringify(r));
+    check(r.minD > 8 && r.maxD < 16, 'the camera should orbit at a steady distance: ' + JSON.stringify(r));
+    check(Math.abs(r.back) < 0.1, 'the camera should drift back behind her: ' + r.back);
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await p.screenshot({ path: path.join(OUT, 'witch-camera.png') });
+    await ctx.close();
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
