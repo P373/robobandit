@@ -484,7 +484,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'flight-school-unlocked.png');
   });
 
-  await test('school folders: the home page links to each grade, and 5th grade lists its subjects', async () => {
+  await test('school folders: the home page links to each grade, and 5th and 2nd grade list their subjects', async () => {
     const p = await open(browser, 'index.html');
     const links = await p.$$eval('.folder', els => els.map(e => e.getAttribute('href')));
     check(links.length === 3, links.length + ' folders');
@@ -497,12 +497,20 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await f.evaluate(() => { localStorage.setItem('rb_g5_math', JSON.stringify({ stars: { mult: 3, algo: 2 } })); render(); });
     check((await f.textContent('#subjects')).includes('5 of 18 stars'), 'saved stars not shown');
     await done(f, '5th-grade.png');
+    const g2 = await open(browser, '2nd-grade/index.html');
+    const subjects2 = await g2.evaluate(() => SUBJECTS);
+    check(subjects2.length === 4, subjects2.length + ' 2nd grade subjects');
+    for (const s of subjects2) check(fs.existsSync(path.join(ROOT, '2nd-grade', s.url)), 'missing subject page ' + s.url);
+    await g2.evaluate(() => { localStorage.setItem('rb_g2_math', JSON.stringify({ stars: { place: 3, addsub: 1 } })); render(); });
+    check((await g2.textContent('#subjects')).includes('4 of 21 stars'), '2nd grade saved stars not shown');
+    await done(g2, '2nd-grade.png');
   });
 
-  // Each 5th grade subject: every slide's picture draws, every quiz can be aced, and every game can be won.
-  for (const page of ['reading-rights', 'math', 'science', 'social-studies']) {
-    await test(`5th grade ${page}: every lesson draws, every quiz and game earns 3 stars`, async () => {
-      const p = await open(browser, `5th-grade/${page}.html`, { viewport: { width: 1280, height: 800 } });
+  // Each 5th and 2nd grade subject: every slide's picture draws, every quiz can be aced, and every game can be won.
+  for (const [grade, page] of [['5th', 'reading-rights'], ['5th', 'math'], ['5th', 'science'], ['5th', 'social-studies'],
+    ['2nd', 'math'], ['2nd', 'reading'], ['2nd', 'science'], ['2nd', 'social-studies']]) {
+    await test(`${grade} grade ${page}: every lesson draws, every quiz and game earns 3 stars`, async () => {
+      const p = await open(browser, `${grade}-grade/${page}.html`, { viewport: { width: 1280, height: 800 } });
       const r = await p.evaluate(() => {
         const T = School.test, items = T.unit.items, out = { slides: 0, stars: {}, modes: [] };
         items.forEach((it, i) => {
@@ -522,7 +530,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         await p.evaluate(i => School.test.open(i), g);
         await p.click('#go');
         await p.waitForTimeout(100);
-        await p.screenshot({ path: path.join(OUT, `5th-${page}-game${g}.png`) });
+        await p.screenshot({ path: path.join(OUT, `${grade}-${page}-game${g}.png`) });
         await p.evaluate(() => { for (let n = 0; n < 600 && School.test.mode === 'game'; n++) { School.test.game.bot(); School.test.tick(0.05); } });
         await p.waitForTimeout(1800);   // a game may wait a moment before showing its score
       }
@@ -530,7 +538,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       for (const id of save.items) check(save.stars[id] === 3, `${id}: ${save.stars[id]} stars`);
       await p.evaluate(() => School.test.mapScreen());
       check((await p.textContent('#card')).includes('My certificate'), 'certificate button missing once everything is done');
-      await done(p, `5th-${page}.png`);
+      await done(p, `${grade}-${page}.png`);
     });
   }
 

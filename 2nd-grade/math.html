@@ -1,0 +1,751 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Numbers, Money & Time | RoboBandit 2nd Grade</title>
+<meta name="description" content="2nd grade math: place value to 1,000, addition and subtraction facts and regrouping, money and time, measuring and graphs, shapes and equal groups. Lessons, quizzes and games.">
+<link rel="canonical" href="https://robobandit.com/2nd-grade/math.html">
+<meta name="theme-color" content="#2f7fe0">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/2nd-grade/math.html">
+<meta property="og:title" content="Numbers, Money & Time | RoboBandit 2nd Grade">
+<meta property="og:description" content="Place value, fact fluency, coins, clocks, graphs and shapes. 2nd grade math lessons, quizzes and games.">
+<meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../common.css?v=20261009-1632">
+<link rel="stylesheet" href="../lesson.css?v=20261009-1632">
+<style>
+  :root { --c: #2f7fe0; --c2: #ffd84a; --bg: #2a5fb8; }
+  .coins { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; margin: 8px auto 0; }
+  .coins .ans { flex: 0 1 150px; text-align: center; padding: 10px 8px; }
+</style>
+</head>
+<body>
+<div id="topbar"></div>
+<div class="screen"><div class="card" id="card"></div></div>
+<script src="../common.js?v=20261009-1632"></script>
+<script src="../lesson.js?v=20261009-1632"></script>
+<script>
+'use strict';
+const INK = '#14254d', BLUE = '#2f7fe0', GREEN = '#2fae5a', ORANGE = '#f08a24', PINK = '#e8457a', YELLOW = '#ffd84a', PURPLE = '#7b4bd6', RED = '#e8453a';
+// place value colours: hundreds, tens, ones
+const HC = '#ff9fbf', TC = '#7fc4ff', OC = '#8fe07a';
+
+// ---------- Drawing helpers ----------
+function unitCube(d, x, y, u, col = OC) { d.rect(x, y, u, u, { r: 2, fill: col, stroke: INK, lw: 1.5 }); }
+function rod(d, x, y, u, col = TC) {
+  d.rect(x, y, u, u * 10, { r: 2, fill: col, stroke: INK, lw: 2 });
+  for (let i = 1; i < 10; i++) d.line(x, y + i * u, x + u, y + i * u, { stroke: 'rgba(20,37,77,.35)', lw: 1 });
+}
+function flat(d, x, y, u, col = HC) {
+  d.rect(x, y, u * 10, u * 10, { r: 3, fill: col, stroke: INK, lw: 2 });
+  for (let i = 1; i < 10; i++) {
+    d.line(x, y + i * u, x + u * 10, y + i * u, { stroke: 'rgba(20,37,77,.25)', lw: 1 });
+    d.line(x + i * u, y, x + i * u, y + u * 10, { stroke: 'rgba(20,37,77,.25)', lw: 1 });
+  }
+}
+// US coins: value, size and colour
+const COINS = {
+  p: { name: 'penny', v: 1, r: 27, fill: '#d98c4f', edge: '#9a5a2a' },
+  n: { name: 'nickel', v: 5, r: 31, fill: '#cfd5de', edge: '#7d8697' },
+  d: { name: 'dime', v: 10, r: 24, fill: '#dfe4ec', edge: '#7d8697' },
+  q: { name: 'quarter', v: 25, r: 36, fill: '#d6dbe4', edge: '#6d7687' },
+};
+function coin(d, k, x, y, s = 1, glow = false) {
+  const C = COINS[k];
+  if (glow) d.circle(x, y, C.r * s + 10, { fill: 'rgba(255,216,74,.6)' });
+  d.circle(x, y, C.r * s, { fill: C.fill, stroke: C.edge, lw: 3 });
+  d.circle(x, y, C.r * s - 5 * s, { stroke: 'rgba(255,255,255,.55)', lw: 2 });
+  d.text(C.v + '¢', x, y + 1, { size: Math.round((14 + C.r * 0.25) * s), weight: 700, color: '#3a2a0a' });
+}
+function dollar(d, x, y, s = 1) {
+  d.rect(x - 80 * s, y - 36 * s, 160 * s, 72 * s, { r: 6, fill: '#bfe3b0', stroke: '#3f7a3a', lw: 3 });
+  d.ellipse(x, y, 26 * s, 26 * s, { stroke: '#3f7a3a', lw: 2 });
+  d.text('$1', x, y + 2, { size: 30 * s, weight: 700, color: '#2d5a2a' });
+}
+// an analog clock showing `mins` minutes after 12:00
+function clock(d, x, y, r, mins, o = {}) {
+  d.circle(x, y, r + 8, { fill: o.rim || BLUE });
+  d.circle(x, y, r, { fill: '#fff', stroke: INK, lw: 3 });
+  for (let i = 0; i < 60; i++) {
+    const a = i / 60 * Math.PI * 2, big = i % 5 === 0, r1 = r - (big ? 14 : 7);
+    d.line(x + Math.cos(a) * r1, y + Math.sin(a) * r1, x + Math.cos(a) * (r - 3), y + Math.sin(a) * (r - 3), { stroke: big ? INK : '#9aa6c0', lw: big ? 3 : 1.5 });
+  }
+  for (let n = 1; n <= 12; n++) {
+    const a = n / 12 * Math.PI * 2 - Math.PI / 2;
+    d.text(String(n), x + Math.cos(a) * (r - 32), y + Math.sin(a) * (r - 32), { size: Math.max(20, r * 0.17), weight: 700 });
+  }
+  if (o.fives) for (let n = 1; n <= 12; n++) {
+    const a = n / 12 * Math.PI * 2 - Math.PI / 2;
+    d.text(String(n * 5 % 60).padStart(2, '0'), x + Math.cos(a) * (r + 30), y + Math.sin(a) * (r + 30), { size: 20, weight: 700, color: RED });
+  }
+  const ha = (mins % 720) / 720 * Math.PI * 2 - Math.PI / 2, ma = (mins % 60) / 60 * Math.PI * 2 - Math.PI / 2;
+  d.line(x, y, x + Math.cos(ha) * r * 0.5, y + Math.sin(ha) * r * 0.5, { stroke: INK, lw: 10 });
+  d.line(x, y, x + Math.cos(ma) * r * 0.8, y + Math.sin(ma) * r * 0.8, { stroke: RED, lw: 6 });
+  d.circle(x, y, 8, { fill: INK });
+}
+const timeStr = mins => { const h = Math.floor(mins / 60) % 12 || 12, m = Math.floor(mins % 60); return `${h}:${String(m).padStart(2, '0')}`; };
+function tenFrame(d, x, y, cells, cs = 56) {
+  for (let i = 0; i < 10; i++) {
+    const cx = x + (i % 5) * cs, cy = y + Math.floor(i / 5) * cs;
+    d.rect(cx, cy, cs, cs, { r: 0, fill: '#fff', stroke: INK, lw: 3 });
+  }
+  cells.forEach(([i, col, a = 1]) => d.alpha(a, () => d.circle(x + (i % 5) * cs + cs / 2, y + Math.floor(i / 5) * cs + cs / 2, cs * 0.36, { fill: col, stroke: INK, lw: 2 })));
+}
+function poly(d, x, y, r, n, o = {}) {
+  const pts = [];
+  for (let i = 0; i < n; i++) { const a = -Math.PI / 2 + i / n * Math.PI * 2 + (o.rot || 0); pts.push([x + Math.cos(a) * r, y + Math.sin(a) * r]); }
+  d.poly(pts, { close: true, fill: o.fill || '#cfe0ff', stroke: INK, lw: 4 });
+  return pts;
+}
+const big = (d, s, x, y, size = 64, color = INK) => d.text(s, x, y, { size, weight: 700, color });
+
+// ---------- The pictures ----------
+const DIAGRAMS = {
+  // ----- place value -----
+  'pv-what'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    [['3', HC, 400], ['4', TC, 480], ['5', OC, 560]].forEach(([s, c, x]) => { d.rect(x - 36, 22, 72, 90, { r: 12, fill: c, stroke: INK }); big(d, s, x, 70, 70); });
+    const cols = [[170, 'Hundreds', HC], [480, 'Tens', TC], [790, 'Ones', OC]];
+    cols.forEach(([x, s, c]) => { d.rect(x - 140, 132, 280, 300, { r: 16, fill: '#fff', stroke: c, lw: 4 }); d.text(s, x, 160, { size: 26, weight: 700 }); });
+    for (let i = 0; i < 3; i++) d.alpha(d.in(t, 0.4 + i * 0.4), () => flat(d, 95 + i * 22, 190 + i * 22, 10));
+    for (let i = 0; i < 4; i++) d.alpha(d.in(t, 1.8 + i * 0.3), () => rod(d, 430 + i * 28, 195, 13));
+    for (let i = 0; i < 5; i++) d.alpha(d.in(t, 3.2 + i * 0.25), () => unitCube(d, 745 + (i % 3) * 34, 250 + Math.floor(i / 3) * 40, 26));
+    [['3 hundreds = 300', 170, 0.8], ['4 tens = 40', 480, 2.4], ['5 ones = 5', 790, 3.8]].forEach(([s, x, a]) => d.alpha(d.in(t, a), () => d.pill(s, x, 400, { size: 24 })));
+    d.alpha(d.in(t, 4.8), () => d.pill('345 = 300 + 40 + 5', 480, 495, { size: 30, bg: YELLOW }));
+  },
+  'pv-why'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const T = t % 6;
+    [[5, 'ones'], [50, 'tens'], [500, 'hundreds']].forEach(([n, s], i) => {
+      const x = 170 + i * 310, on = Math.floor(T / 2) === i;
+      d.rect(x - 140, 40, 280, 380, { r: 20, fill: on ? '#fff3b0' : '#fff', stroke: INK, lw: on ? 5 : 3 });
+      big(d, String(n), x, 100, 70, on ? PINK : INK);
+      d.text(`the 5 is in the ${s} place`, x, 160, { size: 21 });
+      if (i === 0) for (let k = 0; k < 5; k++) unitCube(d, x - 95 + k * 40, 260, 30);
+      if (i === 1) for (let k = 0; k < 5; k++) rod(d, x - 85 + k * 36, 200, 18);
+      if (i === 2) for (let k = 0; k < 5; k++) flat(d, x - 110 + k * 20, 200 + k * 26, 10);
+    });
+    d.pill('Same digit, different value!', 480, 480, { size: 30, bg: YELLOW });
+  },
+  'pv-blocks'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const T = t % 9, k1 = d.in(T, 0.5, 1.5), k2 = d.in(T, 3, 1.5), k3 = d.in(T, 5.5, 1.5);
+    for (let i = 0; i < 10; i++) {
+      const sx = 40 + (i % 5) * 44, sy = 140 + Math.floor(i / 5) * 60, tx = 130, ty = 110 + i * 22;
+      unitCube(d, d.lerp(sx, tx, k1), d.lerp(sy, ty, k1), 22);
+    }
+    for (let i = 0; i < 10; i++) rod(d, d.lerp(340 + i * 28, 380 + i * 14, k2), 110, 14);
+    for (let i = 0; i < 10; i++) {
+      const sx = 640 + (i % 2) * 140, sy = 110 + Math.floor(i / 2) * 50, tx = 700, ty = 340 - i * 16;
+      const x = d.lerp(sx, tx, k3), y = d.lerp(sy, ty, k3);
+      d.poly([[x, y], [x + 120, y], [x + 150, y - 24], [x + 30, y - 24]], { close: true, fill: HC, stroke: INK, lw: 2 });
+      d.rect(x, y, 120, 16, { r: 0, fill: '#f07fa6', stroke: INK, lw: 2 });
+    }
+    d.pill('10 ones = 1 ten', 140, 420, { size: 24, bg: OC });
+    d.pill('10 tens = 1 hundred', 450, 420, { size: 24, bg: TC });
+    d.pill('10 hundreds = 1 thousand', 775, 420, { size: 24, bg: HC });
+    d.text('Bundle 10 to make the next place!', 480, 500, { size: 30, weight: 700, color: BLUE });
+  },
+  'pv-forms'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const rows = [['Standard form', () => { big(d, '4', 560, 110, 60, '#d63c78'); big(d, '7', 600, 110, 60, '#2f7fe0'); big(d, '2', 640, 110, 60, '#2a9a3a'); }],
+      ['Word form', () => d.text('four hundred seventy-two', 600, 250, { size: 40, weight: 700 })],
+      ['Expanded form', () => d.text('400 + 70 + 2', 600, 390, { size: 52, weight: 700, color: BLUE })]];
+    rows.forEach(([s, fn], i) => d.alpha(d.in(t, i * 1.2), () => {
+      d.rect(30, 50 + i * 140, 900, 120, { r: 18, fill: '#fff', stroke: INK });
+      d.pill(s, 160, 110 + i * 140, { size: 24, bg: [HC, TC, OC][i] });
+      fn();
+    }));
+    d.alpha(d.in(t, 4), () => d.text('Three ways to write the same number!', 480, 510, { size: 28, weight: 700, color: PURPLE }));
+  },
+  'pv-compare'(d, t) {
+    d.bg('#f2fbf5', '#dff4e6');
+    const T = t % 9, step = T < 2 ? 0 : T < 4.5 ? 1 : 2;
+    const num = (s, x) => s.split('').forEach((c, i) => {
+      const hl = (step === 1 && i === 0) || (step === 2 && i === 1);
+      if (hl) d.rect(x + i * 70 - 34, 120, 68, 110, { r: 12, fill: YELLOW });
+      big(d, c, x + i * 70, 180, 90);
+    });
+    num('352', 130); num('325', 690);
+    if (step === 1) d.pill('Hundreds: 3 and 3 are the same. Look at the tens!', 480, 330, { size: 26 });
+    if (step === 2) {
+      d.pill('Tens: 5 tens is more than 2 tens!', 480, 330, { size: 26, bg: '#c8f0c0' });
+      const k = d.in(T, 5, 0.6);
+      d.text('>', 480, 180, { size: 140 * k + 1, weight: 700, color: GREEN });
+      d.emoji('🐊', 480, 440, 110, { flip: true, alpha: k });
+      d.alpha(d.in(T, 6), () => d.text('The alligator eats the bigger number!', 480, 510, { size: 28, weight: 700 }));
+    }
+    if (step === 0) d.text('Which is greater?', 480, 330, { size: 36, weight: 700, color: BLUE });
+  },
+  // ----- add & subtract -----
+  'as-what'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const T = t % 8, k = d.in(T, 1, 1.4);
+    d.rect(20, 30, 440, 440, { r: 20, fill: '#fff', stroke: GREEN, lw: 4 }); d.text('ADD: put together', 240, 70, { size: 30, weight: 700, color: GREEN });
+    d.rect(500, 30, 440, 440, { r: 20, fill: '#fff', stroke: PINK, lw: 4 }); d.text('SUBTRACT: take away', 720, 70, { size: 30, weight: 700, color: PINK });
+    for (let i = 0; i < 3; i++) d.emoji('🍎', d.lerp(70 + i * 50, 150 + i * 50, k), d.lerp(160, 300, k), 50);
+    for (let i = 0; i < 2; i++) d.emoji('🍎', d.lerp(330 + i * 50, 300 + i * 50, k), d.lerp(160, 300, k), 50);
+    d.emoji('🧺', 250, 340, 120);
+    d.text('3 + 2 = 5', 240, 430, { size: 40, weight: 700 });
+    for (let i = 0; i < 5; i++) {
+      const away = i >= 3, fly = away ? d.in(T, 1.5, 2) : 0;
+      d.emoji('🐦', 590 + i * 60 + fly * 200, 280 - fly * 220, 50, { alpha: 1 - fly * 0.7, flip: !away });
+    }
+    d.line(560, 310, 900, 310, { stroke: '#8a5a34', lw: 8 });
+    d.text('5 − 2 = 3', 720, 430, { size: 40, weight: 700 });
+    d.pill('sum', 240, 500, { size: 20, bg: '#c8f0c0' }); d.pill('difference', 720, 500, { size: 20, bg: '#ffd8e2' });
+  },
+  'as-why'(d, t) {
+    d.bg('#1d2d60', '#33478a');
+    const F = ['8 + 7 = 15', '9 + 4 = 13', '6 + 6 = 12', '14 − 5 = 9', '7 + 5 = 12', '16 − 8 = 8'];
+    const i = Math.floor(t / 1.5) % F.length, k = d.in(t % 1.5, 0, 0.3);
+    d.emoji('🧠', 230, 230, 170);
+    for (let j = 0; j < 3; j++) d.emoji('⚡', 130 + j * 100, 90 + (j % 2) * 30, 50, { alpha: 0.5 + 0.5 * Math.sin(t * 6 + j) });
+    d.at(640, 230, 0, 0.6 + 0.4 * k, () => { d.rect(-220, -100, 440, 200, { r: 20, fill: '#fff', stroke: YELLOW, lw: 6 }); big(d, F[i], 0, 0, 64); });
+    d.pill('⏱️ A few minutes of fact practice every night', 480, 420, { size: 26, bg: YELLOW });
+    d.text('Facts in a flash = more brain power for big problems!', 480, 490, { size: 26, weight: 700, color: '#fff' });
+  },
+  'as-family'(d, t) {
+    d.bg('#f2fbf5', '#dff4e6');
+    d.poly([[480, 30], [700, 160], [260, 160]], { close: true, fill: '#ff9fbf', stroke: INK, lw: 4 });
+    d.rect(290, 160, 380, 340, { r: 0, fill: '#fff8e6', stroke: INK, lw: 4 });
+    d.circle(400, 120, 26, { fill: '#fff', stroke: INK }); d.text('7', 400, 121, { size: 30, weight: 700 });
+    d.circle(560, 120, 26, { fill: '#fff', stroke: INK }); d.text('8', 560, 121, { size: 30, weight: 700 });
+    d.circle(480, 78, 28, { fill: YELLOW, stroke: INK }); d.text('15', 480, 79, { size: 28, weight: 700 });
+    ['7 + 8 = 15', '8 + 7 = 15', '15 − 8 = 7', '15 − 7 = 8'].forEach((s, i) => d.alpha(d.in(t, 0.6 + i * 0.8), () => d.text(s, 480, 210 + i * 72, { size: 44, weight: 700, color: i < 2 ? GREEN : PINK })));
+    d.emoji('👨‍👩‍👦', 140, 380, 110);
+    d.alpha(d.in(t, 4), () => d.pill('Know one fact, know four!', 800, 330, { size: 24, bg: YELLOW }));
+  },
+  'as-ten'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const T = t % 8, k = d.in(T, 1.5, 1.5);
+    big(d, '8 + 5 = ?', 480, 50, 50);
+    const cells = [];
+    for (let i = 0; i < 8; i++) cells.push([i, RED]);
+    tenFrame(d, 60, 110, cells, 70);
+    tenFrame(d, 550, 110, [], 70);
+    // the 5 blue dots: 2 hop over to fill the first ten frame, the other 3 slide left
+    for (let i = 0; i < 5; i++) {
+      const sx = 550 + i * 70 + 35, sy = 145;
+      const [tx, ty] = i < 2 ? [60 + (3 + i) * 70 + 35, 215] : [550 + (i - 2) * 70 + 35, 145];
+      d.circle(d.lerp(sx, tx, k), d.lerp(sy, ty, k), 25, { fill: BLUE, stroke: INK, lw: 2 });
+    }
+    d.alpha(d.in(T, 3.2), () => { d.pill('10', 235, 300, { size: 30, bg: YELLOW }); d.pill('3', 690, 300, { size: 30, bg: YELLOW }); });
+    d.alpha(d.in(T, 4), () => big(d, '8 + 5 = 10 + 3 = 13', 480, 400, 52, GREEN));
+    d.alpha(d.in(T, 5), () => d.text('Move 2 over to make a ten. Tens are easy to add!', 480, 480, { size: 26, weight: 700 }));
+  },
+  'as-regroup'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const T = t % 10;
+    // the written problem
+    d.rect(30, 40, 300, 420, { r: 18, fill: '#fff', stroke: INK });
+    d.text('tens', 130, 80, { size: 20, color: '#5a6f99' }); d.text('ones', 220, 80, { size: 20, color: '#5a6f99' });
+    big(d, '4', 130, 170, 64); big(d, '7', 220, 170, 64);
+    big(d, '+', 60, 250, 56); big(d, '2', 130, 250, 64); big(d, '5', 220, 250, 64);
+    d.line(60, 300, 280, 300, { lw: 5 });
+    d.alpha(d.in(T, 3.5), () => { d.text('1', 130, 112, { size: 34, weight: 700, color: RED }); big(d, '2', 220, 360, 64, GREEN); });
+    d.alpha(d.in(T, 6), () => big(d, '7', 130, 360, 64, GREEN));
+    // blocks
+    d.text('Tens', 520, 50, { size: 26, weight: 700 }); d.text('Ones', 810, 50, { size: 26, weight: 700 });
+    d.line(660, 70, 660, 470, { stroke: '#b9c6e0', lw: 3, dash: [8, 8] });
+    for (let i = 0; i < 6; i++) rod(d, 400 + i * 32, 80, 18);
+    const k = d.in(T, 2, 1.4);
+    for (let i = 0; i < 12; i++) {
+      const sx = 700 + (i % 4) * 46, sy = 90 + Math.floor(i / 4) * 46;
+      if (i < 10) { const tx = 400 + 6 * 32, ty = 80 + i * 18; unitCube(d, d.lerp(sx, tx, k), d.lerp(sy, ty, k), d.lerp(36, 18, k)); }
+      else unitCube(d, d.lerp(sx, 700 + (i - 10) * 46, k), d.lerp(sy, 90, k), 36);
+    }
+    d.pill('7 ones + 5 ones = 12 ones', 800, 300, { size: 22 });
+    d.alpha(d.in(T, 2.5), () => d.pill('Trade 10 ones for 1 ten!', 800, 360, { size: 22, bg: YELLOW }));
+    d.alpha(d.in(T, 6), () => d.pill('4 + 2 + 1 = 7 tens', 520, 360, { size: 22 }));
+    d.alpha(d.in(T, 7), () => big(d, '47 + 25 = 72', 650, 460, 50, BLUE));
+  },
+  'as-word'(d, t) {
+    d.bg('#e6f6ff', '#f2fbff');
+    const T = t % 9;
+    d.wrap('12 birds sit on a fence. 5 birds fly away. How many birds are left?', 480, 26, 880, { size: 30, weight: 700 });
+    d.line(80, 270, 880, 270, { stroke: '#8a5a34', lw: 10 });
+    for (let i = 0; i < 12; i++) {
+      const away = i >= 7, f = away ? d.in(T, 1.5 + (i - 7) * 0.2, 1.5) : 0;
+      d.emoji('🐦', 110 + i * 64 + f * 200, 240 - f * 90, 52, { alpha: 1 - f });
+    }
+    d.alpha(d.in(T, 3.5), () => d.pill('"left" means subtract!', 480, 330, { size: 26, bg: '#ffd8e2' }));
+    d.alpha(d.in(T, 5), () => big(d, '12 − 5 = 7 birds', 480, 400, 52, GREEN));
+    d.alpha(d.in(T, 6.5), () => { d.pill('➕ in all, altogether, total', 250, 490, { size: 22, bg: '#c8f0c0' }); d.pill('➖ left, fewer, how many more', 700, 490, { size: 22, bg: '#ffd8e2' }); });
+  },
+  // ----- money & time -----
+  'mt-coins'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const C = [['p', 'Penny'], ['n', 'Nickel'], ['d', 'Dime'], ['q', 'Quarter']];
+    C.forEach(([k, s], i) => {
+      const x = 120 + i * 190, a = d.in(t, i * 0.6);
+      d.alpha(a, () => {
+        d.rect(x - 85, 60, 170, 290, { r: 18, fill: '#fff', stroke: INK });
+        coin(d, k, x, 160, 1.6);
+        d.text(s, x, 260, { size: 30, weight: 700 });
+        d.text(`${COINS[k].v} cent${COINS[k].v > 1 ? 's' : ''}`, x, 300, { size: 24, color: '#5a6f99' });
+      });
+    });
+    d.alpha(d.in(t, 2.6), () => { d.rect(785, 60, 160, 290, { r: 18, fill: '#fff', stroke: INK }); dollar(d, 865, 160, 0.85); d.text('Dollar', 865, 260, { size: 30, weight: 700 }); d.text('100 cents', 865, 300, { size: 24, color: '#5a6f99' }); });
+    d.alpha(d.in(t, 3.5), () => d.pill('The dime is the smallest coin, but it is worth more than a nickel!', 480, 420, { size: 23, bg: YELLOW }));
+    d.alpha(d.in(t, 4.5), () => d.text('¢ means cents', 480, 490, { size: 28, weight: 700, color: BLUE }));
+  },
+  'mt-why'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    d.rect(30, 40, 430, 400, { r: 20, fill: '#fff', stroke: INK });
+    d.text('At the store', 245, 80, { size: 30, weight: 700, color: GREEN });
+    [['🍎', '35¢'], ['🧃', '75¢'], ['✏️', '18¢'], ['🍪', '52¢']].forEach(([e, p], i) => {
+      const x = 130 + (i % 2) * 230, y = 180 + Math.floor(i / 2) * 140;
+      d.emoji(e, x - 30, y, 70); d.pill(p, x + 50, y, { size: 26, bg: YELLOW });
+    });
+    d.rect(500, 40, 430, 400, { r: 20, fill: '#fff', stroke: INK });
+    d.text('All through the day', 715, 80, { size: 30, weight: 700, color: BLUE });
+    clock(d, 715, 260, 130, (8 * 60 + t * 20) % 720);
+    d.text('Money and time help us plan our day!', 480, 490, { size: 30, weight: 700 });
+  },
+  'mt-count'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const C = ['q', 'q', 'd', 'd', 'n', 'p'], T = t % 9;
+    let total = 0;
+    const n = Math.min(C.length, Math.floor(T / 1.1));
+    C.forEach((k, i) => {
+      if (i < n) total += COINS[k].v;
+      coin(d, k, 110 + i * 148, 180, 1.7, i === n - 1);
+      if (i < n) d.text(String(C.slice(0, i + 1).reduce((a, c) => a + COINS[c].v, 0)), 110 + i * 148, 290, { size: 36, weight: 700, color: GREEN });
+    });
+    d.text('Start with the coins worth the most, then count on:', 480, 50, { size: 28, weight: 700 });
+    d.pill(`Total: ${total}¢`, 480, 400, { size: 40, bg: n === C.length ? '#c8f0c0' : '#fff' });
+    d.text('25, 50, 60, 70, 75, 76', 480, 490, { size: 28, weight: 700, color: '#5a6f99' });
+  },
+  'mt-clock'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const mins = 3 * 60 + (t * 4) % 60 + Math.floor(t * 4 / 60) * 60;
+    clock(d, 300, 275, 185, mins, { fives: true });
+    d.rect(560, 90, 330, 140, { r: 20, fill: '#14254d' });
+    d.text(timeStr(mins), 725, 162, { size: 80, weight: 700, color: '#7fff9a' });
+    d.pill('Short hand = HOUR', 725, 300, { size: 26, bg: '#d6dcef' });
+    d.pill('Long red hand = MINUTES', 725, 370, { size: 26, bg: '#ffd8d0' });
+    d.text('Count by 5s around the clock!', 725, 450, { size: 26, weight: 700, color: RED });
+  },
+  'mt-ampm'(d, t) {
+    const k = d.loop(t, 10), a = Math.PI + k * Math.PI * 2;
+    const dayish = Math.sin(k * Math.PI * 2 - Math.PI / 2);
+    d.bg(dayish > 0 ? '#8fd0ff' : '#1d2d60', dayish > 0 ? '#e6f6ff' : '#33478a');
+    d.rect(0, 400, d.W, 140, { r: 0, fill: '#6dbb5c' });
+    const sx = 480 + Math.cos(a - Math.PI / 2) * 380, sy = 420 + Math.sin(a - Math.PI / 2) * 330;
+    d.emoji(dayish > 0 ? '☀️' : '🌙', sx, sy, 70);
+    d.pill('A.M. = midnight to noon', 240, 40, { size: 24, bg: '#fff3b0' });
+    d.pill('P.M. = noon to midnight', 720, 40, { size: 24, bg: '#e6dcff' });
+    [['🥣', 'breakfast 7:30 a.m.', 160], ['🍎', 'lunch 12:00 noon', 480], ['🛏️', 'bedtime 8:00 p.m.', 800]].forEach(([e, s, x]) => { d.emoji(e, x, 440, 50); d.pill(s, x, 500, { size: 22 }); });
+  },
+  // ----- measure & graph -----
+  'mg-what'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const k = d.in(t, 0.3, 1.5), x0 = 120, inch = 110;
+    d.rect(x0 - 20, 300, inch * 7 + 40, 90, { r: 6, fill: '#ffe08a', stroke: INK });
+    for (let i = 0; i <= 7 * 4; i++) { const x = x0 + i * inch / 4, h = i % 4 === 0 ? 40 : i % 2 === 0 ? 26 : 16; d.line(x, 300, x, 300 + h, { lw: i % 4 ? 2 : 3 }); }
+    for (let i = 0; i <= 7; i++) d.text(String(i), x0 + i * inch, 365, { size: 26, weight: 700 });
+    const px = d.lerp(-400, x0, k);
+    d.rect(px, 220, inch * 6 - 50, 46, { r: 4, fill: YELLOW, stroke: INK });
+    d.poly([[px + inch * 6 - 50, 220], [px + inch * 6, 243], [px + inch * 6 - 50, 266]], { close: true, fill: '#f2d0a0', stroke: INK, lw: 3 });
+    d.rect(px - 30, 220, 30, 46, { r: 4, fill: '#ff9fbf', stroke: INK });
+    d.alpha(d.in(t, 2), () => { d.line(x0, 190, x0, 300, { stroke: RED, lw: 3, dash: [6, 6] }); d.pill('line up with 0!', x0, 170, { size: 22, bg: '#ffd8d0' }); });
+    d.alpha(d.in(t, 3), () => d.pill('6 inches long', x0 + inch * 6, 170, { size: 26, bg: '#c8f0c0' }));
+    d.text('Length is how long something is from end to end.', 480, 470, { size: 28, weight: 700 });
+  },
+  'mg-why'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const row = (y, e, n, s, col) => {
+      d.rect(80, y, 800, 60, { r: 8, fill: '#ffcf9f', stroke: INK });
+      const shown = Math.min(n, Math.floor(d.in(t % 9, 0.5, 4) * n + 0.01));
+      for (let i = 0; i < shown; i++) d.emoji(e, 80 + (i + 0.5) * 800 / n, y + 30, 46);
+      d.pill(s, 480, y + 100, { size: 24, bg: col });
+    };
+    row(40, '👣', 8, 'Kid feet: 8 feet long', '#c8f0c0');
+    row(220, '👣', 5, 'Grown-up feet: 5 feet long', '#ffd8d0');
+    d.alpha(d.in(t % 9, 5), () => d.pill('Different answers for the same rug! A ruler is the same for everyone. 📏', 480, 470, { size: 22, bg: YELLOW }));
+  },
+  'mg-units'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    const ruler = (y, n, step, lab, col) => {
+      d.rect(60, y, n * step + 20, 70, { r: 6, fill: col, stroke: INK });
+      for (let i = 0; i <= n; i++) { const x = 70 + i * step; d.line(x, y, x, y + 26, { lw: 3 }); if (i % (lab === 'cm' ? 2 : 1) === 0) d.text(String(i), x, y + 46, { size: 20, weight: 700 }); }
+      d.text(lab, 70 + n * step + 50, y + 35, { size: 26, weight: 700 });
+    };
+    ruler(60, 6, 120, 'in', '#ffe08a');
+    ruler(250, 16, 45, 'cm', '#bfe3ff');
+    const k = d.in(t, 0.5);
+    d.alpha(k, () => { d.emoji('📎', 130, 170, 60, { rot: Math.PI / 2 }); d.pill('a paper clip is about 1 inch', 330, 175, { size: 22 }); });
+    d.alpha(d.in(t, 1.5), () => { d.emoji('☝️', 92, 360, 50); d.pill('a fingertip is about 1 centimeter', 340, 365, { size: 22 }); });
+    d.alpha(d.in(t, 2.5), () => { d.pill('12 inches = 1 foot', 260, 470, { size: 28, bg: YELLOW }); d.pill('100 centimeters = 1 meter', 690, 470, { size: 28, bg: '#c8f0c0' }); });
+  },
+  'mg-pic'(d, t) {
+    d.bg('#f2fbf5', '#dff4e6');
+    d.text('Our Favorite Fruit', 480, 44, { size: 34, weight: 700, color: GREEN });
+    const R = [['🍎', 'Apple', 4], ['🍌', 'Banana', 2], ['🍇', 'Grapes', 5], ['🍓', 'Strawberry', 3]];
+    R.forEach(([e, s, n], i) => {
+      const y = 120 + i * 82;
+      d.rect(40, y - 36, 880, 72, { r: 10, fill: i % 2 ? '#fff' : '#f6fff8', stroke: '#b9d8c2', lw: 2 });
+      d.text(s, 160, y, { size: 26, weight: 700 });
+      for (let k = 0; k < n; k++) d.alpha(d.in(t, 0.4 + i * 0.5 + k * 0.15, 0.3), () => d.emoji(e, 320 + k * 80, y, 56));
+    });
+    d.pill('Key: each picture = 1 vote', 300, 470, { size: 24, bg: YELLOW });
+    d.alpha(d.in(t, 3.5), () => d.pill('Grapes won! 🍇', 720, 470, { size: 26, bg: '#e6dcff' }));
+  },
+  'mg-bar'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const B = [['🐶', 'Dogs', 6, '#ff9f6a'], ['🐱', 'Cats', 4, '#7fc4ff'], ['🐟', 'Fish', 3, '#8fe07a'], ['🐦', 'Birds', 2, '#ffd84a']];
+    const x0 = 140, y0 = 440, unit = 55;
+    d.text('Class Pets Graph', 480, 36, { size: 30, weight: 700, color: BLUE });
+    for (let i = 0; i <= 7; i++) { d.line(x0, y0 - i * unit, 760, y0 - i * unit, { stroke: '#cfd8ea', lw: 2 }); d.text(String(i), x0 - 24, y0 - i * unit, { size: 22, weight: 700 }); }
+    d.line(x0, y0, x0, y0 - 7 * unit - 10, { lw: 4 }); d.line(x0, y0, 770, y0, { lw: 4 });
+    B.forEach(([e, s, n, c], i) => {
+      const x = x0 + 30 + i * 150, h = n * unit * d.in(t, 0.3 + i * 0.4, 1);
+      d.rect(x, y0 - h, 100, h, { r: 4, fill: c, stroke: INK });
+      d.emoji(e, x + 50, y0 + 34, 40); d.text(s, x + 50, y0 + 74, { size: 20, weight: 700 });
+    });
+    d.alpha(d.in(t, 3), () => {
+      d.line(x0 + 130, y0 - 6 * unit, x0 + 320, y0 - 6 * unit, { stroke: RED, lw: 3, dash: [6, 6] });
+      d.arrow(x0 + 230, y0 - 4 * unit, x0 + 230, y0 - 6 * unit + 4, { color: RED, lw: 4, head: 14 });
+      d.pill('How many more dogs than cats?', 600, 90, { size: 22 });
+      d.pill('6 − 4 = 2 more', 600, 145, { size: 26, bg: YELLOW });
+    });
+  },
+  // ----- shapes & equal groups -----
+  'sg-what'(d, t) {
+    d.bg('#f2f7ff', '#e2edff');
+    const S = [[3, 'Triangle', '#ffb3a8'], [4, 'Quadrilateral', '#c9b3ff'], [5, 'Pentagon', '#a8e6b4'], [6, 'Hexagon', '#ffe08a']];
+    S.forEach(([n, s, c], i) => {
+      const x = 120 + i * 240, pts = poly(d, x, 210, 90, n, { fill: c, rot: n === 4 ? Math.PI / 4 : 0 });
+      const lit = Math.floor((t * 2) % (n + 2));
+      pts.forEach(([px, py], j) => d.circle(px, py, j < lit ? 11 : 7, { fill: j < lit ? RED : INK }));
+      d.text(s, x, 345, { size: 26, weight: 700 });
+      d.text(`${n} sides, ${n} corners`, x, 385, { size: 22, color: '#5a6f99' });
+    });
+    d.pill('Corners are also called vertices (one is a vertex)', 480, 470, { size: 24, bg: YELLOW });
+  },
+  'sg-why'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    // honeycomb
+    for (let i = 0; i < 7; i++) { const [x, y] = [[130, 170], [200, 210], [200, 130], [60, 130], [60, 210], [130, 90], [130, 250]][i]; poly(d, x, y, 42, 6, { fill: '#ffcf4a', rot: Math.PI / 6 }); }
+    d.emoji('🐝', 130 + Math.cos(t * 2) * 90, 170 + Math.sin(t * 3) * 60, 40);
+    d.pill('honeycomb: hexagons', 130, 330, { size: 20 });
+    poly(d, 400, 170, 90, 8, { fill: '#e8453a', rot: Math.PI / 8 }); d.text('STOP', 400, 172, { size: 36, weight: 700, color: '#fff' });
+    d.pill('stop sign: 8 sides', 400, 330, { size: 20 });
+    d.poly([[600, 80], [700, 260], [500, 260]], { close: true, fill: '#ffd27a', stroke: INK, lw: 4 }); d.circle(590, 180, 14, { fill: '#e8453a' }); d.circle(620, 220, 12, { fill: '#e8453a' });
+    d.pill('pizza slice: triangle', 600, 330, { size: 20 });
+    d.rect(770, 90, 160, 160, { r: 4, fill: '#bfe3ff', stroke: INK, lw: 5 }); d.line(850, 90, 850, 250, { lw: 5 }); d.line(770, 170, 930, 170, { lw: 5 });
+    d.pill('window: squares', 850, 330, { size: 20 });
+    d.text('Shapes are everywhere! What shapes can you spot?', 480, 450, { size: 30, weight: 700, color: BLUE });
+  },
+  'sg-shares'(d, t) {
+    d.bg('#f2fbf5', '#dff4e6');
+    const pie = (x, n, s) => {
+      d.circle(x, 220, 120, { fill: '#ffe2a8', stroke: INK, lw: 4 });
+      const lit = Math.floor(t * 1.5) % (n + 1);
+      for (let i = 0; i < n; i++) {
+        const a0 = -Math.PI / 2 + i / n * Math.PI * 2, a1 = a0 + Math.PI * 2 / n;
+        d.ctx.beginPath(); d.ctx.moveTo(x, 220); d.ctx.arc(x, 220, 120, a0, a1); d.ctx.closePath();
+        d.paint({ fill: i < lit ? ['#ff9fbf', '#7fc4ff', '#8fe07a', '#ffd84a'][i] : 'rgba(0,0,0,0)', stroke: INK, lw: 4 });
+      }
+      d.text(s, x, 380, { size: 30, weight: 700 });
+      d.text(`${n} equal shares`, x, 420, { size: 22, color: '#5a6f99' });
+    };
+    pie(170, 2, 'Halves'); pie(480, 3, 'Thirds'); pie(790, 4, 'Fourths');
+    d.pill('Equal shares are all the SAME size', 480, 495, { size: 26, bg: YELLOW });
+  },
+  'sg-groups'(d, t) {
+    d.bg('#fffaf0', '#fff1d6');
+    for (let g = 0; g < 3; g++) {
+      const x = 170 + g * 310;
+      d.ellipse(x, 220, 130, 70, { fill: '#fff', stroke: INK, lw: 4 });
+      for (let i = 0; i < 4; i++) d.alpha(d.in(t, 0.3 + g * 0.8 + i * 0.15, 0.3), () => d.emoji('🍪', x - 75 + i * 50, 215, 52));
+      d.alpha(d.in(t, 0.8 + g * 0.8), () => d.text('4', x, 330, { size: 40, weight: 700, color: BLUE }));
+      if (g < 2) d.alpha(d.in(t, 1 + g * 0.8), () => d.text('+', x + 155, 330, { size: 40, weight: 700 }));
+    }
+    d.alpha(d.in(t, 3), () => big(d, '4 + 4 + 4 = 12', 480, 410, 54, GREEN));
+    d.alpha(d.in(t, 3.8), () => d.pill('3 equal groups of 4 make 12', 480, 490, { size: 28, bg: YELLOW }));
+  },
+  'sg-array'(d, t) {
+    d.bg('#1d2d60', '#33478a');
+    const T = t % 8;
+    for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) d.alpha(d.in(T, 0.3 + r * 0.9 + c * 0.1, 0.3), () => d.emoji('⭐', 200 + c * 90, 110 + r * 100, 64));
+    for (let r = 0; r < 3; r++) d.alpha(d.in(T, 0.8 + r * 0.9), () => d.text(`row ${r + 1}: 5`, 760, 110 + r * 100, { size: 30, weight: 700, color: '#fff' }));
+    d.alpha(d.in(T, 3.6), () => d.pill('3 rows of 5 = 5 + 5 + 5 = 15', 480, 420, { size: 32, bg: YELLOW }));
+    d.alpha(d.in(T, 4.6), () => d.text('An ARRAY puts things in neat rows and columns.', 480, 495, { size: 26, weight: 700, color: '#fff' }));
+  },
+  'sg-share'(d, t) {
+    d.bg('#f2fbf5', '#dff4e6');
+    const T = t % 10, kids = [200, 480, 760], dealt = Math.min(12, Math.floor(T / 0.5));
+    kids.forEach((x, i) => { d.person(x, 330, 1.4, { shirt: [PINK, BLUE, GREEN][i], skin: ['#f1c7a0', '#8a5a3c', '#c98d5f'][i], hair: '#3a2a1a' }); d.ellipse(x, 455, 90, 26, { fill: '#fff', stroke: INK, lw: 3 }); });
+    for (let i = 0; i < 12; i++) {
+      if (i < dealt) { const kid = i % 3, slot = Math.floor(i / 3); d.emoji('🍪', kids[kid] - 54 + slot * 36, 450, 36); }
+      else d.emoji('🍪', 140 + (i - dealt) * 50 + dealt * 25, 60, 44);
+    }
+    d.alpha(d.in(T, 6.5), () => { d.pill('12 cookies shared by 3 friends = 4 each', 480, 170, { size: 28, bg: YELLOW }); d.text('Sharing fairly is called DIVIDING', 480, 225, { size: 26, weight: 700, color: GREEN }); });
+  },
+};
+
+// ---------- Game 1: Fact Rocket ----------
+function rocketGame(api) {
+  const { root, board, sfx, shuffle, d } = api;
+  const N = 12, rnd = (a, b) => a + Math.floor(Math.random() * (b - a + 1));
+  const facts = [];
+  for (let i = 0; i < N; i++) {
+    let q, ans;
+    if (i % 2 === 0) { const a = rnd(3, 10), b = rnd(2, 10); q = `${a} + ${b}`; ans = a + b; }
+    else { const b = rnd(2, 9); ans = rnd(2, 10); q = `${ans + b} − ${b}`; }
+    const wrong = shuffle([ans + 1, ans - 1, ans + 2, ans - 2, ans + 10].filter(n => n >= 0 && n !== ans)).slice(0, 2);
+    facts.push({ q, ans, opts: shuffle([ans, ...wrong]) });
+  }
+  let fi = 0, score = 0, firstTry = 0, miss = 0, done = false, t = 0, h = 0, cheer = 0;
+  root.innerHTML = `<div class="hud"><span id="fr-n"></span><span>🏆 <b id="fr-s">0</b></span></div>
+    <canvas class="board" id="fr-cv"></canvas>
+    <p id="fr-q" style="font-weight:700;font-size:34px;margin:4px auto"></p><div class="choices" id="fr-c"></div>`;
+  const draw = board(api.$('fr-cv'));
+  function ask() {
+    const F = facts[fi];
+    api.$('fr-n').textContent = `Fact ${fi + 1} of ${N}`;
+    api.$('fr-q').textContent = `${F.q} = ?`;
+    api.$('fr-c').innerHTML = F.opts.map((o, k) => `<button class="ans" data-k="${k}" style="font-size:28px">${o}</button>`).join('');
+    api.$('fr-c').querySelectorAll('.ans').forEach(b => b.addEventListener('click', () => pick(+b.dataset.k)));
+    miss = 0;
+  }
+  function pick(k) {
+    if (done) return;
+    RB.audio();
+    const F = facts[fi], b = api.$('fr-c').children[k];
+    if (F.opts[k] !== F.ans) { sfx.wrong(); miss++; b.disabled = true; b.classList.add('wrong', 'shake'); return; }
+    sfx.right(); cheer = 1;
+    if (!miss) { score += 100; firstTry++; } else score += 50;
+    api.$('fr-s').textContent = score;
+    fi++;
+    if (fi === N) {
+      done = true;
+      api.$('fr-c').innerHTML = ''; api.$('fr-q').textContent = '🌕 You made it to the Moon!';
+      setTimeout(() => api.done({ score, stars: firstTry >= 10 ? 3 : firstTry >= 7 ? 2 : 1,
+        rows: [['🚀 Facts answered', N], ['⚡ Right on the first try', `${firstTry} of ${N}`]], hint: 'Get 10 or more right on the first try for ★★★' }), 1200);
+      return;
+    }
+    ask();
+  }
+  function render() {
+    const p = h / N;
+    draw(() => {
+      const top = `rgb(${Math.round(d.lerp(110, 10, p))},${Math.round(d.lerp(190, 20, p))},${Math.round(d.lerp(255, 60, p))})`;
+      d.bg(top, p < 0.5 ? '#e6f6ff' : '#33478a');
+      if (p > 0.3) for (let i = 0; i < 50; i++) d.circle((i * 211) % 960, (i * 97) % 540, 1.8, { fill: `rgba(255,255,255,${(p - 0.3) * 1.4})` });
+      for (let i = 0; i < 4; i++) { const y = ((i * 150 + p * 1400) % 700) - 80; d.emoji('☁️', 120 + (i * 260) % 760, y, 90, { alpha: Math.max(0, 1 - p * 1.6) }); }
+      d.rect(0, 470 + p * 400, d.W, 100, { r: 0, fill: '#6dbb5c' });
+      d.emoji('🌕', 800, d.lerp(-120, 90, Math.max(0, (p - 0.6) / 0.4)), 120);
+      const y = 400 - p * 280 + Math.sin(t * 8) * 3;
+      for (let i = 0; i < 5; i++) d.emoji('🔥', 480 + (Math.random() - 0.5) * 18, y + 70 + i * 12, 40 - i * 6, { alpha: 0.9 - i * 0.15, rot: Math.PI });
+      d.emoji('🚀', 480, y, 110, { rot: -Math.PI / 4 });
+      d.rect(30, 30, 30, 480, { r: 15, fill: 'rgba(255,255,255,.3)', stroke: '#fff', lw: 3 });
+      d.rect(30, 30 + 480 * (1 - p), 30, 480 * p, { r: 15, fill: YELLOW });
+      if (cheer > 0) d.text(miss ? 'Got it!' : '+100', 600, y - 60 - (1 - cheer) * 40, { size: 40, weight: 700, color: YELLOW, stroke: INK, lw: 6, alpha: cheer });
+    });
+  }
+  ask(); render();
+  return {
+    tick(dt) { t += dt; cheer = Math.max(0, cheer - dt); h += (fi - h) * Math.min(1, dt * 3); render(); },
+    key(k) { const n = '123'.indexOf(k); if (n >= 0) pick(n); },
+    bot() { if (!done) pick(facts[fi].opts.indexOf(facts[fi].ans)); },
+  };
+}
+
+// ---------- Game 2: Coin Shop ----------
+function shopGame(api) {
+  const { root, board, sfx, d } = api;
+  const ITEMS = [['🍎', 'an apple', 35], ['✏️', 'a pencil', 18], ['🎈', 'a balloon', 40], ['🍪', 'a cookie', 52], ['🧃', 'a juice box', 75], ['🦖', 'a toy dinosaur', 91]];
+  const fewest = c => { let n = 0; for (const k of ['q', 'd', 'n', 'p']) { n += Math.floor(c / COINS[k].v); c %= COINS[k].v; } return n; };
+  let ii = 0, tray = [], tries = 0, score = 0, perfect = 0, done = false, t = 0, cheer = 0;
+  root.innerHTML = `<div class="hud"><span id="cs-n"></span><span>🏆 <b id="cs-s">0</b></span></div>
+    <canvas class="board" id="cs-cv" style="width:min(100%, calc((100vh - 420px) * 16 / 9))"></canvas>
+    <div class="coins">${['p', 'n', 'd', 'q'].map(k => `<button class="ans" data-c="${k}">+ ${COINS[k].name[0].toUpperCase() + COINS[k].name.slice(1)} ${COINS[k].v}¢</button>`).join('')}</div>
+    <div class="nav" style="position:static;margin:0;padding:8px 0 0;background:none"><button class="btn alt" id="cs-clr">↺ Start over</button><button class="btn" id="cs-pay">✅ Pay</button></div>`;
+  const draw = board(api.$('cs-cv'));
+  root.querySelectorAll('[data-c]').forEach(b => b.addEventListener('click', () => add(b.dataset.c)));
+  api.$('cs-clr').addEventListener('click', () => { RB.audio(); tray = []; sfx.pop(); });
+  api.$('cs-pay').addEventListener('click', pay);
+  const sum = () => tray.reduce((a, k) => a + COINS[k].v, 0);
+  function add(k) { if (done || tray.length >= 14) return; RB.audio(); tray.push(k); sfx.pop(); }
+  function show() { api.$('cs-n').textContent = `Customer ${ii + 1} of ${ITEMS.length}`; tray = []; tries = 0; }
+  function pay() {
+    if (done) return;
+    RB.audio();
+    if (sum() !== ITEMS[ii][2]) { tries++; sfx.wrong(); const cv = api.$('cs-cv'); cv.classList.remove('shake'); void cv.offsetWidth; cv.classList.add('shake'); return; }
+    sfx.right(); cheer = 1.4;
+    score += [200, 100, 50][Math.min(tries, 2)] + (tray.length === fewest(ITEMS[ii][2]) ? 50 : 0);
+    if (!tries) perfect++;
+    api.$('cs-s').textContent = score;
+    ii++;
+    if (ii === ITEMS.length) {
+      done = true;
+      api.done({ score, stars: score >= 1200 ? 3 : score >= 800 ? 2 : 1, rows: [['🛍️ Things bought', ITEMS.length], ['🎯 Paid right on the first try', `${perfect} of ${ITEMS.length}`]],
+        hint: 'Pay the exact amount on the first try (with the fewest coins for a bonus) for ★★★' });
+      return;
+    }
+    show();
+  }
+  function render() {
+    if (done) return;
+    const [e, name, price] = ITEMS[ii], s = sum();
+    draw(() => {
+      d.bg('#fff6e0', '#ffe8c0');
+      d.rect(0, 0, d.W, 50, { r: 0, fill: '#e8453a' });
+      for (let i = 0; i < 12; i++) d.rect(i * 80, 0, 40, 50, { r: 0, fill: '#fff' });
+      d.text('COIN SHOP', 480, 26, { size: 30, color: INK, font: "'Bungee', sans-serif", stroke: '#fff', lw: 6 });
+      d.emoji(e, 200, 200, 150);
+      d.pill(price + '¢', 200, 330, { size: 40, bg: YELLOW });
+      d.text(`Pay exactly ${price}¢ for ${name}`, 200, 400, { size: 24, weight: 700, maxW: 380 });
+      d.rect(420, 80, 510, 330, { r: 20, fill: '#fff', stroke: INK });
+      d.text('Your coins', 675, 110, { size: 24, weight: 700, color: '#5a6f99' });
+      tray.forEach((k, i) => coin(d, k, 470 + (i % 7) * 68, 175 + Math.floor(i / 7) * 90, 0.95));
+      if (!tray.length) d.text('Tap coins below to add them', 675, 230, { size: 24, color: '#9aa6c0' });
+      d.pill(`${s}¢`, 675, 370, { size: 34, bg: s === price ? '#c8f0c0' : s > price ? '#ffd8d0' : '#fff' });
+      if (s > price) d.text('Too much!', 860, 370, { size: 22, weight: 700, color: RED });
+      d.text('Bonus: use the fewest coins you can!', 480, 470, { size: 22, color: '#5a6f99' });
+      if (cheer > 0) d.text('Thank you! 😀', 480, 250 - (1.4 - cheer) * 40, { size: 48, weight: 700, color: GREEN, stroke: '#fff', lw: 8, alpha: Math.min(1, cheer) });
+    });
+  }
+  show(); render();
+  return {
+    tick(dt) { t += dt; cheer = Math.max(0, cheer - dt); render(); },
+    key(k) { const n = '1234'.indexOf(k); if (n >= 0) add('pndq'[n]); if (k === 'enter') pay(); },
+    bot() {
+      if (done) return;
+      tray = []; let c = ITEMS[ii][2];
+      for (const k of ['q', 'd', 'n', 'p']) while (c >= COINS[k].v) { tray.push(k); c -= COINS[k].v; }
+      pay();
+    },
+  };
+}
+
+// ---------- The unit ----------
+School.start({
+  id: 'g2_math', grade: '2nd Grade · Math', title: 'Numbers, Money & Time', icon: '🔢', home: 'index.html', homeTitle: 'Back to the 2nd grade folder',
+  tagline: 'Hundreds, tens and ones, **facts in a flash**, coins and clocks, graphs, shapes and equal groups.',
+  certTitle: 'Math Superstar', certText: 'can build numbers to 1,000, add and subtract, count money, tell time, read graphs and share fairly!',
+  shareText: 'Learn place value, facts, money and time on RoboBandit! 🔢',
+  diagrams: DIAGRAMS,
+  items: [
+    {
+      kind: 'lesson', id: 'place', icon: '🔢', name: 'Place Value to 1,000', sub: 'Hundreds, tens & ones', badge: 'Place Value Pro',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Every digit has a job', d: 'pv-what', p: '**Place value** means a digit\'s value depends on **where it sits**. In **345**, the 3 means **3 hundreds**, the 4 means **4 tens**, and the 5 means **5 ones**.', v: [['digit', 'one of the symbols 0 to 9']] },
+        { k: 'WHY DO WE CARE?', t: 'The same digit can mean a lot more', d: 'pv-why', p: 'A 5 can mean **5**, **50** or **500**, just by moving to a new place! Place value helps you read big numbers, count money and add and subtract quickly.' },
+        { t: 'Bundles of ten', d: 'pv-blocks', p: '**10 ones** make **1 ten**. **10 tens** make **1 hundred**. And **10 hundreds** make **1 thousand**! Each place is worth 10 of the place to its right.' },
+        { t: 'Three ways to write a number', d: 'pv-forms', p: 'You can write a number in **standard form** (472), **word form** (four hundred seventy-two), or **expanded form** (400 + 70 + 2). They all mean the same amount.', v: [['expanded form', 'a number broken into the value of each digit']] },
+        { t: 'Comparing numbers', d: 'pv-compare', p: 'To compare, start with the **biggest place**. 352 and 325 have the same hundreds, so look at the tens: 5 tens is more than 2 tens. So **352 > 325**. The symbol\'s open mouth always faces the **bigger** number.', v: [['>', 'is greater than'], ['<', 'is less than']] },
+      ],
+      quiz: [
+        { q: 'What is the value of the 4 in 472?', a: ['400', '4', '40'], why: 'The 4 is in the hundreds place, so it means 4 hundreds, or 400.' },
+        { q: '10 tens make…', a: ['1 hundred', '1 thousand', '10 ones'], why: '10 groups of ten is 100.' },
+        { q: 'What is 300 + 60 + 8?', a: ['368', '3,608', '863'], why: '3 hundreds, 6 tens and 8 ones make 368.' },
+        { q: 'Which is greater?', a: ['592', '529', 'They are the same'], why: 'Both have 5 hundreds. 9 tens is more than 2 tens, so 592 > 529.' },
+        { q: 'How do you write "two hundred five"?', a: ['205', '250', '2,005'], why: '2 hundreds, 0 tens and 5 ones: 205. The 0 holds the tens place.' },
+        { q: 'Which number has 6 hundreds, 0 tens and 3 ones?', a: ['603', '63', '630'], why: 'Put each digit in its place: 6 hundreds, 0 tens, 3 ones = 603.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'addsub', icon: '➕', name: 'Add & Subtract', sub: 'Facts, regrouping & word problems', badge: 'Fact Master',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Putting together and taking away', d: 'as-what', p: '**Adding** puts groups together to find the total, called the **sum**. **Subtracting** takes some away, or compares two groups, to find the **difference**.', v: [['sum', 'the answer to an addition problem'], ['difference', 'the answer to a subtraction problem']] },
+        { k: 'WHY DO WE CARE?', t: 'Facts in a flash', d: 'as-why', p: 'When you know facts like 8 + 7 = 15 **by heart**, your brain has more room for big problems. That\'s why a few minutes of **fact practice every night** helps so much!' },
+        { t: 'Fact families', d: 'as-family', p: 'The numbers **7, 8 and 15** are a **fact family**. They make two addition facts and two subtraction facts. Adding and subtracting are opposites, so if you know one fact, you know four!', v: [['fact family', 'related facts that use the same three numbers']] },
+        { t: 'Make a ten', d: 'as-ten', p: 'Tens are easy to add. For **8 + 5**, move 2 from the 5 over to the 8 to make a ten. Now it\'s **10 + 3 = 13**. This trick works for lots of facts!' },
+        { t: 'Regrouping', d: 'as-regroup', p: 'Add the **ones** first. In 47 + 25, 7 + 5 = 12 ones. That\'s too many for the ones place, so **trade 10 ones for 1 ten**. Then add the tens: 4 + 2 + 1 = 7. The answer is **72**!', v: [['regroup', 'trade 10 of one place for 1 of the next place']] },
+        { t: 'Word problems', d: 'as-word', p: 'Read the story and look for **clue words**. "In all", "altogether" and "total" usually mean **add**. "Left", "fewer" and "how many more" usually mean **subtract**. Then draw a picture if it helps!' },
+      ],
+      quiz: [
+        { q: 'What is 8 + 7?', a: ['15', '14', '16'], why: 'Make a ten: 8 + 2 = 10, then 10 + 5 = 15.' },
+        { q: 'Which fact is in the same family as 6 + 9 = 15?', a: ['15 − 9 = 6', '9 − 6 = 15', '6 + 15 = 9'], why: 'The family uses 6, 9 and 15: 6 + 9, 9 + 6, 15 − 9 and 15 − 6.' },
+        { q: 'What is 38 + 25?', a: ['63', '53', '513'], why: '8 + 5 = 13 ones: regroup to 1 ten and 3 ones. 3 + 2 + 1 = 6 tens. So 63.' },
+        { q: '"Sam had 14 stickers. He gave 6 away. How many are left?" What do you do?', a: ['Subtract: 14 − 6 = 8', 'Add: 14 + 6 = 20', 'Count by 5s'], why: '"Left" is a clue to subtract.' },
+        { q: 'What is 52 − 17?', a: ['35', '45', '25'], why: 'You can\'t take 7 from 2, so regroup: 12 − 7 = 5 ones and 4 − 1 = 3 tens. 35!' },
+        { q: 'To solve 9 + 6 by making a ten, you can think…', a: ['10 + 5', '10 + 6', '9 + 10'], why: 'Move 1 from the 6 to the 9: 10 + 5 = 15.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'money', icon: '🪙', name: 'Money & Time', sub: 'Coins, dollars & clocks', badge: 'Money Manager',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Coins and what they are worth', d: 'mt-coins', p: 'A **penny** is worth 1¢, a **nickel** 5¢, a **dime** 10¢ and a **quarter** 25¢. A **dollar** is worth 100¢. Size doesn\'t tell you the value: the little dime is worth more than the bigger nickel!', v: [['¢', 'cents'], ['$', 'dollars']] },
+        { k: 'WHY DO WE CARE?', t: 'Money and time every day', d: 'mt-why', p: 'You use **money** when you buy things and **time** all day long: when school starts, when it\'s lunch, and when it\'s time to play. Knowing them helps you plan!' },
+        { t: 'Counting coins', d: 'mt-count', p: 'Sort your coins and start with the ones worth the **most**. Then **count on**: 25, 50 (quarters), 60, 70 (dimes), 75 (nickel), 76 (penny). That\'s **76¢**!' },
+        { t: 'Reading a clock', d: 'mt-clock', p: 'The **short hand** points to the **hour**. The **long hand** shows the **minutes**. Each number on the clock is 5 minutes for the long hand, so **count by 5s**. When the long hand is on the 6, it\'s 30 minutes after the hour.', v: [['half past', '30 minutes after the hour']] },
+        { t: 'A.M. and P.M.', d: 'mt-ampm', p: 'Each day the clock goes around **twice**. **A.M.** is from midnight to noon: morning time. **P.M.** is from noon to midnight: afternoon and night. Breakfast is in the a.m. and dinner is in the p.m.' },
+      ],
+      quiz: [
+        { q: 'How much is a quarter worth?', a: ['25¢', '10¢', '5¢'], why: 'A quarter is worth 25 cents. Four quarters make a dollar.' },
+        { q: 'How much are 2 dimes and 1 nickel?', a: ['25¢', '21¢', '30¢'], why: 'Count on: 10, 20, 25.' },
+        { q: 'Which coin is worth the most?', a: ['Dime', 'Nickel', 'Penny'], why: 'A dime is 10¢, more than a nickel (5¢) or a penny (1¢), even though it is the smallest.' },
+        { q: 'On a clock, the long hand shows the…', a: ['Minutes', 'Hours', 'Days'], why: 'The long hand is the minute hand. The short hand shows the hour.' },
+        { q: 'The long hand points to the 6. How many minutes is that?', a: ['30 minutes', '6 minutes', '60 minutes'], why: 'Count by 5s: 5, 10, 15, 20, 25, 30.' },
+        { q: 'You eat breakfast at 7:30…', a: ['a.m.', 'p.m.', 'noon'], why: 'Morning times, from midnight to noon, are a.m.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'measure', icon: '📏', name: 'Measure & Graph', sub: 'Inches, centimeters & graphs', badge: 'Data Detective',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'How long is it?', d: 'mg-what', p: '**Length** is how long something is from one end to the other. To measure, line up one end with the **0** on a ruler, then read the number at the other end. This pencil is **6 inches** long.', v: [['length', 'how long something is']] },
+        { k: 'WHY DO WE CARE?', t: 'The same for everyone', d: 'mg-why', p: 'If you measure a rug with your feet and a grown-up uses theirs, you get **different answers**! **Standard units** like inches and centimeters are the same size for everyone, so everybody gets the same answer.' },
+        { t: 'Inches and centimeters', d: 'mg-units', p: 'A **paper clip** is about 1 **inch** long. A **fingertip** is about 1 **centimeter** wide. **12 inches** make a **foot**, and **100 centimeters** make a **meter**. Centimeters are smaller, so it takes more of them.', v: [['inch (in)', 'about a paper clip'], ['centimeter (cm)', 'about a fingertip']] },
+        { t: 'Picture graphs', d: 'mg-pic', p: 'A **picture graph** uses pictures to show data. Check the **key** to see what each picture means. Count the pictures in each row to find which fruit got the most votes.', v: [['data', 'information we collect, like votes']] },
+        { t: 'Bar graphs', d: 'mg-bar', p: 'A **bar graph** uses bars. Read the number where the top of each bar lines up. To compare, subtract: 6 dogs − 4 cats = **2 more dogs** than cats.' },
+      ],
+      quiz: [
+        { q: 'When you measure with a ruler, where do you line up the end of the object?', a: ['At 0', 'At 1', 'In the middle'], why: 'Start at 0 so you count every unit.' },
+        { q: 'About how long is a paper clip?', a: ['1 inch', '1 foot', '1 meter'], why: 'A paper clip is about 1 inch long.' },
+        { q: 'How many inches are in a foot?', a: ['12', '10', '100'], why: '12 inches = 1 foot.' },
+        { q: 'Why do we use rulers instead of our feet?', a: ['Rulers are the same for everyone', 'Feet are too smelly', 'Rulers are faster to draw'], why: 'Standard units give everyone the same answer.' },
+        { q: 'A bar graph shows 7 cats and 3 dogs. How many more cats?', a: ['4', '10', '3'], why: '7 − 3 = 4 more cats.' },
+        { q: 'What tells you what each picture in a picture graph means?', a: ['The key', 'The title', 'The biggest row'], why: 'The key explains what each picture stands for.' },
+      ],
+    },
+    {
+      kind: 'lesson', id: 'shapes', icon: '🔷', name: 'Shapes & Equal Groups', sub: 'Geometry, arrays & sharing', badge: 'Shape Shifter',
+      slides: [
+        { k: 'WHAT IS IT?', t: 'Sides and corners', d: 'sg-what', p: 'Flat shapes are named by how many **sides** and **corners** they have. A **triangle** has 3, a **quadrilateral** has 4, a **pentagon** has 5 and a **hexagon** has 6.', v: [['vertex', 'a corner where two sides meet']] },
+        { k: 'WHY DO WE CARE?', t: 'Shapes are everywhere', d: 'sg-why', p: 'Bees build **hexagons**. Stop signs are **octagons** with 8 sides. Builders, artists and engineers use shapes every day. Look around: how many shapes can you spot?' },
+        { t: 'Equal shares', d: 'sg-shares', p: 'You can cut a shape into **equal shares**: 2 **halves**, 3 **thirds** or 4 **fourths**. Equal means every piece is the **same size**, so sharing is fair!', v: [['half', 'one of 2 equal shares']] },
+        { t: 'Equal groups', d: 'sg-groups', p: '3 plates with **4 cookies** on each plate are **3 equal groups of 4**. You can add them: 4 + 4 + 4 = **12**. Adding the same number again and again is the start of **multiplying**!' },
+        { t: 'Arrays', d: 'sg-array', p: 'An **array** puts things in neat **rows** and **columns**. 3 rows of 5 stars is 5 + 5 + 5 = **15**. Egg cartons, muffin pans and windows are arrays!', v: [['row', 'goes across'], ['column', 'goes up and down']] },
+        { t: 'Sharing fairly', d: 'sg-share', p: 'When 3 friends **share 12 cookies** fairly, hand them out one at a time. Everyone gets **4**. Splitting into equal groups is called **dividing**.' },
+      ],
+      quiz: [
+        { q: 'How many sides does a hexagon have?', a: ['6', '5', '8'], why: 'Hexagons have 6 sides and 6 corners, like a honeycomb cell.' },
+        { q: 'A shape with 4 sides is a…', a: ['Quadrilateral', 'Triangle', 'Pentagon'], why: '"Quad" means four. Squares and rectangles are quadrilaterals.' },
+        { q: 'A pizza cut into 4 equal shares is cut into…', a: ['Fourths', 'Halves', 'Thirds'], why: '4 equal shares are fourths (or quarters).' },
+        { q: '3 groups of 5 apples is…', a: ['5 + 5 + 5 = 15', '3 + 5 = 8', '5 − 3 = 2'], why: 'Add 5 three times: 15.' },
+        { q: 'An array has 2 rows of 6. How many in all?', a: ['12', '8', '6'], why: '6 + 6 = 12.' },
+        { q: '10 crayons are shared fairly by 2 kids. How many each?', a: ['5', '8', '12'], why: 'Hand them out one at a time: each kid gets 5.' },
+      ],
+    },
+    {
+      kind: 'game', id: 'rocket', icon: '🚀', name: 'Fact Rocket', sub: 'Blast off with facts', badge: 'Rocket Ranger',
+      how: [['🚀', 'Every fact you get right fires the rocket higher. Reach the <b>Moon</b>!'],
+        ['👆', 'Pick the answer to each addition or subtraction fact.'], ['⌨️', '<span class="key-only">You can press <b>1</b>, <b>2</b> or <b>3</b> to answer.</span><span class="touch-only">Tap an answer.</span>'], ['⭐', '100 points for every first-try answer. No rush: take your time!']],
+      make: rocketGame,
+    },
+    {
+      kind: 'game', id: 'shop', icon: '🛍️', name: 'Coin Shop', sub: 'Pay the exact price', badge: 'Shop Star',
+      how: [['🛍️', 'Customers want to buy things. Help them pay the <b>exact</b> price!'],
+        ['🪙', 'Tap coins to put them in your hand, then press <b>Pay</b>.'], ['↺', 'Too much? Press <b>Start over</b>.'], ['⭐', 'Pay right on the first try for 200 points, plus a bonus for using the fewest coins.']],
+      make: shopGame,
+    },
+  ],
+});
+</script>
+</body>
+</html>

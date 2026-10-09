@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>2nd Grade | RoboBandit</title>
-<meta name="description" content="Free 2nd grade lessons and learning games from RoboBandit. Coming soon!">
+<meta name="description" content="Free 2nd grade lessons and learning games: place value, facts, money and time; retelling, main idea and spelling patterns; erosion, matter and habitats; citizenship, famous Americans and maps.">
 <link rel="canonical" href="https://robobandit.com/2nd-grade/">
 <meta name="theme-color" content="#070b18">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -14,11 +14,14 @@
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/2nd-grade/">
 <meta property="og:title" content="2nd Grade | RoboBandit">
+<meta property="og:description" content="Free 2nd grade lessons and learning games: math, reading, science and social studies.">
 <meta property="og:image" content="https://robobandit.com/previews/robobandit.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="https://robobandit.com/previews/robobandit.jpg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../folder.css?v=20261009-1628">
+<link rel="stylesheet" href="../folder.css?v=20261009-1632">
 <style>:root { --tab: #5fb0e8; --paper: #a8dcff; }</style>
 </head>
 <body>
@@ -26,11 +29,40 @@
   <a class="back" href="../index.html">← All RoboBandit games</a>
   <div class="folder"><div class="inside">
     <h1>✏️ 2nd Grade</h1>
-    <p class="lead">Lessons and games for 2nd graders.</p>
-    <div class="empty"><div class="ic">📂</div>Nothing in this folder yet. Lessons are coming soon!</div>
+    <p class="lead">Pick a subject. Each one has short lessons with moving pictures, a quiz after every lesson, and games to play. Tap 🔈 <b>Read to me</b> on any lesson to hear it out loud.</p>
+    <div class="subjects" id="subjects"></div>
   </div></div>
   <footer>Made with 🤖 by RoboBandit · Free to use at home and in class</footer>
 </main>
-<script src="../common.js?v=20261009-1628"></script>
+<script>
+'use strict';
+// One entry per subject page in this folder. key is where the page saves progress (see lesson.js);
+// lessons and games are how many of each it has (3 stars each).
+const SUBJECTS = [
+  { title: 'Numbers, Money & Time', tag: 'Math', url: 'math.html', key: 'rb_g2_math', icon: '🔢🪙', color: '#9fcbff', lessons: 5, games: 2,
+    blurb: 'Build numbers to 1,000, learn facts in a flash, count coins and tell time.', list: ['🔢 Place value to 1,000', '➕ Add & subtract', '🪙 Money & time', '📏 Measure & graph', '🔷 Shapes & equal groups'] },
+  { title: 'Story Detectives', tag: 'Language Arts', url: 'reading.html', key: 'rb_g2_reading', icon: '📚🔍', color: '#ffc49f', lessons: 6, games: 2,
+    blurb: 'Retell stories, find the main idea, make inferences and build words.', list: ['📚 Retell a story', '🎯 Main idea', '⚖️ Compare & contrast', '🔍 Predict & infer', '✍️ Author\'s purpose', '🔤 Spelling patterns'] },
+  { title: 'Earth, Matter & Habitats', tag: 'Science', url: 'science.html', key: 'rb_g2_science', icon: '🏞️🧊', color: '#a8e6cf', lessons: 4, games: 2,
+    blurb: 'How land changes, solids, liquids and gases, where animals live, and engineering.', list: ['🏞️ Erosion & landforms', '🧊 States of matter', '🐻‍❄️ Habitats & adaptations', '🛠️ Engineering design'] },
+  { title: 'Our Community & Country', tag: 'Social Studies', url: 'social-studies.html', key: 'rb_g2_social', icon: '🗺️🇺🇸', color: '#ffb3b8', lessons: 5, games: 2,
+    blurb: 'Good citizens, traditions, famous Americans, maps, and goods and services.', list: ['🤝 Being a good citizen', '👨‍👩‍👧 Families & traditions', '🇺🇸 Famous Americans', '🗺️ Maps & globes', '🛒 Consumers & producers'] },
+];
+
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const starsOf = s => { try { const v = JSON.parse(localStorage.getItem(s.key)); return Object.values((v && v.stars) || {}).reduce((a, b) => a + b, 0); } catch (e) { return 0; } };
+const render = () => document.getElementById('subjects').innerHTML = SUBJECTS.map(s => {
+  const have = starsOf(s), max = (s.lessons + s.games) * 3;
+  return `<a class="subject" href="${esc(s.url)}" style="--c:${s.color}">
+    <div class="art"><span>${s.icon}</span><span class="tag">${esc(s.tag)}</span></div>
+    <div class="info"><h2>${esc(s.title)}</h2><p>${esc(s.blurb)}</p>
+      <ul>${s.list.map(l => `<li>${esc(l)}</li>`).join('')}</ul>
+      <div class="prog"><i style="width:${Math.round(have / max * 100)}%"></i></div>
+      <div class="stars">⭐ ${have} of ${max} stars · ${s.lessons} lessons · ${s.games} game${s.games > 1 ? 's' : ''}</div></div></a>`;
+}).join('');
+render();
+addEventListener('pageshow', e => { if (e.persisted) render(); });
+</script>
+<script src="../common.js?v=20261009-1632"></script>
 </body>
 </html>
