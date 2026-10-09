@@ -164,40 +164,105 @@ const PHONE = { ...devices['iPhone 13'] };
     await done(p);
   });
 
-  await test('Hamglider: autopilot lands on the target in all five rounds', async () => {
+  await test('Hamglider: autopilot lands on the target in every round of all three worlds', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 480, height: 270 } });
     const r = await p.evaluate(() => {
-      startGame();
-      const landed = [];
-      let last = '';
-      for (let i = 0; i < 60 * 400 && state !== 'end'; i++) {
-        if (state === 'intro') action();
-        if (state === 'air') {
-          const dx = targetPos.x - pos.x, dz = targetPos.z - pos.z, dist = Math.hypot(dx, dz);
-          if (!wings && vel.y < 0 && dist > 25 && pos.y > 8) action();
-          if (wings) {
-            const want = Math.atan2(dx, -dz), diff = Math.atan2(Math.sin(want - yaw), Math.cos(want - yaw));
-            keys.right = diff > 0.05; keys.left = diff < -0.05;
-            const need = (pos.y - 1.2) / Math.max(dist, 1);
-            keys.down = need > 0.3; keys.up = need < 0.09;
-            if (dist < 7) action();
-          }
-        } else { keys.left = keys.right = keys.up = keys.down = false; }
-        update(1 / 60);
-        if (state !== last && state === 'roll') landed.push(round + 1);
-        last = state;
+      const out = [];
+      for (let w = 0; w < 3; w++) {
+        startGame(w);
+        const landed = [];
+        let last = '';
+        for (let i = 0; i < 60 * 600 && state !== 'end'; i++) {
+          if (state === 'intro') action();
+          if (state === 'air') {
+            const dx = targetPos.x - pos.x, dz = targetPos.z - pos.z, dist = Math.hypot(dx, dz);
+            if (!wings && vel.y < 0 && dist > 25 && pos.y > 8) action();
+            if (wings) {
+              const want = Math.atan2(dx, -dz), diff = Math.atan2(Math.sin(want - yaw), Math.cos(want - yaw));
+              keys.right = diff > 0.05; keys.left = diff < -0.05;
+              const need = (pos.y - 1.2) / Math.max(dist, 1);
+              keys.down = need > 0.3; keys.up = need < 0.09;
+              if (dist < 7) action();
+            }
+          } else { keys.left = keys.right = keys.up = keys.down = false; }
+          update(1 / 60);
+          if (state !== last && state === 'roll' && surf.target) landed.push(round + 1);
+          last = state;
+        }
+        out.push({ world: world.id, state, total, landed: landed.length, stars: save.stars[world.id] });
       }
-      return { state, total, landed };
+      return out;
     });
-    check(r.state === 'end', 'game did not finish');
-    check(r.landed.length === 5, 'landed in rounds ' + r.landed.join());
-    check(r.total > 0, 'scored nothing');
+    for (const w of r) {
+      check(w.state === 'end', w.world + ' did not finish');
+      check(w.landed === 3, `${w.world}: landed on the target in ${w.landed} of 3 rounds`);
+      check(w.total > 0 && w.stars >= 1, `${w.world}: total ${w.total}, stars ${w.stars}`);
+    }
     await done(p, 'hamglider-end.png');
+  });
+
+  await test('Hamglider: leaning curves the takeoff, islands are safe, secrets unlock balls, bullseyes replay', async () => {
+    const p = await open(browser, 'hamglider.html', { viewport: { width: 480, height: 270 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      // leaning on the ramp sends you off on a curve, either way
+      const run = side => { startGame(0); action(); for (let i = 0; i < 60 * 30 && !(state === 'air' && stateT > 2.5); i++) { keys.left = side < 0 && state === 'ramp'; keys.right = side > 0 && state === 'ramp'; update(1 / 60); } keys.left = keys.right = false; return pos.x; };
+      out.curve = [run(-1), run(0), run(1)];
+      // dropping onto an island lands safely for island points
+      startGame(0); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      const isle = isles.find(s => !s.secret);
+      pos.set(isle.x, 8, isle.z); vel.set(0, -1, 0); wings = false; curve = 0;
+      for (let i = 0; i < 60 * 10 && state !== 'result'; i++) update(1 / 60);
+      out.island = roundScores[0];
+      // touching the secret treasure unlocks that world's ball
+      startGame(1); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      pos.copy(treasureAt); update(1 / 60);
+      out.secret = { found: secretThisRound, egg: save.eggs.lava, ball: ballOpen(BALLS.find(b => b.id === 'magma')) };
+      // a bullseye plays a slow-motion replay, then the next round starts
+      startGame(0); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      pos.set(targetPos.x, 12, targetPos.z); vel.set(0, -2, 0); wings = false; curve = 0;
+      const seen = [];
+      for (let i = 0; i < 60 * 40 && round === 0; i++) { update(1 / 60); updateVisuals(1 / 60); if (seen[seen.length - 1] !== state) seen.push(state); }
+      out.replay = { seen, pts: roundScores[0].pts, round };
+      // falling into lava is a "TOO HOT!" bounce, not a splash
+      startGame(1); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      pos.set(targetPos.x + 60, 5, targetPos.z); vel.set(0, -5, 0); wings = false;
+      const lava = [];
+      for (let i = 0; i < 60 * 6 && state !== 'result'; i++) { update(1 / 60); if (lava[lava.length - 1] !== state) lava.push(state); }
+      out.lava = { seen: lava, text: roundScores[0].text };
+      return out;
+    });
+    check(r.curve[0] < -8 && r.curve[2] > 8 && Math.abs(r.curve[1]) < 1, 'takeoff did not curve: ' + r.curve.map(Math.round));
+    check(r.island && r.island.pts === 15, 'island landing scored ' + JSON.stringify(r.island));
+    check(r.secret.found && r.secret.egg && r.secret.ball, 'secret: ' + JSON.stringify(r.secret));
+    check(r.replay.pts === 100 && r.replay.seen.includes('replay') && r.replay.round === 1, 'replay: ' + JSON.stringify(r.replay));
+    check(r.lava.seen.includes('burn') && r.lava.text === 'TOO HOT!', 'lava: ' + JSON.stringify(r.lava));
+    await done(p, 'hamglider-features.png');
+  });
+
+  await test('Hamglider: worlds unlock in order, and "Unlock all" opens every world and ball', async () => {
+    const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
+    await p.click('#btnPlay');
+    check(await p.$$eval('.world.locked', els => els.length) === 2, 'lava and storm should start locked');
+    await p.click('#btnUnlock');
+    check(await p.$$eval('.world.locked', els => els.length) === 0, 'worlds still locked');
+    await p.click('#btnBalls');
+    check(await p.$$eval('.ball.locked', els => els.length) === 0, 'balls still locked');
+    await p.click('.ball[data-id="rainbow"]');
+    check(await p.evaluate(() => save.ball) === 'rainbow', 'could not pick a ball');
+    await p.reload(); await p.waitForTimeout(500);
+    check(await p.evaluate(() => save.unlockAll && save.ball === 'rainbow'), 'not saved');
+    await done(p, 'hamglider-balls.png');
   });
 
   await test('Hamglider on a phone: joystick steers and the WINGS button opens the wings', async () => {
     const p = await open(browser, 'hamglider.html', PHONE);
     await p.tap('#btnPlay');
+    await p.tap('.world[data-i="0"]');
     await p.evaluate(() => { action(); for (let i = 0; i < 60 * 8 && state !== 'air'; i++) update(1 / 60); });
     await p.waitForTimeout(300);
     await p.tap('#wingBtn');

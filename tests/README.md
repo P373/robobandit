@@ -7,7 +7,7 @@
 - **Floppy Bird**: an autopilot scores 9+ points, crashes use up the 3 lives, pause freezes time
 - **Surf's Up**: an autopilot launches aerials and the five judges score the ride; the touch joystick carves
 - **Space Wars**: the touch joystick flies the ship and the fire buttons show
-- **Hamglider**: an autopilot lands on the target in all five rounds; the joystick and WINGS button work on a phone
+- **Hamglider**: an autopilot lands on the target in every round of all three worlds (ocean, lava, storm); leaning on the ramp curves the takeoff; islands are safe landings; secrets unlock hamster balls; a bullseye plays a slow-motion replay; lava is a "TOO HOT!" bounce; worlds unlock in order and "Unlock all" opens everything; the joystick and WINGS button work on a phone
 - **Web Hero**: just holding chains swings across the city, bonks bots and beats the Big Bandit; three falls end the game
 - **Sparkle Meadow**: following the pink arrow makes all six animal friends (and saves them); sparkles unlock the unicorn horn
 - **Witch Way Out**: flying the friendly line (with shields in the storm) escapes the pumpkin without being caught; doing nothing gets caught but the pumpkin eases off so everyone can finish
