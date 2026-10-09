@@ -24,6 +24,10 @@ body {
 .card p { margin: 8px auto; font-size: clamp(18px, 2.1vw, 22px); line-height: 1.45; max-width: 900px; }
 .lead { font-size: clamp(19px, 2.4vw, 24px) !important; }
 .chip { display: inline-block; padding: 4px 14px; border-radius: 999px; font-weight: 700; font-size: 16px; color: #fff; background: var(--c); }
+/* the screen's label, top-left beside the corner buttons */
+.crumb { position: fixed; z-index: 10; top: max(10px, env(safe-area-inset-top)); left: max(10px, env(safe-area-inset-left));
+  max-width: calc(100vw - 200px); height: 44px; display: flex; align-items: center; }
+.crumb .chip { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; padding: 8px 16px; box-shadow: 0 3px 0 rgba(0,0,0,.25); }
 .kicker { margin-top: 10px; font: 15px 'Bungee', system-ui, sans-serif; letter-spacing: 2px; color: var(--c); }
 .btn {
   display: inline-block; margin: 10px 5px 0; padding: 13px 24px; border: 3px solid var(--ink); border-radius: 14px; cursor: pointer;
@@ -44,7 +48,7 @@ body {
 
 /* the animated lesson picture: as big as the window allows while the words still fit underneath */
 #dia {
-  display: block; margin: 8px auto; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 370px) * 16 / 9)); min-width: min(100%, 300px);
+  display: block; margin: 8px auto; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 370px) * 16 / 9)); max-width: 100%; min-width: min(100%, 300px);
   border-radius: 16px; border: 3px solid var(--ink); background: #e8f3ff;
 }
 .say b { color: var(--c); }
@@ -92,7 +96,7 @@ input[type=text] { font: 600 20px 'Fredoka', system-ui, sans-serif; padding: 8px
 .how { text-align: left; margin: 12px auto; max-width: 640px; padding: 0; list-style: none; font-size: 20px; }
 .how li { margin: 10px 0; display: flex; gap: 12px; align-items: flex-start; }
 .how .e { font-size: 26px; line-height: 1; }
-.board { display: block; margin: 8px auto; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 330px) * 16 / 9)); min-width: min(100%, 300px);
+.board { display: block; margin: 8px auto; aspect-ratio: 16 / 9; width: min(100%, calc((100vh - 330px) * 16 / 9)); max-width: 100%; min-width: min(100%, 300px);
   border-radius: 16px; border: 3px solid var(--ink); background: #e8f3ff; touch-action: manipulation; }
 .hud { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px 22px; font-size: 19px; font-weight: 700; }
 .hud span { white-space: nowrap; }

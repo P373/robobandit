@@ -178,7 +178,7 @@ const School = (() => {
   const totalScore = () => U.items.reduce((a, it) => a + (save.best[it.id] || 0), 0);
 
   // ---------- Screens ----------
-  let card, mode = 'map', cur = 0, slide = 0, quiz = [], qi = 0, qRight = 0, answered = false;
+  let card, crumb, mode = 'map', cur = 0, slide = 0, quiz = [], qi = 0, qRight = 0, answered = false;
   let drawDia = null, diaT = 0, game = null;
   const item = () => U.items[cur];
   const num = it => it.kind === 'lesson' ? 'Lesson ' + (U.items.filter(x => x.kind === 'lesson').indexOf(it) + 1) : 'Game';
@@ -186,9 +186,27 @@ const School = (() => {
   function show(html) {
     stopGame(); quiet();
     card.innerHTML = html;
+    // the "Lesson 1 · …" label goes up in the top-left corner, beside the 🏠 🔊 🔗 buttons, to save a row
+    const chip = card.querySelector(':scope > .chip');
+    crumb.replaceChildren(...(chip ? [chip] : []));
     drawDia = null;
     window.scrollTo(0, 0);
+    fit();
   }
+  // Sizes the picture or game board so the whole screen fits without scrolling (tablets, laptops),
+  // down to a minimum; on phones the page scrolls and the button row stays stuck to the bottom.
+  function fit() {
+    const cvs = [...card.querySelectorAll('#dia, .board')];
+    if (!cvs.length) return;
+    cvs.forEach(c => { c.style.width = '100%'; });
+    const over = document.documentElement.scrollHeight - innerHeight;
+    if (over <= 0) return;
+    cvs.forEach(c => {
+      const h = c.getBoundingClientRect().height, nh = Math.max(170, h - over / cvs.length - 2);
+      c.style.width = Math.round(nh * 16 / 9) + 'px';
+    });
+  }
+  addEventListener('resize', () => fit());
   function on(id, fn) { const el = $(id); if (el) el.addEventListener('click', () => { RB.audio(); sfx.click(); fn(); }); }
 
   function mapScreen() {
@@ -309,6 +327,7 @@ const School = (() => {
     on('quit', mapScreen);
     const api = { root: $('gameRoot'), d, board, sfx, esc, rich, shuffle, clamp, lerp, $, done: r => { if (mode === 'game') finish(r); } };
     game = G.make(api);
+    fit();
   }
   function stopGame() { if (game && game.stop) game.stop(); game = null; }
 
@@ -390,6 +409,7 @@ const School = (() => {
     U = unit; key = 'rb_' + unit.id;
     load();
     card = $('card');
+    crumb = document.createElement('div'); crumb.className = 'crumb'; document.body.appendChild(crumb);
     RB.topbar({ home: unit.home || 'index.html', homeTitle: unit.homeTitle || 'Back to the folder',
       shareInfo: { title: document.title, text: unit.shareText || '' } });
     mapScreen();
