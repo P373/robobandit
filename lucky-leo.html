@@ -69,7 +69,7 @@
   #tHat { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 88px) !important; width: 64px !important; height: 64px !important; font-size: 24px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261010-0045">
+<link rel="stylesheet" href="common.css?v=20261010-0105">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -111,7 +111,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261010-0045"></script>
+<script src="common.js?v=20261010-0105"></script>
 <script>
 'use strict';
 // ===================== Lucky Leo =====================
@@ -126,7 +126,10 @@ const LH = 224;              // the game's height in pixels: 14 tiles
 const TS = 16;               // tile size
 let LW = 400, scale = 1, offY = 0;   // the game's width (depends on the screen's shape), how much it's blown up, and where it sits
 function resize() {
-  const dpr = Math.min(devicePixelRatio || 1, 2);
+  // sharp, but not more pixels than a laptop can paint smoothly every frame (about 1920 x 1080)
+  let dpr = Math.min(devicePixelRatio || 1, 2);
+  const budget = 2.1e6;
+  if (innerWidth * innerHeight * dpr * dpr > budget) dpr = Math.max(1, Math.sqrt(budget / (innerWidth * innerHeight)));
   canvas.width = Math.round(innerWidth * dpr); canvas.height = Math.round(innerHeight * dpr);
   if (canvas.width / canvas.height < 1.15) {
     // a tall phone: the game fills the width near the top, like a handheld, with the buttons underneath
@@ -515,11 +518,20 @@ function rrect(x, y, w, h, r) {
 function ell(x, y, rx, ry, rot = 0) { g.beginPath(); g.ellipse(x, y, Math.max(0.01, rx), Math.max(0.01, ry), rot, 0, TAU); }
 function paint(fill, lw = 0, stroke = INK) { g.fillStyle = fill; g.fill(); if (lw) { g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); } }
 function vgrad(y0, y1, a, b) { const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, a); gr.addColorStop(1, b); return gr; }
+// soft glows are painted once per colour into a small picture, then stretched: much cheaper than a gradient every frame
+const glowCache = new Map();
 function glow(x, y, r, color, alpha = 0.6) {
-  const gr = g.createRadialGradient(x, y, 0, x, y, r);
-  gr.addColorStop(0, color); gr.addColorStop(1, 'rgba(0,0,0,0)');
-  g.globalAlpha *= alpha; g.fillStyle = gr; g.fillRect(x - r, y - r, r * 2, r * 2); g.globalAlpha /= alpha;
+  let c = glowCache.get(color);
+  if (!c) {
+    if (glowCache.size > 60) glowCache.clear();
+    c = document.createElement('canvas'); c.width = c.height = 64;
+    const tc = c.getContext('2d'), gr = tc.createRadialGradient(32, 32, 0, 32, 32, 32);
+    gr.addColorStop(0, color); gr.addColorStop(1, 'rgba(0,0,0,0)'); tc.fillStyle = gr; tc.fillRect(0, 0, 64, 64);
+    glowCache.set(color, c);
+  }
+  const a = g.globalAlpha; g.globalAlpha = a * alpha; g.drawImage(c, x - r, y - r, r * 2, r * 2); g.globalAlpha = a;
 }
+const qh = h => Math.round(h / 20) * 20 % 360;   // rainbow colours in steps, so their glows can be reused
 function star(x, y, r, color) {
   g.beginPath();
   for (let i = 0; i < 10; i++) { const a = i / 10 * TAU - Math.PI / 2, rr = i % 2 ? r * 0.45 : r; g.lineTo(x + Math.cos(a) * rr, y + Math.sin(a) * rr); }
@@ -731,7 +743,11 @@ function drawBoss(x, y, t, face, hurt) {
 
 // ---- items ----
 function drawCoin(x, y, t) {
-  const sx = Math.cos(t * 4);
+  const f = ((Math.round(t * 4 / TAU * 24) % 24) + 24) % 24;
+  g.drawImage(cached('coin' + f, () => coinShape(f / 24 * TAU)), x - PAD, y - PAD, 16 + PAD * 2, 16 + PAD * 2);
+}
+function coinShape(a) {
+  const x = 0, y = 0, sx = Math.cos(a);
   g.save(); g.translate(x + 8, y + 8); g.scale(Math.max(0.12, Math.abs(sx)), 1);
   ell(0, 0, 5.6, 7); paint(vgrad(-7, 7, '#ffe680', '#e89a10'), 1, '#8a5a08');
   ell(0, 0, 3.8, 5.2); paint(sx > 0 ? '#ffd23a' : '#f0b020');
@@ -742,7 +758,7 @@ function drawCoin(x, y, t) {
 function drawGem(x, y, t) {
   const hue = (t * 90) % 360, bob = Math.sin(t * 3) * 1.5;
   g.save(); g.translate(x + 8, y + 9 + bob);
-  glow(0, 0, 14, `hsla(${hue},100%,75%,1)`, 0.45);
+  glow(0, 0, 14, `hsla(${qh(hue)},100%,75%,1)`, 0.45);
   g.beginPath(); g.moveTo(-6, -3); g.lineTo(-3, -7); g.lineTo(3, -7); g.lineTo(6, -3); g.lineTo(0, 8); g.closePath();
   const gr = g.createLinearGradient(-6, -7, 6, 8);
   gr.addColorStop(0, `hsl(${hue},95%,72%)`); gr.addColorStop(0.5, `hsl(${(hue + 80) % 360},95%,62%)`); gr.addColorStop(1, `hsl(${(hue + 160) % 360},95%,55%)`);
@@ -808,7 +824,7 @@ function drawSpring(x, y, squash) {
 function drawSpark(x, y, t) {
   const hue = (t * 700) % 360;
   g.save(); g.translate(x + 3, y + 3); g.rotate(t * 12);
-  glow(0, 0, 9, `hsla(${hue},100%,70%,1)`, 0.7);
+  glow(0, 0, 9, `hsla(${qh(hue)},100%,70%,1)`, 0.7);
   star(0, 0, 4.4, `hsl(${hue},100%,68%)`); star(0, 0, 2.2, '#fff');
   g.restore();
 }
@@ -868,13 +884,14 @@ function cached(key, draw) {
 const isGroundish = t => t === T.GROUND || t === T.STONE && false;
 function drawTile(tile, tx, ty, x, y, th, t) {
   const theme = lvl.theme;
-  const put = (key, fn) => g.drawImage(cached(key, fn), x - PAD, y - PAD, 16 + PAD * 2, 16 + PAD * 2);
+  // inside a ground chunk tiles are drawn directly (seamless); elsewhere they come from the cached pictures
+  const put = (key, fn) => { if (paintingChunk) { g.save(); g.translate(x, y); fn(); g.restore(); } else g.drawImage(cached(key, fn), x - PAD, y - PAD, 16 + PAD * 2, 16 + PAD * 2); };
   switch (tile) {
     case T.GROUND: {
       const top = tileAt(tx, ty - 1) !== T.GROUND && !SOLID.has(tileAt(tx, ty - 1));
       const L = tileAt(tx - 1, ty) !== T.GROUND, Rt = tileAt(tx + 1, ty) !== T.GROUND, bot = ty < lvl.h - 1 && tileAt(tx, ty + 1) !== T.GROUND;
       const v = Math.floor(hash(tx, ty) * 4);
-      put(`${theme}G${+top}${+L}${+Rt}${+bot}${v}`, () => groundTile(th, top, L, Rt, bot, v, theme));
+      put(`${theme}G${+top}${+L}${+Rt}${+bot}${v}`, () => groundTile(th, top, L, Rt, bot, v, theme, paintingChunk ? chunkPass : 0));
       break;
     }
     case T.STONE: put(theme + 'S', () => stoneTile(theme)); break;
@@ -934,8 +951,10 @@ function drawTile(tile, tx, ty, x, y, th, t) {
     case T.COIN: drawCoin(x, y, t + tx * 0.21); break;
   }
 }
-function groundTile(th, top, L, Rt, bot, v, theme) {
+// part: 0 = all of it, 1 = just the earth, 2 = just the grassy cap (chunks paint all the earth first, then the caps)
+function groundTile(th, top, L, Rt, bot, v, theme, part = 0) {
   const r = 5;
+  if (part === 2) { if (top) grassCap(th, L, Rt, v, theme); return; }
   const corners = [top && L ? r : 0, top && Rt ? r : 0, bot && Rt ? r : 0, bot && L ? r : 0];
   rrect(L ? 0 : -0.4, top ? 0 : -0.4, 16 + (L ? 0 : 0.4) + (Rt ? 0 : 0.4), 16 + (top ? 0 : 0.4) + (bot ? 0 : 0.4), corners);
   g.fillStyle = vgrad(0, 16, th.dirt, th.dirtDk); g.fill();
@@ -947,7 +966,10 @@ function groundTile(th, top, L, Rt, bot, v, theme) {
   if (L) { g.beginPath(); g.moveTo(0.5, top ? r : 0); g.lineTo(0.5, bot ? 16 - r : 16); g.stroke(); }
   if (Rt) { g.beginPath(); g.moveTo(15.5, top ? r : 0); g.lineTo(15.5, bot ? 16 - r : 16); g.stroke(); }
   if (bot) { g.beginPath(); g.moveTo(L ? r : 0, 15.5); g.lineTo(Rt ? 16 - r : 16, 15.5); g.stroke(); }
-  if (top) {
+  if (top && part === 0) grassCap(th, L, Rt, v, theme);
+}
+function grassCap(th, L, Rt, v, theme) {
+  {
     // a grassy (or snowy, or crystal) cap with a wavy lower edge
     g.beginPath(); g.moveTo(L ? 0 : -0.5, 2.5);
     g.quadraticCurveTo(L ? 0 : -0.5, -0.5, L ? 3 : -0.5, -0.5); g.lineTo(Rt ? 13 : 16.5, -0.5); g.quadraticCurveTo(Rt ? 16 : 16.5, -0.5, Rt ? 16 : 16.5, 2.5);
@@ -960,7 +982,7 @@ function groundTile(th, top, L, Rt, bot, v, theme) {
     if (L) { g.moveTo(0, 5); g.lineTo(0, 2.5); g.quadraticCurveTo(0, -0.5, 3, -0.5); }
     if (Rt) { g.moveTo(16, 5); g.lineTo(16, 2.5); g.quadraticCurveTo(16, -0.5, 13, -0.5); }
     g.lineWidth = 0.8; g.strokeStyle = theme === 'sky' ? '#9ab8dc' : 'rgba(20,60,30,.35)'; g.stroke();
-    g.fillStyle = 'rgba(255,255,255,.35)'; rrect(L ? 3 : 0, 0.4, Rt ? 10 : 16, 1, 0.5); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(L ? 3 : -0.5, 0.4, (Rt ? 13 : 16.5) - (L ? 3 : -0.5), 1);
     if (theme === 'hills' || theme === 'woods' || theme === 'bog') {
       g.strokeStyle = th.top; g.lineWidth = 1;
       for (let i = 0; i < 1 + (v % 2); i++) { const bx = 3 + ((i * 7 + v * 5) % 11); g.beginPath(); g.moveTo(bx, 0.5); g.quadraticCurveTo(bx - 0.5, -1, bx + (i % 2 ? 1 : -1), -2 - (v % 3) * 0.5); g.stroke(); }
@@ -1064,7 +1086,7 @@ const BG_W = 480;
 const bgCache = new Map();
 let bgScaleWas = 0;
 function bgLayer(theme, i, draw) {
-  const bs = Math.min(scale, 2.2);
+  const bs = scale;   // painted at the screen's own resolution, so drawing it is a straight copy
   if (bgScaleWas !== bs) { bgCache.clear(); bgScaleWas = bs; }
   const key = theme + i;
   let c = bgCache.get(key);
@@ -1164,15 +1186,28 @@ const SKIES = {
   hills: ['#5ab8f5', '#bfeaff'], woods: ['#7ac88a', '#d8f0c8'], caves: ['#0a0c1c', '#1c1f3c'], sky: ['#3a9aec', '#e8f6ff'],
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
 };
+// the sky and sun, painted once per world and screen size
+let skyPic = null, skyKey = '';
 function drawBackground(camX, t) {
   const th = lvl.theme, sky = SKIES[th];
-  g.fillStyle = vgrad(0, LH, sky[0], sky[1]); g.fillRect(0, 0, LW, LH);
-  if (th === 'hills' || th === 'rainbow' || th === 'sky') { glow(LW * 0.78, 34, 60, 'rgba(255,250,210,1)', 0.8); g.beginPath(); g.arc(LW * 0.78, 34, 13, 0, TAU); paint('#fff8d8'); }
-  const layers = SCENERY[th] || [];
-  layers.forEach((L, i) => {
-    const c = bgLayer(th, i, L.draw), off = -((camX * L.sp) % BG_W + BG_W) % BG_W;
-    for (let x = off; x < LW; x += BG_W) g.drawImage(c, x, 0, BG_W, LH);
+  const key = th + LW + '|' + scale;
+  if (skyKey !== key) {
+    skyKey = key; skyPic = document.createElement('canvas');
+    skyPic.width = Math.ceil(LW * scale); skyPic.height = Math.ceil(LH * scale);
+    const tc = skyPic.getContext('2d'), old = g; tc.scale(scale, scale); g = tc;
+    try {
+      g.fillStyle = vgrad(0, LH, sky[0], sky[1]); g.fillRect(0, 0, LW, LH);
+      if (th === 'hills' || th === 'rainbow' || th === 'sky') { glow(LW * 0.78, 34, 60, 'rgba(255,250,210,1)', 0.8); g.beginPath(); g.arc(LW * 0.78, 34, 13, 0, TAU); paint('#fff8d8'); }
+    } finally { g = old; }
+  }
+  // copy the sky and each scenery layer straight onto the screen, lined up on whole pixels
+  g.save(); g.setTransform(1, 0, 0, 1, 0, offY);
+  g.drawImage(skyPic, 0, 0);
+  (SCENERY[th] || []).forEach((L, i) => {
+    const c = bgLayer(th, i, L.draw), W = c.width, off = -((Math.round(camX * L.sp * scale) % W) + W) % W;
+    for (let x = off; x < canvas.width; x += W) g.drawImage(c, x, 0);
   });
+  g.restore();
   // living details on top of the painted layers
   if (th === 'bog') { for (let i = 0; i < 3; i++) { g.fillStyle = 'rgba(210,230,190,.16)'; g.fillRect(0, 150 + i * 16 + Math.sin(t * 0.7 + i) * 4, LW, 8); } for (let i = 0; i < 8; i++) { const fx2 = (i * 97 + t * 12) % LW, fy = 110 + Math.sin(t + i * 2) * 30; glow(fx2, fy, 6, 'rgba(230,255,140,1)', 0.6 + 0.4 * Math.sin(t * 3 + i)); } }
   if (th === 'castle') for (let i = 0; i < 4; i++) {   // torches
@@ -1782,17 +1817,48 @@ function winGame() {
 }
 
 // ---------- Drawing a level ----------
+// The ground, stone, logs, ledges and spikes never change, so they're painted in big chunks
+// (16 tiles wide) once, and each frame just copies the two or three chunks on screen.
+const STATIC = new Set([T.GROUND, T.STONE, T.ONEWAY, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.SPIKES]);
+const CHUNK = 16, chunkCache = new Map();
+let paintingChunk = false, chunkPass = 1;
+function chunkPic(ci) {
+  const key = lvl.id + '|' + ci + '|' + scale;
+  let c = chunkCache.get(key);
+  if (c) { chunkCache.delete(key); chunkCache.set(key, c); return c; }   // most recently used goes last
+  const x0 = Math.round(ci * CHUNK * TS * scale);
+  c = document.createElement('canvas');
+  c.width = Math.round((ci + 1) * CHUNK * TS * scale) - x0 + 1; c.height = Math.ceil(LH * scale);
+  c.x0 = x0;
+  const tc = c.getContext('2d'), old = g;
+  tc.setTransform(scale, 0, 0, scale, -x0, 0); tc.lineJoin = 'round'; tc.lineCap = 'round';
+  g = tc; paintingChunk = true;
+  try {
+    const th = THEMES[lvl.theme];
+    for (chunkPass = 1; chunkPass <= 2; chunkPass++) for (let ty = 0; ty < lvl.h; ty++) for (let tx = ci * CHUNK - 1; tx <= (ci + 1) * CHUNK; tx++) {
+      const tile = tileAt(tx, ty);
+      if (tx >= 0 && tx < lvl.w && STATIC.has(tile) && (chunkPass === 1 || tile === T.GROUND)) drawTile(tile, tx, ty, tx * TS, ty * TS, th, 0);
+    }
+  } finally { g = old; paintingChunk = false; }
+  chunkCache.set(key, c);
+  while (chunkCache.size > 8) chunkCache.delete(chunkCache.keys().next().value);
+  return c;
+}
 function drawLevel() {
   const t = clock;
   const sx = shake > 0 ? (Math.random() - 0.5) * 3 : 0;
-  const cx = camX - sx;
+  // scroll by whole screen pixels so nothing shimmers
+  const camDev = Math.round((camX - sx) * scale), cx = camDev / scale;
   drawBackground(cx, t);
+  g.save(); g.setTransform(1, 0, 0, 1, 0, offY);
+  for (let ci = Math.floor(cx / (CHUNK * TS)); ci * CHUNK * TS < cx + LW; ci++) { const c = chunkPic(ci); g.drawImage(c, c.x0 - camDev, 0); }
+  g.restore();
   g.save(); g.translate(-cx, 0);
   const th = THEMES[lvl.theme];
   const tx0 = Math.max(0, Math.floor(cx / TS) - 1), tx1 = Math.min(lvl.w - 1, tx0 + Math.ceil(LW / TS) + 2);
   for (let ty = 0; ty < lvl.h; ty++) for (let tx = tx0; tx <= tx1; tx++) {
     const tile = lvl.t[ty * lvl.w + tx];
-    if (!tile || tile === T.HIDDEN) continue;
+    if (!tile || tile === T.HIDDEN || STATIC.has(tile)) continue;
     const b = bumps.find(bb => bb.tx === tx && bb.ty === ty);
     const by = b ? -Math.sin(b.t / 0.2 * Math.PI) * 5 : 0;
     drawTile(tile, tx, ty, tx * TS, ty * TS + by, th, t);
@@ -1827,7 +1893,7 @@ function drawLevel() {
       if (p.flip) fx.rot = -(1 - p.flip) * TAU * p.face;   // the backflip
       if (p.pound === 'spin') fx.rot = (p.poundT / 0.22) * TAU * p.face;
       if (p.pound === 'drop') { fx.squash = -0.5; pose = 'jump'; }
-      if (p.star > 0) glow(p.x + p.w / 2, p.y + p.h / 2, 26, `hsla(${(t * 400) % 360},100%,70%,1)`, 0.5);
+      if (p.star > 0) glow(p.x + p.w / 2, p.y + p.h / 2, 26, `hsla(${qh((t * 400) % 360)},100%,70%,1)`, 0.5);
       drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
       if (p.star > 0 && Math.random() < 0.5) sparkle(p.x + Math.random() * p.w, p.y + Math.random() * p.h, `hsl(${Math.random() * 360},90%,70%)`, 1);
     }
@@ -1844,10 +1910,16 @@ function drawLevel() {
   g.restore();
   // dark levels: a soft glow around Leo
   if (lvl.dark) {
-    const lx = p.x + p.w / 2 - cx, ly = p.y + p.h / 2;
-    const gr = g.createRadialGradient(lx, ly, 40, lx, ly, 200);
-    gr.addColorStop(0, 'rgba(0,0,12,0)'); gr.addColorStop(1, 'rgba(0,0,12,.5)');
-    g.fillStyle = gr; g.fillRect(0, 0, LW, LH);
+    if (!drawLevel.dark) {
+      const c = drawLevel.dark = document.createElement('canvas'); c.width = c.height = 256;
+      const tc = c.getContext('2d'), gr = tc.createRadialGradient(128, 128, 26, 128, 128, 128);
+      gr.addColorStop(0, 'rgba(0,0,12,0)'); gr.addColorStop(1, 'rgba(0,0,12,.5)'); tc.fillStyle = gr; tc.fillRect(0, 0, 256, 256);
+    }
+    const lx = p.x + p.w / 2 - cx, ly = p.y + p.h / 2, r = 200;
+    g.drawImage(drawLevel.dark, lx - r, ly - r, r * 2, r * 2);
+    g.fillStyle = 'rgba(0,0,12,.5)';
+    g.fillRect(0, 0, LW, Math.max(0, ly - r)); g.fillRect(0, ly + r, LW, LH);
+    g.fillRect(0, ly - r, Math.max(0, lx - r), r * 2); g.fillRect(lx + r, ly - r, LW, r * 2);
   }
 }
 function drawEnt(e, t) {
@@ -1995,7 +2067,15 @@ function drawMap() {
     g.globalAlpha = a; g.beginPath(); g.moveTo(wx, wy); g.quadraticCurveTo(wx + 4, wy - 2, wx + 8, wy); g.lineWidth = 1; g.strokeStyle = '#cfeaff'; g.stroke();
   }
   g.globalAlpha = 1;
-  g.save(); g.translate(ox, 0);
+  // the island is painted once (and again only if the screen size changes or the secret rainbow appears)
+  const key = scale + '|' + save.key;
+  if (drawMap.key !== key) {
+    drawMap.key = key;
+    const c = drawMap.pic = document.createElement('canvas');
+    c.width = Math.ceil((MAP_W + 40) * scale); c.height = Math.ceil(LH * scale);
+    const tc = c.getContext('2d'), old = g;
+    tc.setTransform(scale, 0, 0, scale, 20 * scale, 0); tc.lineJoin = 'round'; tc.lineCap = 'round'; g = tc;
+    try {
   // the island: shallow water, a sandy beach, then grass
   g.fillStyle = 'rgba(140,220,255,.45)'; blob(MAP_W / 2, 124, 214, 106, 9);
   g.fillStyle = '#f6e2a0'; blob(MAP_W / 2, 122, 200, 96, 9); g.lineWidth = 1; g.strokeStyle = '#d8b870'; g.stroke();
@@ -2018,9 +2098,13 @@ function drawMap() {
   rrect(350, 76, 32, 26, 2); paint(vgrad(76, 102, '#9a9aaa', '#6a6a7a'), 1);
   for (let i = 0; i < 5; i++) { rrect(350 + i * 7, 71, 4, 6, 1); paint('#8a8a9a', 0.7); }
   rrect(362, 88, 8, 14, [4, 4, 0, 0]); paint('#2a1a20');
-  g.fillStyle = '#5a3a2a'; g.fillRect(365, 58, 1.4, 14); g.beginPath(); g.moveTo(366.4, 58); g.lineTo(375 + Math.sin(t * 4) * 1.5, 61); g.lineTo(366.4, 64); paint('#d8304a');
   // a rainbow up to the secret level once the key is found
   if (save.key) for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(182, 74, 22 - i * 2, Math.PI, 0); g.lineWidth = 2; g.strokeStyle = ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'][i]; g.stroke(); }
+    } finally { g = old; }
+  }
+  g.save(); g.setTransform(1, 0, 0, 1, 0, offY); g.drawImage(drawMap.pic, Math.round((ox - 20) * scale), 0); g.restore();
+  g.save(); g.translate(Math.round(ox * scale) / scale, 0);
+  g.fillStyle = '#5a3a2a'; g.fillRect(365, 58, 1.4, 14); g.beginPath(); g.moveTo(366.4, 58); g.lineTo(375 + Math.sin(t * 4) * 1.5, 61); g.lineTo(366.4, 64); paint('#d8304a');
   // paths: dotted trails between the levels
   for (const pth of PATHS) {
     if (!pathOpen(pth) && node(pth[1]).secret) continue;
@@ -2133,7 +2217,7 @@ function step(dt) {
 function render() {
   ctx.setTransform(1, 0, 0, 1, 0, 0);
   if (offY) { ctx.fillStyle = '#0b2a1a'; ctx.fillRect(0, 0, canvas.width, canvas.height); }
-  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high';
+  ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'low';
   ctx.setTransform(scale, 0, 0, scale, 0, offY);
   ctx.save(); ctx.beginPath(); ctx.rect(0, 0, LW, LH); ctx.clip();
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
