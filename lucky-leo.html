@@ -70,7 +70,7 @@
   #tHat { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 88px) !important; width: 64px !important; height: 64px !important; font-size: 24px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261010-1200">
+<link rel="stylesheet" href="common.css?v=20261010-1300">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -93,7 +93,7 @@
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
-      <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air! Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
+      <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
@@ -113,7 +113,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261010-1200"></script>
+<script src="common.js?v=20261010-1300"></script>
 <script>
 'use strict';
 // ===================== Lucky Leo =====================
@@ -322,39 +322,80 @@ const ORDER = ['hills', 'woods', 'caves', 'sky', 'bog', 'castle', 'bonus'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
+// A little sound kit for the effects: tones with a filter that closes as they fade (a soft "pluck"), puffs of
+// noise, and a short echo so everything sounds like it's out in the hills rather than inside a phone.
+const fxBus = (() => {
+  let bus = null;
+  return () => {
+    const a = RB.audio();
+    if (!a) return null;
+    if (!bus) {
+      bus = a.createGain(); bus.gain.value = 0.9; bus.connect(a.destination);
+      const dl = a.createDelay(0.5), fb = a.createGain(), lp = a.createBiquadFilter(), wet = a.createGain();
+      dl.delayTime.value = 0.12; fb.gain.value = 0.2; lp.type = 'lowpass'; lp.frequency.value = 2600; wet.gain.value = 0.16;
+      bus.connect(dl); dl.connect(lp).connect(fb).connect(dl); lp.connect(wet).connect(a.destination);
+    }
+    return bus;
+  };
+})();
+function tone(f1, f2, dur, type = 'square', vol = 0.06, delay = 0, { cut = 0, attack = 0.004, vib = 0 } = {}) {
+  if (RB.muted) return;
+  const a = RB.audio(), out = fxBus();
+  if (!a || !out) return;
+  const t = a.currentTime + delay, o = a.createOscillator(), gn = a.createGain();
+  o.type = type; o.frequency.setValueAtTime(f1, t);
+  if (f2 !== f1) o.frequency.exponentialRampToValueAtTime(f2, t + dur);
+  let n = o;
+  if (cut) { const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(cut * 2.5, t); lp.frequency.exponentialRampToValueAtTime(cut, t + dur); o.connect(lp); n = lp; }
+  if (vib) { const l = a.createOscillator(), lg = a.createGain(); l.frequency.value = 7; lg.gain.value = f1 * vib; l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur + 0.05); }
+  gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + attack); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  n.connect(gn).connect(out); o.start(t); o.stop(t + dur + 0.05);
+}
+let noiseBuf = null;
+function puffNoise(dur, vol, freq = 1200, type = 'bandpass', delay = 0, sweep = 0) {
+  if (RB.muted) return;
+  const a = RB.audio(), out = fxBus();
+  if (!a || !out) return;
+  if (!noiseBuf) { noiseBuf = a.createBuffer(1, a.sampleRate, a.sampleRate); const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+  const t = a.currentTime + delay, src = a.createBufferSource(), f = a.createBiquadFilter(), gn = a.createGain();
+  src.buffer = noiseBuf; f.type = type; f.frequency.setValueAtTime(freq, t); if (sweep) f.frequency.exponentialRampToValueAtTime(sweep, t + dur); f.Q.value = 0.8;
+  gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+  src.connect(f).connect(gn).connect(out); src.start(t, Math.random() * 0.5); src.stop(t + dur + 0.02);
+}
+const arp = (notes, gap, dur, type, vol, opts) => notes.forEach((f, i) => tone(f, f, dur, type, vol, i * gap, opts));
 const sfx = {
-  jump: () => beep(300, 620, 0.14, 'square', 0.06),
-  bigJump: () => beep(220, 520, 0.16, 'square', 0.07),
-  coin: () => { beep(988, 988, 0.05, 'square', 0.05); beep(1319, 1319, 0.18, 'square', 0.05, 0.05); },
-  stomp: () => { beep(500, 180, 0.12, 'square', 0.08); RB.pad.rumble(60, 0.3); },
-  kick: () => beep(700, 300, 0.1, 'square', 0.08),
-  bump: () => beep(160, 120, 0.08, 'triangle', 0.12),
-  brick: () => { RB.noise(0.18, 0.25); beep(300, 80, 0.15, 'square', 0.05); },
-  sprout: () => [392, 494, 587, 784].forEach((f, i) => beep(f, f, 0.07, 'triangle', 0.06, i * 0.05)),
-  power: () => [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, f * 1.02, 0.08, 'square', 0.05, i * 0.06)),
-  shrink: () => [784, 587, 440, 330].forEach((f, i) => beep(f, f, 0.08, 'square', 0.05, i * 0.07)),
-  oneUp: () => [659, 784, 1319, 1047, 1175, 1568].forEach((f, i) => beep(f, f, 0.08, 'square', 0.05, i * 0.08)),
-  spark: () => beep(1200, 500, 0.1, 'triangle', 0.06),
-  gem: () => [880, 1109, 1319, 1760].forEach((f, i) => beep(f, f, 0.09, 'sine', 0.08, i * 0.06)),
-  key: () => [523, 784, 1047, 1568, 2093].forEach((f, i) => beep(f, f, 0.12, 'sine', 0.08, i * 0.09)),
-  spring: () => beep(200, 900, 0.25, 'sine', 0.1),
-  hurt: () => beep(400, 100, 0.3, 'sawtooth', 0.06),
-  die: () => [523, 494, 466, 440, 392, 349, 330, 262].forEach((f, i) => beep(f, f, 0.12, 'square', 0.05, i * 0.11)),
-  goal: () => [523, 659, 784, 1047, 784, 1047, 1319, 1568].forEach((f, i) => beep(f, f, 0.14, 'square', 0.05, i * 0.12)),
-  mid: () => [784, 988, 1175].forEach((f, i) => beep(f, f, 0.1, 'triangle', 0.07, i * 0.08)),
-  bossHit: () => { beep(300, 60, 0.4, 'sawtooth', 0.1); RB.noise(0.3, 0.3); RB.pad.rumble(200, 0.7); },
-  fire: () => RB.noise(0.12, 0.08),
-  enter: () => [392, 523, 659, 784].forEach((f, i) => beep(f, f, 0.08, 'triangle', 0.07, i * 0.05)),
-  step: () => beep(600, 600, 0.03, 'square', 0.025),
-  spin: () => beep(400, 1200, 0.18, 'triangle', 0.06),
-  reserve: () => [880, 660, 990, 1320].forEach((f, i) => beep(f, f, 0.08, 'square', 0.04, i * 0.05)),
-  pipe: () => { beep(520, 260, 0.12, 'square', 0.06); beep(390, 190, 0.12, 'square', 0.06, 0.13); beep(260, 130, 0.16, 'square', 0.06, 0.26); },
-  pickup: () => { beep(300, 500, 0.08, 'square', 0.05); beep(500, 700, 0.08, 'square', 0.04, 0.06); },
-  twirl: () => { beep(520, 1500, 0.22, 'triangle', 0.06); beep(780, 2000, 0.18, 'sine', 0.035, 0.06); RB.noise(0.16, 0.05); },
-  pound: () => { RB.noise(0.25, 0.35); beep(140, 50, 0.25, 'sine', 0.2); },
-  highJump: () => { beep(260, 900, 0.3, 'triangle', 0.08); beep(520, 1400, 0.25, 'sine', 0.04, 0.05); },
-  throwHat: () => beep(500, 1000, 0.16, 'triangle', 0.07),
-  catchHat: () => beep(1100, 1500, 0.07, 'sine', 0.06),
+  jump: () => { tone(320, 760, 0.14, 'square', 0.045, 0, { cut: 3200 }); tone(640, 1500, 0.1, 'triangle', 0.02); },
+  bigJump: () => { tone(240, 620, 0.17, 'square', 0.05, 0, { cut: 2600 }); tone(480, 1240, 0.12, 'triangle', 0.02); },
+  coin: () => { tone(988, 988, 0.07, 'square', 0.04, 0, { cut: 6000 }); tone(1319, 1319, 0.34, 'square', 0.035, 0.07, { cut: 5000 }); },
+  stomp: () => { tone(620, 140, 0.11, 'square', 0.06, 0, { cut: 2200 }); puffNoise(0.09, 0.14, 700, 'lowpass'); RB.pad.rumble(60, 0.3); },
+  kick: () => { puffNoise(0.06, 0.16, 1800); tone(820, 280, 0.09, 'square', 0.05, 0, { cut: 2500 }); },
+  bump: () => { tone(190, 110, 0.1, 'triangle', 0.13); puffNoise(0.05, 0.08, 500, 'lowpass'); },
+  brick: () => { puffNoise(0.28, 0.24, 1100, 'bandpass', 0, 300); tone(420, 90, 0.2, 'square', 0.04, 0, { cut: 1500 }); for (let i = 1; i < 4; i++) puffNoise(0.05, 0.08, 2400, 'bandpass', 0.06 * i + 0.04); },
+  sprout: () => arp([392, 523, 659, 784, 1047], 0.05, 0.12, 'triangle', 0.06, { vib: 0.01 }),
+  power: () => { arp([523, 659, 784, 1047, 1319, 1568, 2093], 0.055, 0.14, 'square', 0.04, { cut: 4000 }); arp([1047, 1568, 2093], 0.12, 0.3, 'sine', 0.03); },
+  shrink: () => arp([988, 784, 587, 440, 330, 247], 0.07, 0.11, 'square', 0.045, { cut: 2500 }),
+  oneUp: () => arp([659, 784, 1319, 1047, 1175, 1568], 0.085, 0.12, 'square', 0.045, { cut: 5000 }),
+  spark: () => { tone(1500, 520, 0.12, 'triangle', 0.06); puffNoise(0.08, 0.05, 4000, 'highpass'); },
+  gem: () => { arp([880, 1109, 1319, 1760, 2217], 0.06, 0.4, 'sine', 0.07); arp([1760, 2637], 0.15, 0.3, 'triangle', 0.02); },
+  key: () => { arp([523, 659, 784, 1047, 1319, 1568, 2093, 2637], 0.07, 0.5, 'sine', 0.06, { vib: 0.006 }); },
+  spring: () => tone(150, 950, 0.32, 'sine', 0.12, 0, { vib: 0.06 }),
+  hurt: () => { tone(500, 110, 0.32, 'sawtooth', 0.05, 0, { cut: 1600 }); puffNoise(0.15, 0.08, 600, 'lowpass'); },
+  die: () => { arp([523, 494, 466, 440, 392, 349, 330, 262], 0.12, 0.14, 'square', 0.045, { cut: 2200 }); arp([262, 247, 233, 220, 196, 175, 165, 131], 0.12, 0.14, 'triangle', 0.05); },
+  goal: () => { arp([523, 659, 784, 1047, 784, 1047, 1319, 1568], 0.12, 0.16, 'square', 0.045, { cut: 4000 }); arp([262, 330, 392, 523, 392, 523, 659, 784], 0.12, 0.2, 'triangle', 0.06); tone(2093, 2093, 0.8, 'sine', 0.03, 0.96, { vib: 0.01 }); },
+  mid: () => arp([784, 988, 1175, 1568], 0.08, 0.16, 'triangle', 0.07),
+  bossHit: () => { tone(320, 60, 0.45, 'sawtooth', 0.08, 0, { cut: 1200 }); puffNoise(0.35, 0.3, 500, 'lowpass'); RB.pad.rumble(200, 0.7); },
+  fire: () => puffNoise(0.12, 0.08, 1400),
+  enter: () => arp([392, 523, 659, 784], 0.05, 0.1, 'triangle', 0.07),
+  step: () => tone(600, 600, 0.03, 'square', 0.022, 0, { cut: 3000 }),
+  spin: () => { tone(400, 1300, 0.2, 'triangle', 0.06); puffNoise(0.18, 0.05, 1500, 'bandpass', 0, 4000); },
+  reserve: () => arp([1319, 988, 1175, 1568], 0.05, 0.1, 'square', 0.035, { cut: 5000 }),
+  pipe: () => { for (let i = 0; i < 3; i++) tone(560 - i * 130, 280 - i * 65, 0.12, 'square', 0.055, i * 0.13, { cut: 2000 }); },
+  pickup: () => { tone(320, 520, 0.08, 'square', 0.045, 0, { cut: 3000 }); tone(520, 760, 0.08, 'square', 0.035, 0.06, { cut: 3000 }); },
+  twirl: () => { tone(520, 1600, 0.24, 'triangle', 0.06); tone(780, 2100, 0.2, 'sine', 0.03, 0.06); puffNoise(0.2, 0.05, 1200, 'bandpass', 0, 5000); },
+  pound: () => { puffNoise(0.3, 0.32, 400, 'lowpass'); tone(150, 45, 0.3, 'sine', 0.22); },
+  highJump: () => { tone(260, 950, 0.32, 'triangle', 0.08); tone(520, 1500, 0.26, 'sine', 0.035, 0.05); puffNoise(0.25, 0.05, 1000, 'bandpass', 0, 4000); },
+  throwHat: () => { tone(500, 1050, 0.16, 'triangle', 0.06); puffNoise(0.16, 0.05, 2000, 'bandpass', 0, 600); },
+  catchHat: () => tone(1100, 1600, 0.08, 'sine', 0.06),
 };
 
 // Music: little original jigs and reels (Irish dance tunes suit a leprechaun!). Each song is a list of
@@ -391,45 +432,62 @@ const music = (() => {
     if (!a) return null;
     if (!out) {
       out = a.createGain(); out.gain.value = RB.muted ? 0 : 0.55; out.connect(a.destination);
+      // a soft echo on the music, like a hall
+      const dl = a.createDelay(1), fb = a.createGain(), lp = a.createBiquadFilter(), wet = a.createGain();
+      dl.delayTime.value = 0.27; fb.gain.value = 0.25; lp.type = 'lowpass'; lp.frequency.value = 2200; wet.gain.value = 0.22;
+      out.connect(dl); dl.connect(lp).connect(fb).connect(dl); lp.connect(wet).connect(a.destination);
       RB.onMute(m => { out.gain.value = m ? 0 : 0.55; });
     }
     return out;
   }
-  function note(f, t, dur, type, vol, cutoff) {
+  function note(f, t, dur, type, vol, cutoff, vib = 0) {
     const a = ac(), o = a.createOscillator(), gn = a.createGain();
     o.type = type; o.frequency.value = f;
     let n = o;
-    if (cutoff) { const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = cutoff; o.connect(lp); n = lp; }
+    if (cutoff) { const lp = a.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.setValueAtTime(cutoff * 1.8, t); lp.frequency.exponentialRampToValueAtTime(cutoff, t + Math.min(dur, 0.2)); o.connect(lp); n = lp; }
+    if (vib && dur > 0.2) { const l = a.createOscillator(), lg = a.createGain(); l.frequency.value = 5.5; lg.gain.setValueAtTime(0, t); lg.gain.linearRampToValueAtTime(f * vib, t + dur * 0.6); l.connect(lg).connect(o.frequency); l.start(t); l.stop(t + dur + 0.05); }
     gn.gain.setValueAtTime(0.0001, t); gn.gain.exponentialRampToValueAtTime(vol, t + 0.012); gn.gain.exponentialRampToValueAtTime(0.0001, t + dur);
     n.connect(gn).connect(bus()); o.start(t); o.stop(t + dur + 0.03);
   }
-  function hat(t, vol) {
-    const a = ac(), len = 0.04, buf = a.createBuffer(1, Math.ceil(a.sampleRate * len), a.sampleRate), d = buf.getChannelData(0);
-    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
-    const src = a.createBufferSource(), f = a.createBiquadFilter(), gn = a.createGain();
-    src.buffer = buf; f.type = 'highpass'; f.frequency.value = 6000; gn.gain.value = vol;
-    src.connect(f).connect(gn).connect(bus()); src.start(t);
+  let noise = null;
+  function drum(t, kind, vol) {
+    const a = ac();
+    if (kind === 'kick') { const o = a.createOscillator(), gn = a.createGain(); o.frequency.setValueAtTime(130, t); o.frequency.exponentialRampToValueAtTime(42, t + 0.12);
+      gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + 0.16); o.connect(gn).connect(bus()); o.start(t); o.stop(t + 0.18); return; }
+    if (!noise) { noise = a.createBuffer(1, a.sampleRate * 0.3, a.sampleRate); const d = noise.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1; }
+    const src = a.createBufferSource(), f = a.createBiquadFilter(), gn = a.createGain(), len = kind === 'snare' ? 0.14 : 0.04;
+    src.buffer = noise; f.type = kind === 'snare' ? 'bandpass' : 'highpass'; f.frequency.value = kind === 'snare' ? 1800 : 7000;
+    gn.gain.setValueAtTime(vol, t); gn.gain.exponentialRampToValueAtTime(0.0001, t + len);
+    src.connect(f).connect(gn).connect(bus()); src.start(t); src.stop(t + len + 0.02);
   }
+  const lead = (s, f, t, d, v = 1) => {
+    if (s.lead === 'flute') { note(f, t, d, 'sine', 0.06 * v, 0, 0.012); note(f * 2, t, d * 0.5, 'sine', 0.01 * v); }
+    else if (s.lead === 'soft') note(f, t, d * 1.4, 'triangle', 0.06 * v, 0, 0.008);
+    else if (s.lead === 'reed') note(f, t, d, 'sawtooth', 0.022 * v, 1400, 0.01);
+    else { note(f, t, d, 'square', 0.026 * v, 2600); note(f * 1.005, t, d, 'square', 0.011 * v, 1800); }
+  };
   function tick() {
     const a = ac();
     if (!a || !song || !bus()) return;
-    const s = SONGS[song], st = 60 / s.bpm / 2;
+    const s = SONGS[song], st = 60 / s.bpm / 2, calm = s.mode !== 'major' && s.bpm < 115;
     while (nextT < a.currentTime + 0.25) {
-      const n = s.melody[step % s.melody.length], beatLen = s.beat;
+      const L = s.melody.length, n = s.melody[step % L], beatLen = s.beat, round = Math.floor(step / L);
       if (n !== null) {
         let len = 1;
-        while (len < 3 && s.melody[(step + len) % s.melody.length] === null) len++;
-        const f = hz(deg(s, n) + 12), d = st * len * 0.92;
-        if (s.lead === 'flute') { note(f, nextT, d, 'sine', 0.06); note(f * 2, nextT, d * 0.5, 'sine', 0.012); }
-        else if (s.lead === 'soft') note(f, nextT, d * 1.4, 'triangle', 0.06);
-        else if (s.lead === 'reed') note(f, nextT, d, 'sawtooth', 0.025, 1500);
-        else { note(f, nextT, d, 'square', 0.03, 2600); note(f * 1.004, nextT, d, 'square', 0.012, 2000); }
+        while (len < 3 && s.melody[(step + len) % L] === null) len++;
+        const d = st * len * 0.92;
+        lead(s, hz(deg(s, n) + 12), nextT, d);
+        if (round % 2 === 1) note(hz(deg(s, n + 2) + 12), nextT, d, 'triangle', 0.022);   // every other time round, a harmony a third above
       }
-      if (step % beatLen === 0) {
-        const bar = Math.floor(step / (beatLen * 2)) % s.bass.length;
-        note(hz(deg(s, s.bass[bar]) - 12), nextT, st * beatLen * 0.8, 'triangle', 0.09);
+      const bar = Math.floor(step / (beatLen * 2)) % s.bass.length, inBeat = step % beatLen, root = s.bass[bar];
+      if (inBeat === 0) {   // bass on the beat (and a kick), a chord on the off-beat: oom-pah
+        note(hz(deg(s, root) - 12), nextT, st * beatLen * 0.7, 'triangle', 0.1);
+        note(hz(deg(s, root) - 12), nextT, st * 0.6, 'square', 0.016, 600);
+        drum(nextT, 'kick', calm ? 0.12 : 0.22);
       }
-      if (beatLen === 3 ? step % 3 === 2 : step % 2 === 1) hat(nextT, 0.025);
+      if (inBeat === beatLen - 1 || (beatLen === 4 && inBeat === 2)) for (const k of [0, 2, 4]) note(hz(deg(s, root + k)), nextT, st * 0.9, 'triangle', 0.016, 2200);
+      if (!calm && step % (beatLen * 2) === beatLen) drum(nextT, 'snare', 0.06);   // the backbeat
+      if (beatLen === 3 ? step % 3 === 2 : step % 2 === 1) drum(nextT, 'hat', 0.022);
       nextT += st; step++;
     }
   }
@@ -571,8 +629,20 @@ function recallReserve() {
 function pause() {
   if (paused || state !== 'level') return;
   paused = true; for (const k in keys) keys[k] = false; fingers.clear(); touchUpdate();
-  RB.showPause(resume);
+  RB.showPause(resume, { extra: gameMenu() });
 }
+// Lucky Leo's own choices, in the pause screen and at the top of the ☰ menu: back to the map, try again, the title screen
+function gameMenu() {
+  const here = () => (outside ? outside.lvl.id : lvl && lvl.id);
+  const unpause = () => { if (paused) { paused = false; RB.hidePause(); last = performance.now(); } };
+  if (state === 'level') return [
+    { label: '🗺️ Back to the map', onClick: () => { unpause(); const id = here(); outside = null; goMap(id); } },
+    { label: '🔄 Start this level again', onClick: () => { unpause(); startLevel(here()); } },
+  ];
+  if (state === 'map') return [{ label: '🏁 Title screen', onClick: () => { state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showTouch(); music.play('map'); } }];
+  return [];
+}
+if (RB.setMenuItems) RB.setMenuItems(gameMenu);
 function resume() { paused = false; RB.hidePause(); last = performance.now(); }
 RB.topbar({
   onPause: () => (paused ? resume() : pause()),
@@ -1311,7 +1381,8 @@ let state = 'title';      // 'title' → 'map' → 'level' (→ back to 'map') �
 let lvl = null;           // the level: tiles copied so blocks can change
 let ents = [], parts = [], pops = [];   // enemies and items; particles; floating score numbers
 let player = null, camX = 0, clock = 0, lives = 5, coins = 0, score = 0, checkpoint = null, levelGems = [], gotKey = false;
-let outside = null, pipe = null;   // the level we came from while in a hollow tree, and the going-down-a-log animation
+let outside = null, pipe = null;
+const tries = {};   // deaths in each level since it was last cleared: after a few, Leo gets a helping hand   // the level we came from while in a hollow tree, and the going-down-a-log animation
 let phase = 'play', phaseT = 0, reserve = null, bumps = [], bossDown = false, camLead = 0.4;
 const tileAt = (tx, ty) => {
   if (!lvl) return 0;
@@ -1325,6 +1396,14 @@ const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h 
 // moving through the tiles, one axis at a time. Returns what it hit.
 function moveX(a, dx) {
   a.x += dx; a.wall = 0;
+  if (a === player && dx) {   // feet only just below the top of the block in the way (a few pixels)? step up onto it, like Mario
+    const tx = Math.floor((dx > 0 ? a.x + a.w - 0.01 : a.x) / TS), fy = Math.floor((a.y + a.h - 0.01) / TS), top = fy * TS;
+    if (SOLID.has(tileAt(tx, fy)) && a.y + a.h - top <= 4 && a.vy >= 0) {
+      const y0 = Math.floor((top - a.h) / TS), y1 = Math.floor((top - 0.01) / TS);
+      let free = true; for (let ty = y0; ty <= y1; ty++) if (SOLID.has(tileAt(tx, ty))) free = false;
+      if (free) a.y = top - a.h;
+    }
+  }
   const y0 = Math.floor(a.y / TS), y1 = Math.floor((a.y + a.h - 0.01) / TS);
   if (dx > 0) {
     const tx = Math.floor((a.x + a.w - 0.01) / TS);
@@ -1347,6 +1426,11 @@ function moveY(a, dy) {
     }
   } else if (dy < 0) {
     const ty = Math.floor(a.y / TS);
+    if (a === player && x0 !== x1) {   // only clipping a corner by a few pixels? slide round it instead of bonking
+      const s0 = SOLID.has(tileAt(x0, ty)), s1 = SOLID.has(tileAt(x1, ty));
+      if (s0 && !s1 && (x0 + 1) * TS - a.x <= 5 && !SOLID.has(tileAt(x1 + (a.x + a.w > (x1 + 1) * TS ? 1 : 0), ty))) { a.x = (x0 + 1) * TS; return; }
+      if (s1 && !s0 && a.x + a.w - x1 * TS <= 5) { a.x = x1 * TS - a.w; return; }
+    }
     // the block nearest the middle of the head is the one that gets bumped
     const cx = Math.floor((a.x + a.w / 2) / TS), order = [cx, ...[x0, x1].filter(x => x !== cx)];
     for (const tx of order) {
@@ -1376,6 +1460,9 @@ function startLevel(id, fromCheck = false) {
   const startX = checkpoint ? checkpoint.x : 3 * TS;
   player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null };
   if (checkpoint) setForm(1);
+  const n = tries[id] || 0;
+  if (n >= 3 && player.form === 0) { setForm(1); banner('A LUCKY CLOVER!', 'A little help after a few tries 🍀'); }
+  if (n >= 6) player.star = 6;   // and a few seconds of rainbow power to get past the tricky bit
   // drop Leo onto the ground at the start
   const stx = Math.floor((player.x + 6) / TS);
   for (let ty = 2; ty < lvl.h; ty++) if (SOLID.has(tileAt(stx, ty)) && !SOLID.has(tileAt(stx, ty - 1))) { player.y = ty * TS - player.h; break; }
@@ -1423,6 +1510,7 @@ function hurtPlayer() {
 function killPlayer() {
   if (phase !== 'play') return;
   phase = 'dying'; phaseT = 0; player.vy = -300; player.vx = 0;
+  const lid = (outside && outside.lvl.id) || lvl.id; tries[lid] = (tries[lid] || 0) + 1;
   music.stop(); sfx.die(); RB.pad.rumble(300, 0.8);
 }
 function addScore(n, x, y) { score += n; if (x !== undefined) pops.push({ x, y, t: 0, txt: String(n) }); }
@@ -1741,7 +1829,7 @@ function updateCap(e, dt) {
     if (e.wall || Math.hypot(e.vx, e.vy || 0) < 40) { e.st = 'hover'; e.hoverT = 0; }
   } else if (e.st === 'hover') {
     e.hoverT += dt; e.y += Math.sin(e.hoverT * 12) * 0.15;
-    if (e.hoverT > 0.35) e.st = 'back';
+    if (e.hoverT > ((keys.hat || touchState.hat) && !e.bounced ? 2 : 0.6)) e.st = 'back';   // hold the hat button to keep it hovering (like Mario Odyssey)
   } else {
     const tx = p.x + p.w / 2 - 6, ty = p.y + 2, dx = tx - e.x, dy = ty - e.y, d = Math.hypot(dx, dy);
     const sp = 320 * dt;
@@ -1756,7 +1844,8 @@ function updateCap(e, dt) {
   }
   for (const [tx, ty] of [[Math.floor((e.x + 3) / TS), Math.floor((e.y + 4) / TS)], [Math.floor((e.x + 9) / TS), Math.floor((e.y + 4) / TS)]]) if (tileAt(tx, ty) === T.COIN) { setTile(tx, ty, 0); getCoin(tx * TS, ty * TS); }
   if (!e.bounced && e.st !== 'back' && p.vy > 0 && p.y + p.h <= e.y + 6 && p.y + p.h >= e.y - 6 && p.x + p.w > e.x - 2 && p.x < e.x + e.w + 2 && phase === 'play') {
-    p.vy = -360; p.y = e.y - p.h; e.bounced = true; e.st = 'back'; sfx.spring(); puff(e.x + 6, e.y + 4, 3); p.pound = null;
+    p.vy = (keys.jump || touchState.jump) ? -420 : -360; p.y = e.y - p.h; e.bounced = true; e.st = 'back'; sfx.spring(); puff(e.x + 6, e.y + 4, 3); p.pound = null;
+    p.spun = false; p.flip = 0;   // and a fresh spin, for an extra bit of height after the bounce
   }
 }
 const touchPlayerAs = o => { const keep = { x: player.x, y: player.y }; player.x = o.x; player.y = o.y; touchPlayer(o); player.x = keep.x; player.y = keep.y; };
@@ -1891,7 +1980,7 @@ let shake = 0, bannerT = 0, bannerText = ['', ''];
 function banner(a, b = '', time = 2.6) { bannerText = [a, b]; bannerT = time; }
 function reachGoal() {
   if (phase !== 'play') return;
-  phase = 'clear'; phaseT = 0;
+  phase = 'clear'; phaseT = 0; tries[lvl.id] = 0;
   // the higher you break the rainbow tape, the more stars
   const tapeY = goalTapeY(), frac = clamp(1 - (tapeY - 32) / (11 * TS - 32), 0, 1);
   const hitTape = player.y < tapeY + 8 && player.y + player.h > tapeY - 4;

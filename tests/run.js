@@ -975,7 +975,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo.png');
   });
 
-  await test('Lucky Leo moves: high jump (crouch + jump), spin jump, ground pound, and the boomerang hat (knocks out enemies, comes back, bounce on it)', async () => {
+  await test('Lucky Leo moves: high jump (crouch + jump), spin jump, corner and ledge help, ground pound, and the boomerang hat (knocks out enemies, comes back, bounce on it)', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
@@ -986,6 +986,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const spinH = twice => { startLevel('hills'); player.x = 6 * 16; run(10); ents = ents.filter(e => !isEnemy(e)); const y0 = player.y; let top = y0, spins = 0, tw = false;
         pressed.jump = true; keys.jump = true; run(90, i => { top = Math.min(top, player.y); if ((i === 22 || (twice && i === 40)) ) { pressed.jump = true; } if (player.twirl > 0 && !tw) spins++; tw = player.twirl > 0; }); keys.jump = false; run(60); return { h: y0 - top, spins, landed: player.ground && !player.spun }; };
       out.spin = spinH(false); out.spin2 = spinH(true);
+      // corner forgiveness: a jump that only clips the edge of a block slides round it
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 12 * 16 - player.w + 3; run(10);
+      let top = player.y; pressed.jump = true; keys.jump = true; run(50, () => { top = Math.min(top, player.y); }); keys.jump = false; run(40);
+      out.corner = top < 8 * 16 - 4;
+      // ledge help: falling just short of the top of a step, walking into it steps up
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 60 * 16 - player.w - 1; player.y = 11 * 16 - player.h + 3; player.vy = 20; player.vx = 90; player.ground = false;
+      keys.right = true; run(3); keys.right = false; out.ledge = player.y + player.h <= 11 * 16 + 0.5;
       startLevel('hills'); const gob = ents.find(e => e.k === 'grumblin'); player.x = gob.x; player.y = gob.y - 50; player.vy = 0; run(2); pressed.down = true; run(40);
       out.poundGob = !!gob.flip;
       startLevel('hills'); player.x = 12 * 16 + 2; player.y = 5 * 16; player.vy = 0; run(2); pressed.down = true; run(50);
@@ -1001,6 +1008,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(r.high > r.jump * 1.6, 'the high jump should go much higher: ' + JSON.stringify(r));
     check(r.spin.h > r.jump + 10 && r.spin.h < r.high && r.spin.spins === 1 && r.spin.landed, 'a spin at the top should go a little higher: ' + JSON.stringify(r));
+    check(r.corner && r.ledge, 'corner and ledge forgiveness (like Mario): ' + JSON.stringify(r));
     check(r.spin2.spins === 1 && Math.abs(r.spin2.h - r.spin.h) < 3, 'only one spin a jump: ' + JSON.stringify(r));
     check(r.poundGob && r.poundBlock, 'a ground pound should flatten a goblin and bump the clover block below: ' + JSON.stringify(r));
     check(r.thrown && r.hatHit && r.hatBack && r.capBounce, 'the hat should fly, knock out a goblin, come back, and be bounced on: ' + JSON.stringify(r));
@@ -1053,6 +1061,24 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(!g.pound && !g.crouch, 'running down-right with the stick should not ground pound or crouch: ' + JSON.stringify(g));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
+  });
+
+  await test('Lucky Leo: the ☰ menu and pause screen go back to the map, start the level again, and back to the title', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(() => { startGame(); startLevel('woods'); });
+    await p.click('#btnMenu'); await p.waitForTimeout(150);
+    const labels = await p.$$eval('.rb-menu-this button', bs => bs.map(b => b.textContent));
+    await p.click('.rb-menu-this [data-g="1"]'); await p.waitForTimeout(150);
+    const again = await p.evaluate(() => ({ state, id: lvl.id, menu: !!document.querySelector('.rb-menu') }));
+    await p.evaluate(() => pause()); await p.waitForTimeout(100);
+    await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
+    const map = await p.evaluate(() => ({ state, paused, pause: !!document.querySelector('.rb-pause') }));
+    await p.click('#btnMenu'); await p.waitForTimeout(150); await p.click('.rb-menu-this [data-g="0"]'); await p.waitForTimeout(150);
+    const title = await p.evaluate(() => ({ state, shown: !document.getElementById('title').classList.contains('hidden') }));
+    check(labels.some(l => /map/.test(l)) && again.state === 'level' && again.id === 'woods' && !again.menu, 'menu: start the level again: ' + JSON.stringify({ labels, again }));
+    check(map.state === 'map' && !map.paused && !map.pause, 'pause screen: back to the map: ' + JSON.stringify(map));
+    check(title.state === 'title' && title.shown, 'menu on the map: back to the title: ' + JSON.stringify(title));
+    await done(p);
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {

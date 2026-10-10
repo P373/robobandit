@@ -248,7 +248,9 @@ const RB = (() => {
     ['preschool/abc-train.html', '🚂', 'ABC Train'],
   ];
   const FOLDERS = [['preschool/index.html', '🧸', 'Preschool'], ['2nd-grade/index.html', '✏️', '2nd Grade'], ['5th-grade/index.html', '🎒', '5th Grade']];
-  let menuEl = null, menuShare = null;
+  let menuEl = null, menuShare = null, gameItems = null;
+  // a game can add its own buttons at the top of the menu (e.g. Back to the map): setMenuItems(() => [{ label, onClick }])
+  function setMenuItems(fn) { gameItems = fn; }
   function menuButton(bar) {
     if (bar.querySelector('.rb-menubtn')) return;
     const b = document.createElement('button');
@@ -269,11 +271,14 @@ const RB = (() => {
       const href = SITE_ROOT + url, cur = here === href || (url.endsWith('index.html') && here === href.replace(/index\.html$/, ''));
       return `<a class="${cls}${cur ? ' cur' : ''}" href="${href}"><span>${icon}</span>${name}${cur ? '<small>playing now</small>' : ''}</a>`;
     };
+    let items = [];
+    try { items = (gameItems && gameItems()) || []; } catch (e) { items = []; }
     menuEl = document.createElement('div');
     menuEl.className = 'rb-menu';
     menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="RoboBandit menu">
       <div class="rb-menu-head"><a href="${SITE_HOME}" class="rb-menu-logo" data-pad-home><img src="${SITE_ROOT}favicon.svg" alt="">ROBOBANDIT</a>
         <button type="button" class="rb-menu-x" title="Close (Esc)">✕</button></div>
+      ${items.length ? `<h3>⭐ This game</h3><div class="rb-menu-set rb-menu-this">${items.map((x, i) => `<button type="button" data-g="${i}">${x.label}</button>`).join('')}</div>` : ''}
       <h3>🎮 Games</h3><div class="rb-menu-games">${GAMES.map(g => link(g, 'rb-menu-game')).join('')}</div>
       <h3>📚 School folders</h3><div class="rb-menu-games">${FOLDERS.map(g => link(g, 'rb-menu-game')).join('')}</div>
       <h3>⚙️ Settings</h3><div class="rb-menu-set">
@@ -286,6 +291,7 @@ const RB = (() => {
       <button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button></div>`;
     menuEl.addEventListener('pointerdown', e => { e.stopPropagation(); if (e.target === menuEl) closeMenu(); });
     menuEl.querySelector('.rb-menu-x').addEventListener('click', closeMenu);
+    menuEl.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { closeMenu(); items[+b.dataset.g].onClick(); }));
     menuEl.querySelector('.rb-menu-back').addEventListener('click', closeMenu);
     menuEl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => dispatchEvent(new Event('rb-leave'))));
     menuEl.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
@@ -753,7 +759,7 @@ const RB = (() => {
   }
 
   return {
-    touch, store, audio, pad, beep, noise, ambient, setMuted,
+    touch, store, audio, pad, beep, noise, ambient, setMuted, setMenuItems,
     get muted() { return muted; },
     toggleMute: () => { audio(); setMuted(!muted); },
     onMute: f => muteHooks.push(f),
