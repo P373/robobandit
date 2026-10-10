@@ -18,10 +18,18 @@ const RB = (() => {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
       ac = new AC();
+      // iPads and iPhones can stop the sound by themselves ("interrupted": a call, another app, the device voice
+      // speaking, the screen locking). Whenever that happens, start it again as soon as the browser lets us.
+      ac.onstatechange = () => { if (ac.state !== 'running' && ac.state !== 'closed' && !pauseEl && !document.hidden) setTimeout(wake, 300); };
     }
-    if (ac.state === 'suspended' && !pauseEl) ac.resume();   // phones start audio suspended until a tap (but stay quiet while paused)
+    wake();
     return ac;
   }
+  // phones start audio suspended until a tap; Safari also has an "interrupted" state. Either way: back on (but stay quiet while paused)
+  function wake() { if (ac && ac.state !== 'running' && ac.state !== 'closed' && !pauseEl) { try { const p = ac.resume(); if (p && p.catch) p.catch(() => {}); } catch (e) { /* not allowed yet */ } } }
+  // every tap, click or key is a chance to wake the sound up again (browsers only allow it after a touch)
+  for (const ev of ['pointerdown', 'touchend', 'keydown']) addEventListener(ev, wake, { capture: true, passive: true });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
   function beep(f1, f2, dur, type = 'triangle', vol = 0.12, delay = 0) {
     if (muted || !audio()) return;
     const t = ac.currentTime + delay, o = ac.createOscillator(), g = ac.createGain();
@@ -163,6 +171,7 @@ const RB = (() => {
             const src = ac.createBufferSource(), g = ac.createGain();
             src.buffer = bufs[i]; src.playbackRate.value = rate; g.gain.value = 1;
             src.connect(g).connect(ac.destination); src.onended = ok; rec.src = src;
+            setTimeout(ok, (bufs[i].duration / rate) * 1000 + 900);   // (if the sound was cut off, don't stay "speaking" for ever)
             src.start(ac.currentTime + (i ? 0.12 : 0.02));
           });
         }

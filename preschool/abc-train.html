@@ -101,7 +101,7 @@
   #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
   .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
 </style>
-<link rel="stylesheet" href="../common.css?v=20261010-1502">
+<link rel="stylesheet" href="../common.css?v=20261010-1743">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -131,8 +131,8 @@
 </div>
 
 <script src="../vendor/three.min.js"></script>
-<script src="../orbit-cam.js?v=20261010-1502"></script>
-<script src="../common.js?v=20261010-1502"></script>
+<script src="../orbit-cam.js?v=20261010-1743"></script>
+<script src="../common.js?v=20261010-1743"></script>
 <script>
 'use strict';
 // ===================== ABC Train =====================
@@ -1490,6 +1490,7 @@ const music = (() => {
     const ac = RB.audio();
     if (!ac || !out) return;
     const quiet = !on || RB.muted || document.hidden || document.querySelector('.rb-menu') || state === 'party';
+    if (ac.state !== 'running' && !quiet && !document.hidden) { try { ac.resume().catch(() => {}); } catch (e) { /* needs a tap */ } }   // the sound was stopped by the device: try to get it back
     out.gain.setTargetAtTime(quiet ? 0 : RB.voice.speaking ? 0.35 : 1, ac.currentTime, 0.15);   // duck under the voice
     if (nextT < ac.currentTime) nextT = ac.currentTime + 0.05;
     while (nextT < ac.currentTime + 0.25) {
