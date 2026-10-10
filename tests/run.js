@@ -997,11 +997,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.poundGob = !!gob.flip;
       startLevel('hills'); player.x = 12 * 16 + 2; player.y = 5 * 16; player.vy = 0; run(2); pressed.down = true; run(50);
       out.poundBlock = tileAt(12, 8) === T.USED;
-      startLevel('hills'); const g2 = ents.find(e => e.k === 'grumblin'); player.x = g2.x - 60; player.face = 1; run(2); pressed.hat = true; run(1);
+      startLevel('hills'); setForm(3); const g2 = ents.find(e => e.k === 'grumblin'); player.x = g2.x - 60; player.face = 1; run(2); pressed.hat = true; run(1);
       out.thrown = player.hatless && ents.some(e => e.k === 'cap');
       run(30); out.hatHit = !!g2.flip;
       run(120); out.hatBack = !player.hatless && !ents.some(e => e.k === 'cap');
-      startLevel('hills'); player.x = 8 * 16; run(10); pressed.hat = true; run(1); keys.jump = true; pressed.jump = true; run(18); keys.jump = false;
+      startLevel('hills'); setForm(3); player.x = 8 * 16; run(10); pressed.hat = true; run(1); keys.jump = true; pressed.jump = true; run(18); keys.jump = false;
       const cap = ents.find(e => e.k === 'cap');
       if (cap) { cap.st = 'hover'; cap.hoverT = 0; player.x = cap.x; player.y = cap.y - player.h - 2; player.vy = 80; run(3); out.capBounce = !!cap.bounced && player.vy < -200; }
       paused = false; return out;
@@ -1050,9 +1050,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const ex = ents.find(e => e.k === 'exit'); player.x = ex.x + 10; player.y = ex.y - 30; run(40); keys.down = true; run(60); keys.down = false; run(60);
       out.back = lvl.id === 'hills' && Math.abs(player.x / 16 - w.out[0]) < 2 && player.ground && phase === 'play';
       // the hat: thrown up while looking up, and low along the ground while crouching
-      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 6 * 16; run(20);
+      startLevel('hills'); setForm(3); ents = ents.filter(e => !isEnemy(e)); player.x = 6 * 16; run(20);
       keys.up = true; pressed.hat = true; run(1); const capU = ents.find(e => e.k === 'cap'); out.capUp = !!capU && capU.vy < -200; keys.up = false; run(120);
-      setForm(1); run(5); keys.down = true; downFrom = 'KeyS'; run(3); pressed.hat = true; run(1); const capL = ents.find(e => e.k === 'cap');
+      setForm(3); run(5); keys.down = true; downFrom = 'KeyS'; run(3); pressed.hat = true; run(1); const capL = ents.find(e => e.k === 'cap');
       out.capLow = !!capL && capL.low && capL.y > player.y + player.h - 12; keys.down = false; run(120);
       paused = false; return out;
     });
@@ -1172,6 +1172,49 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.ate && r.smoosh && r.shortLaser, 'Shamrock eats three enemies and poops, the poop smooshes, and the laser is short: ' + JSON.stringify(r));
     check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
     await done(p);
+  });
+
+  await test('Lucky Leo: the hat throw is the magic hat power-up, wall kicks, and King Grumbles is hurt by thrown shells, sparks, the hat and the laser (not springs)', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); keep = { form: 0, mount: false }; startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); run(20);
+      // no magic hat: no throw
+      pressed.hat = true; run(1); out.noThrow = !ents.some(e => e.k === 'cap') && !player.hatless;
+      // the magic hat block (C) next to the clover block in Clover Hills
+      player.x = 16 * 16 + 2; player.vx = 0; run(10); keys.jump = true; pressed.jump = true; run(20); keys.jump = false; run(90);
+      const mh = ents.find(e => e.k === 'magichat'); out.sprouted = !!mh;
+      if (mh) touchPlayerAs(mh);
+      out.form = player.form;
+      pressed.hat = true; run(1); out.throws = ents.some(e => e.k === 'cap'); run(150);
+      hurtPlayer(); out.afterHit = player.form; player.inv = 0; run(5); pressed.hat = true; run(1); out.noThrowAfter = !ents.some(e => e.k === 'cap');
+      // the wall kick: a tall wall, Leo falling beside it holding towards it slides, then kicks off up and away
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e));
+      for (let y = 2; y <= 11; y++) setTile(30, y, T.STONE);
+      player.x = 30 * 16 - player.w - 0.5; player.y = 3 * 16; player.vy = 60; player.ground = false; keys.right = true; run(12);
+      out.slide = player.slide === 1 && player.vy <= 75;
+      keys.right = false; const x0 = player.x; pressed.jump = true; run(1); out.kickV = [Math.round(player.vx), Math.round(player.vy)];
+      run(12); out.kick = player.vx < -100 && player.x < x0 - 20 && player.y < 3 * 16;
+      // King Grumbles on Provincetown Pier (five hits)
+      startLevel('ptown'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss');
+      const boss = ents.find(e => e.k === 'boss'); player.x = 168 * 16; run(30);
+      const hold = () => { boss.hurt = 0; boss.vy = 0; boss.jumpT = 9; boss.throwT = 9; boss.y = 12 * 16 - boss.h; boss.x = 178 * 16; boss.dir = 1; ents = ents.filter(e => e.k !== 'acorn'); };
+      const hits = {};
+      hold(); let hp = boss.hp; ents.push(mk('spring', boss.x + 4, boss.y + boss.h - 16, { w: 16, h: 16, squash: 0 })); run(2); hits.spring = boss.hp === hp;
+      ents = ents.filter(e => e.k !== 'spring');
+      hold(); hp = boss.hp; ents.push(mk('spark', boss.x + 8, boss.y + 10, { vx: 230, vy: 0, w: 6, h: 6 })); run(1); hits.spark = boss.hp === hp - 1;
+      hold(); hp = boss.hp; ents.push(mk('shell', boss.x - 16, boss.y + boss.h - 14, { vx: 240, w: 14, h: 14 })); run(6); hits.shell = boss.hp === hp - 1;
+      hold(); hp = boss.hp; setForm(3); player.hatless = true; ents.push(mk('cap', boss.x + 8, boss.y + 10, { vx: 200, w: 12, h: 9, st: 'out', dir: 1 })); run(1); hits.hat = boss.hp === hp - 1;
+      hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
+      out.hits = hits; out.hpLeft = boss.hp;
+      paused = false; return out;
+    });
+    check(r.noThrow, 'without the magic hat, Leo keeps his hat on: ' + JSON.stringify(r));
+    check(r.sprouted && r.form === 3 && r.throws, 'the magic hat block gives the hat throw: ' + JSON.stringify(r));
+    check(r.afterHit === 1 && r.noThrowAfter, 'a hit takes the magic hat away: ' + JSON.stringify(r));
+    check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
+    check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 1, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
+    await done(p, 'lucky-leo-magic-hat.png');
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
