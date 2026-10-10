@@ -112,17 +112,13 @@ const music = (() => {
 })();
 
 // ---------- Read aloud ----------
-const canSpeak = 'speechSynthesis' in window;
+// the nicest voice on the device, chosen in common.js (RB.voice); parents can pick another in the ☰ menu
+const canSpeak = RB.voice.ok;
 function speak(text, force = false) {
   if (!canSpeak || (!force && (RB.muted || !settings.autoRead))) return;
-  try {
-    speechSynthesis.cancel();
-    const u = new SpeechSynthesisUtterance(text.replace(/[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}]/gu, ''));
-    u.rate = 0.95; u.pitch = 1.1;
-    speechSynthesis.speak(u);
-  } catch (e) { /* speech isn't available */ }
+  RB.speak(text);
 }
-function hush() { if (canSpeak) try { speechSynthesis.cancel(); } catch (e) { /* ignore */ } }
+function hush() { RB.hush(); }
 function onFact(s) { if (settings.autoRead && settings.mode === 'toddler') speak(s); }
 
 // ---------- Input ----------

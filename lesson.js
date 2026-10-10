@@ -264,14 +264,12 @@ const School = (() => {
     drawDia(dd => fn(dd, diaT));
   }
 
+  // read aloud with the nicest voice on the device (see RB.voice in common.js); pressing again stops it
   function speak(s) {
-    if (!('speechSynthesis' in window)) return;
-    if (speechSynthesis.speaking) { speechSynthesis.cancel(); return; }
-    const u = new SpeechSynthesisUtterance(s);
-    u.rate = 0.95;
-    speechSynthesis.speak(u);
+    if (RB.voice.speaking) { RB.hush(); return; }
+    RB.speak(s);
   }
-  function quiet() { if ('speechSynthesis' in window && speechSynthesis.speaking) speechSynthesis.cancel(); }
+  function quiet() { RB.hush(); }
 
   function startQuiz() {
     quiz = shuffle(item().quiz).slice(0, QUIZ_LEN).map(q => ({ ...q, opts: shuffle(q.a.map((s, k) => ({ s, right: k === 0 }))) }));

@@ -9,7 +9,7 @@ Space Wars draws its fake 3D by hand on a 2D canvas (about 3,700 lines, six worl
    homing shots, enemy waves. It gains the most from real 3D.
 3. Then the trench run and the pod race (3D chases), then the rest; swap over when all six are ported and tested.
 
-At the same time, replace the Star Wars names (Death Star, X-wing, TIE fighter, Millennium Falcon, Endor, Hoth,
-Tatooine, real podracer pilots: about 126 mentions) with our own ships, planets and racers that have the same feel:
-a trench run on a giant battle station, a forest speeder chase, an ice-planet battle, a desert pod race.
-This can also be done on its own, before any rebuild.
+Done (October 2026): the movie names are gone. The worlds are now the Doom Moon trench run, the Forest Moon of
+Verda, the Ice Planet Frostal, the Dunara rocket race, a Spike fighter dogfight and the Comet Runner escape.
+The world `key`s (deathstar, endor, ...) and the `xw_*` save keys stay as internal names: the keys name the
+pictures in thumbs/ and the save keys keep everyone's progress.

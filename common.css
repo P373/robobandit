@@ -73,3 +73,8 @@
   font: 700 16px system-ui, sans-serif; text-align: center; pointer-events: none; opacity: 0; transition: opacity .25s;
 }
 .rb-toast.on { opacity: 1; }
+
+/* the read-aloud voice chooser in the ☰ menu */
+.rb-voicebox h3 { margin-top: 14px; }
+.rb-menu-set .on { border-color: #ffd84a; background: #2a3466; }
+.rb-voice-tip { margin: 8px 0 0; font-size: 13px; color: #a9b6d3; }

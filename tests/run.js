@@ -525,6 +525,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await g2.evaluate(() => { localStorage.setItem('rb_g2_math', JSON.stringify({ stars: { place: 3, addsub: 1 } })); render(); });
     check((await g2.textContent('#subjects')).includes('4 of 21 stars'), '2nd grade saved stars not shown');
     await done(g2, '2nd-grade.png');
+    const pre = await open(browser, 'preschool/index.html');
+    const games = await pre.$$eval('.subject', els => els.map(e => e.getAttribute('href')));
+    check(games.length >= 1 && games.every(g => fs.existsSync(path.join(ROOT, 'preschool', g))), 'preschool games: ' + games.join(' '));
+    await done(pre, 'preschool.png');
   });
 
   // Each 5th and 2nd grade subject: every slide's picture draws, every quiz can be aced, and every game can be won.
@@ -848,7 +852,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
     }
@@ -858,7 +862,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 12 && m.cur.includes('Witch Way Out'), 'the menu should list 9 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 13 && m.cur.includes('Witch Way Out'), 'the menu should list 10 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('p'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
@@ -1038,12 +1042,84 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ph.close();
   });
 
+  await test('ABC Train: drives to A, the animal hops on, 4 animals go to the park, Find the letter, tap an animal, phone buttons', async () => {
+    const p = await open(browser, 'preschool/abc-train.html', { viewport: { width: 1000, height: 620 } });
+    await p.evaluate(() => { localStorage.removeItem('abc_train'); save.next = 0; RB.speak = s => (window.__said = window.__said || []).push(s); });
+    await p.click('#btnAbc');
+    check(await p.evaluate(() => state === 'play' && next === 0 && stations.filter(s => s.letter === 0).length === 1), 'A should wait at one station');
+    await p.click('#go', { force: true });
+    // the train brakes by itself beside the A and the Alligator hops on
+    const a = await p.evaluate(() => { for (let k = 0; k < 4000 && next === 0; k++) update(0.05); for (let k = 0; k < 40; k++) update(0.05);
+      return { next, seat: train.seats[0] && train.seats[0].userData.name, card: document.getElementById('cardWord').textContent, said: __said.join(' | '), saved: JSON.parse(localStorage.getItem('abc_train')).next }; });
+    check(a.next === 1 && a.seat === 'Alligator' && a.card === 'Alligator' && a.saved === 1, 'A should board: ' + JSON.stringify(a));
+    check(/A is for Alligator/.test(a.said), 'the letter should be read out: ' + a.said);
+    await p.screenshot({ path: path.join(OUT, 'abc-train.png') });
+    // three more letters fill the wagons, then the train heads for the Animal Park and everyone hops off
+    for (let i = 0; i < 40; i++) {
+      await p.evaluate(() => { if (!train.running && hold <= 0) toggleGo(); for (let k = 0; k < 400; k++) update(0.05); });
+      if (await p.evaluate(() => park.animals.length >= 4)) break;
+      await p.waitForTimeout(i % 2 ? 3700 : 50);   // the next letter appears a moment after each stop
+    }
+    const park = await p.evaluate(() => ({ park: park.animals.length, next, seats: train.seats.filter(Boolean).length }));
+    check(park.park === 4 && park.next === 4 && park.seats === 0, 'the first four animals should be playing in the park: ' + JSON.stringify(park));
+    // tap an animal in the park: it jumps and says its name
+    const tapped = await p.evaluate(() => { const an = park.animals[0], v = new THREE.Vector3(); an.getWorldPosition(v); camera.position.copy(v).add(new THREE.Vector3(0, 6, 8)); camera.lookAt(v); camera.updateMatrixWorld();
+      v.project(camera); __said = []; updateCamera = () => {}; return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight, name: an.userData.name }; });
+    await p.mouse.click(tapped.x, tapped.y); await p.waitForTimeout(100);
+    check(await p.evaluate(n => __said.some(s => s.includes(n)), tapped.name), 'tapping the ' + tapped.name + ' should say its name');
+    await done(p);
+    // Find the letter on a phone: stopping a little early glides up to the station; only the right letter gets on
+    const ph = await open(browser, 'preschool/abc-train.html', PHONE);
+    await ph.tap('#btnFind');
+    const f = await ph.evaluate(() => {
+      const out = [];
+      for (const st of [stations.find(s => s.letter !== target), stations.find(s => s.letter === target)]) {
+        train.s = wrap(st.s - 30); train.running = true; train.v = CRUISE; updateGo();
+        for (let k = 0; k < 400 && wrap(st.s - train.s) > 12; k++) update(0.02);
+        document.getElementById('go').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));   // STOP, a bit early
+        for (let k = 0; k < 100; k++) update(0.05);
+        out.push({ gap: +Math.abs(wrap(st.s - train.s + LEN / 2) - LEN / 2).toFixed(2), riders: train.seats.filter(Boolean).length });
+      }
+      return { out, found: save.found.length };
+    });
+    check(f.out[0].riders === 0 && f.out[1].riders === 1 && f.found === 1 && f.out.every(o => o.gap < 0.5), 'find the letter: ' + JSON.stringify(f));
+    await done(ph, 'abc-train-phone.png');
+  });
+
+  await test('read-aloud voice: picks a natural voice over robotic ones, splits long text, skips emoji; the ☰ menu can change it', async () => {
+    const ctx = await browser.newContext();
+    await ctx.addInitScript(() => {
+      const v = (name, lang, extra = {}) => ({ name, lang, localService: true, default: false, voiceURI: name, ...extra });
+      const voices = [v('Fred', 'en-US', { default: true }), v('Albert', 'en-US'), v('Microsoft David - English (United States)', 'en-US'), v('Samantha (Enhanced)', 'en-US'), v('Google français', 'fr-FR')];
+      window.__spoken = [];
+      window.SpeechSynthesisUtterance = function (text) { this.text = text; };
+      Object.defineProperty(window, 'speechSynthesis', { value: { getVoices: () => voices, speaking: false, pending: false, paused: false, cancel() { this.speaking = false; },
+        speak(u) { __spoken.push({ text: u.text, voice: u.voice && u.voice.name, rate: u.rate, pitch: u.pitch }); setTimeout(() => u.onend && u.onend(), 5); }, pause() {}, resume() {}, addEventListener() {} }, configurable: true });
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('2nd-grade/math.html')); await p.waitForTimeout(400);
+    await p.evaluate(() => { localStorage.removeItem('rb_voice'); RB.speak('🚂 A rocket goes 40,000 km/h — wow! It is very, very fast. Can you believe it?'); });
+    await p.waitForTimeout(200);
+    const s = await p.evaluate(() => __spoken);
+    check(s.length >= 3 && s.every(u => u.voice === 'Samantha (Enhanced)'), 'should use the natural voice, one sentence at a time: ' + JSON.stringify(s));
+    check(!/🚂/.test(s[0].text) && /kilometres an hour/.test(s.map(u => u.text).join(' ')), 'emoji skipped and units read out: ' + JSON.stringify(s));
+    // the ☰ menu lists the good voices (not Fred, not French) and remembers the choice
+    await p.click('#btnMenu'); await p.click('[data-m="voice"]'); await p.waitForTimeout(100);
+    const names = await p.$$eval('.rb-voicebox button[data-v]', bs => bs.map(b => b.textContent));
+    check(names.some(n => n.includes('Samantha')) && names.some(n => n.includes('David')) && !names.some(n => /Fred|Albert|fran/.test(n)), 'voice list: ' + names.join(', '));
+    await p.click('.rb-voicebox button[data-v]:not(.on)'); await p.waitForTimeout(100);
+    check(/David/.test(await p.evaluate(() => localStorage.getItem('rb_voice'))), 'the chosen voice should be saved');
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', '5th-grade/math.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

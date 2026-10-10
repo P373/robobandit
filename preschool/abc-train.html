@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>ABC Train | RoboBandit</title>
+<meta name="description" content="Drive a toy train around a 3D toy town, pick up animals and learn the alphabet from A to Z. A free preschool game from RoboBandit.">
+<link rel="canonical" href="https://robobandit.com/preschool/abc-train.html">
+<meta name="theme-color" content="#7fd0ff">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/preschool/abc-train.html">
+<meta property="og:title" content="ABC Train | RoboBandit">
+<meta property="og:description" content="Drive a toy train, pick up animals and learn the alphabet from A to Z!">
+<meta property="og:image" content="https://robobandit.com/previews/abc-train.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ABC Train | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/abc-train.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #7fd0ff; color: #23324a;
+    font-family: 'Fredoka', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
+  .hidden { display: none !important; }
+  /* the alphabet along the top: letters light up as the animals come aboard */
+  #abc { position: fixed; z-index: 2; left: max(10px, env(safe-area-inset-left)); right: 250px; top: max(10px, env(safe-area-inset-top));
+    display: flex; flex-wrap: wrap; gap: 4px; pointer-events: none; }
+  #abc span { width: 26px; height: 30px; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 18px;
+    color: rgba(35,50,74,.45); background: rgba(255,255,255,.55); box-shadow: 0 2px 0 rgba(0,0,0,.12); transition: transform .3s; }
+  #abc span.got { color: #fff; background: var(--c); transform: scale(1.06); }
+  #abc span.next { outline: 3px solid #ffd84a; color: #23324a; background: #fff; animation: bob 1s ease-in-out infinite; }
+  @keyframes bob { 50% { transform: translateY(-3px) scale(1.08); } }
+  @media (max-width: 700px) { #abc { right: 10px; top: calc(max(10px, env(safe-area-inset-top)) + 54px); } #abc span { width: 21px; height: 25px; font-size: 15px; } }
+  /* the big letter that pops up when an animal climbs aboard */
+  #card { position: fixed; z-index: 3; left: 50%; top: 18%; transform: translate(-50%, 0) scale(.6); opacity: 0; pointer-events: none;
+    padding: 14px 30px 18px; border-radius: 28px; background: #fff; box-shadow: 0 10px 0 rgba(0,0,0,.15), 0 0 40px rgba(255,255,255,.7);
+    text-align: center; transition: transform .35s cubic-bezier(.3,1.6,.5,1), opacity .25s; }
+  #card.on { transform: translate(-50%, 0) scale(1); opacity: 1; }
+  #card .big { font-size: 110px; line-height: 1; font-weight: 700; }
+  #card .word { font-size: 34px; font-weight: 700; margin-top: 2px; }
+  #card .word b { font-size: 44px; }
+  #ask { position: fixed; z-index: 2; left: 50%; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 130px); transform: translateX(-50%);
+    padding: 8px 20px; border-radius: 999px; background: rgba(255,255,255,.9); font-size: 24px; font-weight: 700; white-space: nowrap;
+    box-shadow: 0 4px 0 rgba(0,0,0,.12); pointer-events: none; }
+  #ask b { color: #e8453a; font-size: 30px; }
+  /* big, friendly buttons */
+  .ctl { position: fixed; z-index: 3; border: 6px solid #fff; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
+    font: 700 22px 'Fredoka', system-ui, sans-serif; color: #fff; box-shadow: 0 8px 0 rgba(0,0,0,.2); touch-action: none; padding: 0; }
+  .ctl:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+  #go { right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); width: 128px; height: 128px; font-size: 30px; background: #3cc456; }
+  #go.stop { background: #e8453a; }
+  #go.pulse { animation: pulse 1s ease-in-out infinite; }
+  @keyframes pulse { 50% { transform: scale(1.1); box-shadow: 0 0 0 14px rgba(60,196,86,.35); } }
+  #toot { right: calc(max(20px, env(safe-area-inset-right)) + 146px); bottom: max(26px, env(safe-area-inset-bottom)); width: 96px; height: 96px; background: #ffb020; font-size: 40px; }
+  #cam { left: max(20px, env(safe-area-inset-left)); bottom: max(26px, env(safe-area-inset-bottom)); width: 74px; height: 74px; background: #5aa0ff; font-size: 30px; }
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px; touch-action: pan-y;
+    background: radial-gradient(ellipse at center, rgba(255,255,255,.25), rgba(40,90,160,.55)); }
+  .panel { margin: auto; width: 100%; max-width: 560px; text-align: center; background: #fffdf4; border: 5px solid #23324a; border-radius: 30px;
+    box-shadow: 0 10px 0 #23324a; padding: 20px 22px 24px; }
+  .panel h1 { margin: 0; font-size: 60px; line-height: 1; color: #e8453a; text-shadow: 0 4px 0 #23324a; letter-spacing: 2px; }
+  .panel h1 span:nth-child(2) { color: #3cc456; } .panel h1 span:nth-child(3) { color: #5aa0ff; }
+  .panel .sub { margin: 10px 0 14px; font-size: 20px; color: #3a4a6a; }
+  .mode { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+  .mode button { flex: 1 1 200px; max-width: 250px; padding: 14px 10px; border-radius: 22px; border: 4px solid #23324a; cursor: pointer;
+    font: 700 24px 'Fredoka', system-ui, sans-serif; color: #23324a; box-shadow: 0 6px 0 #23324a; }
+  .mode button small { display: block; font-size: 16px; font-weight: 500; margin-top: 4px; }
+  .mode button:active { transform: translateY(4px); box-shadow: 0 2px 0 #23324a; }
+  #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
+  .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
+</style>
+<link rel="stylesheet" href="../common.css?v=20261010-1038">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar"></div>
+<div id="abc" class="hidden"></div>
+<div id="card"><div class="big" id="cardLetter">A</div><div class="word" id="cardWord"></div></div>
+<div id="ask" class="hidden"></div>
+<button class="ctl hidden" id="cam" aria-label="Change the camera">🎥</button>
+<button class="ctl hidden" id="toot" aria-label="Toot the horn">📯</button>
+<button class="ctl hidden" id="go" aria-label="Go and stop">GO</button>
+
+<div id="title" class="screen">
+  <div class="panel">
+    <h1><span>A</span><span>B</span><span>C</span> Train</h1>
+    <div class="sub">🚂 Drive the train, pick up the animals and learn your letters!</div>
+    <div class="mode">
+      <button id="btnAbc">🔤 A to Z<small>Pick up animals from A to Z</small></button>
+      <button id="btnFind">🔍 Find the letter<small>Stop at the right letter</small></button>
+    </div>
+    <div class="stats" id="titleStats"></div>
+  </div>
+</div>
+
+<script src="../vendor/three.min.js"></script>
+<script src="../common.js?v=20261010-1038"></script>
+<script>
+'use strict';
+// ===================== ABC Train =====================
+// A toy train runs round a looping track through a little 3D toy town. At each stop an animal waits
+// with a letter: "B! B is for Bear!" It hops into a wagon, and full trains drop their animals at the
+// Animal Park. Made for little ones: big buttons, the train stops itself, and everything is read aloud.
+
+// ---------- The animals, A to Z ----------
+// shape: how the body is built. ears / tail / extra: the bits that make each one look like itself.
+const ANIMALS = [
+  { L: 'A', name: 'Alligator', c: '#4caf50', shape: 'lizard', extra: ['ridges', 'snout'] },
+  { L: 'B', name: 'Bear', c: '#9a6232', belly: '#d8a878', ears: 'round', tail: 'short' },
+  { L: 'C', name: 'Cat', c: '#ff9d3c', belly: '#ffe0b8', ears: 'pointy', tail: 'long', extra: ['whiskers'] },
+  { L: 'D', name: 'Dog', c: '#d8a868', belly: '#fff0d8', ears: 'floppy', tail: 'short', extra: ['nose'] },
+  { L: 'E', name: 'Elephant', c: '#9aa4b8', ears: 'big', tail: 'short', extra: ['trunk'] },
+  { L: 'F', name: 'Frog', c: '#6ad04a', belly: '#d8f8a8', shape: 'frog' },
+  { L: 'G', name: 'Giraffe', c: '#ffd04a', pattern: 'spots', pc: '#b8742a', ears: 'small', tail: 'long', extra: ['longNeck', 'horns'] },
+  { L: 'H', name: 'Hippo', c: '#a08ac0', belly: '#d8c8e8', ears: 'small', tail: 'short', extra: ['wideSnout'] },
+  { L: 'I', name: 'Iguana', c: '#7ad84a', shape: 'lizard', extra: ['spikes'] },
+  { L: 'J', name: 'Jaguar', c: '#ffc04a', pattern: 'spots', pc: '#5a3a1a', ears: 'round', tail: 'long' },
+  { L: 'K', name: 'Kangaroo', c: '#c8844a', belly: '#f0c898', shape: 'upright', ears: 'long', tail: 'thick' },
+  { L: 'L', name: 'Lion', c: '#ffb43a', ears: 'round', tail: 'long', extra: ['mane'] },
+  { L: 'M', name: 'Monkey', c: '#8a5a3a', belly: '#f0c8a0', shape: 'upright', ears: 'side', tail: 'curl' },
+  { L: 'N', name: 'Newt', c: '#ff7a3a', shape: 'lizard', extra: ['dots'] },
+  { L: 'O', name: 'Owl', c: '#9a7048', belly: '#e8d0a8', shape: 'bird', extra: ['tufts', 'bigEyes'] },
+  { L: 'P', name: 'Pig', c: '#ffa8c0', ears: 'pointy', tail: 'curl', extra: ['pigSnout'] },
+  { L: 'Q', name: 'Quail', c: '#a8784a', belly: '#e8c8a0', shape: 'bird', extra: ['plume'] },
+  { L: 'R', name: 'Rabbit', c: '#f2eee8', belly: '#ffffff', ears: 'long', tail: 'puff' },
+  { L: 'S', name: 'Sheep', c: '#ffffff', ears: 'floppy', tail: 'puff', extra: ['wool', 'darkFace'] },
+  { L: 'T', name: 'Tiger', c: '#ff8a2a', pattern: 'stripes', pc: '#2a1a10', belly: '#fff0d8', ears: 'round', tail: 'long' },
+  { L: 'U', name: 'Unicorn', c: '#ffffff', ears: 'pointy', tail: 'rainbow', extra: ['horn', 'rainbowMane', 'longLegs'] },
+  { L: 'V', name: 'Vulture', c: '#5a4a5a', belly: '#ffb8c8', shape: 'bird', extra: ['bald'] },
+  { L: 'W', name: 'Walrus', c: '#a8785a', shape: 'walrus' },
+  { L: 'X', name: 'X-ray fish', c: '#c8e8ff', shape: 'fish', say: 'X-ray fish' },
+  { L: 'Y', name: 'Yak', c: '#7a5a3a', ears: 'small', tail: 'long', extra: ['shaggy', 'bigHorns'] },
+  { L: 'Z', name: 'Zebra', c: '#ffffff', pattern: 'stripes', pc: '#1a1a1a', ears: 'pointy', tail: 'long', extra: ['stripeMane', 'longLegs'] },
+];
+const LETTER_COLORS = ['#e8453a', '#ff9d1c', '#f2c200', '#3cc456', '#1fb0c8', '#5a7aff', '#a05aff', '#ff5aa8'];
+const colorOf = i => LETTER_COLORS[i % LETTER_COLORS.length];
+
+// ---------- Three.js ----------
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+const scene = new THREE.Scene();
+scene.background = new THREE.Color('#9fdcff');
+scene.fog = new THREE.Fog('#bfe8ff', 120, 340);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 800);
+function resize() {
+  // sharp, but not more pixels than a tablet can paint smoothly
+  let dpr = Math.min(devicePixelRatio || 1, 2);
+  if (innerWidth * innerHeight * dpr * dpr > 2.1e6) dpr = Math.max(1, Math.sqrt(2.1e6 / (innerWidth * innerHeight)));
+  renderer.setPixelRatio(dpr);
+  renderer.setSize(innerWidth, innerHeight, false);
+  camera.aspect = innerWidth / innerHeight;
+  camera.fov = camera.aspect < 0.8 ? 66 : 50;
+  camera.updateProjectionMatrix();
+}
+addEventListener('resize', resize);
+resize();
+scene.add(new THREE.HemisphereLight('#ffffff', '#7ac86a', 0.8));
+const sun = new THREE.DirectionalLight('#fff6e0', 0.85);
+sun.castShadow = true;
+sun.shadow.mapSize.set(1024, 1024);
+Object.assign(sun.shadow.camera, { left: -40, right: 40, top: 40, bottom: -40, near: 1, far: 160 });
+scene.add(sun, sun.target);
+
+const mat = (color, o = {}) => new THREE.MeshStandardMaterial({ color, roughness: 0.55, metalness: 0, ...o });
+const MATS = {};
+const M = c => MATS[c] || (MATS[c] = mat(c));
+function mesh(geo, color, x = 0, y = 0, z = 0, parent) {
+  const m = new THREE.Mesh(geo, typeof color === 'string' ? M(color) : color);
+  m.position.set(x, y, z); m.castShadow = true; m.receiveShadow = true;
+  if (parent) parent.add(m);
+  return m;
+}
+const SPH = new THREE.SphereGeometry(1, 20, 14), CYL = new THREE.CylinderGeometry(1, 1, 1, 16), BOX = new THREE.BoxGeometry(1, 1, 1), CONE = new THREE.ConeGeometry(1, 1, 16);
+// a ball, stretched into an egg or a sausage
+const ball = (parent, color, x, y, z, sx, sy = sx, sz = sx) => { const m = mesh(SPH, color, x, y, z, parent); m.scale.set(sx, sy, sz); return m; };
+const rod = (parent, color, x, y, z, r, h, rx = 0, rz = 0) => { const m = mesh(CYL, color, x, y, z, parent); m.scale.set(r, h, r); m.rotation.set(rx, 0, rz); return m; };
+const block = (parent, color, x, y, z, w, h, d) => { const m = mesh(BOX, color, x, y, z, parent); m.scale.set(w, h, d); return m; };
+function canvasTex(w, h, draw) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = renderer.capabilities.getMaxAnisotropy();
+  return t;
+}
+function patternMat(base, kind, pc) {
+  const tex = canvasTex(128, 128, (g, w, h) => {
+    g.fillStyle = base; g.fillRect(0, 0, w, h); g.fillStyle = pc;
+    if (kind === 'stripes') for (let i = 0; i < 8; i++) { g.beginPath(); g.moveTo(i * 16, 0); g.quadraticCurveTo(i * 16 + 10, 64, i * 16 - 2, 128); g.lineTo(i * 16 + 7, 128); g.quadraticCurveTo(i * 16 + 16, 64, i * 16 + 7, 0); g.fill(); }
+    else for (let i = 0; i < 22; i++) { g.beginPath(); g.arc((i * 47) % 128, (i * 29) % 128, 6 + (i % 3) * 2, 0, Math.PI * 2); g.fill(); }
+  });
+  return mat('#ffffff', { map: tex });
+}
+
+// ---------- Building an animal ----------
+// Every animal is about 1.2 m tall, standing at the origin and facing +x.
+function makeAnimal(a) {
+  const g = new THREE.Group(), body = new THREE.Group();
+  g.add(body);
+  const c = a.c, belly = a.belly || c, dark = '#23324a';
+  const bodyMat = a.pattern ? patternMat(c, a.pattern, a.pc) : M(c);
+  const eye = (x, y, z, r = 0.09) => { ball(body, '#ffffff', x, y, z, r * 1.3); ball(body, dark, x + r * 0.6, y, z, r * 0.75); ball(body, '#ffffff', x + r * 0.9, y + r * 0.35, z, r * 0.22); };
+  const eyes = (x, y, w, r) => { eye(x, y, w, r); eye(x, y, -w, r); };
+  const legs = (h, w = 0.12, spread = 0.28, along = 0.32) => { for (const sx of [-along, along]) for (const sz of [-spread, spread]) rod(body, c, sx, h / 2, sz, w, h); };
+  const shape = a.shape || 'quad';
+  if (shape === 'quad') {
+    const legH = a.extra && a.extra.includes('longLegs') ? 0.55 : 0.36;
+    legs(legH);
+    const by = legH + 0.25;
+    const b = ball(body, bodyMat, 0, by, 0, 0.55, 0.36, 0.38);
+    ball(body, belly, 0.05, by - 0.12, 0, 0.42, 0.24, 0.3);
+    let hx = 0.52, hy = by + 0.3;
+    if (a.extra && a.extra.includes('longNeck')) { const n = rod(body, bodyMat, 0.42, by + 0.55, 0, 0.12, 0.9, 0, -0.35); void n; hx = 0.62; hy = by + 1.05; }
+    if (a.extra && a.extra.includes('wool')) for (let i = 0; i < 9; i++) ball(body, '#ffffff', -0.35 + (i % 3) * 0.33, by + 0.12 + Math.floor(i / 3) * 0.06, -0.25 + Math.floor(i / 3) * 0.25, 0.25);
+    if (a.extra && a.extra.includes('shaggy')) for (let i = 0; i < 8; i++) ball(body, '#5a3a22', -0.4 + i * 0.12, by - 0.28, (i % 2 ? 0.25 : -0.25), 0.14, 0.24, 0.14);
+    const headC = a.extra && a.extra.includes('darkFace') ? '#3a3a44' : c;
+    const head = ball(body, a.pattern ? bodyMat : headC, hx, hy, 0, 0.3, 0.28, 0.28);
+    void head; void b;
+    if (a.extra && a.extra.includes('mane')) for (let i = 0; i < 12; i++) { const an = i / 12 * Math.PI * 2; ball(body, '#c8641a', hx - 0.08, hy + Math.sin(an) * 0.3, Math.cos(an) * 0.3, 0.12); }
+    if (a.extra && a.extra.includes('rainbowMane')) ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'].forEach((cc, i) => ball(body, cc, hx - 0.18 - i * 0.06, hy + 0.2 - i * 0.08, 0, 0.09));
+    if (a.extra && a.extra.includes('stripeMane')) for (let i = 0; i < 5; i++) block(body, i % 2 ? '#1a1a1a' : '#ffffff', hx - 0.16 - i * 0.07, hy + 0.2 - i * 0.07, 0, 0.07, 0.12, 0.05);
+    // snouts and noses
+    if (a.extra && a.extra.includes('trunk')) { rod(body, c, hx + 0.28, hy - 0.18, 0, 0.07, 0.42, 0, 0.5); }
+    else if (a.extra && a.extra.includes('pigSnout')) { rod(body, '#ff8aa8', hx + 0.3, hy - 0.04, 0, 0.11, 0.1, 0, Math.PI / 2); ball(body, '#c84a6a', hx + 0.36, hy - 0.02, 0.04, 0.025); ball(body, '#c84a6a', hx + 0.36, hy - 0.02, -0.04, 0.025); }
+    else if (a.extra && a.extra.includes('wideSnout')) { ball(body, belly, hx + 0.22, hy - 0.1, 0, 0.18, 0.15, 0.24); ball(body, dark, hx + 0.38, hy - 0.04, 0.08, 0.03); ball(body, dark, hx + 0.38, hy - 0.04, -0.08, 0.03); }
+    else { ball(body, belly, hx + 0.24, hy - 0.08, 0, 0.13, 0.1, 0.13); ball(body, a.extra && a.extra.includes('nose') ? dark : '#ff8aa8', hx + 0.36, hy - 0.04, 0, 0.045); }
+    eyes(hx + 0.2, hy + 0.08, 0.12, 0.06);
+    // ears
+    const ears = a.ears;
+    for (const s of [-1, 1]) {
+      if (ears === 'round') ball(body, c, hx - 0.05, hy + 0.24, s * 0.18, 0.09, 0.09, 0.05);
+      if (ears === 'pointy') { const e = mesh(CONE, c, hx - 0.04, hy + 0.3, s * 0.15, body); e.scale.set(0.08, 0.18, 0.08); }
+      if (ears === 'floppy') { const e = ball(body, a.extra && a.extra.includes('darkFace') ? '#3a3a44' : '#a8784a', hx - 0.05, hy + 0.05, s * 0.27, 0.06, 0.16, 0.08); e.rotation.x = s * 0.4; }
+      if (ears === 'small') ball(body, c, hx - 0.08, hy + 0.22, s * 0.17, 0.06, 0.05, 0.04);
+      if (ears === 'big') { const e = ball(body, c, hx - 0.12, hy, s * 0.3, 0.06, 0.26, 0.22); e.rotation.y = s * 0.3; }
+      if (ears === 'long') { const e = ball(body, c, hx - 0.06, hy + 0.42, s * 0.1, 0.06, 0.25, 0.07); ball(body, '#ffb8c8', hx - 0.03, hy + 0.42, s * 0.1, 0.035, 0.18, 0.04); void e; }
+    }
+    if (a.extra && a.extra.includes('horns')) for (const s of [-1, 1]) { rod(body, '#b8742a', hx - 0.04, hy + 0.32, s * 0.08, 0.03, 0.14); ball(body, '#8a5a1a', hx - 0.04, hy + 0.4, s * 0.08, 0.045); }
+    if (a.extra && a.extra.includes('bigHorns')) for (const s of [-1, 1]) { const h = mesh(CONE, '#f2e8d0', hx - 0.02, hy + 0.3, s * 0.26, body); h.scale.set(0.05, 0.22, 0.05); h.rotation.x = s * 0.9; }
+    if (a.extra && a.extra.includes('horn')) { const h = mesh(CONE, '#ffd84a', hx + 0.12, hy + 0.36, 0, body); h.scale.set(0.05, 0.26, 0.05); h.rotation.z = -0.4; }
+    if (a.extra && a.extra.includes('whiskers')) for (const s of [-1, 1]) for (const k of [-0.02, 0.03]) block(body, dark, hx + 0.32, hy - 0.06 + k, s * 0.14, 0.01, 0.01, 0.2);
+    // tails
+    if (a.tail === 'long') rod(body, c, -0.65, by + 0.1, 0, 0.04, 0.5, 0, 0.9);
+    if (a.tail === 'short') ball(body, c, -0.55, by + 0.08, 0, 0.08);
+    if (a.tail === 'puff') ball(body, '#ffffff', -0.56, by + 0.1, 0, 0.12);
+    if (a.tail === 'curl') { const t = new THREE.Mesh(new THREE.TorusGeometry(0.08, 0.025, 8, 16), M(c)); t.position.set(-0.6, by + 0.12, 0); body.add(t); }
+    if (a.tail === 'rainbow') ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((cc, i) => ball(body, cc, -0.58 - i * 0.05, by + 0.05 - i * 0.07, 0, 0.08));
+  } else if (shape === 'upright') {
+    for (const s of [-1, 1]) { const f = ball(body, c, 0.12, 0.08, s * 0.16, 0.22, 0.07, 0.09); void f; }
+    ball(body, c, 0, 0.5, 0, 0.32, 0.42, 0.3); ball(body, belly, 0.12, 0.45, 0, 0.2, 0.3, 0.22);
+    for (const s of [-1, 1]) rod(body, c, 0.22, 0.62, s * 0.24, 0.05, 0.3, 0, -0.6);
+    ball(body, c, 0.06, 1.02, 0, 0.24);
+    ball(body, belly, 0.24, 0.98, 0, 0.11, 0.1, 0.14);
+    eyes(0.22, 1.08, 0.09, 0.05);
+    ball(body, '#23324a', 0.34, 1.0, 0, 0.03);
+    for (const s of [-1, 1]) {
+      if (a.ears === 'long') ball(body, c, 0, 1.3, s * 0.1, 0.05, 0.18, 0.06);
+      if (a.ears === 'side') { ball(body, c, 0, 1.06, s * 0.25, 0.04, 0.09, 0.09); ball(body, belly, 0.01, 1.06, s * 0.26, 0.02, 0.06, 0.06); }
+    }
+    if (a.tail === 'thick') rod(body, c, -0.35, 0.25, 0, 0.09, 0.6, 0, 1.0);
+    if (a.tail === 'curl') { rod(body, c, -0.32, 0.4, 0, 0.03, 0.5, 0, 0.6); const t = new THREE.Mesh(new THREE.TorusGeometry(0.1, 0.03, 8, 16), M(c)); t.position.set(-0.52, 0.66, 0); body.add(t); }
+  } else if (shape === 'bird') {
+    for (const s of [-1, 1]) rod(body, '#ffa020', 0, 0.12, s * 0.1, 0.025, 0.24);
+    ball(body, c, 0, 0.55, 0, 0.36, 0.42, 0.34); ball(body, belly, 0.16, 0.5, 0, 0.22, 0.3, 0.24);
+    for (const s of [-1, 1]) { const w = ball(body, c, -0.05, 0.6, s * 0.33, 0.24, 0.3, 0.06); w.rotation.x = s * 0.2; }
+    const bald = a.extra && a.extra.includes('bald');
+    ball(body, bald ? '#ffb8c8' : c, 0.08, 1.02, 0, 0.24);
+    if (bald) for (let i = 0; i < 6; i++) ball(body, '#f2f0f0', -0.05, 0.82, -0.2 + i * 0.08, 0.1);
+    const big = a.extra && a.extra.includes('bigEyes');
+    if (big) { for (const s of [-1, 1]) { ball(body, '#fff6c8', 0.25, 1.04, s * 0.1, 0.1); ball(body, '#23324a', 0.32, 1.04, s * 0.1, 0.055); } }
+    else eyes(0.24, 1.08, 0.1, 0.05);
+    const beak = mesh(CONE, '#ffb020', 0.36, 0.98, 0, body); beak.scale.set(0.05, 0.12, 0.05); beak.rotation.z = -Math.PI / 2;
+    if (a.extra && a.extra.includes('tufts')) for (const s of [-1, 1]) { const t = mesh(CONE, c, 0.02, 1.26, s * 0.13, body); t.scale.set(0.05, 0.14, 0.05); }
+    if (a.extra && a.extra.includes('plume')) { rod(body, '#3a2a1a', 0.1, 1.32, 0, 0.015, 0.2, 0, -0.3); ball(body, '#3a2a1a', 0.16, 1.42, 0, 0.05); }
+  } else if (shape === 'lizard') {
+    for (const sx of [-0.3, 0.3]) for (const sz of [-1, 1]) rod(body, c, sx, 0.1, sz * 0.22, 0.06, 0.2, sz * 0.5, 0);
+    ball(body, c, 0, 0.22, 0, 0.55, 0.16, 0.22);
+    rod(body, c, -0.75, 0.18, 0, 0.07, 0.6, 0, 1.45);
+    const snout = a.extra && a.extra.includes('snout');
+    ball(body, c, 0.6, 0.26, 0, snout ? 0.38 : 0.2, 0.13, 0.17);
+    eyes(0.55, 0.42, 0.1, 0.06);
+    if (a.extra && a.extra.includes('ridges')) for (let i = 0; i < 6; i++) { const r = mesh(CONE, '#2e8a3e', -0.45 + i * 0.16, 0.38, 0, body); r.scale.set(0.05, 0.1, 0.05); }
+    if (a.extra && a.extra.includes('spikes')) for (let i = 0; i < 7; i++) { const r = mesh(CONE, '#3a9a3a', -0.35 + i * 0.12, 0.42, 0, body); r.scale.set(0.03, 0.12, 0.03); }
+    if (a.extra && a.extra.includes('dots')) for (let i = 0; i < 6; i++) ball(body, '#ffd23a', -0.35 + i * 0.13, 0.36, (i % 2 ? 0.08 : -0.08), 0.04);
+    if (snout) { ball(body, '#ffffff', 0.9, 0.24, 0.1, 0.03); ball(body, '#ffffff', 0.9, 0.24, -0.1, 0.03); }
+  } else if (shape === 'frog') {
+    for (const s of [-1, 1]) { ball(body, c, -0.15, 0.12, s * 0.3, 0.2, 0.1, 0.12); ball(body, c, 0.22, 0.06, s * 0.2, 0.1, 0.05, 0.08); }
+    ball(body, c, 0, 0.35, 0, 0.42, 0.3, 0.4); ball(body, belly, 0.2, 0.3, 0, 0.25, 0.2, 0.3);
+    for (const s of [-1, 1]) { ball(body, c, 0.18, 0.62, s * 0.18, 0.14); ball(body, '#ffffff', 0.24, 0.66, s * 0.18, 0.1); ball(body, '#23324a', 0.31, 0.67, s * 0.18, 0.05); }
+    block(body, '#3a8a2a', 0.36, 0.42, 0, 0.02, 0.02, 0.36);
+  } else if (shape === 'walrus') {
+    ball(body, c, 0, 0.45, 0, 0.55, 0.45, 0.45); ball(body, c, 0.4, 0.78, 0, 0.3);
+    for (const s of [-1, 1]) { ball(body, c, 0.25, 0.08, s * 0.35, 0.22, 0.06, 0.14); const t = mesh(CONE, '#ffffff', 0.62, 0.48, s * 0.08, body); t.scale.set(0.035, 0.24, 0.035); t.rotation.z = Math.PI; }
+    ball(body, '#d8a888', 0.62, 0.7, 0.08, 0.1); ball(body, '#d8a888', 0.62, 0.7, -0.08, 0.1);
+    eyes(0.6, 0.9, 0.12, 0.05);
+  } else if (shape === 'fish') {
+    // a little fish in its own round bowl
+    const bowl = new THREE.Mesh(new THREE.SphereGeometry(0.5, 24, 16), new THREE.MeshStandardMaterial({ color: '#bfe8ff', transparent: true, opacity: 0.35, roughness: 0.1 }));
+    bowl.position.y = 0.5; body.add(bowl);
+    ball(body, '#5ab0ff', 0, 0.42, 0, 0.42, 0.25, 0.42).material = new THREE.MeshStandardMaterial({ color: '#5ab0ff', transparent: true, opacity: 0.5 });
+    const fish = new THREE.Group(); fish.position.y = 0.5; body.add(fish); g.userData.fish = fish;
+    ball(fish, '#e8f4ff', 0, 0, 0, 0.22, 0.14, 0.08).material = new THREE.MeshStandardMaterial({ color: '#e8f4ff', transparent: true, opacity: 0.75 });
+    for (let i = 0; i < 4; i++) block(fish, '#9ab0c8', -0.1 + i * 0.06, 0, 0, 0.012, 0.18 - Math.abs(i - 1.5) * 0.04, 0.09);   // you can see its bones!
+    const tail = mesh(CONE, '#c8e0ff', -0.26, 0, 0, fish); tail.scale.set(0.08, 0.12, 0.03); tail.rotation.z = Math.PI / 2;
+    ball(fish, '#23324a', 0.14, 0.04, 0.06, 0.025); ball(fish, '#23324a', 0.14, 0.04, -0.06, 0.025);
+  }
+  g.traverse(o => { if (o.isMesh) { o.castShadow = true; } });
+  g.userData.body = body; g.userData.name = a.name;
+  return g;
+}
+
+// ---------- The track ----------
+// A closed loop through the toy town, with a gentle hill and a bridge over the pond.
+const TRACK_PTS = [[0, 0], [40, -6], [78, 8], [96, 44], [80, 82], [44, 96], [8, 84], [-24, 100], [-62, 86], [-88, 52], [-82, 14], [-50, -8]];
+const curve = new THREE.CatmullRomCurve3(TRACK_PTS.map(([x, z], i) => new THREE.Vector3(x, (i === 4 || i === 5) ? 3.2 : i === 3 || i === 6 ? 1.2 : 0, z)), true, 'centripetal');
+const LEN = curve.getLength();
+const P = new THREE.Vector3(), TAN = new THREE.Vector3(), UP = new THREE.Vector3(0, 1, 0);
+const wrap = s => ((s % LEN) + LEN) % LEN;
+const at = (s, out = P) => curve.getPointAt(wrap(s) / LEN, out);
+const tangentAt = (s, out = TAN) => curve.getTangentAt(wrap(s) / LEN, out);
+const sideAt = (s, out = new THREE.Vector3()) => out.crossVectors(tangentAt(s, new THREE.Vector3()), UP).normalize();   // to the right of the train
+{
+  // sleepers, two rails and a wide gravel bed
+  const N = Math.floor(LEN / 0.9);
+  const sleepers = new THREE.InstancedMesh(BOX, M('#a8703a'), N);
+  sleepers.castShadow = sleepers.receiveShadow = true;
+  const o = new THREE.Object3D(), pt = new THREE.Vector3(), tg = new THREE.Vector3();
+  for (let i = 0; i < N; i++) {
+    const s = i / N * LEN; at(s, pt); tangentAt(s, tg);
+    o.position.copy(pt).add(new THREE.Vector3(0, 0.12, 0)); o.lookAt(pt.clone().add(tg).add(new THREE.Vector3(0, 0.12, 0)));
+    o.scale.set(2.2, 0.16, 0.42); o.updateMatrix(); sleepers.setMatrixAt(i, o.matrix);
+  }
+  scene.add(sleepers);
+  const strip = (off, w, h, y, color) => {
+    const S = 600, pos = [], idx = [];
+    for (let i = 0; i <= S; i++) {
+      const s = i / S * LEN, c = at(s, new THREE.Vector3()), sd = sideAt(s);
+      for (const [dx, dy] of [[-w / 2, 0], [w / 2, 0], [w / 2, h], [-w / 2, h]]) { const q = c.clone().addScaledVector(sd, off + dx); q.y += y + dy; pos.push(q.x, q.y, q.z); }
+      if (i < S) { const a = i * 4, b = a + 4; for (const [p0, p1] of [[3, 2], [2, 1], [0, 3]]) idx.push(a + p0, b + p0, a + p1, a + p1, b + p0, b + p1); }
+    }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, M(color)); m.castShadow = true; m.receiveShadow = true; scene.add(m);
+  };
+  strip(0, 3.2, 0.1, 0, '#d8cbb0');
+  for (const off of [-0.62, 0.62]) strip(off, 0.18, 0.2, 0.2, '#8a96a8');
+}
+
+// ---------- The toy town ----------
+{
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(400, 64), M('#7cd36a'));
+  ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
+  const pond = new THREE.Mesh(new THREE.CircleGeometry(16, 40), new THREE.MeshStandardMaterial({ color: '#5ab8f0', roughness: 0.2 }));
+  pond.rotation.x = -Math.PI / 2; pond.position.set(62, 0.05, 92); pond.scale.set(1.4, 1, 1); scene.add(pond);
+  // bridge posts under the raised part of the track
+  for (let s = 0; s < LEN; s += 6) { const p = at(s, new THREE.Vector3()); if (p.y > 1) for (const side of [-1.9, 1.9]) { const q = p.clone().addScaledVector(sideAt(s), side); rod(scene, '#ff6a52', q.x, q.y / 2, q.z, 0.25, q.y); } }
+  // lollipop trees, flowers and hills, kept clear of the track
+  const nearTrack = (x, z, d) => { for (let i = 0; i < 80; i++) { const p = at(i / 80 * LEN, new THREE.Vector3()); if (Math.hypot(p.x - x, p.z - z) < d) return true; } return false; };
+  const treeCols = ['#3cc456', '#2fae4a', '#7ad84a', '#ffb23a'];
+  let n = 0;
+  for (let i = 0; i < 260 && n < 70; i++) {
+    const x = Math.sin(i * 12.9898) * 150, z = 40 + Math.cos(i * 78.233) * 150;
+    if (nearTrack(x, z, 9) || Math.hypot(x - 62, z - 92) < 26 || Math.hypot(x - 2, z - 22) < 18) continue;
+    n++;
+    const t = new THREE.Group(); t.position.set(x, 0, z); scene.add(t);
+    const h = 2 + (i % 3);
+    rod(t, '#a8703a', 0, h / 2, 0, 0.3, h);
+    ball(t, treeCols[i % 4], 0, h + 1.4, 0, 1.8);
+  }
+  for (let i = 0; i < 90; i++) {
+    const x = Math.sin(i * 3.1) * 120, z = 40 + Math.cos(i * 7.7) * 120;
+    if (nearTrack(x, z, 4)) continue;
+    rod(scene, '#3a9a3a', x, 0.3, z, 0.05, 0.6);
+    ball(scene, ['#ff5a8a', '#ffd84a', '#ffffff', '#b07aff'][i % 4], x, 0.65, z, 0.22);
+  }
+  for (const [x, z, r] of [[-150, -60, 50], [160, 20, 60], [40, 210, 70], [-160, 160, 60], [120, -110, 50]]) { const hl = ball(scene, '#6ac85a', x, 0, z, r, r * 0.45, r); hl.castShadow = false; }
+  // little houses
+  const house = (x, z, rot, wall, roof) => {
+    const h = new THREE.Group(); h.position.set(x, 0, z); h.rotation.y = rot; scene.add(h);
+    block(h, wall, 0, 1.6, 0, 4, 3.2, 3.6);
+    const r = mesh(new THREE.ConeGeometry(3.4, 2.2, 4), roof, 0, 4.3, 0, h); r.rotation.y = Math.PI / 4;
+    block(h, '#7a4a2a', 2.01, 0.9, 0, 0.05, 1.8, 0.9);
+    for (const s of [-1, 1]) block(h, '#bfe8ff', 2.01, 2.2, s * 1.1, 0.05, 0.7, 0.7);
+  };
+  house(-30, 40, 0.3, '#ffd84a', '#e8453a'); house(-42, 58, -0.4, '#9fe0ff', '#5a7aff'); house(60, 40, 2.6, '#ffb8d0', '#a05aff'); house(26, 60, 1.2, '#ffffff', '#3cc456');
+  // a windmill on the hill
+  const wm = new THREE.Group(); wm.position.set(-40, 0, 130); scene.add(wm);
+  rod(wm, '#f2e8d0', 0, 4, 0, 1.4, 8); const cap = mesh(CONE, '#e8453a', 0, 9, 0, wm); cap.scale.set(1.8, 2, 1.8);
+  const blades = new THREE.Group(); blades.position.set(1.6, 7.5, 0); wm.add(blades);
+  for (let i = 0; i < 4; i++) { const b = block(blades, '#ffffff', 0, 2.2, 0, 0.1, 4.4, 0.9); b.position.set(0, Math.cos(i * Math.PI / 2) * 2.2, Math.sin(i * Math.PI / 2) * 2.2); b.rotation.x = -i * Math.PI / 2; }
+  scene.userData.blades = blades;
+  // clouds
+  scene.userData.clouds = [];
+  for (let i = 0; i < 10; i++) {
+    const cl = new THREE.Group(); cl.position.set(-200 + i * 45, 45 + (i % 3) * 8, -60 + (i % 4) * 70); scene.add(cl);
+    for (let k = 0; k < 4; k++) { const b = ball(cl, '#ffffff', k * 4 - 6, (k % 2) * 1.5, 0, 4 - (k % 2)); b.castShadow = false; }
+    scene.userData.clouds.push(cl);
+  }
+}
+
+// ---------- Stations ----------
+// Six stops round the loop, plus the Animal Park where full trains drop their passengers.
+const STOP_AT = [0.07, 0.17, 0.56, 0.66, 0.76, 0.86].map(f => f * LEN);
+const PARK_AT = 0.965 * LEN;
+function letterTex(L, color) {
+  return canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#ffffff'; g.fillRect(0, 0, w, h);
+    g.fillStyle = color; g.beginPath(); g.roundRect ? g.roundRect(12, 12, w - 24, h - 24, 40) : g.rect(12, 12, w - 24, h - 24); g.fill();
+    g.fillStyle = '#ffffff'; g.font = 'bold 190px Fredoka, Arial Rounded MT Bold, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(L, w / 2, h / 2 + 12);
+  });
+}
+const stations = STOP_AT.map((s, i) => {
+  const g = new THREE.Group(), p = at(s, new THREE.Vector3()), sd = sideAt(s), tg = tangentAt(s, new THREE.Vector3());
+  g.position.copy(p).addScaledVector(sd, 3.6);
+  g.lookAt(g.position.clone().add(tg));
+  scene.add(g);
+  // the platform, a little roof on posts, and a big letter block
+  block(g, '#f2e0c0', 0, 0.35, 0, 3, 0.7, 7);
+  block(g, '#ffffff', 0, 0.72, 0, 3.05, 0.06, 7.05);
+  for (const z of [-2.8, 2.8]) rod(g, '#ffffff', 0.9, 2.1, z, 0.12, 2.8);
+  const roof = block(g, colorOf(i * 3), 0.6, 3.6, 0, 2.6, 0.25, 6.6); roof.rotation.z = -0.15;
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), M('#ffffff'));
+  sign.position.set(1, 5.1, 0); sign.castShadow = true; g.add(sign);
+  return { s, g, sign, animal: null, letter: null };
+});
+function setStation(st, idx) {
+  if (st.animal) { st.g.remove(st.animal); st.animal = null; }
+  st.letter = idx;
+  if (idx === null) { st.sign.material = M('#ffffff'); st.sign.visible = false; return; }
+  const tex = letterTex(ANIMALS[idx].L, colorOf(idx));
+  st.sign.material = new THREE.MeshStandardMaterial({ map: tex, roughness: 0.5 });
+  st.sign.visible = true;
+  const a = makeAnimal(ANIMALS[idx]);
+  a.position.set(0.2, 0.75, 0); a.rotation.y = -Math.PI / 2;   // facing the track
+  st.g.add(a); st.animal = a; a.userData.idx = idx;
+}
+// the Animal Park: a fenced meadow where everyone you've picked up plays
+const park = (() => {
+  const g = new THREE.Group(), s = PARK_AT, p = at(s, new THREE.Vector3()), sd = sideAt(s), tg = tangentAt(s, new THREE.Vector3());
+  g.position.copy(p).addScaledVector(sd, 14);
+  g.lookAt(g.position.clone().add(tg));
+  scene.add(g);
+  const grass = new THREE.Mesh(new THREE.CircleGeometry(10, 32), M('#9ae87a')); grass.rotation.x = -Math.PI / 2; grass.position.y = 0.04; grass.receiveShadow = true; g.add(grass);
+  for (let i = 0; i < 28; i++) { const a = i / 28 * Math.PI * 2; if (i === 21) continue; rod(g, '#ffffff', Math.cos(a) * 10, 0.6, Math.sin(a) * 10, 0.12, 1.2); }
+  const arch = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.25, 8, 24, Math.PI), M('#ff9d1c')); arch.position.set(Math.cos(21 / 28 * Math.PI * 2) * 10, 0, Math.sin(21 / 28 * Math.PI * 2) * 10); arch.rotation.y = Math.PI / 2; g.add(arch);
+  const sign = new THREE.Mesh(new THREE.BoxGeometry(5, 1.2, 0.2), new THREE.MeshStandardMaterial({ map: canvasTex(512, 128, (c, w, h) => { c.fillStyle = '#3cc456'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff'; c.font = 'bold 64px Fredoka, Arial, sans-serif'; c.textAlign = 'center'; c.textBaseline = 'middle'; c.fillText('ANIMAL PARK', w / 2, h / 2 + 4); }) }));
+  sign.position.set(arch.position.x, 3, arch.position.z); sign.rotation.y = Math.PI / 2; g.add(sign);
+  // a platform by the track for unloading
+  const plat = new THREE.Group(); plat.position.copy(p).addScaledVector(sd, 3.6); plat.lookAt(plat.position.clone().add(tg)); scene.add(plat);
+  block(plat, '#f2e0c0', 0, 0.35, 0, 3, 0.7, 7); block(plat, '#3cc456', 0, 0.72, 0, 3.05, 0.06, 7.05);
+  return { g, s, animals: [] };
+})();
+
+// ---------- The train ----------
+const train = { s: 2, v: 0, running: false, wagons: [], seats: [] };
+const engine = new THREE.Group();
+{
+  const e = engine;
+  block(e, '#e8453a', 0, 0.75, 0, 1.9, 0.5, 5);                       // chassis
+  rod(e, '#3cc456', 0, 1.65, 0.8, 0.85, 3, Math.PI / 2, 0);            // boiler
+  block(e, '#5a7aff', 0, 2.0, -1.4, 2.1, 2.1, 1.8);                    // cab
+  block(e, '#ffd84a', 0, 3.15, -1.4, 2.5, 0.25, 2.3);                  // roof
+  for (const s of [-1, 1]) block(e, '#bfe8ff', s * 1.06, 2.3, -1.4, 0.05, 0.8, 1);   // windows
+  rod(e, '#23324a', 0, 2.85, 1.7, 0.32, 1.1);                          // chimney
+  const top = mesh(CONE, '#23324a', 0, 3.5, 1.7, e); top.scale.set(0.5, 0.4, 0.5); top.rotation.x = Math.PI;
+  ball(e, '#ffd84a', 0, 1.65, 2.32, 0.42, 0.42, 0.12);                 // big round lamp
+  const cow = mesh(new THREE.ConeGeometry(0.95, 0.9, 4), '#ffd84a', 0, 0.55, 2.7, e); cow.rotation.set(Math.PI / 2, Math.PI / 4, 0); cow.scale.set(1, 1, 0.6);
+  // a friendly bear driver waving from the cab
+  const drv = new THREE.Group(); drv.position.set(0, 2.2, -1.4); e.add(drv);
+  ball(drv, '#c8844a', 0, 0.4, 0, 0.45); ball(drv, '#f0c898', 0.35, 0.32, 0, 0.18, 0.15, 0.2);
+  for (const s of [-1, 1]) { ball(drv, '#c8844a', -0.05, 0.8, s * 0.3, 0.13, 0.13, 0.07); ball(drv, '#ffffff', 0.32, 0.5, s * 0.15, 0.08); ball(drv, '#23324a', 0.38, 0.5, s * 0.15, 0.045); }
+  ball(drv, '#23324a', 0.52, 0.36, 0, 0.06);
+  block(drv, '#e8453a', 0, 0.85, 0, 0.7, 0.18, 0.7); block(drv, '#e8453a', 0.35, 0.78, 0, 0.35, 0.06, 0.6);   // engineer's cap
+  e.userData.wheels = [];
+  for (const z of [-1.6, 0, 1.6]) for (const s of [-1, 1]) { const w = rod(e, '#23324a', s * 0.98, 0.55, z, 0.55, 0.22, 0, Math.PI / 2); rod(w, '#ffd84a', 0, 0.55, 0, 0.35, 0.1); e.userData.wheels.push(w); }
+  scene.add(e);
+}
+const WAGON_COLORS = ['#ffd84a', '#ff9d1c', '#a05aff', '#1fb0c8'];
+for (let i = 0; i < 4; i++) {
+  const w = new THREE.Group();
+  block(w, '#23324a', 0, 0.62, 0, 1.6, 0.3, 3.4);
+  block(w, WAGON_COLORS[i], 0, 1.05, 0, 2, 0.6, 3.6);
+  for (const s of [-1, 1]) { block(w, WAGON_COLORS[i], s * 0.95, 1.55, 0, 0.12, 0.5, 3.6); block(w, WAGON_COLORS[i], 0, 1.55, s * 1.75, 2, 0.5, 0.12); }
+  w.userData.wheels = [];
+  for (const z of [-1.1, 1.1]) for (const s of [-1, 1]) { const wh = rod(w, '#23324a', s * 0.98, 0.5, z, 0.48, 0.2, 0, Math.PI / 2); w.userData.wheels.push(wh); }
+  scene.add(w); train.wagons.push(w); train.seats.push(null);
+}
+const GAP = [5.6, 4.6];   // engine to first wagon, wagon to wagon (along the track)
+function placeTrain() {
+  const place = (obj, s) => {
+    const p = at(s, new THREE.Vector3()), t = tangentAt(s, new THREE.Vector3());
+    obj.position.copy(p).add(new THREE.Vector3(0, 0.15, 0));
+    obj.lookAt(obj.position.clone().add(t));
+  };
+  place(engine, train.s);
+  train.wagons.forEach((w, i) => place(w, train.s - GAP[0] - i * GAP[1]));
+}
+
+// ---------- Sound ----------
+const beep = RB.beep;
+const sfx = {
+  toot: () => { beep(392, 392, 0.35, 'square', 0.07); beep(494, 494, 0.35, 'square', 0.05); beep(392, 392, 0.5, 'square', 0.07, 0.42); beep(494, 494, 0.5, 'square', 0.05, 0.42); },
+  ding: () => [784, 988, 1175, 1568].forEach((f, i) => beep(f, f, 0.18, 'sine', 0.09, i * 0.09)),
+  hop: () => beep(300, 900, 0.22, 'sine', 0.08),
+  oops: () => beep(400, 300, 0.3, 'triangle', 0.08),
+  cheer: () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => beep(f, f, 0.16, 'triangle', 0.08, i * 0.11)),
+  chuff: v => RB.noise(0.08, Math.min(0.07, 0.02 + v * 0.006)),
+  brake: () => RB.noise(0.4, 0.05),
+};
+// the alphabet song tune (a traditional melody), played when you get all the way to Z
+const ABC_TUNE = [[60, 1], [60, 1], [67, 1], [67, 1], [69, 1], [69, 1], [67, 2], [65, 1], [65, 1], [64, 1], [64, 1], [62, 0.5], [62, 0.5], [62, 0.5], [62, 0.5], [60, 2],
+  [67, 1], [67, 1], [65, 2], [64, 1], [64, 1], [62, 2], [67, 1], [67, 1], [65, 2], [64, 1], [64, 1], [62, 2],
+  [60, 1], [60, 1], [67, 1], [67, 1], [69, 1], [69, 1], [67, 2], [65, 1], [65, 1], [64, 1], [64, 1], [62, 1], [62, 1], [60, 2]];
+function playAbcSong() {
+  let t = 0;
+  for (const [n, d] of ABC_TUNE) { const f = 440 * 2 ** ((n - 69) / 12); beep(f, f, d * 0.36, 'triangle', 0.08, t); beep(f / 2, f / 2, d * 0.36, 'sine', 0.05, t); t += d * 0.38; }
+  return t;
+}
+const say = (text, opts) => { if (!RB.muted) RB.speak(text, opts); };
+
+// ---------- The game ----------
+const save = (() => { try { return JSON.parse(RB.store.get('abc_train') || 'null') || {}; } catch (e) { return {}; } })();
+const persist = () => RB.store.set('abc_train', JSON.stringify(save));
+let state = 'title', mode = 'abc', next = 0, target = null, hold = 0, idleT = 0, lastChuff = 0, camMode = 0, clock = 0, autoStop = null;
+let jobs = [];   // little animations: animals hopping on and off
+const $ = id => document.getElementById(id);
+const abcEl = $('abc');
+abcEl.innerHTML = ANIMALS.map((a, i) => `<span style="--c:${colorOf(i)}">${a.L}</span>`).join('');
+function drawAbc() {
+  [...abcEl.children].forEach((el, i) => {
+    el.classList.toggle('got', mode === 'abc' ? i < next : (save.found || []).includes(i));
+    el.classList.toggle('next', mode === 'abc' ? i === next : i === target);
+  });
+}
+function showCard(idx) {
+  const a = ANIMALS[idx], col = colorOf(idx);
+  $('cardLetter').textContent = a.L + a.L.toLowerCase(); $('cardLetter').style.color = col;
+  const nm = a.name;
+  $('cardWord').innerHTML = `<b style="color:${col}">${nm[0]}</b>${nm.slice(1)}`;
+  $('card').classList.add('on');
+  clearTimeout(showCard.t); showCard.t = setTimeout(() => $('card').classList.remove('on'), 3200);
+}
+function ask(html) { $('ask').innerHTML = html; $('ask').classList.toggle('hidden', !html); }
+const SEAT_Y = 1.4;   // how high the animals sit in the wagons (so little eyes can see them)
+const seatsFree = () => train.seats.filter(x => x === null).length;
+
+function start(m) {
+  RB.audio();
+  mode = m; state = 'play';
+  $('title').classList.add('hidden');
+  for (const id of ['abc', 'go', 'toot', 'cam']) $(id).classList.remove('hidden');
+  train.s = PARK_AT + 1; train.v = 0; train.running = false;
+  for (let i = 0; i < train.seats.length; i++) if (train.seats[i]) { train.wagons[i].remove(train.seats[i]); train.seats[i] = null; }
+  next = mode === 'abc' ? Math.min(save.next || 0, 25) : 0;
+  setupStations();
+  drawAbc(); updateGo();
+  if (mode === 'abc') say(next ? `Welcome back! Let's find the letter ${ANIMALS[next].L}. Press GO!` : 'All aboard! Let\'s find the letter A. Press the green GO button!');
+  else say(`Can you find the letter ${ANIMALS[target].L}? Stop the train at the ${ANIMALS[target].L}!`);
+}
+// which animals wait at which stations
+function setupStations() {
+  stations.forEach(st => setStation(st, null));
+  if (mode === 'abc') {
+    if (seatsFree() === 0) { autoStop = PARK_AT; ask('🏞️ Take the animals to the <b>Animal Park</b>!'); return; }
+    // the next letter waits at the next station ahead of the train
+    const st = stationAhead(train.s + 8);
+    setStation(st, next); autoStop = st.s;
+    ask(`Find the letter <b style="color:${colorOf(next)}">${ANIMALS[next].L}</b>`);
+  } else {
+    // find the letter: every station has a letter; one of them is the one to find
+    const pool = ANIMALS.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, stations.length);
+    target = pool[Math.floor(Math.random() * pool.length)];
+    stations.forEach((st, i) => setStation(st, pool[i]));
+    autoStop = null;
+    ask(`Stop at the letter <b style="color:${colorOf(target)}">${ANIMALS[target].L}</b>`);
+  }
+  drawAbc();
+}
+function stationAhead(s) { let best = null, bd = Infinity; for (const st of stations) { const d = wrap(st.s - s); if (d < bd) { bd = d; best = st; } } return best; }
+function updateGo() {
+  const go = $('go');
+  go.textContent = train.running ? 'STOP' : 'GO';
+  go.classList.toggle('stop', train.running);
+  go.classList.toggle('pulse', !train.running && state === 'play' && hold <= 0);
+}
+function toggleGo() {
+  if (state !== 'play' || hold > 0) return;
+  RB.audio();
+  if (train.running && mode === 'find' && autoStop === null) {
+    // stopping near a station (little hands are never exact): glide right up to it
+    const st = stations.find(x => { const d = wrap(x.s - train.s); return d < 16 || d > LEN - 2; });
+    if (st) { autoStop = st.s; sfx.brake(); return; }
+  }
+  train.running = !train.running;
+  if (train.running) { sfx.toot(); idleT = 0; } else { sfx.brake(); if (mode === 'find') autoStop = null; }
+  updateGo();
+}
+function toot() {
+  RB.audio(); sfx.toot();
+  // the waiting animals jump for joy
+  for (const st of stations) if (st.animal) jobs.push({ t: 0, d: 0.6, obj: st.animal, kind: 'jump', y0: 0.75 });
+  for (const a of park.animals) jobs.push({ t: 0, d: 0.6, obj: a, kind: 'jump', y0: 0 });
+}
+// the train has stopped beside a station: who gets on?
+function arrive(st) {
+  if (mode === 'abc' && st.letter === next) boardAnimal(st, next);
+  else if (mode === 'find' && st.letter !== null) {
+    const idx = st.letter, a = ANIMALS[idx];
+    if (idx === target) {
+      boardAnimal(st, idx);
+      save.found = [...new Set([...(save.found || []), idx])]; persist();
+    } else {
+      sfx.oops(); showCard(idx);
+      say(`That's ${a.L}. ${a.L} is for ${a.say || a.name}! Let's find ${ANIMALS[target].L}.`);
+      jobs.push({ t: 0, d: 0.6, obj: st.animal, kind: 'jump', y0: 0.75 });
+    }
+  }
+}
+function boardAnimal(st, idx) {
+  const a = ANIMALS[idx];
+  hold = 3.4; train.running = false; updateGo();
+  showCard(idx); sfx.ding();
+  say(`${a.L}! ${a.L} is for ${a.say || a.name}!`);
+  // hop from the platform into the first empty wagon
+  const seat = train.seats.indexOf(null), animal = st.animal;
+  st.animal = null; st.sign.visible = false;
+  const from = new THREE.Vector3(); animal.getWorldPosition(from);
+  st.g.remove(animal); scene.add(animal); animal.position.copy(from);
+  train.seats[seat] = animal;
+  jobs.push({ t: 0, d: 1.1, obj: animal, kind: 'board', from, wagon: train.wagons[seat], delay: 0.6, done: () => {
+    scene.remove(animal); const w = train.wagons[seat]; w.add(animal); animal.position.set(0, SEAT_Y, 0); animal.rotation.set(0, Math.PI / 2, 0); animal.scale.setScalar(0.85);
+    sfx.hop();
+  } });
+  if (mode === 'abc') {
+    next++;
+    save.next = next; persist();
+    if (next >= 26) { setTimeout(finale, 2600); return; }
+  }
+  setTimeout(() => { if (state === 'play') { setupStations(); if (mode === 'abc' && seatsFree() === 0) say('The train is full! Let\'s take the animals to the Animal Park!'); else if (mode === 'abc') say(`Now let's find ${ANIMALS[next].L}!`); else say(`Can you find the letter ${ANIMALS[target].L}?`); } }, 3600);
+  drawAbc();
+}
+function unloadAtPark() {
+  hold = 3.6; train.running = false; updateGo();
+  sfx.cheer(); say('Hooray! Everybody hop off and play in the Animal Park!');
+  train.seats.forEach((animal, i) => {
+    if (!animal) return;
+    const from = new THREE.Vector3(); animal.getWorldPosition(from);
+    train.wagons[i].remove(animal); scene.add(animal); animal.position.copy(from); animal.scale.setScalar(1);
+    train.seats[i] = null;
+    const spot = new THREE.Vector3((Math.random() - 0.5) * 12, 0, (Math.random() - 0.5) * 12);
+    park.g.localToWorld(spot);
+    jobs.push({ t: 0, d: 1.3, obj: animal, kind: 'leap', from, to: spot, delay: i * 0.35, done: () => { animal.userData.home = spot.clone(); animal.userData.ph = Math.random() * 6; park.animals.push(animal); } });
+  });
+  setTimeout(() => { if (state === 'play') { setupStations(); say(`Now let's find ${ANIMALS[next].L}!`); } }, 4200);
+}
+function finale() {
+  state = 'party'; train.running = false; updateGo();
+  ask('🎉 You did the whole alphabet! 🎉');
+  say('You did it! You found every letter from A to Z! Let\'s sing!');
+  setTimeout(() => {
+    const len = playAbcSong();
+    [...abcEl.children].forEach((el, i) => setTimeout(() => { el.classList.add('next'); setTimeout(() => el.classList.remove('next'), 400); }, i * len * 1000 / 30));
+    setTimeout(() => { save.next = 0; save.done = (save.done || 0) + 1; persist(); next = 0; state = 'play'; setupStations(); drawAbc(); say('Let\'s go again from A!'); }, len * 1000 + 800);
+  }, 3500);
+}
+
+// ---------- Controls ----------
+$('go').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toggleGo(); });
+$('toot').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toot(); });
+$('cam').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); camMode = (camMode + 1) % 3; RB.audio(); beep(600, 900, 0.08, 'sine', 0.06); });
+$('btnAbc').addEventListener('click', () => start('abc'));
+$('btnFind').addEventListener('click', () => start('find'));
+// tap an animal in the park (or at a station) and it jumps and says its name
+const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
+canvas.addEventListener('pointerdown', e => {
+  if (state === 'title') return;
+  RB.audio();
+  ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
+  ray.setFromCamera(ptr, camera);
+  const pool = [...park.animals, ...stations.map(s => s.animal).filter(Boolean), ...train.seats.filter(Boolean)];
+  const hit = ray.intersectObjects(pool, true)[0];
+  if (!hit) return;
+  let o = hit.object; while (o && !pool.includes(o)) o = o.parent;
+  if (!o) return;
+  const idx = ANIMALS.findIndex(a => o.userData.name === a.name);
+  jobs.push({ t: 0, d: 0.6, obj: o, kind: 'jump', y0: o.position.y });
+  if (idx >= 0) { say(`${ANIMALS[idx].say || ANIMALS[idx].name}!`); sfx.hop(); }
+});
+addEventListener('keydown', e => {
+  if (e.repeat) return;
+  if (state === 'title') { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); start('abc'); } return; }
+  if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowUp') { e.preventDefault(); toggleGo(); }
+  if (e.code === 'KeyH' || e.code === 'KeyX' || e.code === 'KeyT') toot();
+  if (e.code === 'KeyC') camMode = (camMode + 1) % 3;
+  if (e.code === 'KeyM') RB.toggleMute();
+});
+// 🎮 Ⓐ go / stop, Ⓧ / Ⓨ / Ⓑ toot the horn, LB / RB change the camera
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyH', 2: 'KeyH', 3: 'KeyH', 4: 'KeyC', 5: 'KeyC', 6: null, 7: 'Space' },
+  '<b>ABC Train:</b> Ⓐ go and stop · Ⓧ / Ⓨ / Ⓑ toot the horn · <b>LB</b> / <b>RB</b> change the camera');
+RB.topbar({ home: 'index.html', homeTitle: 'Back to Preschool', shareInfo: { title: 'ABC Train | RoboBandit', text: 'Drive the train, pick up the animals and learn the alphabet! 🚂🔤' } });
+
+// the ☰ menu (or switching apps) stops the train, so nothing is missed
+addEventListener('blur', () => { if (train.running) { train.running = false; if (mode === 'find') autoStop = null; updateGo(); } });
+
+// ---------- Update ----------
+const CRUISE = 9, ACC = 2.6, BRAKE = 6;
+function update(dt) {
+  clock += dt;
+  hold = Math.max(0, hold - dt);
+  if (hold <= 0 && $('go').classList.contains('stop') !== train.running) updateGo();
+  // speed: gentle start, gentle stops; the train brakes by itself for the next animal
+  let want = train.running ? CRUISE : 0;
+  if (autoStop !== null && train.running && state === 'play') {
+    const d = wrap(autoStop - train.s);
+    if (d < 40) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, d - 0.05)) + 0.3);
+    if (d < 0.35 || d > LEN - 2) {
+      train.running = false; train.v = 0; train.s = autoStop; updateGo();
+      if (autoStop === PARK_AT) unloadAtPark(); else arrive(stationAhead(train.s - 1));
+      if (mode === 'find') autoStop = null;
+    }
+  }
+  if (train.v < want) train.v = Math.min(want, train.v + ACC * dt);
+  else train.v = Math.max(want, train.v - BRAKE * dt);
+  const wasMoving = train.v > 0.05;
+  train.s = wrap(train.s + train.v * dt);
+  // stopped by hand next to a station: in Find the letter, that's your answer
+  if (mode === 'find' && wasMoving && train.v <= 0.05 && !train.running && state === 'play') {
+    const st = stations.find(x => Math.abs(wrap(x.s - train.s + LEN / 2) - LEN / 2) < 6);
+    if (st) arrive(st);
+  }
+  // chuff-chuff, faster as the train speeds up
+  if (train.v > 0.3 && clock - lastChuff > 2.2 / (train.v + 1.5)) { lastChuff = clock; sfx.chuff(train.v); puff(); }
+  if (!train.running && train.v < 0.05 && state === 'play' && hold <= 0) { idleT += dt; if (idleT > 9) { idleT = 0; say('Press the green GO button!'); } } else idleT = 0;
+  placeTrain();
+  const spin = train.v * dt / 0.55;
+  for (const w of engine.userData.wheels) w.rotation.y += spin;
+  for (const wg of train.wagons) for (const w of wg.userData.wheels) w.rotation.y += spin;
+  // little animations
+  for (const j of jobs) {
+    if (j.delay > 0) { j.delay -= dt; continue; }
+    j.t += dt;
+    const k = Math.min(1, j.t / j.d);
+    if (j.kind === 'jump') j.obj.position.y = j.y0 + Math.sin(k * Math.PI) * 0.9;
+    else if (j.kind === 'board') { const to = new THREE.Vector3(); j.wagon.localToWorld(to.set(0, SEAT_Y, 0)); j.obj.position.lerpVectors(j.from, to, k); j.obj.position.y += Math.sin(k * Math.PI) * 2.5; j.obj.scale.setScalar(1 - 0.15 * k); }
+    else if (j.kind === 'leap') { j.obj.position.lerpVectors(j.from, j.to, k); j.obj.position.y += Math.sin(k * Math.PI) * 3; }
+    if (k >= 1 && !j.fin) { j.fin = true; if (j.done) j.done(); }
+  }
+  jobs = jobs.filter(j => !j.fin);
+  // park animals wander about happily
+  for (const a of park.animals) {
+    if (jobs.some(j => j.obj === a)) continue;
+    const h = a.userData.home, ph = a.userData.ph + clock * 0.6;
+    a.position.set(h.x + Math.sin(ph) * 1.5, Math.abs(Math.sin(ph * 4)) * 0.2, h.z + Math.cos(ph * 0.8) * 1.5);
+    a.rotation.y = -ph + Math.PI / 2;
+  }
+  for (const st of stations) if (st.animal) { st.animal.rotation.z = Math.sin(clock * 3 + st.s) * 0.05; if (st.animal.userData.fish) st.animal.userData.fish.position.x = Math.sin(clock * 2) * 0.15; }
+  for (const s of train.seats) if (s) s.position.y = SEAT_Y + Math.abs(Math.sin(clock * 6)) * 0.05;
+  scene.userData.blades.rotation.x += dt * 0.8;
+  for (const cl of scene.userData.clouds) { cl.position.x += dt * 1.5; if (cl.position.x > 250) cl.position.x = -250; }
+  for (const st of stations) if (st.sign.visible) st.sign.rotation.y += dt * 0.8;
+  updateSmoke(dt);
+  updateCamera(dt);
+}
+// puffs of smoke from the chimney
+const smoke = [];
+const smokeMat = new THREE.MeshStandardMaterial({ color: '#ffffff', transparent: true, opacity: 0.8, roughness: 1 });
+function puff() {
+  const m = new THREE.Mesh(SPH, smokeMat.clone()); const p = new THREE.Vector3(0, 3.8, 1.7); engine.localToWorld(p);
+  m.position.copy(p); m.scale.setScalar(0.4); scene.add(m); smoke.push({ m, t: 0 });
+  if (smoke.length > 24) { const o = smoke.shift(); scene.remove(o.m); }
+}
+function updateSmoke(dt) {
+  for (const s of smoke) { s.t += dt; s.m.position.y += dt * 1.6; s.m.scale.setScalar(0.4 + s.t * 0.9); s.m.material.opacity = Math.max(0, 0.8 - s.t * 0.5); }
+}
+// the camera: behind the train, from the side, or high above (🎥 switches)
+const camPos = new THREE.Vector3(0, 30, -30), camLook = new THREE.Vector3();
+function updateCamera(dt) {
+  const p = engine.position, t = tangentAt(train.s, new THREE.Vector3()), sd = sideAt(train.s);
+  let want, look;
+  if (state === 'title') { const a = clock * 0.08; want = new THREE.Vector3(Math.cos(a) * 120, 70, 40 + Math.sin(a) * 120); look = new THREE.Vector3(0, 0, 45); }
+  else if (camMode === 0) { want = p.clone().addScaledVector(t, -13).addScaledVector(sd, 5).add(new THREE.Vector3(0, 8, 0)); look = p.clone().addScaledVector(t, 6).add(new THREE.Vector3(0, 1.5, 0)); }
+  else if (camMode === 1) { want = p.clone().addScaledVector(sd, 16).addScaledVector(t, -3).add(new THREE.Vector3(0, 5, 0)); look = p.clone().addScaledVector(t, -4).add(new THREE.Vector3(0, 1.5, 0)); }
+  else { want = p.clone().addScaledVector(t, -14).add(new THREE.Vector3(0, 40, 0)); look = p.clone().addScaledVector(t, 10); }
+  const k = Math.min(1, dt * (state === 'title' ? 1 : 2.5));
+  camPos.lerp(want, k); camLook.lerp(look, k);
+  camera.position.copy(camPos); camera.lookAt(camLook);
+  sun.position.copy(p).add(new THREE.Vector3(30, 60, 20)); sun.target.position.copy(p);
+}
+
+
+// ---------- Title and loop ----------
+function titleStats() {
+  const bits = [];
+  if (save.next) bits.push(`🔤 Up to the letter <b>${ANIMALS[Math.min(save.next, 25)].L}</b>`);
+  if (save.done) bits.push(`🏆 Whole alphabet ${save.done} time${save.done > 1 ? 's' : ''}!`);
+  if ((save.found || []).length) bits.push(`🔍 Found ${(save.found || []).length} letters`);
+  $('titleStats').innerHTML = bits.join(' · ');
+}
+titleStats();
+placeTrain();
+let last = performance.now();
+function frame(now) {
+  requestAnimationFrame(frame);
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  try { update(dt); renderer.render(scene, camera); } catch (e) { if (!frame.warned) { frame.warned = true; setTimeout(() => { throw e; }); } }
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

@@ -114,12 +114,89 @@ const RB = (() => {
     return bar;
   }
 
+  // ---------- 🗣️ Read aloud ----------
+  // Browsers come with several voices and the default is often the most robotic one. This picks the
+  // nicest-sounding English voice on the device (the "natural", "neural", "enhanced" and "premium" ones,
+  // Siri's, Google's), speaks a little slower and warmer for kids, reads long text a sentence at a time
+  // (some browsers cut off long speech), and remembers a voice chosen in the ☰ menu (rb_voice).
+  const voice = (() => {
+    const ok = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
+    let list = [], queue = [], current = null;
+    const GOOD = [/natural/i, /neural/i, /premium/i, /enhanced/i, /siri/i, /^samantha/i, /google us english/i, /^ava\b/i, /^allison/i, /^karen/i,
+      /^moira/i, /^tessa/i, /^serena/i, /google uk english female/i, /aria/i, /jenny/i, /\bana\b/i, /libby/i, /sonia/i, /^daniel/i, /zira/i];
+    const BAD = /compact|espeak|novelty|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|junior|ralph|fred|kathy|grandma|grandpa|rocko|shelley|eddy|flo|reed|sandy/i;
+    const score = v => {
+      if (!/^en/i.test(v.lang)) return -1000;
+      let s = /^en[-_]us/i.test(v.lang) ? 6 : /^en[-_](gb|au|ie|ca|nz)/i.test(v.lang) ? 4 : 2;
+      const i = GOOD.findIndex(r => r.test(v.name));
+      if (i >= 0) s += 60 - i * 2;
+      if (BAD.test(v.name)) s -= 80;
+      if (/female|woman|girl/i.test(v.name)) s += 3;
+      return s;
+    };
+    const load = () => { if (ok) list = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)).sort((a, b) => score(b) - score(a)); };
+    if (ok) { load(); speechSynthesis.addEventListener ? speechSynthesis.addEventListener('voiceschanged', load) : (speechSynthesis.onvoiceschanged = load); }
+    const pick = () => {
+      const saved = store.get('rb_voice');
+      return (saved && list.find(v => v.voiceURI === saved)) || list[0] || null;
+    };
+    // tidy text for speaking: no emoji, no markup, and a few things said the way people say them
+    const clean = t => String(t)
+      .replace(/<[^>]+>/g, ' ').replace(/&nbsp;/g, ' ').replace(/&amp;/g, ' and ')
+      .replace(/[\u{1F000}-\u{1FAFF}\u{2600}-\u{27BF}\u{2B00}-\u{2BFF}\u{FE0F}\u{200D}]/gu, '')
+      .replace(/\bkm\/h\b/g, 'kilometres an hour').replace(/\bmph\b/g, 'miles an hour').replace(/\bm\/s\b/g, 'metres a second')
+      .replace(/\s*·\s*/g, '. ').replace(/\s*—\s*/g, ', ').replace(/\s+/g, ' ').trim();
+    const sentences = t => (clean(t).match(/[^.!?]+[.!?]*["”’)]*\s*/g) || []).map(x => x.trim()).filter(Boolean)
+      .flatMap(x => x.length > 220 ? x.split(/,\s+/) : [x]);
+    function next() {
+      if (!queue.length) { current = null; return; }
+      const job = queue.shift(), u = new SpeechSynthesisUtterance(job.text), v = pick();
+      if (v) { u.voice = v; u.lang = v.lang; }
+      u.rate = job.rate; u.pitch = job.pitch; u.volume = 1;
+      u.onend = u.onerror = () => { if (current === u) { current = null; if (!queue.length && job.done) job.done(); next(); } };
+      current = u;
+      speechSynthesis.speak(u);
+    }
+    function speak(text, { rate = 0.92, pitch = 1.08, onend } = {}) {
+      if (!ok) return false;
+      stop();
+      if (!list.length) load();
+      const parts = sentences(text);
+      if (!parts.length) return false;
+      queue = parts.map((t2, i) => ({ text: t2, rate, pitch, done: i === parts.length - 1 ? onend : null }));
+      next();
+      return true;
+    }
+    function stop() { queue = []; current = null; if (ok) try { speechSynthesis.cancel(); } catch (e) { /* fine */ } }
+    return {
+      ok, speak, stop,
+      get speaking() { return ok && (!!current || speechSynthesis.speaking); },
+      voices: () => { if (!list.length) load(); return list.filter(v => !BAD.test(v.name)).slice(0, 10); },
+      get chosen() { return pick(); },
+      choose(v) { store.set('rb_voice', v ? v.voiceURI : ''); },
+    };
+  })();
+  // the ☰ menu's voice chooser: the best few voices on this device, each with a little sample
+  function voiceMenu(panel) {
+    const vs = voice.voices();
+    const cur = voice.chosen;
+    panel.innerHTML = `<h3>🗣️ Read-aloud voice</h3><div class="rb-menu-set rb-voices">${vs.length ? vs.map((v, i) =>
+      `<button type="button" data-v="${i}" class="${cur && v.voiceURI === cur.voiceURI ? 'on' : ''}">${cur && v.voiceURI === cur.voiceURI ? '✔ ' : ''}${v.name.replace(/\s*\(.*\)\s*/, ' ').replace(/microsoft|google|apple/ig, '').trim() || v.name}</button>`).join('')
+      : '<p>This device has no voices to read aloud with.</p>'}</div>
+      <p class="rb-voice-tip">Tip: the nicest voices are often called “Natural”, “Enhanced” or “Premium”. On an iPad or Mac you can download more in Settings → Accessibility → Spoken Content → Voices.</p>`;
+    panel.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => {
+      const v = vs[+b.dataset.v]; voice.choose(v); voiceMenu(panel);
+      voice.speak('Hi! I will read to you in this voice. Let\'s go!');
+    }));
+  }
+
   // ---------- ☰ The RoboBandit menu: every game, the school folders and the settings, on every page ----------
   const SITE_ROOT = SITE_HOME.replace(/index\.html$/, '');
   const GAMES = [
     ['space-wars.html', '🚀', 'Space Wars'], ['floppy-bird.html', '🐦', 'Floppy Bird'], ['surfs-up.html', '🏄', "Surf's Up"],
     ['hamglider.html', '🐹', 'Hamglider'], ['web-hero.html', '🕸️', 'Web Hero'], ['sparkle-meadow.html', '🦄', 'Sparkle Meadow'],
     ['witch-way-out.html', '🧙', 'Witch Way Out'], ['flight-school.html', '✈️', 'Flight School'], ['lucky-leo.html', '☘️', 'Lucky Leo'],
+    ['preschool/abc-train.html', '🚂', 'ABC Train'],
   ];
   const FOLDERS = [['preschool/index.html', '🧸', 'Preschool'], ['2nd-grade/index.html', '✏️', '2nd Grade'], ['5th-grade/index.html', '🎒', '5th Grade']];
   let menuEl = null, menuShare = null;
@@ -153,6 +230,7 @@ const RB = (() => {
       <h3>⚙️ Settings</h3><div class="rb-menu-set">
         <button type="button" data-m="sound">${muted ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
         <button type="button" data-m="pad">🎮 Controller</button>
+        ${voice.ok ? '<button type="button" data-m="voice">🗣️ Read-aloud voice</button>' : ''}
         ${document.fullscreenEnabled ? `<button type="button" data-m="fs">⛶ ${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}
         ${menuShare ? '<button type="button" data-m="share">🔗 Share this game</button>' : ''}
         <a href="${SITE_HOME}" class="rb-home-all">🏠 All games</a></div>
@@ -165,6 +243,7 @@ const RB = (() => {
       const m = b.dataset.m;
       if (m === 'sound') { audio(); setMuted(!muted); b.textContent = muted ? '🔇 Sound: off' : '🔊 Sound: on'; }
       else if (m === 'pad') { closeMenu(); controllerScreen(); }
+      else if (m === 'voice') { let v = menuEl.querySelector('.rb-voicebox'); if (!v) { v = document.createElement('div'); v.className = 'rb-voicebox'; b.closest('.rb-menu-set').after(v); } voiceMenu(v); }
       else if (m === 'fs') { closeMenu(); if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); }
       else if (m === 'share') { closeMenu(); share(menuShare); }
     }));
@@ -174,6 +253,7 @@ const RB = (() => {
   }
   function closeMenu() {
     if (!menuEl) return;
+    voice.stop();
     if (menuEl.hiddenPause) menuEl.hiddenPause.style.display = '';
     menuEl.remove(); menuEl = null;
     removeEventListener('keydown', menuKeys, true);
@@ -629,6 +709,7 @@ const RB = (() => {
     toggleMute: () => { audio(); setMuted(!muted); },
     onMute: f => muteHooks.push(f),
     toast, share, topbar, showPause, hidePause, onHide, controllerScreen, openMenu, closeMenu,
+    speak: voice.speak, hush: voice.stop, voice,
     get pauseShowing() { return !!pauseEl; },
   };
 })();
