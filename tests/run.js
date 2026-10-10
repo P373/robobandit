@@ -1101,6 +1101,46 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-world2.png');
   });
 
+  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn hatches, can be ridden (higher jump, float, stomp spiky, horn zap), and a hit only knocks Leo off', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); lives = 9;
+      // a spring: hold run and walk into it, carry it 3 tiles, put it down, and it still bounces
+      startLevel('hills'); const sp = ents.find(e => e.k === 'spring'); ents = ents.filter(e => !isEnemy(e));
+      player.x = sp.x - 30; player.y = sp.y + sp.h - player.h; run(5);
+      const x0 = sp.x; keys.run = true; keys.right = true; run(28); keys.right = false; out.carried = player.carry === sp; keys.run = false; run(30);
+      out.moved = sp.x - x0; out.onGround = Math.abs(sp.y + sp.h - 12 * 16) < 1;
+      player.x = sp.x; player.y = sp.y - 40; player.vy = 100; player.ground = false; run(10); out.bounce = player.vy < -200;
+      // the egg block hatches Shamrock; walk into him to ride
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 149 * 16 + 2; run(10); keys.jump = true; pressed.jump = true; run(25); keys.jump = false; run(90);
+      const u = ents.find(e => e.k === 'unicorn'); out.hatched = !!u;
+      player.x = u.x - 20; player.y = u.y + u.h - player.h; keys.right = true; run(30); keys.right = false; run(20);
+      out.riding = !!player.mount;
+      // a higher jump than on foot
+      const jumpH = () => { const y0 = player.y; let top = y0; pressed.jump = true; keys.jump = true; run(16, () => { top = Math.min(top, player.y); }); keys.jump = false; run(90, () => { top = Math.min(top, player.y); }); return y0 - top; };
+      out.rideJump = jumpH();
+      // floating: holding jump keeps Shamrock in the air longer
+      const airTime = hold => { pressed.jump = true; keys.jump = true; let n = 0; run(200, i => { if (!hold && i > 16) keys.jump = false; if (!player.ground) n++; }); keys.jump = false; run(20); return n; };
+      out.floatAir = airTime(true); out.plainAir = airTime(false);
+      // stomp a spiky hedgehog safely
+      const th = mk('thorny', player.x, player.y - 60 + player.h, { dir: -1, w: 14, h: 13 }); th.y = player.y + player.h - 13; ents.push(th);
+      player.y -= 50; player.vy = 150; player.ground = false; run(20); out.spiky = !!th.flip && !!player.mount;
+      // the rainbow horn zaps the goblin in front into a coin
+      const gob = mk('grumblin', player.x + player.face * 30, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
+      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0;
+      // a hit: Leo falls off unhurt, Shamrock runs off; ↓ + jump hops off on purpose
+      const form = player.form; hurtPlayer(); out.fell = !player.mount && player.form === form && phase === 'play' && ents.some(e => e.k === 'unicorn' && e.st === 'flee');
+      paused = false; return out;
+    });
+    check(r.carried && r.moved > 25 && r.onGround && r.bounce, 'carry a spring and it still works where you put it: ' + JSON.stringify(r));
+    check(r.hatched && r.riding, 'the egg should hatch Shamrock and Leo should ride him: ' + JSON.stringify(r));
+    check(r.rideJump > 66 && r.floatAir > r.plainAir + 15, 'riding: a higher jump and a float: ' + JSON.stringify(r));
+    check(r.spiky && r.zap, 'riding: stomp spiky hedgehogs and zap with the horn: ' + JSON.stringify(r));
+    check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
+    await done(p);
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);

@@ -92,8 +92,9 @@
     <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across the Emerald Isle, then over the sea to the Frosty Isle, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
-      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
+      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
       <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
+      <li>🦄 <b>Shamrock the unicorn</b> hatches from the egg block. Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, and press run to zap enemies into coins with his rainbow horn. If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
@@ -151,12 +152,12 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const T = {
   EMPTY: 0, GROUND: 1, BRICK: 2, QCOIN: 3, QPOWER: 4, USED: 5, STONE: 6, ONEWAY: 7,
   PIPE_TL: 8, PIPE_TR: 9, PIPE_L: 10, PIPE_R: 11, SPIKES: 12, LAVA: 13, HIDDEN: 14, QSTAR: 15,
-  COIN: 16, MULTI: 17, WATER: 18, QONEUP: 19,
+  COIN: 16, MULTI: 17, WATER: 18, QONEUP: 19, QRIDE: 20,
 };
-const SOLID = new Set([T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP]);
-const QBLOCKS = new Set([T.QCOIN, T.QPOWER, T.QSTAR, T.QONEUP]);
+const SOLID = new Set([T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP, T.QRIDE]);
+const QBLOCKS = new Set([T.QCOIN, T.QPOWER, T.QSTAR, T.QONEUP, T.QRIDE]);
 const CHARS = { '#': T.GROUND, B: T.BRICK, '?': T.QCOIN, P: T.QPOWER, U: T.USED, '=': T.STONE, '-': T.ONEWAY, '^': T.SPIKES, '~': T.LAVA,
-  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP };
+  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE };   // Y: Shamrock the unicorn's egg
 
 // ---------- Levels ----------
 // Each level is built from a few commands (ground, gaps, blocks, pipes, enemies…) on a 14-row grid.
@@ -202,7 +203,7 @@ LEVELS.hills = builder('hills', 'Clover Hills', 'hills', 214)
   .e('mid', 106, 11)
   .pipe(112, 9).e('snapper', 112, 9).at(118, 8, '?S?').e('snaily', 122, 11).e('grumblin', 126, 11)
   .at(130, 9, '-----').at(133, 6, '----').e('spring', 138, 11).coins(136, 2, 5)
-  .arc(140, 8, 6).at(148, 8, 'BPBB').e('grumblin', 152, 11).e('snaily', 156, 11).pipe(160, 10)
+  .arc(140, 8, 6).at(148, 8, 'BYBB').e('grumblin', 152, 11).e('snaily', 156, 11).pipe(160, 10)
   .arc(165, 8, 5).stairs(176, 6).fill(182, 183, 6, 11, T.STONE).e('grumblin', 188, 11)
   .gems(14, 2, 43, 7, 102, 3, 137, 1, 182, 4)
   .done({ goal: 200, music: 'hills', sky: ['#7fd0ff', '#c8f0ff'] });
@@ -215,7 +216,7 @@ LEVELS.woods = builder('woods', 'Mushroom Woods', 'woods', 222)
   .at(61, 10, '---').at(65, 8, '---').arc(61, 7, 7).e('buzzer', 66, 4)
   .e('spring', 76, 11).at(74, 3, 'B?B').coins(78, 2, 4).e('grumblin', 84, 11).e('grumblin', 86, 11)
   .at(93, 9, '----').at(98, 8, '----').at(102, 10, '--').e('buzzer', 98, 4).e('mid', 108, 11)
-  .at(112, 8, 'BMB').pipe(118, 9).e('snapper', 118, 9).e('snaily', 124, 11)
+  .at(112, 8, 'BYB').pipe(118, 9).e('snapper', 118, 9).e('snaily', 124, 11)
   .at(129, 10, '---').at(133, 8, '--').at(136, 6, '--').e('buzzer', 133, 3).e('buzzer', 137, 9)
   .at(144, 8, '?L?').e('thorny', 148, 11).e('grumblin', 152, 11).e('spring', 157, 11)
   .at(159, 7, '----').at(164, 5, '----').coins(164, 4, 4).e('buzzer', 166, 8)
@@ -246,7 +247,7 @@ LEVELS.sky = builder('sky', 'Cloud Hop', 'sky', 220)
   .at(22, 10, '----').at(28, 8, '-----').e('snaily', 30, 7).at(36, 10, '---')
   .e('plat', 41, 9, { w: 3, dx: 4, sp: 1 }).at(51, 9, '----').e('buzzer', 52, 5).coins(51, 8, 4)
   .e('plat', 57, 8, { w: 3, dy: 3, sp: 1.2 }).at(62, 7, '-----').e('grumblin', 63, 6).at(66, 3, '?M?')
-  .e('plat', 70, 9, { w: 3, dx: 5, sp: 0.9 }).ground(82, 96).e('mid', 86, 11).at(90, 8, 'BLB').e('snaily', 93, 11)
+  .e('plat', 70, 9, { w: 3, dx: 5, sp: 0.9 }).ground(82, 96).e('mid', 86, 11).at(90, 8, 'YLB').e('snaily', 93, 11)
   .at(99, 10, '---').at(104, 8, '---').at(109, 6, '---').coins(109, 5, 3).e('buzzer', 106, 3)
   .e('plat', 114, 8, { w: 3, dx: 4, sp: 1.1 }).e('plat', 124, 6, { w: 3, dy: 3, sp: 1 }).at(129, 8, '------').e('thorny', 132, 7)
   .e('plat', 137, 9, { w: 2, dx: 6, sp: 1.2 }).at(149, 9, '----').e('buzzer', 150, 5).e('buzzer', 153, 7)
@@ -300,7 +301,7 @@ LEVELS.shore = builder('shore', 'Seashell Shore', 'shore', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 24).ground(29, 52).ground(57, 70).ground(75, 100).ground(105, 130).ground(134, 150).ground(155, 209)
   .at(8, 8, '?P?').e('snaily', 14, 11).e('grumblin', 20, 11)
   .arc(24, 8, 6).at(33, 8, 'B?B').e('snaily', 38, 11).e('spring', 46, 11).coins(44, 3, 5)
-  .at(52, 9, '---').e('buzzer', 58, 6).e('grumblin', 63, 11).at(64, 8, '?M?')
+  .at(52, 9, '---').e('buzzer', 58, 6).e('grumblin', 63, 11).at(64, 8, '?Y?')
   .arc(70, 8, 6).e('mid', 80, 11).e('snaily', 86, 11).e('snaily', 89, 11).at(92, 8, 'BLB')
   .e('plat', 100, 9, { w: 3, dx: 3, sp: 1 }).e('thorny', 112, 11).at(116, 8, '?S?').e('grumblin', 122, 11)
   .e('fall', 130, 9, { w: 3 }).e('buzzer', 140, 7).e('snaily', 144, 11).e('fall', 151, 9, { w: 3 })
@@ -327,7 +328,7 @@ LEVELS.night = builder('night', 'Moonlit Meadow', 'night', 214)
   .ground(0, 213).gap(44, 47).gap(96, 99).gap(150, 153).gap(176, 178)
   .at(10, 8, '?P?').e('grumblin', 16, 11).e('buzzer', 22, 7)
   .at(26, 8, 'BHB').e('snaily', 32, 11).pipe(36, 10)
-  .arc(43, 8, 6).e('buzzer', 52, 6).e('buzzer', 58, 8).at(54, 8, '?M?').e('grumblin', 62, 11).e('grumblin', 64, 11)
+  .arc(43, 8, 6).e('buzzer', 52, 6).e('buzzer', 58, 8).at(54, 8, '?Y?').e('grumblin', 62, 11).e('grumblin', 64, 11)
   .stairs(70, 4).at(74, 7, '---').coins(74, 6, 3).stairs(78, 4, false).e('thorny', 86, 11)
   .arc(95, 8, 6).e('mid', 104, 11).at(110, 8, '?L?').e('snaily', 116, 11).e('buzzer', 120, 6).pipe(124, 10).e('snapper', 124, 10)
   .e('spring', 134, 11).coins(132, 2, 5).at(138, 8, 'BSB').e('thorny', 144, 11)
@@ -447,6 +448,10 @@ const sfx = {
   spin: () => { tone(400, 1300, 0.2, 'triangle', 0.06); puffNoise(0.18, 0.05, 1500, 'bandpass', 0, 4000); },
   reserve: () => arp([1319, 988, 1175, 1568], 0.05, 0.1, 'square', 0.035, { cut: 5000 }),
   pipe: () => { for (let i = 0; i < 3; i++) tone(560 - i * 130, 280 - i * 65, 0.12, 'square', 0.055, i * 0.13, { cut: 2000 }); },
+  mount: () => { arp([523, 659, 784, 1047], 0.06, 0.12, 'triangle', 0.06); tone(1568, 1568, 0.3, 'sine', 0.03, 0.24, { vib: 0.01 }); },
+  neigh: () => { tone(900, 1100, 0.12, 'sawtooth', 0.03, 0, { cut: 2000, vib: 0.05 }); tone(1100, 500, 0.5, 'sawtooth', 0.035, 0.1, { cut: 1800, vib: 0.08 }); },
+  hatch: () => { puffNoise(0.08, 0.1, 2500); arp([784, 988, 1175, 1568], 0.06, 0.14, 'sine', 0.06); },
+  zap: () => { tone(1800, 600, 0.16, 'sine', 0.05); arp([1319, 1568, 2093], 0.03, 0.1, 'triangle', 0.025); },
   pickup: () => { tone(320, 520, 0.08, 'square', 0.045, 0, { cut: 3000 }); tone(520, 760, 0.08, 'square', 0.035, 0.06, { cut: 3000 }); },
   twirl: () => { tone(520, 1600, 0.24, 'triangle', 0.06); tone(780, 2100, 0.2, 'sine', 0.03, 0.06); puffNoise(0.2, 0.05, 1200, 'bandpass', 0, 5000); },
   pound: () => { puffNoise(0.3, 0.32, 400, 'lowpass'); tone(150, 45, 0.3, 'sine', 0.22); },
@@ -696,6 +701,54 @@ function pipeUpdate(dt) {
   if (p.y + p.h <= pipe.clipY) { p.y = pipe.clipY - p.h; p.ground = true; phase = 'play'; pipe = null; }
 }
 
+// ---- Shamrock the unicorn (a friend to ride, like Yoshi) ----
+// Hatches from the egg block (Y). Leo rides on his back: higher jumps, hold jump to flutter-float, stomp anything
+// (even spiky hedgehogs), run (Ⓧ / B) to zap the enemy in front with the rainbow horn (it turns into a coin).
+// Get hit and Leo just falls off (no harm done) while Shamrock runs away, catch him again quickly! ↓ + jump hops off.
+const RIDE_H = 30;
+function mount(e) {
+  const p = player, bottom = p.y + p.h;
+  p.mount = { flutter: 0, zap: 0, zapCD: 0 }; p.w = 14; p.h = RIDE_H; p.y = bottom - p.h;
+  p.carry = null; p.pound = null; e.gone = true;
+  sfx.mount(); sparkle(p.x + 7, p.y + 10, '#ff9ad0', 12);
+}
+function dismount(flee) {
+  const p = player;
+  if (!p.mount) return;
+  const bottom = p.y + p.h;
+  p.mount = null; p.w = 12; p.h = p.form > 0 ? 26 : 14; p.y = bottom - p.h;
+  const u = mk('unicorn', p.x - 2, bottom - 22, { w: 16, h: 22, st: flee ? 'flee' : 'wait', dir: flee ? -p.face : p.face, face: p.face });
+  ents.push(u);
+  if (flee) { sfx.neigh(); } else { p.vy = -260; p.ground = false; sfx.jump(); }
+}
+function updateUnicorn(e, dt) {
+  const p = player;
+  e.vy = Math.min((e.vy || 0) + 900 * dt, 300);
+  if (e.st === 'flee') {
+    e.vx = e.dir * 120; moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall; e.face = e.dir;
+    if (e.t > 4) { e.gone = true; sparkle(e.x + 8, e.y + 10, '#ffffff', 10); }   // gone home… there may be another egg
+  } else { e.vx = 0; e.face = p.x < e.x ? -1 : 1; }
+  moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+  if (e.y > LH + 30) e.gone = true;
+}
+function updateRiding(p, inp, dt) {
+  const m = p.mount;
+  m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt);
+  if (p.ground) m.flutter = 0;
+  // the rainbow horn: zaps the nearest enemy just in front into a coin
+  if (pressed.run && m.zapCD <= 0) {
+    m.zapCD = 0.4; m.zap = 0.22; sfx.zap();
+    const fx0 = p.x + p.w / 2, cy = p.y + 8;
+    let best = null, bd = 60;
+    for (const e of ents) {
+      if (e.dead || !isEnemy(e) || e.k === 'boss') continue;
+      const dx = (e.x + e.w / 2 - fx0) * p.face, dy = Math.abs(e.y + e.h / 2 - cy);
+      if (dx > -4 && dx < bd && dy < 26) { bd = dx; best = e; }
+    }
+    if (best) { best.gone = true; coinPop(best.x, best.y); getCoin(best.x, best.y); addScore(200, best.x, best.y); sparkle(best.x + 8, best.y + 8, '#ffe14a', 10); }
+  }
+}
+
 // the saved power-up in the box at the top: it floats down when you ask for it (or when you get hurt)
 function recallReserve() {
   if (!reserve || state !== 'level' || phase !== 'play') return;
@@ -836,6 +889,35 @@ function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
     rrect(-2.6, -36.6, 1.3, 3.6, 0.6); fill('rgba(255,255,255,.35)');           // shine
   }
   arm(4.4, -16.5, air ? -2.7 : skid ? -0.6 : swing * 0.9, false);
+  g.restore();
+}
+
+// ---- Shamrock the unicorn: white, a rainbow mane and tail, a golden horn and a green saddle ----
+// cx, by: the middle of his feet. gait 0..1 how much the legs move. zap > 0 shows a rainbow beam from the horn.
+function drawUnicorn(cx, by, face, t, gait = 0, zap = 0) {
+  g.save(); g.translate(cx, by); g.scale(face, 1);
+  const fill = c => { g.fillStyle = c; g.fill(); }, RAIN = ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'];
+  const leg = (x, ph, back) => { g.save(); g.translate(x, -7.5); g.rotate(Math.sin(ph) * 0.55 * gait); rrect(-1.4, 0, 2.8, 7, 1.3); fill(back ? '#e2dcea' : '#ffffff'); rrect(-1.6, 5.8, 3.2, 1.7, 0.7); fill('#c8a0e0'); g.restore(); };
+  leg(-5.5, t * 14 + Math.PI, true); leg(3.5, t * 14, true);
+  RAIN.forEach((c, i) => { g.beginPath(); g.moveTo(-8, -13 + i * 0.9); g.quadraticCurveTo(-15, -12 + i, -13.5 + Math.sin(t * 6 + i) * 0.8, -4 + i * 1.1); g.lineWidth = 1.7; g.strokeStyle = c; g.lineCap = 'round'; g.stroke(); });
+  ell(0, -11.5, 8.8, 5.2); fill('#ffffff'); ell(0, -9.6, 7.6, 2.8); fill('#efe8f6');
+  rrect(-3.8, -17.2, 7.2, 3.2, 1.4); fill('#2fbf4f'); rrect(-0.8, -16.6, 1.6, 2, 0.4); fill(C.gold);
+  leg(-4, t * 14, false); leg(5, t * 14 + Math.PI, false);
+  g.beginPath(); g.moveTo(4.5, -14.5); g.lineTo(8.5, -22.5); g.lineTo(12.5, -20.5); g.lineTo(9.5, -11.5); g.closePath(); fill('#ffffff');
+  ell(12.6, -21.8, 4.4, 3.1); fill('#ffffff'); ell(15.6, -20.6, 2.1, 1.9); fill('#ffe0ec');
+  g.beginPath(); g.moveTo(9.6, -23.6); g.lineTo(10.6, -27.4); g.lineTo(12, -24); fill('#ffffff');
+  g.beginPath(); g.moveTo(11.8, -24.4); g.lineTo(16.4, -31.5); g.lineTo(14.2, -23.6); fill(C.gold);
+  ell(12.9, -22.6, 1, 1.35); fill('#1e2a3a'); g.beginPath(); g.arc(13.2, -23.1, 0.35, 0, TAU); fill('#ffffff');
+  RAIN.forEach((c, i) => { g.beginPath(); g.arc(9 - i * 0.9, -23 + i * 2.2, 1.9, 0, TAU); fill(c); });
+  if (zap > 0) { const L = 46 * (1 - zap / 0.22) + 8; RAIN.forEach((c, i) => { g.beginPath(); g.moveTo(16.4, -31.5 + i * 0.8); g.lineTo(16.4 + L, -31.5 + 18 + i * 1.6); g.lineWidth = 1.4; g.strokeStyle = c; g.globalAlpha = 0.9; g.stroke(); }); g.globalAlpha = 1; }
+  g.restore();
+}
+function drawEgg(x, y, t, hatch) {
+  const wob = hatch > 0.3 ? Math.sin(t * 40) * 0.12 : 0;
+  g.save(); g.translate(x + 7, y + 14); g.rotate(wob);
+  ell(0, -7, 6, 7.5); g.fillStyle = '#ffffff'; g.fill();
+  for (const [dx, dy] of [[-2.5, -9], [2.5, -5], [-1, -3], [3, -11]]) { g.beginPath(); g.arc(dx, dy, 1.3, 0, TAU); g.fillStyle = '#3cc456'; g.fill(); }
+  ell(-2, -10, 1.6, 2.2, -0.4); g.fillStyle = 'rgba(255,255,255,.9)'; g.fill();
   g.restore();
 }
 
@@ -1127,7 +1209,7 @@ function drawTile(tile, tx, ty, x, y, th, t) {
     case T.STONE: put(theme + 'S', () => stoneTile(theme)); break;
     case T.BRICK: case T.MULTI: put('B', brickTile); break;
     case T.USED: put('U', usedTile); break;
-    case T.QCOIN: case T.QPOWER: case T.QSTAR: case T.QONEUP: {
+    case T.QCOIN: case T.QPOWER: case T.QSTAR: case T.QONEUP: case T.QRIDE: {
       put('Q', qTile);
       // a shine sweeping across now and then
       const ph = (t * 0.6 + tx * 0.13) % 1;
@@ -1575,7 +1657,7 @@ function startLevel(id, fromCheck = false) {
     spawnFromSpec(e);
   }
   const startX = checkpoint ? checkpoint.x : 3 * TS;
-  player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null };
+  player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null, mount: null };
   if (checkpoint) setForm(1);
   const n = tries[id] || 0;
   if (n >= 3 && player.form === 0) { setForm(1); banner('A LUCKY CLOVER!', 'A little help after a few tries 🍀'); }
@@ -1613,11 +1695,13 @@ function spawnFromSpec(e) {
 function setForm(f) {
   const was = player.form > 0, now = f > 0;
   player.form = f;
+  if (player.mount) return;   // on Shamrock the box stays the same size; it changes when Leo gets off
   if (now && !was) { player.y -= 12; player.h = 26; }
   if (!now && was) { player.y += 12; player.h = 14; }
 }
 function hurtPlayer() {
   if (player.inv > 0 || player.star > 0 || phase !== 'play') return;
+  if (player.mount) { dismount(true); player.inv = 1.5; player.vy = -200; sfx.hurt(); RB.pad.rumble(150, 0.5); return; }   // falls off Shamrock, unhurt
   if (player.form > 0) {
     setForm(player.form === 2 ? 1 : 0);
     player.inv = 2; sfx.shrink(); RB.pad.rumble(150, 0.5);
@@ -1662,6 +1746,7 @@ function hitBlock(tx, ty, t, fromAbove) {
   if (t === T.QCOIN) { setTile(tx, ty, T.USED); coinPop(x, y); getCoin(x, y); }
   else if (t === T.QPOWER) { setTile(tx, ty, T.USED); sprout(player.form === 0 ? 'clover' : 'flower', x, y); }
   else if (t === T.QSTAR) { setTile(tx, ty, T.USED); sprout('horseshoe', x, y); }
+  else if (t === T.QRIDE) { setTile(tx, ty, T.USED); if (player.mount || ents.some(e => e.k === 'egg' || e.k === 'unicorn')) sprout('hat', x, y); else { ents.push(mk('egg', x + 1, y, { w: 14, h: 14, rise: 16, hatch: 0 })); sfx.sprout(); } }
   else if (t === T.QONEUP || t === T.HIDDEN) { setTile(tx, ty, T.USED); sprout('hat', x, y); }
   else if (t === T.MULTI) {
     lvl.multi = lvl.multi || {}; const k = tx + ',' + ty; lvl.multi[k] = (lvl.multi[k] || 0) + 1;
@@ -1719,7 +1804,7 @@ function updatePlayer(dt) {
   const p = player, inp = input();
   const run = inp.run, maxV = run ? 165 : 92, acc = p.ground ? 520 : 380;
   // crouching (↓ or LT on the ground): Leo ducks and stops; jump from a crouch for a big backflip
-  p.crouch = inp.down && p.ground && !p.pound;
+  p.crouch = inp.down && p.ground && !p.pound && !p.mount;
   let dir = p.crouch || p.pound ? 0 : (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
   if (dir) {
     if (Math.sign(p.vx) === -dir && p.ground) { p.vx += dir * (lvl.slippery ? 450 : 1100) * dt; p.skid = true; }   // skidding to turn round
@@ -1728,18 +1813,19 @@ function updatePlayer(dt) {
   } else { p.skid = false; const f = (p.ground ? (lvl.slippery ? 150 : 600) : 160) * dt; p.vx = Math.abs(p.vx) <= f ? 0 : p.vx - Math.sign(p.vx) * f; }   // (on snow Leo slides to a stop)
   if (Math.abs(p.vx) > maxV && p.ground) p.vx -= Math.sign(p.vx) * Math.min(Math.abs(p.vx) - maxV, 400 * dt);
   // jumping: a little forgiveness both ways (press just before landing, or just after running off an edge)
+  if (p.mount && pressed.jump && inp.down) { dismount(false); pressed.jump = false; }   // ↓ + jump: hop off Shamrock
   if (pressed.jump) p.buffer = 0.12;
   p.buffer -= dt; p.coyote = p.ground ? 0.09 : p.coyote - dt;
   if (p.buffer > 0 && p.coyote > 0 && !p.pound) {
     if (p.crouch) {   // the high jump: a backflip, much higher than a normal jump
       p.vy = -425; p.vx = -p.face * 45; p.flip = 1; sfx.highJump();
-    } else p.vy = -(300 + Math.abs(p.vx) * 0.22);
+    } else p.vy = -((p.mount ? 335 : 300) + Math.abs(p.vx) * 0.22);
     p.buffer = 0; p.coyote = 0; p.ground = false; p.ride = null; p.crouch = false;
     if (!p.flip) p.form ? sfx.bigJump() : sfx.jump();
     p.squash = -0.9; puff(p.x + p.w / 2, p.y + p.h, 3);
   }
   // the spin: press jump again in the air (once a jump) and Leo twirls, floating a little higher, like Mario Odyssey
-  if (pressed.jump && !p.ground && p.coyote <= 0 && !p.pound && !p.spun && p.vy > -170 && phase === 'play') {
+  if (pressed.jump && !p.mount && !p.ground && p.coyote <= 0 && !p.pound && !p.spun && p.vy > -170 && phase === 'play') {
     p.spun = true; p.twirl = 0.34; p.flip = 0;
     if (p.vy <= 0) p.buffer = 0;   // (falling, the press still counts as an early jump for the landing)
     p.vy = Math.min(p.vy, -170);
@@ -1756,6 +1842,11 @@ function updatePlayer(dt) {
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.22) { p.pound = 'drop'; p.vy = 470; } }
   const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && inp.jump ? 680 : 1500;   // the twirl floats
   p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, 290);
+  if (p.mount) {
+    // on Shamrock: hold jump while falling to flutter-float for a moment
+    if (!p.ground && inp.jump && p.vy > -60 && p.mount.flutter < 0.9 && !p.pound) { p.mount.flutter += dt; p.vy = Math.max(-25, p.vy - 1700 * dt); if (Math.random() < 0.5) sparkle(p.x + p.w / 2, p.y + p.h, '#ff9ad0', 1); }
+    updateRiding(p, inp, dt);
+  }
   // throw the hat like a boomerang
   if (pressed.hat && !p.hatless && phase === 'play') {
     if (inp.up) ents.push(mk('cap', p.x + p.w / 2 - 6, p.y - 6, { vx: p.vx * 0.3, vy: -330, w: 12, h: 9, st: 'out', dir: p.face }));                  // looking up: straight up
@@ -1775,12 +1866,13 @@ function updatePlayer(dt) {
     const e = p.carry; p.carry = null; e.carried = false;
     if (!e.dead && !e.gone) {
       e.x = p.face > 0 ? p.x + p.w + 1 : p.x - e.w - 1; e.y = Math.min(e.y, p.y + p.h - e.h);
-      if (inp.down) { e.vx = 0; sfx.bump(); } else { e.vx = p.face * 240; e.grace = 0.3; sfx.kick(); }
+      if (e.k === 'spring') { e.vx = 0; e.vy = 0; sfx.bump(); }   // a spring is set down where you are
+      else if (inp.down) { e.vx = 0; sfx.bump(); } else { e.vx = p.face * 240; e.grace = 0.3; sfx.kick(); }
     }
   }
   // rainbow sparks
   p.sparkCD -= dt;
-  if (pressed.run && !p.carry && p.form === 2 && p.sparkCD <= 0 && ents.filter(e => e.k === 'spark').length < 2) {
+  if (pressed.run && !p.carry && !p.mount && p.form === 2 && p.sparkCD <= 0 && ents.filter(e => e.k === 'spark').length < 2) {
     ents.push(mk('spark', p.x + (p.face > 0 ? p.w : -6), p.y + (p.h > 20 ? 10 : 4), { vx: p.face * 230, vy: 60, w: 6, h: 6 }));
     p.sparkCD = 0.25; sfx.spark();
   }
@@ -1917,8 +2009,20 @@ function updateEnts(dt) {
         for (const o of ents) if (!o.dead && isEnemy(o) && o.k !== 'boss' && overlap(e, o)) { flipEnemy(o, Math.sign(e.vx)); e.gone = true; sparkle(e.x, e.y, '#ffffff', 6); break; }
         break;
       }
-      case 'spring': e.squash = Math.max(0, e.squash - 40 * dt); break;
+      case 'spring':
+        e.squash = Math.max(0, e.squash - 40 * dt);
+        if (e.carried) { if (p.carry !== e) { e.carried = false; break; } e.x = p.x + p.w / 2 - e.w / 2 + p.face * (p.w / 2 + 4); e.y = p.y + p.h - e.h - (p.h > 20 ? 6 : 2); e.vy = 0; break; }
+        e.vy = Math.min((e.vy || 0) + 900 * dt, 300); moveY(e, e.vy * dt); if (e.ground) e.vy = 0;   // put down somewhere new, it drops to the ground
+        if (e.y > LH + 30) e.gone = true;
+        break;
       case 'cap': updateCap(e, dt); break;
+      case 'egg':
+        if (e.rise > 0) { const s2 = Math.min(e.rise, 20 * dt); e.y -= s2; e.rise -= s2; break; }
+        e.vy = Math.min((e.vy || 0) + 900 * dt, 300); moveY(e, e.vy * dt);
+        if (e.ground) { e.vy = 0; e.hatch += dt; if (e.hatch > 0.7) { e.k = 'unicorn'; e.st = 'wait'; e.y -= 8; e.w = 16; e.h = 22; e.t = 0; sfx.hatch(); sparkle(e.x + 8, e.y + 12, '#ffffff', 14); } }
+        if (e.y > LH + 30) e.gone = true;
+        break;
+      case 'unicorn': updateUnicorn(e, dt); break;
       case 'acorn': e.vy += 600 * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y > LH) e.gone = true; break;
       case 'boss': updateBoss(e, dt); break;
       case 'pot': e.vy = Math.min((e.vy || 0) + 600 * dt, 300); moveY(e, e.vy * dt); break;
@@ -2003,8 +2107,13 @@ function touchPlayer(e) {
       else { if (p.form === 2) reserve = 'flower'; else { if (p.form > 0 && !reserve) reserve = 'clover'; setForm(2); } }
       break;
     case 'spring':
-      // land on it to bounce (hold jump to go extra high); you can walk straight past it too
+      // land on it to bounce (hold jump to go extra high); hold run and walk into it to pick it up and move it
+      if (e.carried) break;
+      if (!(p.vy > 0 && p.y + p.h < e.y + 10) && p.ground && (keys.run || touchState.run) && !p.carry && !p.mount) { p.carry = e; e.carried = true; sfx.pickup(); break; }
       if (p.vy > 0 && p.y + p.h < e.y + 10) { p.y = e.y - p.h + 4; p.vy = keys.jump || touchState.jump ? -520 : -430; e.squash = 8; sfx.spring(); p.ground = false; }
+      break;
+    case 'unicorn':
+      if (!p.mount && (e.st === 'wait' || e.t > 0.6)) mount(e);   // hop on (Shamrock can be caught again while he runs off)
       break;
     case 'crusher':
       hurtPlayer();
@@ -2024,7 +2133,7 @@ function touchPlayer(e) {
       if (!isEnemy(e)) break;
       if (p.star > 0) { flipEnemy(e, p.face); break; }
       if (e.carried) break;
-      if (e.k === 'shell' && !e.vx && !stomp && (keys.run || touchState.run) && !p.carry && !p.pound) {   // hold run and walk into a shell: pick it up
+      if (e.k === 'shell' && !e.vx && !stomp && (keys.run || touchState.run) && !p.carry && !p.pound && !p.mount) {   // hold run and walk into a shell: pick it up
         p.carry = e; e.carried = true; e.still = 0; sfx.pickup(); break;
       }
       if (e.k === 'shell' && !e.vx) {   // a still shell: kick it!
@@ -2033,12 +2142,13 @@ function touchPlayer(e) {
         break;
       }
       if (pounding && stomp && e.k !== 'snapper') { flipEnemy(e, p.face); sfx.stomp(); break; }
-      if (stomp && e.k !== 'thorny' && e.k !== 'snapper') {
+      if (stomp && (e.k !== 'thorny' || p.mount) && e.k !== 'snapper') {
         p.combo++;
         p.vy = (keys.jump || touchState.jump) ? -330 : -200;
         addScore(100 * Math.min(8, 2 ** (p.combo - 1)), e.x, e.y); sfx.stomp();
         if (p.combo >= 8) oneUp(e.x, e.y - 10);
         if (e.k === 'grumblin') { e.squish = 0.4; e.flat = true; }
+        else if (e.k === 'thorny') { flipEnemy(e, p.face); }
         else if (e.k === 'snaily') { e.k = 'shell'; e.vx = 0; e.h = 14; e.y += 2; e.still = 0; }
         else if (e.k === 'shell') { e.vx = 0; }
         else if (e.k === 'buzzer') { e.dead = true; e.flip = true; e.vy = 0; }
@@ -2241,6 +2351,11 @@ function drawLevel() {
         g.save(); g.translate(cxp, 0); g.scale(Math.sign(c || 1) * Math.max(0.15, Math.abs(c)), 1); g.translate(-cxp, 0);
         drawLeo(p.x - 2, p.y - 2, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, fx);
         g.restore();
+      } else if (p.mount) {   // riding Shamrock: the unicorn underneath, Leo sitting in the saddle
+        const gait = p.ground ? Math.min(1, Math.abs(p.vx) / 80) : 0.3;
+        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.zap);
+        const lh = p.form > 0 ? 28 : 16;
+        drawLeo(p.x - 1 - p.face * 2, p.y + p.h - 15 - lh, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, { ...fx, swing: 0, squash: 0 });
       } else drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
       if (pipe) g.restore();
       // up above the top of the screen: a little marker shows where Leo is
@@ -2327,6 +2442,8 @@ function drawEnt(e, t) {
     case 'coinpop': drawCoin(x, y, t * 3); break;
     case 'spark': drawSpark(x, y, t); break;
     case 'cap': drawCap(x, y, e.spin || 0, player && player.form > 0); break;
+    case 'egg': drawEgg(x, y, t, e.hatch || 0); break;
+    case 'unicorn': drawUnicorn(x + 8, y + 22, e.face || 1, t, e.st === 'flee' ? 1 : 0); break;
     case 'acorn': drawAcorn(x, y, t); break;
     case 'pot': drawPot(x, y, t); break;
     case 'boss': {
