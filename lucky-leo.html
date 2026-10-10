@@ -98,7 +98,7 @@
       <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, press run to fire a rainbow laser from his eyes that turns enemies into coins, and walk into enemies to gobble them up (after three… watch your step!). If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump). 🧱 <b>Wall kick:</b> jump into a wall and hold towards it to slide down, then press jump to kick off it. Kick back and forth between two walls to climb up!</li>
       <li>👑 <b>King Grumbles</b> can be stomped, or hit with a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power.</li>
-      <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
+      <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable. Now and then there's a <b>rainbow-striped block</b>: bump it and a really long rainbow grows up into the sky. Jump on it to ride up to a <b>secret place above the clouds</b>, full of power-ups and coins, with a rainbow gem!</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
       <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… and a <b>secret exit</b> for anyone who can find another way to the end. 🤫</li>
     </ol>
@@ -154,12 +154,12 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const T = {
   EMPTY: 0, GROUND: 1, BRICK: 2, QCOIN: 3, QPOWER: 4, USED: 5, STONE: 6, ONEWAY: 7,
   PIPE_TL: 8, PIPE_TR: 9, PIPE_L: 10, PIPE_R: 11, SPIKES: 12, LAVA: 13, HIDDEN: 14, QSTAR: 15,
-  COIN: 16, MULTI: 17, WATER: 18, QONEUP: 19, QRIDE: 20, QHAT: 21,
+  COIN: 16, MULTI: 17, WATER: 18, QONEUP: 19, QRIDE: 20, QHAT: 21, QBOW: 22,
 };
-const SOLID = new Set([T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP, T.QRIDE, T.QHAT]);
-const QBLOCKS = new Set([T.QCOIN, T.QPOWER, T.QSTAR, T.QONEUP, T.QRIDE, T.QHAT]);
+const SOLID = new Set([T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP, T.QRIDE, T.QHAT, T.QBOW]);
+const QBLOCKS = new Set([T.QCOIN, T.QPOWER, T.QSTAR, T.QONEUP, T.QRIDE, T.QHAT, T.QBOW]);
 const CHARS = { '#': T.GROUND, B: T.BRICK, '?': T.QCOIN, P: T.QPOWER, U: T.USED, '=': T.STONE, '-': T.ONEWAY, '^': T.SPIKES, '~': T.LAVA,
-  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE, C: T.QHAT };   // Y: the block that calls Shamrock the unicorn; C: the magic hat
+  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE, C: T.QHAT, R: T.QBOW };   // Y: the block that calls Shamrock the unicorn; C: the magic hat
 
 // ---------- Levels ----------
 // Each level is built from a few commands (ground, gaps, blocks, pipes, enemies…) on a 14-row grid.
@@ -448,6 +448,22 @@ LEVELS.nantucket = builder('nantucket', 'Nantucket', 'nantucket', 180)
   .arc(120, 8, 8).e('plat', 122, 7, { w: 2, dy: 2, sp: 1 }).e('grumblin', 134, 11).at(140, 8, '----').coins(140, 7, 4).e('buzzer', 146, 6).stairs(152, 5)
   .gems(12, 5, 41, 7, 59, 3, 81, 5, 142, 6)
   .done({ goal: 170, music: 'nantucket' });
+
+// Up the rainbow: a secret area on top of the clouds, with power-ups, coins and one of the level's rainbow gems.
+// At the far end a rainbow slide takes Leo back down into the level, further along.
+function skyRoom(id, from, kind, gemIdx) {
+  const b = builder(id, 'Above the Clouds', 'sky', 64).ground(0, 63)
+    .at(8, 8, ['?PCS?', 'PC?L?', '?C?SP', 'CPL?C'][kind]).coins(7, 4, 7)
+    .arc(16, 9, 8).at(26, 8, '----').at(30, 6, '----').coins(30, 5, 4).arc(36, 9, 8).at(46, 8, 'MBLBM').coins(45, 11, 10)
+    .e('gem', 31, 4, { parentIdx: gemIdx });
+  return b.e('skyexit', 59, 11).done({ goal: 0, music: 'bonus', room: true, parent: from, cloudRoom: true });
+}
+for (const [lv, bx, by, room, out, gi, kind] of [['hills', 23, 8, 'hillsSky', 115, 3, 0], ['shore', 31, 8, 'shoreSky', 106, 2, 1], ['night', 40, 8, 'nightSky', 129, 2, 2], ['dunes', 28, 8, 'dunesSky', 164, 2, 3]]) {
+  const L = LEVELS[lv];
+  L.t[by * L.w + bx] = T.QBOW; L.skyRoom = room; L.skyOut = out;
+  L.ents.filter(e => e.k === 'gem')[gi].sky = true;   // this gem waits up in the clouds
+  LEVELS[room] = skyRoom(room, lv, kind, gi);
+}
 
 // Bonus rooms inside the hollow trees: drop in through a hole, grab the coins, and go down the log on the right to get back out.
 function treeRoom(id, from, kind) {
@@ -815,6 +831,53 @@ function pipeUpdate(dt) {
   // rising out
   p.y -= 42 * dt;
   if (p.y + p.h <= pipe.clipY) { p.y = pipe.clipY - p.h; p.ground = true; phase = 'play'; pipe = null; }
+}
+
+// ---- The really long rainbow (like a beanstalk) ----
+// It grows out of the rainbow block in a curve, up past the top of the screen. Touch it and Leo rides it up to the cloud area.
+const bowPt = (e, u) => {   // a point on the rainbow's curve, u from 0 (the block) to 1 (high above the clouds)
+  const x1 = e.x0 + e.dir * 30, y1 = e.y0 - 200, x2 = e.x0 + e.dir * 330, y2 = e.y0 - 300, a = (1 - u) * (1 - u), b = 2 * u * (1 - u), c = u * u;
+  return { x: a * e.x0 + b * x1 + c * x2, y: a * e.y0 + b * y1 + c * y2 };
+};
+let bowRide = null;
+function updateBowUp(e, dt) {
+  const p = player;
+  if (e.grow < 1) { e.grow = Math.min(1, e.grow + dt / 1.4); if (e.grow >= 1) banner('A RAINBOW!', 'Jump on it to ride up to the clouds 🌈', 2); return; }
+  if (e.used || phase !== 'play' || pipe) return;
+  const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
+  for (let u = 0; u <= 0.36; u += 0.02) { const q = bowPt(e, u); if (Math.hypot(q.x - cx, q.y - cy) < 14) { startBowRide(e, u); return; } }
+}
+function startBowRide(e, u) {
+  const p = player;
+  if (p.carry) { p.carry.carried = false; p.carry = null; }
+  phase = 'bow'; phaseT = 0; bowRide = { e, u }; p.vx = 0; p.vy = 0; p.pound = null; p.slide = 0;
+  sfx.power(); RB.pad.rumble(120, 0.4);
+}
+function bowUpdate(dt) {
+  const p = player, r = bowRide;
+  r.u += dt * (0.32 + r.u * 0.3);
+  const q = bowPt(r.e, Math.min(1, r.u)), q2 = bowPt(r.e, Math.min(1, r.u + 0.01));
+  p.x = q.x - p.w / 2; p.y = q.y - p.h; p.face = q2.x >= q.x ? 1 : -1; p.ground = false; p.anim += dt * 12;
+  if (Math.random() < 0.8) sparkle(q.x + rand(-5, 5), q.y + rand(-3, 3), ['#ff5a5a', '#ffe14a', '#5ad06a', '#5ab0ff', '#ffffff'][Math.floor(Math.random() * 5)], 1);
+  camX += (clamp(p.x + p.w / 2 - LW * 0.5, 0, lvl.w * TS - LW) - camX) * Math.min(1, dt * 4);
+  if (r.u >= 1) enterClouds();
+}
+function enterClouds() {
+  const p = player, r = bowRide; bowRide = null; r.e.used = true;
+  outside = { lvl, ents, sky: lvl.skyOut };
+  const src = LEVELS[lvl.skyRoom]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
+  for (const e of src.ents) spawnFromSpec(e);
+  p.x = 3 * TS; p.y = -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
+  music.play(lvl.music); phase = 'play';
+  banner('ABOVE THE CLOUDS!', 'A secret place 🌈', 2.2);
+}
+// the rainbow slide at the end of the cloud area: back down into the level, further along
+function leaveClouds() {
+  const p = player, out = outside.sky;
+  lvl = outside.lvl; ents = outside.ents; outside = null; parts = []; pops = []; bumps = [];
+  p.x = out * TS + 2; p.y = -p.h - 30; p.vy = 0; p.vx = 0;
+  camX = clamp(p.x + p.w / 2 - LW * 0.4, 0, lvl.w * TS - LW); camLead = 0.4;
+  music.play(lvl.music); sfx.spring();
 }
 
 // ---- Shamrock the unicorn (a friend to ride, like Yoshi) ----
@@ -1332,6 +1395,23 @@ function drawHorseshoe(x, y, t) {
   for (const a of [1, 1.35, 1.65, 2]) { g.beginPath(); g.arc(Math.cos(a * Math.PI) * 6, Math.sin(a * Math.PI) * 6, 0.5, 0, TAU); paint(INK); }
   g.restore();
 }
+// the really long rainbow: six bands following its curve, a soft glow, and a twinkle running up it
+function drawBowUp(e, t) {
+  const n = Math.max(2, Math.round(60 * e.grow)), fade = e.used ? 0.5 : 1;
+  const cols = ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'];
+  const pts = []; for (let i = 0; i <= n; i++) pts.push(bowPt(e, i / 60));
+  g.globalAlpha = fade;
+  cols.forEach((c, k) => {
+    const off = (k - 2.5) * 2.2;
+    g.beginPath();
+    pts.forEach((q, i) => { const q2 = pts[Math.min(pts.length - 1, i + 1)], q1 = pts[Math.max(0, i - 1)], dx = q2.x - q1.x, dy = q2.y - q1.y, l = Math.hypot(dx, dy) || 1, X = q.x - dy / l * off, Y = q.y + dx / l * off; i ? g.lineTo(X, Y) : g.moveTo(X, Y); });
+    g.lineWidth = 2.6; g.strokeStyle = c; g.lineCap = 'round'; g.stroke();
+  });
+  const tip = pts[pts.length - 1];
+  if (e.grow < 1) { glow(tip.x, tip.y, 14, 'rgba(255,255,255,1)', 0.8); star(tip.x, tip.y, 3, '#ffffff'); }
+  else { const u = (t * 0.5) % 0.4, q = bowPt(e, u); star(q.x, q.y, 2.4, '#ffffff'); }
+  g.globalAlpha = 1;
+}
 // the whale-watch boat: a white hull with a blue stripe, a rail, a little wheelhouse at the stern and a flag
 function drawBoat(e, t) {
   const x = e.x, y = e.y, w = e.w;
@@ -1539,8 +1619,8 @@ function drawTile(tile, tx, ty, x, y, th, t) {
     case T.STONE: put(theme + 'S', () => stoneTile(theme)); break;
     case T.BRICK: case T.MULTI: put('B', brickTile); break;
     case T.USED: put('U', usedTile); break;
-    case T.QCOIN: case T.QPOWER: case T.QSTAR: case T.QONEUP: case T.QRIDE: case T.QHAT: {
-      put('Q', qTile);
+    case T.QCOIN: case T.QPOWER: case T.QSTAR: case T.QONEUP: case T.QRIDE: case T.QHAT: case T.QBOW: {
+      if (t === T.QBOW) put('RB', bowTile); else put('Q', qTile);
       // a shine sweeping across now and then
       const ph = (t * 0.6 + tx * 0.13) % 1;
       if (ph < 0.25) {
@@ -1657,6 +1737,14 @@ function qTile() {
   shamrock(8, 7.4, 3.8, '#fffbe8', 0.9);
   shamrock(8, 7.4, 2.6, '#3cb04a');
   for (const [a, b] of [[2.6, 2.6], [13.4, 2.6], [2.6, 13.4], [13.4, 13.4]]) { g.beginPath(); g.arc(a, b, 0.8, 0, TAU); paint('#b87010'); }
+}
+// the rainbow block: rainbow stripes and a little white arc (a really long rainbow is inside)
+function bowTile() {
+  g.save(); rrect(0.4, 0.4, 15.2, 15.2, 3.4); g.clip();
+  ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(0, i * 2.7, 16, 2.8); });
+  g.restore(); rrect(0.4, 0.4, 15.2, 15.2, 3.4); g.lineWidth = 1.1; g.strokeStyle = '#8a5208'; g.stroke();
+  g.beginPath(); g.arc(8, 11.5, 5, Math.PI, 0); g.lineWidth = 1.6; g.strokeStyle = '#ffffff'; g.stroke();
+  g.fillStyle = 'rgba(255,255,255,.55)'; rrect(2, 1.5, 12, 1.4, 0.7); g.fill();
 }
 function onewayTile(theme, L, Rt, alt) {
   if (theme === 'woods' || theme === 'bog') {
@@ -2104,7 +2192,7 @@ function startLevel(id, fromCheck = false) {
   if (!fromCheck) { checkpoint = null; levelGems = [false, false, false, false, false]; gotKey = false; }
   let gi = 0;
   for (const e of src.ents) {
-    if (e.k === 'gem') { const i = gi++; if (!levelGems[i]) ents.push(mk('gem', e.x * TS, e.y * TS, { idx: i, h: 18 })); continue; }
+    if (e.k === 'gem') { const i = gi++; if (!levelGems[i] && !e.sky) ents.push(mk('gem', e.x * TS, e.y * TS, { idx: i, h: 18 })); continue; }
     if (e.k === 'key' && (gotKey || save.key)) continue;   // already found
     if (e.k === 'mid' && checkpoint) continue;
     spawnFromSpec(e);
@@ -2148,6 +2236,8 @@ function spawnFromSpec(e) {
     case 'whale': ents.push(mk('whale', x, LH + 40, { bx: x + 8, w: 14, h: 0, cyc: rand(0, 2) })); break;
     case 'sealhead': ents.push(mk('sealhead', x, 12 * TS - 6, { w: 0, h: 0 })); break;
     case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
+    case 'skyexit': ents.push(mk('skyexit', x, y - TS, { w: 3 * TS, h: 2 * TS })); break;
+    case 'gem': if (e.parentIdx != null && !levelGems[e.parentIdx]) ents.push(mk('gem', x, y, { idx: e.parentIdx, h: 18 })); break;   // a level's gem kept up in its cloud area
   }
 }
 
@@ -2207,6 +2297,10 @@ function hitBlock(tx, ty, t, fromAbove) {
   else if (t === T.QPOWER) { setTile(tx, ty, T.USED); sprout(player.form === 0 ? 'clover' : 'flower', x, y); }
   else if (t === T.QSTAR) { setTile(tx, ty, T.USED); sprout('horseshoe', x, y); }
   else if (t === T.QHAT) { setTile(tx, ty, T.USED); sprout('magichat', x, y); }
+  else if (t === T.QBOW) {   // a really long rainbow grows up into the sky, curving as it goes
+    setTile(tx, ty, T.USED); sfx.cloud(); sfx.sprout();
+    ents.push(mk('bowup', x, y, { w: 0, h: 0, x0: x + 8, y0: y, dir: player.face || 1, grow: 0 }));
+  }
   else if (t === T.QRIDE) { setTile(tx, ty, T.USED); if (player.mount || ents.some(e => e.k === 'summon' || e.k === 'unicorn')) sprout('hat', x, y); else summonShamrock(tx, ty); }
   else if (t === T.QONEUP || t === T.HIDDEN) { setTile(tx, ty, T.USED); sprout('hat', x, y); }
   else if (t === T.MULTI) {
@@ -2251,6 +2345,7 @@ function updateLevel(dt) {
   if (phase === 'clear') { clearUpdate(dt); updateEnts(dt); return; }
   if (phase === 'boss-won') { bossWonUpdate(dt); return; }
   if (phase === 'pipe') { pipeUpdate(dt); return; }
+  if (phase === 'bow') { bowUpdate(dt); updateEnts(dt); return; }
   updatePlayer(dt);
   updateEnts(dt);
   // camera: leads in the direction Leo runs
@@ -2402,7 +2497,7 @@ function updateEnts(dt) {
     e.t += dt;
     if (e.flip) { e.vy += 900 * dt; e.y += e.vy * dt; e.x += e.vx * dt; if (e.y > LH + 40) e.gone = true; continue; }
     const awake = (e.x > camX - 200 && e.x < camX + LW + 160) || Math.abs(e.x - p.x) < 220;
-    if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid', 'boat'].includes(e.k)) continue;   // asleep until it's near
+    if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid', 'boat', 'bowup'].includes(e.k)) continue;   // asleep until it's near
     switch (e.k) {
       case 'grumblin': case 'snaily': case 'thorny': {
         if (e.k === 'snaily' && !groundAhead(e) && e.ground) e.dir *= -1;
@@ -2495,6 +2590,7 @@ function updateEnts(dt) {
         if (e.y > LH + 30) e.gone = true;
         break;
       case 'cap': updateCap(e, dt); break;
+      case 'bowup': updateBowUp(e, dt); break;
       case 'boat': {   // sails off once Leo is aboard, and stops at the far dock
         if (!e.go && p.ride === e) e.go = true;
         e.mx = e.go ? Math.min(e.sp * dt, e.x1 - e.x) : 0; e.my = 0; e.x += e.mx;
@@ -2654,6 +2750,9 @@ function touchPlayer(e) {
       break;
     case 'sflag':   // a secret exit
       reachGoal(true);
+      break;
+    case 'skyexit':
+      if (outside && outside.sky != null) leaveClouds();
       break;
     case 'whale':   // into the spout: whoosh, straight up
       if (p.mount || p.pound) break;
@@ -3013,6 +3112,12 @@ function drawEnt0(e, t) {
     case 'hat': drawHat1up(x - 1, y - 2, t); break;
     case 'magichat': drawMagicHat(x - 1, y - 2, t); break;
     case 'boat': drawBoat(e, t); break;
+    case 'bowup': drawBowUp(e, t); break;
+    case 'skyexit': {   // a rainbow slide curving down off the edge of the clouds
+      for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(x + 40, y + 34, 34 - i * 2.2, Math.PI, Math.PI * 1.75); g.lineWidth = 2.4; g.strokeStyle = ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'][i]; g.stroke(); }
+      const by = y - 6 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 18, by); g.lineTo(x + 30, by + 6); g.lineTo(x + 18, by + 12); g.closePath(); g.fillStyle = '#ffe14a'; g.fill();
+      break;
+    }
     case 'shark': drawShark(e, t); break;
     case 'whale': drawWhale(e, t); break;
     case 'sealhead': drawSealHead(x, y, tt); break;

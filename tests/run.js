@@ -1266,6 +1266,37 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-cape.png');
   });
 
+  await test('Lucky Leo: a rainbow block grows a long curved rainbow into the sky; Leo rides it up to a secret cloud area with power-ups and a rainbow gem, and slides back down further along', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); run(10);
+      out.gemUpThere = !ents.some(e => e.k === 'gem' && e.idx === 3);
+      out.block = tileAt(23, 8) === T.QBOW;
+      player.x = 23 * 16 + 2; player.vx = 0; run(10); keys.jump = true; pressed.jump = true; run(20); keys.jump = false;
+      const bow = ents.find(e => e.k === 'bowup'); out.grows = !!bow;
+      run(100); out.grown = bow && bow.grow === 1;
+      player.x = 23 * 16 + 2; player.y = 8 * 16 - player.h; player.vy = 0; run(2); out.riding = phase === 'bow';
+      let top = 999; run(400, () => { if (lvl.id === 'hills') top = Math.min(top, player.y); }); out.wentUp = top < -100;
+      out.room = lvl.id; out.cloudStuff = ents.some(e => e.k === 'skyexit') && QBLOCKS.has(tileAt(9, 8));
+      const gem = ents.find(e => e.k === 'gem' && e.idx === 3); out.gemHere = !!gem; if (gem) touchPlayerAs(gem); out.gemGot = levelGems[3];
+      const ex = ents.find(e => e.k === 'skyexit'); player.x = ex.x + 10; player.y = ex.y + 8; player.vy = 0; run(1); out.back = lvl.id === 'hills' && Math.abs(player.x / 16 - 115) < 2;
+      run(150); out.landed = player.ground && phase === 'play';
+      out.used = ents.find(e => e.k === 'bowup').used === true;
+      out.levels = ['hills', 'shore', 'night', 'dunes'].every(id => LEVELS[id].skyRoom && LEVELS[LEVELS[id].skyRoom] && LEVELS[id].t.includes(T.QBOW));
+      paused = false; return out;
+    });
+    check(r.block && r.gemUpThere, 'Clover Hills has a rainbow block, and one gem waits up in the clouds: ' + JSON.stringify(r));
+    check(r.grows && r.grown, 'bumping it grows the rainbow: ' + JSON.stringify(r));
+    check(r.riding && r.wentUp && r.room === 'hillsSky' && r.cloudStuff, 'touching the rainbow rides Leo up into the cloud area: ' + JSON.stringify(r));
+    check(r.gemHere && r.gemGot, "the cloud area holds the level's rainbow gem: " + JSON.stringify(r));
+    check(r.back && r.landed && r.used, 'the rainbow slide drops Leo back into the level further along: ' + JSON.stringify(r));
+    check(r.levels, 'four levels have a rainbow block and a cloud area: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-rainbow.png');
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
