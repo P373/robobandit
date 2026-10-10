@@ -999,6 +999,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       keys.right = true; run(3); keys.right = false; out.ledge = player.y + player.h <= 11 * 16 + 0.5;
       startLevel('hills'); const gob = ents.find(e => e.k === 'grumblin'); player.x = gob.x; player.y = gob.y - 50; player.vy = 0; run(2); pressed.down = true; run(40);
       out.poundGob = !!gob.flip;
+      // a spring: a normal bounce, then a ground pound onto it for a super bounce
+      const springTop = how => { startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); const sp = mk('spring', 20 * 16, 11 * 16, { w: 16, h: 16, squash: 0 }); ents.push(sp);
+        player.x = 20 * 16 + 2; player.y = 8 * 16; player.vy = 0; player.ground = false; run(2); if (how === 'pound') { pressed.down = true; downFrom = 'KeyS'; } let top = 999;
+        run(150, () => { top = Math.min(top, player.y); }); return top; };
+      out.springNormal = springTop('drop'); out.springPound = springTop('pound');
       startLevel('hills'); player.x = 12 * 16 + 2; player.y = 5 * 16; player.vy = 0; run(2); pressed.down = true; run(50);
       out.poundBlock = tileAt(12, 8) === T.USED;
       startLevel('hills'); setForm(3); const g2 = ents.find(e => e.k === 'grumblin'); player.x = g2.x - 60; player.face = 1; run(2); pressed.hat = true; run(1);
@@ -1014,6 +1019,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.spin.h > r.jump + 10 && r.spin.h < r.high && r.spin.spins === 1 && r.spin.landed, 'a spin at the top should go a little higher: ' + JSON.stringify(r));
     check(r.corner && r.ledge, 'corner and ledge forgiveness (like Mario): ' + JSON.stringify(r));
     check(r.spin2.spins === 1 && Math.abs(r.spin2.h - r.spin.h) < 3, 'only one spin a jump: ' + JSON.stringify(r));
+    check(r.springPound < r.springNormal - 150, 'a ground pound onto a spring should launch Leo super high: ' + JSON.stringify({ normal: r.springNormal, pound: r.springPound }));
     check(r.poundGob && r.poundBlock, 'a ground pound should flatten a goblin and bump the clover block below: ' + JSON.stringify(r));
     check(r.thrown && r.hatHit && r.hatBack && r.capBounce, 'the hat should fly, knock out a goblin, come back, and be bounced on: ' + JSON.stringify(r));
     await done(p);

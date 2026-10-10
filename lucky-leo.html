@@ -93,7 +93,7 @@
     <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across the Emerald Isle, then over the sea to the Frosty Isle and on to Cape Cod, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
-      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
+      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
       <li>🎩 Get the <b>magic hat</b> (Leo's hat turns purple with a gold star) and you can <b>throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Get hit and the magic is gone. Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
       <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, press run to fire a rainbow laser from his eyes that turns enemies into coins, and walk into enemies to gobble them up (after three… watch your step!). If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump). 🧱 <b>Wall kick:</b> jump into a wall and hold towards it to slide down, then press jump to kick off it. Kick back and forth between two walls to climb up!</li>
@@ -2301,6 +2301,7 @@ function updatePlayer(dt) {
     sfx.twirl(); RB.pad.rumble(60, 0.25);
     for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; sparkle(p.x + p.w / 2 + Math.cos(a) * 10, p.y + p.h / 2 + Math.sin(a) * 6, i % 2 ? '#7aff8a' : '#ffe14a', 1); }
   }
+  if (p.superBounce > 0) { p.superBounce -= dt; if (p.vy < 0) sparkle(p.x + p.w / 2 + rand(-4, 4), p.y + p.h, `hsl(${Math.random() * 360},90%,65%)`, 1); }
   if (p.twirl > 0) { p.twirl -= dt; if (Math.random() < 0.6) puff(p.x + p.w / 2 + rand(-8, 8), p.y + p.h - 2, 1, 'rgba(200,255,210,.7)'); }
   if (p.ground) { p.spun = false; p.twirl = 0; }
   p.jumpHeld = inp.jump;
@@ -2309,7 +2310,7 @@ function updatePlayer(dt) {
   // (it works even up above the top of the screen)
   if (!p.ground && pressed.down && (downFrom !== 'ArrowDown' || !(inp.left || inp.right)) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.22) { p.pound = 'drop'; p.vy = 470; } }
-  const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && inp.jump ? 680 : 1500;   // the twirl floats
+  const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && (inp.jump || p.superBounce > 0) ? 680 : 1500;   // (a super bounce soars, jump held or not)   // the twirl floats
   p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, 290);
   if (p.mount) {
     // on Shamrock: hold jump while falling to flutter-float for a moment
@@ -2619,7 +2620,12 @@ function touchPlayer(e) {
       // land on it to bounce (hold jump to go extra high); hold run and walk into it to pick it up and move it
       if (e.carried) break;
       if (!(p.vy > 0 && p.y + p.h < e.y + 10) && p.ground && (keys.run || touchState.run) && !p.carry && !p.mount) { p.carry = e; e.carried = true; sfx.pickup(); break; }
-      if (p.vy > 0 && p.y + p.h < e.y + 10) { p.y = e.y - p.h + 4; p.vy = keys.jump || touchState.jump ? -520 : -430; e.squash = 8; sfx.spring(); p.ground = false; }
+      if (p.vy > 0 && p.y + p.h < e.y + 10 && p.pound === 'drop') {   // ground pound a spring: a SUPER bounce, way up into the sky
+        p.y = e.y - p.h + 4; p.vy = keys.jump || touchState.jump ? -720 : -640; p.pound = null; p.ground = false; p.spun = false; p.flip = 1; p.superBounce = 1.4;
+        e.squash = 12; sfx.spring(); sfx.highJump(); shake = 0.25; RB.pad.rumble(220, 0.8);
+        for (let i = 0; i < 14; i++) { const a = i / 14 * TAU; sparkle(e.x + 8 + Math.cos(a) * 14, e.y + 4 + Math.sin(a) * 6, ['#ff5a5a', '#ffe14a', '#5ad06a', '#5ab0ff'][i % 4], 1); }
+        puff(e.x + 2, e.y + 12, 4); puff(e.x + 14, e.y + 12, 4);
+      } else if (p.vy > 0 && p.y + p.h < e.y + 10) { p.y = e.y - p.h + 4; p.vy = keys.jump || touchState.jump ? -520 : -430; e.squash = 8; sfx.spring(); p.ground = false; }
       break;
     case 'poop':
       if (!e.smooshed && p.y + p.h <= e.y + e.h + 2) {
