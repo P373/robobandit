@@ -65,7 +65,8 @@
   #tLeft { left: max(14px, env(safe-area-inset-left)); }
   #tRight { left: calc(max(14px, env(safe-area-inset-left)) + 92px); }
   #tRun { right: calc(max(14px, env(safe-area-inset-right)) + 96px); bottom: max(18px, env(safe-area-inset-bottom)); }
-  #tDown { left: calc(max(14px, env(safe-area-inset-left)) + 46px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 84px) !important; width: 64px !important; height: 64px !important; font-size: 18px !important; }
+  #tDown { left: calc(max(14px, env(safe-area-inset-left)) + 46px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 96px) !important; width: 64px !important; height: 64px !important; font-size: 18px !important; }
+  #tUp { left: calc(max(14px, env(safe-area-inset-left)) + 51px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 168px) !important; width: 54px !important; height: 54px !important; font-size: 16px !important; }
   #tHat { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 88px) !important; width: 64px !important; height: 64px !important; font-size: 24px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
@@ -78,6 +79,7 @@
 <div id="touch" class="hidden">
   <button id="tLeft" aria-label="Left">◀</button>
   <button id="tRight" aria-label="Right">▶</button>
+  <button id="tUp" aria-label="Look up">▲</button>
   <button id="tDown" aria-label="Crouch and ground pound">▼</button>
   <button id="tRun" aria-label="Run and throw">B</button>
   <button id="tHat" aria-label="Throw your hat">🎩</button>
@@ -89,9 +91,9 @@
     <h1>LUCKY <span>LEO</span></h1>
     <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across the Emerald Isle to get it back.</div>
     <ol>
-      <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>↑</kbd> / <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
-      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them.</li>
-      <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air!</li>
+      <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
+      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
+      <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air! Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
@@ -177,6 +179,8 @@ function builder(id, name, theme, w) {
       for (let y = top + 1; y < Math.max(bottom, top + 1); y++) { set(x, y, T.PIPE_L); set(x + 1, y, T.PIPE_R); }
       return b;
     },
+    // a hollow tree trunk you can go down into (press ↓ on top): room is the bonus room, out = [x, top] of the log you come out of
+    warp(x, top, room, out) { b.pipe(x, top); ents.push({ k: 'warp', x, y: top, room, out }); return b; },
     stairs(x, n, up = true, base = 11) { for (let i = 0; i < n; i++) for (let k = 0; k <= i; k++) set(up ? x + i : x + n - 1 - i, base - k, T.STONE); return b; },
     e(k, x, y, o = {}) { ents.push({ k, x, y, ...o }); return b; },
     gems(...xy) { for (let i = 0; i < xy.length; i += 2) ents.push({ k: 'gem', x: xy[i], y: xy[i + 1] }); return b; },
@@ -290,6 +294,30 @@ LEVELS.bonus = builder('bonus', 'Rainbow Road', 'rainbow', 170)
   .gems(16, 7, 32, 3, 66, 1, 90, 1, 140, 7)
   .done({ goal: 156, music: 'bonus', sky: ['#ff9ad0', '#fff2b0'] });
 
+// Bonus rooms inside the hollow trees: drop in through a hole, grab the coins, and go down the log on the right to get back out.
+function treeRoom(id, from, kind) {
+  const b = builder(id, 'Inside the Hollow Tree', 'caves', 36)
+    .fill(0, 35, 0, 1, T.GROUND).fill(2, 4, 0, 1, T.EMPTY).fill(0, 0, 0, 13, T.GROUND).fill(35, 35, 0, 13, T.GROUND).ground(0, 35);
+  if (kind === 0) b.coins(7, 11, 8).coins(7, 8, 8).at(9, 5, '?L?').arc(18, 9, 9);
+  else if (kind === 1) b.at(6, 9, '----').coins(6, 8, 4).at(12, 7, '----').coins(12, 6, 4).at(18, 5, '----').coins(18, 4, 4).at(24, 8, 'MBL');
+  else b.arc(6, 10, 7).arc(14, 8, 7).arc(22, 10, 6).at(12, 4, 'BMMB');
+  return b.pipe(31, 10).e('exit', 31, 10).done({ goal: 0, music: 'bonus', room: true, parent: from, sky: ['#2a1a10', '#4a2e18'] });
+}
+LEVELS.hillsTree = treeRoom('hillsTree', 'hills', 0);
+LEVELS.woodsTree = treeRoom('woodsTree', 'woods', 1);
+LEVELS.cavesTree = treeRoom('cavesTree', 'caves', 2);
+LEVELS.bogTree = treeRoom('bogTree', 'bog', 1);
+// the hollow trees in the levels that lead into them, and the logs you pop back out of a little further on
+for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], ['woods', 26, 10, 'woodsTree', [89, 10]], ['caves', 7, 10, 'cavesTree', [101, 10]], ['bog', 92, 10, 'bogTree', [177, 10]]]) {
+  const L = LEVELS[lv], put = (tx, ty) => {   // stand a log in the level (same as builder.pipe)
+    let bottom = ty + 1; while (bottom < L.h && !SOLID.has(L.t[bottom * L.w + tx])) bottom++;
+    L.t[ty * L.w + tx] = T.PIPE_TL; L.t[ty * L.w + tx + 1] = T.PIPE_TR;
+    for (let y = ty + 1; y < Math.max(bottom, ty + 1); y++) { L.t[y * L.w + tx] = T.PIPE_L; L.t[y * L.w + tx + 1] = T.PIPE_R; }
+  };
+  put(x, top); put(out[0], out[1]);
+  L.ents.push({ k: 'warp', x, y: top, room, out });
+}
+
 const ORDER = ['hills', 'woods', 'caves', 'sky', 'bog', 'castle', 'bonus'];
 
 // ---------- Sound ----------
@@ -319,6 +347,9 @@ const sfx = {
   enter: () => [392, 523, 659, 784].forEach((f, i) => beep(f, f, 0.08, 'triangle', 0.07, i * 0.05)),
   step: () => beep(600, 600, 0.03, 'square', 0.025),
   spin: () => beep(400, 1200, 0.18, 'triangle', 0.06),
+  reserve: () => [880, 660, 990, 1320].forEach((f, i) => beep(f, f, 0.08, 'square', 0.04, i * 0.05)),
+  pipe: () => { beep(520, 260, 0.12, 'square', 0.06); beep(390, 190, 0.12, 'square', 0.06, 0.13); beep(260, 130, 0.16, 'square', 0.06, 0.26); },
+  pickup: () => { beep(300, 500, 0.08, 'square', 0.05); beep(500, 700, 0.08, 'square', 0.04, 0.06); },
   twirl: () => { beep(520, 1500, 0.22, 'triangle', 0.06); beep(780, 2000, 0.18, 'sine', 0.035, 0.06); RB.noise(0.16, 0.05); },
   pound: () => { RB.noise(0.25, 0.35); beep(140, 50, 0.25, 'sine', 0.2); },
   highJump: () => { beep(260, 900, 0.3, 'triangle', 0.08); beep(520, 1400, 0.25, 'sine', 0.04, 0.05); },
@@ -431,13 +462,14 @@ const gemCount = () => Object.values(save.gems).reduce((a, g) => a + g.filter(Bo
 
 // ---------- Input ----------
 // Keys: ← → (or A / D) walk; Space, ↑, W or Z jump; X, Shift or J run (and throw sparks); Enter starts.
-const keys = { left: false, right: false, jump: false, run: false, down: false };
-const pressed = { jump: false, run: false, start: false, left: false, right: false, up: false, down: false };
-const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'jump', KeyW: 'jump', KeyZ: 'jump', KeyK: 'jump',
-  KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run', KeyJ: 'run', ArrowDown: 'down', KeyS: 'down', KeyC: 'hat', KeyL: 'hat' };
-// 🎮 Ⓐ / Ⓑ jump, Ⓧ / RT run (and throw rainbow sparks), Ⓨ / LB / RB throw the hat, LT crouch: high jump, or ground pound in the air
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'KeyX', 3: 'KeyC', 4: 'KeyC', 5: 'KeyC', 6: 'KeyS', 7: 'KeyX' },
-  '<b>Lucky Leo:</b> Ⓐ / Ⓑ jump (hold to go higher; press again in the air to spin higher) · Ⓧ / RT run and throw rainbow sparks · Ⓨ / LB / RB 🎩 throw your hat · <b>LT</b> + jump: high jump · <b>LT</b> in the air: ground pound');
+const keys = { left: false, right: false, jump: false, run: false, down: false, up: false };
+let downFrom = '';   // which key pressed ↓ (a stick pushed to the side and a little down isn't a ground pound)
+const pressed = { jump: false, run: false, start: false, left: false, right: false, up: false, down: false, item: false };
+const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'up', KeyW: 'up', KeyZ: 'jump', KeyK: 'jump',
+  KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run', KeyJ: 'run', ArrowDown: 'down', KeyS: 'down', KeyC: 'hat', KeyL: 'hat', KeyQ: 'item', KeyE: 'item' };
+// 🎮 Ⓐ / Ⓑ jump, Ⓧ / RT run (and throw rainbow sparks), Ⓨ / RB throw the hat, LB drop the saved power-up, LT crouch: high jump, or ground pound in the air
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'KeyX', 3: 'KeyC', 4: 'KeyQ', 5: 'KeyC', 6: 'KeyS', 7: 'KeyX' },
+  '<b>Lucky Leo:</b> Ⓐ / Ⓑ jump (hold to go higher; press again in the air to spin higher) · Ⓧ / RT run and throw rainbow sparks · Ⓨ / RB 🎩 throw your hat (hold up to throw it up, crouch with LT to throw it low) · <b>LB</b> drop the saved power-up from the box · <b>LT</b> + jump: high jump · <b>LT</b> in the air: ground pound');
 let paused = false;
 addEventListener('keydown', e => {
   const k = KEYMAP[e.code];
@@ -445,6 +477,7 @@ addEventListener('keydown', e => {
     e.preventDefault();
     if (!keys[k]) {
       pressed[k] = true;
+      if (k === 'down') downFrom = e.code;
       if (e.code === 'ArrowUp' || e.code === 'KeyW') pressed.up = true;
       if (k === 'left' || k === 'right') pressed[k] = true;
     }
@@ -460,13 +493,13 @@ addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) keys[k] = fals
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 // touch buttons: hold to press; slide a finger between ◀ and ▶
 const touchEl = document.getElementById('touch');
-const touchBtn = { tLeft: 'left', tRight: 'right', tRun: 'run', tJump: 'jump', tDown: 'down', tHat: 'hat' };
+const touchBtn = { tLeft: 'left', tRight: 'right', tRun: 'run', tJump: 'jump', tDown: 'down', tUp: 'up', tHat: 'hat' };
 const fingers = new Map();
 function touchUpdate() {
   const held = new Set(fingers.values());
   for (const [id, k] of Object.entries(touchBtn)) {
     const on = held.has(k);
-    if (on && !touchState[k]) { pressed[k] = true; if (k === 'jump') pressed.up = true; }
+    if (on && !touchState[k]) { pressed[k] = true; if (k === 'jump') pressed.up = true; if (k === 'down') downFrom = 'touch'; }
     touchState[k] = on;
     document.getElementById(id).classList.toggle('on', on);
   }
@@ -482,12 +515,58 @@ addEventListener('pointermove', e => {
 const lift = e => { if (fingers.delete(e.pointerId)) touchUpdate(); };
 addEventListener('pointerup', lift);
 addEventListener('pointercancel', lift);
-const input = () => ({
-  left: keys.left || touchState.left, right: keys.right || touchState.right,
-  jump: keys.jump || touchState.jump, run: keys.run || touchState.run, down: keys.down || touchState.down,
-});
+const input = () => {
+  const left = keys.left || touchState.left, right = keys.right || touchState.right;
+  // ↓ from the arrow keys or a stick only counts on its own: pushing right and a little down to run mustn't crouch or ground pound
+  const down = touchState.down || (keys.down && (downFrom !== 'ArrowDown' || !(left || right)));
+  return { left, right, down, up: keys.up || touchState.up, jump: keys.jump || touchState.jump, run: keys.run || touchState.run };
+};
 // on the map, tap or click a level to walk there (tap it again to go in)
-canvas.addEventListener('pointerdown', e => { RB.audio(); if (state === 'map') mapTap(e.clientX, e.clientY); });
+canvas.addEventListener('pointerdown', e => {
+  RB.audio();
+  if (state === 'map') { mapTap(e.clientX, e.clientY); return; }
+  // tap the box at the top to drop the saved power-up
+  const r = canvas.getBoundingClientRect(), px = (e.clientX - r.left) * canvas.width / r.width, py = (e.clientY - r.top) * canvas.height / r.height - offY;
+  if (state === 'level' && !paused && Math.abs(px - canvas.width / 2) < scale * 18 && py > 0 && py < scale * 32) recallReserve();
+});
+// going down a hollow tree into its bonus room, and back out of another log further on
+function startPipe(w) {
+  const p = player;
+  phase = 'pipe'; phaseT = 0; p.vx = 0; p.vy = 0; p.crouch = false; p.x = w.x + 16 - p.w / 2;
+  pipe = { stage: 'sink', t: 0, clipY: w.y + 4, warp: w };
+  sfx.pipe(); RB.pad.rumble(120, 0.4);
+}
+function pipeUpdate(dt) {
+  const p = player; pipe.t += dt;
+  if (pipe.stage === 'sink') {
+    p.y += 42 * dt;
+    if (pipe.t < 0.6) return;
+    const w = pipe.warp;
+    if (w.k === 'warp') {   // into the bonus room: fall in through the hole in the roof
+      outside = { lvl, ents, out: w.out };
+      const src = LEVELS[w.room]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
+      for (const e of src.ents) spawnFromSpec(e);
+      p.x = 3 * TS; p.y = -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
+      music.play(lvl.music); phase = 'play'; pipe = null;
+    } else {                // back out: rise up out of the log further along
+      const o = outside.out; lvl = outside.lvl; ents = outside.ents; outside = null; parts = []; pops = []; bumps = [];
+      p.x = o[0] * TS + 16 - p.w / 2; p.y = o[1] * TS + 2; p.vy = 0;
+      camX = clamp(p.x + p.w / 2 - LW * 0.4, 0, lvl.w * TS - LW); camLead = 0.4;
+      music.play(lvl.music); sfx.pipe();
+      pipe = { stage: 'rise', t: 0, clipY: o[1] * TS };
+    }
+    return;
+  }
+  // rising out
+  p.y -= 42 * dt;
+  if (p.y + p.h <= pipe.clipY) { p.y = pipe.clipY - p.h; p.ground = true; phase = 'play'; pipe = null; }
+}
+
+// the saved power-up in the box at the top: it floats down when you ask for it (or when you get hurt)
+function recallReserve() {
+  if (!reserve || state !== 'level' || phase !== 'play') return;
+  ents.push(mk(reserve, camX + LW / 2 - 7, -16, { vy: 30, drop: true, dir: 1 })); reserve = null; sfx.reserve();
+}
 
 function pause() {
   if (paused || state !== 'level') return;
@@ -548,69 +627,69 @@ function shamrock(x, y, r, fill, lw = 0) {
 }
 
 // ---- Lucky Leo ----
-// x, y: top-left of his box (16 wide; 16 tall when small, 28 when big). fx: { squash, swing, tilt }
+// x, y: top-left of his box (16 wide; 16 tall when small, 28 when big). fx: { squash, swing, tilt, rot, hatless }
+// Drawn like a cartoon mascot: a few big, bold shapes in flat colours with a soft shade on each, and no outlines.
 function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
-  const big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.12 : 1.3;   // small Leo is round and chubby
+  const big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Leo is round and chubby
   const sq = fx.squash || 0, swing = fx.swing || 0;
-  let coat = '#34b34e', coatDk = '#21883a', hat = '#2fae4a', hatDk = '#1b6a30';
-  if (form === 2) { coat = '#fffaf0'; coatDk = '#ddd2c0'; }
-  if (flash === 'star') { const h = (t * 420) % 360; coat = `hsl(${h},85%,58%)`; coatDk = `hsl(${h},75%,40%)`; hat = `hsl(${(h + 150) % 360},85%,52%)`; hatDk = `hsl(${(h + 150) % 360},75%,35%)`; }
+  let coat = '#2fbf4f', coatDk = '#1f9a3c', hat = '#2fbf4f', hatDk = '#1f9a3c', pants = '#1c7a33';
+  if (form === 2) { coat = '#ffffff'; coatDk = '#e2dccf'; }
+  if (flash === 'star') { const h = (t * 420) % 360; coat = `hsl(${h},85%,58%)`; coatDk = `hsl(${h},75%,45%)`; hat = `hsl(${(h + 150) % 360},85%,55%)`; hatDk = `hsl(${(h + 150) % 360},75%,42%)`; }
   g.save();
   g.translate(x + 8, y + H);
   if (fx.rot) { g.translate(0, -H / 2); g.rotate(fx.rot); g.translate(0, H / 2); }   // flips and spins turn round his middle
   g.rotate(fx.tilt || 0);
   g.scale(face * s * wide * (1 + sq * 0.18), s * (1 - sq * 0.18));
-  g.lineJoin = 'round'; g.lineCap = 'round';
-  const lw = 1.5, dead = pose === 'dead', air = pose === 'jump' || dead, skid = pose === 'skid';
+  const dead = pose === 'dead', air = pose === 'jump' || dead, skid = pose === 'skid';
   const legA = air ? 0.7 : skid ? -0.4 : swing * 0.75;
+  const fill = c => { g.fillStyle = c; g.fill(); };
   const leg = (hx, ang, back) => {
-    g.save(); g.translate(hx, -9); g.rotate(ang);
-    rrect(-1.9, -0.5, 3.8, 6.5, 1.8); paint(back ? '#1a6a2c' : coatDk, lw);
-    ell(1.4, 6.6, 3.3, 2.1); paint(back ? '#4e2a12' : C.boot, lw);
-    ell(0.6, 5.9, 1.2, 0.5); paint('rgba(255,255,255,.35)');
+    g.save(); g.translate(hx, -8.5); g.rotate(ang);
+    rrect(-2, -0.5, 4, 5.6, 2); fill(back ? '#16602a' : pants);
+    ell(1.6, 6, 3.6, 2.4); fill(back ? '#4a260e' : '#7a4220');            // big round boots
+    ell(1.2, 5.1, 1.6, 0.7); fill('rgba(255,255,255,.3)');
     g.restore();
   };
   const arm = (sx, sy, ang, back) => {
     g.save(); g.translate(sx, sy); g.rotate(ang);
-    rrect(-1.7, -0.6, 3.4, 6.4, 1.7); paint(back ? coatDk : coat, lw);
-    g.beginPath(); g.arc(0, 6.6, 1.9, 0, TAU); paint(C.skin, lw);
+    rrect(-1.8, -0.6, 3.6, 5.8, 1.8); fill(back ? coatDk : coat);
+    g.beginPath(); g.arc(0, 6.2, 2.2, 0, TAU); fill(back ? '#f0c098' : C.skin);  // round hands
     g.restore();
   };
   leg(-1.8, air ? -0.6 : -legA, true);
-  arm(-3.6, -17, air ? -2.5 : skid ? 0.9 : -swing * 0.9, true);
-  // coat
-  g.beginPath(); g.moveTo(-6.4, -17); g.quadraticCurveTo(-8, -7.5, -6.4, -5.5); g.lineTo(6.4, -5.5); g.quadraticCurveTo(8, -7.5, 6.4, -17); g.quadraticCurveTo(0, -20, -6.4, -17);
-  paint(vgrad(-20, -5, coat, coatDk), lw);
-  if (form === 2) ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((c, i) => { g.beginPath(); g.moveTo(-5 + i * 1.6, -17.5 + i * 0.4); g.lineTo(4 + i * 0.6, -6.5 + i * 0.1); g.lineWidth = 1.4; g.strokeStyle = c; g.stroke(); });
-  rrect(-6.9, -10.6, 13.8, 2.6, 1); paint('#2a1a10', 1.1);
-  rrect(-1.8, -11, 3.6, 3.4, 0.8); paint(C.gold, 1.1);
+  arm(-3.8, -16.5, air ? -2.5 : skid ? 0.9 : -swing * 0.9, true);
+  // a round little coat: a light top and a darker hem, a black belt and a big gold buckle
+  ell(0, -11.5, 7.2, 6.6); fill(coat);
+  g.save(); ell(0, -11.5, 7.2, 6.6); g.clip(); g.fillStyle = coatDk; g.fillRect(-8, -9, 16, 6); g.restore();
+  if (form === 2) ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((c, i) => { rrect(-6 + i * 2.4, -16, 2.4, 3, 0.6); fill(c); });
+  rrect(-7, -10.4, 14, 2.4, 1.2); fill('#2a1a10');
+  rrect(-2, -11, 4, 3.6, 0.8); fill(C.gold); rrect(-0.8, -10, 1.6, 1.6, 0.3); fill('#2a1a10');
   leg(1.8, air ? 0.8 : legA, false);
-  // head
-  ell(-3.4, -23.4, 2.8, 3.8); paint(C.ginger, lw);   // hair at the back
-  g.beginPath(); g.arc(0.8, -23, 6, 0, TAU); paint(vgrad(-29, -17, '#ffe3c8', C.skin), lw);
-  g.beginPath(); g.arc(-0.6, -22, 1.4, 0, TAU); paint('rgba(255,140,140,.45)');   // rosy cheek
-  // beard: a puffy ginger cloud round the chin
-  g.beginPath(); g.moveTo(-5.2, -22); g.bezierCurveTo(-6.5, -17, -3.5, -12.5, 0.6, -12.6); g.bezierCurveTo(5, -12.5, 8, -16.5, 6.9, -21.2);
-  g.bezierCurveTo(5.6, -19.4, 3.5, -18.6, 1.5, -19.2); g.bezierCurveTo(-0.5, -18.6, -3, -19.5, -5.2, -22);
-  paint(vgrad(-22, -12.5, C.ginger, C.dkginger), lw);
-  ell(3.2, -19.6, 2.3, 1.1, -0.2); paint(C.dkginger);   // moustache
-  g.beginPath(); g.arc(6.5, -21.3, 1.9, 0, TAU); paint('#ffab8c', lw);   // big round nose
-  // eye
-  if (dead) { g.lineWidth = 1.2; g.strokeStyle = INK; g.beginPath(); g.moveTo(2.3, -25.7); g.lineTo(4.7, -23.3); g.moveTo(4.7, -25.7); g.lineTo(2.3, -23.3); g.stroke(); }
-  else if ((t + (fx.blinkOff || 0)) % 3.4 < 0.13) { g.lineWidth = 1.1; g.strokeStyle = INK; g.beginPath(); g.moveTo(2.2, -24.4); g.lineTo(4.8, -24.4); g.stroke(); }
-  else { ell(3.6, -24.6, 1.6, 2); paint('#ffffff', 1); g.beginPath(); g.arc(4.1, -24.3, 1, 0, TAU); paint('#1e2a3a'); g.beginPath(); g.arc(4.4, -24.8, 0.38, 0, TAU); paint('#ffffff'); }
-  g.beginPath(); g.moveTo(1.8, -27.4); g.quadraticCurveTo(3.8, -28.4, 5.4, -27.2); g.lineWidth = 1.1; g.strokeStyle = C.dkginger; g.stroke();
-  // top hat with a buckle (unless it's off being thrown)
-  if (fx.hatless) { ell(0.6, -28.4, 5.6, 2.6); paint(C.ginger, lw); g.beginPath(); g.moveTo(-1, -30.4); g.quadraticCurveTo(1, -32.6, 2.5, -30.4); g.lineWidth = 1; g.strokeStyle = C.dkginger; g.stroke(); }
+  // a big round head
+  g.beginPath(); g.arc(0.6, -22.5, 7, 0, TAU); fill(C.skin);
+  ell(-5, -22.4, 2.1, 3.3); fill(C.ginger);                                       // hair at the back
+  // a short ginger beard round the chin
+  for (const [bx, by, br] of [[-1.2, -17.6, 2.5], [2, -16.6, 2.9], [5, -17.8, 2.3]]) { g.beginPath(); g.arc(bx, by, br, 0, TAU); fill(C.ginger); }
+  g.beginPath(); g.arc(-0.2, -21, 1.6, 0, TAU); fill('rgba(255,120,120,.4)');      // rosy cheek
+  ell(3.4, -19.2, 3, 1.4, -0.15); fill(C.dkginger);                                // moustache
+  g.beginPath(); g.arc(6.8, -21, 2.6, 0, TAU); fill('#ffa98a');                   // big round nose
+  g.beginPath(); g.arc(6.1, -21.8, 0.9, 0, TAU); fill('rgba(255,255,255,.55)');
+  // one big friendly eye
+  if (dead) { g.lineWidth = 1.3; g.strokeStyle = '#1e2a3a'; g.lineCap = 'round'; g.beginPath(); g.moveTo(2.4, -26.2); g.lineTo(5, -23.6); g.moveTo(5, -26.2); g.lineTo(2.4, -23.6); g.stroke(); }
+  else if ((t + (fx.blinkOff || 0)) % 3.4 < 0.13) { rrect(2.2, -25, 3, 1, 0.5); fill('#1e2a3a'); }
+  else { const ly = (fx.look || 0) * 0.9; ell(3.7, -24.8, 1.9, 2.5); fill('#ffffff'); ell(4.3, -24.5 + ly, 1.15, 1.6); fill('#1e2a3a'); g.beginPath(); g.arc(4.7, -25.2 + ly, 0.45, 0, TAU); fill('#ffffff'); }
+  rrect(1.8, -28.4 + (fx.look < 0 ? -0.7 : 0), 3.8, 1, 0.5); fill(C.dkginger);       // eyebrow (up when he looks up)
+  // a tall green hat with a black band and a gold buckle (unless it's off being thrown)
+  if (fx.hatless) { ell(0.6, -28.4, 6, 2.8); fill(C.ginger); g.beginPath(); g.arc(1.8, -30.6, 1.6, 0, TAU); fill(C.ginger); }
   else {
-  ell(0.8, -28.4, 8, 2.1); paint(hatDk, lw);
-  g.beginPath(); g.moveTo(-3.8, -28.8); g.lineTo(-3.3, -37); g.quadraticCurveTo(0.8, -38.6, 4.9, -37); g.lineTo(5.4, -28.8); g.closePath();
-  paint(vgrad(-38, -28, hat, hatDk), lw);
-  g.beginPath(); g.moveTo(-3.65, -31.4); g.lineTo(5.25, -31.4); g.lineTo(5.15, -29.4); g.lineTo(-3.75, -29.4); g.closePath(); paint('#2a1a10');
-  rrect(-0.2, -31.8, 2.8, 2.8, 0.5); paint(C.gold, 0.9); rrect(0.6, -31, 1.2, 1.2, 0.2); paint('#2a1a10');
-  g.beginPath(); g.moveTo(-2.5, -36); g.lineTo(-2.2, -32.5); g.lineWidth = 1; g.strokeStyle = 'rgba(255,255,255,.35)'; g.stroke();
+    ell(0.8, -28.6, 8.4, 2.4); fill(hatDk);
+    rrect(-3.8, -38, 9.2, 9.6, [2.5, 2.5, 0.5, 0.5]); fill(hat);
+    rrect(2.6, -38, 2.8, 9.6, [0, 2.5, 0.5, 0]); fill(hatDk);                    // the shady side
+    rrect(-3.8, -31.6, 9.2, 2.2, 0); fill('#2a1a10');
+    rrect(-0.2, -32, 3, 3, 0.6); fill(C.gold);
+    rrect(-2.6, -36.6, 1.3, 3.6, 0.6); fill('rgba(255,255,255,.35)');           // shine
   }
-  arm(4.4, -17, air ? -2.7 : skid ? -0.6 : swing * 0.9, false);
+  arm(4.4, -16.5, air ? -2.7 : skid ? -0.6 : swing * 0.9, false);
   g.restore();
 }
 
@@ -1232,6 +1311,7 @@ let state = 'title';      // 'title' → 'map' → 'level' (→ back to 'map') �
 let lvl = null;           // the level: tiles copied so blocks can change
 let ents = [], parts = [], pops = [];   // enemies and items; particles; floating score numbers
 let player = null, camX = 0, clock = 0, lives = 5, coins = 0, score = 0, checkpoint = null, levelGems = [], gotKey = false;
+let outside = null, pipe = null;   // the level we came from while in a hollow tree, and the going-down-a-log animation
 let phase = 'play', phaseT = 0, reserve = null, bumps = [], bossDown = false, camLead = 0.4;
 const tileAt = (tx, ty) => {
   if (!lvl) return 0;
@@ -1280,6 +1360,7 @@ const groundAhead = a => { const tx = Math.floor((a.dir > 0 ? a.x + a.w + 1 : a.
 
 // ---------- Starting a level ----------
 function startLevel(id, fromCheck = false) {
+  outside = null; pipe = null;
   const src = LEVELS[id];
   lvl = { ...src, t: src.t.slice() };
   ents = []; parts = []; pops = []; bumps = []; bossDown = false;
@@ -1293,7 +1374,7 @@ function startLevel(id, fromCheck = false) {
     spawnFromSpec(e);
   }
   const startX = checkpoint ? checkpoint.x : 3 * TS;
-  player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0 };
+  player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null };
   if (checkpoint) setForm(1);
   // drop Leo onto the ground at the start
   const stx = Math.floor((player.x + 6) / TS);
@@ -1320,6 +1401,7 @@ function spawnFromSpec(e) {
     case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: 3, dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3 })); break;
+    case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
   }
 }
 
@@ -1417,6 +1499,7 @@ function updateLevel(dt) {
   }
   if (phase === 'clear') { clearUpdate(dt); updateEnts(dt); return; }
   if (phase === 'boss-won') { bossWonUpdate(dt); return; }
+  if (phase === 'pipe') { pipeUpdate(dt); return; }
   updatePlayer(dt);
   updateEnts(dt);
   // camera: leads in the direction Leo runs
@@ -1463,18 +1546,36 @@ function updatePlayer(dt) {
   p.jumpHeld = inp.jump;
   if (p.flip) p.flip = Math.max(0, p.flip - dt * 1.6);
   // the ground pound: ↓ (or LT) in the air, a quick spin, then straight down
-  if (!p.ground && pressed.down && !p.pound && p.y > 0) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
+  // (it works even up above the top of the screen)
+  if (!p.ground && pressed.down && (downFrom !== 'ArrowDown' || !(inp.left || inp.right)) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.22) { p.pound = 'drop'; p.vy = 470; } }
   const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && inp.jump ? 680 : 1500;   // the twirl floats
   p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, 290);
   // throw the hat like a boomerang
   if (pressed.hat && !p.hatless && phase === 'play') {
-    ents.push(mk('cap', p.x + p.w / 2 - 6 + p.face * 6, p.y + (p.form ? 2 : 0), { vx: p.face * 270 + p.vx * 0.4, w: 12, h: 9, st: 'out', dir: p.face }));
+    if (inp.up) ents.push(mk('cap', p.x + p.w / 2 - 6, p.y - 6, { vx: p.vx * 0.3, vy: -330, w: 12, h: 9, st: 'out', dir: p.face }));                  // looking up: straight up
+    else if (p.crouch) ents.push(mk('cap', p.x + p.w / 2 - 6 + p.face * 6, p.y + p.h - 9, { vx: p.face * 280, w: 12, h: 9, st: 'out', dir: p.face, low: true }));  // crouching: low along the ground
+    else ents.push(mk('cap', p.x + p.w / 2 - 6 + p.face * 6, p.y + (p.form ? 2 : 0), { vx: p.face * 270 + p.vx * 0.4, w: 12, h: 9, st: 'out', dir: p.face }));
     p.hatless = true; sfx.throwHat();
+  }
+  if (pressed.item) recallReserve();
+  // ↓ standing on top of a hollow tree: down you go
+  if (inp.down && p.ground && !p.pound && phase === 'play') {
+    const cx = p.x + p.w / 2;
+    const w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && Math.abs(cx - (e.x + 16)) < 7 && Math.abs(p.y + p.h - (e.y + 4)) < 2);
+    if (w) { startPipe(w); return; }
+  }
+  // carrying a shell: let go of run to throw it (hold ↓ to put it down gently)
+  if (p.carry && (!inp.run || phase !== 'play' || p.carry.dead || p.carry.gone)) {
+    const e = p.carry; p.carry = null; e.carried = false;
+    if (!e.dead && !e.gone) {
+      e.x = p.face > 0 ? p.x + p.w + 1 : p.x - e.w - 1; e.y = Math.min(e.y, p.y + p.h - e.h);
+      if (inp.down) { e.vx = 0; sfx.bump(); } else { e.vx = p.face * 240; e.grace = 0.3; sfx.kick(); }
+    }
   }
   // rainbow sparks
   p.sparkCD -= dt;
-  if (pressed.run && p.form === 2 && p.sparkCD <= 0 && ents.filter(e => e.k === 'spark').length < 2) {
+  if (pressed.run && !p.carry && p.form === 2 && p.sparkCD <= 0 && ents.filter(e => e.k === 'spark').length < 2) {
     ents.push(mk('spark', p.x + (p.face > 0 ? p.w : -6), p.y + (p.h > 20 ? 10 : 4), { vx: p.face * 230, vy: 60, w: 6, h: 6 }));
     p.sparkCD = 0.25; sfx.spark();
   }
@@ -1538,6 +1639,12 @@ function updateEnts(dt) {
         break;
       }
       case 'shell': {
+        if (e.carried) {   // held out in front of Leo; anything it bumps into gets knocked out (and so does the shell)
+          if (p.carry !== e) { e.carried = false; break; }
+          e.x = p.x + p.w / 2 - e.w / 2 + p.face * (p.w / 2 + 3); e.y = p.y + p.h - e.h - (p.h > 20 ? 6 : 1); e.vx = 0; e.vy = 0; e.still = 0;
+          for (const o of ents) if (o !== e && !o.dead && isEnemy(o) && o.k !== 'boss' && overlap(e, o)) { flipEnemy(o, p.face); flipEnemy(e, p.face); e.carried = false; p.carry = null; break; }
+          break;
+        }
         e.vy = Math.min(e.vy + 900 * dt, 300);
         moveX(e, e.vx * dt);
         if (e.wall) { e.vx = -e.vx; if (Math.abs(e.vx) > 0) { sfx.bump(); const tx = Math.floor((e.wall > 0 ? e.x + e.w + 1 : e.x - 1) / TS), ty = Math.floor((e.y + 8) / TS), t = tileAt(tx, ty); if (t === T.BRICK || QBLOCKS.has(t) || t === T.MULTI) hitBlock(tx, ty, t); } }
@@ -1624,9 +1731,14 @@ function updateCap(e, dt) {
   const p = player;
   e.spin = (e.spin || 0) + dt * 18;
   if (e.st === 'out') {
-    e.vx *= Math.exp(-dt * 4.5);
+    e.vx *= Math.exp(-dt * 4.5); e.vy = (e.vy || 0) * Math.exp(-dt * 4.5);
     moveX(e, e.vx * dt);
-    if (e.wall || Math.abs(e.vx) < 40) { e.st = 'hover'; e.hoverT = 0; }
+    if (e.vy) {   // thrown up: it bumps the block above, like a jump would
+      e.y += e.vy * dt;
+      const tx = Math.floor((e.x + e.w / 2) / TS), ty = Math.floor(e.y / TS), t = tileAt(tx, ty);
+      if (SOLID.has(t) && ty >= 0) { e.y = (ty + 1) * TS; e.vy = 0; e.st = 'hover'; e.hoverT = 0; if (t === T.BRICK || QBLOCKS.has(t) || t === T.MULTI || t === T.HIDDEN) hitBlock(tx, ty, t); }
+    }
+    if (e.wall || Math.hypot(e.vx, e.vy || 0) < 40) { e.st = 'hover'; e.hoverT = 0; }
   } else if (e.st === 'hover') {
     e.hoverT += dt; e.y += Math.sin(e.hoverT * 12) * 0.15;
     if (e.hoverT > 0.35) e.st = 'back';
@@ -1681,7 +1793,7 @@ function touchPlayer(e) {
       if (e.k === 'hat') { oneUp(e.x, e.y); break; }
       if (e.k === 'horseshoe') { p.star = 10; sfx.power(); addScore(1000, e.x, e.y); music.play('bonus'); break; }
       sfx.power(); addScore(1000, e.x, e.y);
-      if (e.k === 'clover') { if (p.form === 0) setForm(1); else reserve = 'clover'; }
+      if (e.k === 'clover') { if (p.form === 0) setForm(1); else if (reserve !== 'flower') reserve = 'clover'; }   // (a flower in the box stays: it's the better one)
       else { if (p.form === 2) reserve = 'flower'; else { if (p.form > 0 && !reserve) reserve = 'clover'; setForm(2); } }
       break;
     case 'spring':
@@ -1705,6 +1817,10 @@ function touchPlayer(e) {
     default:
       if (!isEnemy(e)) break;
       if (p.star > 0) { flipEnemy(e, p.face); break; }
+      if (e.carried) break;
+      if (e.k === 'shell' && !e.vx && !stomp && (keys.run || touchState.run) && !p.carry && !p.pound) {   // hold run and walk into a shell: pick it up
+        p.carry = e; e.carried = true; e.still = 0; sfx.pickup(); break;
+      }
       if (e.k === 'shell' && !e.vx) {   // a still shell: kick it!
         e.vx = (p.x + p.w / 2 < e.x + e.w / 2 ? 1 : -1) * 230; e.grace = 0.25; sfx.kick(); addScore(100, e.x, e.y);
         if (stomp) p.vy = -200;
@@ -1808,6 +1924,7 @@ function finishLevel() {
 }
 function afterDeath() {
   lives--;
+  if (outside) { lvl = outside.lvl; ents = outside.ents; outside = null; }   // (in a hollow tree: start again in the level it's in)
   if (lives <= 0) {
     lives = 5;
     goMap(lvl.id);
@@ -1900,17 +2017,26 @@ function drawLevel() {
       else if (p.skid) pose = 'skid';
       else if (Math.abs(p.vx) > 5) pose = 'walk';
       const sp = Math.min(1, Math.abs(p.vx) / 90);
-      const fx = { squash: p.crouch ? 0.5 : p.squash || 0, swing: pose === 'walk' ? Math.sin(p.anim * Math.PI) * (0.5 + sp * 0.5) : 0, tilt: phase === 'dying' ? 0 : clamp(p.vx / 1100, -0.14, 0.14), hatless: p.hatless };
+      const fx = { look: p.ground && input().up && !p.crouch ? -1 : 0, squash: p.crouch ? 0.5 : p.squash || 0, swing: pose === 'walk' ? Math.sin(p.anim * Math.PI) * (0.5 + sp * 0.5) : 0, tilt: phase === 'dying' ? 0 : clamp(p.vx / 1100, -0.14, 0.14), hatless: p.hatless };
       if (p.flip) fx.rot = -(1 - p.flip) * TAU * p.face;   // the backflip
       if (p.pound === 'spin') fx.rot = (p.poundT / 0.22) * TAU * p.face;
       if (p.pound === 'drop') { fx.squash = -0.5; pose = 'jump'; }
       if (p.star > 0) glow(p.x + p.w / 2, p.y + p.h / 2, 26, `hsla(${qh((t * 400) % 360)},100%,70%,1)`, 0.5);
+      if (pipe) { g.save(); g.beginPath(); g.rect(camX - 60, -300, LW + 120, pipe.clipY + 300); g.clip(); }   // going in or out of a log: hidden inside it
       if (p.twirl > 0) {   // the spin: Leo turns round twice, seen from the side
         const c = Math.cos((1 - p.twirl / 0.34) * TAU * 2), cxp = p.x + p.w / 2;
         g.save(); g.translate(cxp, 0); g.scale(Math.sign(c || 1) * Math.max(0.15, Math.abs(c)), 1); g.translate(-cxp, 0);
         drawLeo(p.x - 2, p.y - 2, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, fx);
         g.restore();
       } else drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
+      if (pipe) g.restore();
+      // up above the top of the screen: a little marker shows where Leo is
+      if (p.y + p.h < 2 && phase === 'play') {
+        const mx = p.x + p.w / 2, k = Math.min(1, -p.y / 120);
+        g.beginPath(); g.moveTo(mx, 3); g.lineTo(mx - 5, 10); g.lineTo(mx + 5, 10); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+        g.beginPath(); g.arc(mx, 17, 7 - k * 1.5, 0, TAU); g.fillStyle = 'rgba(255,255,255,.9)'; g.fill();
+        g.save(); g.translate(mx, 19); g.scale(0.55, 0.55); drawCap(-6, -9, 0, false); g.restore();
+      }
       if (p.star > 0 && Math.random() < 0.5) sparkle(p.x + Math.random() * p.w, p.y + Math.random() * p.h, `hsl(${Math.random() * 360},90%,70%)`, 1);
     }
   }
@@ -1975,6 +2101,11 @@ function drawEnt(e, t) {
       break;
     }
     case 'gem': drawGem(x - 1, y - 1, t); break;
+    case 'warp': case 'exit': {   // a little bouncing arrow over a hollow tree when Leo's close: press ↓ to go in
+      const near = player && Math.abs(player.x + player.w / 2 - (x + 16)) < 40 && Math.abs(player.y + player.h - (y + 4)) < 60;
+      if (near && !pipe) { const by = y - 22 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 10, by); g.lineTo(x + 22, by); g.lineTo(x + 16, by + 8); g.closePath(); g.fillStyle = '#ffe14a'; g.fill(); }
+      break;
+    }
     case 'key': drawKey(x, y, t); break;
     case 'clover': drawClover(x - 1, y - 2, t); break;
     case 'flower': drawFlower(x - 1, y - 2, t); break;

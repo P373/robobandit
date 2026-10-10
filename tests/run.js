@@ -1007,6 +1007,54 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Lucky Leo: carry a shell, moves above the screen, recall the saved power-up, hollow-tree rooms, hat up and low, no surprise ground pound', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('lucky-leo.html')); await p.waitForTimeout(600);
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); lives = 9;
+      // hold run and walk into a still shell: Leo picks it up; let go and it flies
+      startLevel('hills'); const sn = ents.find(e => e.k === 'snaily'); ents = ents.filter(e => e === sn || !isEnemy(e));
+      sn.k = 'shell'; sn.vx = 0; sn.h = 14; player.x = sn.x - 40; player.y = sn.y; run(5);
+      keys.run = true; keys.right = true; run(40); keys.right = false; out.carried = player.carry === sn; run(5);
+      keys.run = false; run(2); out.thrown = !player.carry && Math.abs(sn.vx) > 100;
+      // up above the top of the screen: the ground pound still works
+      player.y = -60; player.vy = 0; player.ground = false; run(1); pressed.down = true; run(2); out.highPound = player.pound === 'spin'; run(120);
+      // the box at the top: a saved clover drops when asked for
+      reserve = 'clover'; pressed.item = true; run(1); out.recalled = reserve === null && ents.some(e => e.k === 'clover' && e.drop);
+      // down a hollow tree into its bonus room, and back out of a log further on
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); const w = ents.find(e => e.k === 'warp');
+      player.x = w.x + 10; player.y = w.y - 30; run(40); keys.down = true; downFrom = 'KeyS'; run(60); keys.down = false; run(30);
+      out.room = lvl.id;
+      const ex = ents.find(e => e.k === 'exit'); player.x = ex.x + 10; player.y = ex.y - 30; run(40); keys.down = true; run(60); keys.down = false; run(60);
+      out.back = lvl.id === 'hills' && Math.abs(player.x / 16 - w.out[0]) < 2 && player.ground && phase === 'play';
+      // the hat: thrown up while looking up, and low along the ground while crouching
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 6 * 16; run(20);
+      keys.up = true; pressed.hat = true; run(1); const capU = ents.find(e => e.k === 'cap'); out.capUp = !!capU && capU.vy < -200; keys.up = false; run(120);
+      setForm(1); run(5); keys.down = true; downFrom = 'KeyS'; run(3); pressed.hat = true; run(1); const capL = ents.find(e => e.k === 'cap');
+      out.capLow = !!capL && capL.low && capL.y > player.y + player.h - 12; keys.down = false; run(120);
+      paused = false; return out;
+    });
+    check(r.carried && r.thrown, 'pick up a shell by holding run, throw it by letting go: ' + JSON.stringify(r));
+    check(r.highPound, 'the ground pound should work above the top of the screen: ' + JSON.stringify(r));
+    check(r.recalled, 'the saved power-up should drop from the box: ' + JSON.stringify(r));
+    check(r.room === 'hillsTree' && r.back, 'down the hollow tree into the room and back out further on: ' + JSON.stringify(r));
+    check(r.capUp && r.capLow, 'the hat should go up when looking up and low when crouching: ' + JSON.stringify(r));
+    // running right with the stick a little down, holding Ⓧ and pressing Ⓐ: a jump, never a ground pound (or a crouch)
+    await p.evaluate(() => { startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 6 * 16; });
+    await p.waitForTimeout(200);
+    await padStick(p, 0.85, 0.6); await padHold(p, 'X', true); await p.waitForTimeout(300);
+    await padHold(p, 'A', true); await p.waitForTimeout(400);
+    const g = await p.evaluate(() => ({ pound: player.pound, crouch: player.crouch, air: !player.ground || player.vy < 0, x: player.x }));
+    await padHold(p, 'A', false); await padHold(p, 'X', false); await padStick(p, 0, 0);
+    check(!g.pound && !g.crouch, 'running down-right with the stick should not ground pound or crouch: ' + JSON.stringify(g));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
