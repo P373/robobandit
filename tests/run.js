@@ -78,7 +78,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -848,7 +848,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
     }
@@ -858,7 +858,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 11 && m.cur.includes('Witch Way Out'), 'the menu should list 8 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 12 && m.cur.includes('Witch Way Out'), 'the menu should list 9 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('p'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
@@ -874,12 +874,150 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Lucky Leo: every level can be finished (a search over every place Leo can stand), and the golden key can be reached', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      for (const id of ORDER) {
+        const L = LEVELS[id], W = L.w, H = L.h;
+        const tile = (x, y) => (x < 0 || x >= W ? T.STONE : y < 0 || y >= H ? 0 : L.t[y * W + x]);
+        const deadly = (x, y) => [T.LAVA, T.WATER, T.SPIKES].includes(tile(x, y));
+        const stand = new Set(), springs = new Set(), k = (x, y) => x + ',' + y;
+        for (let x = 0; x < W; x++) for (let y = 1; y < H - 1; y++) {
+          const below = tile(x, y + 1);
+          if (!SOLID.has(tile(x, y)) && !deadly(x, y) && (SOLID.has(below) || below === T.ONEWAY)) stand.add(k(x, y));
+        }
+        for (const e of L.ents) {
+          if (e.k === 'plat' || e.k === 'fall') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
+          if (e.k === 'spring') springs.add(k(e.x, e.y));
+        }
+        const pts = [...stand].map(q => q.split(',').map(Number));
+        const start = pts.filter(([x]) => x <= 4).sort((a, b) => b[1] - a[1])[0];
+        const seen = new Set([k(...start)]), q = [start];
+        let far = 0;
+        while (q.length) {
+          const [x, y] = q.shift();
+          far = Math.max(far, x);
+          const spring = [-1, 0, 1].some(d => springs.has(k(x + d, y)));
+          for (const [x2, y2] of pts) {
+            if (seen.has(k(x2, y2))) continue;
+            const dx = Math.abs(x2 - x), up = y - y2;
+            // a running jump covers about 7 tiles across or 4 up; a spring about 9 up
+            const ok = up < 0 ? dx <= 8 + Math.min(4, -up) : spring && up <= 9 ? dx <= 5 : up <= 1 ? dx <= 7 : up <= 4 ? dx <= 5 : false;
+            if (ok) { seen.add(k(x2, y2)); q.push([x2, y2]); }
+          }
+        }
+        const keyE = L.ents.find(e => e.k === 'key');
+        out[id] = { far, goal: L.goal || 178, gems: L.ents.filter(e => e.k === 'gem').length, key: keyE ? [...seen].some(q => { const [a, b] = q.split(',').map(Number); return Math.abs(a - keyE.x) <= 1 && Math.abs(b - keyE.y) <= 1; }) : null };
+      }
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) {
+      check(v.far >= v.goal, `${id}: Leo can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
+      check(v.gems === 5, `${id} should have 5 rainbow gems, has ${v.gems}`);
+    }
+    check(r.caves.key === true, 'the golden key in Glimmer Caves should be reachable');
+    await done(p);
+  });
+
+  await test('Lucky Leo: walk, stomp, blocks, growing, shells, pits, the goal, the golden key and King Grumbles', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      localStorage.removeItem('ll_save');
+      for (const k in save.cleared) delete save.cleared[k]; save.key = false; save.beaten = false;
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true;   // the page's own loop sits still while we step by hand
+      startGame(); startLevel('hills');
+      const x0 = player.x; keys.right = true; run(60); keys.right = false; out.walk = player.x - x0;
+      const gob = ents.find(e => e.k === 'grumblin');
+      player.x = gob.x; player.y = gob.y - 30; player.vy = 100; run(30);
+      out.stomp = { squished: !!gob.flat || !!gob.gone, score };
+      startLevel('hills'); player.x = 14 * 16 + 2; player.y = 12 * 16 - 14; run(5);
+      keys.jump = true; pressed.jump = true; run(30); keys.jump = false; run(40);
+      out.block = { used: tileAt(14, 8) === T.USED, clover: ents.some(e => e.k === 'clover') };
+      const cl = ents.find(e => e.k === 'clover');
+      if (cl) { run(60); player.x = cl.x; player.y = cl.y - 2; run(2); }
+      out.big = player.form;
+      const sn = ents.find(e => e.k === 'snaily');
+      player.x = sn.x; player.y = sn.y - 40; player.vy = 100; run(40);
+      const sh = ents.find(e => e.k === 'shell');
+      out.shell = !!sh;
+      if (sh) { player.x = sh.x - 14; player.y = sh.y + sh.h - player.h; player.vy = 0; keys.right = true; run(10); keys.right = false; out.kicked = Math.abs(sh.vx) > 100; }
+      startLevel('hills'); const lv = lives; player.x = 43 * 16; player.y = 150; run(60 * 4);
+      out.pit = { lost: lv - lives, state };
+      startLevel('hills'); player.x = 199 * 16; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
+      out.goal = { state, cleared: !!save.cleared.hills, woodsOpen: nodeOpen(node('woods')), cavesOpen: nodeOpen(node('caves')) };
+      startLevel('caves'); const k = ents.find(e => e.k === 'key'); player.x = k.x; player.y = k.y; run(2);
+      out.key = gotKey; player.x = 192 * 16 + 8; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
+      out.bonusOpen = nodeOpen(node('bonus'));
+      startLevel('castle'); const b = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
+      for (let h = 0; h < 3; h++) { player.inv = 9; run(100); player.x = b.x + 8; player.y = b.y - 30; player.vy = 150; run(8); }
+      out.boss = b.hp;
+      run(60 * 3);
+      const pot = ents.find(e => e.k === 'pot'); out.pot = !!pot;
+      if (pot) { player.x = pot.x; player.y = pot.y; run(5); }
+      out.ending = { state, beaten: save.beaten, best: +localStorage.getItem('ll_best') };
+      paused = false;
+      return out;
+    });
+    check(r.walk > 50, 'Leo should walk: ' + JSON.stringify(r));
+    check(r.stomp.squished && r.stomp.score >= 100, 'stomping a goblin: ' + JSON.stringify(r.stomp));
+    check(r.block.used && r.block.clover && r.big === 1, 'bumping the clover block and growing: ' + JSON.stringify(r));
+    check(r.shell && r.kicked, 'stomp a snail, kick its shell: ' + JSON.stringify(r));
+    check(r.pit.lost === 1 && r.pit.state === 'level', 'a pit costs a life and restarts: ' + JSON.stringify(r.pit));
+    check(r.goal.state === 'map' && r.goal.cleared && r.goal.woodsOpen && !r.goal.cavesOpen, 'the goal clears the level and opens the next: ' + JSON.stringify(r.goal));
+    check(r.key && r.bonusOpen, 'the golden key opens Rainbow Road: ' + JSON.stringify(r));
+    check(r.boss === 0 && r.pot && r.ending.state === 'ending' && r.ending.beaten && r.ending.best > 0, 'three stomps beat King Grumbles, then the pot of gold: ' + JSON.stringify(r));
+    await done(p, 'lucky-leo.png');
+  });
+
+  await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('lucky-leo.html')); await p.waitForTimeout(600);
+    await padTap(p, 'A'); await p.waitForTimeout(300);
+    check(await p.evaluate(() => state === 'map'), 'Ⓐ on the title should open the map');
+    await padTap(p, 'A'); await p.waitForTimeout(400);
+    check(await p.evaluate(() => state === 'level' && lvl.id === 'hills'), 'Ⓐ on the map should start Clover Hills');
+    await p.waitForTimeout(300);
+    await padHold(p, 'A', true); await p.waitForTimeout(120);
+    const air = await p.evaluate(() => !player.ground && player.vy < 0);
+    await padHold(p, 'A', false); await p.waitForTimeout(800);
+    await p.evaluate(() => { ents = ents.filter(e => !isEnemy(e)); __pad.axes[0] = 1; }); await padHold(p, 'X', true); await p.waitForTimeout(1200);
+    const fast = await p.evaluate(() => player.vx);
+    await padHold(p, 'X', false); await p.evaluate(() => { __pad.axes[0] = 0; });
+    check(air && fast > 120, 'Ⓐ should jump and Ⓧ + stick should run: ' + JSON.stringify({ air, fast }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    // on a phone: the game sits at the top like a handheld, with the buttons underneath
+    const ph = await browser.newContext({ ...PHONE });
+    const q = await ph.newPage();
+    await q.goto(url('lucky-leo.html')); await q.waitForTimeout(500);
+    await q.tap('#btnPlay'); await q.waitForTimeout(400);
+    const pt = await q.evaluate(() => { const n = node('hills'), dpr = canvas.width / innerWidth; return { x: (n.x - mapCam) * scale / dpr, y: (n.y * scale + offY) / dpr }; });
+    await q.touchscreen.tap(pt.x, pt.y); await q.waitForTimeout(200); await q.touchscreen.tap(pt.x, pt.y); await q.waitForTimeout(500);
+    check(await q.evaluate(() => state === 'level' && !document.getElementById('touch').classList.contains('hidden')), 'tapping Clover Hills twice should start it, with the touch buttons showing');
+    const cdp = await ph.newCDPSession(q), rb = await q.locator('#tRight').boundingBox(), jb = await q.locator('#tJump').boundingBox();
+    const x0 = await q.evaluate(() => player.x);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: rb.x + 30, y: rb.y + 30, id: 1 }] });
+    await q.waitForTimeout(600);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: rb.x + 30, y: rb.y + 30, id: 1 }, { x: jb.x + 40, y: jb.y + 40, id: 2 }] });
+    await q.waitForTimeout(120);
+    const t = await q.evaluate(x0 => ({ moved: player.x - x0, air: !player.ground }), x0);
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    check(t.moved > 30 && t.air, '▶ should walk and A should jump: ' + JSON.stringify(t));
+    await q.screenshot({ path: path.join(OUT, 'lucky-leo-phone.png') });
+    await ph.close();
+  });
+
   await test('one mute setting for every game', async () => {
     const ctx = await browser.newContext();
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', '5th-grade/math.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

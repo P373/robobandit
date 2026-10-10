@@ -208,6 +208,13 @@ const GAMES = [
     thumb: 'thumbs/flight-school.jpg',
     blurb: 'Learn how flying works, then fly it! 14 levels from hot air balloons, zeppelins and jets to Mars, light speed and aliens. ✈️🚀👽',
   },
+  {
+    title: 'Lucky Leo',
+    bestKey: 'll_best',
+    url: 'lucky-leo.html',
+    thumb: 'thumbs/lucky-leo.jpg',
+    blurb: 'Run, jump and stomp across the Emerald Isle with Lucky Leo the leprechaun, and get his pot of gold back from King Grumbles! ☘️🌈',
+  },
 ];
 
 const grid = document.getElementById('games');
@@ -234,6 +241,6 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
 render();
 addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
-<script src="common.js?v=20261009-2141"></script>
+<script src="common.js?v=20261010-0027"></script>
 </body>
 </html>

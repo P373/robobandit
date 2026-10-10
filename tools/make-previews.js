@@ -15,6 +15,7 @@ const GAMES = [
   { file: 'sparkle-meadow', title: 'SPARKLE MEADOW', tag: 'Ride your pony and make animal friends!', color: '#ff8fc8' },
   { file: 'witch-way-out', title: 'WITCH WAY OUT', tag: 'Fly your broomstick and escape the giant pumpkin!', color: '#ff8a1f' },
   { file: 'flight-school', title: 'FLIGHT SCHOOL', tag: 'Learn how flying works, from balloons to Mars!', color: '#7fd0ff' },
+  { file: 'lucky-leo', title: 'LUCKY LEO', tag: 'Run, jump and stomp for the gold!', color: '#4ad05a' },
 ];
 
 const page = body => `<!doctype html><html><head><meta charset="utf-8">
