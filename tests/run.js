@@ -1072,13 +1072,17 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const ph = await open(browser, 'preschool/abc-train.html', PHONE);
     await ph.tap('#btnFind');
     const f = await ph.evaluate(() => {
+      const before = st => {   // put the train 30 m before a station, with the switches set to get there
+        FORKS.forEach(f => { f.set = st.e === f.id; });
+        if (st.e === 0) setTrain(0, st.s - 30); else if (st.s >= 30) setTrain(st.e, st.s - 30); else setTrain(0, FORKS[st.e - 1].a + st.s - 30);
+      };
       const out = [];
       for (const st of [stations.find(s => s.letter !== target), stations.find(s => s.letter === target)]) {
-        train.s = wrap(st.s - 30); train.running = true; train.v = CRUISE; updateGo();
-        for (let k = 0; k < 400 && wrap(st.s - train.s) > 12; k++) update(0.02);
+        before(st); train.running = true; train.v = CRUISE; updateGo();
+        for (let k = 0; k < 400 && distAhead(st) > 12; k++) update(0.02);
         document.getElementById('go').dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));   // STOP, a bit early
         for (let k = 0; k < 100; k++) update(0.05);
-        out.push({ gap: +Math.abs(wrap(st.s - train.s + LEN / 2) - LEN / 2).toFixed(2), riders: train.seats.filter(Boolean).length });
+        out.push({ gap: +st.p.distanceTo(posAt(train.e, train.s)).toFixed(2), riders: train.seats.filter(Boolean).length });
       }
       return { out, found: save.found.length };
     });
@@ -1086,11 +1090,54 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(ph, 'abc-train-phone.png');
   });
 
+  await test('ABC Train: forks (arrows pick the way, the wagons follow, the letter waits either way), rolling wheels, 360° camera, train horn', async () => {
+    const p = await open(browser, 'preschool/abc-train.html', { viewport: { width: 1000, height: 620 } });
+    await p.evaluate(() => { localStorage.removeItem('abc_train'); save.next = 2; RB.speak = s => (window.__said = window.__said || []).push(s); });
+    await p.click('#btnAbc');
+    // just before the farm fork: the letter C waits at the next station both ways
+    const c = await p.evaluate(() => { setTrain(0, FORKS[0].a - 20); setupStations(); update(0.02); const f = FORKS[0];
+      return { at: stations.filter(s => s.letter === next).map(s => s.e).sort(), arrows: !forkL.classList.contains('hidden') && !forkR.classList.contains('hidden'), side: f.side }; });
+    check(c.at.join() === '0,1' && c.arrows, 'C should wait on the loop and on the farm road, and the arrows show: ' + JSON.stringify(c));
+    // tap the arrow toward the farm: the switch and the signpost change; GO takes the farm road, the wagons follow, and C hops on
+    await p.click(c.side > 0 ? '#forkR' : '#forkL', { force: true });
+    const r = await p.evaluate(() => { const f = FORKS[0], on = (f.side > 0 ? forkR : forkL).classList.contains('on'); toggleGo();
+      const edges = new Set(); for (let k = 0; k < 3000 && next === 2; k++) { update(0.05); edges.add(train.e + '' + train.cars.map(x => x.e).join('')); }
+      return { set: f.set, on, next, e: train.e, edges: [...edges], sign: f.sign.rotation.z, said: __said.join(' | ') }; });
+    check(r.set && r.on && r.next === 3 && r.e === 1 && r.edges.includes('11111'), 'the train should take the farm road with its wagons and pick up C: ' + JSON.stringify(r));
+    check(/To the farm/.test(r.said) && /C is for Cat/.test(r.said), 'should say where it goes and the letter: ' + r.said);
+    await p.waitForTimeout(4500);   // the other C goes home and D appears ahead
+    const left = await p.evaluate(() => stations.map(s => s.letter));
+    check(!left.includes(2) && left.includes(3), 'the leftover C should go and D appear: ' + left);
+    // a whole lap through both branches keeps the wagons coupled behind the engine
+    const lap = await p.evaluate(() => { FORKS.forEach(f => { f.set = true; }); setTrain(0, 3); let worst = [99, 0]; const seen = new Set();
+      for (let k = 0; k < 2000; k++) { moveTrain(0.5); placeTrain(); seen.add(train.e); const d = engine.position.distanceTo(train.wagons[0].position); worst = [Math.min(worst[0], d), Math.max(worst[1], d)]; }
+      return { seen: [...seen].sort(), worst }; });
+    check(lap.seen.join() === '0,1,2' && lap.worst[0] > 4.5 && lap.worst[1] < 6.2, 'wagons should stay coupled on every branch: ' + JSON.stringify(lap));
+    // wheels roll about their axles (they used to spin flat like plates)
+    const w = await p.evaluate(() => { const wh = engine.userData.wheels[0], a = new THREE.Vector3(), b = new THREE.Vector3(); wh.updateMatrixWorld(); a.set(0, 1, 0).transformDirection(wh.matrixWorld);
+      const r0 = wh.rotation.x; train.running = true; train.v = CRUISE; update(0.05); wh.updateMatrixWorld(); b.set(0, 1, 0).transformDirection(wh.matrixWorld);
+      const side = sideOf(train.e, train.s); return { axleStill: Math.abs(a.dot(side)) > 0.95 && Math.abs(b.dot(side)) > 0.95, turned: wh.rotation.x !== r0 }; });
+    check(w.axleStill && w.turned, 'the wheels should roll on an axle across the track: ' + JSON.stringify(w));
+    // drag the view all the way round; let go and it glides back behind
+    const box = await p.$eval('canvas', el => { const r = el.getBoundingClientRect(); return [r.width / 2, r.height / 2]; });
+    await p.mouse.move(box[0], box[1]); await p.mouse.down(); await p.mouse.move(box[0] + 300, box[1], { steps: 6 }); await p.mouse.up();
+    const yaw = await p.evaluate(() => ocam.yaw);
+    await p.evaluate(() => { train.running = false; for (let k = 0; k < 120; k++) update(0.05); });
+    const back = await p.evaluate(() => ocam.yaw);
+    check(Math.abs(yaw) > 1.5 && Math.abs(back) < 0.2, 'drag should swing the camera round and it should come back: ' + yaw + ' → ' + back);
+    // the horn is a five-note chord (real train horn), not a beep
+    const horn = await p.evaluate(() => { let saws = 0; const make = AudioContext.prototype.createOscillator;
+      AudioContext.prototype.createOscillator = function () { const o = make.call(this); setTimeout(() => { if (o.type === 'sawtooth') saws++; }); return o; };
+      RB.setMuted(false); toot(); return new Promise(res => setTimeout(() => res(saws), 50)); });
+    check(horn >= 10, 'two blasts of a five-note horn: ' + horn + ' reeds');
+    await done(p, 'abc-train-fork.png');
+  });
+
   await test('read-aloud voice: picks a natural voice over robotic ones, splits long text, skips emoji; the ☰ menu can change it', async () => {
     const ctx = await browser.newContext();
     await ctx.addInitScript(() => {
       const v = (name, lang, extra = {}) => ({ name, lang, localService: true, default: false, voiceURI: name, ...extra });
-      const voices = [v('Fred', 'en-US', { default: true }), v('Albert', 'en-US'), v('Microsoft David - English (United States)', 'en-US'), v('Samantha (Enhanced)', 'en-US'), v('Google français', 'fr-FR')];
+      const voices = [v('Fred', 'en-US', { default: true }), v('Albert', 'en-US'), v('Microsoft David - English (United States)', 'en-US'), v('Samantha (Enhanced)', 'en-US'), v('Google français', 'fr-FR'), v('Microsoft Zira - English (United States)', 'en-US')];
       window.__spoken = [];
       window.SpeechSynthesisUtterance = function (text) { this.text = text; };
       Object.defineProperty(window, 'speechSynthesis', { value: { getVoices: () => voices, speaking: false, pending: false, paused: false, cancel() { this.speaking = false; },
@@ -1104,11 +1151,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const s = await p.evaluate(() => __spoken);
     check(s.length >= 3 && s.every(u => u.voice === 'Samantha (Enhanced)'), 'should use the natural voice, one sentence at a time: ' + JSON.stringify(s));
     check(!/🚂/.test(s[0].text) && /kilometres an hour/.test(s.map(u => u.text).join(' ')), 'emoji skipped and units read out: ' + JSON.stringify(s));
+    const plain = s.find(u => /\.$/.test(u.text)), excited = s.find(u => /!$/.test(u.text)), question = s.find(u => /\?$/.test(u.text));
+    check(excited.pitch > plain.pitch && question.pitch > plain.pitch && plain.pitch > 1, 'excited sentences and questions should lift: ' + JSON.stringify(s));
     // the ☰ menu lists the good voices (not Fred, not French) and remembers the choice
     await p.click('#btnMenu'); await p.click('[data-m="voice"]'); await p.waitForTimeout(100);
     const names = await p.$$eval('.rb-voicebox button[data-v]', bs => bs.map(b => b.textContent));
     check(names.some(n => n.includes('Samantha')) && names.some(n => n.includes('David')) && !names.some(n => /Fred|Albert|fran/.test(n)), 'voice list: ' + names.join(', '));
-    await p.click('.rb-voicebox button[data-v]:not(.on)'); await p.waitForTimeout(100);
+    await p.click('.rb-voicebox button[data-v]:has-text("David")'); await p.waitForTimeout(100);
     check(/David/.test(await p.evaluate(() => localStorage.getItem('rb_voice'))), 'the chosen voice should be saved');
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();

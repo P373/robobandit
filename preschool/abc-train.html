@@ -66,6 +66,16 @@
   @keyframes pulse { 50% { transform: scale(1.1); box-shadow: 0 0 0 14px rgba(60,196,86,.35); } }
   #toot { right: calc(max(20px, env(safe-area-inset-right)) + 146px); bottom: max(26px, env(safe-area-inset-bottom)); width: 96px; height: 96px; background: #ffb020; font-size: 40px; }
   #cam { left: max(20px, env(safe-area-inset-left)); bottom: max(26px, env(safe-area-inset-bottom)); width: 74px; height: 74px; background: #5aa0ff; font-size: 30px; }
+  /* at a fork: a big arrow on each side of the screen, the way the train will go lights up */
+  .fork { position: fixed; z-index: 3; top: 44%; width: 104px; height: 104px; border-radius: 50%; border: 6px solid #fff; padding: 0; cursor: pointer;
+    display: grid; place-items: center; align-content: center; gap: 0; font: 700 44px/1 'Fredoka', system-ui, sans-serif; color: #23324a;
+    background: rgba(255,255,255,.6); box-shadow: 0 8px 0 rgba(0,0,0,.18); touch-action: none; transition: transform .2s, background .2s; }
+  .fork small { font-size: 30px; }
+  .fork.on { background: #ffd84a; transform: scale(1.12); box-shadow: 0 8px 0 rgba(0,0,0,.18), 0 0 0 10px rgba(255,216,74,.45); }
+  .fork:active { transform: translateY(5px) scale(1.05); }
+  #forkL { left: max(16px, env(safe-area-inset-left)); } #forkR { right: max(16px, env(safe-area-inset-right)); }
+  .fork.ask { animation: wig 1.2s ease-in-out infinite; }
+  @keyframes wig { 25% { transform: rotate(-8deg) scale(1.06); } 75% { transform: rotate(8deg) scale(1.06); } }
   .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px; touch-action: pan-y;
     background: radial-gradient(ellipse at center, rgba(255,255,255,.25), rgba(40,90,160,.55)); }
   .panel { margin: auto; width: 100%; max-width: 560px; text-align: center; background: #fffdf4; border: 5px solid #23324a; border-radius: 30px;
@@ -81,7 +91,7 @@
   #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
   .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
 </style>
-<link rel="stylesheet" href="../common.css?v=20261010-1038">
+<link rel="stylesheet" href="../common.css?v=20261010-1105">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -90,6 +100,8 @@
 <div id="card"><div class="big" id="cardLetter">A</div><div class="word" id="cardWord"></div></div>
 <div id="ask" class="hidden"></div>
 <button class="ctl hidden" id="cam" aria-label="Change the camera">🎥</button>
+<button class="fork hidden" id="forkL" aria-label="Go left"></button>
+<button class="fork hidden" id="forkR" aria-label="Go right"></button>
 <button class="ctl hidden" id="toot" aria-label="Toot the horn">📯</button>
 <button class="ctl hidden" id="go" aria-label="Go and stop">GO</button>
 
@@ -106,7 +118,8 @@
 </div>
 
 <script src="../vendor/three.min.js"></script>
-<script src="../common.js?v=20261010-1038"></script>
+<script src="../orbit-cam.js?v=20261010-1105"></script>
+<script src="../common.js?v=20261010-1105"></script>
 <script>
 'use strict';
 // ===================== ABC Train =====================
@@ -323,7 +336,8 @@ function makeAnimal(a) {
 }
 
 // ---------- The track ----------
-// A closed loop through the toy town, with a gentle hill and a bridge over the pond.
+// A loop through the toy town with a bridge over the pond, and two forks where you choose the way:
+// the farm road cuts across the middle, and the mountain line goes through a tunnel.
 const TRACK_PTS = [[0, 0], [40, -6], [78, 8], [96, 44], [80, 82], [44, 96], [8, 84], [-24, 100], [-62, 86], [-88, 52], [-82, 14], [-50, -8]];
 const curve = new THREE.CatmullRomCurve3(TRACK_PTS.map(([x, z], i) => new THREE.Vector3(x, (i === 4 || i === 5) ? 3.2 : i === 3 || i === 6 ? 1.2 : 0, z)), true, 'centripetal');
 const LEN = curve.getLength();
@@ -332,30 +346,91 @@ const wrap = s => ((s % LEN) + LEN) % LEN;
 const at = (s, out = P) => curve.getPointAt(wrap(s) / LEN, out);
 const tangentAt = (s, out = TAN) => curve.getTangentAt(wrap(s) / LEN, out);
 const sideAt = (s, out = new THREE.Vector3()) => out.crossVectors(tangentAt(s, new THREE.Vector3()), UP).normalize();   // to the right of the train
-{
-  // sleepers, two rails and a wide gravel bed
-  const N = Math.floor(LEN / 0.9);
+// The branch lines: each leaves the loop at a and joins it again at b. set = which way the switch points.
+const FORKS = [
+  { a: 0.2, b: 0.5, via: [[75, 40], [55, 58], [30, 75]], main: ['🌉', 'the bridge'], branch: ['🚜', 'the farm'] },
+  { a: 0.68, b: 0.84, via: [[-100, 76], [-121, 52], [-120, 26], [-100, 6]], main: ['🏡', 'the village'], branch: ['⛰️', 'the tunnel'] },
+].map((f, i) => {
+  f.id = i + 1; f.a *= LEN; f.b *= LEN; f.set = false;
+  const pts = [at(f.a, new THREE.Vector3()), at(f.a + 5, new THREE.Vector3()), ...f.via.map(([x, z]) => new THREE.Vector3(x, 0, z)), at(f.b - 5, new THREE.Vector3()), at(f.b, new THREE.Vector3())];
+  f.curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+  f.len = f.curve.getLength();
+  return f;
+});
+// A place on the track is (e, s): e = 0 for the loop or a fork's id for its branch, s = metres along it.
+const clamp01 = x => Math.min(1, Math.max(0, x));
+const posAt = (e, s, out = new THREE.Vector3()) => e ? FORKS[e - 1].curve.getPointAt(clamp01(s / FORKS[e - 1].len), out) : at(s, out);
+const tanAt = (e, s, out = new THREE.Vector3()) => e ? FORKS[e - 1].curve.getTangentAt(clamp01(s / FORKS[e - 1].len), out) : tangentAt(s, out);
+const sideOf = (e, s, out = new THREE.Vector3()) => out.crossVectors(tanAt(e, s), UP).normalize();
+// which side each branch goes off to, as the train sees it (+1 right, -1 left)
+for (const f of FORKS) f.side = Math.sign(posAt(f.id, 20).sub(at(f.a + 20, new THREE.Vector3())).dot(sideAt(f.a))) || 1;
+// sleepers, two rails and a wide gravel bed along a stretch of track
+function layTrack(e, len, bed) {
+  const N = Math.floor(len / 0.9);
   const sleepers = new THREE.InstancedMesh(BOX, M('#a8703a'), N);
   sleepers.castShadow = sleepers.receiveShadow = true;
-  const o = new THREE.Object3D(), pt = new THREE.Vector3(), tg = new THREE.Vector3();
+  const o = new THREE.Object3D(), pt = new THREE.Vector3(), tg = new THREE.Vector3(), lift = new THREE.Vector3(0, 0.12, 0);
   for (let i = 0; i < N; i++) {
-    const s = i / N * LEN; at(s, pt); tangentAt(s, tg);
-    o.position.copy(pt).add(new THREE.Vector3(0, 0.12, 0)); o.lookAt(pt.clone().add(tg).add(new THREE.Vector3(0, 0.12, 0)));
+    const s = (i + 0.5) / N * len; posAt(e, s, pt); tanAt(e, s, tg);
+    o.position.copy(pt).add(lift); o.lookAt(o.position.clone().add(tg));
     o.scale.set(2.2, 0.16, 0.42); o.updateMatrix(); sleepers.setMatrixAt(i, o.matrix);
   }
   scene.add(sleepers);
   const strip = (off, w, h, y, color) => {
-    const S = 600, pos = [], idx = [];
+    const S = Math.ceil(len), pos = [], idx = [];
     for (let i = 0; i <= S; i++) {
-      const s = i / S * LEN, c = at(s, new THREE.Vector3()), sd = sideAt(s);
+      const s = i / S * len, c = posAt(e, s), sd = sideOf(e, s);
       for (const [dx, dy] of [[-w / 2, 0], [w / 2, 0], [w / 2, h], [-w / 2, h]]) { const q = c.clone().addScaledVector(sd, off + dx); q.y += y + dy; pos.push(q.x, q.y, q.z); }
       if (i < S) { const a = i * 4, b = a + 4; for (const [p0, p1] of [[3, 2], [2, 1], [0, 3]]) idx.push(a + p0, b + p0, a + p1, a + p1, b + p0, b + p1); }
     }
     const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
     const m = new THREE.Mesh(geo, M(color)); m.castShadow = true; m.receiveShadow = true; scene.add(m);
   };
-  strip(0, 3.2, 0.1, 0, '#d8cbb0');
+  strip(0, 3.2, bed, 0, '#d8cbb0');
   for (const off of [-0.62, 0.62]) strip(off, 0.18, 0.2, 0.2, '#8a96a8');
+}
+layTrack(0, LEN, 0.1);
+for (const f of FORKS) layTrack(f.id, f.len, 0.085);   // a hair lower, so the beds don't flicker where they overlap
+// a signpost before each switch: its big arrow shows which way the train will go
+function arrowTex() {
+  return canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#ffffff'; g.beginPath(); g.arc(w / 2, h / 2, 120, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#ffd84a'; g.beginPath(); g.arc(w / 2, h / 2, 108, 0, Math.PI * 2); g.fill();
+    g.fillStyle = '#23324a'; g.beginPath(); g.moveTo(200, 128); g.lineTo(128, 60); g.lineTo(128, 100); g.lineTo(56, 100); g.lineTo(56, 156); g.lineTo(128, 156); g.lineTo(128, 196); g.closePath(); g.fill();
+  });
+}
+for (const f of FORKS) {
+  const g = new THREE.Group(), s = f.a - 7, p = at(s, new THREE.Vector3()), sd = sideAt(s), tg = tangentAt(s, new THREE.Vector3());
+  g.position.copy(p).addScaledVector(sd, -3.4 * f.side); g.position.y = 0;
+  g.lookAt(g.position.clone().sub(tg));   // facing the train coming along
+  scene.add(g);
+  rod(g, '#ffffff', 0, 1.7, 0, 0.14, 3.4);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.2), new THREE.MeshStandardMaterial({ map: arrowTex(), transparent: true, side: THREE.DoubleSide }));
+  board.position.set(0, 3.9, 0.05); g.add(board);
+  f.sign = board;
+}
+function showForkSigns() { for (const f of FORKS) f.sign.rotation.z = (f.set ? f.side : -f.side) > 0 ? 0 : Math.PI; }   // the arrow is drawn pointing right
+// the mountain line's tunnel: a grassy arch over the track, dark inside, with stone mouths
+{
+  const f = FORKS[1], s1 = f.len * 0.36, s2 = f.len * 0.56;
+  const tube = (R, color, side) => {
+    const N = Math.ceil(s2 - s1), A = 14, pos = [], idx = [];
+    for (let i = 0; i <= N; i++) {
+      const s = s1 + (s2 - s1) * i / N, c = posAt(f.id, s), sd = sideOf(f.id, s);
+      for (let j = 0; j <= A; j++) { const a = j / A * Math.PI, q = c.clone().addScaledVector(sd, Math.cos(a) * R); q.y += Math.sin(a) * R * 1.05; pos.push(q.x, q.y, q.z); }
+      if (i < N) for (let j = 0; j < A; j++) { const a = i * (A + 1) + j, b = a + A + 1; idx.push(a, b, a + 1, a + 1, b, b + 1); }
+    }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); geo.setIndex(idx); geo.computeVertexNormals();
+    const m = new THREE.Mesh(geo, new THREE.MeshStandardMaterial({ color, side, roughness: 0.9 })); m.castShadow = side !== THREE.BackSide; scene.add(m);
+  };
+  tube(4.2, '#5cc04a', THREE.DoubleSide); tube(3.9, '#3a3346', THREE.DoubleSide);
+  for (const s of [s1, s2]) {
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(4.05, 0.45, 8, 20, Math.PI), M('#b8b0a0'));
+    ring.position.copy(posAt(f.id, s)); ring.lookAt(ring.position.clone().add(tanAt(f.id, s))); ring.scale.y = 1.05; ring.castShadow = true; scene.add(ring);
+  }
+  // little trees on top
+  for (const k of [0.25, 0.5, 0.75]) { const c = posAt(f.id, s1 + (s2 - s1) * k); const t = new THREE.Group(); t.position.set(c.x, c.y + 3.9, c.z); scene.add(t); rod(t, '#a8703a', 0, 0.8, 0, 0.25, 1.6); ball(t, ['#3cc456', '#ffb23a', '#7ad84a'][k * 4 - 1 | 0], 0, 2.2, 0, 1.3); }
+  f.tunnel = [s1, s2];
 }
 
 // ---------- The toy town ----------
@@ -367,7 +442,9 @@ const sideAt = (s, out = new THREE.Vector3()) => out.crossVectors(tangentAt(s, n
   // bridge posts under the raised part of the track
   for (let s = 0; s < LEN; s += 6) { const p = at(s, new THREE.Vector3()); if (p.y > 1) for (const side of [-1.9, 1.9]) { const q = p.clone().addScaledVector(sideAt(s), side); rod(scene, '#ff6a52', q.x, q.y / 2, q.z, 0.25, q.y); } }
   // lollipop trees, flowers and hills, kept clear of the track
-  const nearTrack = (x, z, d) => { for (let i = 0; i < 80; i++) { const p = at(i / 80 * LEN, new THREE.Vector3()); if (Math.hypot(p.x - x, p.z - z) < d) return true; } return false; };
+  const trackPts = [...Array(120)].map((_, i) => at(i / 120 * LEN, new THREE.Vector3()));
+  for (const f of FORKS) for (let i = 0; i <= 40; i++) trackPts.push(posAt(f.id, i / 40 * f.len));
+  const nearTrack = (x, z, d) => trackPts.some(p => Math.hypot(p.x - x, p.z - z) < d);
   const treeCols = ['#3cc456', '#2fae4a', '#7ad84a', '#ffb23a'];
   let n = 0;
   for (let i = 0; i < 260 && n < 70; i++) {
@@ -386,6 +463,14 @@ const sideAt = (s, out = new THREE.Vector3()) => out.crossVectors(tangentAt(s, n
     ball(scene, ['#ff5a8a', '#ffd84a', '#ffffff', '#b07aff'][i % 4], x, 0.65, z, 0.22);
   }
   for (const [x, z, r] of [[-150, -60, 50], [160, 20, 60], [40, 210, 70], [-160, 160, 60], [120, -110, 50]]) { const hl = ball(scene, '#6ac85a', x, 0, z, r, r * 0.45, r); hl.castShadow = false; }
+  // a red barn and some sheep along the farm road
+  const barn = (x, z, rot) => {
+    const h = new THREE.Group(); h.position.set(x, 0, z); h.rotation.y = rot; scene.add(h);
+    block(h, '#d8402e', 0, 2, 0, 6, 4, 5); block(h, '#ffffff', 3.01, 1.4, 0, 0.05, 2.8, 2.4);
+    const r = mesh(new THREE.CylinderGeometry(3.2, 3.2, 6.2, 3), '#7a3a2a', 0, 4.6, 0, h); r.rotation.z = Math.PI / 2; r.scale.set(1, 1, 0.8);
+    for (let i = 0; i < 5; i++) { const sh = new THREE.Group(); sh.position.set(-6 - i * 3, 0, 4 + (i % 2) * 4); sh.rotation.y = i; h.add(sh);
+      ball(sh, '#ffffff', 0, 0.8, 0, 0.8, 0.6, 0.6); ball(sh, '#3a3346', 0.8, 0.95, 0, 0.32); for (const [a, b] of [[0.4, 0.3], [0.4, -0.3], [-0.4, 0.3], [-0.4, -0.3]]) rod(sh, '#3a3346', a, 0.25, b, 0.08, 0.5); }
+  };
   // little houses
   const house = (x, z, rot, wall, roof) => {
     const h = new THREE.Group(); h.position.set(x, 0, z); h.rotation.y = rot; scene.add(h);
@@ -394,7 +479,7 @@ const sideAt = (s, out = new THREE.Vector3()) => out.crossVectors(tangentAt(s, n
     block(h, '#7a4a2a', 2.01, 0.9, 0, 0.05, 1.8, 0.9);
     for (const s of [-1, 1]) block(h, '#bfe8ff', 2.01, 2.2, s * 1.1, 0.05, 0.7, 0.7);
   };
-  house(-30, 40, 0.3, '#ffd84a', '#e8453a'); house(-42, 58, -0.4, '#9fe0ff', '#5a7aff'); house(60, 40, 2.6, '#ffb8d0', '#a05aff'); house(26, 60, 1.2, '#ffffff', '#3cc456');
+  house(-30, 40, 0.3, '#ffd84a', '#e8453a'); barn(84, 60, 2.2); house(-42, 58, -0.4, '#9fe0ff', '#5a7aff'); house(60, 40, 2.6, '#ffb8d0', '#a05aff'); house(26, 60, 1.2, '#ffffff', '#3cc456');
   // a windmill on the hill
   const wm = new THREE.Group(); wm.position.set(-40, 0, 130); scene.add(wm);
   rod(wm, '#f2e8d0', 0, 4, 0, 1.4, 8); const cap = mesh(CONE, '#e8453a', 0, 9, 0, wm); cap.scale.set(1.8, 2, 1.8);
@@ -411,8 +496,8 @@ const sideAt = (s, out = new THREE.Vector3()) => out.crossVectors(tangentAt(s, n
 }
 
 // ---------- Stations ----------
-// Six stops round the loop, plus the Animal Park where full trains drop their passengers.
-const STOP_AT = [0.07, 0.17, 0.56, 0.66, 0.76, 0.86].map(f => f * LEN);
+// Seven stops (five on the loop, one on each branch), plus the Animal Park where full trains drop their passengers.
+const STOP_AT = [[0, 0.07], [0, 0.15], [1, 0.5], [0, 0.56], [0, 0.76], [2, 0.8], [0, 0.9]].map(([e, f]) => ({ e, s: f * (e ? FORKS[e - 1].len : LEN) }));
 const PARK_AT = 0.965 * LEN;
 function letterTex(L, color) {
   return canvasTex(256, 256, (g, w, h) => {
@@ -421,11 +506,12 @@ function letterTex(L, color) {
     g.fillStyle = '#ffffff'; g.font = 'bold 190px Fredoka, Arial Rounded MT Bold, Arial, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText(L, w / 2, h / 2 + 12);
   });
 }
-const stations = STOP_AT.map((s, i) => {
-  const g = new THREE.Group(), p = at(s, new THREE.Vector3()), sd = sideAt(s), tg = tangentAt(s, new THREE.Vector3());
+const stations = STOP_AT.map(({ e, s }, i) => {
+  const g = new THREE.Group(), p = posAt(e, s), sd = sideOf(e, s), tg = tanAt(e, s); tg.y = 0;
   g.position.copy(p).addScaledVector(sd, 3.6);
   g.lookAt(g.position.clone().add(tg));
   scene.add(g);
+  if (p.y > 0.05) block(g, '#d8c8a8', 0, -p.y / 2, 0, 2.9, p.y, 6.9);   // on a slope: a footing down to the grass
   // the platform, a little roof on posts, and a big letter block
   block(g, '#f2e0c0', 0, 0.35, 0, 3, 0.7, 7);
   block(g, '#ffffff', 0, 0.72, 0, 3.05, 0.06, 7.05);
@@ -433,7 +519,7 @@ const stations = STOP_AT.map((s, i) => {
   const roof = block(g, colorOf(i * 3), 0.6, 3.6, 0, 2.6, 0.25, 6.6); roof.rotation.z = -0.15;
   const sign = new THREE.Mesh(new THREE.BoxGeometry(1.8, 1.8, 1.8), M('#ffffff'));
   sign.position.set(1, 5.1, 0); sign.castShadow = true; g.add(sign);
-  return { s, g, sign, animal: null, letter: null };
+  return { e, s, p, g, sign, animal: null, letter: null };
 });
 function setStation(st, idx) {
   if (st.animal) { st.g.remove(st.animal); st.animal = null; }
@@ -460,11 +546,11 @@ const park = (() => {
   // a platform by the track for unloading
   const plat = new THREE.Group(); plat.position.copy(p).addScaledVector(sd, 3.6); plat.lookAt(plat.position.clone().add(tg)); scene.add(plat);
   block(plat, '#f2e0c0', 0, 0.35, 0, 3, 0.7, 7); block(plat, '#3cc456', 0, 0.72, 0, 3.05, 0.06, 7.05);
-  return { g, s, animals: [] };
+  return { g, e: 0, s, p, animals: [] };
 })();
 
 // ---------- The train ----------
-const train = { s: 2, v: 0, running: false, wagons: [], seats: [] };
+const train = { e: 0, s: 2, v: 0, running: false, wagons: [], seats: [], cars: [], log: [] };
 const engine = new THREE.Group();
 {
   const e = engine;
@@ -484,7 +570,7 @@ const engine = new THREE.Group();
   ball(drv, '#23324a', 0.52, 0.36, 0, 0.06);
   block(drv, '#e8453a', 0, 0.85, 0, 0.7, 0.18, 0.7); block(drv, '#e8453a', 0.35, 0.78, 0, 0.35, 0.06, 0.6);   // engineer's cap
   e.userData.wheels = [];
-  for (const z of [-1.6, 0, 1.6]) for (const s of [-1, 1]) { const w = rod(e, '#23324a', s * 0.98, 0.55, z, 0.55, 0.22, 0, Math.PI / 2); rod(w, '#ffd84a', 0, 0.55, 0, 0.35, 0.1); e.userData.wheels.push(w); }
+  for (const z of [-1.6, 0, 1.6]) for (const s of [-1, 1]) { const w = rod(e, '#23324a', s * 0.98, 0.55, z, 0.55, 0.22, 0, Math.PI / 2); rod(w, '#ffd84a', 0, -0.55 * s, 0, 0.35, 0.1); block(w, '#ffd84a', 0, -0.56 * s, 0, 1.75, 0.14, 0.3); e.userData.wheels.push(w); }
   scene.add(e);
 }
 const WAGON_COLORS = ['#ffd84a', '#ff9d1c', '#a05aff', '#1fb0c8'];
@@ -494,24 +580,102 @@ for (let i = 0; i < 4; i++) {
   block(w, WAGON_COLORS[i], 0, 1.05, 0, 2, 0.6, 3.6);
   for (const s of [-1, 1]) { block(w, WAGON_COLORS[i], s * 0.95, 1.55, 0, 0.12, 0.5, 3.6); block(w, WAGON_COLORS[i], 0, 1.55, s * 1.75, 2, 0.5, 0.12); }
   w.userData.wheels = [];
-  for (const z of [-1.1, 1.1]) for (const s of [-1, 1]) { const wh = rod(w, '#23324a', s * 0.98, 0.5, z, 0.48, 0.2, 0, Math.PI / 2); w.userData.wheels.push(wh); }
-  scene.add(w); train.wagons.push(w); train.seats.push(null);
+  for (const z of [-1.1, 1.1]) for (const s of [-1, 1]) { const wh = rod(w, '#23324a', s * 0.98, 0.5, z, 0.48, 0.2, 0, Math.PI / 2); block(wh, '#c8d0dc', 0, -0.56 * s, 0, 1.6, 0.14, 0.3); w.userData.wheels.push(wh); }
+  scene.add(w); train.wagons.push(w); train.seats.push(null); train.cars.push({ e: 0, s: 0, k: 0 });
 }
 const GAP = [5.6, 4.6];   // engine to first wagon, wagon to wagon (along the track)
-function placeTrain() {
-  const place = (obj, s) => {
-    const p = at(s, new THREE.Vector3()), t = tangentAt(s, new THREE.Vector3());
-    obj.position.copy(p).add(new THREE.Vector3(0, 0.15, 0));
-    obj.lookAt(obj.position.clone().add(t));
-  };
-  place(engine, train.s);
-  train.wagons.forEach((w, i) => place(w, train.s - GAP[0] - i * GAP[1]));
+// Moving along the track. The engine takes each switch the way it points and writes it in train.log;
+// the wagons read the log as they reach the same switch, so they always follow the engine.
+function advance(c, ds, eng) {
+  if (ds <= 0) return;
+  if (c.e === 0) {
+    for (const f of FORKS) {
+      const d = wrap(f.a - c.s);
+      if (d >= ds) continue;
+      let branch;
+      if (eng) { branch = f.set; train.log.push({ f: f.id, branch }); }
+      else { const en = train.log[c.k]; branch = !!(en && en.f === f.id && en.branch); if (en && en.f === f.id) c.k++; }
+      if (branch) { c.e = f.id; c.s = 0; advance(c, ds - d, eng); return; }
+    }
+    c.s = wrap(c.s + ds);
+  } else {
+    const f = FORKS[c.e - 1];
+    c.s += ds;
+    if (c.s >= f.len) { const over = c.s - f.len; c.e = 0; c.s = f.b; advance(c, over, eng); }
+  }
 }
+function moveTrain(ds) {
+  advance(train, ds, true);
+  for (const c of train.cars) advance(c, ds, false);
+  const k = Math.min(...train.cars.map(c => c.k));
+  if (k > 0) { train.log.splice(0, k); for (const c of train.cars) c.k -= k; }
+}
+// put the train down with the engine at (e, s) and the wagons behind it
+function setTrain(e, s) {
+  train.e = e; train.s = s; train.log = e ? [{ f: e, branch: true }] : [];
+  let d = GAP[0];
+  for (const c of train.cars) {
+    if (e && s - d >= 0) { c.e = e; c.s = s - d; c.k = 1; }
+    else { c.e = 0; c.s = wrap(e ? FORKS[e - 1].a + (s - d) : s - d); c.k = 0; }
+    d += GAP[1];
+  }
+}
+// how far ahead a place is, going the way the switches point now (Infinity if this way never gets there)
+function distAhead(t, from = train) {
+  let e = from.e, s = from.s, acc = 0;
+  for (let n = 0; n < 6; n++) {
+    if (e === 0) {
+      let best = null, bd = Infinity;
+      for (const f of FORKS) if (f.set) { const d = wrap(f.a - s); if (d < bd) { bd = d; best = f; } }
+      if (t.e === 0) { const d = wrap(t.s - s); if (d <= bd) return acc + d; }
+      if (!best) return Infinity;
+      acc += bd; e = best.id; s = 0;
+    } else {
+      const f = FORKS[e - 1];
+      if (t.e === e && t.s >= s - 1e-6) return acc + t.s - s;
+      acc += f.len - s; e = 0; s = f.b;
+    }
+  }
+  return Infinity;
+}
+function placeTrain() {
+  const place = (obj, e, s) => {
+    obj.position.copy(posAt(e, s)).add(new THREE.Vector3(0, 0.15, 0));
+    obj.lookAt(obj.position.clone().add(tanAt(e, s)));
+  };
+  place(engine, train.e, train.s);
+  train.wagons.forEach((w, i) => place(w, train.cars[i].e, train.cars[i].s));
+}
+setTrain(0, 2);
 
 // ---------- Sound ----------
 const beep = RB.beep;
+// A real train horn is five big reeds sounding one chord at once (D#, F#, G#, B, D#). Each note is a buzzy
+// sawtooth, softened like air through a bell, scooping up into tune and wavering a little as it blows.
+function horn(delay, dur) {
+  const ac = RB.audio();
+  if (!ac || RB.muted) return;
+  const t = ac.currentTime + delay, end = t + dur;
+  const out = ac.createGain();
+  out.gain.setValueAtTime(0.0001, t); out.gain.exponentialRampToValueAtTime(0.13, t + 0.08);
+  out.gain.setValueAtTime(0.13, end - 0.15); out.gain.exponentialRampToValueAtTime(0.0001, end);
+  const tone = ac.createBiquadFilter(); tone.type = 'lowpass'; tone.Q.value = 1.2;
+  tone.frequency.setValueAtTime(700, t); tone.frequency.exponentialRampToValueAtTime(2400, t + 0.12); tone.frequency.setValueAtTime(2400, end - 0.15); tone.frequency.exponentialRampToValueAtTime(800, end);
+  const body = ac.createBiquadFilter(); body.type = 'peaking'; body.frequency.value = 650; body.gain.value = 6; body.Q.value = 1;
+  tone.connect(body).connect(out).connect(ac.destination);
+  const wob = ac.createOscillator(), wobAmt = ac.createGain(); wob.frequency.value = 5.2; wobAmt.gain.value = 0.004; wob.connect(wobAmt);
+  for (const [f, detune] of [[311, -6], [370, 4], [415, -3], [494, 5], [622, -4]]) {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = 'sawtooth'; o.detune.value = detune;
+    o.frequency.setValueAtTime(f * 0.93, t); o.frequency.exponentialRampToValueAtTime(f, t + 0.1);
+    const w = ac.createGain(); w.gain.value = f; wobAmt.connect(w).connect(o.frequency);   // the waver, in proportion to each note
+    g.gain.value = 0.2; o.connect(g).connect(tone);
+    o.start(t); o.stop(end + 0.05);
+  }
+  wob.start(t); wob.stop(end + 0.05);
+}
 const sfx = {
-  toot: () => { beep(392, 392, 0.35, 'square', 0.07); beep(494, 494, 0.35, 'square', 0.05); beep(392, 392, 0.5, 'square', 0.07, 0.42); beep(494, 494, 0.5, 'square', 0.05, 0.42); },
+  toot: () => { horn(0, 0.7); horn(0.85, 1.1); RB.pad && RB.pad.rumble && RB.pad.rumble(250, 0.3); },
   ding: () => [784, 988, 1175, 1568].forEach((f, i) => beep(f, f, 0.18, 'sine', 0.09, i * 0.09)),
   hop: () => beep(300, 900, 0.22, 'sine', 0.08),
   oops: () => beep(400, 300, 0.3, 'triangle', 0.08),
@@ -533,7 +697,7 @@ const say = (text, opts) => { if (!RB.muted) RB.speak(text, opts); };
 // ---------- The game ----------
 const save = (() => { try { return JSON.parse(RB.store.get('abc_train') || 'null') || {}; } catch (e) { return {}; } })();
 const persist = () => RB.store.set('abc_train', JSON.stringify(save));
-let state = 'title', mode = 'abc', next = 0, target = null, hold = 0, idleT = 0, lastChuff = 0, camMode = 0, clock = 0, autoStop = null;
+let state = 'title', mode = 'abc', next = 0, target = null, hold = 0, idleT = 0, lastChuff = 0, camMode = 0, clock = 0, glide = null;   // glide: the station a Find-the-letter stop is rolling up to
 let jobs = [];   // little animations: animals hopping on and off
 const $ = id => document.getElementById(id);
 const abcEl = $('abc');
@@ -554,6 +718,7 @@ function showCard(idx) {
 }
 function ask(html) { $('ask').innerHTML = html; $('ask').classList.toggle('hidden', !html); }
 const SEAT_Y = 1.4;   // how high the animals sit in the wagons (so little eyes can see them)
+const CHEERS = ['Great job!', 'Yay!', 'Welcome aboard!', 'Hop in!', 'Woo hoo!', 'You found it!'];
 const seatsFree = () => train.seats.filter(x => x === null).length;
 
 function start(m) {
@@ -561,34 +726,87 @@ function start(m) {
   mode = m; state = 'play';
   $('title').classList.add('hidden');
   for (const id of ['abc', 'go', 'toot', 'cam']) $(id).classList.remove('hidden');
-  train.s = PARK_AT + 1; train.v = 0; train.running = false;
+  setTrain(0, PARK_AT + 1); train.v = 0; train.running = false; glide = null; ocam.reset();
   for (let i = 0; i < train.seats.length; i++) if (train.seats[i]) { train.wagons[i].remove(train.seats[i]); train.seats[i] = null; }
   next = mode === 'abc' ? Math.min(save.next || 0, 25) : 0;
   setupStations();
   drawAbc(); updateGo();
-  if (mode === 'abc') say(next ? `Welcome back! Let's find the letter ${ANIMALS[next].L}. Press GO!` : 'All aboard! Let\'s find the letter A. Press the green GO button!');
-  else say(`Can you find the letter ${ANIMALS[target].L}? Stop the train at the ${ANIMALS[target].L}!`);
+  if (mode === 'abc') say(next ? `Hooray, you're back! Let's find the letter ${ANIMALS[next].L}. Press the big green button!` : 'Hi there! All aboard the A B C train! Let\'s find the letter A. Press the big green button to go!');
+  else say(`Choo choo! Can you find the letter ${ANIMALS[target].L}? Press stop when you see it!`);
 }
 // which animals wait at which stations
 function setupStations() {
   stations.forEach(st => setStation(st, null));
   if (mode === 'abc') {
-    if (seatsFree() === 0) { autoStop = PARK_AT; ask('🏞️ Take the animals to the <b>Animal Park</b>!'); return; }
-    // the next letter waits at the next station ahead of the train
-    const st = stationAhead(train.s + 8);
-    setStation(st, next); autoStop = st.s;
+    if (seatsFree() === 0) { ask('🏞️ Take the animals to the <b>Animal Park</b>!'); return; }
+    // the next letter waits at the next station ahead, whichever way the switches go
+    for (const st of stationsAhead(8)) setStation(st, next);
     ask(`Find the letter <b style="color:${colorOf(next)}">${ANIMALS[next].L}</b>`);
   } else {
     // find the letter: every station has a letter; one of them is the one to find
     const pool = ANIMALS.map((_, i) => i).sort(() => Math.random() - 0.5).slice(0, stations.length);
     target = pool[Math.floor(Math.random() * pool.length)];
     stations.forEach((st, i) => setStation(st, pool[i]));
-    autoStop = null;
+    glide = null;
     ask(`Stop at the letter <b style="color:${colorOf(target)}">${ANIMALS[target].L}</b>`);
   }
   drawAbc();
 }
-function stationAhead(s) { let best = null, bd = Infinity; for (const st of stations) { const d = wrap(st.s - s); if (d < bd) { bd = d; best = st; } } return best; }
+// the first station along every way the train could go (one or two stations, depending on the forks)
+function stationsAhead(minD) {
+  const was = FORKS.map(f => f.set), found = new Set();
+  for (let m = 0; m < 1 << FORKS.length; m++) {
+    FORKS.forEach((f, i) => { f.set = !!(m >> i & 1); });
+    let best = null, bd = Infinity;
+    for (const st of stations) { const d = distAhead(st); if (d >= minD && d < bd) { bd = d; best = st; } }
+    if (best) found.add(best);
+  }
+  FORKS.forEach((f, i) => { f.set = was[i]; });
+  return [...found];
+}
+// where the train is stopping for: the next letter (or the park when the wagons are full) in A to Z,
+// or the station a Find-the-letter stop is gliding up to
+function goal() {
+  if (state !== 'play') return null;
+  if (mode === 'find') return glide;
+  if (seatsFree() === 0) return park;
+  let best = null, bd = Infinity;
+  for (const st of stations) if (st.letter === next && st.animal) { const d = distAhead(st); if (d < bd) { bd = d; best = st; } }
+  return best;
+}
+// ---------- Forks: which way? ----------
+const forkL = $('forkL'), forkR = $('forkR');
+let forkTalk = 0;
+function forkAhead() {
+  if (state !== 'play' || train.e !== 0) return null;
+  return FORKS.find(f => wrap(f.a - train.s) < 55) || null;
+}
+// dir -1 = left, +1 = right
+function chooseWay(dir) {
+  const f = forkAhead();
+  if (!f) return;
+  RB.audio();
+  const branch = dir === f.side;
+  if (f.set !== branch) beep(500, 800, 0.08, 'sine', 0.07);
+  f.set = branch;
+  showForkSigns(); drawFork();
+  const [, name] = branch ? f.branch : f.main;
+  say(`To ${name}!`);
+}
+const ARROW = d => `<svg viewBox="0 0 40 30" width="52" height="38"${d < 0 ? ' style="transform:scaleX(-1)"' : ''}><path d="M4 11h18V3l15 12-15 12v-8H4z" fill="#23324a" stroke="#23324a" stroke-width="3" stroke-linejoin="round"/></svg>`;
+function drawFork() {
+  const f = forkAhead();
+  forkL.classList.toggle('hidden', !f); forkR.classList.toggle('hidden', !f);
+  if (!f) return;
+  const way = side => side === f.side ? f.branch : f.main, chosen = f.set ? f.side : -f.side;
+  forkL.innerHTML = ARROW(-1) + `<small>${way(-1)[0]}</small>`; forkR.innerHTML = ARROW(1) + `<small>${way(1)[0]}</small>`;
+  forkL.classList.toggle('on', chosen < 0); forkR.classList.toggle('on', chosen > 0);
+  const near = wrap(f.a - train.s) < 55;
+  forkL.classList.toggle('ask', near && !f.asked); forkR.classList.toggle('ask', near && !f.asked);
+}
+forkL.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); FORKS.forEach(f => { f.asked = true; }); chooseWay(-1); });
+forkR.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); FORKS.forEach(f => { f.asked = true; }); chooseWay(1); });
+showForkSigns();
 function updateGo() {
   const go = $('go');
   go.textContent = train.running ? 'STOP' : 'GO';
@@ -598,13 +816,14 @@ function updateGo() {
 function toggleGo() {
   if (state !== 'play' || hold > 0) return;
   RB.audio();
-  if (train.running && mode === 'find' && autoStop === null) {
+  if (train.running && mode === 'find' && !glide) {
     // stopping near a station (little hands are never exact): glide right up to it
-    const st = stations.find(x => { const d = wrap(x.s - train.s); return d < 16 || d > LEN - 2; });
-    if (st) { autoStop = st.s; sfx.brake(); return; }
+    const st = stations.find(x => distAhead(x) < 16);
+    if (st) { glide = st; sfx.brake(); return; }
   }
   train.running = !train.running;
-  if (train.running) { sfx.toot(); idleT = 0; } else { sfx.brake(); if (mode === 'find') autoStop = null; }
+  glide = null;
+  if (train.running) { sfx.toot(); idleT = 0; } else sfx.brake();
   updateGo();
 }
 function toot() {
@@ -623,7 +842,7 @@ function arrive(st) {
       save.found = [...new Set([...(save.found || []), idx])]; persist();
     } else {
       sfx.oops(); showCard(idx);
-      say(`That's ${a.L}. ${a.L} is for ${a.say || a.name}! Let's find ${ANIMALS[target].L}.`);
+      say(`Ooh, that's ${a.L}! ${a.L} is for ${a.say || a.name}. Now let's look for ${ANIMALS[target].L}!`);
       jobs.push({ t: 0, d: 0.6, obj: st.animal, kind: 'jump', y0: 0.75 });
     }
   }
@@ -632,8 +851,9 @@ function boardAnimal(st, idx) {
   const a = ANIMALS[idx];
   hold = 3.4; train.running = false; updateGo();
   showCard(idx); sfx.ding();
-  say(`${a.L}! ${a.L} is for ${a.say || a.name}!`);
+  say(`${a.L}! ${a.L} is for ${a.say || a.name}! ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
   // hop from the platform into the first empty wagon
+  for (const o of stations) if (o !== st && o.letter === idx) setStation(o, null);   // the same letter waiting the other way goes home
   const seat = train.seats.indexOf(null), animal = st.animal;
   st.animal = null; st.sign.visible = false;
   const from = new THREE.Vector3(); animal.getWorldPosition(from);
@@ -648,12 +868,12 @@ function boardAnimal(st, idx) {
     save.next = next; persist();
     if (next >= 26) { setTimeout(finale, 2600); return; }
   }
-  setTimeout(() => { if (state === 'play') { setupStations(); if (mode === 'abc' && seatsFree() === 0) say('The train is full! Let\'s take the animals to the Animal Park!'); else if (mode === 'abc') say(`Now let's find ${ANIMALS[next].L}!`); else say(`Can you find the letter ${ANIMALS[target].L}?`); } }, 3600);
+  setTimeout(() => { if (state === 'play') { setupStations(); if (mode === 'abc' && seatsFree() === 0) say('Wow, the train is full! Let\'s take everybody to the Animal Park!'); else if (mode === 'abc') say(`Now let's find ${ANIMALS[next].L}!`); else say(`Can you find the letter ${ANIMALS[target].L}?`); } }, 3600);
   drawAbc();
 }
 function unloadAtPark() {
   hold = 3.6; train.running = false; updateGo();
-  sfx.cheer(); say('Hooray! Everybody hop off and play in the Animal Park!');
+  sfx.cheer(); say('Hooray! Hop off, everybody! Have fun in the Animal Park!');
   train.seats.forEach((animal, i) => {
     if (!animal) return;
     const from = new THREE.Vector3(); animal.getWorldPosition(from);
@@ -668,7 +888,7 @@ function unloadAtPark() {
 function finale() {
   state = 'party'; train.running = false; updateGo();
   ask('🎉 You did the whole alphabet! 🎉');
-  say('You did it! You found every letter from A to Z! Let\'s sing!');
+  say('You did it! You found every letter from A to Z! You\'re a super star! Let\'s sing!');
   setTimeout(() => {
     const len = playAbcSong();
     [...abcEl.children].forEach((el, i) => setTimeout(() => { el.classList.add('next'); setTimeout(() => el.classList.remove('next'), 400); }, i * len * 1000 / 30));
@@ -684,9 +904,10 @@ $('btnAbc').addEventListener('click', () => start('abc'));
 $('btnFind').addEventListener('click', () => start('find'));
 // tap an animal in the park (or at a station) and it jumps and says its name
 const ray = new THREE.Raycaster(), ptr = new THREE.Vector2();
-canvas.addEventListener('pointerdown', e => {
-  if (state === 'title') return;
-  RB.audio();
+let tapAt = null;
+canvas.addEventListener('pointerdown', e => { tapAt = { x: e.clientX, y: e.clientY, t: performance.now() }; RB.audio(); });
+canvas.addEventListener('pointerup', e => {
+  if (state === 'title' || !tapAt || Math.hypot(e.clientX - tapAt.x, e.clientY - tapAt.y) > 12 || performance.now() - tapAt.t > 600) return;
   ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
   const pool = [...park.animals, ...stations.map(s => s.animal).filter(Boolean), ...train.seats.filter(Boolean)];
@@ -704,15 +925,17 @@ addEventListener('keydown', e => {
   if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowUp') { e.preventDefault(); toggleGo(); }
   if (e.code === 'KeyH' || e.code === 'KeyX' || e.code === 'KeyT') toot();
   if (e.code === 'KeyC') camMode = (camMode + 1) % 3;
+  if (e.code === 'ArrowLeft') chooseWay(-1);
+  if (e.code === 'ArrowRight') chooseWay(1);
   if (e.code === 'KeyM') RB.toggleMute();
 });
-// 🎮 Ⓐ go / stop, Ⓧ / Ⓨ / Ⓑ toot the horn, LB / RB change the camera
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyH', 2: 'KeyH', 3: 'KeyH', 4: 'KeyC', 5: 'KeyC', 6: null, 7: 'Space' },
-  '<b>ABC Train:</b> Ⓐ go and stop · Ⓧ / Ⓨ / Ⓑ toot the horn · <b>LB</b> / <b>RB</b> change the camera');
+// 🎮 Ⓐ go / stop, Ⓧ / Ⓨ / Ⓑ toot the horn, ◀ ▶ pick the way at a fork, right stick swings the camera, LB snaps it back, RB changes it
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyH', 2: 'KeyH', 3: 'KeyH', 4: null, 5: 'KeyC', 6: null, 7: 'Space' },
+  '<b>ABC Train:</b> Ⓐ go and stop · Ⓧ / Ⓨ / Ⓑ toot the horn · ◀ ▶ choose the way at a fork · right stick: look around · <b>LB</b> camera back · <b>RB</b> change the camera');
 RB.topbar({ home: 'index.html', homeTitle: 'Back to Preschool', shareInfo: { title: 'ABC Train | RoboBandit', text: 'Drive the train, pick up the animals and learn the alphabet! 🚂🔤' } });
 
 // the ☰ menu (or switching apps) stops the train, so nothing is missed
-addEventListener('blur', () => { if (train.running) { train.running = false; if (mode === 'find') autoStop = null; updateGo(); } });
+addEventListener('blur', () => { if (train.running) { train.running = false; glide = null; updateGo(); } });
 
 // ---------- Update ----------
 const CRUISE = 9, ACC = 2.6, BRAKE = 6;
@@ -722,31 +945,35 @@ function update(dt) {
   if (hold <= 0 && $('go').classList.contains('stop') !== train.running) updateGo();
   // speed: gentle start, gentle stops; the train brakes by itself for the next animal
   let want = train.running ? CRUISE : 0;
-  if (autoStop !== null && train.running && state === 'play') {
-    const d = wrap(autoStop - train.s);
-    if (d < 40) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, d - 0.05)) + 0.3);
-    if (d < 0.35 || d > LEN - 2) {
-      train.running = false; train.v = 0; train.s = autoStop; updateGo();
-      if (autoStop === PARK_AT) unloadAtPark(); else arrive(stationAhead(train.s - 1));
-      if (mode === 'find') autoStop = null;
-    }
-  }
+  const g = train.running ? goal() : null, dG = g ? distAhead(g) : Infinity;
+  if (dG < 40) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, dG - 0.05)) + 0.3);
+  const wasMoving = train.v > 0.05;
   if (train.v < want) train.v = Math.min(want, train.v + ACC * dt);
   else train.v = Math.max(want, train.v - BRAKE * dt);
-  const wasMoving = train.v > 0.05;
-  train.s = wrap(train.s + train.v * dt);
-  // stopped by hand next to a station: in Find the letter, that's your answer
-  if (mode === 'find' && wasMoving && train.v <= 0.05 && !train.running && state === 'play') {
-    const st = stations.find(x => Math.abs(wrap(x.s - train.s + LEN / 2) - LEN / 2) < 6);
+  let step = train.v * dt;
+  const arrived = step >= dG - 0.01;
+  if (arrived) step = dG;
+  moveTrain(step);
+  if (arrived) {
+    train.running = false; train.v = 0; glide = null; updateGo();
+    if (g === park) unloadAtPark(); else arrive(g);
+  } else if (mode === 'find' && wasMoving && train.v <= 0.05 && !train.running && state === 'play') {
+    // stopped by hand next to a station: in Find the letter, that's your answer
+    const st = stations.find(x => x.p.distanceTo(engine.position) < 6);
     if (st) arrive(st);
   }
+  // a fork coming up: show the arrows (and ask, the first few times)
+  const fa = forkAhead();
+  if (fa && train.running && !fa.told && forkTalk < 3 && hold <= 0) { fa.told = true; forkTalk++; say('Which way should we go? Tap an arrow!'); }
+  for (const f of FORKS) if (f !== fa) f.told = false;
+  drawFork();
   // chuff-chuff, faster as the train speeds up
   if (train.v > 0.3 && clock - lastChuff > 2.2 / (train.v + 1.5)) { lastChuff = clock; sfx.chuff(train.v); puff(); }
   if (!train.running && train.v < 0.05 && state === 'play' && hold <= 0) { idleT += dt; if (idleT > 9) { idleT = 0; say('Press the green GO button!'); } } else idleT = 0;
   placeTrain();
   const spin = train.v * dt / 0.55;
-  for (const w of engine.userData.wheels) w.rotation.y += spin;
-  for (const wg of train.wagons) for (const w of wg.userData.wheels) w.rotation.y += spin;
+  for (const w of engine.userData.wheels) w.rotation.x += spin;
+  for (const wg of train.wagons) for (const w of wg.userData.wheels) w.rotation.x += spin * 0.55 / 0.48;
   // little animations
   for (const j of jobs) {
     if (j.delay > 0) { j.delay -= dt; continue; }
@@ -784,21 +1011,27 @@ function puff() {
 function updateSmoke(dt) {
   for (const s of smoke) { s.t += dt; s.m.position.y += dt * 1.6; s.m.scale.setScalar(0.4 + s.t * 0.9); s.m.material.opacity = Math.max(0, 0.8 - s.t * 0.5); }
 }
-// the camera: behind the train, from the side, or high above (🎥 switches)
-const camPos = new THREE.Vector3(0, 30, -30), camLook = new THREE.Vector3();
+// the camera: swing it all the way round the train (drag, right stick or Q / E, like Witch Way Out);
+// let go and it glides back behind. 🎥 picks close, far or high up.
+const ocam = createOrbitCam({ canvas, enabled: () => state === 'play', fingers: true, el0: 0.36, minEl: 0.06, maxEl: 1.3, idleBack: 2.5 });
+const CAM_VIEWS = [{ d: 15, el: 0 }, { d: 25, el: 0.12 }, { d: 42, el: 0.6 }];
+const camPos = new THREE.Vector3(0, 30, -30), camLook = new THREE.Vector3(), camRay = new THREE.Vector3();
 function updateCamera(dt) {
-  const p = engine.position, t = tangentAt(train.s, new THREE.Vector3()), sd = sideAt(train.s);
+  const p = engine.position;
   let want, look;
   if (state === 'title') { const a = clock * 0.08; want = new THREE.Vector3(Math.cos(a) * 120, 70, 40 + Math.sin(a) * 120); look = new THREE.Vector3(0, 0, 45); }
-  else if (camMode === 0) { want = p.clone().addScaledVector(t, -13).addScaledVector(sd, 5).add(new THREE.Vector3(0, 8, 0)); look = p.clone().addScaledVector(t, 6).add(new THREE.Vector3(0, 1.5, 0)); }
-  else if (camMode === 1) { want = p.clone().addScaledVector(sd, 16).addScaledVector(t, -3).add(new THREE.Vector3(0, 5, 0)); look = p.clone().addScaledVector(t, -4).add(new THREE.Vector3(0, 1.5, 0)); }
-  else { want = p.clone().addScaledVector(t, -14).add(new THREE.Vector3(0, 40, 0)); look = p.clone().addScaledVector(t, 10); }
-  const k = Math.min(1, dt * (state === 'title' ? 1 : 2.5));
+  else {
+    ocam.input(dt, 0);
+    const t = tanAt(train.e, train.s), v = CAM_VIEWS[camMode];
+    ocam.ray(Math.atan2(-t.x, -t.z), -v.el * 4, camRay);
+    want = p.clone().addScaledVector(camRay, v.d).add(new THREE.Vector3(0, 1.5, 0));
+    look = p.clone().addScaledVector(t, 6 * ocam.ahead()).add(new THREE.Vector3(0, 1.5, 0));
+  }
+  const k = Math.min(1, dt * (state === 'title' ? 1 : 5));
   camPos.lerp(want, k); camLook.lerp(look, k);
   camera.position.copy(camPos); camera.lookAt(camLook);
   sun.position.copy(p).add(new THREE.Vector3(30, 60, 20)); sun.target.position.copy(p);
 }
-
 
 // ---------- Title and loop ----------
 function titleStats() {

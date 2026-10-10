@@ -116,14 +116,16 @@ const RB = (() => {
 
   // ---------- 🗣️ Read aloud ----------
   // Browsers come with several voices and the default is often the most robotic one. This picks the
-  // nicest-sounding English voice on the device (the "natural", "neural", "enhanced" and "premium" ones,
-  // Siri's, Google's), speaks a little slower and warmer for kids, reads long text a sentence at a time
-  // (some browsers cut off long speech), and remembers a voice chosen in the ☰ menu (rb_voice).
+  // nicest-sounding English voice on the device (a child's voice where there is one, then the "natural",
+  // "neural", "enhanced" and "premium" ones, Siri's, Google's), speaks a little slower and brighter for kids,
+  // reads long text a sentence at a time (some browsers cut off long speech) with a lift on excited and
+  // questioning sentences, and remembers a voice chosen in the ☰ menu (rb_voice).
   const voice = (() => {
     const ok = 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
     let list = [], queue = [], current = null;
-    const GOOD = [/natural/i, /neural/i, /premium/i, /enhanced/i, /siri/i, /^samantha/i, /google us english/i, /^ava\b/i, /^allison/i, /^karen/i,
-      /^moira/i, /^tessa/i, /^serena/i, /google uk english female/i, /aria/i, /jenny/i, /\bana\b/i, /libby/i, /sonia/i, /^daniel/i, /zira/i];
+    const GOOD = [/\bana\b.*(natural|neural)/i, /(jenny|aria|ava|emma|michelle|libby|sonia|natasha|clara).*(natural|neural)/i, /natural/i, /neural/i,
+      /(zoe|ava|samantha|allison|susan|nicky|joelle|serena|karen|moira|tessa|kate|fiona).*(premium|enhanced)/i, /premium/i, /enhanced/i, /siri/i,
+      /^samantha/i, /google us english/i, /^ava\b/i, /^allison/i, /^karen/i, /^moira/i, /^tessa/i, /^serena/i, /google uk english female/i, /^daniel/i, /zira/i];
     const BAD = /compact|espeak|novelty|albert|bad news|bahh|bells|boing|bubbles|cellos|good news|jester|organ|superstar|trinoids|whisper|wobble|zarvox|junior|ralph|fred|kathy|grandma|grandpa|rocko|shelley|eddy|flo|reed|sandy/i;
     const score = v => {
       if (!/^en/i.test(v.lang)) return -1000;
@@ -131,7 +133,7 @@ const RB = (() => {
       const i = GOOD.findIndex(r => r.test(v.name));
       if (i >= 0) s += 60 - i * 2;
       if (BAD.test(v.name)) s -= 80;
-      if (/female|woman|girl/i.test(v.name)) s += 3;
+      if (/female|woman|girl|child|kid/i.test(v.name)) s += 3;
       return s;
     };
     const load = () => { if (ok) list = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)).sort((a, b) => score(b) - score(a)); };
@@ -157,13 +159,15 @@ const RB = (() => {
       current = u;
       speechSynthesis.speak(u);
     }
-    function speak(text, { rate = 0.92, pitch = 1.08, onend } = {}) {
+    function speak(text, { rate = 0.95, pitch = 1.14, onend } = {}) {
       if (!ok) return false;
       stop();
       if (!list.length) load();
       const parts = sentences(text);
       if (!parts.length) return false;
-      queue = parts.map((t2, i) => ({ text: t2, rate, pitch, done: i === parts.length - 1 ? onend : null }));
+      // a little more sparkle on "Yay!" sentences and a lift on questions, like a person reading to a child
+      const lift = t2 => /!["”’)]*$/.test(t2) ? [0.03, 0.08] : /\?["”’)]*$/.test(t2) ? [0, 0.12] : [0, 0];
+      queue = parts.map((t2, i) => { const [dr, dp] = lift(t2); return { text: t2, rate: rate + dr, pitch: Math.min(2, pitch + dp), done: i === parts.length - 1 ? onend : null }; });
       next();
       return true;
     }
@@ -186,7 +190,7 @@ const RB = (() => {
       <p class="rb-voice-tip">Tip: the nicest voices are often called “Natural”, “Enhanced” or “Premium”. On an iPad or Mac you can download more in Settings → Accessibility → Spoken Content → Voices.</p>`;
     panel.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => {
       const v = vs[+b.dataset.v]; voice.choose(v); voiceMenu(panel);
-      voice.speak('Hi! I will read to you in this voice. Let\'s go!');
+      voice.speak('Hi there! I\'m so happy to read with you. Are you ready? Let\'s go!');
     }));
   }
 

@@ -8,13 +8,13 @@
 // - left and right steering follow the screen wherever the camera is (see steer())
 // - invert up/down / left-right and camera speed come from the shared 🎮 controller settings
 //
-//   const cam = createOrbitCam({ canvas, enabled: () => playing, stick });
+//   const cam = createOrbitCam({ canvas, enabled: () => playing, stick });   (fingers: true lets one finger drag it, for games with no touch stick)
 //   each frame:  cam.input(dt, steerX);  then place the camera along cam.ray(heading, pitch, v) from the player
 //   steering:    heading += steerX * rate * dt * cam.steer(steerX)
 //
 // cam.yaw / cam.el are where you've pointed it (0 = straight behind), cam.yawS / cam.elS the smoothed angles.
 function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33, minEl = -0.17, maxEl = 1.05,
-  turn = 2.8, tilt = 1.3, idleBack = 1.5, lead = 0.22, recenter = [4, 10, 11], mouseButtons = [0] } = {}) {
+  turn = 2.8, tilt = 1.3, idleBack = 1.5, lead = 0.22, recenter = [4, 10, 11], mouseButtons = [0], fingers = false } = {}) {
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
   const pad = () => (typeof RB !== 'undefined' && RB.pad) || {};   // (an old cached common.js has no right stick)
@@ -71,12 +71,12 @@ function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33
   });
   addEventListener('keyup', e => { if (e.code === 'KeyQ') cam.keyL = false; if (e.code === 'KeyE') cam.keyR = false; });
   addEventListener('blur', () => { cam.keyL = cam.keyR = false; });
-  // drag with the mouse, or a second finger (the first one steers with the touch stick)
+  // drag with the mouse, or a second finger (the first one steers with the touch stick), or any finger with fingers: true
   if (canvas) {
     canvas.addEventListener('pointerdown', e => {
       if (!enabled()) return;
       const mouse = e.pointerType === 'mouse' && mouseButtons.includes(e.button);
-      const finger = e.pointerType !== 'mouse' && stick && stick.id !== null && e.pointerId !== stick.id;
+      const finger = e.pointerType !== 'mouse' && (fingers || (stick && stick.id !== null && e.pointerId !== stick.id));
       if (mouse || finger) cam.drag = { id: e.pointerId, x: e.clientX, y: e.clientY };
     });
     canvas.addEventListener('pointermove', e => {
