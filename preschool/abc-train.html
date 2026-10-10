@@ -76,6 +76,16 @@
   #forkL { left: max(16px, env(safe-area-inset-left)); } #forkR { right: max(16px, env(safe-area-inset-right)); }
   .fork.ask { animation: wig 1.2s ease-in-out infinite; }
   @keyframes wig { 25% { transform: rotate(-8deg) scale(1.06); } 75% { transform: rotate(8deg) scale(1.06); } }
+  #music { left: calc(max(20px, env(safe-area-inset-left)) + 88px); bottom: max(32px, env(safe-area-inset-bottom)); width: 58px; height: 58px; background: #ff7ac0; font-size: 24px; border-width: 5px; }
+  #music.off { background: #b8c0cc; } #music.off::after { content: ''; position: absolute; width: 70%; height: 5px; border-radius: 3px; background: #fff; transform: rotate(-45deg); }
+  .pill { position: fixed; z-index: 3; border: 5px solid #fff; border-radius: 999px; padding: 12px 24px; cursor: pointer; touch-action: none;
+    font: 700 26px 'Fredoka', system-ui, sans-serif; color: #fff; box-shadow: 0 7px 0 rgba(0,0,0,.2); }
+  .pill:active { transform: translateY(4px); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
+  #walk { left: 50%; top: calc(max(10px, env(safe-area-inset-top)) + 96px); transform: translateX(-50%); background: #3cc456; animation: pulse2 1.2s ease-in-out infinite; }
+  #walk:active { transform: translateX(-50%) translateY(4px); }
+  @keyframes pulse2 { 50% { box-shadow: 0 7px 0 rgba(0,0,0,.2), 0 0 0 12px rgba(60,196,86,.35); } }
+  #board { right: max(20px, env(safe-area-inset-right)); bottom: max(24px, env(safe-area-inset-bottom)); background: #e8453a; font-size: 30px; padding: 18px 28px; }
+  @media (max-width: 700px) { #walk { top: calc(max(10px, env(safe-area-inset-top)) + 150px); font-size: 22px; } }
   .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px; touch-action: pan-y;
     background: radial-gradient(ellipse at center, rgba(255,255,255,.25), rgba(40,90,160,.55)); }
   .panel { margin: auto; width: 100%; max-width: 560px; text-align: center; background: #fffdf4; border: 5px solid #23324a; border-radius: 30px;
@@ -91,7 +101,7 @@
   #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
   .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
 </style>
-<link rel="stylesheet" href="../common.css?v=20261010-1105">
+<link rel="stylesheet" href="../common.css?v=20261010-1144">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -100,6 +110,9 @@
 <div id="card"><div class="big" id="cardLetter">A</div><div class="word" id="cardWord"></div></div>
 <div id="ask" class="hidden"></div>
 <button class="ctl hidden" id="cam" aria-label="Change the camera">🎥</button>
+<button class="ctl hidden" id="music" aria-label="Music on or off">🎵</button>
+<button class="pill hidden" id="walk">🚶 Visit the farm</button>
+<button class="pill hidden" id="board">🚂 All aboard!</button>
 <button class="fork hidden" id="forkL" aria-label="Go left"></button>
 <button class="fork hidden" id="forkR" aria-label="Go right"></button>
 <button class="ctl hidden" id="toot" aria-label="Toot the horn">📯</button>
@@ -118,8 +131,8 @@
 </div>
 
 <script src="../vendor/three.min.js"></script>
-<script src="../orbit-cam.js?v=20261010-1105"></script>
-<script src="../common.js?v=20261010-1105"></script>
+<script src="../orbit-cam.js?v=20261010-1144"></script>
+<script src="../common.js?v=20261010-1144"></script>
 <script>
 'use strict';
 // ===================== ABC Train =====================
@@ -166,9 +179,10 @@ const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.shadowMap.enabled = true;
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 const scene = new THREE.Scene();
-scene.background = new THREE.Color('#9fdcff');
-scene.fog = new THREE.Fog('#bfe8ff', 120, 340);
-const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 800);
+scene.background = new THREE.Color('#cdeeff');
+scene.fog = new THREE.Fog('#d4f0ff', 170, 620);
+const camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1400);
+const baseFov = () => camera.aspect < 0.8 ? 66 : 50;
 function resize() {
   // sharp, but not more pixels than a tablet can paint smoothly
   let dpr = Math.min(devicePixelRatio || 1, 2);
@@ -176,7 +190,7 @@ function resize() {
   renderer.setPixelRatio(dpr);
   renderer.setSize(innerWidth, innerHeight, false);
   camera.aspect = innerWidth / innerHeight;
-  camera.fov = camera.aspect < 0.8 ? 66 : 50;
+  camera.fov = baseFov();
   camera.updateProjectionMatrix();
 }
 addEventListener('resize', resize);
@@ -364,6 +378,11 @@ const tanAt = (e, s, out = new THREE.Vector3()) => e ? FORKS[e - 1].curve.getTan
 const sideOf = (e, s, out = new THREE.Vector3()) => out.crossVectors(tanAt(e, s), UP).normalize();
 // which side each branch goes off to, as the train sees it (+1 right, -1 left)
 for (const f of FORKS) f.side = Math.sign(posAt(f.id, 20).sub(at(f.a + 20, new THREE.Vector3())).dot(sideAt(f.a))) || 1;
+// the farm pen sits beside the farm road's station (AWAY points from the track to the pen, ALONG runs with it)
+const FARM_S = FORKS[0].len * 0.5;
+const ALONG = (() => { const t = tanAt(1, FARM_S); t.y = 0; return t.normalize(); })(), AWAY = sideOf(1, FARM_S);
+const FARM_AT = posAt(1, FARM_S).addScaledVector(AWAY, 16).setY(0);
+const farmPt = (u, v) => FARM_AT.clone().addScaledVector(AWAY, u).addScaledVector(ALONG, v);
 // sleepers, two rails and a wide gravel bed along a stretch of track
 function layTrack(e, len, bed) {
   const N = Math.floor(len / 0.9);
@@ -435,7 +454,7 @@ function showForkSigns() { for (const f of FORKS) f.sign.rotation.z = (f.set ? f
 
 // ---------- The toy town ----------
 {
-  const ground = new THREE.Mesh(new THREE.CircleGeometry(400, 64), M('#7cd36a'));
+  const ground = new THREE.Mesh(new THREE.CircleGeometry(1000, 64), M('#7cd36a'));
   ground.rotation.x = -Math.PI / 2; ground.receiveShadow = true; scene.add(ground);
   const pond = new THREE.Mesh(new THREE.CircleGeometry(16, 40), new THREE.MeshStandardMaterial({ color: '#5ab8f0', roughness: 0.2 }));
   pond.rotation.x = -Math.PI / 2; pond.position.set(62, 0.05, 92); pond.scale.set(1.4, 1, 1); scene.add(pond);
@@ -449,7 +468,7 @@ function showForkSigns() { for (const f of FORKS) f.sign.rotation.z = (f.set ? f
   let n = 0;
   for (let i = 0; i < 260 && n < 70; i++) {
     const x = Math.sin(i * 12.9898) * 150, z = 40 + Math.cos(i * 78.233) * 150;
-    if (nearTrack(x, z, 9) || Math.hypot(x - 62, z - 92) < 26 || Math.hypot(x - 2, z - 22) < 18) continue;
+    if (nearTrack(x, z, 9) || Math.hypot(x - 62, z - 92) < 26 || Math.hypot(x - 2, z - 22) < 18 || Math.hypot(x - FARM_AT.x, z - FARM_AT.z) < 24) continue;
     n++;
     const t = new THREE.Group(); t.position.set(x, 0, z); scene.add(t);
     const h = 2 + (i % 3);
@@ -458,7 +477,7 @@ function showForkSigns() { for (const f of FORKS) f.sign.rotation.z = (f.set ? f
   }
   for (let i = 0; i < 90; i++) {
     const x = Math.sin(i * 3.1) * 120, z = 40 + Math.cos(i * 7.7) * 120;
-    if (nearTrack(x, z, 4)) continue;
+    if (nearTrack(x, z, 4) || Math.hypot(x - FARM_AT.x, z - FARM_AT.z) < 20) continue;
     rod(scene, '#3a9a3a', x, 0.3, z, 0.05, 0.6);
     ball(scene, ['#ff5a8a', '#ffd84a', '#ffffff', '#b07aff'][i % 4], x, 0.65, z, 0.22);
   }
@@ -468,8 +487,6 @@ function showForkSigns() { for (const f of FORKS) f.sign.rotation.z = (f.set ? f
     const h = new THREE.Group(); h.position.set(x, 0, z); h.rotation.y = rot; scene.add(h);
     block(h, '#d8402e', 0, 2, 0, 6, 4, 5); block(h, '#ffffff', 3.01, 1.4, 0, 0.05, 2.8, 2.4);
     const r = mesh(new THREE.CylinderGeometry(3.2, 3.2, 6.2, 3), '#7a3a2a', 0, 4.6, 0, h); r.rotation.z = Math.PI / 2; r.scale.set(1, 1, 0.8);
-    for (let i = 0; i < 5; i++) { const sh = new THREE.Group(); sh.position.set(-6 - i * 3, 0, 4 + (i % 2) * 4); sh.rotation.y = i; h.add(sh);
-      ball(sh, '#ffffff', 0, 0.8, 0, 0.8, 0.6, 0.6); ball(sh, '#3a3346', 0.8, 0.95, 0, 0.32); for (const [a, b] of [[0.4, 0.3], [0.4, -0.3], [-0.4, 0.3], [-0.4, -0.3]]) rod(sh, '#3a3346', a, 0.25, b, 0.08, 0.5); }
   };
   // little houses
   const house = (x, z, rot, wall, roof) => {
@@ -479,13 +496,59 @@ function showForkSigns() { for (const f of FORKS) f.sign.rotation.z = (f.set ? f
     block(h, '#7a4a2a', 2.01, 0.9, 0, 0.05, 1.8, 0.9);
     for (const s of [-1, 1]) block(h, '#bfe8ff', 2.01, 2.2, s * 1.1, 0.05, 0.7, 0.7);
   };
-  house(-30, 40, 0.3, '#ffd84a', '#e8453a'); barn(84, 60, 2.2); house(-42, 58, -0.4, '#9fe0ff', '#5a7aff'); house(60, 40, 2.6, '#ffb8d0', '#a05aff'); house(26, 60, 1.2, '#ffffff', '#3cc456');
+  house(-30, 40, 0.3, '#ffd84a', '#e8453a');
+  { const b = farmPt(14, -3); barn(b.x, b.z, Math.atan2(AWAY.z, -AWAY.x)); } house(-42, 58, -0.4, '#9fe0ff', '#5a7aff'); house(60, 40, 2.6, '#ffb8d0', '#a05aff'); house(26, 60, 1.2, '#ffffff', '#3cc456');
   // a windmill on the hill
   const wm = new THREE.Group(); wm.position.set(-40, 0, 130); scene.add(wm);
   rod(wm, '#f2e8d0', 0, 4, 0, 1.4, 8); const cap = mesh(CONE, '#e8453a', 0, 9, 0, wm); cap.scale.set(1.8, 2, 1.8);
   const blades = new THREE.Group(); blades.position.set(1.6, 7.5, 0); wm.add(blades);
   for (let i = 0; i < 4; i++) { const b = block(blades, '#ffffff', 0, 2.2, 0, 0.1, 4.4, 0.9); b.position.set(0, Math.cos(i * Math.PI / 2) * 2.2, Math.sin(i * Math.PI / 2) * 2.2); b.rotation.x = -i * Math.PI / 2; }
   scene.userData.blades = blades;
+  // ---- more to look at ----
+  // a sky that fades from deep blue overhead to pale at the horizon, and blue mountains far away
+  {
+    const geo = new THREE.SphereGeometry(900, 32, 16), col = [], top = new THREE.Color('#4aa8ff'), low = new THREE.Color('#d4f0ff');
+    for (let i = 0; i < geo.attributes.position.count; i++) { const y = geo.attributes.position.getY(i) / 900; col.push(...low.clone().lerp(top, Math.max(0, y) ** 0.6).toArray()); }
+    geo.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));
+    const sky = new THREE.Mesh(geo, new THREE.MeshBasicMaterial({ vertexColors: true, side: THREE.BackSide, fog: false }));
+    sky.position.y = -40; scene.add(sky); scene.userData.sky = sky;
+    const sunDisc = new THREE.Mesh(new THREE.SphereGeometry(30, 16, 12), new THREE.MeshBasicMaterial({ color: '#fff6c8', fog: false }));
+    sunDisc.position.set(380, 520, 260); scene.add(sunDisc);
+  }
+  for (let i = 0; i < 26; i++) {
+    const a = i / 26 * Math.PI * 2 + Math.sin(i * 7) * 0.08, r = 470 + (i % 3) * 50, h = 70 + ((i * 37) % 5) * 22, w = h * (1.1 + (i % 2) * 0.4);
+    const m = new THREE.Mesh(new THREE.ConeGeometry(w, h, 7), M(['#7fa8c8', '#8ab8cc', '#7898b8'][i % 3])); m.position.set(Math.cos(a) * r, h / 2 - 4, 40 + Math.sin(a) * r); scene.add(m);
+    if (h > 120) { const cap = new THREE.Mesh(new THREE.ConeGeometry(w * 0.32, h * 0.3, 7), M('#ffffff')); cap.position.set(m.position.x, h - h * 0.15 - 4, m.position.z); scene.add(cap); }
+  }
+  // pine woods round the edge, bushes and rocks along the way
+  for (let i = 0; i < 160; i++) {
+    const a = i * 2.39996, r = 175 + (i * 53 % 140), x = Math.cos(a) * r, z = 40 + Math.sin(a) * r;
+    if (nearTrack(x, z, 10)) continue;
+    const t = new THREE.Group(); t.position.set(x, 0, z); scene.add(t);
+    const h = 5 + (i % 4) * 1.5;
+    rod(t, '#8a5a32', 0, 0.8, 0, 0.35, 1.6);
+    for (let k = 0; k < 3; k++) { const c = mesh(CONE, ['#2f8a46', '#3aa052', '#2a7a40'][i % 3], 0, 1.6 + k * h * 0.22 + h * 0.15, 0, t); c.scale.set(h * 0.38 - k * 0.5, h * 0.42, h * 0.38 - k * 0.5); c.castShadow = false; }
+  }
+  for (let i = 0; i < 70; i++) {
+    const x = Math.sin(i * 4.7) * 140, z = 40 + Math.cos(i * 2.3) * 140;
+    if (nearTrack(x, z, 5) || Math.hypot(x - 62, z - 92) < 24 || Math.hypot(x - FARM_AT.x, z - FARM_AT.z) < 22) continue;
+    const b = new THREE.Group(); b.position.set(x, 0, z); scene.add(b);
+    if (i % 4 === 0) { const r = mesh(new THREE.DodecahedronGeometry(1, 0), '#a8a8b0', 0, 0.4, 0, b); r.scale.set(1.2, 0.7, 1); }
+    else for (let k = 0; k < 3; k++) ball(b, ['#4ab85a', '#3fa84e', '#5ac866'][k], k * 0.9 - 0.9, 0.6, (k % 2) * 0.5, 0.9 + (k % 2) * 0.3);
+  }
+  // a village of little houses inside the loop
+  for (const [x, z, r, w, rf] of [[-58, 28, 0.6, '#ffffff', '#e8453a'], [-60, 62, -0.9, '#ffe0a8', '#5a7aff'], [-14, 50, 0.2, '#c8f0c8', '#e88a2a'], [-48, 82, 1.4, '#ffd0e0', '#3cc456'],
+    [8, 40, -0.3, '#d8e8ff', '#a05aff'], [-24, 66, 2.2, '#fff4b8', '#e8453a']]) if (!nearTrack(x, z, 7)) house(x, z, r, w, rf);
+  // the pond: lily pads and reeds
+  for (let i = 0; i < 14; i++) { const a = i * 2.2, r = 4 + (i * 7 % 13); const pad = new THREE.Mesh(new THREE.CircleGeometry(0.8 + (i % 3) * 0.3, 12), M('#3cb050')); pad.rotation.x = -Math.PI / 2; pad.position.set(62 + Math.cos(a) * r * 1.3, 0.08, 92 + Math.sin(a) * r * 0.8); scene.add(pad); if (i % 4 === 0) ball(scene, '#ff9ac8', pad.position.x, 0.25, pad.position.z, 0.25); }
+  for (let i = 0; i < 30; i++) { const a = i / 30 * Math.PI * 2; rod(scene, '#5a9a3a', 62 + Math.cos(a) * 22.5, 0.8, 92 + Math.sin(a) * 16, 0.08, 1.6 + (i % 3) * 0.4); }
+  // vegetable rows and hay bales by the farm
+  for (let r = 0; r < 6; r++) {
+    const c = farmPt(2 + r * 2.2, 20);
+    const row = mesh(BOX, '#8a5a32', c.x, 0.12, c.z, scene); row.scale.set(1.1, 0.24, 14); row.rotation.y = Math.atan2(ALONG.x, ALONG.z); row.castShadow = false;
+    for (let k = -6; k <= 6; k += 1.5) { const q = c.clone().addScaledVector(ALONG, k); ball(scene, r % 2 ? '#ff8a2a' : '#4ac84a', q.x, 0.45, q.z, 0.4); }
+  }
+  for (const [u, v] of [[10, -11], [12, -12.5], [9, -13]]) { const q = farmPt(u, v); const hb = mesh(CYL, '#f2c84a', q.x, 0.7, q.z, scene); hb.scale.set(0.8, 1.4, 0.8); hb.rotation.z = Math.PI / 2; hb.rotation.y = u; }
   // clouds
   scene.userData.clouds = [];
   for (let i = 0; i < 10; i++) {
@@ -564,7 +627,7 @@ const engine = new THREE.Group();
   ball(e, '#ffd84a', 0, 1.65, 2.32, 0.42, 0.42, 0.12);                 // big round lamp
   const cow = mesh(new THREE.ConeGeometry(0.95, 0.9, 4), '#ffd84a', 0, 0.55, 2.7, e); cow.rotation.set(Math.PI / 2, Math.PI / 4, 0); cow.scale.set(1, 1, 0.6);
   // a friendly bear driver waving from the cab
-  const drv = new THREE.Group(); drv.position.set(0, 2.2, -1.4); e.add(drv);
+  const drv = new THREE.Group(); drv.position.set(0, 2.2, -1.4); e.add(drv); e.userData.driver = drv;
   ball(drv, '#c8844a', 0, 0.4, 0, 0.45); ball(drv, '#f0c898', 0.35, 0.32, 0, 0.18, 0.15, 0.2);
   for (const s of [-1, 1]) { ball(drv, '#c8844a', -0.05, 0.8, s * 0.3, 0.13, 0.13, 0.07); ball(drv, '#ffffff', 0.32, 0.5, s * 0.15, 0.08); ball(drv, '#23324a', 0.38, 0.5, s * 0.15, 0.045); }
   ball(drv, '#23324a', 0.52, 0.36, 0, 0.06);
@@ -650,6 +713,28 @@ setTrain(0, 2);
 
 // ---------- Sound ----------
 const beep = RB.beep;
+// Recorded-style sounds in sounds/ (made by tools/make-sounds.py): a real chord horn and the farm animals.
+const SOUNDS = {};
+function loadSounds() {
+  const ac = RB.audio();
+  if (!ac || location.protocol === 'file:') return;   // (a page opened from a file can't fetch: the made-up horn plays instead)
+  for (const n of ['horn', 'moo', 'baa', 'oink', 'cluck', 'neigh', 'quack']) {
+    if (SOUNDS[n]) continue;
+    SOUNDS[n] = 'loading';
+    fetch('../sounds/' + n + '.mp3').then(r => { if (!r.ok) throw new Error(n); return r.arrayBuffer(); })
+      .then(d => new Promise((ok, no) => { const p = ac.decodeAudioData(d, ok, no); if (p && p.then) p.then(ok, no); }))
+      .then(b => { SOUNDS[n] = b; }).catch(() => { SOUNDS[n] = null; });
+  }
+}
+function playSound(n, vol = 1, rate = 1) {
+  const ac = RB.audio(), b = SOUNDS[n];
+  if (!ac || !b || b === 'loading') return false;
+  if (RB.muted) return true;
+  const src = ac.createBufferSource(), g = ac.createGain();
+  src.buffer = b; src.playbackRate.value = rate; g.gain.value = vol;
+  src.connect(g).connect(ac.destination); src.start();
+  return true;
+}
 // A real train horn is five big reeds sounding one chord at once (D#, F#, G#, B, D#). Each note is a buzzy
 // sawtooth, softened like air through a bell, scooping up into tune and wavering a little as it blows.
 function horn(delay, dur) {
@@ -675,7 +760,8 @@ function horn(delay, dur) {
   wob.start(t); wob.stop(end + 0.05);
 }
 const sfx = {
-  toot: () => { horn(0, 0.7); horn(0.85, 1.1); RB.pad && RB.pad.rumble && RB.pad.rumble(250, 0.3); },
+  toot: () => { if (!playSound('horn', 0.9)) { horn(0, 0.7); horn(0.85, 1.1); } RB.pad && RB.pad.rumble && RB.pad.rumble(250, 0.3); },
+  plop: () => { beep(500, 120, 0.18, 'sine', 0.12); beep(160, 90, 0.12, 'triangle', 0.08, 0.05); },
   ding: () => [784, 988, 1175, 1568].forEach((f, i) => beep(f, f, 0.18, 'sine', 0.09, i * 0.09)),
   hop: () => beep(300, 900, 0.22, 'sine', 0.08),
   oops: () => beep(400, 300, 0.3, 'triangle', 0.08),
@@ -693,6 +779,287 @@ function playAbcSong() {
   return t;
 }
 const say = (text, opts) => { if (!RB.muted) RB.speak(text, opts); };
+// Every line the game says. tools/voice-lines.js calls abcLines() so the 🌟 RoboBandit voice can record them all.
+const FARM_SAYS = { Cow: 'moo', Sheep: 'baa', Pig: 'oink oink', Chicken: 'cluck cluck', Horse: 'neigh', Duck: 'quack quack' };
+const FARM_SOUND = { Cow: 'moo', Sheep: 'baa', Pig: 'oink', Chicken: 'cluck', Horse: 'neigh', Duck: 'quack' };
+const nameOf = i => ANIMALS[i].say || ANIMALS[i].name;
+const lc = n => n.toLowerCase();
+const LINE = {
+  hello: 'Hi there! All aboard the A B C train! Let\'s find the letter A. Press the big green button to go!',
+  back: n => `Hooray, you're back! Let's find the letter ${ANIMALS[n].L}. Press the big green button!`,
+  findStart: t => `Choo choo! Can you find the letter ${ANIMALS[t].L}? Press stop when you see it!`,
+  board: (i, c) => `${ANIMALS[i].L}! ${ANIMALS[i].L} is for ${nameOf(i)}! ${CHEERS[c]}`,
+  wrong: (i, t) => `Ooh, that's ${ANIMALS[i].L}! ${ANIMALS[i].L} is for ${nameOf(i)}! Now let's look for ${ANIMALS[t].L}!`,
+  next: n => `Now let's find ${ANIMALS[n].L}!`,
+  findAsk: t => `Can you find the letter ${ANIMALS[t].L}?`,
+  tap: i => `${nameOf(i)}!`,
+  full: 'Wow, the train is full! Let\'s take everybody to the Animal Park!',
+  park: 'Hooray! Hop off, everybody! Have fun in the Animal Park!',
+  finale: 'You did it! You found every letter from A to Z! You\'re a super star! Let\'s sing!',
+  again: 'Let\'s go again from A!',
+  pressGo: 'Press the big green button!',
+  whichWay: 'Which way should we go? Tap an arrow!',
+  way: name => `To ${name}!`,
+  farmSays: n => `The ${lc(n)} says ${FARM_SAYS[n]}!`,
+  onTrack: n => `Uh oh! A ${lc(n)} is on the track! Toot the horn!`,
+  byeBye: n => `Bye bye, ${lc(n)}!`,
+  poop: n => `Oops! The ${lc(n)} did a poop! Pee-yew!`,
+  visit: 'Let\'s visit the farm! Tap an animal to say hello!',
+  farmHere: 'Here\'s the farm! Do you want to get off and see the animals?',
+  aboard: 'All aboard! Choo choo!',
+};
+function abcLines() {
+  const L = [LINE.hello, LINE.full, LINE.park, LINE.finale, LINE.again, LINE.pressGo, LINE.whichWay, LINE.visit, LINE.farmHere, LINE.aboard];
+  ANIMALS.forEach((_, i) => {
+    L.push(LINE.back(i), LINE.findStart(i), LINE.next(i), LINE.findAsk(i), LINE.tap(i), LINE.wrong(i, (i + 1) % 26));
+    CHEERS.forEach((_, c) => L.push(LINE.board(i, c)));
+  });
+  for (const f of FORKS) L.push(LINE.way(f.main[1]), LINE.way(f.branch[1]));
+  for (const n of Object.keys(FARM_SAYS)) L.push(LINE.farmSays(n), LINE.onTrack(n), LINE.byeBye(n), LINE.poop(n));
+  return L;
+}
+
+// ---------- The farm ----------
+// A fenced pen by the farm-road station. Stop there and you can get off and walk round with the bear.
+const FARM_KINDS = {
+  Cow: { name: 'Cow', c: '#ffffff', pattern: 'spots', pc: '#2a2a2a', ears: 'side', tail: 'long', extra: ['wideSnout', 'horns'], size: 1.45 },
+  Horse: { name: 'Horse', c: '#a8683a', ears: 'pointy', tail: 'long', extra: ['mane', 'longLegs'], size: 1.5 },
+  Sheep: { ...ANIMALS[18], name: 'Sheep', size: 1.1 },
+  Pig: { ...ANIMALS[15], name: 'Pig', size: 1.05 },
+  Chicken: { name: 'Chicken', c: '#ffffff', belly: '#fff4e0', shape: 'bird', extra: ['plume'], size: 0.55 },
+  Duck: { name: 'Duck', c: '#ffe14a', shape: 'bird', size: 0.5 },
+};
+const faceDir = (o, dx, dz) => { if (dx || dz) o.rotation.y = Math.atan2(-dz, dx); };   // animals face +x
+function farmAnimal(kind) {
+  const k = FARM_KINDS[kind], a = makeAnimal(k);
+  a.scale.setScalar(k.size); a.userData.farm = kind;
+  return a;
+}
+const farm = (() => {
+  const station = stations.find(x => x.e === 1);
+  const g = new THREE.Group(); scene.add(g);
+  // grass, fence (with a gate toward the track) and a sandy path from the platform
+  const grass = new THREE.Mesh(new THREE.PlaneGeometry(14, 18), M('#9ae87a')); grass.rotation.x = -Math.PI / 2; grass.rotation.z = Math.atan2(ALONG.x, ALONG.z); grass.position.copy(FARM_AT).setY(0.03); grass.receiveShadow = true; g.add(grass);
+  const path = farmPt(-8.5, 0), pth = mesh(BOX, '#f2dca0', path.x, 0.04, path.z, g); pth.scale.set(3, 0.06, 2.4); pth.rotation.y = Math.atan2(ALONG.x, ALONG.z) + Math.PI / 2; pth.castShadow = false;
+  const post = (u, v) => { const q = farmPt(u, v); rod(g, '#ffffff', q.x, 0.6, q.z, 0.1, 1.2); };
+  const rail = (u0, v0, u1, v1) => { const a = farmPt(u0, v0), b = farmPt(u1, v1); for (const y of [0.45, 0.95]) { const r = mesh(BOX, '#ffffff', (a.x + b.x) / 2, y, (a.z + b.z) / 2, g); r.scale.set(0.08, 0.1, a.distanceTo(b)); r.lookAt(b.x, y, b.z); } };
+  for (let v = -9; v <= 9; v += 2) { post(-7, v); post(7, v); }
+  for (let u = -5; u <= 5; u += 2) { post(u, -9); post(u, 9); }
+  rail(-7, -9, -7, -1.6); rail(-7, 1.6, -7, 9); rail(7, -9, 7, 9); rail(-7, -9, 7, -9); rail(-7, 9, 7, 9);
+  const trough = farmPt(4, 6.5), tr = mesh(BOX, '#8a5a32', trough.x, 0.35, trough.z, g); tr.scale.set(1, 0.6, 2.4); tr.rotation.y = Math.atan2(ALONG.x, ALONG.z);
+  const animals = [];
+  ['Cow', 'Cow', 'Horse', 'Sheep', 'Sheep', 'Sheep', 'Pig', 'Pig', 'Chicken', 'Chicken', 'Chicken', 'Chicken'].forEach((kind, i) => {
+    const a = farmAnimal(kind), q = farmPt(-4 + (i * 37 % 9), -6 + (i * 53 % 13));
+    a.position.copy(q); a.rotation.y = i; scene.add(a);
+    a.userData.walk = { to: q.clone(), wait: Math.random() * 3 };
+    animals.push(a);
+  });
+  // ducks paddling round the pond
+  const ducks = [0, 1, 2, 3].map(i => { const d = farmAnimal('Duck'); d.userData.ph = i * 1.6; d.userData.r = 6 + i * 2.5; scene.add(d); return d; });
+  const away = FARM_AT.clone().sub(station.p).setY(0).normalize();
+  return { station, animals, ducks, told: false, camHeading: Math.atan2(-away.x, -away.z) };
+})();
+// keep a farm animal inside the pen (u across, v along)
+function inPen(q, m = 1.2) {
+  const d = q.clone().sub(FARM_AT); let u = d.dot(AWAY), v = d.dot(ALONG);
+  u = Math.max(-7 + m, Math.min(7 - m, u)); v = Math.max(-9 + m, Math.min(9 - m, v));
+  return farmPt(u, v).setY(0);
+}
+// the bear driver, life-size, for walking round the farm
+function makeBear() {
+  const g = new THREE.Group(), legs = [];
+  ball(g, '#c8844a', 0, 0.95, 0, 0.42, 0.5, 0.38); ball(g, '#f0c898', 0, 0.9, 0.24, 0.26, 0.32, 0.16);
+  ball(g, '#c8844a', 0, 1.62, 0, 0.36); ball(g, '#f0c898', 0, 1.55, 0.3, 0.15, 0.12, 0.12); ball(g, '#23324a', 0, 1.6, 0.42, 0.05);
+  for (const sx of [-1, 1]) {
+    ball(g, '#ffffff', sx * 0.13, 1.72, 0.29, 0.07); ball(g, '#23324a', sx * 0.13, 1.72, 0.34, 0.04); ball(g, '#c8844a', sx * 0.26, 1.92, 0, 0.11, 0.11, 0.06);
+    const leg = new THREE.Group(); leg.position.set(sx * 0.18, 0.5, 0); g.add(leg); rod(leg, '#c8844a', 0, -0.25, 0, 0.13, 0.5); legs.push(leg);
+    const arm = new THREE.Group(); arm.position.set(sx * 0.45, 1.25, 0); g.add(arm); ball(arm, '#c8844a', 0, -0.25, 0, 0.11, 0.3, 0.11); legs.push(arm);
+  }
+  block(g, '#e8453a', 0, 1.96, 0, 0.62, 0.16, 0.62); block(g, '#e8453a', 0, 1.9, 0.32, 0.5, 0.05, 0.3);
+  g.userData.limbs = legs;
+  return g;
+}
+const walker = makeBear();
+walker.visible = false; scene.add(walker);
+walker.userData.target = null;
+function getOff() {
+  if (state !== 'play' || train.running) return;
+  RB.audio();
+  state = 'farm';
+  for (const id of ['go', 'toot', 'walk', 'forkL', 'forkR', 'ask']) $(id).classList.add('hidden');
+  $('board').classList.remove('hidden');
+  walker.position.copy(farm.station.p).addScaledVector(AWAY, 3.6).setY(0.75); walker.visible = true;
+  faceDir(walker, 0, 0); walker.rotation.y = Math.atan2(AWAY.x, AWAY.z); walker.userData.target = farmPt(-3, 0);
+  ocam.reset();
+  say(LINE.visit);
+}
+function allAboard() {
+  if (state !== 'farm') return;
+  state = 'play';
+  walker.visible = false; held.ArrowUp = held.ArrowDown = held.ArrowLeft = held.ArrowRight = false;
+  $('board').classList.add('hidden');
+  for (const id of ['go', 'toot']) $(id).classList.remove('hidden');
+  ask($('ask').innerHTML);
+  ocam.reset(); updateGo();
+  farm.told = true;
+  say(LINE.aboard); sfx.toot();
+}
+// tap a farm animal: it calls out (moo!), hops, and the voice tells you what it says
+function farmHello(a) {
+  const kind = a.userData.farm;
+  if (!playSound(FARM_SOUND[kind], 1)) sfx.hop();
+  jobs.push({ t: 0, d: 0.6, obj: a, kind: 'jump', y0: a.position.y });
+  setTimeout(() => say(LINE.farmSays(kind)), 900);
+  if (state === 'farm') { const q = a.position.clone(); const d = q.clone().sub(walker.position).setY(0); if (d.length() > 2.5) walker.userData.target = q.addScaledVector(d.normalize(), -2.2).setY(0); }
+}
+function updateWalker(dt) {
+  const w = walker, cam = camera.getWorldDirection(new THREE.Vector3()).setY(0).normalize(), right = new THREE.Vector3().crossVectors(cam, UP);
+  let mv = new THREE.Vector3();
+  if (held.ArrowUp) mv.add(cam); if (held.ArrowDown) mv.sub(cam); if (held.ArrowRight) mv.add(right); if (held.ArrowLeft) mv.sub(right);
+  if (mv.lengthSq()) w.userData.target = null;
+  else if (w.userData.target) { mv = w.userData.target.clone().sub(w.position).setY(0); if (mv.length() < 0.3) { w.userData.target = null; mv.set(0, 0, 0); } }
+  const moving = mv.lengthSq() > 0;
+  if (moving) {
+    mv.normalize();
+    w.position.addScaledVector(mv, 3.2 * dt);
+    const want = Math.atan2(mv.x, mv.z); let d = want - w.rotation.y; d = Math.atan2(Math.sin(d), Math.cos(d)); w.rotation.y += d * Math.min(1, dt * 10);
+  }
+  // stay near the farm (the platform, the path and the pen), and off the rails
+  const rel = w.position.clone().sub(FARM_AT); let u = rel.dot(AWAY), v = rel.dot(ALONG);
+  u = Math.max(-13.6, Math.min(12, u)); v = Math.max(-14, Math.min(14, v));
+  const q = farmPt(u, v); w.position.x = q.x; w.position.z = q.z;
+  w.position.y = u < -11 ? 0.75 : 0;   // up on the platform, or down on the grass
+  const sw = moving ? Math.sin(clock * 11) * 0.6 : 0;
+  w.userData.limbs.forEach((l, i) => { l.rotation.x = (i % 2 ? -sw : sw) * (i < 2 ? 1 : 0.8) * (i % 4 < 2 ? 1 : -1); });
+}
+
+// ---------- Animals on the track (and the things they leave behind) ----------
+const crossers = [], poops = [];
+let crossT = 20 + Math.random() * 15, planeT = 15 + Math.random() * 25;
+// the place d metres ahead of the engine, going the way the switches point
+function aheadPlace(d) {
+  let e = train.e, s = train.s;
+  for (let n = 0; n < 6; n++) {
+    if (e === 0) {
+      let best = null, bd = Infinity;
+      for (const f of FORKS) if (f.set) { const dd = wrap(f.a - s); if (dd < bd) { bd = dd; best = f; } }
+      if (!best || bd >= d) return { e: 0, s: wrap(s + d) };
+      d -= bd; e = best.id; s = 0;
+    } else {
+      const f = FORKS[e - 1];
+      if (s + d <= f.len) return { e, s: s + d };
+      d -= f.len - s; e = 0; s = f.b;
+    }
+  }
+  return { e, s };
+}
+function spawnCrosser() {
+  const loc = aheadPlace(58), p = posAt(loc.e, loc.s);
+  // not next to a station, the park, a fork or in the tunnel
+  if (stations.some(st => st.p.distanceTo(p) < 22) || park.p.distanceTo(p) < 22 || FORKS.some(f => at(f.a, new THREE.Vector3()).distanceTo(p) < 20) || p.y > 0.5) return false;
+  if (loc.e === 2 && loc.s > FORKS[1].len * 0.3 && loc.s < FORKS[1].len * 0.62) return false;
+  const name = ['Cow', 'Sheep', 'Pig', 'Duck', 'Horse', 'Chicken', 'Cow', 'Sheep'][Math.floor(Math.random() * 8)];
+  const sd = sideOf(loc.e, loc.s).multiplyScalar(Math.random() < 0.5 ? 1 : -1);
+  const obj = farmAnimal(name), from = p.clone().addScaledVector(sd, 9).setY(0), to = p.clone().addScaledVector(sd, -11).setY(0);
+  obj.position.copy(from); faceDir(obj, to.x - from.x, to.z - from.z); scene.add(obj);
+  crossers.push({ obj, name, loc, from, to, k: 0, hurry: false, onTrack: false, told: false, poop: Math.random() < 0.45, pause: 0 });
+  return true;
+}
+// the nearest animal standing on the track ahead (the train waits for it)
+function blocker() {
+  let best = null;
+  for (const c of crossers) if (c.k > 0.25 && c.k < 0.62) { const d = distAhead(c.loc); if (d < 70 && (!best || d < best.d)) best = { c, d }; }
+  return best;
+}
+function dropPoop(at) {
+  const g = new THREE.Group(); g.position.copy(at).setY(0.15); scene.add(g);
+  ball(g, '#7a4a22', 0, 0.12, 0, 0.32, 0.16, 0.32); ball(g, '#7a4a22', 0, 0.3, 0, 0.22, 0.13, 0.22); ball(g, '#8a5a2a', 0, 0.44, 0, 0.12, 0.12, 0.12);
+  const flies = [0, 1].map(() => ball(g, '#23324a', 0, 0.8, 0, 0.05));
+  poops.push({ g, flies, t: 0 });
+  if (poops.length > 5) scene.remove(poops.shift().g);
+  sfx.plop();
+}
+
+// ---------- Up in the sky: planes (now and then), a flock of birds and a hot-air balloon ----------
+const planes = [];
+function makePlane() {
+  const g = new THREE.Group(), col = ['#e8453a', '#5a7aff', '#ffd84a', '#3cc456', '#ff9d1c'][Math.floor(Math.random() * 5)];
+  const body = mesh(CYL, col, 0, 0, 0, g); body.scale.set(0.9, 7, 0.9); body.rotation.z = Math.PI / 2;
+  const nose = mesh(CONE, col, 4, 0, 0, g); nose.scale.set(0.9, 1.4, 0.9); nose.rotation.z = -Math.PI / 2;
+  block(g, '#ffffff', 0.5, 0, 0, 2, 0.2, 10); block(g, '#ffffff', -3.2, 0, 0, 1.2, 0.15, 3.6); block(g, col, -3.3, 0.9, 0, 1.2, 1.6, 0.15);
+  for (const z of [-0.45, 0.45]) block(g, '#bfe8ff', 2, 0.45, z, 1.2, 0.4, 0.05);
+  const prop = block(g, '#23324a', 4.8, 0, 0, 0.1, 3, 0.25); g.userData.prop = prop;
+  g.traverse(o => { if (o.isMesh) o.castShadow = false; });
+  return g;
+}
+const birds = [...Array(6)].map((_, i) => {
+  const g = new THREE.Group(); scene.add(g);
+  ball(g, '#3a3a50', 0, 0, 0, 0.35, 0.25, 0.25);
+  const wings = [-1, 1].map(s => { const w = block(g, '#3a3a50', 0, 0, s * 0.7, 0.5, 0.06, 1.2); return w; });
+  g.userData = { wings, ph: i * 0.7 };
+  g.traverse(o => { if (o.isMesh) o.castShadow = false; });
+  return g;
+});
+const balloon = (() => {
+  const g = new THREE.Group(); scene.add(g);
+  const cols = ['#e8453a', '#ffd84a', '#3cc456', '#5a7aff'];
+  for (let i = 0; i < 8; i++) { const seg = new THREE.Mesh(new THREE.SphereGeometry(5, 12, 12, i * Math.PI / 4, Math.PI / 4), M(cols[i % 4])); seg.scale.y = 1.2; g.add(seg); }
+  block(g, '#a8703a', 0, -8.2, 0, 2, 1.6, 2);
+  for (const [x, z] of [[-0.9, -0.9], [0.9, -0.9], [-0.9, 0.9], [0.9, 0.9]]) rod(g, '#8a5a32', x, -6.4, z, 0.05, 2.6);
+  g.position.set(-200, 60, 120);
+  g.traverse(o => { if (o.isMesh) o.castShadow = false; });
+  return g;
+})();
+function updateWorld(dt) {
+  // farm animals amble about the pen, stopping to munch
+  for (const a of farm.animals) {
+    if (jobs.some(j => j.obj === a)) continue;
+    const w = a.userData.walk;
+    if (w.wait > 0) { w.wait -= dt; a.userData.body.rotation.z = Math.sin(clock * 2 + a.id) * 0.04; continue; }
+    const d = w.to.clone().sub(a.position).setY(0), len = d.length();
+    if (len < 0.2) { w.wait = 2 + Math.random() * 5; w.to = inPen(a.position.clone().add(new THREE.Vector3((Math.random() - 0.5) * 8, 0, (Math.random() - 0.5) * 8))); continue; }
+    const sp = a.userData.farm === 'Chicken' ? 1.4 : 0.8;
+    a.position.addScaledVector(d.normalize(), Math.min(len, sp * dt));
+    a.position.y = Math.abs(Math.sin(clock * 8 + a.id)) * 0.06;
+    faceDir(a, d.x, d.z);
+  }
+  for (const d of farm.ducks) { const ph = d.userData.ph + clock * 0.25; d.position.set(62 + Math.cos(ph) * d.userData.r * 1.3, 0.1 + Math.sin(clock * 3 + ph) * 0.03, 92 + Math.sin(ph) * d.userData.r * 0.75); d.rotation.y = -ph - Math.PI; }
+  // now and then an animal wanders across the track ahead
+  if (state === 'play') {
+    crossT -= dt;
+    if (crossT <= 0) {
+      crossT = 3;
+      const g = goal();
+      if (!crossers.length && train.running && train.v > 4 && hold <= 0 && (!g || distAhead(g) > 90) && spawnCrosser()) crossT = 30 + Math.random() * 30;
+    }
+  }
+  for (const c of crossers) {
+    if (c.pause > 0) { c.pause -= dt; c.obj.userData.body.rotation.x = Math.sin(clock * 20) * 0.03; continue; }
+    const was = c.k;
+    c.k = Math.min(1.2, c.k + dt * (c.hurry ? 5 : 1.3) / 20);
+    c.obj.position.lerpVectors(c.from, c.to, c.k); c.obj.position.y = Math.abs(Math.sin(clock * (c.hurry ? 16 : 8))) * 0.1;
+    c.onTrack = c.k > 0.3 && c.k < 0.58;
+    if (c.onTrack && !c.told && distAhead(c.loc) < 50) { c.told = true; say(LINE.onTrack(c.name)); }
+    if (c.poop && was < 0.36 && c.k >= 0.36 && !c.hurry) { c.poop = false; c.pause = 1.6; dropPoop(c.obj.position.clone().addScaledVector(c.to.clone().sub(c.from).normalize(), -0.9)); say(LINE.poop(c.name)); }
+  }
+  for (let i = crossers.length - 1; i >= 0; i--) if (crossers[i].k >= 1.2 || crossers[i].obj.position.distanceTo(engine.position) > 200) { scene.remove(crossers[i].obj); crossers.splice(i, 1); }
+  for (const p of poops) { p.t += dt; p.flies.forEach((f, i) => f.position.set(Math.cos(clock * 7 + i * 3) * 0.4, 0.7 + Math.sin(clock * 9 + i) * 0.15, Math.sin(clock * 7 + i * 3) * 0.4)); if (p.t > 50) p.g.scale.setScalar(Math.max(0.01, 1 - (p.t - 50))); }
+  for (let i = poops.length - 1; i >= 0; i--) if (poops[i].t > 51) { scene.remove(poops[i].g); poops.splice(i, 1); }
+  // a plane now and then (never more than one), the birds and the balloon
+  planeT -= dt;
+  if (planeT <= 0 && !planes.length && state !== 'title') {
+    planeT = 50 + Math.random() * 50;
+    const g = makePlane(), a = Math.random() * Math.PI * 2, h = 55 + Math.random() * 30;
+    g.position.set(Math.cos(a) * 480, h, 40 + Math.sin(a) * 480); g.userData.v = new THREE.Vector3(-Math.cos(a + 0.3), 0, -Math.sin(a + 0.3)).multiplyScalar(30);
+    g.lookAt(g.position.clone().add(g.userData.v)); g.rotateY(-Math.PI / 2); g.userData.left = 1000;
+    scene.add(g); planes.push(g);
+  }
+  for (const g of planes) { g.position.addScaledVector(g.userData.v, dt); g.userData.left -= 30 * dt; g.userData.prop.rotation.x += dt * 40; }
+  for (let i = planes.length - 1; i >= 0; i--) if (planes[i].userData.left < 0) { scene.remove(planes[i]); planes.splice(i, 1); }
+  birds.forEach((b, i) => { const ph = clock * 0.15 + b.userData.ph * 0.15; b.position.set(Math.cos(ph) * 70 + Math.sin(i) * 6, 32 + Math.sin(clock + i) * 1.5 + (i % 3), 50 + Math.sin(ph) * 50 + Math.cos(i * 2) * 6); b.rotation.y = -ph; b.userData.wings.forEach((w, k) => { w.rotation.x = (k ? 1 : -1) * Math.sin(clock * 9 + i) * 0.5; }); });
+  balloon.position.x += dt * 1.2; balloon.position.y = 60 + Math.sin(clock * 0.3) * 3; if (balloon.position.x > 260) balloon.position.x = -260;
+  if (scene.userData.sky) scene.userData.sky.position.set(camera.position.x, -40, camera.position.z);
+}
 
 // ---------- The game ----------
 const save = (() => { try { return JSON.parse(RB.store.get('abc_train') || 'null') || {}; } catch (e) { return {}; } })();
@@ -725,14 +1092,15 @@ function start(m) {
   RB.audio();
   mode = m; state = 'play';
   $('title').classList.add('hidden');
-  for (const id of ['abc', 'go', 'toot', 'cam']) $(id).classList.remove('hidden');
+  for (const id of ['abc', 'go', 'toot', 'cam', 'music']) $(id).classList.remove('hidden');
   setTrain(0, PARK_AT + 1); train.v = 0; train.running = false; glide = null; ocam.reset();
   for (let i = 0; i < train.seats.length; i++) if (train.seats[i]) { train.wagons[i].remove(train.seats[i]); train.seats[i] = null; }
   next = mode === 'abc' ? Math.min(save.next || 0, 25) : 0;
   setupStations();
   drawAbc(); updateGo();
-  if (mode === 'abc') say(next ? `Hooray, you're back! Let's find the letter ${ANIMALS[next].L}. Press the big green button!` : 'Hi there! All aboard the A B C train! Let\'s find the letter A. Press the big green button to go!');
-  else say(`Choo choo! Can you find the letter ${ANIMALS[target].L}? Press stop when you see it!`);
+  if (mode === 'abc') say(next ? LINE.back(next) : LINE.hello);
+  else say(LINE.findStart(target));
+  music.start(); loadSounds();
 }
 // which animals wait at which stations
 function setupStations() {
@@ -791,7 +1159,7 @@ function chooseWay(dir) {
   f.set = branch;
   showForkSigns(); drawFork();
   const [, name] = branch ? f.branch : f.main;
-  say(`To ${name}!`);
+  say(LINE.way(name));
 }
 const ARROW = d => `<svg viewBox="0 0 40 30" width="52" height="38"${d < 0 ? ' style="transform:scaleX(-1)"' : ''}><path d="M4 11h18V3l15 12-15 12v-8H4z" fill="#23324a" stroke="#23324a" stroke-width="3" stroke-linejoin="round"/></svg>`;
 function drawFork() {
@@ -828,6 +1196,7 @@ function toggleGo() {
 }
 function toot() {
   RB.audio(); sfx.toot();
+  for (const c of crossers) if (!c.hurry && c.onTrack) { c.hurry = true; say(LINE.byeBye(c.name)); }
   // the waiting animals jump for joy
   for (const st of stations) if (st.animal) jobs.push({ t: 0, d: 0.6, obj: st.animal, kind: 'jump', y0: 0.75 });
   for (const a of park.animals) jobs.push({ t: 0, d: 0.6, obj: a, kind: 'jump', y0: 0 });
@@ -842,7 +1211,7 @@ function arrive(st) {
       save.found = [...new Set([...(save.found || []), idx])]; persist();
     } else {
       sfx.oops(); showCard(idx);
-      say(`Ooh, that's ${a.L}! ${a.L} is for ${a.say || a.name}. Now let's look for ${ANIMALS[target].L}!`);
+      say(LINE.wrong(idx, target));
       jobs.push({ t: 0, d: 0.6, obj: st.animal, kind: 'jump', y0: 0.75 });
     }
   }
@@ -851,7 +1220,7 @@ function boardAnimal(st, idx) {
   const a = ANIMALS[idx];
   hold = 3.4; train.running = false; updateGo();
   showCard(idx); sfx.ding();
-  say(`${a.L}! ${a.L} is for ${a.say || a.name}! ${CHEERS[Math.floor(Math.random() * CHEERS.length)]}`);
+  say(LINE.board(idx, Math.floor(Math.random() * CHEERS.length)));
   // hop from the platform into the first empty wagon
   for (const o of stations) if (o !== st && o.letter === idx) setStation(o, null);   // the same letter waiting the other way goes home
   const seat = train.seats.indexOf(null), animal = st.animal;
@@ -868,12 +1237,12 @@ function boardAnimal(st, idx) {
     save.next = next; persist();
     if (next >= 26) { setTimeout(finale, 2600); return; }
   }
-  setTimeout(() => { if (state === 'play') { setupStations(); if (mode === 'abc' && seatsFree() === 0) say('Wow, the train is full! Let\'s take everybody to the Animal Park!'); else if (mode === 'abc') say(`Now let's find ${ANIMALS[next].L}!`); else say(`Can you find the letter ${ANIMALS[target].L}?`); } }, 3600);
+  setTimeout(() => { if (state === 'play') { setupStations(); if (mode === 'abc' && seatsFree() === 0) say(LINE.full); else if (mode === 'abc') say(LINE.next(next)); else say(LINE.findAsk(target)); } }, 3600);
   drawAbc();
 }
 function unloadAtPark() {
   hold = 3.6; train.running = false; updateGo();
-  sfx.cheer(); say('Hooray! Hop off, everybody! Have fun in the Animal Park!');
+  sfx.cheer(); say(LINE.park);
   train.seats.forEach((animal, i) => {
     if (!animal) return;
     const from = new THREE.Vector3(); animal.getWorldPosition(from);
@@ -883,23 +1252,27 @@ function unloadAtPark() {
     park.g.localToWorld(spot);
     jobs.push({ t: 0, d: 1.3, obj: animal, kind: 'leap', from, to: spot, delay: i * 0.35, done: () => { animal.userData.home = spot.clone(); animal.userData.ph = Math.random() * 6; park.animals.push(animal); } });
   });
-  setTimeout(() => { if (state === 'play') { setupStations(); say(`Now let's find ${ANIMALS[next].L}!`); } }, 4200);
+  setTimeout(() => { if (state === 'play') { setupStations(); say(LINE.next(next)); } }, 4200);
 }
 function finale() {
   state = 'party'; train.running = false; updateGo();
   ask('🎉 You did the whole alphabet! 🎉');
-  say('You did it! You found every letter from A to Z! You\'re a super star! Let\'s sing!');
+  say(LINE.finale);
   setTimeout(() => {
     const len = playAbcSong();
     [...abcEl.children].forEach((el, i) => setTimeout(() => { el.classList.add('next'); setTimeout(() => el.classList.remove('next'), 400); }, i * len * 1000 / 30));
-    setTimeout(() => { save.next = 0; save.done = (save.done || 0) + 1; persist(); next = 0; state = 'play'; setupStations(); drawAbc(); say('Let\'s go again from A!'); }, len * 1000 + 800);
+    setTimeout(() => { save.next = 0; save.done = (save.done || 0) + 1; persist(); next = 0; state = 'play'; setupStations(); drawAbc(); say(LINE.again); }, len * 1000 + 800);
   }, 3500);
 }
 
 // ---------- Controls ----------
 $('go').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toggleGo(); });
 $('toot').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toot(); });
-$('cam').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); camMode = (camMode + 1) % 3; RB.audio(); beep(600, 900, 0.08, 'sine', 0.06); });
+$('cam').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); nextView(); });
+$('music').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); RB.audio(); music.toggle(); });
+$('walk').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); getOff(); });
+$('board').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); allAboard(); });
+function nextView() { camMode = (camMode + 1) % CAM_VIEWS.length; RB.audio(); beep(600, 900, 0.08, 'sine', 0.06); }
 $('btnAbc').addEventListener('click', () => start('abc'));
 $('btnFind').addEventListener('click', () => start('find'));
 // tap an animal in the park (or at a station) and it jumps and says its name
@@ -910,43 +1283,60 @@ canvas.addEventListener('pointerup', e => {
   if (state === 'title' || !tapAt || Math.hypot(e.clientX - tapAt.x, e.clientY - tapAt.y) > 12 || performance.now() - tapAt.t > 600) return;
   ptr.set(e.clientX / innerWidth * 2 - 1, -(e.clientY / innerHeight) * 2 + 1);
   ray.setFromCamera(ptr, camera);
-  const pool = [...park.animals, ...stations.map(s => s.animal).filter(Boolean), ...train.seats.filter(Boolean)];
+  const pool = [...park.animals, ...stations.map(s => s.animal).filter(Boolean), ...train.seats.filter(Boolean), ...farm.animals, ...crossers.map(c => c.obj)];
   const hit = ray.intersectObjects(pool, true)[0];
-  if (!hit) return;
+  if (!hit) {
+    if (state === 'farm') { const q = new THREE.Vector3(); if (ray.ray.intersectPlane(new THREE.Plane(UP, 0), q)) walker.userData.target = q; }
+    return;
+  }
   let o = hit.object; while (o && !pool.includes(o)) o = o.parent;
   if (!o) return;
   const idx = ANIMALS.findIndex(a => o.userData.name === a.name);
   jobs.push({ t: 0, d: 0.6, obj: o, kind: 'jump', y0: o.position.y });
-  if (idx >= 0) { say(`${ANIMALS[idx].say || ANIMALS[idx].name}!`); sfx.hop(); }
+  if (o.userData.farm) { farmHello(o); return; }
+  if (idx >= 0) { say(LINE.tap(idx)); sfx.hop(); }
 });
 addEventListener('keydown', e => {
   if (e.repeat) return;
   if (state === 'title') { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); start('abc'); } return; }
+  if (e.code === 'Equal' || e.code === 'NumpadAdd') setZoom(zoom / 1.2);
+  if (e.code === 'Minus' || e.code === 'NumpadSubtract') setZoom(zoom * 1.2);
+  if (state === 'farm') { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); allAboard(); } if (e.code.startsWith('Arrow')) { e.preventDefault(); held[e.code] = true; } return; }
+  if (e.code === 'KeyF' && !$('walk').classList.contains('hidden')) { getOff(); return; }
   if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowUp') { e.preventDefault(); toggleGo(); }
   if (e.code === 'KeyH' || e.code === 'KeyX' || e.code === 'KeyT') toot();
-  if (e.code === 'KeyC') camMode = (camMode + 1) % 3;
+  if (e.code === 'KeyC') nextView();
   if (e.code === 'ArrowLeft') chooseWay(-1);
   if (e.code === 'ArrowRight') chooseWay(1);
   if (e.code === 'KeyM') RB.toggleMute();
 });
 // 🎮 Ⓐ go / stop, Ⓧ / Ⓨ / Ⓑ toot the horn, ◀ ▶ pick the way at a fork, right stick swings the camera, LB snaps it back, RB changes it
 if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyH', 2: 'KeyH', 3: 'KeyH', 4: null, 5: 'KeyC', 6: null, 7: 'Space' },
-  '<b>ABC Train:</b> Ⓐ go and stop · Ⓧ / Ⓨ / Ⓑ toot the horn · ◀ ▶ choose the way at a fork · right stick: look around · <b>LB</b> camera back · <b>RB</b> change the camera');
+  '<b>ABC Train:</b> Ⓐ go and stop · Ⓧ / Ⓨ / Ⓑ toot the horn · ◀ ▶ choose the way at a fork · right stick: look around · <b>LB</b> camera back · <b>RB</b> change the camera (one is inside the train) · at the farm: left stick walks, Ⓐ all aboard');
+const held = {};
+addEventListener('keyup', e => { held[e.code] = false; });
+addEventListener('blur', () => { for (const k in held) held[k] = false; });
 RB.topbar({ home: 'index.html', homeTitle: 'Back to Preschool', shareInfo: { title: 'ABC Train | RoboBandit', text: 'Drive the train, pick up the animals and learn the alphabet! 🚂🔤' } });
 
 // the ☰ menu (or switching apps) stops the train, so nothing is missed
 addEventListener('blur', () => { if (train.running) { train.running = false; glide = null; updateGo(); } });
+document.addEventListener('gesturestart', e => e.preventDefault());   // pinching zooms the camera, not the page
 
 // ---------- Update ----------
 const CRUISE = 9, ACC = 2.6, BRAKE = 6;
 function update(dt) {
   clock += dt;
   hold = Math.max(0, hold - dt);
+  updateWorld(dt);
+  if (state === 'farm') { updateWalker(dt); updateSmoke(dt); updateCamera(dt); return; }
   if (hold <= 0 && $('go').classList.contains('stop') !== train.running) updateGo();
   // speed: gentle start, gentle stops; the train brakes by itself for the next animal
   let want = train.running ? CRUISE : 0;
   const g = train.running ? goal() : null, dG = g ? distAhead(g) : Infinity;
   if (dG < 40) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, dG - 0.05)) + 0.3);
+  // an animal on the track: slow down and wait a safe way back (toot and it hurries off)
+  const blk = blocker();
+  if (blk) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, blk.d - 10)));
   const wasMoving = train.v > 0.05;
   if (train.v < want) train.v = Math.min(want, train.v + ACC * dt);
   else train.v = Math.max(want, train.v - BRAKE * dt);
@@ -964,12 +1354,17 @@ function update(dt) {
   }
   // a fork coming up: show the arrows (and ask, the first few times)
   const fa = forkAhead();
-  if (fa && train.running && !fa.told && forkTalk < 3 && hold <= 0) { fa.told = true; forkTalk++; say('Which way should we go? Tap an arrow!'); }
+  if (fa && train.running && !fa.told && forkTalk < 3 && hold <= 0) { fa.told = true; forkTalk++; say(LINE.whichWay); }
   for (const f of FORKS) if (f !== fa) f.told = false;
   drawFork();
+  // stopped at the farm: you can get off and visit the animals
+  const atFarm = state === 'play' && !train.running && train.v < 0.05 && hold <= 0 && farm.station.p.distanceTo(engine.position) < 7;
+  $('walk').classList.toggle('hidden', !atFarm);
+  if (atFarm && !farm.told) { farm.told = true; say(LINE.farmHere); }
+  if (!atFarm && farm.station.p.distanceTo(engine.position) > 20) farm.told = false;
   // chuff-chuff, faster as the train speeds up
   if (train.v > 0.3 && clock - lastChuff > 2.2 / (train.v + 1.5)) { lastChuff = clock; sfx.chuff(train.v); puff(); }
-  if (!train.running && train.v < 0.05 && state === 'play' && hold <= 0) { idleT += dt; if (idleT > 9) { idleT = 0; say('Press the green GO button!'); } } else idleT = 0;
+  if (!train.running && train.v < 0.05 && state === 'play' && hold <= 0 && !atFarm) { idleT += dt; if (idleT > 12) { idleT = 0; say(LINE.pressGo); } } else idleT = 0;
   placeTrain();
   const spin = train.v * dt / 0.55;
   for (const w of engine.userData.wheels) w.rotation.x += spin;
@@ -1012,26 +1407,113 @@ function updateSmoke(dt) {
   for (const s of smoke) { s.t += dt; s.m.position.y += dt * 1.6; s.m.scale.setScalar(0.4 + s.t * 0.9); s.m.material.opacity = Math.max(0, 0.8 - s.t * 0.5); }
 }
 // the camera: swing it all the way round the train (drag, right stick or Q / E, like Witch Way Out);
-// let go and it glides back behind. 🎥 picks close, far or high up.
-const ocam = createOrbitCam({ canvas, enabled: () => state === 'play', fingers: true, el0: 0.36, minEl: 0.06, maxEl: 1.3, idleBack: 2.5 });
-const CAM_VIEWS = [{ d: 15, el: 0 }, { d: 25, el: 0.12 }, { d: 42, el: 0.6 }];
+// let go and it glides back behind. 🎥 picks close, far, high up, or inside the cab with the driver.
+// Pinch (or the mouse wheel, or + and -) zooms in and out.
+const ocam = createOrbitCam({ canvas, enabled: () => state === 'play' || state === 'farm', fingers: true, el0: 0.36, minEl: 0.06, maxEl: 1.3, idleBack: 2.5 });
+const CAM_VIEWS = [{ d: 15, el: 0 }, { d: 25, el: 0.12 }, { d: 42, el: 0.6 }, { cab: true }];
+let zoom = 1;
+const setZoom = z => { zoom = Math.min(2.6, Math.max(0.4, z)); };
+canvas.addEventListener('wheel', e => { e.preventDefault(); setZoom(zoom * Math.exp(e.deltaY * 0.0015)); }, { passive: false });
+const touches = new Map();
+let pinch = null;
+canvas.addEventListener('pointerdown', e => {
+  if (e.pointerType === 'mouse') return;
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (touches.size === 2) { const [a, b] = [...touches.values()]; pinch = { d: Math.hypot(a.x - b.x, a.y - b.y) || 1, z: zoom }; tapAt = null; }
+});
+canvas.addEventListener('pointermove', e => {
+  if (!touches.has(e.pointerId)) return;
+  touches.set(e.pointerId, { x: e.clientX, y: e.clientY });
+  if (pinch && touches.size >= 2) { const [a, b] = [...touches.values()]; setZoom(pinch.z * pinch.d / (Math.hypot(a.x - b.x, a.y - b.y) || 1)); ocam.drag = null; }
+});
+const lift = e => { touches.delete(e.pointerId); if (touches.size < 2) pinch = null; };
+canvas.addEventListener('pointerup', lift); canvas.addEventListener('pointercancel', lift);
 const camPos = new THREE.Vector3(0, 30, -30), camLook = new THREE.Vector3(), camRay = new THREE.Vector3();
 function updateCamera(dt) {
-  const p = engine.position;
+  const p = state === 'farm' ? walker.position : engine.position;
+  const view = CAM_VIEWS[camMode], cab = view.cab && state === 'play';
+  engine.userData.driver.visible = !cab && state !== 'farm';
   let want, look;
   if (state === 'title') { const a = clock * 0.08; want = new THREE.Vector3(Math.cos(a) * 120, 70, 40 + Math.sin(a) * 120); look = new THREE.Vector3(0, 0, 45); }
-  else {
+  else if (cab) {
+    // in the cab, looking out over the boiler; drag or the right stick to look around
     ocam.input(dt, 0);
-    const t = tanAt(train.e, train.s), v = CAM_VIEWS[camMode];
-    ocam.ray(Math.atan2(-t.x, -t.z), -v.el * 4, camRay);
-    want = p.clone().addScaledVector(camRay, v.d).add(new THREE.Vector3(0, 1.5, 0));
-    look = p.clone().addScaledVector(t, 6 * ocam.ahead()).add(new THREE.Vector3(0, 1.5, 0));
+    const t = tanAt(train.e, train.s);
+    const eye = engine.localToWorld(new THREE.Vector3(0.55, 2.8, -1.25));   // the driver's seat, by the side window
+    const dir = t.clone().applyAxisAngle(UP, ocam.yawS);
+    dir.y += -0.12 - (ocam.elS - ocam.el0) * 0.9; dir.normalize();
+    camPos.copy(eye); camLook.copy(eye).add(dir);
+    camera.position.copy(camPos); camera.lookAt(camLook);
+    const fov = baseFov() * Math.min(1.3, Math.max(0.6, zoom)) * 1.15;
+    if (Math.abs(camera.fov - fov) > 0.01) { camera.fov = fov; camera.updateProjectionMatrix(); }
+    sun.position.copy(p).add(new THREE.Vector3(30, 60, 20)); sun.target.position.copy(p);
+    return;
+  } else {
+    ocam.input(dt, 0);
+    const t = state === 'farm' ? new THREE.Vector3(Math.sin(walker.rotation.y), 0, Math.cos(walker.rotation.y)) : tanAt(train.e, train.s);
+    const v = state === 'farm' ? { d: 10, el: 0.05 } : view.cab ? CAM_VIEWS[0] : view;
+    ocam.ray(state === 'farm' ? farm.camHeading : Math.atan2(-t.x, -t.z), -v.el * 4, camRay);
+    want = p.clone().addScaledVector(camRay, v.d * zoom).add(new THREE.Vector3(0, 1.5, 0));
+    look = p.clone().addScaledVector(t, (state === 'farm' ? 1 : 6) * ocam.ahead()).add(new THREE.Vector3(0, 1.2, 0));
   }
+  if (Math.abs(camera.fov - baseFov()) > 0.01) { camera.fov = baseFov(); camera.updateProjectionMatrix(); }
   const k = Math.min(1, dt * (state === 'title' ? 1 : 5));
   camPos.lerp(want, k); camLook.lerp(look, k);
   camera.position.copy(camPos); camera.lookAt(camLook);
   sun.position.copy(p).add(new THREE.Vector3(30, 60, 20)); sun.target.position.copy(p);
 }
+
+// ---------- Music: a bouncy little tune (it goes quiet while someone is talking) ----------
+const music = (() => {
+  let on = RB.store.get('abc_music') !== '0', started = false, nextT = 0, step = 0, out = null;
+  const BPM = 104, S16 = 60 / BPM / 4;
+  const mtof = m => 440 * 2 ** ((m - 69) / 12);
+  // eight bars: C F G C Am F G C, a tune on top, an oom-pah bass and plinky chords
+  const CH = [[48, [60, 64, 67]], [41, [60, 65, 69]], [43, [59, 62, 67]], [48, [60, 64, 67]], [45, [57, 60, 64]], [41, [60, 65, 69]], [43, [59, 62, 67]], [48, [60, 64, 67]]];
+  const TUNE = [[[0, 72, 4], [4, 76, 2], [6, 79, 2], [8, 76, 4], [12, 72, 4]], [[0, 77, 4], [4, 81, 4], [8, 79, 2], [10, 77, 2], [12, 76, 4]],
+    [[0, 74, 2], [2, 76, 2], [4, 77, 4], [8, 79, 4], [12, 74, 4]], [[0, 76, 4], [4, 72, 4], [8, 72, 6]],
+    [[0, 76, 2], [2, 76, 2], [4, 81, 4], [8, 79, 4], [12, 76, 4]], [[0, 77, 2], [2, 77, 2], [4, 81, 4], [8, 79, 2], [10, 77, 2], [12, 76, 4]],
+    [[0, 74, 4], [4, 79, 4], [8, 77, 2], [10, 76, 2], [12, 74, 4]], [[0, 72, 4], [4, 76, 2], [6, 74, 2], [8, 72, 6]]];
+  const note = (ac, f, t, dur, vol, type = 'triangle', partial = 0) => {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.value = f;
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.012); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(out); o.start(t); o.stop(t + dur + 0.02);
+    if (partial) { const o2 = ac.createOscillator(), g2 = ac.createGain(); o2.type = 'sine'; o2.frequency.value = f * partial;
+      g2.gain.setValueAtTime(0.0001, t); g2.gain.exponentialRampToValueAtTime(vol * 0.3, t + 0.005); g2.gain.exponentialRampToValueAtTime(0.0001, t + dur * 0.35);
+      o2.connect(g2).connect(out); o2.start(t); o2.stop(t + dur); }
+  };
+  function tick() {
+    const ac = RB.audio();
+    if (!ac || !out) return;
+    const quiet = !on || RB.muted || document.hidden || document.querySelector('.rb-menu') || state === 'party';
+    out.gain.setTargetAtTime(quiet ? 0 : RB.voice.speaking ? 0.35 : 1, ac.currentTime, 0.15);   // duck under the voice
+    if (nextT < ac.currentTime) nextT = ac.currentTime + 0.05;
+    while (nextT < ac.currentTime + 0.25) {
+      if (!quiet) {
+        const bar = Math.floor(step / 16) % 8, st = step % 16, [root, tri] = CH[bar];
+        for (const [s0, m, len] of TUNE[bar]) if (s0 === st) note(ac, mtof(m), nextT, len * S16 * 1.3, 0.05, 'sine', 2.76);   // glockenspiel
+        if (st === 0 || st === 8) note(ac, mtof(root), nextT, S16 * 3, 0.09, 'triangle');                               // oom
+        if (st === 4 || st === 12) tri.forEach(m => note(ac, mtof(m), nextT, S16 * 2, 0.022, 'triangle'));             // pah
+        if (st % 2 === 0 && train.v > 0.5 && state === 'play') { const n = ac.createBufferSource(); n.buffer = shaker(ac); const g = ac.createGain(); g.gain.value = st % 4 ? 0.02 : 0.035; n.connect(g).connect(out); n.start(nextT); }   // chugga-chugga while we roll
+      }
+      nextT += S16; step = (step + 1) % 128;
+    }
+  }
+  let shake = null;
+  const shaker = ac => {
+    if (shake) return shake;
+    shake = ac.createBuffer(1, Math.floor(ac.sampleRate * 0.05), ac.sampleRate);
+    const d = shake.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length) ** 2;
+    return shake;
+  };
+  return {
+    get on() { return on; },
+    start() { const ac = RB.audio(); if (!ac || started) return; started = true; out = ac.createGain(); out.gain.value = 0; out.connect(ac.destination); setInterval(tick, 60); },
+    toggle() { on = !on; RB.store.set('abc_music', on ? '1' : '0'); $('music').classList.toggle('off', !on); if (on) this.start(); },
+  };
+})();
+$('music').classList.toggle('off', !music.on);
 
 // ---------- Title and loop ----------
 function titleStats() {

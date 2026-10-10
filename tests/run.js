@@ -1133,6 +1133,89 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'abc-train-fork.png');
   });
 
+  await test('ABC Train: zoom (wheel and pinch), the cab view, music, visiting the farm, animals on the track, planes', async () => {
+    const p = await open(browser, 'preschool/abc-train.html', { viewport: { width: 1000, height: 620 }, hasTouch: true });
+    await p.evaluate(() => { localStorage.removeItem('abc_train'); window.__said = []; RB.speak = s => __said.push(s); start('abc'); setTrain(0, 30); });
+    // the mouse wheel and a two-finger pinch zoom the camera
+    await p.mouse.move(500, 300); await p.mouse.wheel(0, 400); await p.waitForTimeout(100);
+    const zOut = await p.evaluate(() => zoom);
+    const cdp = await p.context().newCDPSession(p);
+    const two = (type, d) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: 500 - d, y: 300, id: 1 }, { x: 500 + d, y: 300, id: 2 }] });
+    await two('touchStart', 40); for (let d = 60; d <= 200; d += 35) await two('touchMove', d); await two('touchEnd');
+    const zIn = await p.evaluate(() => zoom);
+    check(zOut > 1.3 && zIn < zOut * 0.5, 'wheel out then pinch in: ' + zOut + ' → ' + zIn);
+    // the fourth view is from the driver's seat
+    const cab = await p.evaluate(() => { setZoom(1); camMode = CAM_VIEWS.length - 1; for (let k = 0; k < 10; k++) update(0.05); return { d: camera.position.distanceTo(engine.position), driver: engine.userData.driver.visible }; });
+    check(cab.d < 3.5 && !cab.driver, 'the cab view should be in the cab (and the driver out of the way): ' + JSON.stringify(cab));
+    // music plays notes while it's on, and remembers being switched off
+    const notes = await p.evaluate(() => new Promise(res => { let n = 0; const make = AudioContext.prototype.createOscillator;
+      AudioContext.prototype.createOscillator = function () { n++; return make.call(this); }; RB.setMuted(false); camMode = 0;
+      setTimeout(() => { const on = n; music.toggle(); res({ on, saved: localStorage.getItem('abc_music') }); }, 2000); }));
+    check(notes.on > 3 && notes.saved === '0', 'music should play and switch off: ' + JSON.stringify(notes));
+    // stop at the farm: get off, walk with the bear, say hello to a cow, all aboard
+    const f1 = await p.evaluate(() => { FORKS[0].set = true; setTrain(1, farm.station.s); for (let k = 0; k < 5; k++) update(0.05); return !document.getElementById('walk').classList.contains('hidden'); });
+    check(f1, 'the Visit the farm button should show at the farm station');
+    await p.click('#walk', { force: true });
+    const f2 = await p.evaluate(() => { const cow = farm.animals.find(a => a.userData.farm === 'Cow'); const from = walker.position.clone(); farmHello(cow);
+      for (let k = 0; k < 200; k++) update(0.05); return { state, moved: walker.position.distanceTo(from), near: walker.position.distanceTo(cow.position) }; });
+    await p.waitForTimeout(1500);
+    const said = await p.evaluate(() => __said.join(' | '));
+    check(f2.state === 'farm' && f2.moved > 3 && /visit the farm/.test(said) && /The cow says moo!/.test(said), 'farm visit: ' + JSON.stringify(f2) + ' ' + said);
+    await p.click('#board', { force: true });
+    check(await p.evaluate(() => state === 'play' && !walker.visible && !document.getElementById('go').classList.contains('hidden')), 'All aboard should go back to the train');
+    // an animal on the track: the train waits for it, it poops, and a toot hurries it off
+    const c = await p.evaluate(() => { FORKS.forEach(f => { f.set = false; }); __said = []; let ok = false;
+      for (let i = 0; i < 30 && !ok; i++) { setTrain(0, 10 + i * 15); ok = spawnCrosser(); }
+      const cr = crossers[0]; cr.poop = true; train.running = true; train.v = CRUISE; let minV = 99, gap = 99;
+      for (let k = 0; k < 300; k++) { update(0.05); if (cr.onTrack) { minV = Math.min(minV, train.v); gap = Math.min(gap, distAhead(cr.loc)); } }
+      return { ok, minV, gap }; });
+    await p.waitForTimeout(1200);
+    const c2 = await p.evaluate(() => { const cr = crossers[0]; const pooped = poops.length; if (cr) { cr.hurry = false; cr.k = 0.45; cr.onTrack = true; toot(); } return { pooped, hurry: cr && cr.hurry, said: __said.join(' | ') }; });
+    check(c.ok && c.minV < 0.5 && c.gap > 5 && c2.pooped === 1 && /on the track/.test(c2.said) && /did a poop/.test(c2.said), 'the train should wait for the animal (and its poop): ' + JSON.stringify(c) + JSON.stringify(c2));
+    check(c2.hurry === undefined || c2.hurry, 'tooting should hurry the animal off');
+    // a plane flies over now and then, one at a time
+    const pl = await p.evaluate(() => { planeT = 0; update(0.05); const n = planes.length; planeT = 0; update(0.05); return [n, planes.length]; });
+    check(pl[0] === 1 && pl[1] === 1, 'one plane at a time: ' + pl);
+    await done(p, 'abc-train-farm.png');
+  });
+
+  // The 🌟 RoboBandit voice plays recorded sentences (needs a real web server: pages opened from files can't fetch).
+  await test('recorded voice: a sentence with a clip plays the recording, not the device voice; anything new uses the device voice', async () => {
+    const http = require('http');
+    const types = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.json': 'application/json', '.mp3': 'audio/mpeg', '.svg': 'image/svg+xml', '.png': 'image/png', '.jpg': 'image/jpeg' };
+    const server = http.createServer((req, res) => {
+      const f = path.join(ROOT, decodeURIComponent(req.url.split('?')[0]));
+      if (!f.startsWith(ROOT) || !fs.existsSync(f) || fs.statSync(f).isDirectory()) { res.writeHead(404); res.end(); return; }
+      res.writeHead(200, { 'Content-Type': types[path.extname(f)] || 'application/octet-stream' }); fs.createReadStream(f).pipe(res);
+    });
+    await new Promise(r => server.listen(0, r));
+    try {
+      const idx = JSON.parse(fs.readFileSync(path.join(ROOT, 'voice', 'index.json'))), lines = JSON.parse(fs.readFileSync(path.join(ROOT, 'voice', 'lines.json')));
+      const key = idx.clips.find(k => lines[k]);
+      check(key && fs.existsSync(path.join(ROOT, 'voice', key + '.mp3')), 'voice/index.json should list clips that exist');
+      const ctx = await browser.newContext();
+      await ctx.addInitScript(() => { window.__device = []; window.SpeechSynthesisUtterance = function (t) { this.text = t; };
+        Object.defineProperty(window, 'speechSynthesis', { value: { getVoices: () => [], speaking: false, cancel() {}, speak(u) { __device.push(u.text); setTimeout(() => u.onend && u.onend(), 5); }, addEventListener() {} }, configurable: true }); });
+      const p = await ctx.newPage();
+      const errors = []; p.on('pageerror', e => errors.push(e.message));
+      await p.goto(`http://localhost:${server.address().port}/2nd-grade/math.html`);
+      await p.waitForFunction(() => RB.voice.hasRecorded(), null, { timeout: 5000 });
+      const r = await p.evaluate(async s => {
+        let played = 0; const st = AudioBufferSourceNode.prototype.start; AudioBufferSourceNode.prototype.start = function (...a) { played++; return st.apply(this, a); };
+        localStorage.removeItem('rb_voice'); RB.speak(s);
+        await new Promise(ok => setTimeout(ok, 1500));
+        const rec = { played, device: __device.length };
+        RB.speak('A brand new sentence nobody recorded yet, about purple zebras.');
+        await new Promise(ok => setTimeout(ok, 300));
+        return { ...rec, deviceAfter: __device.length };
+      }, lines[key]);
+      check(r.played >= 1 && r.device === 0, 'the recorded clip should play instead of the device voice: ' + JSON.stringify(r));
+      check(r.deviceAfter === 1, 'a sentence with no recording should use the device voice: ' + JSON.stringify(r));
+      check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+      await ctx.close();
+    } finally { server.close(); }
+  });
+
   await test('read-aloud voice: picks a natural voice over robotic ones, splits long text, skips emoji; the ☰ menu can change it', async () => {
     const ctx = await browser.newContext();
     await ctx.addInitScript(() => {

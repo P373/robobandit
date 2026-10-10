@@ -405,7 +405,7 @@ const School = (() => {
   }
 
   function start(unit) {
-    U = unit; key = 'rb_' + unit.id;
+    U = unit; key = 'rb_' + unit.id; School.unit = unit;   // (tools/voice-lines.js reads the slides from here)
     load();
     card = $('card');
     crumb = document.createElement('div'); crumb.className = 'crumb'; document.body.appendChild(crumb);

@@ -138,6 +138,37 @@ const RB = (() => {
     };
     const load = () => { if (ok) list = speechSynthesis.getVoices().filter(v => /^en/i.test(v.lang)).sort((a, b) => score(b) - score(a)); };
     if (ok) { load(); speechSynthesis.addEventListener ? speechSynthesis.addEventListener('voiceschanged', load) : (speechSynthesis.onvoiceschanged = load); }
+    // 🌟 The RoboBandit voice: a natural-sounding voice that read our sentences aloud ahead of time
+    // (tools/make-voice.py). Each sentence is a small mp3 in voice/, named by a hash of its words; when every
+    // sentence of something has one, we play those instead of the device's voice (iPads' built-in voices are
+    // robotic unless you download better ones). voice/index.json lists the sentences we have.
+    const ROOT = SITE_HOME.replace(/index\.html$/, '');
+    const rec = { have: null, bufs: new Map(), token: null, src: null };
+    const key = t => { let a = 0x811c9dc5, b = 5381; for (let i = 0; i < t.length; i++) { const c = t.charCodeAt(i); a = Math.imul(a ^ c, 16777619) >>> 0; b = (Math.imul(b, 33) + c) >>> 0; } return a.toString(16).padStart(8, '0') + b.toString(16).padStart(8, '0'); };
+    if (location.protocol !== 'file:') setTimeout(() => { try { fetch(ROOT + 'voice/index.json').then(r => r.ok ? r.json() : null).then(j => { if (j && j.clips) rec.have = new Set(j.clips); }).catch(() => {}); } catch (e) { /* file:// */ } });
+    const useRec = () => !!rec.have && !store.get('rb_voice') || store.get('rb_voice') === 'rb';
+    const clip = k => {
+      if (!rec.bufs.has(k)) rec.bufs.set(k, fetch(ROOT + 'voice/' + k + '.mp3').then(r => { if (!r.ok) throw new Error('no clip'); return r.arrayBuffer(); })
+        .then(data => new Promise((ok, no) => { const p = audio().decodeAudioData(data, ok, no); if (p && p.then) p.then(ok, no); }))
+        .catch(e => { rec.bufs.delete(k); throw e; }));
+      return rec.bufs.get(k);
+    };
+    async function playRec(parts, rate, done, fallback) {
+      const token = rec.token = {}, ac = audio();
+      try {
+        const bufs = await Promise.all(parts.map(p => clip(key(p))));   // fetch them all at once, then play in a row
+        for (let i = 0; i < bufs.length; i++) {
+          if (rec.token !== token) return;
+          await new Promise(ok => {
+            const src = ac.createBufferSource(), g = ac.createGain();
+            src.buffer = bufs[i]; src.playbackRate.value = rate; g.gain.value = 1;
+            src.connect(g).connect(ac.destination); src.onended = ok; rec.src = src;
+            src.start(ac.currentTime + (i ? 0.12 : 0.02));
+          });
+        }
+        if (rec.token === token) { rec.token = rec.src = null; if (done) done(); }
+      } catch (e) { if (rec.token === token) { rec.token = rec.src = null; fallback(); } }   // offline or missing: the device voice
+    }
     const pick = () => {
       const saved = store.get('rb_voice');
       return (saved && list.find(v => v.voiceURI === saved)) || list[0] || null;
@@ -160,36 +191,50 @@ const RB = (() => {
       speechSynthesis.speak(u);
     }
     function speak(text, { rate = 0.95, pitch = 1.14, onend } = {}) {
-      if (!ok) return false;
       stop();
-      if (!list.length) load();
+      if (ok && !list.length) load();
       const parts = sentences(text);
       if (!parts.length) return false;
+      if (useRec() && audio() && parts.every(p => rec.have.has(key(p)))) {
+        playRec(parts, Math.min(1.1, Math.max(0.9, rate / 0.95)), onend, () => deviceSpeak(parts, rate, pitch, onend));
+        return true;
+      }
+      return deviceSpeak(parts, rate, pitch, onend);
+    }
+    function deviceSpeak(parts, rate, pitch, onend) {
+      if (!ok) return false;
       // a little more sparkle on "Yay!" sentences and a lift on questions, like a person reading to a child
       const lift = t2 => /!["”’)]*$/.test(t2) ? [0.03, 0.08] : /\?["”’)]*$/.test(t2) ? [0, 0.12] : [0, 0];
       queue = parts.map((t2, i) => { const [dr, dp] = lift(t2); return { text: t2, rate: rate + dr, pitch: Math.min(2, pitch + dp), done: i === parts.length - 1 ? onend : null }; });
       next();
       return true;
     }
-    function stop() { queue = []; current = null; if (ok) try { speechSynthesis.cancel(); } catch (e) { /* fine */ } }
+    function stop() {
+      queue = []; current = null; rec.token = null;
+      if (rec.src) { try { rec.src.onended = null; rec.src.stop(); } catch (e) { /* already done */ } rec.src = null; }
+      if (ok) try { speechSynthesis.cancel(); } catch (e) { /* fine */ }
+    }
     return {
       ok, speak, stop,
-      get speaking() { return ok && (!!current || speechSynthesis.speaking); },
+      get speaking() { return !!rec.token || (ok && (!!current || speechSynthesis.speaking)); },
+      get recorded() { return useRec(); },
+      hasRecorded: () => !!rec.have,
+      key, sentences,
       voices: () => { if (!list.length) load(); return list.filter(v => !BAD.test(v.name)).slice(0, 10); },
       get chosen() { return pick(); },
-      choose(v) { store.set('rb_voice', v ? v.voiceURI : ''); },
+      choose(v) { store.set('rb_voice', v === 'rb' ? 'rb' : v ? v.voiceURI : ''); },
     };
   })();
   // the ☰ menu's voice chooser: the best few voices on this device, each with a little sample
   function voiceMenu(panel) {
-    const vs = voice.voices();
-    const cur = voice.chosen;
-    panel.innerHTML = `<h3>🗣️ Read-aloud voice</h3><div class="rb-menu-set rb-voices">${vs.length ? vs.map((v, i) =>
-      `<button type="button" data-v="${i}" class="${cur && v.voiceURI === cur.voiceURI ? 'on' : ''}">${cur && v.voiceURI === cur.voiceURI ? '✔ ' : ''}${v.name.replace(/\s*\(.*\)\s*/, ' ').replace(/microsoft|google|apple/ig, '').trim() || v.name}</button>`).join('')
-      : '<p>This device has no voices to read aloud with.</p>'}</div>
-      <p class="rb-voice-tip">Tip: the nicest voices are often called “Natural”, “Enhanced” or “Premium”. On an iPad or Mac you can download more in Settings → Accessibility → Spoken Content → Voices.</p>`;
+    const vs = voice.voices(), rec = voice.hasRecorded() && voice.recorded;
+    const cur = rec ? null : voice.chosen;
+    panel.innerHTML = `<h3>🗣️ Read-aloud voice</h3><div class="rb-menu-set rb-voices">${voice.hasRecorded() ? `<button type="button" data-v="rb" class="${rec ? 'on' : ''}">${rec ? '✔ ' : ''}🌟 RoboBandit voice</button>` : ''}${vs.map((v, i) =>
+      `<button type="button" data-v="${i}" class="${cur && v.voiceURI === cur.voiceURI ? 'on' : ''}">${cur && v.voiceURI === cur.voiceURI ? '✔ ' : ''}${v.name.replace(/\s*\(.*\)\s*/, ' ').replace(/microsoft|google|apple/ig, '').trim() || v.name}</button>`).join('')}
+      ${!vs.length && !voice.hasRecorded() ? '<p>This device has no voices to read aloud with.</p>' : ''}</div>
+      <p class="rb-voice-tip">${voice.hasRecorded() ? 'The 🌟 RoboBandit voice reads our games and lessons in a friendly, natural voice (anything new it hasn\'t learned yet uses this device\'s voice). ' : ''}Tip: the nicest device voices are often called “Natural”, “Enhanced” or “Premium”. On an iPad or Mac you can download more in Settings → Accessibility → Spoken Content → Voices.</p>`;
     panel.querySelectorAll('[data-v]').forEach(b => b.addEventListener('click', () => {
-      const v = vs[+b.dataset.v]; voice.choose(v); voiceMenu(panel);
+      const v = b.dataset.v === 'rb' ? 'rb' : vs[+b.dataset.v]; voice.choose(v); voiceMenu(panel);
       voice.speak('Hi there! I\'m so happy to read with you. Are you ready? Let\'s go!');
     }));
   }
