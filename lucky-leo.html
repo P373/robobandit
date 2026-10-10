@@ -94,7 +94,7 @@
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
       <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
-      <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, and press run to fire a rainbow laser from his eyes that turns enemies into coins. If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
+      <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, press run to fire a rainbow laser from his eyes that turns enemies into coins, and walk into enemies to gobble them up (after three… watch your step!). If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
@@ -452,6 +452,9 @@ const sfx = {
   neigh: () => { tone(900, 1100, 0.12, 'sawtooth', 0.03, 0, { cut: 2000, vib: 0.05 }); tone(1100, 500, 0.5, 'sawtooth', 0.035, 0.1, { cut: 1800, vib: 0.08 }); },
   hatch: () => { puffNoise(0.08, 0.1, 2500); arp([784, 988, 1175, 1568], 0.06, 0.14, 'sine', 0.06); },
   zap: () => { tone(2400, 1200, 0.14, 'sawtooth', 0.025, 0, { cut: 4000 }); tone(1600, 800, 0.12, 'sine', 0.04); },
+  gulp: () => { tone(320, 140, 0.12, 'square', 0.05, 0, { cut: 1200 }); tone(200, 90, 0.14, 'sine', 0.08, 0.08); },
+  poop: () => { puffNoise(0.25, 0.08, 300, 'lowpass'); tone(180, 70, 0.3, 'sawtooth', 0.04, 0, { cut: 500, vib: 0.1 }); tone(500, 300, 0.1, 'sine', 0.05, 0.3); },
+  squish: () => { puffNoise(0.18, 0.12, 600, 'lowpass', 0, 200); tone(260, 90, 0.18, 'sine', 0.07); },
   cloud: () => { puffNoise(0.3, 0.06, 900, 'bandpass', 0, 2500); arp([523, 659, 784, 1047, 1319, 1568], 0.12, 0.35, 'sine', 0.05, { vib: 0.01 }); },
   pickup: () => { tone(320, 520, 0.08, 'square', 0.045, 0, { cut: 3000 }); tone(520, 760, 0.08, 'square', 0.035, 0.06, { cut: 3000 }); },
   twirl: () => { tone(520, 1600, 0.24, 'triangle', 0.06); tone(780, 2100, 0.2, 'sine', 0.03, 0.06); puffNoise(0.2, 0.05, 1200, 'bandpass', 0, 5000); },
@@ -727,7 +730,7 @@ function updateSummon(e) {
 const RIDE_H = 30;
 function mount(e) {
   const p = player, bottom = p.y + p.h;
-  p.mount = { flutter: 0, zap: 0, zapCD: 0, beam: null }; p.w = 14; p.h = RIDE_H; p.y = bottom - p.h;
+  p.mount = { flutter: 0, zap: 0, zapCD: 0, beam: null, eaten: 0, chew: 0, digest: 0 }; p.w = 14; p.h = RIDE_H; p.y = bottom - p.h;
   p.carry = null; p.pound = null; e.gone = true;
   sfx.mount(); sparkle(p.x + 7, p.y + 10, '#ff9ad0', 12);
 }
@@ -750,8 +753,21 @@ function updateUnicorn(e, dt) {
   moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
   if (e.y > LH + 30) e.gone = true;
 }
+// gulp! after three, Shamrock has a little think… and leaves a poop behind
+function eatEnemy(e) {
+  const m = player.mount;
+  e.gone = true; m.chew = 0.6; m.eaten = (m.eaten || 0) + 1; addScore(200, e.x, e.y); sfx.gulp();
+  if (m.eaten >= 3) { m.eaten = 0; m.digest = 1.3; }
+}
+function dropPoop() {
+  const p = player, x = p.x + p.w / 2 - p.face * 14 - 6;
+  ents.push(mk('poop', x, p.y + p.h - 10, { w: 12, h: 10, vy: 0, smooshed: false }));
+  sfx.poop(); puff(x + 6, p.y + p.h - 4, 3, 'rgba(160,140,90,.6)');
+}
 function updateRiding(p, inp, dt) {
   const m = p.mount;
+  m.chew = Math.max(0, (m.chew || 0) - dt);
+  if (m.digest > 0) { m.digest -= dt; if (m.digest <= 0) dropPoop(); }
   m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt); m.eye = Math.max(0, (m.eye || 0) - dt);
   if (p.ground) m.flutter = 0;
   // the rainbow laser: a thin, tight beam from Shamrock's eyes, aimed at the nearest enemy ahead (or straight on), stopped by walls
@@ -759,7 +775,7 @@ function updateRiding(p, inp, dt) {
     m.zapCD = 0.35; m.zap = 0.2; m.eye = 0.55; sfx.zap();   // his eyes glow red a little longer than the beam, so you can see where it came from
     const ex = p.x + p.w / 2 + p.face * 13, ey = p.y + p.h - 22.6;
     const clear = (x2, y2) => { const n = Math.ceil(Math.hypot(x2 - ex, y2 - ey) / 4); for (let i = 1; i <= n; i++) { const x = ex + (x2 - ex) * i / n, y = ey + (y2 - ey) * i / n; if (SOLID.has(tileAt(Math.floor(x / TS), Math.floor(y / TS)))) return { x, y, hit: true }; } return null; };
-    let best = null, bd = 190;
+    let best = null, bd = 120;   // about a third of the screen: no sniping from far away
     for (const e of ents) {
       if (e.dead || !isEnemy(e) || e.k === 'boss') continue;   // (King Grumbles has to be stomped)
       const tx2 = e.x + e.w / 2, ty2 = e.y + e.h / 2, dx = (tx2 - ex) * p.face, dy = ty2 - ey;
@@ -771,7 +787,7 @@ function updateRiding(p, inp, dt) {
       { best.gone = true; coinPop(best.x, best.y); getCoin(best.x, best.y); addScore(200, best.x, best.y); }
       sparkle(bx, by, '#ffffff', 8); sparkle(bx, by, '#ff9ad0', 6);
     } else {
-      const far = { x: ex + p.face * 190, y: ey + 24 }, wall = clear(far.x, far.y);
+      const far = { x: ex + p.face * 120, y: ey + 16 }, wall = clear(far.x, far.y);
       m.beam = { x1: ex, y1: ey, x2: wall ? wall.x : far.x, y2: wall ? wall.y : far.y };
       if (wall) sparkle(wall.x, wall.y, '#ffffff', 4);
     }
@@ -923,17 +939,18 @@ function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
 
 // ---- Shamrock the unicorn: white, a rainbow mane and tail, a golden horn and a green saddle ----
 // cx, by: the middle of his feet. gait 0..1 how much the legs move. zap > 0 shows a rainbow beam from the horn.
-function drawUnicorn(cx, by, face, t, gait = 0, zap = 0) {
+function drawUnicorn(cx, by, face, t, gait = 0, zap = 0, chew = 0, full = 0) {
   g.save(); g.translate(cx, by); g.scale(face, 1);
   const fill = c => { g.fillStyle = c; g.fill(); }, RAIN = ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'];
   const leg = (x, ph, back) => { g.save(); g.translate(x, -7.5); g.rotate(Math.sin(ph) * 0.55 * gait); rrect(-1.4, 0, 2.8, 7, 1.3); fill(back ? '#e2dcea' : '#ffffff'); rrect(-1.6, 5.8, 3.2, 1.7, 0.7); fill('#c8a0e0'); g.restore(); };
   leg(-5.5, t * 14 + Math.PI, true); leg(3.5, t * 14, true);
   RAIN.forEach((c, i) => { g.beginPath(); g.moveTo(-8, -13 + i * 0.9); g.quadraticCurveTo(-15, -12 + i, -13.5 + Math.sin(t * 6 + i) * 0.8, -4 + i * 1.1); g.lineWidth = 1.7; g.strokeStyle = c; g.lineCap = 'round'; g.stroke(); });
-  ell(0, -11.5, 8.8, 5.2); fill('#ffffff'); ell(0, -9.6, 7.6, 2.8); fill('#efe8f6');
+  ell(0, -11.5 + full, 8.8 + full * 1.5, 5.2 + full * 1.2); fill('#ffffff'); ell(0, -9.6 + full, 7.6 + full, 2.8 + full); fill('#efe8f6');   // (a round tummy while digesting)
   rrect(-3.8, -17.2, 7.2, 3.2, 1.4); fill('#2fbf4f'); rrect(-0.8, -16.6, 1.6, 2, 0.4); fill(C.gold);
   leg(-4, t * 14, false); leg(5, t * 14 + Math.PI, false);
   g.beginPath(); g.moveTo(4.5, -14.5); g.lineTo(8.5, -22.5); g.lineTo(12.5, -20.5); g.lineTo(9.5, -11.5); g.closePath(); fill('#ffffff');
-  ell(12.6, -21.8, 4.4, 3.1); fill('#ffffff'); ell(15.6, -20.6, 2.1, 1.9); fill('#ffe0ec');
+  const munch = chew > 0 ? Math.abs(Math.sin(chew * 30)) : 0;
+  ell(12.6, -21.8, 4.4 + munch * 0.8, 3.1 + munch * 0.9); fill('#ffffff'); ell(15.6, -20.6 + munch * 0.5, 2.1, 1.9 + munch * 0.6); fill('#ffe0ec');   // cheeks puff as he chews
   g.beginPath(); g.moveTo(9.6, -23.6); g.lineTo(10.6, -27.4); g.lineTo(12, -24); fill('#ffffff');
   g.beginPath(); g.moveTo(11.8, -24.4); g.lineTo(16.4, -31.5); g.lineTo(14.2, -23.6); fill(C.gold);
   if (zap > 0) { const a = Math.min(1, zap / 0.2); glow(13, -22.6, 4 + 5 * a, 'rgba(255,40,40,1)', 0.9 * a + 0.1); ell(12.9, -22.6, 1.25, 1.55); fill('#ff2a2a'); g.beginPath(); g.arc(13.1, -22.9, 0.5, 0, TAU); fill('#ffd0d0'); }   // red, glowing eyes while firing
@@ -941,6 +958,22 @@ function drawUnicorn(cx, by, face, t, gait = 0, zap = 0) {
   RAIN.forEach((c, i) => { g.beginPath(); g.arc(9 - i * 0.9, -23 + i * 2.2, 1.9, 0, TAU); fill(c); });
   g.restore();
 }
+function drawPoop(e, t) {
+  const cx = e.x + 6, by = e.y + e.h;
+  if (e.smooshed) {
+    for (const [dx, dy, r] of e.spots) { ell(cx + dx, by - 1 + dy, r * 1.4, r * 0.6); g.fillStyle = '#7a4a22'; g.fill(); }
+    ell(cx, by - 1.5, 8, 2.2); g.fillStyle = '#6a3e1c'; g.fill(); ell(cx - 2, by - 2.2, 3, 0.8); g.fillStyle = 'rgba(255,255,255,.25)'; g.fill();
+    return;
+  }
+  ell(cx, by - 2.5, 6, 2.8); g.fillStyle = '#7a4a22'; g.fill();
+  ell(cx, by - 5.5, 4.4, 2.4); g.fillStyle = '#8a5a2a'; g.fill();
+  ell(cx, by - 8, 2.6, 1.8); g.fillStyle = '#7a4a22'; g.fill();
+  g.beginPath(); g.moveTo(cx, by - 9.5); g.quadraticCurveTo(cx + 2.5, by - 11, cx + 1, by - 12.5); g.lineWidth = 1; g.strokeStyle = '#7a4a22'; g.stroke();
+  ell(cx - 1.6, by - 6.2, 1.2, 0.6); g.fillStyle = 'rgba(255,255,255,.35)'; g.fill();
+  for (let i = 0; i < 2; i++) { g.beginPath(); g.arc(cx + Math.cos(t * 7 + i * 3) * 6, by - 14 + Math.sin(t * 9 + i) * 2, 0.7, 0, TAU); g.fillStyle = '#23324a'; g.fill(); }   // flies
+  g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
+}
+
 // the magic cloud: it puffs up, shines a rainbow down to the ground, and Shamrock appears where the rainbow lands
 function drawSummon(e, t) {
   const k = e.t, fade = k < 0.4 ? k / 0.4 : k > 2 ? Math.max(0, 1 - (k - 2) / 0.6) : 1;
@@ -1892,6 +1925,8 @@ function updatePlayer(dt) {
     p.hatless = true; sfx.throwHat();
   }
   if (pressed.item) recallReserve();
+  // muddy boots after stepping in poop: a few brown footprints
+  if (p.muddy > 0) { p.muddy -= dt; p.printX = p.printX || p.x; if (p.ground && Math.abs(p.x - p.printX) > 10) { p.printX = p.x; ents.push(mk('smudge', p.x + p.w / 2 - 2, p.y + p.h - 2, { w: 0, h: 0, life: 4, print: true })); } }
   // ↓ standing on top of a hollow tree: down you go
   if (inp.down && p.ground && !p.pound && phase === 'play') {
     const cx = p.x + p.w / 2;
@@ -2056,6 +2091,11 @@ function updateEnts(dt) {
         break;
       case 'cap': updateCap(e, dt); break;
       case 'summon': updateSummon(e, dt); break;
+      case 'poop':
+        e.vy = Math.min((e.vy || 0) + 900 * dt, 300); moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+        if (e.y > LH + 30) e.gone = true;
+        break;
+      case 'smudge': e.life -= dt; if (e.life <= 0) e.gone = true; break;
       case 'unicorn': updateUnicorn(e, dt); break;
       case 'acorn': e.vy += 600 * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y > LH) e.gone = true; break;
       case 'boss': updateBoss(e, dt); break;
@@ -2146,6 +2186,13 @@ function touchPlayer(e) {
       if (!(p.vy > 0 && p.y + p.h < e.y + 10) && p.ground && (keys.run || touchState.run) && !p.carry && !p.mount) { p.carry = e; e.carried = true; sfx.pickup(); break; }
       if (p.vy > 0 && p.y + p.h < e.y + 10) { p.y = e.y - p.h + 4; p.vy = keys.jump || touchState.jump ? -520 : -430; e.squash = 8; sfx.spring(); p.ground = false; }
       break;
+    case 'poop':
+      if (!e.smooshed && p.y + p.h <= e.y + e.h + 2) {
+        e.smooshed = true; e.y += 6; e.h = 4; sfx.squish();
+        e.spots = [...Array(5)].map(() => [rand(-12, 12), rand(-1, 2), rand(1.2, 2.6)]);
+        p.muddy = 1.6;
+      }
+      break;
     case 'unicorn':
       if (!p.mount && (e.st === 'wait' || e.t > 0.6)) mount(e);   // hop on (Shamrock can be caught again while he runs off)
       break;
@@ -2195,6 +2242,7 @@ function touchPlayer(e) {
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
+      if (p.mount && !['thorny', 'snapper', 'boss'].includes(e.k)) { eatEnemy(e); break; }   // Shamrock gobbles it up
       hurtPlayer();
   }
 }
@@ -2399,13 +2447,13 @@ function drawLevel() {
         g.restore();
       } else if (p.mount) {   // riding Shamrock: the unicorn underneath, Leo sitting in the saddle
         const gait = p.ground ? Math.min(1, Math.abs(p.vx) / 80) : 0.3;
-        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.eye || 0);
+        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.eye || 0, p.mount.chew || 0, p.mount.digest > 0 ? 1 : 0);
         const bm = p.mount.beam;
         if (bm && p.mount.zap > 0) {   // the laser: rainbow threads round a white-hot core
           const a = p.mount.zap / 0.2, nx = -(bm.y2 - bm.y1), ny = bm.x2 - bm.x1, nl = Math.hypot(nx, ny) || 1;
           glow(bm.x2, bm.y2, 10, 'rgba(255,255,255,1)', a);
-          ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'].forEach((c, i) => { const o = (i - 2.5) * 0.55; g.beginPath(); g.moveTo(bm.x1 + nx / nl * o, bm.y1 + ny / nl * o); g.lineTo(bm.x2 + nx / nl * o, bm.y2 + ny / nl * o); g.lineWidth = 0.7; g.strokeStyle = c; g.globalAlpha = a; g.stroke(); });
-          g.beginPath(); g.moveTo(bm.x1, bm.y1); g.lineTo(bm.x2, bm.y2); g.lineWidth = 0.6; g.strokeStyle = '#ffffff'; g.stroke(); g.globalAlpha = 1;
+          ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'].forEach((c, i) => { const o = (i - 2.5) * 0.3; g.beginPath(); g.moveTo(bm.x1 + nx / nl * o, bm.y1 + ny / nl * o); g.lineTo(bm.x2 + nx / nl * o, bm.y2 + ny / nl * o); g.lineWidth = 0.4; g.strokeStyle = c; g.globalAlpha = a; g.stroke(); });
+          g.beginPath(); g.moveTo(bm.x1, bm.y1); g.lineTo(bm.x2, bm.y2); g.lineWidth = 0.35; g.strokeStyle = '#ffffff'; g.stroke(); g.globalAlpha = 1;
         }
         const lh = p.form > 0 ? 28 : 16;
         drawLeo(p.x - 1 - p.face * 2, p.y + p.h - 15 - lh, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, { ...fx, swing: 0, squash: 0 });
@@ -2496,6 +2544,8 @@ function drawEnt(e, t) {
     case 'spark': drawSpark(x, y, t); break;
     case 'cap': drawCap(x, y, e.spin || 0, player && player.form > 0); break;
     case 'summon': drawSummon(e, t); break;
+    case 'poop': drawPoop(e, t); break;
+    case 'smudge': g.globalAlpha = Math.min(1, e.life / 1.5) * 0.8; ell(x, y, 2.2, 0.9); g.fillStyle = '#6a3e1c'; g.fill(); g.globalAlpha = 1; break;
     case 'unicorn': drawUnicorn(x + 8, y + 22, e.face || 1, t, e.st === 'flee' ? 1 : 0); break;
     case 'acorn': drawAcorn(x, y, t); break;
     case 'pot': drawPot(x, y, t); break;

@@ -1143,6 +1143,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // the eye laser reaches a goblin well ahead on the ground and turns it into a coin
       run(30); const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
       const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
+      // walk into three goblins: Shamrock gobbles them, then leaves a poop behind; stepping in it smooshes it
+      let eaten = 0;
+      for (let i = 0; i < 3; i++) { const g2 = mk('grumblin', player.x + player.face * 8, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(g2); run(3); if (g2.gone && player.mount) eaten++; }
+      run(100); const poo = ents.find(e => e.k === 'poop'); out.ate = eaten === 3 && !!poo && !!player.mount;
+      if (poo) { player.x = poo.x - 30; player.face = 1; keys.right = true; run(40); keys.right = false; out.smoosh = poo.smooshed === true && ents.some(e => e.k === 'smudge'); }
+      // the laser doesn't reach right across the screen
+      const farGob = mk('grumblin', player.x + player.face * 170, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(farGob); run(30); pressed.run = true; run(1); out.shortLaser = !farGob.gone; farGob.gone = true;
       // finishing the level: Shamrock and the power come along to the next one
       setForm(1); reachGoal(); startLevel('woods'); out.kept = !!player.mount && player.form === 1 && player.h === RIDE_H;
       // a hit: Leo falls off unhurt, Shamrock runs off; ↓ + jump hops off on purpose
@@ -1154,6 +1161,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.rideJump > 66 && r.floatAir > r.plainAir + 15, 'riding: a higher jump and a float: ' + JSON.stringify(r));
     check(r.spiky && r.zap, 'riding: stomp spiky hedgehogs and zap with the eye laser: ' + JSON.stringify(r));
     check(r.kept, 'Shamrock and power-ups should come along to the next level: ' + JSON.stringify(r));
+    check(r.ate && r.smoosh && r.shortLaser, 'Shamrock eats three enemies and poops, the poop smooshes, and the laser is short: ' + JSON.stringify(r));
     check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
     await done(p);
   });
