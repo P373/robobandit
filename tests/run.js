@@ -1093,7 +1093,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo World 2: beating Goblin Castle opens the Frosty Isle across the sea; the Frost Fortress is the real ending', async () => {
+  await test('Lucky Leo Worlds 2 and 3: Goblin Castle opens the Frosty Isle, the Frost Fortress opens Cape Cod, and Provincetown Pier is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
@@ -1104,12 +1104,20 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const after = { state, shore: nodeOpen(node('shore')), snow: nodeOpen(node('snow')), at: mapLeo.at };
       startLevel('fort'); const boss = ents.find(e => e.k === 'boss'); const hp = boss.hp;
       ['shore', 'snow', 'night'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end2 = { title: document.querySelector('#ending h1').textContent, beaten2: save.beaten2 };
-      return { before, end1, after, hp, end2, slippery: !!LEVELS.snow.slippery, levels: ['shore', 'snow', 'night', 'fort'].every(id => ORDER.includes(id)) };
+      const end2 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten2: save.beaten2 };
+      document.getElementById('btnMapAgain').click();
+      const cape = { state, canal: nodeOpen(node('canal')), cranberry: nodeOpen(node('cranberry')), at: mapLeo.at };
+      startLevel('ptown'); const boss3 = ents.find(e => e.k === 'boss'); const hp3 = boss3.hp;
+      ['canal', 'cranberry', 'dunes'].forEach(id => { save.cleared[id] = true; }); winGame();
+      const end3 = { title: document.querySelector('#ending h1').textContent, beaten3: save.beaten3 };
+      return { before, end1, after, hp, end2, cape, hp3, end3, slippery: !!LEVELS.snow.slippery,
+        levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown'].every(id => ORDER.includes(id)) };
     });
     check(!r.before && /WORLD 1/.test(r.end1.title) && /World 2/.test(r.end1.btn), 'Goblin Castle should finish World 1 and offer World 2: ' + JSON.stringify(r));
     check(r.after.state === 'map' && r.after.shore && !r.after.snow && r.after.at === 'castle', 'the path to Seashell Shore should open: ' + JSON.stringify(r));
-    check(r.hp === 4 && /GOLD/.test(r.end2.title) && r.end2.beaten2 && r.slippery && r.levels, 'the Frost Fortress should be the tougher final ending: ' + JSON.stringify(r));
+    check(r.hp === 4 && /WORLD 2/.test(r.end2.title) && /World 3/.test(r.end2.btn) && r.end2.beaten2 && r.slippery && r.levels, 'the Frost Fortress should finish World 2 and offer World 3: ' + JSON.stringify(r));
+    check(r.cape.state === 'map' && r.cape.canal && !r.cape.cranberry && r.cape.at === 'fort', 'the path to Bourne Bridge on Cape Cod should open: ' + JSON.stringify(r));
+    check(r.hp3 === 5 && /GOLD/.test(r.end3.title) && r.end3.beaten3, 'Provincetown Pier should be the toughest, final ending: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-world2.png');
   });
 
@@ -1149,7 +1157,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       run(100); const poo = ents.find(e => e.k === 'poop'); out.ate = eaten === 3 && !!poo && !!player.mount;
       if (poo) { player.x = poo.x - 30; player.face = 1; keys.right = true; run(40); keys.right = false; out.smoosh = poo.smooshed === true && ents.some(e => e.k === 'smudge'); }
       // the laser doesn't reach right across the screen
-      const farGob = mk('grumblin', player.x + player.face * 170, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(farGob); run(30); pressed.run = true; run(1); out.shortLaser = !farGob.gone; farGob.gone = true;
+      const farGob = mk('grumblin', player.x + player.face * 120, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(farGob); run(30); pressed.run = true; run(1); out.shortLaser = !farGob.gone; farGob.gone = true;
       // finishing the level: Shamrock and the power come along to the next one
       setForm(1); reachGoal(); startLevel('woods'); out.kept = !!player.mount && player.form === 1 && player.h === RIDE_H;
       // a hit: Leo falls off unhurt, Shamrock runs off; ↓ + jump hops off on purpose

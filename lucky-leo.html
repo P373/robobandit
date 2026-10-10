@@ -89,7 +89,7 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>LUCKY <span>LEO</span></h1>
-    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across the Emerald Isle, then over the sea to the Frosty Isle, to get it all back.</div>
+    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across the Emerald Isle, then over the sea to the Frosty Isle and on to Cape Cod, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
@@ -351,6 +351,62 @@ LEVELS.fort = builder('fort', 'Frost Fortress', 'fort', 196)
   .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
+// ---- World 3: Cape Cod (opens when King Grumbles sails off from the Frost Fortress) ----
+// 12. Bourne Bridge: along the Cape Cod Canal under the big steel arch, with seagulls overhead
+LEVELS.canal = builder('canal', 'Bourne Bridge', 'canal', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 30).ground(35, 60).ground(66, 90).ground(95, 118).ground(124, 150).ground(155, 209)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('snaily', 22, 11)
+  .arc(30, 8, 6).at(40, 8, 'B?B').e('buzzer', 44, 6).e('grumblin', 50, 11).pipe(54, 10)
+  .e('plat', 61, 9, { w: 3, dx: 2, sp: 1 }).at(70, 8, '?Y?').e('snaily', 76, 11).e('grumblin', 82, 11)
+  .arc(90, 8, 6).e('mid', 100, 11).at(104, 7, 'BMB').e('thorny', 110, 11).e('buzzer', 114, 5)
+  .e('plat', 119, 9, { w: 3, dx: 2, sp: 1.1 }).at(130, 8, '----').at(135, 6, '----').coins(135, 5, 4).e('grumblin', 142, 11).e('snaily', 146, 11)
+  .e('fall', 151, 9, { w: 3 }).at(162, 8, '?S?').e('grumblin', 168, 11).e('buzzer', 172, 6).stairs(184, 5)
+  .gems(9, 5, 32, 6, 71, 5, 136, 3, 152, 6)
+  .done({ goal: 198, music: 'canal' });
+
+// 13. Cranberry Bog: a flooded autumn bog, hop across on floating rafts of berries
+LEVELS.cranberry = builder('cranberry', 'Cranberry Bog', 'cranberry', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 18).ground(30, 44).ground(62, 74).ground(96, 112).ground(130, 142).ground(166, 213)
+  .at(8, 8, '?P?').e('grumblin', 13, 11)
+  .e('fall', 20, 10, { w: 3 }).e('fall', 25, 9, { w: 3 })
+  .at(34, 8, 'B?B').e('snaily', 40, 11)
+  .e('plat', 46, 9, { w: 3, dx: 4, sp: 1 }).e('fall', 56, 9, { w: 3 })
+  .e('buzzer', 66, 6).at(66, 8, '?M?').e('grumblin', 70, 11)
+  .e('fall', 76, 10, { w: 3 }).e('fall', 81, 9, { w: 3 }).e('fall', 86, 10, { w: 3 }).e('fall', 91, 9, { w: 3 })
+  .e('mid', 100, 11).at(104, 8, '?L?').e('thorny', 108, 11)
+  .e('plat', 114, 9, { w: 3, dy: 2, sp: 1 }).e('plat', 121, 8, { w: 3, dx: 3, sp: 1 })
+  .at(134, 8, 'BSB').e('snaily', 138, 11)
+  .e('fall', 144, 10, { w: 3 }).e('fall', 149, 9, { w: 3 }).e('plat', 155, 9, { w: 3, dx: 3, sp: 1.2 }).e('fall', 162, 10, { w: 2 })
+  .at(172, 8, '?B?B').e('grumblin', 176, 11).e('snaily', 180, 11).stairs(188, 5)
+  .gems(9, 5, 26, 6, 57, 6, 105, 5, 150, 6)
+  .done({ goal: 202, music: 'cranberry' });
+
+// 14. Nauset Dunes: rolling sand dunes, beach grass and a red-and-white lighthouse
+LEVELS.dunes = builder('dunes', 'Nauset Dunes', 'dunes', 214)
+  .ground(0, 40).ground(41, 60, 10).ground(61, 81, 11).ground(86, 110, 9).ground(111, 130, 11).ground(136, 160, 10).ground(161, 213)
+  .at(10, 8, '?P?').e('grumblin', 16, 11).e('buzzer', 24, 6).e('spring', 34, 11).coins(32, 3, 5)
+  .e('snaily', 50, 9).at(52, 6, 'B?B').e('grumblin', 58, 9)
+  .e('buzzer', 70, 7).at(72, 7, '?Y?').e('snaily', 76, 10)
+  .e('mid', 92, 8).at(96, 5, '?L?').e('thorny', 102, 8).e('grumblin', 106, 8)
+  .e('spring', 116, 10).coins(114, 2, 5).e('buzzer', 122, 5).e('snaily', 126, 10)
+  .at(142, 6, 'BMB').e('thorny', 148, 9).e('grumblin', 154, 9)
+  .at(168, 8, '?S?').e('snaily', 174, 11).e('buzzer', 180, 7).stairs(188, 5)
+  .gems(11, 5, 33, 2, 73, 4, 97, 2, 143, 3)
+  .done({ goal: 198, music: 'dunes' });
+
+// 15. Provincetown Pier: the last stand, out on the wharf at sunset with the Pilgrim Monument on the hill. King Grumbles, five stomps.
+LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 24).ground(29, 48).ground(53, 74).ground(80, 102).ground(107, 134).ground(139, 199)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .e('crusher', 33, 1).e('thorny', 40, 11).e('buzzer', 46, 5)
+  .at(50, 9, '--').e('crusher', 58, 1).e('snaily', 64, 11).at(68, 8, 'BSB').e('grumblin', 72, 11)
+  .e('plat', 75, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 84, 11).e('firebar', 90, 8, { len: 4, sp: 1.2 }).e('thorny', 96, 11)
+  .e('plat', 103, 10, { w: 2, dx: 1, sp: 1 }).at(112, 8, '?L?').e('crusher', 118, 1).e('snaily', 124, 11).e('buzzer', 128, 6)
+  .e('fall', 135, 10, { w: 3 })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 5 })
+  .gems(9, 5, 50, 7, 76, 4, 113, 5, 142, 8)
+  .done({ goal: 0, boss: true, music: 'castle' });
+
 // Bonus rooms inside the hollow trees: drop in through a hole, grab the coins, and go down the log on the right to get back out.
 function treeRoom(id, from, kind) {
   const b = builder(id, 'Inside the Hollow Tree', 'caves', 36)
@@ -376,7 +432,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['hills', 'woods', 'caves', 'sky', 'bog', 'castle', 'bonus', 'shore', 'snow', 'night', 'fort'];
+const ORDER = ['hills', 'woods', 'caves', 'sky', 'bog', 'castle', 'bonus', 'shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -491,6 +547,13 @@ const SONGS = {
     4, null, 2, 4, null, 7, 6, null, 4, 2, null, null, 3, null, 2, 3, null, 6, 4, null, 2, 0, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
   night: { bpm: 92, key: 62, mode: 'dorian', beat: 3, lead: 'flute', melody: [
     0, null, 2, 3, null, 4, 3, null, 2, 0, null, null, -1, null, 0, 2, null, 3, 2, null, 0, -3, null, null], bass: [0, 0, -1, -1, -3, -3, -2, -2] },
+  canal: { bpm: 112, key: 62, mode: 'major', beat: 3, lead: 'reed', melody: [
+    0, null, 0, 2, null, 4, 5, null, 4, 2, null, 0, -1, null, 0, 2, null, 4, 2, null, -3, 0, null, null,
+    4, null, 4, 5, null, 7, 9, null, 7, 5, null, 4, 2, null, 4, 5, null, 2, 0, null, null, 0, null, null], bass: [0, 0, 4, 4, 0, 3, 4, 0] },
+  cranberry: { bpm: 128, key: 64, mode: 'major', beat: 4, lead: 'pulse', melody: [
+    0, 2, 4, 2, 0, null, 4, null, 5, 4, 2, 4, 0, null, null, null, 2, 4, 5, 7, 9, null, 7, null, 5, 4, 2, 1, 0, null, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
+  dunes: { bpm: 116, key: 65, mode: 'major', beat: 3, lead: 'flute', melody: [
+    4, null, 5, 7, null, 9, 7, null, 5, 4, null, null, 2, null, 4, 5, null, 7, 4, null, 2, 0, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
   bonus: { bpm: 144, key: 64, mode: 'major', beat: 3, lead: 'pulse', melody: [
     0, 2, 4, 7, 4, 2, 4, 7, 9, 7, 4, 2, 5, 4, 2, 4, 2, 1, 0, null, 4, 7, null, null], bass: [0, 0, 3, 4, 0, 0, 4, 0] },
 };
@@ -583,7 +646,7 @@ const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('ll_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2 };
+  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3 };
 })();
 function persist() {
   RB.store.set('ll_save', JSON.stringify(save));
@@ -775,7 +838,7 @@ function updateRiding(p, inp, dt) {
     m.zapCD = 0.35; m.zap = 0.2; m.eye = 0.55; sfx.zap();   // his eyes glow red a little longer than the beam, so you can see where it came from
     const ex = p.x + p.w / 2 + p.face * 13, ey = p.y + p.h - 22.6;
     const clear = (x2, y2) => { const n = Math.ceil(Math.hypot(x2 - ex, y2 - ey) / 4); for (let i = 1; i <= n; i++) { const x = ex + (x2 - ex) * i / n, y = ey + (y2 - ey) * i / n; if (SOLID.has(tileAt(Math.floor(x / TS), Math.floor(y / TS)))) return { x, y, hit: true }; } return null; };
-    let best = null, bd = 120;   // about a third of the screen: no sniping from far away
+    let best = null, bd = 85;   // about a fifth of the screen: get close before you zap
     for (const e of ents) {
       if (e.dead || !isEnemy(e) || e.k === 'boss') continue;   // (King Grumbles has to be stomped)
       const tx2 = e.x + e.w / 2, ty2 = e.y + e.h / 2, dx = (tx2 - ex) * p.face, dy = ty2 - ey;
@@ -787,7 +850,7 @@ function updateRiding(p, inp, dt) {
       { best.gone = true; coinPop(best.x, best.y); getCoin(best.x, best.y); addScore(200, best.x, best.y); }
       sparkle(bx, by, '#ffffff', 8); sparkle(bx, by, '#ff9ad0', 6);
     } else {
-      const far = { x: ex + p.face * 120, y: ey + 16 }, wall = clear(far.x, far.y);
+      const far = { x: ex + p.face * 85, y: ey + 12 }, wall = clear(far.x, far.y);
       m.beam = { x1: ex, y1: ey, x2: wall ? wall.x : far.x, y2: wall ? wall.y : far.y };
       if (wall) sparkle(wall.x, wall.y, '#ffffff', 4);
     }
@@ -840,7 +903,8 @@ function rrect(x, y, w, h, r) {
   g.lineTo(x + rr[3], y + h); g.quadraticCurveTo(x, y + h, x, y + h - rr[3]); g.lineTo(x, y + rr[0]); g.quadraticCurveTo(x, y, x + rr[0], y);
 }
 function ell(x, y, rx, ry, rot = 0) { g.beginPath(); g.ellipse(x, y, Math.max(0.01, rx), Math.max(0.01, ry), rot, 0, TAU); }
-function paint(fill, lw = 0, stroke = INK) { g.fillStyle = fill; g.fill(); if (lw) { g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); } }
+let noInk = false;   // characters and items are drawn like Leo: bold flat shapes, no dark outlines
+function paint(fill, lw = 0, stroke = INK) { g.fillStyle = fill; g.fill(); if (lw && !noInk) { g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); } }
 function vgrad(y0, y1, a, b) { const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, a); gr.addColorStop(1, b); return gr; }
 // soft glows are painted once per colour into a small picture, then stretched: much cheaper than a gradient every frame
 const glowCache = new Map();
@@ -868,6 +932,37 @@ function shamrock(x, y, r, fill, lw = 0) {
   }
   g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + r * 0.3, y + r * 0.9, x + r * 0.7, y + r * 1.3);
   g.lineWidth = r * 0.25; g.strokeStyle = fill; g.stroke();
+}
+
+// ---- things drifting through the air in each world (petals, leaves, snow, fireflies, sea spray…) ----
+const AIR = {
+  hills: { n: 14, c: ['#ffffff', '#ffd0e8', '#fff2a0'], kind: 'petal', vx: -12, vy: 8 },
+  woods: { n: 12, c: ['#e8a040', '#d86030', '#8ac850'], kind: 'leaf', vx: -10, vy: 14 },
+  caves: { n: 16, c: ['#9ae8ff', '#ff9af0'], kind: 'mote', vx: 0, vy: -6 },
+  sky: { n: 10, c: ['#ffffff'], kind: 'wisp', vx: -26, vy: 0 },
+  bog: { n: 14, c: ['#e8ff8a'], kind: 'mote', vx: 3, vy: -4 },
+  shore: { n: 14, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -6 },
+  snow: { n: 26, c: ['#ffffff'], kind: 'snow', vx: -8, vy: 22 },
+  night: { n: 16, c: ['#e8ff8a'], kind: 'mote', vx: 2, vy: -3 },
+  canal: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -16, vy: -4 },
+  cranberry: { n: 12, c: ['#e8a040', '#c83040', '#f0c060'], kind: 'leaf', vx: -12, vy: 12 },
+  dunes: { n: 16, c: ['#f2dca0', '#ffffff'], kind: 'spray', vx: -30, vy: 2 },
+  pier: { n: 10, c: ['#ffffff'], kind: 'wisp', vx: -14, vy: 0 },
+};
+function drawAirborne(cx, t) {
+  const a = lvl && AIR[lvl.theme];
+  if (!a) return;
+  for (let i = 0; i < a.n; i++) {
+    const r1 = hash(i, 7), r2 = hash(i, 13), sp = 0.6 + r2 * 0.8, W = LW + 40, H = LH + 20;
+    const x = cx + ((((r1 * W + a.vx * sp * t + Math.sin(t * 0.8 + i) * 10) % W) + W) % W) - 20;
+    const y = (((r2 * H + a.vy * sp * t) % H) + H) % H - 10;
+    const c = a.c[i % a.c.length];
+    if (a.kind === 'mote') { glow(x, y, 5, c, 0.35 + 0.3 * Math.sin(t * 3 + i)); g.beginPath(); g.arc(x, y, 0.9, 0, TAU); g.fillStyle = c; g.fill(); }
+    else if (a.kind === 'snow') { g.beginPath(); g.arc(x, y, 0.8 + r1 * 1.2, 0, TAU); g.fillStyle = 'rgba(255,255,255,.85)'; g.fill(); }
+    else if (a.kind === 'wisp') { g.globalAlpha = 0.25; ell(x, y, 14 + r1 * 10, 1.6); g.fillStyle = c; g.fill(); g.globalAlpha = 1; }
+    else if (a.kind === 'spray') { g.globalAlpha = 0.5; g.beginPath(); g.arc(x, y, 0.7 + r1, 0, TAU); g.fillStyle = c; g.fill(); g.globalAlpha = 1; }
+    else { g.save(); g.translate(x, y); g.rotate(t * (1 + r1) + i); ell(0, 0, a.kind === 'leaf' ? 2.2 : 1.6, a.kind === 'leaf' ? 1 : 0.9); g.fillStyle = c; g.globalAlpha = 0.85; g.fill(); g.restore(); g.globalAlpha = 1; }
+  }
 }
 
 // ---- Lucky Leo ----
@@ -974,6 +1069,18 @@ function drawPoop(e, t) {
   g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
 }
 
+const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier']);
+function drawGull(x, y, t, face) {   // a cheeky Cape Cod seagull
+  g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
+  const flap = Math.sin(t * 12);
+  for (const k of [-1, 1]) { g.beginPath(); g.moveTo(-1, -1); g.quadraticCurveTo(-6, -5 - flap * 4 * k, -11, -2 - flap * 5); g.lineTo(-3, 1); g.closePath(); g.fillStyle = k < 0 ? '#b8c0cc' : '#d8dee8'; g.fill(); }
+  ell(0, 1, 6.5, 3.6); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(5, -1.5, 3, 0, TAU); g.fill();
+  g.beginPath(); g.moveTo(7.5, -1.5); g.lineTo(11, -0.5); g.lineTo(7.5, 0.3); g.fillStyle = '#ffc21a'; g.fill();
+  g.beginPath(); g.arc(5.8, -2.4, 0.8, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill();
+  g.beginPath(); g.moveTo(-6, 1); g.lineTo(-10, 0); g.lineTo(-6, 3); g.fillStyle = '#8a92a0'; g.fill();
+  g.restore();
+}
+
 // the magic cloud: it puffs up, shines a rainbow down to the ground, and Shamrock appears where the rainbow lands
 function drawSummon(e, t) {
   const k = e.t, fade = k < 0.4 ? k / 0.4 : k > 2 ? Math.max(0, 1 - (k - 2) / 0.6) : 1;
@@ -1014,7 +1121,6 @@ function drawGrumblin(x, y, t, face, flat) {
   // round body with a little tunic
   ell(0, -8, 7.2, 6.8); paint(vgrad(-15, -1, '#9ad466', '#5e9a3a'), lw);
   g.save(); ell(0, -8, 7.2, 6.8); g.clip(); g.fillStyle = '#8a4a2a'; g.fillRect(-8, -5, 16, 6); g.fillStyle = '#6a3418'; g.fillRect(-8, -5, 16, 1); g.restore();
-  ell(0, -8, 7.2, 6.8); g.lineWidth = lw; g.strokeStyle = INK; g.stroke();
   // grumpy face
   for (const sx of [-2.6, 2.6]) { ell(sx, -9.5, 1.9, 2.2); paint('#fff', 0.8); g.beginPath(); g.arc(sx + 0.6, -9.2, 1, 0, TAU); paint(INK); }
   g.lineWidth = 1.2; g.strokeStyle = INK; g.beginPath(); g.moveTo(-4.6, -13); g.lineTo(-1.2, -11.6); g.moveTo(4.6, -13); g.lineTo(1.2, -11.6); g.stroke();
@@ -1063,7 +1169,6 @@ function drawBuzzer(x, y, t, face) {
   g.beginPath(); g.moveTo(-7.5, 1); g.lineTo(-9.6, 1.6); g.lineTo(-7.5, 2.4); paint(INK);
   ell(0, 1, 7.4, 5.4); paint(vgrad(-4, 6, '#ffe24a', '#f2b81a'), lw);
   g.save(); ell(0, 1, 7.4, 5.4); g.clip(); g.fillStyle = INK; for (const sx of [-4, 0.5]) g.fillRect(sx, -5, 2.4, 12); g.restore();
-  ell(0, 1, 7.4, 5.4); g.lineWidth = lw; g.strokeStyle = INK; g.stroke();
   g.beginPath(); g.arc(4.6, -0.6, 1.6, 0, TAU); paint('#fff', 0.7); g.beginPath(); g.arc(5.1, -0.4, 0.8, 0, TAU); paint(INK);
   g.restore();
 }
@@ -1240,6 +1345,10 @@ const THEMES = {
   snow: { top: '#ffffff', topDk: '#cfe6ff', dirt: '#9ac0e8', dirtDk: '#7aa0d0', edge: '#5a7ab0' },
   night: { top: '#4ab07a', topDk: '#2a7a5a', dirt: '#5a4a6e', dirtDk: '#43365a', edge: '#2a2040' },
   fort: { top: '#bfe0f6', topDk: '#8ab8dc', dirt: '#8aa8c8', dirtDk: '#6a88aa', edge: '#3a5070' },
+  canal: { top: '#5ad06a', topDk: '#2f9e44', dirt: '#c8a46a', dirtDk: '#9a7a48', edge: '#6a5030' },
+  cranberry: { top: '#d83a50', topDk: '#9a1e34', dirt: '#7a5034', dirtDk: '#5a3824', edge: '#3a2414' },
+  dunes: { top: '#ead494', topDk: '#c8aa60', dirt: '#f2dca0', dirtDk: '#d8bc78', edge: '#a8884a' },
+  pier: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -1598,10 +1707,64 @@ SCENERY.fort = [
     for (let i = 0; i < 8; i++) { const x = 20 + i * 60; g.beginPath(); g.moveTo(x - 4, 0); g.lineTo(x, 14 + rndB(i, 1) * 14); g.lineTo(x + 4, 0); g.fillStyle = '#bfe0f6'; g.fill(); }   // icicles
   } },
 ];
+// World 3's scenery: Cape Cod
+SCENERY.canal = [
+  { sp: 0.05, draw() {   // the Bourne Bridge: a big steel arch over the canal
+    g.fillStyle = vgrad(160, 224, '#3a8ad8', '#2a6ab8'); g.fillRect(0, 168, BG_W, 56);
+    const x0 = 60, x1 = 420, top = 70, deck = 136;
+    g.strokeStyle = '#6a8a7a'; g.lineWidth = 5; g.beginPath(); g.moveTo(x0, deck + 10); g.quadraticCurveTo((x0 + x1) / 2, top - 40, x1, deck + 10); g.stroke();
+    g.lineWidth = 2; for (let i = 1; i < 12; i++) { const x = x0 + (x1 - x0) * i / 12, yy = deck + 10 - Math.sin(i / 12 * Math.PI) * (deck + 10 - top) * 0.92; g.beginPath(); g.moveTo(x, yy); g.lineTo(x, deck); g.stroke(); }
+    g.fillStyle = '#5a7a6a'; g.fillRect(0, deck, BG_W, 6); g.fillRect(x0 - 6, deck, 8, 40); g.fillRect(x1 - 2, deck, 8, 40);
+  } },
+  { sp: 0.18, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 34 + (i % 2) * 24, 0.9); } },
+  { sp: 0.42, draw() {   // pine trees along the banks and a little fishing boat
+    for (let i = 0; i < 9; i++) { const x = 10 + i * 56 + rndB(i, 3) * 20; g.fillStyle = '#6a4a2a'; g.fillRect(x - 1.5, 196, 3, 28); for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(x - 14 + k * 3, 206 - k * 11); g.lineTo(x, 180 - k * 11); g.lineTo(x + 14 - k * 3, 206 - k * 11); g.fillStyle = '#2f7a46'; g.fill(); } }
+    g.beginPath(); g.moveTo(300, 184); g.lineTo(340, 184); g.lineTo(334, 192); g.lineTo(306, 192); g.closePath(); g.fillStyle = '#e8453a'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(314, 174, 12, 10);
+  } },
+];
+SCENERY.cranberry = [
+  { sp: 0.08, draw() {   // autumn woods far away
+    for (let i = 0; i < 14; i++) { const x = i * 36 + rndB(i, 1) * 16; g.beginPath(); g.arc(x, 150, 22 + rndB(i, 2) * 10, 0, TAU); g.fillStyle = ['#e8803a', '#d8502e', '#f2b040', '#b8402a'][i % 4]; g.globalAlpha = 0.55; g.fill(); } g.globalAlpha = 1;
+  } },
+  { sp: 0.25, draw() {   // a white farmhouse with a red roof, and the bog full of floating cranberries
+    g.fillStyle = '#ffffff'; g.fillRect(320, 150, 50, 30); g.beginPath(); g.moveTo(314, 152); g.lineTo(345, 128); g.lineTo(376, 152); g.closePath(); g.fillStyle = '#b8302a'; g.fill(); g.fillStyle = '#4a6a9a'; g.fillRect(330, 160, 8, 8); g.fillRect(352, 160, 8, 8);
+    g.fillStyle = '#8a1e34'; g.fillRect(0, 186, BG_W, 38);
+    for (let i = 0; i < 160; i++) { g.beginPath(); g.arc(rndB(i, 4) * BG_W, 188 + rndB(i, 5) * 34, 1.6, 0, TAU); g.fillStyle = i % 3 ? '#e8303a' : '#ff5a5a'; g.fill(); }
+  } },
+];
+SCENERY.dunes = [
+  { sp: 0.05, draw() {   // the ocean and the Nauset lighthouse: white tower, red top
+    g.fillStyle = vgrad(150, 224, '#3a9ae8', '#2a7ac8'); g.fillRect(0, 160, BG_W, 64);
+    const x = 360; g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(x - 9, 160); g.lineTo(x - 6, 92); g.lineTo(x + 6, 92); g.lineTo(x + 9, 160); g.fill();
+    g.fillStyle = '#d8302a'; g.beginPath(); g.moveTo(x - 7.3, 120); g.lineTo(x - 6, 92); g.lineTo(x + 6, 92); g.lineTo(x + 7.3, 120); g.fill();
+    g.fillStyle = '#23324a'; g.fillRect(x - 7, 84, 14, 8); g.beginPath(); g.moveTo(x - 8, 84); g.lineTo(x, 76); g.lineTo(x + 8, 84); g.fill();
+    glow(x, 88, 22, 'rgba(255,240,170,1)', 0.45);
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 150, 40 + (i % 2) * 24, 0.9); } },
+  { sp: 0.4, draw() {   // rolling dunes with beach grass and a little grey-shingled cottage
+    g.fillStyle = vgrad(150, 224, '#f2dca0', '#e2c480'); g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 176 - Math.sin(x / BG_W * TAU * 2) * 16); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 40; i++) { const x = rndB(i, 6) * BG_W, y = 178 - Math.sin(x / BG_W * TAU * 2) * 16; g.strokeStyle = '#8aa84a'; g.lineWidth = 1; for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + k * 3, y - 6, x + k * 5, y - 10); g.stroke(); } }
+    g.fillStyle = '#9a9aa2'; g.fillRect(120, 150, 34, 22); g.beginPath(); g.moveTo(116, 152); g.lineTo(137, 136); g.lineTo(158, 152); g.closePath(); g.fillStyle = '#6a6a72'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(132, 158, 8, 14);
+  } },
+];
+SCENERY.pier = [
+  { sp: 0.04, draw() {   // a sunset sun, and the Pilgrim Monument on the hill: a tall granite tower
+    glow(380, 120, 60, 'rgba(255,220,140,1)', 0.6); g.beginPath(); g.arc(380, 120, 22, 0, TAU); g.fillStyle = '#ffe08a'; g.fill();
+    g.fillStyle = '#7a8a6a'; g.beginPath(); g.ellipse(150, 176, 120, 40, 0, Math.PI, 0); g.fill();
+    const x = 150; g.fillStyle = '#b8b0a0'; g.fillRect(x - 6, 54, 12, 92); g.fillStyle = '#a8a090'; g.fillRect(x - 8, 44, 16, 12);
+    for (let i = 0; i < 4; i++) g.fillRect(x - 8 + i * 4.6, 38, 2.6, 6); g.fillStyle = '#5a5a6a'; for (let k = 0; k < 6; k++) g.fillRect(x - 1, 64 + k * 13, 2, 5);
+  } },
+  { sp: 0.3, draw() {   // colourful little houses of the town and fishing boats with tall masts
+    g.fillStyle = vgrad(170, 224, '#2a6ab8', '#1a4a90'); g.fillRect(-1, 176, BG_W + 2, 48);
+    for (let i = 0; i < 9; i++) { const x = 10 + i * 52; g.fillStyle = ['#ffffff', '#ffd8a0', '#a8d8ff', '#ffb0c0', '#c8f0c8'][i % 5]; g.fillRect(x, 148, 30, 26); g.beginPath(); g.moveTo(x - 3, 150); g.lineTo(x + 15, 136); g.lineTo(x + 33, 150); g.closePath(); g.fillStyle = '#6a6a72'; g.fill(); }
+    for (let i = 0; i < 3; i++) { const x = 60 + i * 150; g.beginPath(); g.moveTo(x, 188); g.lineTo(x + 46, 188); g.lineTo(x + 40, 198); g.lineTo(x + 6, 198); g.closePath(); g.fillStyle = ['#e8453a', '#3a6ad8', '#3cc456'][i]; g.fill(); g.fillStyle = '#6a4a2a'; g.fillRect(x + 20, 140, 2, 48); g.strokeStyle = '#23324a'; g.lineWidth = 0.6; g.beginPath(); g.moveTo(x + 21, 142); g.lineTo(x + 4, 188); g.moveTo(x + 21, 142); g.lineTo(x + 42, 188); g.stroke(); }
+  } },
+];
 const SKIES = {
   hills: ['#5ab8f5', '#bfeaff'], woods: ['#7ac88a', '#d8f0c8'], caves: ['#0a0c1c', '#1c1f3c'], sky: ['#3a9aec', '#e8f6ff'],
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
   shore: ['#3ab0f0', '#ffe8c0'], snow: ['#8ab8e8', '#eef6ff'], night: ['#0a1030', '#2a3070'], fort: ['#0e1a30', '#26405e'],
+  canal: ['#5ab8f0', '#d8f0ff'], cranberry: ['#ff9a7a', '#ffe8c8'], dunes: ['#6ac0f0', '#fff4d8'], pier: ['#ff8a6a', '#ffd8a0'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -2341,20 +2504,24 @@ function afterDeath() {
   startLevel(lvl.id, true);
 }
 let endFrom = 'castle';
+const WORLD_ENDS = {
+  castle: { title: 'WORLD 1 <span>CLEAR!</span>', sub: '🏃 King Grumbles dropped the pot of gold… and ran off across the sea to the <b>Frosty Isle</b> with the rest! World 2 is open.', btn: '🌊 On to World 2!', toast: '🌊 Walk along the path across the sea to the Frosty Isle!' },
+  fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '⛵ King Grumbles grabbed the last bag of gold and sailed off to <b>Cape Cod</b>! World 3 is open.', btn: '⛵ On to World 3!', toast: '⛵ Follow the path across the sea to Cape Cod!' },
+};
 function winGame() {
-  const id = lvl.id, last = id === 'fort';
+  const id = lvl.id, last = id === 'ptown';
   keep = { form: player.form, mount: !!player.mount };
   endFrom = id;
-  save.cleared[id] = true; save.beaten = true; if (last) save.beaten2 = true;
+  save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (last) save.beaten3 = true;
   save.gems[id] = levelGems.map((g2, i) => g2 || !!(save.gems[id] || [])[i]);
   save.best = Math.max(save.best, score);
   persist();
   music.stop(); sfx.goal();
   state = 'ending'; showTouch();
-  document.querySelector('#ending h1').innerHTML = last ? 'THE <span>GOLD</span> IS BACK!' : 'WORLD 1 <span>CLEAR!</span>';
-  document.querySelector('#ending .sub').innerHTML = last ? '🌈 King Grumbles is beaten for good, and Leo has every last coin of his gold. Hooray!'
-    : '🏃 King Grumbles dropped the pot of gold… and ran off across the sea to the <b>Frosty Isle</b> with the rest! World 2 is open.';
-  document.getElementById('btnMapAgain').textContent = last ? '🗺️ Back to the map' : '🌊 On to World 2!';
+  const w = WORLD_ENDS[id];
+  document.querySelector('#ending h1').innerHTML = last ? 'THE <span>GOLD</span> IS BACK!' : w.title;
+  document.querySelector('#ending .sub').innerHTML = last ? '🌈 King Grumbles is beaten for good on Provincetown Pier, and Leo has every last coin of his gold. Hooray!' : w.sub;
+  document.getElementById('btnMapAgain').textContent = last ? '🗺️ Back to the map' : w.btn;
   document.getElementById('endStats').innerHTML = `SCORE <b>${score}</b><br>🌈 GEMS <b>${gemCount()}</b> of ${ORDER.length * 5}<br>${save.key ? '🗝️ Golden key found!' : '🗝️ The golden key is still hiding in Glimmer Caves…'}`;
   document.getElementById('ending').classList.remove('hidden');
 }
@@ -2422,6 +2589,15 @@ function drawLevel() {
       ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(gx + 2, ty + i * 1.1, 32, 1.2); });
     }
   }
+  // soft round shadows on the ground under Leo, the enemies and the goodies
+  const shadow = (cx, bottom, w) => {
+    let gy = null; for (let ty = Math.max(0, Math.floor(bottom / TS)); ty < lvl.h && ty < bottom / TS + 6; ty++) { const tl = tileAt(Math.floor(cx / TS), ty); if (SOLID.has(tl) || tl === T.ONEWAY) { gy = ty * TS; break; } }
+    if (gy === null) return;
+    const k = clamp(1 - (gy - bottom) / 90, 0.25, 1);
+    ell(cx, gy + 0.5, w * 0.55 * k, 1.8 * k); g.fillStyle = `rgba(0,0,0,${0.18 * k})`; g.fill();
+  };
+  for (const e of ents) if (!e.dead && !e.flip && e.w > 6 && e.w < 40 && e.k !== 'mid' && e.k !== 'warp' && e.k !== 'exit' && e.k !== 'firebar' && e.x > cx - 40 && e.x < cx + LW + 40) shadow(e.x + e.w / 2, e.y + e.h, e.w);
+  if (player && phase !== 'dying' && !pipe) shadow(player.x + player.w / 2, player.y + player.h, player.mount ? 22 : 14);
   for (const e of ents) drawEnt(e, t);
   // Leo
   const p = player;
@@ -2469,6 +2645,7 @@ function drawLevel() {
       if (p.star > 0 && Math.random() < 0.5) sparkle(p.x + Math.random() * p.w, p.y + Math.random() * p.h, `hsl(${Math.random() * 360},90%,70%)`, 1);
     }
   }
+  drawAirborne(cx, t);
   // particles: soft dots, sparkles and puffs of dust
   for (const q of parts) {
     const a = 1 - q.t / q.life;
@@ -2493,7 +2670,8 @@ function drawLevel() {
     g.fillRect(0, ly - r, Math.max(0, lx - r), r * 2); g.fillRect(lx + r, ly - r, LW, r * 2);
   }
 }
-function drawEnt(e, t) {
+function drawEnt(e, t) { noInk = true; try { drawEnt0(e, t); } finally { noInk = false; } }
+function drawEnt0(e, t) {
   const x = e.x, y = e.y;
   if (x < camX - 60 || x > camX + LW + 60) return;
   const face = e.face || (e.dir > 0 ? 1 : -1) || -1;
@@ -2504,7 +2682,7 @@ function drawEnt(e, t) {
     case 'snaily': drawSnaily(x - 1, y, tt, face, false); break;
     case 'shell': drawSnaily(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': drawThorny(x - 1, y - 3, tt, face); break;
-    case 'buzzer': drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'buzzer': if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
     case 'firebar': for (let i = 0; i <= e.len; i++) drawFireball(x + Math.cos(e.ang) * i * 8, y + Math.sin(e.ang) * i * 8, t + i * 0.05); break;
@@ -2562,7 +2740,7 @@ function drawEnt(e, t) {
 }
 
 // ---------- The map of the Emerald Isle ----------
-const MAP_W = 860;   // two islands: the Emerald Isle (World 1) and the Frosty Isle across the sea (World 2)
+const MAP_W = 1250;   // three islands: the Emerald Isle (World 1), the Frosty Isle (World 2) and Cape Cod (World 3)
 const NODES = [
   { id: 'hills', x: 52, y: 168, name: 'Clover Hills' },
   { id: 'woods', x: 112, y: 128, name: 'Mushroom Woods' },
@@ -2575,8 +2753,12 @@ const NODES = [
   { id: 'snow', x: 566, y: 98, name: 'Frosty Peaks' },
   { id: 'night', x: 648, y: 150, name: 'Moonlit Meadow' },
   { id: 'fort', x: 742, y: 102, name: 'Frost Fortress' },
+  { id: 'canal', x: 928, y: 150, name: 'Bourne Bridge' },
+  { id: 'cranberry', x: 1030, y: 166, name: 'Cranberry Bog' },
+  { id: 'dunes', x: 1140, y: 112, name: 'Nauset Dunes' },
+  { id: 'ptown', x: 1078, y: 46, name: 'Provincetown Pier' },
 ];
-const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['caves', 'castle', 'secret']];   // the last opens from Glimmer Caves' secret exit
+const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['fort', 'canal'], ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'ptown'], ['caves', 'castle', 'secret']];   // the last opens from Glimmer Caves' secret exit
 const node = id => NODES.find(n => n.id === id);
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 const nodeOpen = n => n.id === 'hills' || (n.secret ? save.key : PATHS.some(pth => { const [a, b, sec] = pth; return pathReady(pth) && ((b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret && !sec)); }));
@@ -2704,6 +2886,15 @@ function drawMap() {
   rrect(726, 74, 34, 26, 2); paint(vgrad(74, 100, '#e0f2ff', '#9ac0e0'), 1, '#5a7ab0');
   for (let i = 0; i < 5; i++) { rrect(726 + i * 7.3, 69, 4, 6, 1); paint('#c8e4fa', 0.7, '#5a7ab0'); }
   rrect(738, 86, 9, 14, [4, 4, 0, 0]); paint('#26405e');
+  // World 3: Cape Cod, its famous bent arm: the canal at the shoulder, the elbow at Chatham, Provincetown curled up at the fist
+  const arm = [[900, 150], [960, 152], [1030, 164], [1100, 168], [1140, 150], [1150, 110], [1140, 72], [1110, 46], [1078, 40], [1056, 52]];
+  const stroke = (w, c) => { g.beginPath(); arm.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.lineWidth = w; g.strokeStyle = c; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(); };
+  stroke(46, 'rgba(140,220,255,.45)'); stroke(38, '#f6e2a0'); stroke(26, '#6ac878');
+  g.fillStyle = '#5aa0e0'; g.fillRect(912, 128, 4, 46);   // the Cape Cod Canal
+  g.beginPath(); g.arc(914, 140, 7, Math.PI, 0); g.lineWidth = 1.4; g.strokeStyle = '#5a7a6a'; g.stroke();   // the Bourne Bridge
+  for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(1018 + i * 6, 172 + (i % 2) * 3, 1.6, 0, TAU); g.fillStyle = '#d8303a'; g.fill(); }   // cranberries
+  g.fillStyle = '#ffffff'; g.fillRect(1150, 96, 4, 12); g.fillStyle = '#d8302a'; g.fillRect(1150, 96, 4, 4);   // Nauset lighthouse
+  g.fillStyle = '#b8b0a0'; g.fillRect(1086, 26, 4, 14); g.fillRect(1085, 24, 6, 3);   // the Pilgrim Monument
   // a rainbow up to the secret level once the key is found
   if (save.key) for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(182, 74, 22 - i * 2, Math.PI, 0); g.lineWidth = 2; g.strokeStyle = ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'][i]; g.stroke(); }
     } finally { g = old; }
@@ -2725,7 +2916,7 @@ function drawMap() {
     ell(n.x, n.y + 2, 8, 3); g.fillStyle = 'rgba(0,0,0,.2)'; g.fill();
     ell(n.x, n.y, 7.5, 5.5); paint(!open ? vgrad(n.y - 5, n.y + 5, '#aaa', '#777') : done ? vgrad(n.y - 5, n.y + 5, '#ff7a6a', '#d0302a') : vgrad(n.y - 5, n.y + 5, '#fff08a', '#f0b020'), 1.1);
     ell(n.x - 2, n.y - 2, 2.6, 1.2); paint('rgba(255,255,255,.6)');
-    if (n.id === 'castle' || n.id === 'fort') { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
+    if (n.id === 'castle' || n.id === 'fort' || n.id === 'ptown') { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
     if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(n.x, n.y, 11, 8, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
   }
   // Leo, hopping along the paths
@@ -2792,13 +2983,13 @@ function showBest() {
   const bits = [];
   if (save.best) bits.push(`🏆 Best score <b>${save.best}</b>`);
   const g2 = gemCount(); if (g2) bits.push(`🌈 <b>${g2}</b> gems`);
-  if (save.beaten2) bits.push('👑 Both worlds done!'); else if (save.beaten) bits.push('👑 World 1 done!');
+  if (save.beaten3) bits.push('👑 All three worlds done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
   document.getElementById('titleBest').innerHTML = bits.join(' · ');
 }
 showBest();
 function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; keep = { form: 0, mount: false }; goMap(); }
 document.getElementById('btnPlay').addEventListener('click', startGame);
-document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'fort') score = 0; goMap(endFrom); if (endFrom === 'castle') setTimeout(() => RB.toast('🌊 Walk along the path across the sea to the Frosty Isle!', 3000), 600); });
+document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'ptown') score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); });
 
 // ---------- Loop ----------
 // The game moves on by exactly the time since the last frame (in small slices), so motion is smooth
