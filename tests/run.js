@@ -975,13 +975,17 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo.png');
   });
 
-  await test('Lucky Leo moves: high jump (crouch + jump), ground pound, and the boomerang hat (knocks out enemies, comes back, bounce on it)', async () => {
+  await test('Lucky Leo moves: high jump (crouch + jump), spin jump, ground pound, and the boomerang hat (knocks out enemies, comes back, bounce on it)', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
       paused = true; startGame(); lives = 9;
       const jumpH = hi => { startLevel('hills'); player.x = 6 * 16; run(10); ents = ents.filter(e => !isEnemy(e)); const y0 = player.y; let top = y0; keys.down = hi; run(5); pressed.jump = true; keys.jump = true; run(70, () => { top = Math.min(top, player.y); }); keys.jump = false; keys.down = false; run(60); return y0 - top; };
       out.jump = jumpH(false); out.high = jumpH(true);
+      // the spin: jump, then press jump again near the top: a little higher, and only once a jump
+      const spinH = twice => { startLevel('hills'); player.x = 6 * 16; run(10); ents = ents.filter(e => !isEnemy(e)); const y0 = player.y; let top = y0, spins = 0, tw = false;
+        pressed.jump = true; keys.jump = true; run(90, i => { top = Math.min(top, player.y); if ((i === 22 || (twice && i === 40)) ) { pressed.jump = true; } if (player.twirl > 0 && !tw) spins++; tw = player.twirl > 0; }); keys.jump = false; run(60); return { h: y0 - top, spins, landed: player.ground && !player.spun }; };
+      out.spin = spinH(false); out.spin2 = spinH(true);
       startLevel('hills'); const gob = ents.find(e => e.k === 'grumblin'); player.x = gob.x; player.y = gob.y - 50; player.vy = 0; run(2); pressed.down = true; run(40);
       out.poundGob = !!gob.flip;
       startLevel('hills'); player.x = 12 * 16 + 2; player.y = 5 * 16; player.vy = 0; run(2); pressed.down = true; run(50);
@@ -996,6 +1000,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       paused = false; return out;
     });
     check(r.high > r.jump * 1.6, 'the high jump should go much higher: ' + JSON.stringify(r));
+    check(r.spin.h > r.jump + 10 && r.spin.h < r.high && r.spin.spins === 1 && r.spin.landed, 'a spin at the top should go a little higher: ' + JSON.stringify(r));
+    check(r.spin2.spins === 1 && Math.abs(r.spin2.h - r.spin.h) < 3, 'only one spin a jump: ' + JSON.stringify(r));
     check(r.poundGob && r.poundBlock, 'a ground pound should flatten a goblin and bump the clover block below: ' + JSON.stringify(r));
     check(r.thrown && r.hatHit && r.hatBack && r.capBounce, 'the hat should fly, knock out a goblin, come back, and be bounced on: ' + JSON.stringify(r));
     await done(p);

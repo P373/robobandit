@@ -92,7 +92,7 @@
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>↑</kbd> / <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them.</li>
       <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air!</li>
-      <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip.</li>
+      <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
       <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… 🤫</li>
@@ -319,6 +319,7 @@ const sfx = {
   enter: () => [392, 523, 659, 784].forEach((f, i) => beep(f, f, 0.08, 'triangle', 0.07, i * 0.05)),
   step: () => beep(600, 600, 0.03, 'square', 0.025),
   spin: () => beep(400, 1200, 0.18, 'triangle', 0.06),
+  twirl: () => { beep(520, 1500, 0.22, 'triangle', 0.06); beep(780, 2000, 0.18, 'sine', 0.035, 0.06); RB.noise(0.16, 0.05); },
   pound: () => { RB.noise(0.25, 0.35); beep(140, 50, 0.25, 'sine', 0.2); },
   highJump: () => { beep(260, 900, 0.3, 'triangle', 0.08); beep(520, 1400, 0.25, 'sine', 0.04, 0.05); },
   throwHat: () => beep(500, 1000, 0.16, 'triangle', 0.07),
@@ -436,7 +437,7 @@ const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'ri
   KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run', KeyJ: 'run', ArrowDown: 'down', KeyS: 'down', KeyC: 'hat', KeyL: 'hat' };
 // 🎮 Ⓐ / Ⓑ jump, Ⓧ / RT run (and throw rainbow sparks), Ⓨ / LB / RB throw the hat, LT crouch: high jump, or ground pound in the air
 if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'KeyX', 3: 'KeyC', 4: 'KeyC', 5: 'KeyC', 6: 'KeyS', 7: 'KeyX' },
-  '<b>Lucky Leo:</b> Ⓐ / Ⓑ jump (hold to go higher) · Ⓧ / RT run and throw rainbow sparks · Ⓨ / LB / RB 🎩 throw your hat · <b>LT</b> + jump: high jump · <b>LT</b> in the air: ground pound');
+  '<b>Lucky Leo:</b> Ⓐ / Ⓑ jump (hold to go higher; press again in the air to spin higher) · Ⓧ / RT run and throw rainbow sparks · Ⓨ / LB / RB 🎩 throw your hat · <b>LT</b> + jump: high jump · <b>LT</b> in the air: ground pound');
 let paused = false;
 addEventListener('keydown', e => {
   const k = KEYMAP[e.code];
@@ -1292,7 +1293,7 @@ function startLevel(id, fromCheck = false) {
     spawnFromSpec(e);
   }
   const startX = checkpoint ? checkpoint.x : 3 * TS;
-  player = { hatless: false, flip: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0 };
+  player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0 };
   if (checkpoint) setForm(1);
   // drop Leo onto the ground at the start
   const stx = Math.floor((player.x + 6) / TS);
@@ -1449,12 +1450,22 @@ function updatePlayer(dt) {
     if (!p.flip) p.form ? sfx.bigJump() : sfx.jump();
     p.squash = -0.9; puff(p.x + p.w / 2, p.y + p.h, 3);
   }
+  // the spin: press jump again in the air (once a jump) and Leo twirls, floating a little higher, like Mario Odyssey
+  if (pressed.jump && !p.ground && p.coyote <= 0 && !p.pound && !p.spun && p.vy > -170 && phase === 'play') {
+    p.spun = true; p.twirl = 0.34; p.flip = 0;
+    if (p.vy <= 0) p.buffer = 0;   // (falling, the press still counts as an early jump for the landing)
+    p.vy = Math.min(p.vy, -170);
+    sfx.twirl(); RB.pad.rumble(60, 0.25);
+    for (let i = 0; i < 8; i++) { const a = i / 8 * TAU; sparkle(p.x + p.w / 2 + Math.cos(a) * 10, p.y + p.h / 2 + Math.sin(a) * 6, i % 2 ? '#7aff8a' : '#ffe14a', 1); }
+  }
+  if (p.twirl > 0) { p.twirl -= dt; if (Math.random() < 0.6) puff(p.x + p.w / 2 + rand(-8, 8), p.y + p.h - 2, 1, 'rgba(200,255,210,.7)'); }
+  if (p.ground) { p.spun = false; p.twirl = 0; }
   p.jumpHeld = inp.jump;
   if (p.flip) p.flip = Math.max(0, p.flip - dt * 1.6);
   // the ground pound: ↓ (or LT) in the air, a quick spin, then straight down
   if (!p.ground && pressed.down && !p.pound && p.y > 0) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.22) { p.pound = 'drop'; p.vy = 470; } }
-  const grav = p.pound ? 0 : p.vy < 0 && inp.jump ? 680 : 1500;
+  const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && inp.jump ? 680 : 1500;   // the twirl floats
   p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, 290);
   // throw the hat like a boomerang
   if (pressed.hat && !p.hatless && phase === 'play') {
@@ -1894,7 +1905,12 @@ function drawLevel() {
       if (p.pound === 'spin') fx.rot = (p.poundT / 0.22) * TAU * p.face;
       if (p.pound === 'drop') { fx.squash = -0.5; pose = 'jump'; }
       if (p.star > 0) glow(p.x + p.w / 2, p.y + p.h / 2, 26, `hsla(${qh((t * 400) % 360)},100%,70%,1)`, 0.5);
-      drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
+      if (p.twirl > 0) {   // the spin: Leo turns round twice, seen from the side
+        const c = Math.cos((1 - p.twirl / 0.34) * TAU * 2), cxp = p.x + p.w / 2;
+        g.save(); g.translate(cxp, 0); g.scale(Math.sign(c || 1) * Math.max(0.15, Math.abs(c)), 1); g.translate(-cxp, 0);
+        drawLeo(p.x - 2, p.y - 2, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, fx);
+        g.restore();
+      } else drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
       if (p.star > 0 && Math.random() < 0.5) sparkle(p.x + Math.random() * p.w, p.y + Math.random() * p.h, `hsl(${Math.random() * 360},90%,70%)`, 1);
     }
   }
