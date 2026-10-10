@@ -98,7 +98,7 @@
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
-      <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… 🤫</li>
+      <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… and a <b>secret exit</b> for anyone who can find another way to the end. 🤫</li>
     </ol>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">☘️ Let's Go!</button>
@@ -225,8 +225,8 @@ LEVELS.woods = builder('woods', 'Mushroom Woods', 'woods', 222)
   .done({ goal: 206, music: 'woods', sky: ['#5ab07a', '#c8eac0'] });
 
 // 3. Glimmer Caves: underground, a low ceiling, hedgehogs, falling crush-stones and a hidden golden key
-LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 206)
-  .fill(0, 205, 0, 1, T.GROUND).ground(0, 205).gap(36, 39).gap(96, 99).gap(150, 154)
+LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 272)
+  .fill(0, 271, 0, 1, T.GROUND).fill(206, 271, 2, 13, T.GROUND).ground(0, 205)   // past the gate the rock is solid: the only way on is up on the roof.gap(36, 39).gap(96, 99).gap(150, 154)
   .at(10, 8, '?P?B').e('grumblin', 16, 11).e('thorny', 22, 11)
   .fill(26, 30, 2, 7, T.GROUND).e('snaily', 32, 11)
   .at(43, 8, 'BBBBBB').coins(43, 7, 6).e('thorny', 46, 11).e('crusher', 50, 2)
@@ -239,7 +239,7 @@ LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 206)
   .pipe(136, 9).e('snapper', 136, 9).at(142, 8, 'BPB').e('snaily', 146, 11)
   .at(149, 9, '-------').e('crusher', 160, 2).e('thorny', 166, 11).e('thorny', 170, 11).stairs(176, 5)
   .gems(12, 5, 38, 9, 62, 5, 97, 5, 153, 6)
-  .done({ goal: 192, music: 'caves', dark: true });
+  .done({ goal: 192, secretGoal: 262, music: 'caves', dark: true });
 
 // 4. Cloud Hop: up in the sky, cloud tops and moving platforms over nothing at all
 LEVELS.sky = builder('sky', 'Cloud Hop', 'sky', 220)
@@ -580,7 +580,7 @@ const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('ll_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { cleared: s.cleared || {}, gems: s.gems || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2 };
+  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2 };
 })();
 function persist() {
   RB.store.set('ll_save', JSON.stringify(save));
@@ -1950,7 +1950,9 @@ function updatePlayer(dt) {
   if (p.star > 0) { p.star -= dt; if (p.star <= 0) music.play(lvl.music); }
   p.anim += Math.abs(p.vx) * dt * 0.11;
   // the goal
-  if (lvl.goal && p.x > lvl.goal * TS + 4) reachGoal();
+  const onRoof = p.y + p.h < 4;   // walking along the top of the level, above the screen
+  if (lvl.goal && p.x > lvl.goal * TS + 4 && !(lvl.secretGoal && onRoof)) reachGoal();
+  if (lvl.secretGoal && onRoof && p.x > lvl.secretGoal * TS) reachGoal(true);
 }
 
 function updateEnts(dt) {
@@ -2148,6 +2150,12 @@ function touchPlayer(e) {
       if (!p.mount && (e.st === 'wait' || e.t > 0.6)) mount(e);   // hop on (Shamrock can be caught again while he runs off)
       break;
     case 'crusher':
+      if (p.star > 0) {   // with the lucky horseshoe's rainbow power, Leo smashes the crush-stone to rubble
+        e.gone = true; shake = 0.25; sfx.brick(); sfx.stomp(); RB.pad.rumble(200, 0.7); addScore(1000, e.x, e.y);
+        for (let i = 0; i < 12; i++) particle(e.x + 12 + rand(-8, 8), e.y + 15 + rand(-10, 10), rand(-120, 120), rand(-320, -80), i % 2 ? '#8a8a9a' : '#5a5a6a', 1.2, rand(3, 6));
+        sparkle(e.x + 12, e.y + 15, '#ffe14a', 14);
+        break;
+      }
       hurtPlayer();
       break;
     case 'acorn':
@@ -2237,8 +2245,9 @@ function bossWonUpdate(dt) {
 // ---------- Finishing ----------
 let shake = 0, bannerT = 0, bannerText = ['', ''];
 function banner(a, b = '', time = 2.6) { bannerText = [a, b]; bannerT = time; }
-function reachGoal() {
+function reachGoal(secret = false) {
   if (phase !== 'play') return;
+  lvl.secretExit = secret;
   phase = 'clear'; phaseT = 0; tries[lvl.id] = 0; keep = { form: player.form, mount: !!player.mount };
   // the higher you break the rainbow tape, the more stars
   const tapeY = goalTapeY(), frac = clamp(1 - (tapeY - 32) / (11 * TS - 32), 0, 1);
@@ -2248,7 +2257,8 @@ function reachGoal() {
   lvl.stars = stars;
   addScore(stars * 100);
   music.stop(); sfx.goal(); RB.pad.rumble(200, 0.4);
-  banner('COURSE CLEAR!', stars ? `🌟 ${stars} star${stars === 1 ? '' : 's'}` : '');
+  if (secret) { banner('SECRET EXIT!', '🌟 A hidden path opens on the map'); sfx.key(); }
+  else banner('COURSE CLEAR!', stars ? `🌟 ${stars} star${stars === 1 ? '' : 's'}` : '');
 }
 const goalTapeY = () => 40 + (Math.sin(clock * 1.6) * 0.5 + 0.5) * (10 * TS - 40);
 function clearUpdate(dt) {
@@ -2266,6 +2276,7 @@ function finishLevel() {
   const old = save.gems[id] || [];
   save.gems[id] = levelGems.map((g2, i) => g2 || !!old[i]);
   if (gotKey) save.key = true;
+  if (lvl.secretExit) save.secrets[id] = true;
   save.best = Math.max(save.best, score);
   persist();
   goMap(id);
@@ -2347,6 +2358,8 @@ function drawLevel() {
     const by = b ? -Math.sin(b.t / 0.2 * Math.PI) * 5 : 0;
     drawTile(tile, tx, ty, tx * TS, ty * TS + by, th, t);
   }
+  // a secret exit up on the roof: a golden star glints in the rock below it (a hint for sharp eyes)
+  if (lvl.secretGoal) { const sx = lvl.secretGoal * TS + 8; glow(sx, 16, 20, 'rgba(255,220,90,1)', 0.45 + 0.2 * Math.sin(t * 3)); star(sx, 16, 6, '#ffe14a'); }
   // the goal: two striped posts and a rainbow tape sliding up and down
   if (lvl.goal) {
     const gx = lvl.goal * TS;
@@ -2513,10 +2526,11 @@ const NODES = [
   { id: 'night', x: 648, y: 150, name: 'Moonlit Meadow' },
   { id: 'fort', x: 742, y: 102, name: 'Frost Fortress' },
 ];
-const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort']];
+const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['caves', 'castle', 'secret']];   // the last opens from Glimmer Caves' secret exit
 const node = id => NODES.find(n => n.id === id);
-const nodeOpen = n => n.id === 'hills' || (n.secret ? save.key : PATHS.some(([a, b]) => (b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret)));
-const pathOpen = ([a, b]) => nodeOpen(node(a)) && nodeOpen(node(b));
+const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
+const nodeOpen = n => n.id === 'hills' || (n.secret ? save.key : PATHS.some(pth => { const [a, b, sec] = pth; return pathReady(pth) && ((b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret && !sec)); }));
+const pathOpen = pth => pathReady(pth) && nodeOpen(node(pth[0])) && nodeOpen(node(pth[1]));
 const mapLeo = { at: 'hills', x: 52, y: 168, to: null, path: [] };
 let mapCam = 0;
 function goMap(from) {
@@ -2529,8 +2543,9 @@ function goMap(from) {
   showTouch();
   // after clearing a level, point Leo at the next one
   if (from && save.cleared[from]) {
-    const next = PATHS.find(([a, b]) => a === from && !node(b).secret && nodeOpen(node(b)) && !save.cleared[b]);
+    const next = PATHS.find(([a, b, sec]) => a === from && !sec && !node(b).secret && nodeOpen(node(b)) && !save.cleared[b]);
     if (next) RB.toast(`☘️ ${node(next[1]).name} is open!`, 2200);
+    if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Goblin Castle', 3200), 600);
     if (from === 'caves' && save.key && !save.cleared.bonus) setTimeout(() => RB.toast('🌈 Rainbow Road is open! (the secret path from Glimmer Caves)', 3000), 2400);
   }
 }
@@ -2648,9 +2663,9 @@ function drawMap() {
   g.fillStyle = '#5a3a2a'; g.fillRect(365, 58, 1.4, 14); g.beginPath(); g.moveTo(366.4, 58); g.lineTo(375 + Math.sin(t * 4) * 1.5, 61); g.lineTo(366.4, 64); paint('#d8304a');
   // paths: dotted trails between the levels
   for (const pth of PATHS) {
-    if (!pathOpen(pth) && node(pth[1]).secret) continue;
+    if (!pathOpen(pth) && (node(pth[1]).secret || pth[2])) continue;
     const a = node(pth[0]), b = node(pth[1]), d = Math.hypot(b.x - a.x, b.y - a.y), open = pathOpen(pth);
-    for (let s = 8; s < d - 8; s += 6) { g.beginPath(); g.arc(a.x + (b.x - a.x) * s / d, a.y + (b.y - a.y) * s / d, 1.3, 0, TAU); g.fillStyle = open ? '#fff6d0' : 'rgba(0,0,0,.22)'; g.fill(); }
+    for (let s = 8; s < d - 8; s += 6) { g.beginPath(); g.arc(a.x + (b.x - a.x) * s / d, a.y + (b.y - a.y) * s / d, 1.3, 0, TAU); g.fillStyle = pth[2] ? '#ffd23a' : open ? '#fff6d0' : 'rgba(0,0,0,.22)'; g.fill(); }
   }
   // level badges
   for (const n of NODES) {
