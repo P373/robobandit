@@ -971,6 +971,32 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo.png');
   });
 
+  await test('Lucky Leo moves: high jump (crouch + jump), ground pound, and the boomerang hat (knocks out enemies, comes back, bounce on it)', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); lives = 9;
+      const jumpH = hi => { startLevel('hills'); player.x = 6 * 16; run(10); ents = ents.filter(e => !isEnemy(e)); const y0 = player.y; let top = y0; keys.down = hi; run(5); pressed.jump = true; keys.jump = true; run(70, () => { top = Math.min(top, player.y); }); keys.jump = false; keys.down = false; run(60); return y0 - top; };
+      out.jump = jumpH(false); out.high = jumpH(true);
+      startLevel('hills'); const gob = ents.find(e => e.k === 'grumblin'); player.x = gob.x; player.y = gob.y - 50; player.vy = 0; run(2); pressed.down = true; run(40);
+      out.poundGob = !!gob.flip;
+      startLevel('hills'); player.x = 12 * 16 + 2; player.y = 5 * 16; player.vy = 0; run(2); pressed.down = true; run(50);
+      out.poundBlock = tileAt(12, 8) === T.USED;
+      startLevel('hills'); const g2 = ents.find(e => e.k === 'grumblin'); player.x = g2.x - 60; player.face = 1; run(2); pressed.hat = true; run(1);
+      out.thrown = player.hatless && ents.some(e => e.k === 'cap');
+      run(30); out.hatHit = !!g2.flip;
+      run(120); out.hatBack = !player.hatless && !ents.some(e => e.k === 'cap');
+      startLevel('hills'); player.x = 8 * 16; run(10); pressed.hat = true; run(1); keys.jump = true; pressed.jump = true; run(18); keys.jump = false;
+      const cap = ents.find(e => e.k === 'cap');
+      if (cap) { cap.st = 'hover'; cap.hoverT = 0; player.x = cap.x; player.y = cap.y - player.h - 2; player.vy = 80; run(3); out.capBounce = !!cap.bounced && player.vy < -200; }
+      paused = false; return out;
+    });
+    check(r.high > r.jump * 1.6, 'the high jump should go much higher: ' + JSON.stringify(r));
+    check(r.poundGob && r.poundBlock, 'a ground pound should flatten a goblin and bump the clover block below: ' + JSON.stringify(r));
+    check(r.thrown && r.hatHit && r.hatBack && r.capBounce, 'the hat should fly, knock out a goblin, come back, and be bounced on: ' + JSON.stringify(r));
+    await done(p);
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
