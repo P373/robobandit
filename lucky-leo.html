@@ -94,7 +94,7 @@
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
       <li>🎩 <b>Throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
-      <li>🦄 <b>Shamrock the unicorn</b> hatches from the egg block. Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, and press run to zap enemies into coins with his rainbow horn. If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
+      <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs, and press run to fire a rainbow laser from his eyes that turns enemies into coins. If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump).</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable.</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
@@ -157,7 +157,7 @@ const T = {
 const SOLID = new Set([T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP, T.QRIDE]);
 const QBLOCKS = new Set([T.QCOIN, T.QPOWER, T.QSTAR, T.QONEUP, T.QRIDE]);
 const CHARS = { '#': T.GROUND, B: T.BRICK, '?': T.QCOIN, P: T.QPOWER, U: T.USED, '=': T.STONE, '-': T.ONEWAY, '^': T.SPIKES, '~': T.LAVA,
-  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE };   // Y: Shamrock the unicorn's egg
+  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE };   // Y: the block that calls Shamrock the unicorn
 
 // ---------- Levels ----------
 // Each level is built from a few commands (ground, gaps, blocks, pipes, enemies…) on a 14-row grid.
@@ -451,7 +451,8 @@ const sfx = {
   mount: () => { arp([523, 659, 784, 1047], 0.06, 0.12, 'triangle', 0.06); tone(1568, 1568, 0.3, 'sine', 0.03, 0.24, { vib: 0.01 }); },
   neigh: () => { tone(900, 1100, 0.12, 'sawtooth', 0.03, 0, { cut: 2000, vib: 0.05 }); tone(1100, 500, 0.5, 'sawtooth', 0.035, 0.1, { cut: 1800, vib: 0.08 }); },
   hatch: () => { puffNoise(0.08, 0.1, 2500); arp([784, 988, 1175, 1568], 0.06, 0.14, 'sine', 0.06); },
-  zap: () => { tone(1800, 600, 0.16, 'sine', 0.05); arp([1319, 1568, 2093], 0.03, 0.1, 'triangle', 0.025); },
+  zap: () => { tone(2400, 1200, 0.14, 'sawtooth', 0.025, 0, { cut: 4000 }); tone(1600, 800, 0.12, 'sine', 0.04); },
+  cloud: () => { puffNoise(0.3, 0.06, 900, 'bandpass', 0, 2500); arp([523, 659, 784, 1047, 1319, 1568], 0.12, 0.35, 'sine', 0.05, { vib: 0.01 }); },
   pickup: () => { tone(320, 520, 0.08, 'square', 0.045, 0, { cut: 3000 }); tone(520, 760, 0.08, 'square', 0.035, 0.06, { cut: 3000 }); },
   twirl: () => { tone(520, 1600, 0.24, 'triangle', 0.06); tone(780, 2100, 0.2, 'sine', 0.03, 0.06); puffNoise(0.2, 0.05, 1200, 'bandpass', 0, 5000); },
   pound: () => { puffNoise(0.3, 0.32, 400, 'lowpass'); tone(150, 45, 0.3, 'sine', 0.22); },
@@ -702,13 +703,31 @@ function pipeUpdate(dt) {
 }
 
 // ---- Shamrock the unicorn (a friend to ride, like Yoshi) ----
-// Hatches from the egg block (Y). Leo rides on his back: higher jumps, hold jump to flutter-float, stomp anything
+// Hit the special ? block and a little cloud floats up beside it and shines a rainbow down: Shamrock appears at its foot.
+function summonShamrock(tx, ty) {
+  const side = player.face || 1;
+  let gx = tx + 2 * side;
+  if (SOLID.has(tileAt(gx, ty)) || SOLID.has(tileAt(gx, ty + 1))) gx = tx - 2 * side;
+  let gy = ty + 1; while (gy < lvl.h && !SOLID.has(tileAt(gx, gy)) && tileAt(gx, gy) !== T.ONEWAY) gy++;
+  const groundY = gy * TS, x = gx * TS + 8;
+  ents.push(mk('summon', x, Math.max(14, ty * TS - 22), { w: 0, h: 0, gy: groundY }));
+  sfx.cloud();
+}
+function updateSummon(e) {
+  if (e.t >= 1.2 && !e.made) {   // the rainbow reaches the ground: here's Shamrock!
+    e.made = true;
+    ents.push(mk('unicorn', e.x - 8, e.gy - 22, { w: 16, h: 22, st: 'wait', face: -(player.face || 1) }));
+    sfx.hatch(); sparkle(e.x, e.gy - 10, '#ffffff', 16); sparkle(e.x, e.gy - 10, '#ff9ad0', 10);
+  }
+  if (e.t > 2.6) e.gone = true;
+}
+// Leo rides on his back: higher jumps, hold jump to flutter-float, stomp anything
 // (even spiky hedgehogs), run (Ⓧ / B) to zap the enemy in front with the rainbow horn (it turns into a coin).
 // Get hit and Leo just falls off (no harm done) while Shamrock runs away, catch him again quickly! ↓ + jump hops off.
 const RIDE_H = 30;
 function mount(e) {
   const p = player, bottom = p.y + p.h;
-  p.mount = { flutter: 0, zap: 0, zapCD: 0 }; p.w = 14; p.h = RIDE_H; p.y = bottom - p.h;
+  p.mount = { flutter: 0, zap: 0, zapCD: 0, beam: null }; p.w = 14; p.h = RIDE_H; p.y = bottom - p.h;
   p.carry = null; p.pound = null; e.gone = true;
   sfx.mount(); sparkle(p.x + 7, p.y + 10, '#ff9ad0', 12);
 }
@@ -726,7 +745,7 @@ function updateUnicorn(e, dt) {
   e.vy = Math.min((e.vy || 0) + 900 * dt, 300);
   if (e.st === 'flee') {
     e.vx = e.dir * 120; moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall; e.face = e.dir;
-    if (e.t > 4) { e.gone = true; sparkle(e.x + 8, e.y + 10, '#ffffff', 10); }   // gone home… there may be another egg
+    if (e.t > 4) { e.gone = true; sparkle(e.x + 8, e.y + 10, '#ffffff', 10); }   // gone home… there may be another block that calls him
   } else { e.vx = 0; e.face = p.x < e.x ? -1 : 1; }
   moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
   if (e.y > LH + 30) e.gone = true;
@@ -735,17 +754,27 @@ function updateRiding(p, inp, dt) {
   const m = p.mount;
   m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt);
   if (p.ground) m.flutter = 0;
-  // the rainbow horn: zaps the nearest enemy just in front into a coin
+  // the rainbow laser: a thin, tight beam from Shamrock's eyes, aimed at the nearest enemy ahead (or straight on), stopped by walls
   if (pressed.run && m.zapCD <= 0) {
-    m.zapCD = 0.4; m.zap = 0.22; sfx.zap();
-    const fx0 = p.x + p.w / 2, cy = p.y + 8;
-    let best = null, bd = 60;
+    m.zapCD = 0.35; m.zap = 0.2; sfx.zap();
+    const ex = p.x + p.w / 2 + p.face * 13, ey = p.y + p.h - 22.6;
+    const clear = (x2, y2) => { const n = Math.ceil(Math.hypot(x2 - ex, y2 - ey) / 4); for (let i = 1; i <= n; i++) { const x = ex + (x2 - ex) * i / n, y = ey + (y2 - ey) * i / n; if (SOLID.has(tileAt(Math.floor(x / TS), Math.floor(y / TS)))) return { x, y, hit: true }; } return null; };
+    let best = null, bd = 190;
     for (const e of ents) {
-      if (e.dead || !isEnemy(e) || e.k === 'boss') continue;
-      const dx = (e.x + e.w / 2 - fx0) * p.face, dy = Math.abs(e.y + e.h / 2 - cy);
-      if (dx > -4 && dx < bd && dy < 26) { bd = dx; best = e; }
+      if (e.dead || !isEnemy(e) || e.k === 'boss') continue;   // (King Grumbles has to be stomped)
+      const tx2 = e.x + e.w / 2, ty2 = e.y + e.h / 2, dx = (tx2 - ex) * p.face, dy = ty2 - ey;
+      if (dx > 0 && dx < bd && Math.abs(dy) < dx * 0.6 + 8 && !clear(tx2, ty2)) { bd = dx; best = e; }
     }
-    if (best) { best.gone = true; coinPop(best.x, best.y); getCoin(best.x, best.y); addScore(200, best.x, best.y); sparkle(best.x + 8, best.y + 8, '#ffe14a', 10); }
+    if (best) {
+      const bx = best.x + best.w / 2, by = best.y + best.h / 2;
+      m.beam = { x1: ex, y1: ey, x2: bx, y2: by };
+      { best.gone = true; coinPop(best.x, best.y); getCoin(best.x, best.y); addScore(200, best.x, best.y); }
+      sparkle(bx, by, '#ffffff', 8); sparkle(bx, by, '#ff9ad0', 6);
+    } else {
+      const far = { x: ex + p.face * 190, y: ey + 24 }, wall = clear(far.x, far.y);
+      m.beam = { x1: ex, y1: ey, x2: wall ? wall.x : far.x, y2: wall ? wall.y : far.y };
+      if (wall) sparkle(wall.x, wall.y, '#ffffff', 4);
+    }
   }
 }
 
@@ -765,8 +794,8 @@ function gameMenu() {
   const here = () => (outside ? outside.lvl.id : lvl && lvl.id);
   const unpause = () => { if (paused) { paused = false; RB.hidePause(); last = performance.now(); } };
   if (state === 'level') return [
-    { label: '🗺️ Back to the map', onClick: () => { unpause(); const id = here(); outside = null; goMap(id); } },
-    { label: '🔄 Start this level again', onClick: () => { unpause(); startLevel(here()); } },
+    { label: '🗺️ Back to the map', onClick: () => { unpause(); const id = here(); outside = null; if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount }; goMap(id); } },
+    { label: '🔄 Start this level again', onClick: () => { unpause(); if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount }; startLevel(here()); } },
   ];
   if (state === 'map') return [{ label: '🏁 Title screen', onClick: () => { state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showTouch(); music.play('map'); } }];
   return [];
@@ -909,16 +938,22 @@ function drawUnicorn(cx, by, face, t, gait = 0, zap = 0) {
   g.beginPath(); g.moveTo(11.8, -24.4); g.lineTo(16.4, -31.5); g.lineTo(14.2, -23.6); fill(C.gold);
   ell(12.9, -22.6, 1, 1.35); fill('#1e2a3a'); g.beginPath(); g.arc(13.2, -23.1, 0.35, 0, TAU); fill('#ffffff');
   RAIN.forEach((c, i) => { g.beginPath(); g.arc(9 - i * 0.9, -23 + i * 2.2, 1.9, 0, TAU); fill(c); });
-  if (zap > 0) { const L = 46 * (1 - zap / 0.22) + 8; RAIN.forEach((c, i) => { g.beginPath(); g.moveTo(16.4, -31.5 + i * 0.8); g.lineTo(16.4 + L, -31.5 + 18 + i * 1.6); g.lineWidth = 1.4; g.strokeStyle = c; g.globalAlpha = 0.9; g.stroke(); }); g.globalAlpha = 1; }
+  if (zap > 0) glow(13, -22.6, 6, 'rgba(255,255,255,1)', 0.9);   // eyes shining while the laser fires
   g.restore();
 }
-function drawEgg(x, y, t, hatch) {
-  const wob = hatch > 0.3 ? Math.sin(t * 40) * 0.12 : 0;
-  g.save(); g.translate(x + 7, y + 14); g.rotate(wob);
-  ell(0, -7, 6, 7.5); g.fillStyle = '#ffffff'; g.fill();
-  for (const [dx, dy] of [[-2.5, -9], [2.5, -5], [-1, -3], [3, -11]]) { g.beginPath(); g.arc(dx, dy, 1.3, 0, TAU); g.fillStyle = '#3cc456'; g.fill(); }
-  ell(-2, -10, 1.6, 2.2, -0.4); g.fillStyle = 'rgba(255,255,255,.9)'; g.fill();
-  g.restore();
+// the magic cloud: it puffs up, shines a rainbow down to the ground, and Shamrock appears where the rainbow lands
+function drawSummon(e, t) {
+  const k = e.t, fade = k < 0.4 ? k / 0.4 : k > 2 ? Math.max(0, 1 - (k - 2) / 0.6) : 1;
+  const beam = clamp((k - 0.4) / 0.8, 0, 1), cx = e.x, cy = e.y, bottom = cy + (e.gy - cy) * beam;
+  if (beam > 0) {
+    g.globalAlpha = fade * 0.85;
+    ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(cx - 9 + i * 3, cy + 4, 3, bottom - cy - 4); });
+    glow(cx, bottom, 22, 'rgba(255,255,230,1)', 0.7 * fade);
+    g.globalAlpha = 1;
+  }
+  g.globalAlpha = fade;
+  cloudPuff(cx, cy + Math.sin(t * 3) * 1.5, 0.7 * (0.6 + 0.4 * Math.min(1, k / 0.4)));
+  g.globalAlpha = 1;
 }
 
 // ---- enemies ----
@@ -1581,7 +1616,8 @@ let lvl = null;           // the level: tiles copied so blocks can change
 let ents = [], parts = [], pops = [];   // enemies and items; particles; floating score numbers
 let player = null, camX = 0, clock = 0, lives = 5, coins = 0, score = 0, checkpoint = null, levelGems = [], gotKey = false;
 let outside = null, pipe = null;
-const tries = {};   // deaths in each level since it was last cleared: after a few, Leo gets a helping hand   // the level we came from while in a hollow tree, and the going-down-a-log animation
+const tries = {};
+let keep = { form: 0, mount: false };   // what Leo brings into the next level: his power and Shamrock (lost when he loses a life)   // deaths in each level since it was last cleared: after a few, Leo gets a helping hand   // the level we came from while in a hollow tree, and the going-down-a-log animation
 let phase = 'play', phaseT = 0, reserve = null, bumps = [], bossDown = false, camLead = 0.4;
 const tileAt = (tx, ty) => {
   if (!lvl) return 0;
@@ -1659,6 +1695,7 @@ function startLevel(id, fromCheck = false) {
   const startX = checkpoint ? checkpoint.x : 3 * TS;
   player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null, mount: null };
   if (checkpoint) setForm(1);
+  if (!fromCheck) { if (keep.form) setForm(keep.form); if (keep.mount) mount({}); }   // power-ups and Shamrock come along
   const n = tries[id] || 0;
   if (n >= 3 && player.form === 0) { setForm(1); banner('A LUCKY CLOVER!', 'A little help after a few tries 🍀'); }
   if (n >= 6) player.star = 6;   // and a few seconds of rainbow power to get past the tricky bit
@@ -1710,7 +1747,7 @@ function hurtPlayer() {
 }
 function killPlayer() {
   if (phase !== 'play') return;
-  phase = 'dying'; phaseT = 0; player.vy = -300; player.vx = 0;
+  phase = 'dying'; phaseT = 0; player.vy = -300; player.vx = 0; keep = { form: 0, mount: false };
   const lid = (outside && outside.lvl.id) || lvl.id; tries[lid] = (tries[lid] || 0) + 1;
   music.stop(); sfx.die(); RB.pad.rumble(300, 0.8);
 }
@@ -1746,7 +1783,7 @@ function hitBlock(tx, ty, t, fromAbove) {
   if (t === T.QCOIN) { setTile(tx, ty, T.USED); coinPop(x, y); getCoin(x, y); }
   else if (t === T.QPOWER) { setTile(tx, ty, T.USED); sprout(player.form === 0 ? 'clover' : 'flower', x, y); }
   else if (t === T.QSTAR) { setTile(tx, ty, T.USED); sprout('horseshoe', x, y); }
-  else if (t === T.QRIDE) { setTile(tx, ty, T.USED); if (player.mount || ents.some(e => e.k === 'egg' || e.k === 'unicorn')) sprout('hat', x, y); else { ents.push(mk('egg', x + 1, y, { w: 14, h: 14, rise: 16, hatch: 0 })); sfx.sprout(); } }
+  else if (t === T.QRIDE) { setTile(tx, ty, T.USED); if (player.mount || ents.some(e => e.k === 'summon' || e.k === 'unicorn')) sprout('hat', x, y); else summonShamrock(tx, ty); }
   else if (t === T.QONEUP || t === T.HIDDEN) { setTile(tx, ty, T.USED); sprout('hat', x, y); }
   else if (t === T.MULTI) {
     lvl.multi = lvl.multi || {}; const k = tx + ',' + ty; lvl.multi[k] = (lvl.multi[k] || 0) + 1;
@@ -2016,12 +2053,7 @@ function updateEnts(dt) {
         if (e.y > LH + 30) e.gone = true;
         break;
       case 'cap': updateCap(e, dt); break;
-      case 'egg':
-        if (e.rise > 0) { const s2 = Math.min(e.rise, 20 * dt); e.y -= s2; e.rise -= s2; break; }
-        e.vy = Math.min((e.vy || 0) + 900 * dt, 300); moveY(e, e.vy * dt);
-        if (e.ground) { e.vy = 0; e.hatch += dt; if (e.hatch > 0.7) { e.k = 'unicorn'; e.st = 'wait'; e.y -= 8; e.w = 16; e.h = 22; e.t = 0; sfx.hatch(); sparkle(e.x + 8, e.y + 12, '#ffffff', 14); } }
-        if (e.y > LH + 30) e.gone = true;
-        break;
+      case 'summon': updateSummon(e, dt); break;
       case 'unicorn': updateUnicorn(e, dt); break;
       case 'acorn': e.vy += 600 * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y > LH) e.gone = true; break;
       case 'boss': updateBoss(e, dt); break;
@@ -2207,7 +2239,7 @@ let shake = 0, bannerT = 0, bannerText = ['', ''];
 function banner(a, b = '', time = 2.6) { bannerText = [a, b]; bannerT = time; }
 function reachGoal() {
   if (phase !== 'play') return;
-  phase = 'clear'; phaseT = 0; tries[lvl.id] = 0;
+  phase = 'clear'; phaseT = 0; tries[lvl.id] = 0; keep = { form: player.form, mount: !!player.mount };
   // the higher you break the rainbow tape, the more stars
   const tapeY = goalTapeY(), frac = clamp(1 - (tapeY - 32) / (11 * TS - 32), 0, 1);
   const hitTape = player.y < tapeY + 8 && player.y + player.h > tapeY - 4;
@@ -2252,6 +2284,7 @@ function afterDeath() {
 let endFrom = 'castle';
 function winGame() {
   const id = lvl.id, last = id === 'fort';
+  keep = { form: player.form, mount: !!player.mount };
   endFrom = id;
   save.cleared[id] = true; save.beaten = true; if (last) save.beaten2 = true;
   save.gems[id] = levelGems.map((g2, i) => g2 || !!(save.gems[id] || [])[i]);
@@ -2354,6 +2387,13 @@ function drawLevel() {
       } else if (p.mount) {   // riding Shamrock: the unicorn underneath, Leo sitting in the saddle
         const gait = p.ground ? Math.min(1, Math.abs(p.vx) / 80) : 0.3;
         drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.zap);
+        const bm = p.mount.beam;
+        if (bm && p.mount.zap > 0) {   // the laser: rainbow threads round a white-hot core
+          const a = p.mount.zap / 0.2, nx = -(bm.y2 - bm.y1), ny = bm.x2 - bm.x1, nl = Math.hypot(nx, ny) || 1;
+          glow(bm.x2, bm.y2, 10, 'rgba(255,255,255,1)', a);
+          ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'].forEach((c, i) => { const o = (i - 2.5) * 0.55; g.beginPath(); g.moveTo(bm.x1 + nx / nl * o, bm.y1 + ny / nl * o); g.lineTo(bm.x2 + nx / nl * o, bm.y2 + ny / nl * o); g.lineWidth = 0.7; g.strokeStyle = c; g.globalAlpha = a; g.stroke(); });
+          g.beginPath(); g.moveTo(bm.x1, bm.y1); g.lineTo(bm.x2, bm.y2); g.lineWidth = 0.6; g.strokeStyle = '#ffffff'; g.stroke(); g.globalAlpha = 1;
+        }
         const lh = p.form > 0 ? 28 : 16;
         drawLeo(p.x - 1 - p.face * 2, p.y + p.h - 15 - lh, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, { ...fx, swing: 0, squash: 0 });
       } else drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
@@ -2442,7 +2482,7 @@ function drawEnt(e, t) {
     case 'coinpop': drawCoin(x, y, t * 3); break;
     case 'spark': drawSpark(x, y, t); break;
     case 'cap': drawCap(x, y, e.spin || 0, player && player.form > 0); break;
-    case 'egg': drawEgg(x, y, t, e.hatch || 0); break;
+    case 'summon': drawSummon(e, t); break;
     case 'unicorn': drawUnicorn(x + 8, y + 22, e.face || 1, t, e.st === 'flee' ? 1 : 0); break;
     case 'acorn': drawAcorn(x, y, t); break;
     case 'pot': drawPot(x, y, t); break;
@@ -2691,7 +2731,7 @@ function showBest() {
   document.getElementById('titleBest').innerHTML = bits.join(' · ');
 }
 showBest();
-function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; goMap(); }
+function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; keep = { form: 0, mount: false }; goMap(); }
 document.getElementById('btnPlay').addEventListener('click', startGame);
 document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'fort') score = 0; goMap(endFrom); if (endFrom === 'castle') setTimeout(() => RB.toast('🌊 Walk along the path across the sea to the Frosty Isle!', 3000), 600); });
 

@@ -1101,7 +1101,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-world2.png');
   });
 
-  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn hatches, can be ridden (higher jump, float, stomp spiky, horn zap), and a hit only knocks Leo off', async () => {
+  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, eye laser), comes along to the next level, and a hit only knocks Leo off', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
@@ -1112,11 +1112,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const x0 = sp.x; keys.run = true; keys.right = true; run(28); keys.right = false; out.carried = player.carry === sp; keys.run = false; run(30);
       out.moved = sp.x - x0; out.onGround = Math.abs(sp.y + sp.h - 12 * 16) < 1;
       player.x = sp.x; player.y = sp.y - 40; player.vy = 100; player.ground = false; run(10); out.bounce = player.vy < -200;
-      // the egg block hatches Shamrock; walk into him to ride
-      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 149 * 16 + 2; run(10); keys.jump = true; pressed.jump = true; run(25); keys.jump = false; run(90);
-      const u = ents.find(e => e.k === 'unicorn'); out.hatched = !!u;
+      // the special block calls a cloud that shines a rainbow down, and Shamrock appears; walk into him to ride
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 149 * 16 + 2; run(10); keys.jump = true; pressed.jump = true; run(25); keys.jump = false;
+      out.cloud = ents.some(e => e.k === 'summon'); run(100);
+      const u = ents.find(e => e.k === 'unicorn'); out.hatched = !!u && out.cloud;
       player.x = u.x - 20; player.y = u.y + u.h - player.h; keys.right = true; run(30); keys.right = false; run(20);
       out.riding = !!player.mount;
+      player.x = 154 * 16; run(20);   // out from under the blocks
       // a higher jump than on foot
       const jumpH = () => { const y0 = player.y; let top = y0; pressed.jump = true; keys.jump = true; run(16, () => { top = Math.min(top, player.y); }); keys.jump = false; run(90, () => { top = Math.min(top, player.y); }); return y0 - top; };
       out.rideJump = jumpH();
@@ -1126,9 +1128,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // stomp a spiky hedgehog safely
       const th = mk('thorny', player.x, player.y - 60 + player.h, { dir: -1, w: 14, h: 13 }); th.y = player.y + player.h - 13; ents.push(th);
       player.y -= 50; player.vy = 150; player.ground = false; run(20); out.spiky = !!th.flip && !!player.mount;
-      // the rainbow horn zaps the goblin in front into a coin
-      const gob = mk('grumblin', player.x + player.face * 30, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
-      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0;
+      // the eye laser reaches a goblin well ahead on the ground and turns it into a coin
+      run(30); const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
+      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
+      // finishing the level: Shamrock and the power come along to the next one
+      setForm(1); reachGoal(); startLevel('woods'); out.kept = !!player.mount && player.form === 1 && player.h === RIDE_H;
       // a hit: Leo falls off unhurt, Shamrock runs off; ↓ + jump hops off on purpose
       const form = player.form; hurtPlayer(); out.fell = !player.mount && player.form === form && phase === 'play' && ents.some(e => e.k === 'unicorn' && e.st === 'flee');
       paused = false; return out;
@@ -1136,7 +1140,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.carried && r.moved > 25 && r.onGround && r.bounce, 'carry a spring and it still works where you put it: ' + JSON.stringify(r));
     check(r.hatched && r.riding, 'the egg should hatch Shamrock and Leo should ride him: ' + JSON.stringify(r));
     check(r.rideJump > 66 && r.floatAir > r.plainAir + 15, 'riding: a higher jump and a float: ' + JSON.stringify(r));
-    check(r.spiky && r.zap, 'riding: stomp spiky hedgehogs and zap with the horn: ' + JSON.stringify(r));
+    check(r.spiky && r.zap, 'riding: stomp spiky hedgehogs and zap with the eye laser: ' + JSON.stringify(r));
+    check(r.kept, 'Shamrock and power-ups should come along to the next level: ' + JSON.stringify(r));
     check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
     await done(p);
   });
