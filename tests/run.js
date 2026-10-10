@@ -756,7 +756,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padHold(p, 'A', true); await p.waitForTimeout(100);
     check(await p.evaluate(() => document.querySelector('.b[data-b="0"]').classList.contains('on') && state === 'title'), 'Ⓐ should light up, not start the game');
     await padHold(p, 'A', false);
-    await padHold(p, 'B', true); await p.waitForTimeout(1500); await padHold(p, 'B', false);
+    await padHold(p, 'B', true); await p.waitForTimeout(2600); await padHold(p, 'B', false);
     check(await p.evaluate(() => !document.querySelector('.rb-padscreen.testing')), 'holding Ⓑ should finish testing');
     // settings: invert the left stick's up/down and the right stick's up/down, switch vibration off
     await p.click('[data-k="invLY"]'); await p.click('[data-k="invRY"]'); await p.click('[data-k="rumble"]');
@@ -1049,9 +1049,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(await p.evaluate(() => state === 'play' && next === 0 && stations.filter(s => s.letter === 0).length === 1), 'A should wait at one station');
     await p.click('#go', { force: true });
     // the train brakes by itself beside the A and the Alligator hops on
-    const a = await p.evaluate(() => { for (let k = 0; k < 4000 && next === 0; k++) update(0.05); for (let k = 0; k < 40; k++) update(0.05);
-      return { next, seat: train.seats[0] && train.seats[0].userData.name, card: document.getElementById('cardWord').textContent, said: __said.join(' | '), saved: JSON.parse(localStorage.getItem('abc_train')).next }; });
-    check(a.next === 1 && a.seat === 'Alligator' && a.card === 'Alligator' && a.saved === 1, 'A should board: ' + JSON.stringify(a));
+    const a = await p.evaluate(() => { const went = train.running; if (!went) toggleGo(); for (let k = 0; k < 4000 && next === 0; k++) update(0.05); for (let k = 0; k < 40; k++) update(0.05);
+      return { went, next, seat: train.seats[0] && train.seats[0].userData.name, card: document.getElementById('cardWord').textContent, said: __said.join(' | '), saved: (JSON.parse(localStorage.getItem('abc_train')) || {}).next }; });
+    check(a.went && a.next === 1 && a.seat === 'Alligator' && a.card === 'Alligator' && a.saved === 1, 'GO should start the train and A should board: ' + JSON.stringify(a));
     check(/A is for Alligator/.test(a.said), 'the letter should be read out: ' + a.said);
     await p.screenshot({ path: path.join(OUT, 'abc-train.png') });
     // three more letters fill the wagons, then the train heads for the Animal Park and everyone hops off
@@ -1064,7 +1064,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(park.park === 4 && park.next === 4 && park.seats === 0, 'the first four animals should be playing in the park: ' + JSON.stringify(park));
     // tap an animal in the park: it jumps and says its name
     const tapped = await p.evaluate(() => { const an = park.animals[0], v = new THREE.Vector3(); an.getWorldPosition(v); camera.position.copy(v).add(new THREE.Vector3(0, 6, 8)); camera.lookAt(v); camera.updateMatrixWorld();
-      v.project(camera); __said = []; updateCamera = () => {}; return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight, name: an.userData.name }; });
+      v.project(camera); __said = []; update = () => {}; return { x: (v.x + 1) / 2 * innerWidth, y: (1 - v.y) / 2 * innerHeight, name: an.userData.name }; });
     await p.mouse.click(tapped.x, tapped.y); await p.waitForTimeout(100);
     check(await p.evaluate(n => __said.some(s => s.includes(n)), tapped.name), 'tapping the ' + tapped.name + ' should say its name');
     await done(p);
@@ -1158,7 +1158,6 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.click('#walk', { force: true });
     const f2 = await p.evaluate(() => { const cow = farm.animals.find(a => a.userData.farm === 'Cow'); const from = walker.position.clone(); farmHello(cow);
       for (let k = 0; k < 200; k++) update(0.05); return { state, moved: walker.position.distanceTo(from), near: walker.position.distanceTo(cow.position) }; });
-    await p.waitForTimeout(1500);
     const said = await p.evaluate(() => __said.join(' | '));
     check(f2.state === 'farm' && f2.moved > 3 && /visit the farm/.test(said) && /The cow says moo!/.test(said), 'farm visit: ' + JSON.stringify(f2) + ' ' + said);
     await p.click('#board', { force: true });

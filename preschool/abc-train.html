@@ -101,7 +101,7 @@
   #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
   .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
 </style>
-<link rel="stylesheet" href="../common.css?v=20261010-1144">
+<link rel="stylesheet" href="../common.css?v=20261010-1200">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -131,8 +131,8 @@
 </div>
 
 <script src="../vendor/three.min.js"></script>
-<script src="../orbit-cam.js?v=20261010-1144"></script>
-<script src="../common.js?v=20261010-1144"></script>
+<script src="../orbit-cam.js?v=20261010-1200"></script>
+<script src="../common.js?v=20261010-1200"></script>
 <script>
 'use strict';
 // ===================== ABC Train =====================
@@ -909,7 +909,7 @@ function farmHello(a) {
   const kind = a.userData.farm;
   if (!playSound(FARM_SOUND[kind], 1)) sfx.hop();
   jobs.push({ t: 0, d: 0.6, obj: a, kind: 'jump', y0: a.position.y });
-  setTimeout(() => say(LINE.farmSays(kind)), 900);
+  later(0.9, () => say(LINE.farmSays(kind)));
   if (state === 'farm') { const q = a.position.clone(); const d = q.clone().sub(walker.position).setY(0); if (d.length() > 2.5) walker.userData.target = q.addScaledVector(d.normalize(), -2.2).setY(0); }
 }
 function updateWalker(dt) {
@@ -1066,6 +1066,8 @@ const save = (() => { try { return JSON.parse(RB.store.get('abc_train') || 'null
 const persist = () => RB.store.set('abc_train', JSON.stringify(save));
 let state = 'title', mode = 'abc', next = 0, target = null, hold = 0, idleT = 0, lastChuff = 0, camMode = 0, clock = 0, glide = null;   // glide: the station a Find-the-letter stop is rolling up to
 let jobs = [];   // little animations: animals hopping on and off
+const laters = [];   // things to do a moment from now (in game time, so they wait while the game is paused)
+const later = (sec, fn) => laters.push({ at: clock + sec, fn });
 const $ = id => document.getElementById(id);
 const abcEl = $('abc');
 abcEl.innerHTML = ANIMALS.map((a, i) => `<span style="--c:${colorOf(i)}">${a.L}</span>`).join('');
@@ -1327,6 +1329,7 @@ const CRUISE = 9, ACC = 2.6, BRAKE = 6;
 function update(dt) {
   clock += dt;
   hold = Math.max(0, hold - dt);
+  for (let i = laters.length - 1; i >= 0; i--) if (clock >= laters[i].at) laters.splice(i, 1)[0].fn();
   updateWorld(dt);
   if (state === 'farm') { updateWalker(dt); updateSmoke(dt); updateCamera(dt); return; }
   if (hold <= 0 && $('go').classList.contains('stop') !== train.running) updateGo();
