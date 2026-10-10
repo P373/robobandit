@@ -894,6 +894,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         for (const e of L.ents) {
           if (e.k === 'plat' || e.k === 'fall') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
           if (e.k === 'spring') springs.add(k(e.x, e.y));
+          if (e.k === 'whale') springs.add(k(e.x, 11));   // a whale's spout shoots Leo up like a spring
+          if (e.k === 'boat') for (let ox = e.x; ox <= e.to + e.w - 1; ox++) stand.add(k(ox, e.y - 1));   // the boat carries Leo along
         }
         const pts = [...stand].map(q => q.split(',').map(Number));
         const start = pts.filter(([x]) => x <= 4).sort((a, b) => b[1] - a[1])[0];
@@ -911,8 +913,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
             if (ok) { seen.add(k(x2, y2)); q.push([x2, y2]); }
           }
         }
-        const keyE = L.ents.find(e => e.k === 'key');
-        out[id] = { far, goal: L.goal || 178, gems: L.ents.filter(e => e.k === 'gem').length, key: keyE ? [...seen].some(q => { const [a, b] = q.split(',').map(Number); return Math.abs(a - keyE.x) <= 1 && Math.abs(b - keyE.y) <= 1; }) : null };
+        const keyE = L.ents.find(e => e.k === 'key'), flagE = L.ents.find(e => e.k === 'sflag');
+        const near = (q, o) => { const [a, b] = q.split(',').map(Number); return Math.abs(a - o.x) <= 1 && Math.abs(b - o.y) <= 1; };
+        out[id] = { far, goal: L.goal || 178, gems: L.ents.filter(e => e.k === 'gem').length, key: keyE ? [...seen].some(q => near(q, keyE)) : null, flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
       }
       return out;
     });
@@ -921,6 +924,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(v.gems === 5, `${id} should have 5 rainbow gems, has ${v.gems}`);
     }
     check(r.caves.key === true, 'the golden key in Glimmer Caves should be reachable');
+    for (const id of ['canal', 'whale']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
     await done(p);
   });
 
@@ -1215,6 +1219,45 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
     check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 1, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-magic-hat.png');
+  });
+
+  await test('Lucky Leo Cape Cod: the whale-watch boat sails with Leo aboard, sharks leap, a whale spout shoots him up, and secret exits open Martha\'s Vineyard and Nantucket', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
+      paused = true; startGame();
+      out.islandsHidden = !nodeOpen(node('vineyard')) && !nodeOpen(node('nantucket'));
+      startLevel('whale'); ents = ents.filter(e => e.k !== 'shark'); run(20);
+      const boat = ents.find(e => e.k === 'boat'), bx0 = boat.x;
+      keys.right = true; run(200, () => { if (player.ride === boat && player.x > boat.x + 30) keys.right = false; }); keys.right = false;
+      run(120); out.boat = player.ride === boat && boat.x > bx0 + 60 && phase === 'play';
+      // a shark ahead leaps out of the sea
+      const sh = mk('shark', player.x + 120, LH + 40, { x0: player.x + 120, w: 26, h: 12, st: 'swim', cool: 0 }); ents.push(sh);
+      run(10); out.leap = sh.st === 'leap' && isEnemy(sh);
+      sh.gone = true;
+      // into a whale's spout: up he goes
+      const wh = ents.find(e => e.k === 'whale'); wh.cyc = 1.4; run(1); player.x = wh.bx - 6; player.y = 11 * 16 - player.h; player.vy = 0; run(2);
+      out.spout = player.vy < -380;
+      // the secret flag on the cloud: a secret exit that opens Nantucket
+      startLevel('whale'); const fl = ents.find(e => e.k === 'sflag'); touchPlayerAs(fl); out.secretPhase = phase === 'clear' && lvl.secretExit;
+      run(300); out.nantucket = state === 'map' && !!save.secrets.whale && nodeOpen(node('nantucket'));
+      startLevel('canal'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.vineyard = state === 'map' && nodeOpen(node('vineyard'));
+      // the island levels and the boat level all start
+      out.starts = ['vineyard', 'nantucket', 'whale'].map(id => { startLevel(id); run(30); return state === 'level' && player.y > 0 && phase === 'play'; });
+      out.path = PATHS.some(([a, b]) => a === 'dunes' && b === 'whale') && PATHS.some(([a, b]) => a === 'whale' && b === 'ptown');
+      paused = false; return out;
+    });
+    check(r.islandsHidden, 'the secret islands should start hidden: ' + JSON.stringify(r));
+    check(r.boat, 'the boat should sail off with Leo aboard: ' + JSON.stringify(r));
+    check(r.leap, 'a great white should leap out ahead of Leo: ' + JSON.stringify(r));
+    check(r.spout, "a whale's spout should shoot Leo up: " + JSON.stringify(r));
+    check(r.secretPhase && r.nantucket, 'the golden flag on Whale Watch should be a secret exit to Nantucket: ' + JSON.stringify(r));
+    check(r.vineyard, "the golden flag on Bourne Bridge should open Martha's Vineyard: " + JSON.stringify(r));
+    check(r.starts.every(Boolean) && r.path, 'the new levels start, and Whale Watch sits between Nauset Dunes and Provincetown Pier: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-cape.png');
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {

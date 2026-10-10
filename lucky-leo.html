@@ -362,7 +362,9 @@ LEVELS.canal = builder('canal', 'Bourne Bridge', 'canal', 210)
   .e('plat', 61, 9, { w: 3, dx: 2, sp: 1 }).at(70, 8, '?Y?').e('snaily', 76, 11).e('grumblin', 82, 11)
   .arc(90, 8, 6).e('mid', 100, 11).at(104, 7, 'BMB').e('thorny', 110, 11).e('buzzer', 114, 5)
   .e('plat', 119, 9, { w: 3, dx: 2, sp: 1.1 }).at(130, 8, '----').at(135, 6, '----').coins(135, 5, 4).e('grumblin', 142, 11).e('snaily', 146, 11)
-  .e('fall', 151, 9, { w: 3 }).at(162, 8, '?S?').e('grumblin', 168, 11).e('buzzer', 172, 6).stairs(184, 5)
+  .e('fall', 151, 9, { w: 3 }).at(162, 8, '?S?')
+  // the secret: way up at the top, past the high ledges, a golden flag for the ferry to Martha's Vineyard
+  .at(140, 2, '========').e('sflag', 146, 1).e('grumblin', 168, 11).e('buzzer', 172, 6).stairs(184, 5)
   .gems(9, 5, 32, 6, 71, 5, 136, 3, 152, 6)
   .done({ goal: 198, music: 'canal' });
 
@@ -396,7 +398,23 @@ LEVELS.dunes = builder('dunes', 'Nauset Dunes', 'dunes', 214)
   .gems(11, 5, 33, 2, 73, 4, 97, 2, 143, 3)
   .done({ goal: 198, music: 'dunes' });
 
-// 15. Provincetown Pier: the last stand, out on the wharf at sunset with the Pilgrim Monument on the hill. King Grumbles, five stomps.
+// 15. Whale Watch: out to sea on the whale-watch boat. It sails off once Leo is aboard: jump the leaping great white
+// sharks, bump the floating blocks, and jump into a whale's spout to shoot up high. Seals pop up to watch.
+LEVELS.whale = builder('whale', 'Whale Watch', 'sea', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 8).ground(188, 199)
+  .at(3, 8, '?PC').e('boat', 9, 12, { w: 7, to: 181 })
+  .coins(14, 8, 4).e('shark', 26, 12).arc(30, 8, 6).at(38, 8, '?B?').e('sealhead', 40, 12)
+  .e('whale', 46, 12).coins(45, 4, 3)
+  .e('shark', 56, 12).e('buzzer', 62, 6).at(68, 8, 'BMB').e('shark', 78, 12)
+  .e('whale', 90, 12).coins(89, 5, 3).e('sealhead', 96, 12).e('mid', 100, 11).e('shark', 108, 12).at(116, 8, '?L?').e('buzzer', 122, 6).e('shark', 132, 12)
+  .e('sealhead', 138, 12).e('whale', 146, 12)
+  // the secret: the last whale's spout reaches a long cloud, and at its far end a golden flag (the way to Nantucket)
+  .at(149, 4, '-'.repeat(38)).coins(152, 3, 6).e('sflag', 178, 3)
+  .e('shark', 158, 12).e('buzzer', 164, 7).e('shark', 172, 12)
+  .gems(20, 7, 47, 2, 91, 3, 126, 7, 160, 2)
+  .done({ goal: 194, music: 'sea' });
+
+// 16. Provincetown Pier: the last stand, out on the wharf at sunset with the Pilgrim Monument on the hill. King Grumbles, five stomps.
 LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 24).ground(29, 48).ground(53, 74).ground(80, 102).ground(107, 134).ground(139, 199)
   .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
@@ -408,6 +426,28 @@ LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
   .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 5 })
   .gems(9, 5, 50, 7, 76, 4, 113, 5, 142, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
+
+// Secret level: Martha's Vineyard, along the striped clay cliffs of Aquinnah, past gingerbread cottages
+LEVELS.vineyard = builder('vineyard', "Martha's Vineyard", 'cliffs', 180)
+  .ground(0, 30).ground(31, 50, 10).ground(51, 70, 8).ground(75, 96, 9).ground(97, 120, 11).ground(125, 179)
+  .at(8, 8, '?PC').arc(14, 8, 6).e('grumblin', 22, 11).e('spring', 26, 11).coins(24, 2, 5)
+  .at(36, 6, 'BMB').e('snaily', 44, 9).arc(52, 5, 7).e('buzzer', 60, 4).e('grumblin', 66, 7)
+  .arc(70, 5, 6).at(80, 5, '?L?').e('thorny', 88, 8).coins(90, 6, 5)
+  .e('mid', 100, 10).arc(104, 8, 8).e('grumblin', 112, 10).arc(120, 7, 6)
+  .at(130, 8, '?S?').e('spring', 140, 11).coins(138, 2, 6).e('snaily', 148, 11).e('buzzer', 152, 6).stairs(156, 5)
+  .gems(12, 5, 26, 1, 62, 3, 110, 6, 140, 1)
+  .done({ goal: 170, music: 'vineyard' });
+
+// Secret level: Nantucket, the "Grey Lady": foggy harbour docks, grey-shingled houses and Brant Point lighthouse
+LEVELS.nantucket = builder('nantucket', 'Nantucket', 'nantucket', 180)
+  .fill(0, 179, 12, 13, T.WATER).ground(0, 24).ground(30, 52).ground(57, 64, 9).ground(70, 92).ground(98, 120).ground(127, 179)
+  .at(8, 8, '?PC').e('grumblin', 16, 11).arc(24, 8, 7).e('buzzer', 34, 6).at(38, 8, 'B?B?B').e('snaily', 46, 11)
+  .arc(52, 7, 6).at(58, 5, 'M').e('grumblin', 62, 8).arc(64, 8, 7)
+  .e('plat', 74, 8, { w: 3, dx: 3, sp: 1 }).at(80, 8, '?L?').e('thorny', 86, 11)
+  .e('mid', 96, 11).arc(92, 8, 7).e('buzzer', 104, 6).at(108, 8, 'BSB').e('snaily', 114, 11)
+  .arc(120, 8, 8).e('plat', 122, 7, { w: 2, dy: 2, sp: 1 }).e('grumblin', 134, 11).at(140, 8, '----').coins(140, 7, 4).e('buzzer', 146, 6).stairs(152, 5)
+  .gems(12, 5, 41, 7, 59, 3, 81, 5, 142, 6)
+  .done({ goal: 170, music: 'nantucket' });
 
 // Bonus rooms inside the hollow trees: drop in through a hole, grab the coins, and go down the log on the right to get back out.
 function treeRoom(id, from, kind) {
@@ -434,7 +474,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['hills', 'woods', 'caves', 'sky', 'bog', 'castle', 'bonus', 'shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown'];
+const ORDER = ['hills', 'woods', 'caves', 'sky', 'bog', 'castle', 'bonus', 'shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'whale', 'ptown', 'vineyard', 'nantucket'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -556,6 +596,13 @@ const SONGS = {
     0, 2, 4, 2, 0, null, 4, null, 5, 4, 2, 4, 0, null, null, null, 2, 4, 5, 7, 9, null, 7, null, 5, 4, 2, 1, 0, null, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
   dunes: { bpm: 116, key: 65, mode: 'major', beat: 3, lead: 'flute', melody: [
     4, null, 5, 7, null, 9, 7, null, 5, 4, null, null, 2, null, 4, 5, null, 7, 4, null, 2, 0, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  sea: { bpm: 120, key: 62, mode: 'dorian', beat: 3, lead: 'reed', melody: [   // a sea shanty
+    0, null, 0, 0, 2, 3, 4, null, 3, 2, null, 0, -1, null, -1, -1, 0, 2, 3, null, 2, 0, null, null,
+    0, null, 0, 0, 2, 3, 4, null, 7, 6, null, 4, 3, 2, 3, 4, 2, -1, 0, null, null, 0, null, null], bass: [0, 0, -1, -1, 0, -3, -1, 0] },
+  vineyard: { bpm: 124, key: 67, mode: 'major', beat: 4, lead: 'flute', melody: [
+    4, 5, 7, null, 9, 7, 5, 4, 2, null, 4, 5, 4, null, null, null, 7, 9, 11, null, 9, 7, 5, 7, 4, null, 2, null, 0, null, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  nantucket: { bpm: 96, key: 60, mode: 'major', beat: 3, lead: 'soft', melody: [
+    0, null, 4, 7, null, 4, 5, null, 4, 2, null, null, 0, null, 4, 7, null, 9, 7, null, 5, 4, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
   bonus: { bpm: 144, key: 64, mode: 'major', beat: 3, lead: 'pulse', melody: [
     0, 2, 4, 7, 4, 2, 4, 7, 9, 7, 4, 2, 5, 4, 2, 4, 2, 1, 0, null, 4, 7, null, null], bass: [0, 0, 3, 4, 0, 0, 4, 0] },
 };
@@ -950,6 +997,9 @@ const AIR = {
   cranberry: { n: 12, c: ['#e8a040', '#c83040', '#f0c060'], kind: 'leaf', vx: -12, vy: 12 },
   dunes: { n: 16, c: ['#f2dca0', '#ffffff'], kind: 'spray', vx: -30, vy: 2 },
   pier: { n: 10, c: ['#ffffff'], kind: 'wisp', vx: -14, vy: 0 },
+  sea: { n: 16, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -26, vy: -4 },
+  cliffs: { n: 12, c: ['#ff8ab0', '#ffffff', '#ffc0d8'], kind: 'petal', vx: -14, vy: 8 },   // beach-rose petals
+  nantucket: { n: 14, c: ['#ffffff'], kind: 'wisp', vx: -10, vy: 0 },                       // the famous fog
 };
 function drawAirborne(cx, t) {
   const a = lvl && AIR[lvl.theme];
@@ -1073,7 +1123,7 @@ function drawPoop(e, t) {
   g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
 }
 
-const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier']);
+const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket']);
 function drawGull(x, y, t, face) {   // a cheeky Cape Cod seagull
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
   const flap = Math.sin(t * 12);
@@ -1282,6 +1332,92 @@ function drawHorseshoe(x, y, t) {
   for (const a of [1, 1.35, 1.65, 2]) { g.beginPath(); g.arc(Math.cos(a * Math.PI) * 6, Math.sin(a * Math.PI) * 6, 0.5, 0, TAU); paint(INK); }
   g.restore();
 }
+// the whale-watch boat: a white hull with a blue stripe, a rail, a little wheelhouse at the stern and a flag
+function drawBoat(e, t) {
+  const x = e.x, y = e.y, w = e.w;
+  g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x + w + 10, y); g.quadraticCurveTo(x + w + 4, y + 12, x + w - 8, y + 16); g.lineTo(x + 4, y + 16); g.quadraticCurveTo(x - 2, y + 10, x - 4, y); g.closePath(); paint(vgrad(y, y + 16, '#ffffff', '#d8e0ea'));
+  g.fillStyle = '#2a5ab8'; g.fillRect(x - 2, y + 6, w + 8, 3);
+  for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(x + 12 + i * 16, y + 11.5, 1.6, 0, TAU); g.fillStyle = '#5a7ab0'; g.fill(); }   // portholes
+  g.fillStyle = 'rgba(255,255,255,.9)'; g.fillRect(x - 3, y - 7, w + 10, 1.4); for (let i = 0; i <= 8; i++) g.fillRect(x - 3 + i * (w + 9) / 8, y - 7, 1.2, 7);   // the rail
+  g.fillStyle = '#8a6a4a'; g.fillRect(x + 2, y - 30, 2, 30); const wv = Math.sin(t * 6) * 1.5;
+  g.beginPath(); g.moveTo(x + 4, y - 30); g.lineTo(x + 16, y - 27 + wv); g.lineTo(x + 4, y - 23); paint('#e8453a');
+}
+// a great white shark: grey on top, white underneath, a big dorsal fin and a toothy cartoon grin
+function drawShark(e, t) {
+  if (e.st === 'swim') {   // only its fin shows, cutting through the water
+    const fx = e.x + 13, fy = 12 * TS + 2;
+    g.beginPath(); g.moveTo(fx - 6, fy); g.lineTo(fx + 1, fy - 10); g.lineTo(fx + 5, fy); g.closePath(); paint('#5a6878');
+    g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(fx - 10, fy + 1); g.lineTo(fx + 8, fy + 1); g.stroke();
+    return;
+  }
+  g.save(); g.translate(e.x + 13, e.y + 6); g.rotate(Math.atan2(e.vy, e.vx) + Math.PI); g.scale(-1, 1);
+  ell(0, 0, 15, 6); paint('#6a7888'); g.save(); ell(0, 0, 15, 6); g.clip(); g.fillStyle = '#ffffff'; g.fillRect(-16, 1, 32, 6); g.restore();
+  g.beginPath(); g.moveTo(-2, -5); g.lineTo(3, -13); g.lineTo(6, -5); g.closePath(); paint('#5a6878');                     // dorsal fin
+  g.beginPath(); g.moveTo(-13, 0); g.lineTo(-21, -7); g.lineTo(-18, 0); g.lineTo(-21, 6); g.closePath(); paint('#5a6878');  // tail
+  g.beginPath(); g.moveTo(2, 4); g.lineTo(-3, 10); g.lineTo(6, 5); paint('#5a6878');                                       // flipper
+  g.beginPath(); g.arc(10, -1.5, 1.4, 0, TAU); paint('#1e2a3a');
+  g.beginPath(); g.moveTo(7, 2.4); g.quadraticCurveTo(11, 4, 14.5, 1.5); g.lineWidth = 0.9; g.strokeStyle = '#3a2a3a'; g.stroke();
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(7.6 + i * 1.7, 2.8); g.lineTo(8.4 + i * 1.7, 4.2); g.lineTo(9.2 + i * 1.7, 2.6); g.fillStyle = '#ffffff'; g.fill(); }
+  g.restore();
+}
+// a humpback whale: a dark back rising out of the water, and a tall spout of spray
+function drawWhale(e, t) {
+  const cx = e.bx, wy = 12 * TS, r = e.rise || 0;
+  if (r > 0) {
+    g.save(); g.beginPath(); g.rect(cx - 60, wy - 40, 120, 40); g.clip();
+    ell(cx, wy + 10 - r * 10, 34, 12); paint(vgrad(wy - 12, wy + 10, '#3a4a6a', '#24304a'));
+    g.beginPath(); g.moveTo(cx + 14, wy - r * 10 + 1); g.lineTo(cx + 20, wy - 4 - r * 10); g.lineTo(cx + 24, wy - r * 10 + 2); paint('#2a3654');   // little fin
+    g.beginPath(); g.arc(cx - 22, wy + 4 - r * 10, 1.3, 0, TAU); paint('#ffffff');
+    g.restore();
+  }
+  if (e.spoutH > 0) {
+    const top = wy - e.spoutH;
+    g.globalAlpha = 0.85; g.beginPath(); g.moveTo(cx - 4, wy); g.quadraticCurveTo(cx - 2, (top + wy) / 2, cx - 6, top + 6); g.lineTo(cx + 6, top + 6); g.quadraticCurveTo(cx + 2, (top + wy) / 2, cx + 4, wy); g.closePath(); g.fillStyle = vgrad(top, wy, '#ffffff', '#bfe4ff'); g.fill();
+    for (let i = 0; i < 7; i++) { const a = t * 6 + i; g.beginPath(); g.arc(cx + Math.sin(a * 1.7) * 9, top + 4 + Math.cos(a) * 4, 2.6, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); }
+    g.globalAlpha = 1;
+  }
+}
+// a harbour seal popping its head up to watch: round and grey, with big dark eyes and whiskers
+function drawSealHead(x, y, t) {
+  const up = Math.max(0, Math.sin(t * 0.9)) * 6;
+  if (up < 0.5) return;
+  g.save(); g.beginPath(); g.rect(x - 12, y - 20, 24, 26); g.clip();
+  ell(x, y + 8 - up, 6.5, 7); paint('#7a7a84'); ell(x + 2.5, y + 6 - up, 3, 2.2); paint('#9a9aa4');
+  g.beginPath(); g.arc(x - 1.5, y + 3 - up, 1.3, 0, TAU); g.arc(x + 3.4, y + 3 - up, 1.3, 0, TAU); paint('#1e2a3a');
+  g.beginPath(); g.arc(x + 3.2, y + 5.5 - up, 0.9, 0, TAU); paint('#2a2a34');
+  g.strokeStyle = 'rgba(255,255,255,.7)'; g.lineWidth = 0.4; for (const d of [-1, 1]) { g.beginPath(); g.moveTo(x + 3, y + 6.4 - up); g.lineTo(x + 3 + d * 5, y + 5.6 - up); g.stroke(); }
+  g.restore();
+}
+// far out to sea: whales blowing and breaching, and seals lazing on the rocks (drawn on top of the painted layers)
+function drawSeaLife(t) {
+  for (let i = 0; i < 3; i++) {
+    const wx = (((i * 260 + 140 - camX * 0.06) % (LW + 220)) + LW + 220) % (LW + 220) - 110, ph = (t * 0.22 + i * 0.37) % 1, hy = 152 + i * 4;
+    if (ph < 0.18) {   // a breach: the whale leaps right out and splashes down
+      const k = ph / 0.18, by = hy - Math.sin(k * Math.PI) * 26;
+      g.save(); g.translate(wx + k * 20, by); g.rotate(-0.9 + k * 1.8); ell(0, 0, 14, 4.5); g.fillStyle = '#34405e'; g.fill(); ell(0, 1.8, 11, 2.2); g.fillStyle = '#d8dce6'; g.fill();
+      g.beginPath(); g.moveTo(-3, 2); g.lineTo(-8, 9); g.lineTo(0, 3); g.fillStyle = '#e8ecf2'; g.fill(); g.restore();
+      if (k > 0.85) for (let s2 = 0; s2 < 5; s2++) { g.beginPath(); g.arc(wx + 18 + s2 * 3 - 6, hy - Math.random() * 6, 1.6, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); }
+    } else if (ph < 0.55) {   // blowing: a puff of spray from a dark back
+      ell(wx, hy + 1, 9, 2.6); g.fillStyle = '#34405e'; g.fill();
+      const sp = (ph - 0.18) / 0.37; g.globalAlpha = Math.sin(sp * Math.PI) * 0.9; g.beginPath(); g.arc(wx - 3, hy - 6 - sp * 6, 3 + sp * 2, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.globalAlpha = 1;
+    } else if (ph < 0.7) {   // the tail flukes as it dives
+      const k = (ph - 0.55) / 0.15; g.save(); g.translate(wx, hy - Math.sin(k * Math.PI) * 6); g.fillStyle = '#34405e';
+      g.beginPath(); g.moveTo(0, 2); g.quadraticCurveTo(-8, -6, -10, -4); g.quadraticCurveTo(-4, -1, 0, -2); g.quadraticCurveTo(4, -1, 10, -4); g.quadraticCurveTo(8, -6, 0, 2); g.fill(); g.restore();
+    }
+  }
+  for (const [rx, n] of [[90, 3], [330, 2]]) {   // seals on the rocks (they move with the rock layer)
+    const sx = (((rx - camX * 0.3) % BG_W) + BG_W) % BG_W;
+    for (const px of [sx, sx + BG_W, sx - BG_W]) {
+      if (px < -40 || px > LW + 40) continue;
+      for (let k = 0; k < n; k++) {
+        const x = px - 14 + k * 12, y = 172 - (k % 2) * 2, nod = Math.sin(t * 2 + k * 2 + rx) * 1.2;
+        ell(x, y, 6, 3); g.fillStyle = ['#7a7a84', '#8a8a94', '#6a6a74'][k]; g.fill();
+        g.beginPath(); g.arc(x + 5, y - 3 + nod, 2.6, 0, TAU); g.fill();
+        g.beginPath(); g.arc(x + 6, y - 3.6 + nod, 0.6, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill();
+      }
+    }
+  }
+}
 // the magic hat power-up: a purple top hat with a gold star band, twinkling
 function drawMagicHat(x, y, t) {
   g.save(); g.translate(x + 8, y + 12 + Math.sin(t * 4) * 0.8);
@@ -1363,6 +1499,9 @@ const THEMES = {
   cranberry: { top: '#d83a50', topDk: '#9a1e34', dirt: '#7a5034', dirtDk: '#5a3824', edge: '#3a2414' },
   dunes: { top: '#ead494', topDk: '#c8aa60', dirt: '#f2dca0', dirtDk: '#d8bc78', edge: '#a8884a' },
   pier: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
+  sea: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
+  cliffs: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },   // the red and orange clay of Aquinnah
+  nantucket: { top: '#bdb8ac', topDk: '#8e897e', dirt: '#a09a8e', dirtDk: '#7e786e', edge: '#4a4842' },   // cobblestones
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -1440,8 +1579,8 @@ function drawTile(tile, tx, ty, x, y, th, t) {
       break;
     }
     case T.WATER: {
-      const surf = tileAt(tx, ty - 1) !== T.WATER;
-      g.fillStyle = vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
+      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme);
+      g.fillStyle = sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
       if (surf) {
         g.beginPath(); g.moveTo(x - 0.2, y + 1);
         for (let i = 0; i <= 4; i++) g.lineTo(x + i * 4, y + 1 + Math.sin(t * 2.5 + tx * 1.3 + i) * 0.8);
@@ -1734,14 +1873,29 @@ SCENERY.canal = [
   { sp: 0.42, draw() {   // pine trees along the banks and a little fishing boat
     for (let i = 0; i < 9; i++) { const x = 10 + i * 56 + rndB(i, 3) * 20; g.fillStyle = '#6a4a2a'; g.fillRect(x - 1.5, 196, 3, 28); for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(x - 14 + k * 3, 206 - k * 11); g.lineTo(x, 180 - k * 11); g.lineTo(x + 14 - k * 3, 206 - k * 11); g.fillStyle = '#2f7a46'; g.fill(); } }
     g.beginPath(); g.moveTo(300, 184); g.lineTo(340, 184); g.lineTo(334, 192); g.lineTo(306, 192); g.closePath(); g.fillStyle = '#e8453a'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(314, 174, 12, 10);
+    capeHouse(180, 190, 1);
   } },
 ];
+// a little grey-shingled Cape Cod house: white trim, a chimney, blue hydrangeas and a white picket fence
+function capeHouse(x, base, s = 1) {
+  g.save(); g.translate(x, base); g.scale(s, s);
+  g.fillStyle = '#9a9aa2'; g.fillRect(0, -26, 46, 26); g.fillStyle = 'rgba(0,0,0,.1)'; for (let k = 0; k < 26; k += 4) g.fillRect(0, -26 + k, 46, 1);
+  g.beginPath(); g.moveTo(-4, -24); g.lineTo(23, -42); g.lineTo(50, -24); g.closePath(); g.fillStyle = '#5a5a62'; g.fill(); g.fillStyle = '#8a4a3a'; g.fillRect(19, -46, 8, 10);
+  g.fillStyle = '#ffffff'; g.fillRect(19, -16, 8, 16); g.fillRect(5, -19, 9, 9); g.fillRect(32, -19, 9, 9);
+  for (let k = 0; k < 9; k++) { g.beginPath(); g.arc(-6 + k * 7, -3 - (k % 2) * 2, 3.2, 0, TAU); g.fillStyle = k % 3 === 0 ? '#9a7ae0' : '#6a9aea'; g.fill(); }
+  g.fillStyle = '#ffffff'; for (let k = 0; k < 14; k++) { g.fillRect(-12 + k * 5, -9, 2.4, 9); } g.fillRect(-12, -6, 70, 1.6);
+  g.restore();
+}
 SCENERY.cranberry = [
   { sp: 0.08, draw() {   // autumn woods far away
     for (let i = 0; i < 14; i++) { const x = i * 36 + rndB(i, 1) * 16; g.beginPath(); g.arc(x, 150, 22 + rndB(i, 2) * 10, 0, TAU); g.fillStyle = ['#e8803a', '#d8502e', '#f2b040', '#b8402a'][i % 4]; g.globalAlpha = 0.55; g.fill(); } g.globalAlpha = 1;
   } },
   { sp: 0.25, draw() {   // a white farmhouse with a red roof, and the bog full of floating cranberries
     g.fillStyle = '#ffffff'; g.fillRect(320, 150, 50, 30); g.beginPath(); g.moveTo(314, 152); g.lineTo(345, 128); g.lineTo(376, 152); g.closePath(); g.fillStyle = '#b8302a'; g.fill(); g.fillStyle = '#4a6a9a'; g.fillRect(330, 160, 8, 8); g.fillRect(352, 160, 8, 8);
+    // an old grey-shingled windmill, like the one in Eastham
+    { const wx = 160; g.fillStyle = '#8a8a90'; g.beginPath(); g.moveTo(wx - 12, 186); g.lineTo(wx - 8, 140); g.lineTo(wx + 8, 140); g.lineTo(wx + 12, 186); g.fill(); g.beginPath(); g.moveTo(wx - 10, 141); g.quadraticCurveTo(wx, 126, wx + 10, 141); g.fillStyle = '#5a5a62'; g.fill();
+      g.strokeStyle = '#f2ead8'; g.lineWidth = 3; for (let k = 0; k < 4; k++) { const a = k * Math.PI / 2 + 0.4; g.beginPath(); g.moveTo(wx, 138); g.lineTo(wx + Math.cos(a) * 30, 138 + Math.sin(a) * 30); g.stroke(); }
+      g.fillStyle = '#ffffff'; g.fillRect(wx - 3, 172, 6, 14); }
     g.fillStyle = '#8a1e34'; g.fillRect(0, 186, BG_W, 38);
     for (let i = 0; i < 160; i++) { g.beginPath(); g.arc(rndB(i, 4) * BG_W, 188 + rndB(i, 5) * 34, 1.6, 0, TAU); g.fillStyle = i % 3 ? '#e8303a' : '#ff5a5a'; g.fill(); }
   } },
@@ -1758,7 +1912,54 @@ SCENERY.dunes = [
   { sp: 0.4, draw() {   // rolling dunes with beach grass and a little grey-shingled cottage
     g.fillStyle = vgrad(150, 224, '#f2dca0', '#e2c480'); g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 176 - Math.sin(x / BG_W * TAU * 2) * 16); g.lineTo(BG_W, 224); g.fill();
     for (let i = 0; i < 40; i++) { const x = rndB(i, 6) * BG_W, y = 178 - Math.sin(x / BG_W * TAU * 2) * 16; g.strokeStyle = '#8aa84a'; g.lineWidth = 1; for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(x, y); g.quadraticCurveTo(x + k * 3, y - 6, x + k * 5, y - 10); g.stroke(); } }
-    g.fillStyle = '#9a9aa2'; g.fillRect(120, 150, 34, 22); g.beginPath(); g.moveTo(116, 152); g.lineTo(137, 136); g.lineTo(158, 152); g.closePath(); g.fillStyle = '#6a6a72'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(132, 158, 8, 14);
+    capeHouse(120, 172, 0.8);
+    g.strokeStyle = '#a8845a'; g.lineWidth = 1; for (let k = 0; k < 30; k++) { const x = 250 + k * 4, y = 182 - Math.sin(x / BG_W * TAU * 2) * 16; g.beginPath(); g.moveTo(x, y); g.lineTo(x + Math.sin(k) * 1.2, y - 9); g.stroke(); }   // a wobbly dune fence
+    for (let k = 0; k < 6; k++) { const x = 60 + k * 9, y = 180 - Math.sin(x / BG_W * TAU * 2) * 16; g.beginPath(); g.arc(x, y, 3, 0, TAU); g.fillStyle = '#3a8a3a'; g.fill(); g.beginPath(); g.arc(x, y - 1, 1.5, 0, TAU); g.fillStyle = '#ff6a9a'; g.fill(); }   // beach roses
+  } },
+];
+SCENERY.sea = [
+  { sp: 0.03, draw() {   // open ocean to the horizon, and far off the curl of Provincetown with its monument
+    g.fillStyle = vgrad(140, 224, '#2a7ad0', '#164a96'); g.fillRect(0, 146, BG_W, 78);
+    g.fillStyle = '#d8c890'; g.beginPath(); g.ellipse(380, 147, 70, 4, 0, Math.PI, 0); g.fill(); g.fillStyle = '#b8b0a0'; g.fillRect(392, 126, 3, 20); g.fillRect(391, 124, 5, 3);
+    g.strokeStyle = 'rgba(255,255,255,.35)'; g.lineWidth = 1; for (let i = 0; i < 30; i++) { const x = rndB(i, 2) * BG_W, y = 152 + rndB(i, 3) * 66; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6 + rndB(i, 4) * 8, y); g.stroke(); }
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 34 + (i % 2) * 26, 0.9); } },
+  { sp: 0.3, draw() {   // rocky ledges sticking out of the sea (the seals sit on these) and a red-and-white channel buoy
+    for (const [x, w] of [[90, 60], [330, 44]]) { g.fillStyle = '#6a6a72'; g.beginPath(); g.ellipse(x, 182, w / 2, 9, 0, Math.PI, 0); g.fill(); g.fillStyle = '#8a8a92'; g.beginPath(); g.ellipse(x - 6, 180, w / 4, 5, 0, Math.PI, 0); g.fill(); }
+    g.fillStyle = '#e8453a'; g.fillRect(226, 168, 8, 14); g.fillStyle = '#ffffff'; g.fillRect(226, 172, 8, 4); g.fillStyle = '#23324a'; g.fillRect(229, 160, 2, 8);
+  } },
+];
+SCENERY.cliffs = [
+  { sp: 0.04, draw() { g.fillStyle = vgrad(150, 224, '#3a9ae8', '#2a7ac8'); g.fillRect(0, 156, BG_W, 68); } },
+  { sp: 0.15, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 36 + (i % 2) * 22, 0.9); } },
+  { sp: 0.3, draw() {   // the striped clay cliffs of Aquinnah (red, cream, orange and grey bands) and the red-brick Gay Head lighthouse
+    const top = x => 120 - Math.sin(x / BG_W * TAU * 2) * 10 - Math.sin(x / BG_W * TAU * 5 + 1) * 4;
+    const bands = ['#5aa84a', '#e8e0c8', '#d8583a', '#f2c890', '#b84a32', '#9a9aa0', '#e89a5a', '#7a5a4a'];
+    for (let b = 0; b < bands.length; b++) { g.fillStyle = bands[b]; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 6) g.lineTo(x, top(x) + b * 9 + Math.sin(x / BG_W * TAU * 8 + b) * 2); g.lineTo(BG_W, 224); g.fill(); }
+    const lx = 300, ly = top(lx); g.fillStyle = '#b8402a'; g.beginPath(); g.moveTo(lx - 7, ly + 2); g.lineTo(lx - 5, ly - 34); g.lineTo(lx + 5, ly - 34); g.lineTo(lx + 7, ly + 2); g.fill();
+    g.fillStyle = '#23324a'; g.fillRect(lx - 6, ly - 42, 12, 8); g.beginPath(); g.moveTo(lx - 7, ly - 42); g.lineTo(lx, ly - 49); g.lineTo(lx + 7, ly - 42); g.fill(); glow(lx, ly - 38, 16, 'rgba(255,240,170,1)', 0.5);
+  } },
+  { sp: 0.48, draw() {   // Oak Bluffs' gingerbread cottages: bright little houses with lacy white trim
+    for (let i = 0; i < 4; i++) { const x = 30 + i * 120, c = ['#ff9ac0', '#9ad8ff', '#fff08a', '#b8f0a0'][i];
+      g.fillStyle = c; g.fillRect(x, 160, 34, 32); g.beginPath(); g.moveTo(x - 4, 162); g.lineTo(x + 17, 136); g.lineTo(x + 38, 162); g.closePath(); g.fillStyle = ['#c84a7a', '#3a7ac8', '#e89a2a', '#4a9a3a'][i]; g.fill();
+      g.fillStyle = '#ffffff'; for (let k = 0; k < 7; k++) { g.beginPath(); g.arc(x + 2 + k * 5, 162, 2.2, 0, Math.PI); g.fill(); }
+      g.fillRect(x + 4, 170, 26, 2); g.fillStyle = '#5a7ab0'; g.fillRect(x + 6, 174, 6, 8); g.fillRect(x + 22, 174, 6, 8); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x + 17, 152, 3, 0, TAU); g.fill(); }
+  } },
+];
+SCENERY.nantucket = [
+  { sp: 0.04, draw() { g.fillStyle = vgrad(150, 224, '#7a9ab0', '#5a7a94'); g.fillRect(0, 158, BG_W, 66); } },
+  { sp: 0.16, draw() {   // Brant Point: a short white lighthouse on a wooden walkway, and sailboats in the harbour
+    g.fillStyle = '#8a6a4a'; g.fillRect(40, 160, 90, 3); for (let i = 0; i < 6; i++) g.fillRect(44 + i * 16, 160, 2, 10);
+    const x = 120; g.fillStyle = '#ffffff'; g.fillRect(x - 5, 132, 10, 28); g.fillStyle = '#23324a'; g.fillRect(x - 6, 124, 12, 8); g.beginPath(); g.moveTo(x - 7, 124); g.lineTo(x, 118); g.lineTo(x + 7, 124); g.fill(); glow(x, 128, 14, 'rgba(255,90,80,1)', 0.5);
+    for (let i = 0; i < 3; i++) { const bx = 230 + i * 80; g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(bx, 156); g.lineTo(bx + 16, 156); g.lineTo(bx, 128 - i * 4); g.closePath(); g.fill(); g.fillStyle = ['#2a4a8a', '#a83a3a', '#2a6a4a'][i]; g.fillRect(bx - 10, 156, 30, 4); }
+  } },
+  { sp: 0.4, draw() {   // grey-shingled houses with white trim and roses, and the gold-domed church tower
+    g.fillStyle = '#e8e4da'; g.fillRect(250, 104, 18, 70); g.fillStyle = '#d8a82a'; g.beginPath(); g.arc(259, 104, 9, Math.PI, 0); g.fill(); g.fillRect(258, 86, 2, 10);
+    for (let i = 0; i < 6; i++) { const x = 10 + i * 80, h = 28 + (i % 2) * 8;
+      g.fillStyle = '#8e8e94'; g.fillRect(x, 190 - h, 44, h); g.fillStyle = 'rgba(0,0,0,.12)'; for (let k = 0; k < h; k += 4) g.fillRect(x, 190 - h + k, 44, 1);
+      g.beginPath(); g.moveTo(x - 4, 192 - h); g.lineTo(x + 22, 174 - h); g.lineTo(x + 48, 192 - h); g.closePath(); g.fillStyle = '#5a5a62'; g.fill();
+      g.fillStyle = '#ffffff'; g.fillRect(x + 6, 180 - h + 14, 9, 9); g.fillRect(x + 29, 180 - h + 14, 9, 9); g.fillRect(x - 1, 190 - h, 46, 2);
+      for (let k = 0; k < 8; k++) { g.beginPath(); g.arc(x + 3 + k * 5.5, 188 - (k % 2) * 2, 2.2, 0, TAU); g.fillStyle = k % 2 ? '#ff7aa0' : '#3a8a3a'; g.fill(); } }
   } },
 ];
 SCENERY.pier = [
@@ -1771,6 +1972,10 @@ SCENERY.pier = [
   { sp: 0.3, draw() {   // colourful little houses of the town and fishing boats with tall masts
     g.fillStyle = vgrad(170, 224, '#2a6ab8', '#1a4a90'); g.fillRect(-1, 176, BG_W + 2, 48);
     for (let i = 0; i < 9; i++) { const x = 10 + i * 52; g.fillStyle = ['#ffffff', '#ffd8a0', '#a8d8ff', '#ffb0c0', '#c8f0c8'][i % 5]; g.fillRect(x, 148, 30, 26); g.beginPath(); g.moveTo(x - 3, 150); g.lineTo(x + 15, 136); g.lineTo(x + 33, 150); g.closePath(); g.fillStyle = '#6a6a72'; g.fill(); }
+    // a fishing shack hung with bright lobster buoys, and a stack of lobster traps
+    g.fillStyle = '#8a7a6a'; g.fillRect(380, 162, 40, 28); g.beginPath(); g.moveTo(376, 164); g.lineTo(400, 150); g.lineTo(424, 164); g.closePath(); g.fillStyle = '#5a4a3a'; g.fill();
+    for (let k = 0; k < 6; k++) { const bx = 384 + k * 6; g.fillStyle = ['#ff5a3a', '#ffe14a', '#3ac4ff', '#ffffff', '#ff5a3a', '#5ad06a'][k]; rrect(bx, 168 + (k % 2) * 6, 4, 8, 2); g.fill(); g.fillStyle = '#23324a'; g.fillRect(bx + 1.5, 165 + (k % 2) * 6, 1, 3); }
+    for (let k = 0; k < 3; k++) { g.fillStyle = '#4a7a5a'; g.fillRect(430 + (k % 2) * 6, 182 - Math.floor(k / 2) * 8, 14, 8); g.strokeStyle = '#2a4a3a'; g.lineWidth = 0.6; g.strokeRect(430 + (k % 2) * 6, 182 - Math.floor(k / 2) * 8, 14, 8); }
     for (let i = 0; i < 3; i++) { const x = 60 + i * 150; g.beginPath(); g.moveTo(x, 188); g.lineTo(x + 46, 188); g.lineTo(x + 40, 198); g.lineTo(x + 6, 198); g.closePath(); g.fillStyle = ['#e8453a', '#3a6ad8', '#3cc456'][i]; g.fill(); g.fillStyle = '#6a4a2a'; g.fillRect(x + 20, 140, 2, 48); g.strokeStyle = '#23324a'; g.lineWidth = 0.6; g.beginPath(); g.moveTo(x + 21, 142); g.lineTo(x + 4, 188); g.moveTo(x + 21, 142); g.lineTo(x + 42, 188); g.stroke(); }
   } },
 ];
@@ -1779,6 +1984,7 @@ const SKIES = {
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
   shore: ['#3ab0f0', '#ffe8c0'], snow: ['#8ab8e8', '#eef6ff'], night: ['#0a1030', '#2a3070'], fort: ['#0e1a30', '#26405e'],
   canal: ['#5ab8f0', '#d8f0ff'], cranberry: ['#ff9a7a', '#ffe8c8'], dunes: ['#6ac0f0', '#fff4d8'], pier: ['#ff8a6a', '#ffd8a0'],
+  sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -1811,6 +2017,7 @@ function drawBackground(camX, t) {
     g.fillStyle = '#5a3a2a'; g.fillRect(tx, 88, 6, 12);
     g.beginPath(); g.moveTo(tx - 1, 88); g.quadraticCurveTo(tx + 3, 74 + fl, tx + 7, 88); paint('#ffa23a'); g.beginPath(); g.moveTo(tx + 1, 88); g.quadraticCurveTo(tx + 3, 80 + fl, tx + 5, 88); paint('#ffe48a');
   }
+  if (th === 'sea') drawSeaLife(t);
   if (th === 'rainbow' || th === 'caves') for (let i = 0; i < 24; i++) { const sx = (i * 97 + t * (th === 'caves' ? 3 : 14)) % LW, sy = (i * 53) % 150 + 10, tw = 0.5 + 0.5 * Math.sin(t * 3 + i); g.globalAlpha = tw; star(sx, sy, 1.6, th === 'caves' ? '#9ae8ff' : '#fff'); g.globalAlpha = 1; }
   // pits must look like pits: the scenery fades into a dark drop below the ground line
   if (th !== 'sky' && th !== 'castle') {
@@ -1903,6 +2110,7 @@ function startLevel(id, fromCheck = false) {
     spawnFromSpec(e);
   }
   const startX = checkpoint ? checkpoint.x : 3 * TS;
+  for (const b of ents) if (b.k === 'boat' && checkpoint) b.x = clamp(startX - 3 * TS, b.x0, b.x1);
   player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null, mount: null };
   if (checkpoint) setForm(1);
   if (!fromCheck) { if (keep.form) setForm(keep.form); if (keep.mount) mount({}); }   // power-ups and Shamrock come along
@@ -1935,6 +2143,11 @@ function spawnFromSpec(e) {
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: e.hp || 3, maxHp: e.hp || 3, dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3 })); break;
     case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
+    case 'boat': ents.push(mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: 44, go: false, mx: 0, my: 0 })); break;
+    case 'shark': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5) })); break;
+    case 'whale': ents.push(mk('whale', x, LH + 40, { bx: x + 8, w: 14, h: 0, cyc: rand(0, 2) })); break;
+    case 'sealhead': ents.push(mk('sealhead', x, 12 * TS - 6, { w: 0, h: 0 })); break;
+    case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
   }
 }
 
@@ -2012,7 +2225,7 @@ function hitBlock(tx, ty, t, fromAbove) {
 function coinPop(x, y) { ents.push(mk('coinpop', x, y - 8, { vy: -260, w: 16, h: 16 })); }
 function sprout(kind, x, y) { ents.push(mk(kind, x + 1, y, { w: 14, h: 14, rise: 16, dir: 1 })); sfx.sprout(); }
 
-const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss'].includes(e.k);
+const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
 // knocked out by a shell, a spark, a bumped block or the horseshoe: flips over and falls off the screen
 function flipEnemy(e, from) {
   if (e.dead || e.k === 'boss') return;
@@ -2150,7 +2363,7 @@ function updatePlayer(dt) {
   // platforms (solid on top only)
   p.ride = null;
   for (const e of ents) {
-    if ((e.k !== 'plat' && e.k !== 'fall') || e.dead) continue;
+    if ((e.k !== 'plat' && e.k !== 'fall' && e.k !== 'boat') || e.dead) continue;
     if (p.vy >= 0 && prevBottom <= e.y + 2 + Math.max(0, e.my || 0) && p.y + p.h >= e.y && p.x + p.w > e.x && p.x < e.x + e.w) {
       p.y = e.y - p.h; p.vy = 0; p.ground = true; p.ride = e; p.combo = 0;
       if (e.k === 'fall' && e.st === 'wait') e.st = 'shake';
@@ -2188,7 +2401,7 @@ function updateEnts(dt) {
     e.t += dt;
     if (e.flip) { e.vy += 900 * dt; e.y += e.vy * dt; e.x += e.vx * dt; if (e.y > LH + 40) e.gone = true; continue; }
     const awake = (e.x > camX - 200 && e.x < camX + LW + 160) || Math.abs(e.x - p.x) < 220;
-    if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid'].includes(e.k)) continue;   // asleep until it's near
+    if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid', 'boat'].includes(e.k)) continue;   // asleep until it's near
     switch (e.k) {
       case 'grumblin': case 'snaily': case 'thorny': {
         if (e.k === 'snaily' && !groundAhead(e) && e.ground) e.dir *= -1;
@@ -2281,6 +2494,30 @@ function updateEnts(dt) {
         if (e.y > LH + 30) e.gone = true;
         break;
       case 'cap': updateCap(e, dt); break;
+      case 'boat': {   // sails off once Leo is aboard, and stops at the far dock
+        if (!e.go && p.ride === e) e.go = true;
+        e.mx = e.go ? Math.min(e.sp * dt, e.x1 - e.x) : 0; e.my = 0; e.x += e.mx;
+        if (e.go && e.mx > 0 && Math.random() < 0.5) particle(e.x + rand(-4, 2), e.y + 10, rand(-40, -10), rand(-30, -5), 'rgba(255,255,255,.8)', 0.5, rand(1.5, 3));   // the wake
+        break;
+      }
+      case 'shark': {   // a great white: its fin circles just under the surface, then it leaps out across Leo's path
+        if (e.st === 'swim') {
+          e.cool -= dt; e.fx = e.x0 + Math.sin(e.t * 1.6) * 18; e.x = e.fx; e.y = LH + 40;
+          const ahead = e.x - p.x;
+          if (e.cool <= 0 && ahead > 30 && ahead < 170) { e.st = 'leap'; e.y = 12 * TS; e.vy = -400; e.vx = -70; e.face = -1; sfx.kick(); for (let i = 0; i < 8; i++) particle(e.x + 13, 12 * TS, rand(-80, 80), rand(-200, -60), '#ffffff', 0.6, rand(2, 3.5)); }
+        } else if (e.st === 'leap') {
+          e.vy += 700 * dt; e.x += e.vx * dt; e.y += e.vy * dt;
+          if (e.vy > 0 && e.y > 12 * TS) { e.st = 'swim'; e.x0 = e.x; e.cool = rand(2.2, 3.4); e.t = 0; for (let i = 0; i < 8; i++) particle(e.x + 13, 12 * TS, rand(-80, 80), rand(-200, -60), '#ffffff', 0.6, rand(2, 3.5)); }
+        }
+        break;
+      }
+      case 'whale': {   // a humpback surfaces, blows a tall spout (jump in: it shoots Leo up high), and dives again
+        e.cyc = (e.cyc + dt) % 3.6;
+        const k = e.cyc, sh = k > 1 && k < 2.6 ? Math.min(1, (k - 1) / 0.2, (2.6 - k) / 0.25) * 7 * TS : 0;
+        e.spoutH = sh; e.x = e.bx - 7; e.h = sh; e.y = sh ? 12 * TS - sh : LH + 40;
+        e.rise = k < 1 ? k : k < 2.6 ? 1 : Math.max(0, 1 - (k - 2.6));
+        break;
+      }
       case 'summon': updateSummon(e, dt); break;
       case 'poop':
         e.vy = Math.min((e.vy || 0) + 900 * dt, 300); moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
@@ -2349,7 +2586,7 @@ function touchPlayer(e) {
     }
     return;
   }
-  if (e.k === 'plat' || e.k === 'fall') return;
+  if (e.k === 'plat' || e.k === 'fall' || e.k === 'boat' || e.k === 'sealhead') return;
   if (!overlap(p, e)) return;
   const stomp = p.vy > 0 && p.y + p.h - p.vy * STEP <= e.y + 6, pounding = p.pound === 'drop';
   switch (e.k) {
@@ -2409,6 +2646,15 @@ function touchPlayer(e) {
     case 'pot':
       e.gone = true; winGame();
       break;
+    case 'sflag':   // a secret exit
+      reachGoal(true);
+      break;
+    case 'whale':   // into the spout: whoosh, straight up
+      if (p.mount || p.pound) break;
+      p.vy = Math.min(p.vy, (keys.jump || touchState.jump) ? -520 : -440); p.ground = false; p.spun = false;
+      if (!e.whoosh || clock - e.whoosh > 0.5) { e.whoosh = clock; sfx.spring(); }
+      if (Math.random() < 0.5) particle(p.x + p.w / 2 + rand(-6, 6), p.y + p.h, rand(-30, 30), rand(40, 120), '#cfeaff', 0.5, rand(2, 3));
+      break;
     case 'boss':
       if (e.hurt > 0 || e.hp <= 0) break;
       if (stomp) { p.vy = -340; bossHit(e); }
@@ -2438,6 +2684,7 @@ function touchPlayer(e) {
         else if (e.k === 'snaily') { e.k = 'shell'; e.vx = 0; e.h = 14; e.y += 2; e.still = 0; }
         else if (e.k === 'shell') { e.vx = 0; }
         else if (e.k === 'buzzer') { e.dead = true; e.flip = true; e.vy = 0; }
+        else if (e.k === 'shark') { flipEnemy(e, p.face); }
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
@@ -2513,7 +2760,7 @@ function reachGoal(secret = false) {
 const goalTapeY = () => 40 + (Math.sin(clock * 1.6) * 0.5 + 0.5) * (10 * TS - 40);
 function clearUpdate(dt) {
   const p = player;
-  p.vx = 70; p.face = 1;
+  p.vx = lvl.secretExit && !lvl.secretGoal ? 0 : 70; p.face = 1;
   p.vy = Math.min(p.vy + 1500 * dt, 290);
   moveX(p, p.vx * dt); moveY(p, p.vy * dt);
   p.anim += Math.abs(p.vx) * dt * 0.11;
@@ -2759,6 +3006,16 @@ function drawEnt0(e, t) {
     case 'horseshoe': drawHorseshoe(x - 1, y - 2, t); break;
     case 'hat': drawHat1up(x - 1, y - 2, t); break;
     case 'magichat': drawMagicHat(x - 1, y - 2, t); break;
+    case 'boat': drawBoat(e, t); break;
+    case 'shark': drawShark(e, t); break;
+    case 'whale': drawWhale(e, t); break;
+    case 'sealhead': drawSealHead(x, y, tt); break;
+    case 'sflag': {   // a golden flag with a star: a secret way out
+      rrect(x + 6, y, 3, e.h, 1.5); paint(C.gold, 0.8);
+      const wv = Math.sin(t * 5) * 1.5; g.beginPath(); g.moveTo(x + 9, y + 2); g.quadraticCurveTo(x + 16, y + 4 + wv, x + 22, y + 6); g.lineTo(x + 9, y + 12); g.closePath(); paint('#ffe14a', 0.8);
+      star(x + 14, y + 7, 2.2, '#ffffff'); glow(x + 8, y + 6, 18, 'rgba(255,220,90,1)', 0.35 + 0.15 * Math.sin(t * 4));
+      break;
+    }
     case 'coinpop': drawCoin(x, y, t * 3); break;
     case 'spark': drawSpark(x, y, t); break;
     case 'cap': drawCap(x, y, e.spin || 0, true); break;
@@ -2781,7 +3038,7 @@ function drawEnt0(e, t) {
 }
 
 // ---------- The map of the Emerald Isle ----------
-const MAP_W = 1250;   // three islands: the Emerald Isle (World 1), the Frosty Isle (World 2) and Cape Cod (World 3)
+const MAP_W = 1290;   // three islands: the Emerald Isle (World 1), the Frosty Isle (World 2) and Cape Cod (World 3)
 const NODES = [
   { id: 'hills', x: 52, y: 168, name: 'Clover Hills' },
   { id: 'woods', x: 112, y: 128, name: 'Mushroom Woods' },
@@ -2795,14 +3052,17 @@ const NODES = [
   { id: 'night', x: 648, y: 150, name: 'Moonlit Meadow' },
   { id: 'fort', x: 742, y: 102, name: 'Frost Fortress' },
   { id: 'canal', x: 928, y: 150, name: 'Bourne Bridge' },
-  { id: 'cranberry', x: 1030, y: 166, name: 'Cranberry Bog' },
-  { id: 'dunes', x: 1140, y: 112, name: 'Nauset Dunes' },
-  { id: 'ptown', x: 1078, y: 46, name: 'Provincetown Pier' },
+  { id: 'cranberry', x: 1030, y: 158, name: 'Cranberry Bog' },
+  { id: 'dunes', x: 1142, y: 114, name: 'Nauset Dunes' },
+  { id: 'whale', x: 1222, y: 76, name: 'Whale Watch' },
+  { id: 'ptown', x: 1082, y: 36, name: 'Provincetown Pier' },
+  { id: 'vineyard', x: 962, y: 195, name: "Martha's Vineyard", island: true },   // the islands: secret levels, opened by secret exits
+  { id: 'nantucket', x: 1110, y: 196, name: 'Nantucket', island: true },
 ];
-const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['fort', 'canal'], ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'ptown'], ['caves', 'castle', 'secret']];   // the last opens from Glimmer Caves' secret exit
+const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['fort', 'canal'], ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'whale'], ['whale', 'ptown'], ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
-const nodeOpen = n => n.id === 'hills' || (n.secret ? save.key : PATHS.some(pth => { const [a, b, sec] = pth; return pathReady(pth) && ((b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret && !sec)); }));
+const nodeOpen = n => n.id === 'hills' || !!save.cleared[n.id] || (n.secret ? save.key : PATHS.some(pth => { const [a, b, sec] = pth; return pathReady(pth) && ((b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret && !sec)); }));
 const pathOpen = pth => pathReady(pth) && nodeOpen(node(pth[0])) && nodeOpen(node(pth[1]));
 const mapLeo = { at: 'hills', x: 52, y: 168, to: null, path: [] };
 let mapCam = 0;
@@ -2819,6 +3079,8 @@ function goMap(from) {
     const next = PATHS.find(([a, b, sec]) => a === from && !sec && !node(b).secret && nodeOpen(node(b)) && !save.cleared[b]);
     if (next) RB.toast(`☘️ ${node(next[1]).name} is open!`, 2200);
     if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Goblin Castle', 3200), 600);
+    if (from === 'canal' && save.secrets.canal) setTimeout(() => RB.toast("⛴️ Secret exit! A ferry path now runs to Martha's Vineyard", 3200), 600);
+    if (from === 'whale' && save.secrets.whale) setTimeout(() => RB.toast('🐋 Secret exit! A golden path now runs out to Nantucket', 3200), 600);
     if (from === 'caves' && save.key && !save.cleared.bonus) setTimeout(() => RB.toast('🌈 Rainbow Road is open! (the secret path from Glimmer Caves)', 3000), 2400);
   }
 }
@@ -2927,15 +3189,33 @@ function drawMap() {
   rrect(726, 74, 34, 26, 2); paint(vgrad(74, 100, '#e0f2ff', '#9ac0e0'), 1, '#5a7ab0');
   for (let i = 0; i < 5; i++) { rrect(726 + i * 7.3, 69, 4, 6, 1); paint('#c8e4fa', 0.7, '#5a7ab0'); }
   rrect(738, 86, 9, 14, [4, 4, 0, 0]); paint('#26405e');
-  // World 3: Cape Cod, its famous bent arm: the canal at the shoulder, the elbow at Chatham, Provincetown curled up at the fist
-  const arm = [[900, 150], [960, 152], [1030, 164], [1100, 168], [1140, 150], [1150, 110], [1140, 72], [1110, 46], [1078, 40], [1056, 52]];
-  const stroke = (w, c) => { g.beginPath(); arm.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.lineWidth = w; g.strokeStyle = c; g.lineCap = 'round'; g.lineJoin = 'round'; g.stroke(); };
-  stroke(46, 'rgba(140,220,255,.45)'); stroke(38, '#f6e2a0'); stroke(26, '#6ac878');
-  g.fillStyle = '#5aa0e0'; g.fillRect(912, 128, 4, 46);   // the Cape Cod Canal
-  g.beginPath(); g.arc(914, 140, 7, Math.PI, 0); g.lineWidth = 1.4; g.strokeStyle = '#5a7a6a'; g.stroke();   // the Bourne Bridge
-  for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(1018 + i * 6, 172 + (i % 2) * 3, 1.6, 0, TAU); g.fillStyle = '#d8303a'; g.fill(); }   // cranberries
-  g.fillStyle = '#ffffff'; g.fillRect(1150, 96, 4, 12); g.fillStyle = '#d8302a'; g.fillRect(1150, 96, 4, 4);   // Nauset lighthouse
-  g.fillStyle = '#b8b0a0'; g.fillRect(1086, 26, 4, 14); g.fillRect(1085, 24, 6, 3);   // the Pilgrim Monument
+  // World 3: Cape Cod, its famous bent arm: the canal at the shoulder, the elbow at Chatham, Provincetown curled up in the fist,
+  // and out in the sea to the south the islands of Martha's Vineyard and Nantucket
+  const capeShape = [[912, 124], [960, 130], [1010, 138], [1060, 144], [1108, 146], [1126, 128], [1128, 96], [1122, 70], [1108, 54], [1092, 50], [1072, 54], [1060, 60],
+    [1052, 54], [1050, 40], [1064, 28], [1090, 22], [1118, 28], [1140, 44], [1156, 72], [1164, 108], [1162, 140], [1152, 158], [1130, 170], [1080, 176], [1020, 174], [960, 170], [912, 168]];
+  const landPath = (pts, grow) => { g.beginPath(); const cx = pts.reduce((a, q) => a + q[0], 0) / pts.length, cy = pts.reduce((a, q) => a + q[1], 0) / pts.length;
+    pts.forEach(([x, y], i) => { const d = Math.hypot(x - cx, y - cy) || 1, X = x + (x - cx) / d * grow, Y = y + (y - cy) / d * grow; i ? g.lineTo(X, Y) : g.moveTo(X, Y); }); g.closePath(); };
+  const land = (pts, grassTop) => {
+    landPath(pts, 7); g.fillStyle = 'rgba(140,220,255,.45)'; g.fill();
+    g.lineJoin = 'round'; landPath(pts, 0); g.fillStyle = '#f6e2a0'; g.fill(); g.lineWidth = 1; g.strokeStyle = '#d8b870'; g.stroke();
+    landPath(pts, -5); g.fillStyle = grassTop || '#6ac878'; g.fill();
+  };
+  land([[870, 110], [912, 116], [912, 176], [870, 186], [856, 150]]);   // a bit of the mainland, across the canal
+  land(capeShape);
+  g.fillStyle = '#f6e2a0'; g.beginPath(); g.moveTo(1146, 166); g.quadraticCurveTo(1152, 178, 1147, 188); g.lineTo(1143, 188); g.quadraticCurveTo(1146, 178, 1140, 168); g.fill();   // Monomoy, the sandy spit off the elbow
+  land([[928, 190], [960, 184], [996, 188], [1000, 197], [976, 206], [940, 204], [924, 198]]);   // Martha's Vineyard
+  land([[1084, 194], [1110, 188], [1136, 192], [1132, 200], [1104, 205], [1082, 201]]);         // Nantucket
+  for (let i = 0; i < 5; i++) { g.fillStyle = ['#d8583a', '#f2e8d0', '#e8844e', '#b84a32', '#f2c890'][i]; g.fillRect(926, 191 + i * 2, 5, 2); }   // the striped clay cliffs of Aquinnah
+  g.fillStyle = '#b8402a'; g.fillRect(928, 184, 2.4, 7); g.fillStyle = '#ffffff'; g.fillRect(1087, 190, 2.4, 6); g.fillStyle = '#d8302a'; g.fillRect(1087, 188, 2.4, 2);   // Gay Head and Brant Point lighthouses
+  for (let i = 0; i < 6; i++) { g.fillStyle = '#9a9aa2'; g.fillRect(1094 + i * 6, 199 - (i % 2) * 2, 4, 3); }   // Nantucket's grey houses
+  g.fillStyle = '#5aa0e0'; g.fillRect(910, 112, 4, 70);   // the Cape Cod Canal
+  g.beginPath(); g.arc(912, 140, 7, Math.PI, 0); g.lineWidth = 1.4; g.strokeStyle = '#5a7a6a'; g.stroke();   // the Bourne Bridge
+  for (let i = 0; i < 6; i++) { const px = 950 + i * 34, py = 146 + (i % 2) * 14; g.beginPath(); g.moveTo(px, py + 4); g.lineTo(px, py - 6); g.lineTo(px - 4, py + 2); g.lineTo(px + 4, py + 2); g.closePath(); g.fillStyle = '#2f7a46'; g.fill(); }   // scrub pines
+  // out at sea: a whale blowing, for the whale watch
+  ell(1222, 92, 9, 2.6); g.fillStyle = '#34405e'; g.fill(); g.beginPath(); g.arc(1218, 86, 2.6, 0, TAU); g.fillStyle = '#ffffff'; g.fill();
+  for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(1018 + i * 6, 166 + (i % 2) * 3, 1.6, 0, TAU); g.fillStyle = '#d8303a'; g.fill(); }   // cranberries
+  g.fillStyle = '#ffffff'; g.fillRect(1152, 98, 4, 12); g.fillStyle = '#d8302a'; g.fillRect(1152, 98, 4, 4);   // Nauset lighthouse
+  g.fillStyle = '#b8b0a0'; g.fillRect(1096, 20, 4, 14); g.fillRect(1095, 18, 6, 3);   // the Pilgrim Monument
   // a rainbow up to the secret level once the key is found
   if (save.key) for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(182, 74, 22 - i * 2, Math.PI, 0); g.lineWidth = 2; g.strokeStyle = ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'][i]; g.stroke(); }
     } finally { g = old; }
@@ -2952,6 +3232,7 @@ function drawMap() {
   // level badges
   for (const n of NODES) {
     if (n.secret && !save.key) continue;
+    if (n.island && !nodeOpen(n)) continue;   // a secret island's level appears once its secret exit is found
     const open = nodeOpen(n), done = save.cleared[n.id], here = mapLeo.at === n.id && !mapLeo.to;
     if (open && !done) glow(n.x, n.y, 14 + Math.sin(t * 4) * 2, 'rgba(255,230,120,1)', 0.6);
     ell(n.x, n.y + 2, 8, 3); g.fillStyle = 'rgba(0,0,0,.2)'; g.fill();
