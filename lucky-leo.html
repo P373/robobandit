@@ -752,11 +752,11 @@ function updateUnicorn(e, dt) {
 }
 function updateRiding(p, inp, dt) {
   const m = p.mount;
-  m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt);
+  m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt); m.eye = Math.max(0, (m.eye || 0) - dt);
   if (p.ground) m.flutter = 0;
   // the rainbow laser: a thin, tight beam from Shamrock's eyes, aimed at the nearest enemy ahead (or straight on), stopped by walls
   if (pressed.run && m.zapCD <= 0) {
-    m.zapCD = 0.35; m.zap = 0.2; sfx.zap();
+    m.zapCD = 0.35; m.zap = 0.2; m.eye = 0.55; sfx.zap();   // his eyes glow red a little longer than the beam, so you can see where it came from
     const ex = p.x + p.w / 2 + p.face * 13, ey = p.y + p.h - 22.6;
     const clear = (x2, y2) => { const n = Math.ceil(Math.hypot(x2 - ex, y2 - ey) / 4); for (let i = 1; i <= n; i++) { const x = ex + (x2 - ex) * i / n, y = ey + (y2 - ey) * i / n; if (SOLID.has(tileAt(Math.floor(x / TS), Math.floor(y / TS)))) return { x, y, hit: true }; } return null; };
     let best = null, bd = 190;
@@ -936,9 +936,9 @@ function drawUnicorn(cx, by, face, t, gait = 0, zap = 0) {
   ell(12.6, -21.8, 4.4, 3.1); fill('#ffffff'); ell(15.6, -20.6, 2.1, 1.9); fill('#ffe0ec');
   g.beginPath(); g.moveTo(9.6, -23.6); g.lineTo(10.6, -27.4); g.lineTo(12, -24); fill('#ffffff');
   g.beginPath(); g.moveTo(11.8, -24.4); g.lineTo(16.4, -31.5); g.lineTo(14.2, -23.6); fill(C.gold);
-  ell(12.9, -22.6, 1, 1.35); fill('#1e2a3a'); g.beginPath(); g.arc(13.2, -23.1, 0.35, 0, TAU); fill('#ffffff');
+  if (zap > 0) { const a = Math.min(1, zap / 0.2); glow(13, -22.6, 4 + 5 * a, 'rgba(255,40,40,1)', 0.9 * a + 0.1); ell(12.9, -22.6, 1.25, 1.55); fill('#ff2a2a'); g.beginPath(); g.arc(13.1, -22.9, 0.5, 0, TAU); fill('#ffd0d0'); }   // red, glowing eyes while firing
+  else { ell(12.9, -22.6, 1, 1.35); fill('#1e2a3a'); g.beginPath(); g.arc(13.2, -23.1, 0.35, 0, TAU); fill('#ffffff'); }
   RAIN.forEach((c, i) => { g.beginPath(); g.arc(9 - i * 0.9, -23 + i * 2.2, 1.9, 0, TAU); fill(c); });
-  if (zap > 0) glow(13, -22.6, 6, 'rgba(255,255,255,1)', 0.9);   // eyes shining while the laser fires
   g.restore();
 }
 // the magic cloud: it puffs up, shines a rainbow down to the ground, and Shamrock appears where the rainbow lands
@@ -2399,7 +2399,7 @@ function drawLevel() {
         g.restore();
       } else if (p.mount) {   // riding Shamrock: the unicorn underneath, Leo sitting in the saddle
         const gait = p.ground ? Math.min(1, Math.abs(p.vx) / 80) : 0.3;
-        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.zap);
+        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.eye || 0);
         const bm = p.mount.beam;
         if (bm && p.mount.zap > 0) {   // the laser: rainbow threads round a white-hot core
           const a = p.mount.zap / 0.2, nx = -(bm.y2 - bm.y1), ny = bm.x2 - bm.x1, nl = Math.hypot(nx, ny) || 1;
