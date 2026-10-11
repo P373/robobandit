@@ -1108,7 +1108,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo Worlds 2 and 3: Goblin Castle opens the Frosty Isle, the Frost Fortress opens Cape Cod, and Provincetown Pier is the real ending', async () => {
+  await test('Lucky Leo Worlds 2 and 3: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, and Provincetown Pier is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
@@ -1116,7 +1116,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('castle'); winGame();
       const end1 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
       document.getElementById('btnMapAgain').click();
-      const after = { state, shore: nodeOpen(node('shore')), snow: nodeOpen(node('snow')), at: mapLeo.at };
+      const after = { state, snow: nodeOpen(node('snow')), night: nodeOpen(node('night')), at: mapLeo.at };
       startLevel('fort'); const boss = ents.find(e => e.k === 'boss'); const hp = boss.hp;
       ['shore', 'snow', 'night'].forEach(id => { save.cleared[id] = true; }); winGame();
       const end2 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten2: save.beaten2 };
@@ -1129,7 +1129,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown'].every(id => ORDER.includes(id)) };
     });
     check(!r.before && /WORLD 1/.test(r.end1.title) && /World 2/.test(r.end1.btn), 'Goblin Castle should finish World 1 and offer World 2: ' + JSON.stringify(r));
-    check(r.after.state === 'map' && r.after.shore && !r.after.snow && r.after.at === 'castle', 'the path to Seashell Shore should open: ' + JSON.stringify(r));
+    check(r.after.state === 'map' && r.after.snow && !r.after.night && r.after.at === 'castle', 'the path up to Frosty Peaks in the White Mountains should open: ' + JSON.stringify(r));
     check(r.hp === 4 && /WORLD 2/.test(r.end2.title) && /World 3/.test(r.end2.btn) && r.end2.beaten2 && r.slippery && r.levels, 'the Frost Fortress should finish World 2 and offer World 3: ' + JSON.stringify(r));
     check(r.cape.state === 'map' && r.cape.canal && !r.cape.cranberry && r.cape.at === 'fort', 'the path to Bourne Bridge on Cape Cod should open: ' + JSON.stringify(r));
     check(r.hp3 === 5 && /GOLD/.test(r.end3.title) && r.end3.beaten3, 'Provincetown Pier should be the toughest, final ending: ' + JSON.stringify(r));
