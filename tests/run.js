@@ -1340,6 +1340,34 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Lucky Leo on the map shows his power-up and Shamrock when he has them; ↓ + jump hops off Shamrock', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      paused = true; startGame(); save.cleared.hills = true; startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); setForm(3);
+      const u = mk('unicorn', player.x, player.y, { w: 16, h: 22, st: 'wait', t: 1 }); mount(u); run(5);
+      const told = /hop off/.test(bannerText[1]);
+      reachGoal(); run(300);
+      const onMap = state === 'map' && keep.mount && keep.form === 3;
+      // what gets drawn on the map: Leo riding Shamrock, with the magic hat
+      const calls = []; const dU = drawUnicorn, dL = drawLeo;
+      drawUnicorn = (...a) => { calls.push('unicorn'); return dU(...a); }; drawLeo = (...a) => { calls.push('leo:' + a[2] + ':' + a[3]); return dL(...a); };
+      try { drawMap(); } finally { drawUnicorn = dU; drawLeo = dL; }
+      // ↓ + jump hops off
+      startLevel('woods'); run(10); const rode = !!player.mount; keys.down = true; downFrom = 'KeyS'; pressed.jump = true; run(2); keys.down = false; run(60);
+      const off = !player.mount;
+      // walk away and come back: on again
+      keys.right = true; run(30); keys.right = false; keys.left = true; run(60); keys.left = false; const back = !!player.mount;
+      paused = false; return { told, onMap, calls, rode, off, back };
+    });
+    check(r.told, 'climbing on Shamrock the first time says how to hop off: ' + JSON.stringify(r));
+    check(r.onMap && r.calls.includes('unicorn') && r.calls.includes('leo:3:ride'), 'on the map Leo rides Shamrock with his magic hat: ' + JSON.stringify(r));
+    check(r.rode && r.off && r.back, '↓ + jump hops off Shamrock (and he stays off until Leo walks back to him): ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);

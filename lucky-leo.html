@@ -909,18 +909,24 @@ function mount(e) {
   p.mount = { flutter: 0, zap: 0, zapCD: 0, beam: null, eaten: 0, chew: 0, digest: 0 }; p.w = 14; p.h = RIDE_H; p.y = bottom - p.h;
   p.carry = null; p.pound = null; e.gone = true;
   sfx.mount(); sparkle(p.x + 7, p.y + 10, '#ff9ad0', 12);
+  if (e.k && !rideTold) {   // the first time he climbs on: how to get off again
+    rideTold = true;
+    banner('SHAMROCK!', RB.touch ? 'To hop off: hold ▼ and tap A' : RB.pad.connected ? 'To hop off: hold LT (or ↓) and press Ⓐ' : 'To hop off: hold ↓ and press Space', 3);
+  }
 }
+let rideTold = false;
 function dismount(flee) {
   const p = player;
   if (!p.mount) return;
   const bottom = p.y + p.h;
   p.mount = null; p.w = 12; p.h = p.form > 0 ? 26 : 14; p.y = bottom - p.h;
-  const u = mk('unicorn', p.x - 2, bottom - 22, { w: 16, h: 22, st: flee ? 'flee' : 'wait', dir: flee ? -p.face : p.face, face: p.face });
+  const u = mk('unicorn', p.x - 2, bottom - 22, { w: 16, h: 22, st: flee ? 'flee' : 'wait', dir: flee ? -p.face : p.face, face: p.face, clear: false });   // (clear: Leo has to step away before he can climb back on)
   ents.push(u);
   if (flee) { sfx.neigh(); } else { p.vy = -260; p.ground = false; sfx.jump(); }
 }
 function updateUnicorn(e, dt) {
   const p = player;
+  if (!e.clear && !overlap(p, e)) e.clear = true;
   e.vy = Math.min((e.vy || 0) + 900 * dt, 300);
   if (e.st === 'flee') {
     e.vx = e.dir * 120; moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall; e.face = e.dir;
@@ -2760,7 +2766,7 @@ function touchPlayer(e) {
       }
       break;
     case 'unicorn':
-      if (!p.mount && (e.st === 'wait' || e.t > 0.6)) mount(e);   // hop on (Shamrock can be caught again while he runs off)
+      if (!p.mount && e.clear !== false && (e.st === 'wait' || e.t > 0.6)) mount(e);   // hop on (once Leo has stepped away after hopping off) (Shamrock can be caught again while he runs off)
       break;
     case 'crusher':
       if (p.star > 0) {   // with the lucky horseshoe's rainbow power, Leo smashes the crush-stone to rubble
@@ -3416,7 +3422,19 @@ function drawMap() {
   // Leo, hopping along the paths
   const walking = !!mapLeo.to, hop = walking ? Math.abs(Math.sin(t * 10)) * 3 : Math.abs(Math.sin(t * 3)) * 1;
   ell(mapLeo.x, mapLeo.y + 1, 5, 1.8); g.fillStyle = 'rgba(0,0,0,.25)'; g.fill();
-  drawLeo(mapLeo.x - 8, mapLeo.y - 16 - hop, 0, walking ? 'walk' : 'stand', mapLeo.face || 1, t, null, { swing: walking ? Math.sin(t * 12) : 0, squash: walking ? 0 : Math.sin(t * 3) * 0.05 });
+  // he looks the way he'll start the next level: his power-up (big, rainbow, magic hat) and Shamrock if he has him
+  const mf = keep.form || 0, mface = mapLeo.face || 1, mbig = mf > 0, mfx = { swing: walking ? Math.sin(t * 12) : 0, squash: walking ? 0 : Math.sin(t * 3) * 0.05 };
+  if (keep.mount) {
+    g.save(); g.translate(mapLeo.x, mapLeo.y - hop * 0.5); g.scale(0.62, 0.62);
+    drawUnicorn(0, 0, mface, t, walking ? 1 : 0);
+    const ls = mbig ? 0.78 : 0.52, lh = mbig ? 28 : 16, seat = -18.6 * UNI_S + 1.5;
+    drawLeo(-mface * 3.5 - 8, seat + 8.5 * ls - lh, mf, 'ride', mface, t, null, {});
+    g.restore();
+  } else if (mbig) {
+    g.save(); g.translate(mapLeo.x, mapLeo.y - hop); g.scale(0.72, 0.72);
+    drawLeo(-8, -28, mf, walking ? 'walk' : 'stand', mface, t, null, mfx);
+    g.restore();
+  } else drawLeo(mapLeo.x - 8, mapLeo.y - 16 - hop, 0, walking ? 'walk' : 'stand', mface, t, null, mfx);
   g.restore();
 }
 function blob(cx, cy, rx, ry, seed) {
