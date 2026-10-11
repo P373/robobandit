@@ -1319,6 +1319,27 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-ride.png');
   });
 
+  await test('Lucky Leo: controller settings in the pause menu; inverted sticks (a flying setting) stay off in this flat game unless asked for twice', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, invLY: true, invRY: true }); startGame(); startLevel('hills'); pause(); });
+    const r1 = await p.evaluate(() => ({ flat: RB.pad.flat, ly: RB.pad.inv('invLY'), ry: RB.pad.inv('invRY'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
+    await p.evaluate(() => [...document.querySelectorAll('.rb-pause button')].find(b => /Controller/.test(b.textContent)).click());
+    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), btn: (document.querySelector('#padInv2D') || {}).textContent || '' }));
+    await p.evaluate(() => document.querySelector('#padInv2D').click());
+    const once = await p.evaluate(() => RB.pad.inv('invLY'));
+    await p.evaluate(() => document.querySelector('#padInv2D').click());
+    const twice = await p.evaluate(() => RB.pad.inv('invLY'));
+    await p.evaluate(() => document.querySelector('#padDone').click());
+    const back = await p.evaluate(() => ({ pause: !!document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display !== 'none', screen: !!document.querySelector('.rb-padscreen') }));
+    await p.evaluate(() => RB.pad.setConfig({ ...RB.pad.DEFAULTS }));
+    check(r1.flat && !r1.ly && !r1.ry, 'inverted sticks are ignored in Lucky Leo by default: ' + JSON.stringify(r1));
+    check(!!r1.btn, 'the pause menu has a controller settings button: ' + JSON.stringify(r1));
+    check(screen.open && screen.note && /inverted/i.test(screen.btn), 'the controller screen explains and offers the second opt-in: ' + JSON.stringify(screen));
+    check(!once && twice, 'it takes two taps to turn inverted sticks on here: ' + JSON.stringify({ once, twice }));
+    check(back.pause && !back.screen, 'Done goes back to the pause menu: ' + JSON.stringify(back));
+    await done(p);
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);

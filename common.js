@@ -380,7 +380,10 @@ const RB = (() => {
     const sticks = [];
     // Controller settings, shared by every game (saved as rb_pad): invert each stick's axes,
     // camera speed, how big the stick dead zone is, and vibration.
-    const DEFAULTS = { invLX: false, invLY: false, invRX: false, invRY: false, camSpeed: 1, dead: 1, rumble: true };
+    // Inverted sticks are a flying / 3D-camera habit (pull back to tip the nose up). Flat, side-on games (pad.flat)
+    // ignore them unless the player opts in a second time (inv2D), so a setting made for a flying game can't
+    // turn a platformer upside down.
+    const DEFAULTS = { invLX: false, invLY: false, invRX: false, invRY: false, inv2D: false, camSpeed: 1, dead: 1, rumble: true };
     const DEADZONES = [0.12, 0.22, 0.32];   // small, medium, large
     const cfg = { ...DEFAULTS };
     try {
@@ -392,6 +395,8 @@ const RB = (() => {
       }
     } catch (e) { /* defaults */ }
     const saveCfg = () => store.set('rb_pad', JSON.stringify(cfg));
+    let flat = false;   // set by a flat, side-on game (see DEFAULTS)
+    const inv = k => !!cfg[k] && (!flat || !!cfg.inv2D);   // is this stick axis inverted in this game?
     let navOff = false;   // while the controller tester is testing, buttons only light up the picture
     const look = { x: 0, y: 0 }, game = { lx: 0, ly: 0 };   // game: the left stick as games see it   // the right stick, for games with a camera to swing around
     let pressedNow = [], ignore = [];   // ignore: buttons still held from before a menu opened or closed
@@ -524,10 +529,10 @@ const RB = (() => {
         g.buttons.forEach((b, i) => { btn[i] = btn[i] || b.pressed || b.value > 0.5; });
         for (const i of [0, 1, 2, 3]) if (Math.abs(g.axes[i] || 0) > Math.abs(A[i])) A[i] = g.axes[i] || 0;
       }
-      if (cfg.invLX) A[0] = -A[0];
-      if (cfg.invLY) A[1] = -A[1];
-      if (cfg.invRX) A[2] = -A[2];
-      if (cfg.invRY) A[3] = -A[3];
+      if (inv('invLX')) A[0] = -A[0];
+      if (inv('invLY')) A[1] = -A[1];
+      if (inv('invRX')) A[2] = -A[2];
+      if (inv('invRY')) A[3] = -A[3];
       const dead = DEADZONES[cfg.dead] != null ? DEADZONES[cfg.dead] : 0.22, rdead = Math.max(0.1, dead - 0.04);
       const rmag = Math.hypot(A[2], A[3]), rk = rmag < rdead ? 0 : Math.min(1, (rmag - rdead) / (1 - rdead)) / rmag;
       look.x = A[2] * rk; look.y = A[3] * rk;
@@ -608,7 +613,8 @@ const RB = (() => {
       look,   // { x, y } from the right stick, -1 to 1 (y is +1 pulled down)
       pressed: i => !!pressedNow[i],   // is button i held right now (10 / 11 are the stick clicks)
       get menuMode() { return menuMode; },
-      config: cfg, DEFAULTS, DEADZONES, game,
+      config: cfg, DEFAULTS, DEADZONES, game, inv,
+      get flat() { return flat; }, set flat(v) { flat = !!v; },
       setConfig(patch) { Object.assign(cfg, patch); saveCfg(); },
       get camSpeed() { return [0.65, 1, 1.45][cfg.camSpeed] || 1; },
       set navOff(v) { navOff = v; if (v) { releaseAll(); setFocus(null); } else ignore = prevBtn.slice(); },
@@ -650,6 +656,8 @@ const RB = (() => {
       <div class="pad-settings" id="padSettings">
         <div class="row"><b>Left stick</b> <button type="button" data-k="invLY"></button><button type="button" data-k="invLX"></button></div>
         <div class="row"><b>Right stick (camera)</b> <button type="button" data-k="invRY"></button><button type="button" data-k="invRX"></button></div>
+        ${pad.flat ? `<div class="row pad-flat">↕️ Inverted sticks are for flying and 3D cameras (pull back to tip the nose up). This game is flat, so it keeps the sticks normal.
+          <button type="button" id="padInv2D" class="alt"></button></div>` : ''}
         <div class="row"><b>Camera speed</b> <button type="button" data-k="camSpeed"></button>
           <b>Dead zone</b> <button type="button" data-k="dead"></button></div>
         <div class="row"><b>Vibration</b> <button type="button" data-k="rumble"></button> <button type="button" id="padBuzz">Test 📳</button></div>
@@ -668,12 +676,24 @@ const RB = (() => {
       invRY: v => `Up/down: ${v ? 'Inverted' : 'Normal'}`, invRX: v => `Left/right: ${v ? 'Inverted' : 'Normal'}`,
       camSpeed: v => ['Slow', 'Normal', 'Fast'][v] || 'Normal', dead: v => ['Small', 'Medium', 'Large'][v] || 'Medium', rumble: v => v ? 'On' : 'Off',
     };
-    const paint = () => wrap.querySelectorAll('[data-k]').forEach(b => { b.textContent = NAMES[b.dataset.k](cfg[b.dataset.k]); b.classList.toggle('on', cfg[b.dataset.k] !== pad.DEFAULTS[b.dataset.k]); });
+    let confirmInv = 0;
+    const paint = () => {
+      wrap.querySelectorAll('[data-k]').forEach(b => { b.textContent = NAMES[b.dataset.k](cfg[b.dataset.k]); b.classList.toggle('on', cfg[b.dataset.k] !== pad.DEFAULTS[b.dataset.k]); });
+      const b2 = wrap.querySelector('#padInv2D');
+      if (b2) { b2.textContent = cfg.inv2D ? '↕️ Inverted sticks in this game: On (tap to turn off)' : confirmInv ? '⚠️ Sure? Tap again to use inverted sticks here' : 'Use inverted sticks in this game too…'; b2.classList.toggle('on', !!cfg.inv2D || !!confirmInv); }
+    };
     wrap.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
       const k = b.dataset.k, v = cfg[k];
       pad.setConfig({ [k]: typeof v === 'boolean' ? !v : (v + 1) % 3 });
       paint();
     }));
+    const inv2D = wrap.querySelector('#padInv2D');
+    if (inv2D) inv2D.addEventListener('click', () => {   // the second opt-in: one tap asks, a second tap (within a few seconds) turns it on
+      if (cfg.inv2D) { pad.setConfig({ inv2D: false }); confirmInv = 0; }
+      else if (confirmInv && performance.now() - confirmInv < 5000) { pad.setConfig({ inv2D: true }); confirmInv = 0; }
+      else confirmInv = performance.now();
+      paint();
+    });
     $p('#padBuzz').addEventListener('click', () => { const was = cfg.rumble; cfg.rumble = true; pad.rumble(400, 0.8); cfg.rumble = was; });
     $p('#padReset').addEventListener('click', () => { pad.setConfig({ ...pad.DEFAULTS }); paint(); });
     let testing = false, holdB = 0, last = performance.now();
@@ -715,7 +735,7 @@ const RB = (() => {
       wrap.querySelectorAll('.trig').forEach(el => { const v = (g.buttons[+el.dataset.t] || {}).value || 0; el.querySelector('.fill').setAttribute('width', 70 * v); el.classList.toggle('on', v > 0.5); });
       // the sticks: the knob shows the direction the GAME sees (after your invert settings)
       const ax = i => g.axes[i] || 0;
-      const seen = [ax(0) * (cfg.invLX ? -1 : 1), ax(1) * (cfg.invLY ? -1 : 1), ax(2) * (cfg.invRX ? -1 : 1), ax(3) * (cfg.invRY ? -1 : 1)];
+      const seen = [ax(0) * (pad.inv('invLX') ? -1 : 1), ax(1) * (pad.inv('invLY') ? -1 : 1), ax(2) * (pad.inv('invRX') ? -1 : 1), ax(3) * (pad.inv('invRY') ? -1 : 1)];
       for (const [s, cx, cy, i] of [['L', 110, 115, 0], ['R', 262, 178, 2]]) {
         const k = wrap.querySelector(`[data-s="${s}"] .knob`);
         k.setAttribute('transform', `translate(${seen[i] * 20} ${seen[i + 1] * 20})`);
@@ -753,6 +773,7 @@ const RB = (() => {
       .pad-svg .trig .fill { fill: #ffd84a; stroke: none; }
       .pad-legend { margin: 2px 0 8px; padding: 6px 10px; border-radius: 10px; font-size: 14px; line-height: 1.5; background: #fff6d6; color: #3a2a0a; }
       .pad-nums { font-size: 14px; color: #3a4a6a; }
+      .pad-flat { font-size: 14px; line-height: 1.45; padding: 8px 10px; border-radius: 12px; background: #eef4ff; }
       .pad-nums .raw span { display: inline-block; min-width: 18px; margin: 3px 1px; padding: 1px 3px; border-radius: 5px; background: #e6ebf5; font-size: 12px; }
       .pad-nums .raw span.on { background: #ffd84a; }
       .pad-test { display: none; margin: 10px 0; padding: 10px; border-radius: 14px; background: #fff3b0; font-size: 16px; }

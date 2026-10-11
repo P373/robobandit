@@ -71,7 +71,7 @@
   #tHat { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 88px) !important; width: 64px !important; height: 64px !important; font-size: 24px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261010-1743">
+<link rel="stylesheet" href="common.css?v=20261011-0018">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -116,7 +116,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261010-1743"></script>
+<script src="common.js?v=20261011-0018"></script>
 <script>
 'use strict';
 // ===================== Lucky Leo =====================
@@ -727,6 +727,7 @@ const pressed = { jump: false, run: false, start: false, left: false, right: fal
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'up', KeyW: 'up', KeyZ: 'jump', KeyK: 'jump',
   KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run', KeyJ: 'run', ArrowDown: 'down', KeyS: 'down', KeyC: 'hat', KeyL: 'hat', KeyQ: 'item', KeyE: 'item' };
 // 🎮 Ⓐ / Ⓑ jump, Ⓧ / RT run (and throw rainbow sparks), Ⓨ / RB throw the hat, LB drop the saved power-up, LT crouch: high jump, or ground pound in the air
+if (RB.pad) RB.pad.flat = true;   // a flat, side-on game: inverted sticks (a flying habit) stay off unless asked for twice
 if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'KeyX', 3: 'KeyC', 4: 'KeyQ', 5: 'KeyC', 6: 'KeyS', 7: 'KeyX' },
   '<b>Lucky Leo:</b> Ⓐ / Ⓑ jump (hold to go higher; press again in the air to spin higher) · Ⓧ / RT run and throw rainbow sparks · Ⓨ / RB 🎩 throw your hat with the magic hat (hold up to throw it up, crouch with LT to throw it low) · <b>LB</b> drop the saved power-up from the box · <b>LT</b> + jump: high jump · <b>LT</b> in the air: ground pound');
 let paused = false;
@@ -780,9 +781,9 @@ function stickUD() {
   try {
     const gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected);
     if (!gp) return 0;
-    const c = (RB.pad && RB.pad.config) || {};
+    const inv = k => !!(RB.pad && RB.pad.inv && RB.pad.inv(k));
     let lx = gp.axes[0] || 0, ly = gp.axes[1] || 0;
-    if (c.invLX) lx = -lx; if (c.invLY) ly = -ly;
+    if (inv('invLX')) lx = -lx; if (inv('invLY')) ly = -ly;
     return ly > 0.55 && ly > Math.abs(lx) * 0.75 ? 1 : ly < -0.55 && -ly > Math.abs(lx) * 0.75 ? -1 : 0;
   } catch (e) { return 0; }
 }
@@ -978,7 +979,7 @@ function recallReserve() {
 function pause() {
   if (paused || state !== 'level') return;
   paused = true; for (const k in keys) keys[k] = false; fingers.clear(); touchUpdate();
-  RB.showPause(resume, { extra: gameMenu() });
+  RB.showPause(resume, { extra: [...gameMenu(), { label: '🎮 Controller settings', onClick: () => RB.controllerScreen() }] });
 }
 // Lucky Leo's own choices, in the pause screen and at the top of the ☰ menu: back to the map, try again, the title screen
 function gameMenu() {
