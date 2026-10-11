@@ -894,7 +894,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         for (const e of L.ents) {
           if (e.k === 'plat' || e.k === 'fall') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
           if (e.k === 'spring') springs.add(k(e.x, e.y));
-          if (e.k === 'whale') springs.add(k(e.x, 11));   // a whale's spout shoots Leo up like a spring
+          if (e.k === 'whale') springs.add(k(e.x, 11));
+          if (e.k === 'sponge') for (let ox = 0; ox < (e.w || 3); ox++) stand.add(k(e.x + ox, 11));   // a bog mat   // a whale's spout shoots Leo up like a spring
           if (e.k === 'boat') for (let ox = e.x; ox <= e.to + e.w - 1; ox++) stand.add(k(ox, e.y - 1));   // the boat carries Leo along
         }
         const pts = [...stand].map(q => q.split(',').map(Number));
@@ -1368,6 +1369,41 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.rode && r.off && r.back, '↓ + jump hops off Shamrock (and he stays off until Leo walks back to him): ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
+  });
+
+  await test('Lucky Leo: water never hurts (Leo swims); Cranberry Bog mats sink when stood on; the dark mat dives under the bog to a world of frogs and tadpoles with a secret exit', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
+      paused = true; startGame(); save.cleared.cranberry = false;
+      // water: drop Leo into the canal; he swims, a stroke takes him up, and at the surface a jump leaps him out
+      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); player.x = 60 * 16 + 2; player.y = 150; player.vy = 0; run(80);
+      out.swims = player.swim === true && phase === 'play'; const y0 = player.y; pressed.jump = true; run(1); out.stroke = player.vy < -150;
+      run(90); out.alive = phase === 'play' && lives === 5;
+      // a bog mat sinks while Leo stands on it, and bobs back up when he leaves
+      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); const mat = ents.find(e => e.k === 'sponge' && !e.deep);
+      player.x = mat.x + 16; player.y = mat.y - player.h - 2; player.vy = 0; run(60); out.sank = mat.y > mat.y0 + 6 && player.ride === mat;
+      player.x = 2 * 16; player.y = 100; run(200); out.rose = mat.y < mat.y0 + 1;
+      // the dark mat: it keeps sinking, the camera pans down, and Leo arrives under the bog
+      const deep = ents.find(e => e.k === 'sponge' && e.deep); player.x = deep.x + 16; player.y = deep.y - player.h - 2; player.vy = 0;
+      let panned = 0; run(500, () => { panned = Math.max(panned, camY); });
+      out.panned = panned > 100; out.room = lvl.id; out.critters = ['frog', 'tadpoles', 'turtle', 'minnows'].every(k => ents.some(e => e.k === k));
+      run(120); out.camBack = Math.abs(camY) < 5; out.swimDeep = player.swim && phase === 'play';
+      const gem = ents.find(e => e.k === 'gem'); out.gem = !!gem && gem.idx === 4;
+      // the secret exit at the far end
+      touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300);
+      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'whale' && s2));
+      paused = false; return out;
+    });
+    check(r.swims && r.stroke && r.alive, 'water: Leo swims instead of dying: ' + JSON.stringify(r));
+    check(r.sank && r.rose, 'bog mats sink when stood on and bob back up: ' + JSON.stringify(r));
+    check(r.panned && r.room === 'cranberryDeep' && r.critters && r.camBack && r.swimDeep, 'the dark mat dives under the bog, the camera pans down, frogs and tadpoles live there: ' + JSON.stringify(r));
+    check(r.gem, 'one of the bog gems is down there: ' + JSON.stringify(r));
+    check(r.secret, 'the secret exit under the bog opens a golden path to Whale Watch: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-bog.png');
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {

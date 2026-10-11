@@ -372,15 +372,17 @@ LEVELS.canal = builder('canal', 'Bourne Bridge', 'canal', 210)
 LEVELS.cranberry = builder('cranberry', 'Cranberry Bog', 'cranberry', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 18).ground(30, 44).ground(62, 74).ground(96, 112).ground(130, 142).ground(166, 213)
   .at(8, 8, '?PC').e('grumblin', 13, 11)
-  .e('fall', 20, 10, { w: 3 }).e('fall', 25, 9, { w: 3 })
+  .e('sponge', 20, 12, { w: 3 }).e('sponge', 25, 12, { w: 3 })   // squishy bog mats: they sink slowly while you stand on them
   .at(34, 8, 'B?B').e('snaily', 40, 11)
   .e('plat', 46, 9, { w: 3, dx: 4, sp: 1 }).e('fall', 56, 9, { w: 3 })
   .e('buzzer', 66, 6).at(66, 8, '?M?').e('grumblin', 70, 11)
-  .e('fall', 76, 10, { w: 3 }).e('fall', 81, 9, { w: 3 }).e('fall', 86, 10, { w: 3 }).e('fall', 91, 9, { w: 3 })
+  .e('sponge', 76, 12, { w: 3 }).e('sponge', 81, 12, { w: 3 }).e('sponge', 86, 12, { w: 3 }).e('sponge', 91, 12, { w: 3 })
   .e('mid', 100, 11).at(104, 8, '?L?').e('thorny', 108, 11)
   .e('plat', 114, 9, { w: 3, dy: 2, sp: 1 }).e('plat', 121, 8, { w: 3, dx: 3, sp: 1 })
   .at(134, 8, 'BSB').e('snaily', 138, 11)
-  .e('fall', 144, 10, { w: 3 }).e('fall', 149, 9, { w: 3 }).e('plat', 155, 9, { w: 3, dx: 3, sp: 1.2 }).e('fall', 162, 10, { w: 2 })
+  .e('sponge', 144, 12, { w: 3 }).e('sponge', 149, 12, { w: 3 })
+  // the dark, bubbly mat never stops sinking: stay on it and it takes Leo down under the bog
+  .e('sponge', 155, 12, { w: 3, deep: true }).e('sponge', 160, 12, { w: 3 })
   .at(172, 8, '?B?B').e('grumblin', 176, 11).e('snaily', 180, 11).stairs(188, 5)
   .gems(9, 5, 26, 6, 57, 6, 105, 5, 150, 6)
   .done({ goal: 202, music: 'cranberry' });
@@ -464,6 +466,19 @@ for (const [lv, bx, by, room, out, gi, kind] of [['hills', 23, 8, 'hillsSky', 11
   L.ents.filter(e => e.k === 'gem')[gi].sky = true;   // this gem waits up in the clouds
   LEVELS[room] = skyRoom(room, lv, kind, gi);
 }
+
+// Under the Bog: down below Cranberry Bog, a world of frogs, tadpoles, turtles and minnows; the way on is a secret exit
+LEVELS.cranberryDeep = builder('cranberryDeep', 'Under the Bog', 'deep', 96)
+  .fill(0, 95, 0, 11, T.WATER).ground(0, 95).fill(0, 0, 0, 13, T.GROUND).fill(95, 95, 0, 13, T.GROUND)
+  .fill(12, 16, 9, 11, T.GROUND).fill(26, 30, 5, 6, T.GROUND).fill(40, 45, 8, 11, T.GROUND).fill(54, 57, 3, 5, T.GROUND).fill(66, 72, 9, 11, T.GROUND).fill(80, 83, 6, 7, T.GROUND)
+  .arc(5, 9, 6).coins(18, 6, 5).arc(27, 3, 5).coins(46, 6, 6).arc(58, 8, 7).coins(73, 6, 5).at(32, 9, '?L?')
+  .e('frog', 21, 8).e('frog', 36, 4).e('frog', 50, 9).e('frog', 63, 5).e('frog', 77, 8)
+  .e('tadpoles', 9, 5).e('tadpoles', 35, 9).e('tadpoles', 61, 3).e('tadpoles', 86, 4).e('turtle', 24, 10).e('turtle', 70, 4).e('minnows', 48, 2).e('minnows', 87, 9)
+  .e('gem', 55, 2, { parentIdx: 4 })
+  .e('sflag', 90, 11)
+  .done({ goal: 0, music: 'deep', room: true, parent: 'cranberry', deepOk: true });
+LEVELS.cranberry.deepRoom = 'cranberryDeep';
+LEVELS.cranberry.ents.filter(e => e.k === 'gem')[4].sky = true;   // (this gem is down under the bog)
 
 // Bonus rooms inside the hollow trees: drop in through a hole, grab the coins, and go down the log on the right to get back out.
 function treeRoom(id, from, kind) {
@@ -622,6 +637,8 @@ const SONGS = {
     4, 5, 7, null, 9, 7, 5, 4, 2, null, 4, 5, 4, null, null, null, 7, 9, 11, null, 9, 7, 5, 7, 4, null, 2, null, 0, null, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
   nantucket: { bpm: 96, key: 60, mode: 'major', beat: 3, lead: 'soft', melody: [
     0, null, 4, 7, null, 4, 5, null, 4, 2, null, null, 0, null, 4, 7, null, 9, 7, null, 5, 4, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
+  deep: { bpm: 88, key: 57, mode: 'dorian', beat: 3, lead: 'soft', melody: [
+    0, null, 3, 7, null, 5, 3, null, 2, 0, null, null, -2, null, 0, 3, null, 2, 0, null, -2, -3, null, null], bass: [0, 0, -2, -2, -3, -3, -2, -2] },
   bonus: { bpm: 144, key: 64, mode: 'major', beat: 3, lead: 'pulse', melody: [
     0, 2, 4, 7, 4, 2, 4, 7, 9, 7, 4, 2, 5, 4, 2, 4, 2, 1, 0, null, 4, 7, null, null], bass: [0, 0, 3, 4, 0, 0, 4, 0] },
 };
@@ -835,6 +852,27 @@ function pipeUpdate(dt) {
   // rising out
   p.y -= 42 * dt;
   if (p.y + p.h <= pipe.clipY) { p.y = pipe.clipY - p.h; p.ground = true; phase = 'play'; pipe = null; }
+}
+
+// ---- Diving under the bog ----
+// The dark bog mat sinks right out of the bottom of the level; the camera pans down after it into the underwater world.
+let dive = null, camY = 0;
+function startDive(sp) { phase = 'dive'; phaseT = 0; dive = { sp }; sfx.splash(); RB.pad.rumble(160, 0.4); }
+function diveUpdate(dt) {
+  const p = player;
+  p.vx = 0; p.vy = 0; dive.sp.y += 46 * dt; p.y = dive.sp.y - p.h;
+  if (Math.random() < 0.6) bubble(p.x + rand(0, p.w), p.y + rand(0, p.h));
+  camY = Math.min(LH * 0.95, camY + (50 + phaseT * 170) * dt);
+  if (phaseT > 1.6) enterDeep();
+}
+function enterDeep() {
+  const p = player; dive = null;
+  outside = { lvl, ents, deep: true };
+  const src = LEVELS[lvl.deepRoom]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
+  for (const e of src.ents) spawnFromSpec(e);
+  p.x = 4 * TS; p.y = 4; p.vy = 30; p.ride = null; p.ground = false; camX = 0; camLead = 0.4; camY = -LH * 0.75;
+  music.play(lvl.music); phase = 'play';
+  banner('UNDER THE BOG!', 'Frogs, tadpoles… and a secret way out 🐸', 2.6);
 }
 
 // ---- The really long rainbow (like a beanstalk) ----
@@ -1085,6 +1123,7 @@ const AIR = {
   sea: { n: 16, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -26, vy: -4 },
   cliffs: { n: 12, c: ['#ff8ab0', '#ffffff', '#ffc0d8'], kind: 'petal', vx: -14, vy: 8 },   // beach-rose petals
   nantucket: { n: 14, c: ['#ffffff'], kind: 'wisp', vx: -10, vy: 0 },                       // the famous fog
+  deep: { n: 20, c: ['#cfefff'], kind: 'mote', vx: 0, vy: -16 },                                // bubbles
 };
 function drawAirborne(cx, t) {
   const a = lvl && AIR[lvl.theme];
@@ -1637,6 +1676,7 @@ const THEMES = {
   pier: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
   sea: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
   cliffs: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },   // the red and orange clay of Aquinnah
+  deep: { top: '#6a8a3a', topDk: '#4a6a2a', dirt: '#5a4430', dirtDk: '#43321f', edge: '#2a1e12' },   // the muddy bottom of the bog
   nantucket: { top: '#bdb8ac', topDk: '#8e897e', dirt: '#a09a8e', dirtDk: '#7e786e', edge: '#4a4842' },   // cobblestones
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
@@ -1715,6 +1755,7 @@ function drawTile(tile, tx, ty, x, y, th, t) {
       break;
     }
     case T.WATER: {
+      if (theme === 'deep') { g.fillStyle = 'rgba(40,150,150,.13)'; g.fillRect(x - 0.2, y, 16.4, 16); break; }   // (deep under the bog the water is everywhere: just a tint)
       const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme);
       g.fillStyle = sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
       if (surf) {
@@ -2106,6 +2147,18 @@ SCENERY.nantucket = [
       for (let k = 0; k < 8; k++) { g.beginPath(); g.arc(x + 3 + k * 5.5, 188 - (k % 2) * 2, 2.2, 0, TAU); g.fillStyle = k % 2 ? '#ff7aa0' : '#3a8a3a'; g.fill(); } }
   } },
 ];
+SCENERY.deep = [
+  { sp: 0.04, draw() {   // sunbeams slanting down from the surface far above
+    for (let i = 0; i < 6; i++) { const x = 30 + i * 80; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 26, 0); g.lineTo(x + 70, 224); g.lineTo(x + 30, 224); g.closePath(); g.fillStyle = 'rgba(200,255,240,.07)'; g.fill(); }
+  } },
+  { sp: 0.25, draw() {   // tall reeds and cranberry vines trailing down, dark against the water
+    for (let i = 0; i < 18; i++) { const x = rndB(i, 1) * BG_W, h = 60 + rndB(i, 2) * 90; g.strokeStyle = 'rgba(20,70,50,.55)'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(x, 224); g.quadraticCurveTo(x + 10, 224 - h / 2, x + rndB(i, 3) * 16 - 8, 224 - h); g.stroke(); }
+    for (let i = 0; i < 8; i++) { const x = rndB(i, 5) * BG_W; g.strokeStyle = 'rgba(60,40,30,.5)'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, 0); g.quadraticCurveTo(x - 8, 30, x + 4, 50 + rndB(i, 6) * 30); g.stroke(); for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x - 2 + k * 2, 20 + k * 12, 2, 0, TAU); g.fillStyle = 'rgba(200,40,60,.7)'; g.fill(); } }
+  } },
+  { sp: 0.45, draw() {   // waving waterweed along the bottom
+    for (let i = 0; i < 30; i++) { const x = rndB(i, 7) * BG_W; g.fillStyle = i % 2 ? 'rgba(40,110,60,.6)' : 'rgba(60,140,70,.5)'; g.beginPath(); g.ellipse(x, 214, 3, 18 + rndB(i, 8) * 12, (rndB(i, 9) - 0.5) * 0.4, 0, TAU); g.fill(); }
+  } },
+];
 SCENERY.pier = [
   { sp: 0.04, draw() {   // a sunset sun, and the Pilgrim Monument on the hill: a tall granite tower
     glow(380, 120, 60, 'rgba(255,220,140,1)', 0.6); g.beginPath(); g.arc(380, 120, 22, 0, TAU); g.fillStyle = '#ffe08a'; g.fill();
@@ -2128,7 +2181,7 @@ const SKIES = {
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
   shore: ['#3ab0f0', '#ffe8c0'], snow: ['#8ab8e8', '#eef6ff'], night: ['#0a1030', '#2a3070'], fort: ['#0e1a30', '#26405e'],
   canal: ['#5ab8f0', '#d8f0ff'], cranberry: ['#ff9a7a', '#ffe8c8'], dunes: ['#6ac0f0', '#fff4d8'], pier: ['#ff8a6a', '#ffd8a0'],
-  sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
+  deep: ['#2a8a8a', '#0e3a48'], sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -2240,7 +2293,7 @@ const groundAhead = a => { const tx = Math.floor((a.dir > 0 ? a.x + a.w + 1 : a.
 
 // ---------- Starting a level ----------
 function startLevel(id, fromCheck = false) {
-  outside = null; pipe = null;
+  outside = null; pipe = null; dive = null; camY = 0;
   const src = LEVELS[id];
   lvl = { ...src, t: src.t.slice() };
   ents = []; parts = []; pops = []; bumps = []; bossDown = false;
@@ -2292,6 +2345,9 @@ function spawnFromSpec(e) {
     case 'whale': ents.push(mk('whale', x, LH + 40, { bx: x + 8, w: 14, h: 0, cyc: rand(0, 2) })); break;
     case 'sealhead': ents.push(mk('sealhead', x, 12 * TS - 6, { w: 0, h: 0 })); break;
     case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
+    case 'sponge': ents.push(mk('sponge', x, 12 * TS - 7, { x0: x, y0: 12 * TS - 7, w: (e.w || 3) * TS, h: 9, deep: !!e.deep, mx: 0, my: 0, sq: 0 })); break;
+    case 'frog': ents.push(mk('frog', x, y, { w: 14, h: 12, kick: rand(0.3, 1.2), face: -1 })); break;
+    case 'tadpoles': case 'turtle': case 'minnows': ents.push(mk(e.k, x, y, { x0: x, y0: y, w: 0, h: 0, ph: rand(0, 6) })); break;
     case 'skyexit': ents.push(mk('skyexit', x, y - TS, { w: 3 * TS, h: 2 * TS })); break;
     case 'gem': if (e.parentIdx != null && !levelGems[e.parentIdx]) ents.push(mk('gem', x, y, { idx: e.parentIdx, h: 18 })); break;   // a level's gem kept up in its cloud area
   }
@@ -2376,7 +2432,7 @@ function hitBlock(tx, ty, t, fromAbove) {
 function coinPop(x, y) { ents.push(mk('coinpop', x, y - 8, { vy: -260, w: 16, h: 16 })); }
 function sprout(kind, x, y) { ents.push(mk(kind, x + 1, y, { w: 14, h: 14, rise: 16, dir: 1 })); sfx.sprout(); }
 
-const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
+const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
 // knocked out by a shell, a spark, a bumped block or the horseshoe: flips over and falls off the screen
 function flipEnemy(e, from) {
   if (e.dead || e.k === 'boss') return;
@@ -2403,6 +2459,8 @@ function updateLevel(dt) {
   if (phase === 'boss-won') { bossWonUpdate(dt); return; }
   if (phase === 'pipe') { pipeUpdate(dt); return; }
   if (phase === 'bow') { bowUpdate(dt); updateEnts(dt); return; }
+  if (phase === 'dive') { diveUpdate(dt); return; }
+  if (camY) { camY *= Math.exp(-dt * 2.6); if (Math.abs(camY) < 0.5) camY = 0; }   // (easing back after the dive)
   updatePlayer(dt);
   updateEnts(dt);
   // camera: leads in the direction Leo runs
@@ -2526,7 +2584,7 @@ function updatePlayer(dt) {
   // platforms (solid on top only)
   p.ride = null;
   for (const e of ents) {
-    if ((e.k !== 'plat' && e.k !== 'fall' && e.k !== 'boat') || e.dead) continue;
+    if ((e.k !== 'plat' && e.k !== 'fall' && e.k !== 'boat' && e.k !== 'sponge') || e.dead) continue;
     if (p.vy >= 0 && prevBottom <= e.y + 2 + Math.max(0, e.my || 0) && p.y + p.h >= e.y && p.x + p.w > e.x && p.x < e.x + e.w) {
       p.y = e.y - p.h; p.vy = 0; p.ground = true; p.ride = e; p.combo = 0;
       if (e.k === 'fall' && e.st === 'wait') e.st = 'shake';
@@ -2565,7 +2623,7 @@ function updateEnts(dt) {
     e.t += dt;
     if (e.flip) { e.vy += 900 * dt; e.y += e.vy * dt; e.x += e.vx * dt; if (e.y > LH + 40) e.gone = true; continue; }
     const awake = (e.x > camX - 200 && e.x < camX + LW + 160) || Math.abs(e.x - p.x) < 220;
-    if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid', 'boat', 'bowup'].includes(e.k)) continue;   // asleep until it's near
+    if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid', 'boat', 'bowup', 'sponge'].includes(e.k)) continue;   // asleep until it's near
     switch (e.k) {
       case 'grumblin': case 'snaily': case 'thorny': {
         if (e.k === 'snaily' && !groundAhead(e) && e.ground) e.dir *= -1;
@@ -2659,6 +2717,25 @@ function updateEnts(dt) {
         break;
       case 'cap': updateCap(e, dt); break;
       case 'bowup': updateBowUp(e, dt); break;
+      case 'sponge': {   // a squishy bog mat: sinks slowly under Leo's feet, bobs back up when he leaves
+        const on = p.ride === e, oy = e.y;
+        if (on) { e.sq = Math.min(1, e.sq + dt * 4); e.y += (e.deep ? 16 : 9) * dt; if (!e.deep) e.y = Math.min(e.y, e.y0 + 13); if (e.deep && Math.random() < 0.3) bubble(e.x + rand(0, e.w), e.y + 4); }
+        else { e.sq = Math.max(0, e.sq - dt * 3); e.y = Math.max(e.y0, e.y - 7 * dt); }
+        e.my = e.y - oy; e.mx = 0;
+        if (e.deep && on && e.y > 12 * TS + 14 && phase === 'play' && lvl.deepRoom) startDive(e);
+        break;
+      }
+      case 'frog': {   // swims in kicks towards Leo when he's near
+        e.kick -= dt;
+        const dx = p.x - e.x, dy = p.y + p.h / 2 - e.y;
+        if (e.kick <= 0) { e.kick = rand(0.9, 1.5); const d = Math.hypot(dx, dy) || 1, near = d < 150; e.vx = near ? dx / d * 70 : rand(-40, 40); e.vy = near ? dy / d * 70 : rand(-40, 30); e.face = e.vx >= 0 ? 1 : -1; e.kt = 0.35; }
+        e.kt = Math.max(0, (e.kt || 0) - dt);
+        e.vx *= Math.exp(-dt * 1.6); e.vy *= Math.exp(-dt * 1.6);
+        moveX(e, e.vx * dt); if (e.wall) e.vx = -e.vx;
+        moveY(e, e.vy * dt); if (e.ground || e.head) e.vy = -e.vy * 0.5;
+        break;
+      }
+      case 'tadpoles': case 'turtle': case 'minnows': e.ph += dt; break;
       case 'boat': {   // sails off once Leo is aboard, and stops at the far dock
         if (!e.go && p.ride === e) e.go = true;
         e.mx = e.go ? Math.min(e.sp * dt, e.x1 - e.x) : 0; e.my = 0; e.x += e.mx;
@@ -2751,7 +2828,7 @@ function touchPlayer(e) {
     }
     return;
   }
-  if (e.k === 'plat' || e.k === 'fall' || e.k === 'boat' || e.k === 'sealhead') return;
+  if (['plat', 'fall', 'boat', 'sealhead', 'sponge', 'tadpoles', 'turtle', 'minnows'].includes(e.k)) return;
   if (!overlap(p, e)) return;
   const stomp = p.vy > 0 && p.y + p.h - p.vy * STEP <= e.y + (p.mount ? 10 : 6), pounding = p.pound === 'drop';
   switch (e.k) {
@@ -2867,7 +2944,7 @@ function touchPlayer(e) {
         else if (e.k === 'snaily') { e.k = 'shell'; e.vx = 0; e.h = 14; e.y += 2; e.still = 0; }
         else if (e.k === 'shell') { e.vx = 0; }
         else if (e.k === 'buzzer') { e.dead = true; e.flip = true; e.vy = 0; }
-        else if (e.k === 'shark') { flipEnemy(e, p.face); }
+        else if (e.k === 'shark' || e.k === 'frog') { flipEnemy(e, p.face); }
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
@@ -2950,7 +3027,7 @@ function clearUpdate(dt) {
   if (phaseT > 4.2) finishLevel();
 }
 function finishLevel() {
-  const id = lvl.id;
+  const id = lvl.parent || lvl.id;   // (a secret exit inside a room counts for the level it's in)
   save.cleared[id] = true;
   const old = save.gems[id] || [];
   save.gems[id] = levelGems.map((g2, i) => g2 || !!old[i]);
@@ -3198,6 +3275,46 @@ function drawEnt0(e, t) {
       g.restore(); break;
     }
     case 'boat': drawBoat(e, t); break;
+    case 'sponge': {   // a squishy mat of bog moss and cranberries (the deep one is darker, and bubbles)
+      const sq = e.sq || 0, w = e.w + sq * 3, h = e.h - sq * 2.5, xx = x - sq * 1.5, yy = y + sq * 2.5;
+      rrect(xx, yy, w, h, 4); paint(e.deep ? vgrad(yy, yy + h, '#6a5a3a', '#3a2e1e') : vgrad(yy, yy + h, '#9aa04a', '#6a6a2a'));
+      g.fillStyle = 'rgba(0,0,0,.18)'; for (let i = 0; i < w / 5; i++) { g.beginPath(); g.arc(xx + 3 + i * 5, yy + h * 0.6 + (i % 2), 1, 0, TAU); g.fill(); }   // spongy holes
+      for (let i = 0; i < w / 6; i++) { g.beginPath(); g.arc(xx + 4 + i * 6 + (i % 2) * 2, yy + 1, 1.6, 0, TAU); g.fillStyle = i % 3 ? '#d8303a' : '#ff5a5a'; g.fill(); }   // cranberries on top
+      if (e.deep) { g.globalAlpha = 0.5 + 0.3 * Math.sin(t * 3); g.beginPath(); g.arc(xx + w / 2, yy + h / 2, 2.4, 0, TAU); g.lineWidth = 0.8; g.strokeStyle = '#cfefff'; g.stroke(); g.globalAlpha = 1; }
+      const surf = 12 * TS; if (yy + h > surf) { g.fillStyle = 'rgba(30,110,190,.55)'; g.fillRect(xx - 1, Math.max(yy, surf), w + 2, yy + h - Math.max(yy, surf) + 1); }   // the part under the water
+      break;
+    }
+    case 'frog': {   // a green frog swimming in kicks
+      g.save(); g.translate(x + 7, y + 6); g.scale(e.face || 1, 1);
+      const k = (e.kt || 0) / 0.35;
+      for (const s2 of [-1, 1]) { g.save(); g.translate(-4, s2 * 2); g.rotate(s2 * (0.4 + k * 0.9)); rrect(-8, -1, 8, 2.4, 1.2); g.fillStyle = '#3a9a3a'; g.fill(); ell(-8.5, 0.2, 2.2, 1.4); g.fill(); g.restore(); }
+      ell(0, 0, 7, 5); g.fillStyle = '#5ac04a'; g.fill(); ell(1, 2, 5, 2.4); g.fillStyle = '#e8f0a0'; g.fill();
+      for (const ex of [2, 5.5]) { g.beginPath(); g.arc(ex, -4, 2.2, 0, TAU); g.fillStyle = '#5ac04a'; g.fill(); g.beginPath(); g.arc(ex + 0.4, -4.2, 1.3, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.7, -4.2, 0.7, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }
+      g.beginPath(); g.moveTo(3, 1); g.quadraticCurveTo(5.5, 2.4, 7, 0.6); g.lineWidth = 0.6; g.strokeStyle = '#2a6a2a'; g.stroke();
+      g.restore(); break;
+    }
+    case 'tadpoles': {   // a little wiggling school of tadpoles
+      for (let i = 0; i < 6; i++) {
+        const a = e.ph * 0.8 + i * 1.05, tx2 = x + Math.cos(a) * 18 + Math.sin(e.ph * 1.7 + i) * 4, ty2 = y + Math.sin(a * 1.3) * 8, dir = -Math.sin(a) >= 0 ? 1 : -1;
+        g.save(); g.translate(tx2, ty2); g.scale(dir, 1); ell(0, 0, 2.4, 1.8); g.fillStyle = '#3a3428'; g.fill();
+        g.beginPath(); g.moveTo(-1.5, 0); g.quadraticCurveTo(-4, Math.sin(e.ph * 14 + i) * 2, -7, Math.sin(e.ph * 14 + i + 1) * 1.6); g.lineWidth = 1; g.strokeStyle = '#5a5444'; g.stroke(); g.restore();
+      }
+      break;
+    }
+    case 'turtle': {   // a painted turtle paddling slowly back and forth
+      const tx2 = x + Math.sin(e.ph * 0.35) * 40, dir = Math.cos(e.ph * 0.35) >= 0 ? 1 : -1;
+      g.save(); g.translate(tx2, y + Math.sin(e.ph) * 2); g.scale(dir, 1);
+      for (const [fx2, fy] of [[-5, 3], [4, 3.4]]) { ell(fx2 + Math.sin(e.ph * 4) * 1, fy, 2.6, 1.2); g.fillStyle = '#6a7a3a'; g.fill(); }
+      g.beginPath(); g.arc(9, -0.5, 2.4, 0, TAU); g.fillStyle = '#6a7a3a'; g.fill(); g.beginPath(); g.arc(9.8, -1.2, 0.5, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill();
+      g.beginPath(); g.ellipse(0, 0, 8, 4.5, 0, Math.PI, 0); g.fillStyle = '#3a4a2a'; g.fill(); g.fillStyle = '#d8a83a'; for (let k = -1; k <= 1; k++) g.fillRect(k * 3.4 - 0.6, -3.5, 1.2, 3.2);
+      g.fillStyle = '#e85a3a'; g.fillRect(-8, -0.4, 16, 1.2);   // the red edge of its shell
+      g.restore(); break;
+    }
+    case 'minnows': {   // a flicker of tiny silver fish
+      for (let i = 0; i < 7; i++) { const a = e.ph * 1.6 + i * 0.5, fx2 = x + Math.cos(a) * 26 + i * 2, fy = y + Math.sin(a * 2) * 5 + (i % 3) * 3, dir = -Math.sin(a) >= 0 ? 1 : -1;
+        g.save(); g.translate(fx2, fy); g.scale(dir, 1); ell(0, 0, 2.6, 0.9); g.fillStyle = '#cfe0e8'; g.fill(); g.beginPath(); g.moveTo(-2.4, 0); g.lineTo(-4, -1); g.lineTo(-4, 1); g.fill(); g.restore(); }
+      break;
+    }
     case 'bowup': drawBowUp(e, t); break;
     case 'skyexit': {   // a rainbow slide curving down off the edge of the clouds
       for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(x + 40, y + 34, 34 - i * 2.2, Math.PI, Math.PI * 1.75); g.lineWidth = 2.4; g.strokeStyle = ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'][i]; g.stroke(); }
@@ -3256,7 +3373,7 @@ const NODES = [
   { id: 'vineyard', x: 962, y: 195, name: "Martha's Vineyard", island: true },   // the islands: secret levels, opened by secret exits
   { id: 'nantucket', x: 1110, y: 196, name: 'Nantucket', island: true },
 ];
-const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['fort', 'canal'], ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'whale'], ['whale', 'ptown'], ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret']];   // the secret ones open from secret exits
+const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'sky'], ['sky', 'bog'], ['bog', 'castle'], ['caves', 'bonus'], ['castle', 'shore'], ['shore', 'snow'], ['snow', 'night'], ['night', 'fort'], ['fort', 'canal'], ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'whale'], ['whale', 'ptown'], ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'whale', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
@@ -3286,6 +3403,7 @@ function goMap(from) {
     if (next) RB.toast(`☘️ ${node(next[1]).name} is open!`, 2200);
     if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Goblin Castle', 3200), 600);
     if (from === 'canal' && save.secrets.canal) setTimeout(() => RB.toast("⛴️ Secret exit! A ferry path now runs to Martha's Vineyard", 3200), 600);
+    if (from === 'cranberry' && save.secrets.cranberry) setTimeout(() => RB.toast('🐸 Secret exit! A golden path now runs from Cranberry Bog straight to Whale Watch', 3200), 600);
     if (from === 'whale' && save.secrets.whale) setTimeout(() => RB.toast('🐋 Secret exit! A golden path now runs out to Nantucket', 3200), 600);
     if (from === 'caves' && save.key && !save.cleared.bonus) setTimeout(() => RB.toast('🌈 Rainbow Road is open! (the secret path from Glimmer Caves)', 3000), 2400);
   }
@@ -3577,7 +3695,18 @@ function render() {
   ctx.setTransform(scale, 0, 0, scale, 0, offY);
   ctx.save(); ctx.beginPath(); ctx.rect(0, 0, LW, LH); ctx.clip();
   ctx.lineJoin = 'round'; ctx.lineCap = 'round';
-  if (state === 'level' && lvl) drawLevel();
+  if (state === 'level' && lvl) {
+    // the camera can pan up and down (diving under the bog): the level slides, and murky water fills the gap
+    if (camY) ctx.setTransform(scale, 0, 0, scale, 0, offY - Math.round(camY * scale));
+    const o = offY; offY -= Math.round(camY * scale);
+    try { drawLevel(); } finally { offY = o; }
+    if (camY) {
+      ctx.setTransform(scale, 0, 0, scale, 0, offY);
+      const y0 = camY > 0 ? LH - camY : 0, h = Math.abs(camY);
+      ctx.fillStyle = vgrad(y0, y0 + h, camY > 0 ? '#2a7a8a' : '#1a5a6a', camY > 0 ? '#14404e' : '#2a7a8a'); ctx.fillRect(0, y0, LW, h);
+      for (let i = 0; i < 14; i++) { const bx = (i * 67 + clock * 9) % LW, byy = y0 + ((i * 41 - clock * 30) % h + h) % h; ctx.globalAlpha = 0.5; ctx.beginPath(); ctx.arc(bx, byy, 1.4, 0, TAU); ctx.fillStyle = '#cfefff'; ctx.fill(); ctx.globalAlpha = 1; }
+    }
+  }
   else drawMap();
   ctx.restore();
   ctx.setTransform(1, 0, 0, 1, 0, offY);
