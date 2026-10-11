@@ -3357,8 +3357,9 @@ function drawEnt0(e, t) {
 // ---------- The map of New England ----------
 // Drawn from real latitude and longitude (a little wider than true, so the levels have room). Cape Cod is where it really is,
 // just drawn bigger (a bold hook curling out into the sea) so its levels fit. The whole map fits on one screen.
-// The route is one simple loop: World 1 goes up the west side (Connecticut, the Berkshires, Vermont) to New Hampshire,
-// World 2 crosses the White Mountains into Maine and down to its coast, and World 3 is a boat ride south to Cape Cod.
+// The route never doubles back: World 1 goes up the west side (Connecticut, the Berkshires, Vermont) and across to New
+// Hampshire's North Country; World 2 comes down through the White Mountains, over to Maine's North Woods, out to the coast
+// at Acadia and west along it to Fort Knox; World 3 is a boat ride down the coast into Cape Cod Bay and out along the Cape.
 const MAP_W = 240;
 const GEO = (lon, lat) => [10 + (lon + 73.8) * 31, 5 + (46.6 - lat) * 37.9];   // (the far north of Maine runs off the top)
 // the land round New England (New York, Quebec, New Brunswick, Long Island): plain, reaching right off the map
@@ -3375,16 +3376,16 @@ const NODES = [
   at('caves', GEO(-72.95, 43.15), 'Glimmer Caves', 'Vermont'),                    // Vermont's marble quarries
   at('bog', GEO(-73.15, 43.9), 'Bubbling Bog', 'Vermont'),                      // the swamps by Lake Champlain
   at('sky', GEO(-72.75, 44.6), 'Cloud Hop', 'Vermont'),                          // up Mount Mansfield
-  at('castle', GEO(-71.45, 43.45), 'Goblin Castle', 'New Hampshire'),            // like the Castle in the Clouds
+  at('castle', GEO(-71.85, 44.78), 'Goblin Castle', 'New Hampshire'),            // hidden up in the North Country
   at('bonus', GEO(-73.75, 43.3), 'Rainbow Road', 'up in the sky', { secret: true }),
-  at('snow', GEO(-71.3, 44.28), 'Frosty Peaks', 'New Hampshire'),                // the White Mountains
-  at('night', GEO(-70.05, 45.25), 'Moonlit Meadow', 'Maine'),                    // the North Woods
-  at('shore', GEO(-69.85, 43.9), 'Seashell Shore', 'Maine'),                     // a sandy beach on the coast
-  at('fort', GEO(-68.8, 44.6), 'Frost Fortress', 'Maine'),                       // like Fort Knox on the Penobscot
+  at('snow', GEO(-71.25, 44.15), 'Frosty Peaks', 'New Hampshire'),               // the White Mountains
+  at('night', GEO(-69.75, 45.3), 'Moonlit Meadow', 'Maine'),                     // the North Woods
+  at('shore', GEO(-68.25, 44.38), 'Seashell Shore', 'Maine'),                    // the beaches of Acadia
+  at('fort', GEO(-69.15, 44.25), 'Frost Fortress', 'Maine'),                     // like Fort Knox on the Penobscot
   at('canal', CAPEXY(1, 0), 'Bourne Bridge', 'Cape Cod'),
   at('cranberry', CAPEXY(25, 3), 'Cranberry Bog', 'Cape Cod'),
   at('dunes', CAPEXY(54, -12), 'Nauset Dunes', 'Cape Cod'),
-  at('whale', CAPEXY(80, -28), 'Whale Watch', 'off Cape Cod'),
+  at('whale', CAPEXY(70, -34), 'Whale Watch', 'off Cape Cod'),
   at('ptown', CAPEXY(31, -44), 'Provincetown Pier', 'Cape Cod'),
   at('vineyard', CAPEXY(8, 19), "Martha's Vineyard", 'Massachusetts', { island: true }),   // the islands: secret levels, opened by secret exits
   at('nantucket', CAPEXY(45, 22), 'Nantucket', 'Massachusetts', { island: true }),
@@ -3394,10 +3395,15 @@ const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'bog'], ['bog',
   ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'whale'], ['whale', 'ptown'],
   ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'whale', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
+const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'dunes', 'whale', 'ptown']];
+const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
 const SEA_PATHS = new Set(['fort|canal', 'dunes|whale', 'whale|ptown', 'canal|vineyard', 'whale|nantucket']);
-const PATH_BEND = { 'fort|canal': { x: 116, y: 132 } };   // (Maine to Cape Cod: down the coast by boat, into Cape Cod Bay)
+// a few trails are bent by hand: the boat lane hugs the coast, and the secret paths swing round the levels in between
+const PATH_BEND = {};
+const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
+bend('fort|canal', GEO(-70.3, 43.0)); bend('caves|castle', GEO(-72.1, 43.9)); bend('cranberry|whale', CAPEXY(70, 6)); bend('whale|nantucket', CAPEXY(86, 0));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -3562,7 +3568,7 @@ function drawMap() {
   { const [x, y] = CAPEXY(-2, 0); g.fillStyle = '#5aa0e0'; g.fillRect(x - 1, y - 5, 2, 9); g.beginPath(); g.arc(x, y - 1, 3.4, Math.PI, 0); g.lineWidth = 0.8; g.strokeStyle = '#5a7a6a'; g.stroke(); }   // the canal and the Bourne Bridge
   { const [x, y] = CAPEXY(58, -20); g.fillStyle = '#ffffff'; g.fillRect(x - 0.9, y - 5, 1.8, 5); g.fillStyle = '#d8302a'; g.fillRect(x - 0.9, y - 6, 1.8, 1.6); }   // Nauset Light
   { const [x, y] = CAPEXY(37, -48); g.fillStyle = '#b8b0a0'; g.fillRect(x - 0.8, y - 7, 1.6, 7); g.fillRect(x - 1.3, y - 8, 2.6, 1.4); }   // the Pilgrim Monument
-  { const [x, y] = CAPEXY(80, -28); ell(x + 1, y + 6, 5, 1.4); g.fillStyle = '#34405e'; g.fill(); }   // a whale out at sea
+  { const [x, y] = CAPEXY(70, -34); ell(x + 1, y + 6, 5, 1.4); g.fillStyle = '#34405e'; g.fill(); }   // a whale out at sea
   g.font = '6px Bungee, system-ui, sans-serif'; g.fillStyle = 'rgba(255,255,255,.85)'; g.fillText('CAPE COD', CB[0] + 30, CB[1] + 11);
   // a rainbow up to the secret level once the key is found
   if (save.key) for (let i = 0; i < 5; i++) { const n = node('bonus'); g.beginPath(); g.arc(n.x, n.y + 8, 12 - i * 1.4, Math.PI, 0); g.lineWidth = 1.4; g.strokeStyle = ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'][i]; g.stroke(); }
@@ -3574,25 +3580,27 @@ function drawMap() {
   g.save(); g.setTransform(1, 0, 0, 1, 0, offY); g.drawImage(drawMap.pic, Math.round((ox - 20) * scale), 0); g.restore();
   g.save(); g.translate(Math.round(ox * scale) / scale, 0);
   { const n = node('castle'), fx = n.x - 0.5, fy = n.y - 28; g.fillStyle = '#5a3a2a'; g.fillRect(fx, fy, 0.9, 8); g.beginPath(); g.moveTo(fx + 0.9, fy); g.lineTo(fx + 6 + Math.sin(t * 4), fy + 2); g.lineTo(fx + 0.9, fy + 4); paint('#d8304a'); }
-  // paths: winding trails between the levels. Open ones are sandy roads with stepping dots, secret ones are golden,
-  // routes across the sea are dashed boat lanes with a little sailboat, and locked ones are faint dots
+  // the trails: white dotted footpaths with a soft shadow, like a Mario world map. The trail to the next level you
+  // haven't beaten marches with gold dots; secret trails are gold with a twinkle; boat lanes across the sea are dashed with a
+  // little sailboat; locked trails are faint grey dots until they open.
   for (const pth of PATHS) {
-    if (!pathOpen(pth) && (node(pth[1]).secret || pth[2])) continue;
+    if (!pathOpen(pth) && (node(pth[1]).secret || node(pth[1]).island || pth[2])) continue;
     const a = node(pth[0]), b = node(pth[1]), c = pathCtrl(pth), d = Math.hypot(b.x - a.x, b.y - a.y), open = pathOpen(pth), sea = SEA_PATHS.has(pth[0] + '|' + pth[1]);
-    const u0 = 9 / d, u1 = 1 - 9 / d, curve = () => { g.beginPath(); const q0 = qbez(a, c, b, u0); g.moveTo(q0.x, q0.y); for (let k = 1; k <= 24; k++) { const q = qbez(a, c, b, u0 + (u1 - u0) * k / 24); g.lineTo(q.x, q.y); } };
+    const u0 = 7.5 / d, u1 = 1 - 7.5 / d, curve = () => { g.beginPath(); const q0 = qbez(a, c, b, u0); g.moveTo(q0.x, q0.y); for (let k = 1; k <= 24; k++) { const q = qbez(a, c, b, u0 + (u1 - u0) * k / 24); g.lineTo(q.x, q.y); } };
+    const next = open && (!save.cleared[pth[0]] || !save.cleared[pth[1]]);   // a trail that leads somewhere new
+    const dots = (gap, r, col, march) => { const off = march ? (t * 9 % gap) / d : 0; for (let u = u0 + off; u <= u1; u += gap / d) { const q = qbez(a, c, b, u); g.beginPath(); g.arc(q.x, q.y + 0.6, r + 0.5, 0, TAU); g.fillStyle = 'rgba(20,50,30,.28)'; g.fill(); g.beginPath(); g.arc(q.x, q.y, r, 0, TAU); g.fillStyle = col; g.fill(); } };
     g.lineCap = 'round'; g.lineJoin = 'round';
-    if (!open) { for (let s = 0; s <= 1; s += 6 / d) { if (s < u0 || s > u1) continue; const q = qbez(a, c, b, s); g.beginPath(); g.arc(q.x, q.y, 1.1, 0, TAU); g.fillStyle = 'rgba(0,0,0,.2)'; g.fill(); } continue; }
+    if (!open) { dots(4.6, 0.7, 'rgba(255,255,255,.35)', false); continue; }
     if (sea) {
-      curve(); g.setLineDash([3.5, 3]); g.lineDashOffset = -t * 8; g.lineWidth = 1.6; g.strokeStyle = pth[2] ? '#ffe14a' : 'rgba(255,255,255,.9)'; g.stroke(); g.setLineDash([]);
-      const u = 0.15 + ((t * 0.08 + PATHS.indexOf(pth) * 0.3) % 1) * 0.7, q = qbez(a, c, b, u), bob = Math.sin(t * 3) * 0.6;   // a little sailboat going back and forth
-      g.beginPath(); g.moveTo(q.x - 4, q.y + 1 + bob); g.lineTo(q.x + 4, q.y + 1 + bob); g.lineTo(q.x + 2.6, q.y + 3 + bob); g.lineTo(q.x - 2.6, q.y + 3 + bob); g.closePath(); g.fillStyle = '#c8603a'; g.fill();
-      g.beginPath(); g.moveTo(q.x, q.y + 1 + bob); g.lineTo(q.x, q.y - 6 + bob); g.lineTo(q.x + 3.6, q.y + bob); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+      curve(); g.setLineDash([3, 2.6]); g.lineDashOffset = -t * 7; g.lineWidth = 1.3; g.strokeStyle = pth[2] ? '#ffe14a' : 'rgba(255,255,255,.95)'; g.stroke(); g.setLineDash([]);
+      const u = 0.2 + ((t * 0.07 + PATHS.indexOf(pth) * 0.3) % 1) * 0.6, q = qbez(a, c, b, u), bob = Math.sin(t * 3) * 0.5;   // a little sailboat
+      g.beginPath(); g.moveTo(q.x - 3, q.y + 1 + bob); g.lineTo(q.x + 3, q.y + 1 + bob); g.lineTo(q.x + 2, q.y + 2.6 + bob); g.lineTo(q.x - 2, q.y + 2.6 + bob); g.closePath(); g.fillStyle = '#c8603a'; g.fill();
+      g.beginPath(); g.moveTo(q.x, q.y + 1 + bob); g.lineTo(q.x, q.y - 4.6 + bob); g.lineTo(q.x + 2.8, q.y + bob); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
       continue;
     }
-    curve(); g.lineWidth = 6.4; g.strokeStyle = pth[2] ? 'rgba(160,110,10,.55)' : 'rgba(120,80,30,.35)'; g.stroke();
-    curve(); g.lineWidth = 4.4; g.strokeStyle = pth[2] ? '#ffd23a' : '#f2dcaa'; g.stroke();
-    for (let s = u0 + 3 / d; s < u1; s += 7 / d) { const q = qbez(a, c, b, s); g.beginPath(); g.arc(q.x, q.y, 0.9, 0, TAU); g.fillStyle = pth[2] ? '#fff6c0' : '#c8a46a'; g.fill(); }
-    if (pth[2]) { const q = qbez(a, c, b, (t * 0.25) % 1); star(q.x, q.y, 1.8, '#ffffff'); }
+    curve(); g.lineWidth = 3.4; g.strokeStyle = pth[2] ? 'rgba(255,220,90,.35)' : 'rgba(255,255,255,.28)'; g.stroke();   // a faint worn track under the dots
+    if (pth[2]) { dots(4, 1, '#ffd23a', next); const q = qbez(a, c, b, (t * 0.22) % 1); star(q.x, q.y, 1.6, '#ffffff'); }
+    else dots(4, 1, next ? (Math.floor(t * 3) % 2 ? '#ffe680' : '#fff2b0') : '#ffffff', next);
   }
   // level badges
   for (const n of NODES) {
@@ -3644,7 +3652,7 @@ function drawHUD() {
   if (state === 'map') {
     text('LUCKY LEO', s * 8, s * 6, 18, '#ffd23a');
     const n = node(mapLeo.to || mapLeo.at), gems = save.gems[n.id] || [];
-    text(n.name.toUpperCase(), s * 8, s * 22, 13, '#ffffff');
+    text(`${levelTag(n.id)}  ${n.name.toUpperCase()}`, s * 8, s * 22, 13, '#ffffff');
     text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${save.cleared[n.id] ? '✔ CLEARED  ' : ''}🌈 ${gems.filter(Boolean).length}/5`, s * 8, s * 34, 11, '#fff2c0');
     text(`☘️ × ${lives}   🌈 ${gemCount()}`, s * 8, LH * s - s * 18, 12);
     const hint = RB.touch ? 'TAP A LEVEL · TAP AGAIN TO PLAY' : RB.pad.connected ? '✚ MOVE · Ⓐ PLAY' : '← → ↑ ↓ MOVE · SPACE TO PLAY';
