@@ -1297,6 +1297,28 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-rainbow.png');
   });
 
+  await test('Lucky Leo: riding Shamrock, spiky things are no trouble: stomp hedgehogs and snapping plants, walk over spikes; map trails curve and Leo follows them', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); mount({}); run(10);
+      const drop = k => { const e = mk(k, player.x + (k === 'snapper' ? 200 : -1), 11 * 16 - 14, k === 'snapper' ? { w: 12, h: 18, up: 22, cyc: 0, pipeY: 12 } : { dir: 0, w: 14, h: 13 }); ents.push(e); if (k === 'snapper') { step(1 / 60); e.x = player.x - 1; }
+        player.y = e.y - player.h - 4; player.vy = 120; player.ground = false; run(4); return { gone: !!e.flip || e.dead, safe: !!player.mount && phase === 'play' }; };
+      out.thorny = drop('thorny'); run(30); out.snapper = drop('snapper'); run(30);
+      setTile(Math.floor((player.x + 6) / 16) + 2, 11, T.SPIKES); keys.right = true; run(40); keys.right = false; out.spikes = !!player.mount && player.inv === 0 && phase === 'play';
+      // the map: Leo walks along a curved trail (off the straight line between the two levels)
+      goMap('hills'); save.cleared.hills = true; mapLeo.to = 'woods'; mapLeo.at = 'hills'; let off = 0;
+      const a = node('hills'), b = node('woods');
+      run(20, () => { const ax = b.x - a.x, ay = b.y - a.y, d = Math.hypot(ax, ay); off = Math.max(off, Math.abs((mapLeo.x - a.x) * ay - (mapLeo.y - a.y) * ax) / d); });
+      run(120); out.curved = off > 3; out.arrived = mapLeo.at === 'woods' && !mapLeo.to;
+      paused = false; return out;
+    });
+    check(r.thorny.gone && r.thorny.safe && r.snapper.gone && r.snapper.safe, 'Shamrock stomps spiky hedgehogs and snapping plants: ' + JSON.stringify(r));
+    check(r.spikes, 'Shamrock walks over spikes unhurt: ' + JSON.stringify(r));
+    check(r.curved && r.arrived, 'map trails curve and Leo walks along them: ' + JSON.stringify(r));
+    await done(p, 'lucky-leo-ride.png');
+  });
+
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
