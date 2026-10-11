@@ -1131,7 +1131,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-world2.png');
   });
 
-  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, eye laser), comes along to the next level, and a hit only knocks Leo off', async () => {
+  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, open-mouth gulp, eye laser with the prism), comes along to the next level, and a hit only knocks Leo off', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
@@ -1158,14 +1158,16 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // stomp a spiky hedgehog safely
       const th = mk('thorny', player.x, player.y - 60 + player.h, { dir: -1, w: 14, h: 13 }); th.y = player.y + player.h - 13; ents.push(th);
       player.y -= 50; player.vy = 150; player.ground = false; run(20); out.spiky = !!th.flip && !!player.mount;
-      // the eye laser reaches a goblin well ahead on the ground and turns it into a coin
-      run(30); const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
-      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
-      // walk into three goblins: Shamrock gobbles them, then leaves a poop behind; stepping in it smooshes it
-      let eaten = 0;
-      for (let i = 0; i < 3; i++) { const g2 = mk('grumblin', player.x + player.face * 8, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(g2); run(3); if (g2.gone && player.mount) eaten++; }
+      // no prism: run makes Shamrock open wide and gulp the goblin in front of him; three gulps, then a poop
+      run(30); let eaten = 0;
+      for (let i = 0; i < 3; i++) { const g2 = mk('grumblin', player.x + player.w / 2 + player.face * 24 - 7, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(g2); pressed.run = true; run(1); out.mouth = out.mouth || player.mount.mouth > 0; run(30); if (g2.gone && player.mount) eaten++; }
+      out.noLaserYet = !player.mount.beam;
       run(100); const poo = ents.find(e => e.k === 'poop'); out.ate = eaten === 3 && !!poo && !!player.mount;
       if (poo) { player.x = poo.x - 30; player.face = 1; keys.right = true; run(40); keys.right = false; out.smoosh = poo.smooshed === true && ents.some(e => e.k === 'smudge'); }
+      // the rainbow prism (from a power block while riding) gives the eye laser: it reaches a goblin well ahead and turns it into a coin
+      run(30); const prism = mk('prism', player.x, player.y, { w: 14, h: 14, rise: 0 }); ents.push(prism); touchPlayerAs(prism); out.prism = player.laser === true;
+      const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
+      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
       // the laser doesn't reach right across the screen
       const farGob = mk('grumblin', player.x + player.face * 120, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(farGob); run(30); pressed.run = true; run(1); out.shortLaser = !farGob.gone; farGob.gone = true;
       // finishing the level: Shamrock and the power come along to the next one
@@ -1177,7 +1179,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.carried && r.moved > 25 && r.onGround && r.bounce, 'carry a spring and it still works where you put it: ' + JSON.stringify(r));
     check(r.hatched && r.riding, 'the egg should hatch Shamrock and Leo should ride him: ' + JSON.stringify(r));
     check(r.rideJump > 66 && r.floatAir > r.plainAir + 15, 'riding: a higher jump and a float: ' + JSON.stringify(r));
-    check(r.spiky && r.zap, 'riding: stomp spiky hedgehogs and zap with the eye laser: ' + JSON.stringify(r));
+    check(r.spiky && r.mouth && r.noLaserYet && r.prism && r.zap, 'riding: stomp spiky hedgehogs, chomp with no prism, and the prism gives the eye laser: ' + JSON.stringify(r));
     check(r.kept, 'Shamrock and power-ups should come along to the next level: ' + JSON.stringify(r));
     check(r.ate && r.smoosh && r.shortLaser, 'Shamrock eats three enemies and poops, the poop smooshes, and the laser is short: ' + JSON.stringify(r));
     check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
@@ -1215,7 +1217,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       hold(); hp = boss.hp; ents.push(mk('spark', boss.x + 8, boss.y + 10, { vx: 230, vy: 0, w: 6, h: 6 })); run(1); hits.spark = boss.hp === hp - 1;
       hold(); hp = boss.hp; ents.push(mk('shell', boss.x - 16, boss.y + boss.h - 14, { vx: 240, w: 14, h: 14 })); run(6); hits.shell = boss.hp === hp - 1;
       hold(); hp = boss.hp; setForm(3); player.hatless = true; ents.push(mk('cap', boss.x + 8, boss.y + 10, { vx: 200, w: 12, h: 9, st: 'out', dir: 1 })); run(1); hits.hat = boss.hp === hp - 1;
-      hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
+      hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.laser = true; player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
       out.hits = hits; out.hpLeft = boss.hp;
       paused = false; return out;
     });

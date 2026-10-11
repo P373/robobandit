@@ -566,6 +566,9 @@ const sfx = {
   neigh: () => { tone(900, 1100, 0.12, 'sawtooth', 0.03, 0, { cut: 2000, vib: 0.05 }); tone(1100, 500, 0.5, 'sawtooth', 0.035, 0.1, { cut: 1800, vib: 0.08 }); },
   hatch: () => { puffNoise(0.08, 0.1, 2500); arp([784, 988, 1175, 1568], 0.06, 0.14, 'sine', 0.06); },
   zap: () => { tone(2400, 1200, 0.14, 'sawtooth', 0.025, 0, { cut: 4000 }); tone(1600, 800, 0.12, 'sine', 0.04); },
+  splash: () => { puffNoise(0.25, 0.12, 1400, 'bandpass', 0, 500); tone(500, 200, 0.12, 'sine', 0.03); },
+  swim: () => { puffNoise(0.08, 0.05, 900, 'bandpass', 0, 300); tone(380, 520, 0.08, 'sine', 0.025); },
+  chomp: () => { tone(260, 520, 0.06, 'square', 0.04, 0, { cut: 1500 }); },
   gulp: () => { tone(320, 140, 0.12, 'square', 0.05, 0, { cut: 1200 }); tone(200, 90, 0.14, 'sine', 0.08, 0.08); },
   poop: () => { puffNoise(0.25, 0.08, 300, 'lowpass'); tone(180, 70, 0.3, 'sawtooth', 0.04, 0, { cut: 500, vib: 0.1 }); tone(500, 300, 0.1, 'sine', 0.05, 0.3); },
   squish: () => { puffNoise(0.18, 0.12, 600, 'lowpass', 0, 200); tone(260, 90, 0.18, 'sine', 0.07); },
@@ -950,10 +953,22 @@ function updateRiding(p, inp, dt) {
   const m = p.mount;
   m.chew = Math.max(0, (m.chew || 0) - dt);
   if (m.digest > 0) { m.digest -= dt; if (m.digest <= 0) dropPoop(); }
-  m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt); m.eye = Math.max(0, (m.eye || 0) - dt);
+  m.zapCD -= dt; m.zap = Math.max(0, m.zap - dt); m.eye = Math.max(0, (m.eye || 0) - dt); m.mouth = Math.max(0, (m.mouth || 0) - dt);
   if (p.ground) m.flutter = 0;
+  // run: Shamrock opens wide and gulps down the enemy right in front of him (like Yoshi). With the rainbow prism, run fires his eye laser instead.
+  if (pressed.run && m.zapCD <= 0 && !p.laser) {
+    m.zapCD = 0.4; m.mouth = 0.32; sfx.chomp();
+    const mx = p.x + p.w / 2 + p.face * 17 * UNI_S, my = p.y + p.h - 24 * UNI_S;
+    let best = null, bd = 34;
+    for (const e of ents) {
+      if (e.dead || e.gone || !isEnemy(e) || ['boss', 'thorny', 'snapper'].includes(e.k)) continue;   // (nothing spiky, and not King Grumbles)
+      const dx = (e.x + e.w / 2 - mx) * p.face + 10, dy = e.y + e.h / 2 - my;
+      if (dx > 0 && dx < bd && dy > -18 && dy < 32) { bd = dx; best = e; }
+    }
+    if (best) { sparkle(best.x + best.w / 2, best.y + best.h / 2, '#ffffff', 6); eatEnemy(best); }
+  }
   // the rainbow laser: a thin, tight beam from Shamrock's eyes, aimed at the nearest enemy ahead (or straight on), stopped by walls
-  if (pressed.run && m.zapCD <= 0) {
+  else if (pressed.run && m.zapCD <= 0) {
     m.zapCD = 0.35; m.zap = 0.2; m.eye = 0.55; sfx.zap();   // his eyes glow red a little longer than the beam, so you can see where it came from
     const ex = p.x + p.w / 2 + p.face * 13.8 * UNI_S, ey = p.y + p.h - 26.4 * UNI_S;
     const clear = (x2, y2) => { const n = Math.ceil(Math.hypot(x2 - ex, y2 - ey) / 4); for (let i = 1; i <= n; i++) { const x = ex + (x2 - ex) * i / n, y = ey + (y2 - ey) * i / n; if (SOLID.has(tileAt(Math.floor(x / TS), Math.floor(y / TS)))) return { x, y, hit: true }; } return null; };
@@ -992,8 +1007,8 @@ function gameMenu() {
   const here = () => (outside ? outside.lvl.id : lvl && lvl.id);
   const unpause = () => { if (paused) { paused = false; RB.hidePause(); last = performance.now(); } };
   if (state === 'level') return [
-    { label: '🗺️ Back to the map', onClick: () => { unpause(); const id = here(); outside = null; if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount }; goMap(id); } },
-    { label: '🔄 Start this level again', onClick: () => { unpause(); if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount }; startLevel(here()); } },
+    { label: '🗺️ Back to the map', onClick: () => { unpause(); const id = here(); outside = null; if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount, laser: !!player.laser }; goMap(id); } },
+    { label: '🔄 Start this level again', onClick: () => { unpause(); if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount, laser: !!player.laser }; startLevel(here()); } },
   ];
   if (state === 'map') return [{ label: '🏁 Title screen', onClick: () => { state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showTouch(); music.play('map'); } }];
   return [];
@@ -1159,7 +1174,7 @@ function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
 // ---- Shamrock the unicorn: white, a rainbow mane and tail, a golden horn and a green saddle ----
 // cx, by: the middle of his feet. gait 0..1 how much the legs move. zap > 0 shows a rainbow beam from the horn.
 const UNI_S = 1.22;   // Shamrock is drawn a bit bigger than his box, about as tall as Leo, like Yoshi
-function drawUnicorn(cx, by, face, t, gait = 0, zap = 0, chew = 0, full = 0) {
+function drawUnicorn(cx, by, face, t, gait = 0, zap = 0, chew = 0, full = 0, mouth = 0, laser = false) {
   g.save(); g.translate(cx, by); g.scale(face * UNI_S, UNI_S);
   const fill = c => { g.fillStyle = c; g.fill(); }, RAIN = ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'];
   const bob = Math.abs(Math.sin(t * 14)) * 0.7 * gait;
@@ -1188,11 +1203,17 @@ function drawUnicorn(cx, by, face, t, gait = 0, zap = 0, chew = 0, full = 0) {
   ell(13.2, -26.2, 4.8 + munch * 0.7, 3.9 + munch * 0.7, 0.25); fill('#ffffff');
   ell(16.8, -24.4 + munch * 0.4, 2.7, 2.3 + munch * 0.5, 0.2); fill('#ffe2ee');
   g.beginPath(); g.arc(17.8, -24.8, 0.45, 0, TAU); fill('#d888a8');                         // nostril
+  if (mouth > 0) {   // a big open mouth, chomping
+    const o = Math.sin(Math.min(1, mouth / 0.32) * Math.PI) * 3.4;
+    ell(17.2, -22.8 + o * 0.45, 2.9, 0.6 + o * 0.62); fill('#8a2a4a'); ell(17, -22.4 + o * 0.7, 1.6, 0.4 + o * 0.25); fill('#ff8ab0');
+    ell(16.4, -21.4 + o, 2.8, 1.3); fill('#ffffff');
+  }
   ell(12.4, -24, 1.5, 0.9); fill('rgba(255,140,180,.45)');                                  // rosy cheek
   g.beginPath(); g.moveTo(10, -28.4); g.lineTo(10.4, -32.6); g.lineTo(12.4, -29.2); fill('#ffffff');   // ear
   g.beginPath(); g.moveTo(10.6, -29); g.lineTo(10.8, -31.4); g.lineTo(11.8, -29.4); fill('#ffd0e4');
   // the golden spiral horn
-  g.beginPath(); g.moveTo(12.6, -29.6); g.lineTo(16.6, -37.4); g.lineTo(15, -29); g.closePath(); fill(C.gold);
+  if (laser) glow(15, -34, 7, `hsla(${(t * 300) % 360},100%,70%,1)`, 0.8);   // with the rainbow prism his horn shimmers
+  g.beginPath(); g.moveTo(12.6, -29.6); g.lineTo(16.6, -37.4); g.lineTo(15, -29); g.closePath(); fill(laser ? `hsl(${(t * 300) % 360},90%,72%)` : C.gold);
   g.strokeStyle = '#d89a1a'; g.lineWidth = 0.5; for (let k = 1; k < 4; k++) { const y0 = -29.6 - k * 2, x0 = 12.9 + k * 0.85; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + 1.6 - k * 0.25, y0 + 0.7); g.stroke(); }
   // the eye: big and friendly, or glowing red while he fires his laser
   if (zap > 0) { const a = Math.min(1, zap / 0.2); glow(13.8, -26.4, 4 + 5 * a, 'rgba(255,40,40,1)', 0.9 * a + 0.1); ell(13.8, -26.4, 1.4, 1.7); fill('#ff2a2a'); g.beginPath(); g.arc(14, -26.8, 0.55, 0, TAU); fill('#ffd0d0'); }
@@ -2236,7 +2257,7 @@ function startLevel(id, fromCheck = false) {
   for (const b of ents) if (b.k === 'boat' && checkpoint) b.x = clamp(startX - 3 * TS, b.x0, b.x1);
   player = { hatless: false, flip: 0, spun: false, twirl: 0, pound: null, crouch: false, x: startX, y: 0, w: 12, h: 14, vx: 0, vy: 0, face: 1, form: 0, inv: 0, star: 0, ground: false, coyote: 0, buffer: 0, anim: 0, sparkCD: 0, ride: null, jumpHeld: false, combo: 0, carry: null, mount: null };
   if (checkpoint) setForm(1);
-  if (!fromCheck) { if (keep.form) setForm(keep.form); if (keep.mount) mount({}); }   // power-ups and Shamrock come along
+  if (!fromCheck) { if (keep.form) setForm(keep.form); if (keep.mount) mount({}); if (keep.laser) player.laser = true; }   // power-ups and Shamrock come along
   const n = tries[id] || 0;
   if (n >= 3 && player.form === 0) { setForm(1); banner('A LUCKY CLOVER!', 'A little help after a few tries 🍀'); }
   if (n >= 6) player.star = 6;   // and a few seconds of rainbow power to get past the tricky bit
@@ -2286,7 +2307,7 @@ function setForm(f) {
 }
 function hurtPlayer() {
   if (player.inv > 0 || player.star > 0 || phase !== 'play') return;
-  if (player.mount) { dismount(true); player.inv = 1.5; player.vy = -200; sfx.hurt(); RB.pad.rumble(150, 0.5); return; }   // falls off Shamrock, unhurt
+  if (player.mount) { dismount(true); player.laser = false; player.inv = 1.5; player.vy = -200; sfx.hurt(); RB.pad.rumble(150, 0.5); return; }   // falls off Shamrock, unhurt
   if (player.form > 0) {
     setForm(player.form >= 2 ? 1 : 0);
     player.inv = 2; sfx.shrink(); RB.pad.rumble(150, 0.5);
@@ -2306,6 +2327,7 @@ function getCoin(x, y) {
 }
 function oneUp(x, y) { lives++; sfx.oneUp(); pops.push({ x, y, t: 0, txt: '1UP' }); }
 function particle(x, y, vx, vy, c, life = 0.8, sz = 3, grav = 600) { parts.push({ x, y, vx, vy, c, t: 0, life, sz, grav }); }
+function bubble(x, y) { parts.push({ x, y, vx: rand(-6, 6), vy: rand(-40, -22), c: 'rgba(220,245,255,.75)', t: 0, life: rand(0.8, 1.4), sz: rand(1, 1.8), grav: 0, puff: true }); }
 function puff(x, y, n = 3, c = 'rgba(255,255,255,.8)') { for (let i = 0; i < n; i++) parts.push({ x: x + rand(-3, 3), y: y + rand(-1, 1), vx: rand(-25, 25), vy: rand(-18, -4), c, t: 0, life: rand(0.35, 0.55), sz: rand(1.6, 2.6), grav: 0, puff: true }); }
 function sparkle(x, y, c = '#ffe14a', n = 10) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = rand(30, 110); particle(x, y, Math.cos(a) * s, Math.sin(a) * s, c, 0.5, 2, 0); } }
 
@@ -2329,14 +2351,14 @@ function hitBlock(tx, ty, t, fromAbove) {
   for (const e of ents) if (!e.dead && isEnemy(e) && e.x + e.w > x && e.x < x + TS && Math.abs(e.y + e.h - y) < 4) flipEnemy(e, 0);
   if (tileAt(tx, ty - 1) === T.COIN) { setTile(tx, ty - 1, 0); getCoin(x, y - TS); coinPop(x, y - TS); }
   if (t === T.QCOIN) { setTile(tx, ty, T.USED); coinPop(x, y); getCoin(x, y); }
-  else if (t === T.QPOWER) { setTile(tx, ty, T.USED); sprout(player.form === 0 ? 'clover' : 'flower', x, y); }
+  else if (t === T.QPOWER) { setTile(tx, ty, T.USED); sprout(player.mount && !player.laser ? 'prism' : player.form === 0 ? 'clover' : 'flower', x, y); }   // (riding Shamrock: the rainbow prism)
   else if (t === T.QSTAR) { setTile(tx, ty, T.USED); sprout('horseshoe', x, y); }
   else if (t === T.QHAT) { setTile(tx, ty, T.USED); sprout('magichat', x, y); }
   else if (t === T.QBOW) {   // a really long rainbow grows up into the sky, curving as it goes
     setTile(tx, ty, T.USED); sfx.cloud(); sfx.sprout();
     ents.push(mk('bowup', x, y, { w: 0, h: 0, x0: x + 8, y0: y, dir: player.face || 1, grow: 0 }));
   }
-  else if (t === T.QRIDE) { setTile(tx, ty, T.USED); if (player.mount || ents.some(e => e.k === 'summon' || e.k === 'unicorn')) sprout('hat', x, y); else summonShamrock(tx, ty); }
+  else if (t === T.QRIDE) { setTile(tx, ty, T.USED); if (player.mount || ents.some(e => e.k === 'summon' || e.k === 'unicorn')) sprout(!player.laser ? 'prism' : 'hat', x, y); else summonShamrock(tx, ty); }
   else if (t === T.QONEUP || t === T.HIDDEN) { setTile(tx, ty, T.USED); sprout('hat', x, y); }
   else if (t === T.MULTI) {
     lvl.multi = lvl.multi || {}; const k = tx + ',' + ty; lvl.multi[k] = (lvl.multi[k] || 0) + 1;
@@ -2391,9 +2413,14 @@ function updateLevel(dt) {
   camX = clamp(camX, 0, lvl.w * TS - LW);
 }
 
+const waterAt = (x, y) => tileAt(Math.floor(x / TS), Math.floor(y / TS)) === T.WATER;
 function updatePlayer(dt) {
   const p = player, inp = input();
-  const run = inp.run, maxV = run ? 165 : 92, acc = p.ground ? 520 : 380;
+  // in the water Leo swims (it never hurts him): slow sinking, ← → paddle, jump to swim up, and near the surface a jump leaps out
+  const wasSwim = p.swim; p.swim = waterAt(p.x + p.w / 2, p.y + p.h - 5);
+  if (p.swim && !wasSwim) { p.vy *= 0.3; p.pound = null; p.twirl = 0; p.slide = 0; sfx.splash(); for (let i = 0; i < 8; i++) particle(p.x + p.w / 2, p.y + p.h - 4, rand(-60, 60), rand(-160, -40), '#d8f0ff', 0.6, rand(1.5, 3)); }
+  if (p.swim && Math.random() < 0.05) bubble(p.x + p.w / 2 + p.face * 6, p.y + 4);
+  const run = inp.run, maxV = p.swim ? 72 : run ? 165 : 92, acc = p.ground ? 520 : p.swim ? 300 : 380;
   // crouching (↓ or LT on the ground): Leo ducks and stops; jump from a crouch for a big backflip
   p.crouch = inp.down && p.ground && !p.pound && !p.mount;
   let dir = p.crouch || p.pound ? 0 : (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
@@ -2406,6 +2433,11 @@ function updatePlayer(dt) {
   if (Math.abs(p.vx) > maxV && p.ground) p.vx -= Math.sign(p.vx) * Math.min(Math.abs(p.vx) - maxV, 400 * dt);
   // jumping: a little forgiveness both ways (press just before landing, or just after running off an edge)
   if (p.mount && pressed.jump && inp.down) { dismount(false); pressed.jump = false; }   // ↓ + jump: hop off Shamrock
+  if (p.swim && pressed.jump && !p.ground) {   // a swimming stroke (or a leap out at the surface)
+    const surface = !waterAt(p.x + p.w / 2, p.y - 3);
+    p.vy = surface ? -390 : -175; pressed.jump = false; p.buffer = 0; p.squash = -0.4; sfx.swim();
+    for (let i = 0; i < 3; i++) bubble(p.x + p.w / 2 + rand(-4, 4), p.y + p.h);
+  }
   if (pressed.jump) p.buffer = 0.12;
   p.buffer -= dt; p.coyote = p.ground ? 0.09 : p.coyote - dt;
   if (p.buffer > 0 && p.coyote > 0 && !p.pound) {
@@ -2438,10 +2470,10 @@ function updatePlayer(dt) {
   if (p.flip) p.flip = Math.max(0, p.flip - dt * 1.6);
   // the ground pound: ↓ (or LT) in the air, a quick spin, then straight down
   // (it works even up above the top of the screen)
-  if (!p.ground && pressed.down && (downFrom !== 'ArrowDown' || !(inp.left || inp.right)) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
+  if (!p.ground && !p.swim && pressed.down && (downFrom !== 'ArrowDown' || !(inp.left || inp.right)) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.22) { p.pound = 'drop'; p.vy = 470; } }
-  const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && (inp.jump || p.superBounce > 0) ? 680 : 1500;   // (a super bounce soars, jump held or not)   // the twirl floats
-  p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, 290);
+  const grav = p.swim ? 420 : p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && (inp.jump || p.superBounce > 0) ? 680 : 1500;   // (a super bounce soars, jump held or not)   // the twirl floats
+  p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, p.swim ? 75 : 290);
   if (p.mount) {
     // on Shamrock: hold jump while falling to flutter-float for a moment
     if (!p.ground && inp.jump && p.vy > -60 && p.mount.flutter < 0.9 && !p.pound) { p.mount.flutter += dt; p.vy = Math.max(-25, p.vy - 1700 * dt); if (Math.random() < 0.5) sparkle(p.x + p.w / 2, p.y + p.h, '#ff9ad0', 1); }
@@ -2485,7 +2517,7 @@ function updatePlayer(dt) {
   if (p.wall) p.vx = 0;
   // the wall slide: falling against a wall while holding towards it, Leo slides down slowly (and can wall kick)
   p.wallT = Math.max(0, (p.wallT || 0) - dt);
-  if (!p.ground && !p.mount && !p.pound && !p.carry && p.wall && dir === p.wall && p.vy > 0 && phase === 'play') { p.slide = p.wall; p.wallT = 0.13; }
+  if (!p.ground && !p.swim && !p.mount && !p.pound && !p.carry && p.wall && dir === p.wall && p.vy > 0 && phase === 'play') { p.slide = p.wall; p.wallT = 0.13; }
   else if (p.wallT <= 0 || p.ground || p.mount) p.slide = 0;
   if (p.slide && p.wallT > 0.1) { p.vy = Math.min(p.vy, 75); p.spun = false; if (Math.random() < 0.35) puff(p.x + (p.slide > 0 ? p.w : 0), p.y + p.h - 2, 1); }
   moveY(p, p.vy * dt);
@@ -2505,9 +2537,10 @@ function updatePlayer(dt) {
     const t = tileAt(tx, ty);
     if (t === T.COIN) { setTile(tx, ty, 0); getCoin(tx * TS, ty * TS); }
     if ((t === T.SPIKES) && p.y + p.h > ty * TS + 8 && !p.mount) hurtPlayer();   // (Shamrock's hooves don't mind spikes)
-    if ((t === T.LAVA || t === T.WATER) && p.y + p.h > ty * TS + 6) { if (phase === 'play') killPlayer(); }
+    if (t === T.LAVA && p.y + p.h > ty * TS + 6) { if (phase === 'play') killPlayer(); }
   }
-  if (p.y > LH + 20) killPlayer();
+  if (p.swim && p.y + p.h > LH - 1 && lvl.h * TS <= LH) { p.y = LH - 1 - p.h; if (p.vy > 0) p.vy = 0; }   // the bottom of the water is the bottom of the level
+  if (p.y > LH + 20 && phase === 'play' && !lvl.deepOk) killPlayer();
   // landing a ground pound: a shockwave that bumps the blocks below and knocks out enemies nearby
   if (p.pound === 'drop' && p.ground) poundLand(p);
   if (p.pound && p.ground) p.pound = null;
@@ -2597,10 +2630,10 @@ function updateEnts(dt) {
         else if (e.st === 'gone') { e.cyc += dt; e.y = -999; if (e.cyc > 3) { e.y = e.y0; e.st = 'wait'; e.cyc = 0; } }
         break;
       }
-      case 'clover': case 'hat': case 'horseshoe': case 'flower': case 'magichat': {
+      case 'clover': case 'hat': case 'horseshoe': case 'flower': case 'magichat': case 'prism': {
         if (e.rise > 0) { const s = Math.min(e.rise, 20 * dt); e.y -= s; e.rise -= s; break; }
         if (e.drop) { e.y += 40 * dt; if (e.y > 40) e.drop = false; break; }
-        if (e.k === 'flower') break;
+        if (e.k === 'flower' || e.k === 'prism') break;
         e.vx = e.dir * (e.k === 'horseshoe' ? 70 : 55);
         e.vy = Math.min(e.vy + 900 * dt, 300);
         moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
@@ -2783,6 +2816,11 @@ function touchPlayer(e) {
     case 'pot':
       e.gone = true; winGame();
       break;
+    case 'prism':   // the rainbow prism: Shamrock's eye laser
+      if (e.rise > 0) break;
+      e.gone = true; p.laser = true; sfx.power(); addScore(1000, e.x, e.y); sparkle(e.x + 8, e.y + 8, '#ffffff', 14);
+      banner('RAINBOW PRISM!', p.mount ? "Shamrock's eye laser: press run (X) to fire" : "Hop on Shamrock to fire his eye laser", 2.6);
+      break;
     case 'sflag':   // a secret exit
       reachGoal(true);
       break;
@@ -2833,7 +2871,6 @@ function touchPlayer(e) {
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
-      if (p.mount && !['thorny', 'snapper', 'boss'].includes(e.k)) { eatEnemy(e); break; }   // Shamrock gobbles it up
       hurtPlayer();
   }
 }
@@ -2890,7 +2927,7 @@ function banner(a, b = '', time = 2.6) { bannerText = [a, b]; bannerT = time; }
 function reachGoal(secret = false) {
   if (phase !== 'play') return;
   lvl.secretExit = secret;
-  phase = 'clear'; phaseT = 0; tries[lvl.id] = 0; keep = { form: player.form, mount: !!player.mount };
+  phase = 'clear'; phaseT = 0; tries[lvl.id] = 0; keep = { form: player.form, mount: !!player.mount, laser: !!player.laser };
   // the higher you break the rainbow tape, the more stars
   const tapeY = goalTapeY(), frac = clamp(1 - (tapeY - 32) / (11 * TS - 32), 0, 1);
   const hitTape = player.y < tapeY + 8 && player.y + player.h > tapeY - 4;
@@ -2941,7 +2978,7 @@ const WORLD_ENDS = {
 };
 function winGame() {
   const id = lvl.id, last = id === 'ptown';
-  keep = { form: player.form, mount: !!player.mount };
+  keep = { form: player.form, mount: !!player.mount, laser: !!player.laser };
   endFrom = id;
   save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (last) save.beaten3 = true;
   save.gems[id] = levelGems.map((g2, i) => g2 || !!(save.gems[id] || [])[i]);
@@ -3054,7 +3091,7 @@ function drawLevel() {
         g.restore();
       } else if (p.mount) {   // riding Shamrock: the unicorn underneath, Leo sitting in the saddle
         const gait = p.ground ? Math.min(1, Math.abs(p.vx) / 80) : 0.3;
-        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.eye || 0, p.mount.chew || 0, p.mount.digest > 0 ? 1 : 0);
+        drawUnicorn(p.x + p.w / 2, p.y + p.h, p.face, t, gait, p.mount.eye || 0, p.mount.chew || 0, p.mount.digest > 0 ? 1 : 0, p.mount.mouth || 0, !!p.laser);
         const bm = p.mount.beam;
         if (bm && p.mount.zap > 0) {   // the laser: rainbow threads round a white-hot core
           const a = p.mount.zap / 0.2, nx = -(bm.y2 - bm.y1), ny = bm.x2 - bm.x1, nl = Math.hypot(nx, ny) || 1;
@@ -3152,6 +3189,14 @@ function drawEnt0(e, t) {
     case 'horseshoe': drawHorseshoe(x - 1, y - 2, t); break;
     case 'hat': drawHat1up(x - 1, y - 2, t); break;
     case 'magichat': drawMagicHat(x - 1, y - 2, t); break;
+    case 'prism': {   // a glass prism splitting light into a rainbow
+      g.save(); g.translate(x + 7, y + 8 + Math.sin(t * 4) * 0.8);
+      glow(0, 0, 14, 'rgba(255,255,255,1)', 0.5);
+      ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'].forEach((c, i) => { g.beginPath(); g.moveTo(2, 0); g.lineTo(10, -3 + i * 1.3); g.lineTo(10, -1.9 + i * 1.3); g.closePath(); g.fillStyle = c; g.fill(); });
+      g.beginPath(); g.moveTo(0, -7); g.lineTo(6, 5); g.lineTo(-6, 5); g.closePath(); g.fillStyle = 'rgba(220,240,255,.85)'; g.fill(); g.lineWidth = 0.8; g.strokeStyle = '#8ab0e0'; g.stroke();
+      g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
+      g.restore(); break;
+    }
     case 'boat': drawBoat(e, t); break;
     case 'bowup': drawBowUp(e, t); break;
     case 'skyexit': {   // a rainbow slide curving down off the edge of the clouds
