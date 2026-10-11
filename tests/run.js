@@ -1540,6 +1540,38 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(ph, 'abc-train-phone.png');
   });
 
+  await test('ABC Train: the throttle lever (slide the GO knob: up is faster, the notch is neutral, down backs up, wagons and all)', async () => {
+    const p = await open(browser, 'preschool/abc-train.html', { viewport: { width: 1000, height: 620 } });
+    await p.evaluate(() => { localStorage.removeItem('abc_train'); RB.speak = () => {}; });
+    await p.click('#btnAbc');
+    await p.evaluate(() => { hold = 0; for (const st of stations) st.letter = null; next = 99; });   // no stops in the way
+    const knob = async () => p.evaluate(() => { const r = document.getElementById('go').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    const slot = await p.evaluate(() => { const r = document.getElementById('throttle').getBoundingClientRect(); return { top: r.top, bottom: r.bottom, x: r.x + r.width / 2, shown: r.height > 50 }; });
+    const dragTo = async y => { const k = await knob(); await p.mouse.move(k.x, k.y); await p.mouse.down(); await p.mouse.move(k.x, k.y - 20, { steps: 3 }); await p.mouse.move(k.x, y, { steps: 6 }); await p.mouse.up(); };
+    const runFor = n => p.evaluate(n => { for (let i = 0; i < n; i++) update(0.05); return { v: train.v, th: train.th, running: train.running, odo: train.odo }; }, n);
+    // half way up: a gentle speed; right to the top: faster
+    await dragTo(slot.top + (slot.bottom - slot.top) * 0.45); const half = await runFor(80);
+    await dragTo(slot.top + 4); const full = await runFor(80);
+    // back to the notch: neutral, the train rolls to a stop
+    const notchY = await p.evaluate(() => { const r = document.querySelector('#throttle .notch').getBoundingClientRect(); return r.y + r.height / 2; });
+    await dragTo(notchY); const neutral = await runFor(80);
+    // pull down into reverse: it backs up along the way it came, the wagons still coupled behind
+    const before = await p.evaluate(() => ({ odo: train.odo, e: engine.position.clone(), w: train.wagons.length ? train.wagons[0].position.distanceTo(engine.position) : 0 }));
+    await dragTo(slot.bottom - 6); const rev = await runFor(60);
+    const after = await p.evaluate(() => ({ odo: train.odo, gap: train.wagons.length ? train.wagons[0].position.distanceTo(engine.position) : 0, label: document.getElementById('go').textContent, rev: document.getElementById('go').classList.contains('rev') }));
+    // a tap on the knob is still GO / STOP
+    await p.evaluate(() => { train.th = 0; train.running = false; train.v = 0; updateGo(); });
+    await p.click('#go', { force: true }); const tapGo = await p.evaluate(() => train.running && train.th > 0.5);
+    await p.click('#go', { force: true }); const tapStop = await p.evaluate(() => !train.running && train.th === 0);
+    check(slot.shown, 'the throttle slot shows beside the GO knob');
+    check(half.running && half.v > 3 && full.v > half.v + 2, 'higher on the lever is faster: ' + JSON.stringify({ half, full }));
+    check(!neutral.running && Math.abs(neutral.v) < 0.1 && neutral.th === 0, 'the notch is neutral: ' + JSON.stringify(neutral));
+    check(rev.th < 0 && rev.v < -1 && after.odo < before.odo - 5 && after.rev && after.label === 'STOP', 'down is reverse, backing along the track: ' + JSON.stringify({ rev, before: before.odo, after }));
+    check(Math.abs(after.gap - before.w) < 1.5, 'the wagons stay coupled while backing up: ' + JSON.stringify({ before: before.w, after: after.gap }));
+    check(tapGo && tapStop, 'a tap on the knob is GO and STOP: ' + JSON.stringify({ tapGo, tapStop }));
+    await done(p, 'abc-train-throttle.png');
+  });
+
   await test('ABC Train: forks (arrows pick the way, the wagons follow, the letter waits either way), rolling wheels, 360° camera, train horn', async () => {
     const p = await open(browser, 'preschool/abc-train.html', { viewport: { width: 1000, height: 620 } });
     await p.evaluate(() => { localStorage.removeItem('abc_train'); save.next = 2; RB.speak = s => (window.__said = window.__said || []).push(s); });
