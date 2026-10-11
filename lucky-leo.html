@@ -90,7 +90,7 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>LUCKY <span>LEO</span></h1>
-    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across New England, from the hills of Connecticut to the mountains of New Hampshire and the coast of Maine, and on to Cape Cod, to get it all back.</div>
+    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across New England, from the hills of Connecticut to the mountains of New Hampshire and the coast of Maine, on to Cape Cod and all the way to New York, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
@@ -99,6 +99,7 @@
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump). 🧱 <b>Wall kick:</b> jump into a wall and hold towards it to slide down, then press jump to kick off it. Kick back and forth between two walls to climb up!</li>
       <li>👑 <b>King Grumbles</b> can be stomped, or hit with a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power.</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable. Now and then there's a <b>rainbow-striped block</b>: bump it and a really long rainbow grows up into the sky. Jump on it to ride up to a <b>secret place above the clouds</b>, full of power-ups and coins, with a rainbow gem!</li>
+      <li>🗽 After Cape Cod, Leo flies to <b>New York</b>: an apple orchard, Niagara Falls, the George Washington Bridge (watch out for taxis!), the rooftops of Manhattan (find the gap you can only climb by wall-kicking) and the Statue of Liberty. Watch for new bosses: the <b>Frost Yeti</b> and <b>Captain Pinch</b>!</li>
       <li>🌊 Water won't hurt Leo: he <b>swims</b>! Press jump to paddle up, and jump at the surface to leap out. In Cranberry Bog the squishy bog mats sink under your feet… and one of them goes all the way down. 🐸</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
       <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… and a <b>secret exit</b> for anyone who can find another way to the end. 🤫</li>
@@ -350,7 +351,7 @@ LEVELS.fort = builder('fort', 'Frost Fortress', 'fort', 196)
   .e('plat', 73, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 82, 11).e('firebar', 88, 8, { len: 5, sp: 1.2 }).e('thorny', 94, 11)
   .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?L?').e('crusher', 116, 1).e('snaily', 122, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
   .e('fall', 132, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 4 })
+  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 4, kind: 'yeti' })   // the Frost Yeti guards the fortress
   .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
@@ -426,7 +427,7 @@ LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
   .e('plat', 75, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 84, 11).e('firebar', 90, 8, { len: 4, sp: 1.2 }).e('thorny', 96, 11)
   .e('plat', 103, 10, { w: 2, dx: 1, sp: 1 }).at(112, 8, '?L?').e('crusher', 118, 1).e('snaily', 124, 11).e('buzzer', 128, 6)
   .e('fall', 135, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 5 })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 5, kind: 'crab' })   // Captain Pinch, the giant crab
   .gems(9, 5, 50, 7, 76, 4, 113, 5, 142, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
@@ -468,6 +469,76 @@ for (const [lv, bx, by, room, out, gi, kind] of [['hills', 23, 8, 'hillsSky', 11
   LEVELS[room] = skyRoom(room, lv, kind, gi);
 }
 
+// ---- World 4: New York & New Jersey (Leo flies in from Cape Cod) ----
+// 4-1. Apple Orchard: rows of apple trees in Western New York; ripe apples drop when Leo walks underneath
+LEVELS.orchard = builder('orchard', 'Apple Orchard', 'orchard', 210)
+  .ground(0, 209).gap(46, 49).gap(102, 105).gap(150, 153)
+  .at(8, 8, '?PC').e('grumblin', 16, 11).e('apple', 22, 0).e('snaily', 28, 11)
+  .at(32, 8, 'BB?BB').coins(32, 4, 5).e('buzzer', 38, 6).e('apple', 42, 0)
+  .arc(45, 8, 6).stairs(54, 4).fill(58, 62, 8, 11, T.STONE).e('grumblin', 60, 7).stairs(63, 4, false)
+  .e('apple', 70, 0).at(72, 8, '?Y?').e('snaily', 78, 11).e('apple', 84, 0).e('grumblin', 88, 11)
+  .e('mid', 96, 11).arc(101, 8, 6).at(110, 8, 'B?B').e('thorny', 114, 11).e('apple', 118, 0)
+  .e('spring', 124, 11).at(122, 3, '====').coins(122, 2, 4).e('buzzer', 130, 6).e('apple', 134, 0).e('grumblin', 140, 11)
+  .arc(149, 8, 6).at(158, 8, '?S?').e('snaily', 164, 11).e('apple', 170, 0).e('grumblin', 176, 11).stairs(184, 5)
+  .gems(9, 5, 33, 3, 60, 4, 123, 1, 159, 5)
+  .done({ goal: 198, music: 'orchard' });
+
+// 4-2. Niagara Falls: boardwalks and rocky islands below the thundering falls, the Maid of the Mist chugging past
+LEVELS.niagara = builder('niagara', 'Niagara Falls', 'falls', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 22).ground(27, 50, 10).ground(56, 70).ground(76, 96, 11).ground(103, 120).ground(127, 146, 11).ground(152, 168).ground(174, 213)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('crab', 19, 11)
+  .at(31, 6, '------').coins(31, 5, 6).e('grumblin', 40, 9).e('buzzer', 46, 5)
+  .at(58, 8, 'B?B').e('snaily', 64, 11).arc(70, 8, 7)
+  .e('grumblin', 82, 10).at(84, 7, '?Y?').e('thorny', 90, 10).e('buzzer', 94, 6)
+  .e('plat', 98, 10, { w: 3, dx: 2, sp: 1 }).e('mid', 108, 11).at(112, 8, '?L?').e('crab', 116, 11)
+  .arc(121, 8, 6).e('grumblin', 132, 10).at(136, 6, 'BMB').e('thorny', 142, 10).e('buzzer', 146, 5)
+  .e('spring', 156, 11).at(158, 3, '===').coins(158, 2, 3).e('crab', 162, 11)
+  .at(178, 8, '?S?').e('grumblin', 184, 11).stairs(190, 5)
+  .gems(9, 5, 34, 4, 85, 4, 159, 1, 137, 3)
+  .done({ goal: 202, music: 'falls' });
+
+// 4-3. George Washington Bridge: along the bridge deck high over the Hudson, dodging yellow taxis (fall off and it's a swim)
+LEVELS.bridge = builder('bridge', 'George Washington Bridge', 'gwb', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 13).stairs(11, 3).fill(14, 189, 9, 9, T.STONE).ground(190, 209)
+  .at(6, 8, '?PC').e('grumblin', 22, 8).at(26, 5, 'B?B').e('taxi', 40, 8).fill(46, 50, 9, 9, T.EMPTY)
+  .at(54, 5, '------').coins(54, 4, 6).e('snaily', 58, 8).e('buzzer', 64, 4)
+  .at(70, 5, '?Y?').e('taxi', 80, 8).e('grumblin', 86, 8).fill(92, 95, 9, 9, T.EMPTY)
+  .e('mid', 100, 8).at(104, 5, '?L?').e('thorny', 110, 8).e('taxi', 120, 8)
+  .e('spring', 126, 8).at(127, 1, '===').coins(127, 0, 3).fill(134, 138, 9, 9, T.EMPTY)
+  .e('buzzer', 142, 4).at(146, 5, 'BMB').e('snaily', 152, 8).e('taxi', 160, 8)
+  .at(166, 5, '?S?').e('grumblin', 172, 8).fill(178, 181, 9, 9, T.EMPTY)
+  .gems(9, 5, 55, 3, 71, 3, 128, 0, 147, 3)
+  .done({ goal: 198, music: 'gwb' });
+
+// 4-4. Empire State Rooftops: leap across Manhattan's rooftops; between two skyscrapers near the end there's a narrow gap
+// you can only climb by wall-kicking back and forth, with a rainbow gem at the very top
+LEVELS.city = builder('city', 'Empire State Rooftops', 'city', 214)
+  .ground(0, 20, 10).ground(26, 40, 9).ground(45, 60, 8).ground(66, 78, 10).ground(83, 101, 9).ground(106, 118, 7).ground(124, 140, 9).ground(146, 160, 8).ground(166, 180, 10).ground(185, 213, 12)
+  .at(6, 6, '?PC').e('grumblin', 14, 9).e('buzzer', 22, 5)
+  .at(30, 5, 'B?B').e('snaily', 36, 8).arc(41, 6, 5)
+  .e('grumblin', 50, 7).at(52, 4, '?Y?').e('buzzer', 58, 3).e('thorny', 70, 9).e('spring', 74, 9).at(72, 1, '===').coins(72, 0, 3)
+  .e('mid', 88, 8).at(92, 5, '?L?').e('taxi', 96, 8).e('plat', 102, 6, { w: 2, dy: 2, sp: 1 })
+  .e('grumblin', 110, 6).at(112, 3, 'BMB').e('buzzer', 120, 3).e('thorny', 130, 8).at(132, 5, 'B?B')
+  .e('grumblin', 150, 7).arc(141, 6, 5).e('buzzer', 156, 3).at(170, 6, '?S?').e('snaily', 176, 9)
+  // the wall-kick climb: two tall walls hang down from the sky with a narrow gap between them (walk underneath, jump in)
+  .fill(187, 187, 0, 8, T.STONE).fill(191, 191, 0, 8, T.STONE).coins(188, 7, 3).coins(188, 5, 3).coins(188, 3, 3).e('hint', 189, 11)
+  .e('grumblin', 198, 11).stairs(200, 4)
+  .gems(7, 3, 53, 1, 73, 0, 113, 0, 189, 1)
+  .done({ goal: 206, music: 'city' });
+
+// 4-5. Statue of Liberty: the final showdown on Liberty Island, with Lady Liberty holding her torch up behind. King Grumbles, six hits.
+LEVELS.liberty = builder('liberty', 'Statue of Liberty', 'harbor', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 22).ground(28, 50).ground(56, 76).ground(82, 104).ground(110, 136).ground(142, 199)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .e('plat', 23, 10, { w: 2, dx: 1, sp: 1 }).e('taxi', 40, 11).e('crab', 46, 11)
+  .at(52, 8, 'B?B').e('crusher', 62, 1).e('snaily', 68, 11).at(72, 8, 'BSB')
+  .e('plat', 77, 9, { w: 2, dy: 2, sp: 1 }).e('mid', 86, 11).e('firebar', 94, 8, { len: 4, sp: 1.3 }).e('thorny', 100, 11)
+  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?L?').e('crusher', 122, 1).e('crab', 128, 11).e('buzzer', 132, 6)
+  .e('fall', 137, 10, { w: 3 })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 6, kind: 'grumbles' })
+  .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
+  .done({ goal: 0, boss: true, music: 'castle' });
+
 // Under the Bog: down below Cranberry Bog, a world of frogs, tadpoles, turtles and minnows; its secret exit opens a road along the Cape to Nauset Dunes
 LEVELS.cranberryDeep = builder('cranberryDeep', 'Under the Bog', 'deep', 96)
   .fill(0, 95, 0, 11, T.WATER).ground(0, 95).fill(0, 0, 0, 13, T.GROUND).fill(95, 95, 0, 13, T.GROUND)
@@ -506,7 +577,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket'];
+const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'orchard', 'niagara', 'bridge', 'city', 'liberty'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -640,6 +711,14 @@ const SONGS = {
     0, null, 4, 7, null, 4, 5, null, 4, 2, null, null, 0, null, 4, 7, null, 9, 7, null, 5, 4, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
   deep: { bpm: 88, key: 57, mode: 'dorian', beat: 3, lead: 'soft', melody: [
     0, null, 3, 7, null, 5, 3, null, 2, 0, null, null, -2, null, 0, 3, null, 2, 0, null, -2, -3, null, null], bass: [0, 0, -2, -2, -3, -3, -2, -2] },
+  orchard: { bpm: 120, key: 62, mode: 'major', beat: 3, lead: 'flute', melody: [
+    0, 2, 4, null, 4, 5, 7, null, 5, 4, 2, null, 0, 2, 4, 2, 0, -1, 0, null, null, null, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
+  falls: { bpm: 132, key: 64, mode: 'major', beat: 4, lead: 'pulse', melody: [
+    7, 6, 4, 2, 4, null, 7, null, 9, 7, 6, 4, 2, null, null, null, 4, 5, 7, 9, 11, null, 9, null, 7, 6, 4, 2, 0, null, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  gwb: { bpm: 126, key: 60, mode: 'major', beat: 4, lead: 'reed', melody: [
+    0, null, 4, 7, 9, null, 7, 4, 5, null, 4, 2, 0, null, null, null, 2, null, 5, 9, 11, null, 9, 7, 9, 7, 5, 4, 2, null, 0, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  city: { bpm: 138, key: 63, mode: 'dorian', beat: 4, lead: 'pulse', melody: [   // a jazzy big-city stroll
+    0, 3, 5, 7, null, 5, 7, 10, 9, null, 7, 5, 3, null, 0, null, 3, 5, 7, 10, null, 12, 10, 7, 5, 7, 5, 3, 0, null, null, null], bass: [0, 0, -2, -2, -4, -4, -2, 0] },
   bonus: { bpm: 144, key: 64, mode: 'major', beat: 3, lead: 'pulse', melody: [
     0, 2, 4, 7, 4, 2, 4, 7, 9, 7, 4, 2, 5, 4, 2, 4, 2, 1, 0, null, 4, 7, null, null], bass: [0, 0, 3, 4, 0, 0, 4, 0] },
 };
@@ -732,7 +811,7 @@ const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('ll_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3 };
+  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4 };
 })();
 function persist() {
   RB.store.set('ll_save', JSON.stringify(save));
@@ -998,11 +1077,11 @@ function updateRiding(p, inp, dt) {
   if (pressed.run && m.zapCD <= 0 && !p.laser) {
     m.zapCD = 0.4; m.mouth = 0.32; sfx.chomp();
     const mx = p.x + p.w / 2 + p.face * 17 * UNI_S, my = p.y + p.h - 24 * UNI_S;
-    let best = null, bd = 34;
+    let best = null, bd = 50;   // (a generous reach: anything just in front of his head, high or low)
     for (const e of ents) {
       if (e.dead || e.gone || !isEnemy(e) || ['boss', 'thorny', 'snapper'].includes(e.k)) continue;   // (nothing spiky, and not King Grumbles)
-      const dx = (e.x + e.w / 2 - mx) * p.face + 10, dy = e.y + e.h / 2 - my;
-      if (dx > 0 && dx < bd && dy > -18 && dy < 32) { bd = dx; best = e; }
+      const dx = (e.x + e.w / 2 - mx) * p.face + 16, dy = e.y + e.h / 2 - my;
+      if (dx > 0 && dx < bd && dy > -26 && dy < 40) { bd = dx; best = e; }
     }
     if (best) { sparkle(best.x + best.w / 2, best.y + best.h / 2, '#ffffff', 6); eatEnemy(best); }
   }
@@ -1124,7 +1203,11 @@ const AIR = {
   sea: { n: 16, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -26, vy: -4 },
   cliffs: { n: 12, c: ['#ff8ab0', '#ffffff', '#ffc0d8'], kind: 'petal', vx: -14, vy: 8 },   // beach-rose petals
   nantucket: { n: 14, c: ['#ffffff'], kind: 'wisp', vx: -10, vy: 0 },                       // the famous fog
-  deep: { n: 20, c: ['#cfefff'], kind: 'mote', vx: 0, vy: -16 },                                // bubbles
+  deep: { n: 20, c: ['#cfefff'], kind: 'mote', vx: 0, vy: -16 },
+  orchard: { n: 12, c: ['#e8a040', '#d8502e', '#f0c060'], kind: 'leaf', vx: -10, vy: 12 },
+  falls: { n: 22, c: ['#ffffff', '#e0f4ff'], kind: 'spray', vx: -8, vy: -10 },              // the mist off the falls
+  gwb: { n: 8, c: ['#ffffff'], kind: 'wisp', vx: -20, vy: 0 },
+  harbor: { n: 14, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -4 },                                // bubbles
 };
 function drawAirborne(cx, t) {
   const a = lvl && AIR[lvl.theme];
@@ -1282,7 +1365,18 @@ function drawPoop(e, t) {
   g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
 }
 
-const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket']);
+const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor']);   // (seagulls, and blue water)
+const BIGCITY = new Set(['gwb', 'city']);   // (pigeons)
+function drawPigeon(x, y, t, face) {   // a New York pigeon: grey, with a shimmery green-purple neck
+  g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
+  const flap = Math.sin(t * 13);
+  for (const k of [-1, 1]) { g.beginPath(); g.moveTo(-1, -1); g.quadraticCurveTo(-5, -5 - flap * 4 * k, -10, -2 - flap * 4); g.lineTo(-3, 1); g.closePath(); g.fillStyle = k < 0 ? '#7a7a88' : '#9a9aa8'; g.fill(); }
+  ell(0, 1, 6, 3.6); g.fillStyle = '#9a9aa8'; g.fill(); g.beginPath(); g.arc(4.6, -1.4, 2.8, 0, TAU); g.fillStyle = '#6a7a8a'; g.fill();
+  ell(3, 0.6, 2.4, 1.6); g.fillStyle = '#5aa88a'; g.fill(); ell(3.4, 1.4, 1.8, 1); g.fillStyle = '#9a6ab8'; g.fill();
+  g.beginPath(); g.moveTo(7, -1.6); g.lineTo(9, -1); g.lineTo(7, -0.6); g.fillStyle = '#3a3a3a'; g.fill();
+  g.beginPath(); g.arc(5.4, -2.2, 0.7, 0, TAU); g.fillStyle = '#ff8a3a'; g.fill();
+  g.restore();
+}
 function drawGull(x, y, t, face) {   // a cheeky Cape Cod seagull
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
   const flap = Math.sin(t * 12);
@@ -1408,6 +1502,40 @@ function drawCrusher(x, y, angry, t) {
   for (const sx of [7, 17]) { ell(sx, 13, 3.4, angry ? 2.4 : 3.2); paint('#fff', 1); g.beginPath(); g.arc(sx + (angry ? 0.8 : 0), 13.4, 1.5, 0, TAU); paint(INK); }
   g.lineWidth = 1.6; g.strokeStyle = INK; g.beginPath(); g.moveTo(3, angry ? 7.5 : 9); g.lineTo(10, 10); g.moveTo(21, angry ? 7.5 : 9); g.lineTo(14, 10); g.stroke();
   rrect(6, 20, 12, 4.2, 2); paint('#2a2a34', 1); g.fillStyle = '#fff'; for (let i = 0; i < 4; i++) g.fillRect(7 + i * 2.8, 20, 1.6, 1.8);
+  g.restore();
+}
+const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!' };
+// the Frost Yeti: a huge shaggy white snow-beast with little horns, a blue face and an icy grin; its landings shake the ground
+function drawYeti(x, y, t, face, hurt) {
+  g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
+  const bob = Math.abs(Math.sin(t * 5)) * 1.4, fur = hurt ? '#ffd0d0' : '#f6faff', shade = hurt ? '#e8a8a8' : '#cfe0f2';
+  for (const sx of [-6, 6]) { ell(sx, -2, 5.6, 3); g.fillStyle = shade; g.fill(); }
+  g.translate(0, -bob);
+  ell(0, -14, 14, 13); g.fillStyle = fur; g.fill();
+  for (let i = 0; i < 9; i++) { const a = Math.PI * 0.15 + i * 0.32; g.beginPath(); g.arc(Math.cos(a) * 13, -14 + Math.sin(a) * 12, 3, 0, TAU); g.fillStyle = fur; g.fill(); }   // shaggy fur
+  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 12, -16); g.rotate(sx * (0.6 + Math.sin(t * 5) * 0.2)); ell(0, 6, 4, 7); g.fillStyle = shade; g.fill(); g.restore(); }   // arms
+  ell(4, -18, 8, 6.5); g.fillStyle = '#7aa8e0'; g.fill();                                         // blue face
+  for (const ex of [1.5, 7]) { g.beginPath(); g.arc(ex, -20, 2, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.6, -19.6, 1, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }
+  g.beginPath(); g.moveTo(-0.5, -24); g.lineTo(3.5, -22.6); g.moveTo(9, -24); g.lineTo(5, -22.6); g.lineWidth = 1.1; g.strokeStyle = '#2a3a5a'; g.stroke();   // cross eyebrows
+  g.beginPath(); g.arc(4, -15, 3.4, 0.1, Math.PI - 0.1); g.fillStyle = '#2a3a5a'; g.fill(); g.fillStyle = '#fff'; g.fillRect(2, -15, 1.6, 1.6); g.fillRect(5, -15, 1.6, 1.6);   // fangs
+  for (const sx of [-7, 9]) { g.beginPath(); g.moveTo(sx - 2, -26); g.lineTo(sx + (sx > 0 ? 3 : -3), -32); g.lineTo(sx + 2, -26); g.closePath(); g.fillStyle = '#b8c8e0'; g.fill(); }   // horns
+  g.restore();
+}
+// Captain Pinch: a giant red crab in a little captain's hat, with two big snapping claws
+function drawCrabBoss(x, y, t, face, hurt) {
+  g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
+  const shell = hurt ? '#ffb0a0' : '#e84a32', dark = hurt ? '#e08070' : '#b83222', snap = Math.abs(Math.sin(t * 7));
+  for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) { g.save(); g.translate(sx * (6 + i * 4), -6); g.rotate(sx * (0.5 + Math.sin(t * 14 + i) * 0.25)); g.fillStyle = dark; g.fillRect(-1, 0, 2, 7); g.restore(); }   // scuttling legs
+  ell(0, -10, 15, 8.5); g.fillStyle = shell; g.fill(); ell(-3, -13, 7, 3); g.fillStyle = 'rgba(255,255,255,.25)'; g.fill();
+  for (const sx of [-1, 1]) {   // the claws
+    g.save(); g.translate(sx * 15, -18); g.rotate(sx * -0.4);
+    ell(0, 0, 6, 5); g.fillStyle = shell; g.fill();
+    g.beginPath(); g.moveTo(sx * 2, -2); g.lineTo(sx * 8, -6 - snap * 3); g.lineTo(sx * 6, 0); g.closePath(); g.fillStyle = dark; g.fill();
+    g.restore();
+  }
+  for (const ex of [-3.5, 3.5]) { g.fillStyle = dark; g.fillRect(ex - 0.7, -24, 1.4, 6); g.beginPath(); g.arc(ex, -25, 2.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.6, -25, 1.2, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }   // eyes on stalks
+  rrect(-6, -31.5, 12, 3, 1); g.fillStyle = '#23324a'; g.fill(); rrect(-4, -35, 8, 4, [2, 2, 0, 0]); g.fill(); g.fillStyle = C.gold; g.fillRect(-1, -33.6, 2, 1.4);   // captain's hat
+  g.beginPath(); g.moveTo(-4, -8); g.quadraticCurveTo(0, -5, 4, -8); g.lineWidth = 1; g.strokeStyle = '#5a1a12'; g.stroke();
   g.restore();
 }
 function drawBoss(x, y, t, face, hurt) {
@@ -1677,6 +1805,11 @@ const THEMES = {
   pier: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
   sea: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#8a5a32', dirtDk: '#6a4224', edge: '#3a2414' },
   cliffs: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },   // the red and orange clay of Aquinnah
+  orchard: { top: '#6ac84a', topDk: '#3a9a3a', dirt: '#9a6a3a', dirtDk: '#7a4e2a', edge: '#4a2e18' },
+  falls: { top: '#7ab06a', topDk: '#4a8a4a', dirt: '#8a8a90', dirtDk: '#6a6a72', edge: '#3a3a42' },
+  gwb: { top: '#5ab85a', topDk: '#3a8a3a', dirt: '#8a7a6a', dirtDk: '#6a5a4a', edge: '#3a3028' },
+  city: { top: '#8a8a92', topDk: '#5a5a62', dirt: '#b8603a', dirtDk: '#8a4428', edge: '#4a2418' },   // tar rooftops on brick buildings
+  harbor: { top: '#c8c0a8', topDk: '#9a9280', dirt: '#a89a80', dirtDk: '#8a7c64', edge: '#4a4232' },
   deep: { top: '#6a8a3a', topDk: '#4a6a2a', dirt: '#5a4430', dirtDk: '#43321f', edge: '#2a1e12' },   // the muddy bottom of the bog
   nantucket: { top: '#bdb8ac', topDk: '#8e897e', dirt: '#a09a8e', dirtDk: '#7e786e', edge: '#4a4842' },   // cobblestones
 };
@@ -1757,7 +1890,7 @@ function drawTile(tile, tx, ty, x, y, th, t) {
     }
     case T.WATER: {
       if (theme === 'deep') { g.fillStyle = 'rgba(40,150,150,.13)'; g.fillRect(x - 0.2, y, 16.4, 16); break; }   // (deep under the bog the water is everywhere: just a tint)
-      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme);
+      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme) || theme === 'gwb';
       g.fillStyle = sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
       if (surf) {
         g.beginPath(); g.moveTo(x - 0.2, y + 1);
@@ -2160,6 +2293,82 @@ SCENERY.deep = [
     for (let i = 0; i < 30; i++) { const x = rndB(i, 7) * BG_W; g.fillStyle = i % 2 ? 'rgba(40,110,60,.6)' : 'rgba(60,140,70,.5)'; g.beginPath(); g.ellipse(x, 214, 3, 18 + rndB(i, 8) * 12, (rndB(i, 9) - 0.5) * 0.4, 0, TAU); g.fill(); }
   } },
 ];
+SCENERY.orchard = [
+  { sp: 0.05, draw() {   // far rolling hills and a blue strip of Lake Ontario
+    g.fillStyle = '#4a9ae0'; g.fillRect(0, 148, BG_W, 10);
+    g.fillStyle = '#9acc7a'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 158 - Math.sin(x / BG_W * TAU * 2) * 10); g.lineTo(BG_W, 224); g.fill();
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 36 + (i % 2) * 24, 0.9); } },
+  { sp: 0.32, draw() {   // rows of apple trees heavy with red apples
+    for (let i = 0; i < 10; i++) { const x = 14 + i * 50, y = 160 + (i % 2) * 6;
+      g.fillStyle = '#6a4a2a'; g.fillRect(x - 2, y, 4, 30);
+      g.beginPath(); g.arc(x, y - 4, 18, 0, TAU); g.fillStyle = '#4aa848'; g.fill(); g.beginPath(); g.arc(x - 6, y - 10, 9, 0, TAU); g.fillStyle = '#5ab858'; g.fill();
+      for (let k = 0; k < 7; k++) { g.beginPath(); g.arc(x - 12 + rndB(i * 7 + k, 1) * 24, y - 14 + rndB(i * 7 + k, 2) * 20, 2.2, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); } }
+  } },
+  { sp: 0.5, draw() {   // a red barn with a white X door and a cider stand
+    g.fillStyle = '#c8302a'; g.fillRect(300, 150, 60, 44); g.beginPath(); g.moveTo(294, 152); g.lineTo(330, 124); g.lineTo(366, 152); g.closePath(); g.fillStyle = '#8a1e18'; g.fill();
+    g.strokeStyle = '#ffffff'; g.lineWidth = 2; g.strokeRect(318, 168, 24, 26); g.beginPath(); g.moveTo(318, 168); g.lineTo(342, 194); g.moveTo(342, 168); g.lineTo(318, 194); g.stroke();
+    g.fillStyle = '#e8c890'; g.fillRect(120, 176, 34, 16); g.fillStyle = '#c8302a'; for (let k = 0; k < 4; k++) g.fillRect(120 + k * 9, 170, 8, 6);
+    for (let k = 0; k < 8; k++) { g.beginPath(); g.arc(124 + k * 3.6, 175, 1.6, 0, TAU); g.fillStyle = k % 2 ? '#e8302a' : '#7ac83a'; g.fill(); }
+  } },
+];
+SCENERY.falls = [
+  { sp: 0.04, draw() {   // the great curving Horseshoe Falls: a wall of white water pouring into a cloud of mist, with a rainbow
+    g.fillStyle = '#6a8a6a'; g.fillRect(0, 70, BG_W, 30);
+    for (let i = 0; i < BG_W; i += 3) { g.fillStyle = i % 9 < 3 ? '#e8f6ff' : i % 9 < 6 ? '#c8e8ff' : '#a8d8f8'; g.fillRect(i, 96 - Math.sin(i / BG_W * Math.PI * 2) * 6, 3, 110); }
+    for (let i = 0; i < 18; i++) { g.beginPath(); g.arc(rndB(i, 1) * BG_W, 200 + rndB(i, 2) * 14, 18 + rndB(i, 3) * 14, 0, TAU); g.fillStyle = 'rgba(255,255,255,.75)'; g.fill(); }
+    ['#ff6a6a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'].forEach((c, i) => { g.beginPath(); g.arc(300, 220, 90 - i * 4, Math.PI * 1.05, Math.PI * 1.75); g.lineWidth = 4; g.strokeStyle = c; g.globalAlpha = 0.35; g.stroke(); g.globalAlpha = 1; });
+  } },
+  { sp: 0.3, draw() {   // dark wet rocks and the blue Maid of the Mist boat full of raincoats
+    for (let i = 0; i < 6; i++) { const x = i * 90 + 20; g.fillStyle = '#4a4a52'; g.beginPath(); g.ellipse(x, 214, 40, 18, 0, Math.PI, 0); g.fill(); }
+    const bx = 250; g.beginPath(); g.moveTo(bx, 196); g.lineTo(bx + 60, 196); g.lineTo(bx + 52, 208); g.lineTo(bx + 8, 208); g.closePath(); g.fillStyle = '#2a5ab8'; g.fill();
+    g.fillStyle = '#ffffff'; g.fillRect(bx + 12, 186, 34, 10); for (let k = 0; k < 8; k++) { g.beginPath(); g.arc(bx + 10 + k * 5.6, 184, 2.2, 0, TAU); g.fillStyle = '#5ab0ff'; g.fill(); }
+  } },
+];
+SCENERY.gwb = [
+  { sp: 0.04, draw() {   // Manhattan far down the river, and the tall Palisades cliffs of New Jersey
+    for (let i = 0; i < 26; i++) { const h = 20 + rndB(i, 1) * 50; g.fillStyle = 'rgba(120,140,170,.55)'; g.fillRect(260 + i * 8, 160 - h, 7, h); }
+    g.fillStyle = '#8a7a6a'; g.fillRect(0, 110, 200, 60); for (let i = 0; i < 20; i++) { g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(i * 10, 110, 2, 60); }
+    g.fillStyle = '#4a9a4a'; g.fillRect(0, 104, 200, 8);
+  } },
+  { sp: 0.2, draw() {   // the George Washington Bridge: two tall steel towers and its great swooping cables over the Hudson
+    g.fillStyle = vgrad(160, 224, '#3a7ac0', '#2a5a9a'); g.fillRect(0, 164, BG_W, 60);
+    for (const tx of [90, 390]) { g.fillStyle = '#8a9aa8'; g.fillRect(tx - 12, 30, 6, 134); g.fillRect(tx + 6, 30, 6, 134); for (let k = 0; k < 8; k++) { g.strokeStyle = '#8a9aa8'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(tx - 6, 34 + k * 16); g.lineTo(tx + 6, 50 + k * 16); g.moveTo(tx + 6, 34 + k * 16); g.lineTo(tx - 6, 50 + k * 16); g.stroke(); } g.fillRect(tx - 14, 28, 28, 5); }
+    g.strokeStyle = '#7a8a98'; g.lineWidth = 2.4; g.beginPath(); g.moveTo(-60, 40); g.quadraticCurveTo(-60 + 75, 150, 90, 32); g.quadraticCurveTo(240, 160, 390, 32); g.quadraticCurveTo(465, 150, 540, 40); g.stroke();
+    g.lineWidth = 0.8; for (let x = 0; x < BG_W; x += 10) { const tt = x < 90 ? 0 : x < 390 ? (x - 90) / 300 : 1, cy = x < 90 ? 40 + (1 - x / 90) * 0 : x < 390 ? 32 + Math.sin(tt * Math.PI) * 62 : 32 + ((x - 390) / 150) * 40; g.beginPath(); g.moveTo(x, cy); g.lineTo(x, 150); g.stroke(); }
+    g.fillStyle = '#6a7a88'; g.fillRect(0, 148, BG_W, 6);
+  } },
+];
+SCENERY.city = [
+  { sp: 0.04, draw() {   // the Manhattan skyline against the sunset: the Empire State Building's spire and the Chrysler Building
+    for (let i = 0; i < 40; i++) { const h = 30 + rndB(i, 1) * 70; g.fillStyle = 'rgba(80,60,90,.5)'; g.fillRect(i * 12, 170 - h, 11, h + 60); }
+    const ex = 300; g.fillStyle = '#5a4a6a'; g.fillRect(ex - 14, 60, 28, 120); g.fillRect(ex - 9, 40, 18, 22); g.fillRect(ex - 5, 26, 10, 16); g.fillRect(ex - 1.5, 6, 3, 22);
+    const cx = 120; g.fillStyle = '#6a5a7a'; g.fillRect(cx - 10, 70, 20, 110); for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(cx, 70 - k * 8, 10 - k * 2.2, Math.PI, 0); g.fill(); } g.fillRect(cx - 1, 28, 2, 16);
+  } },
+  { sp: 0.25, draw() {   // nearer buildings with glowing windows
+    for (let i = 0; i < 12; i++) { const x = i * 42, h = 60 + rndB(i, 3) * 60; g.fillStyle = i % 2 ? '#8a5a4a' : '#6a6a7a'; g.fillRect(x, 224 - h, 38, h);
+      for (let wy = 224 - h + 6; wy < 214; wy += 10) for (let wx = x + 4; wx < x + 34; wx += 8) { g.fillStyle = rndB(wx, wy) > 0.45 ? '#ffe08a' : 'rgba(0,0,0,.25)'; g.fillRect(wx, wy, 4, 5); } }
+  } },
+  { sp: 0.45, draw() {   // wooden water towers up on the roofs
+    for (const x of [60, 230, 400]) { g.fillStyle = '#5a3a2a'; g.fillRect(x - 1, 168, 2, 18); g.fillRect(x + 15, 168, 2, 18); g.fillStyle = '#9a6a3a'; rrect(x - 2, 140, 20, 28, 3); g.fill(); g.beginPath(); g.moveTo(x - 4, 141); g.lineTo(x + 8, 128); g.lineTo(x + 20, 141); g.closePath(); g.fillStyle = '#6a4a2a'; g.fill(); }
+  } },
+];
+SCENERY.harbor = [
+  { sp: 0.04, draw() {   // the harbour and the city skyline across the water
+    g.fillStyle = vgrad(150, 224, '#3a8ad8', '#2a6ab8'); g.fillRect(0, 156, BG_W, 68);
+    for (let i = 0; i < 40; i++) { const h = 16 + rndB(i, 1) * 46; g.fillStyle = 'rgba(110,130,160,.65)'; g.fillRect(i * 12, 156 - h, 11, h); }
+  } },
+  { sp: 0.18, draw() {   // Lady Liberty on her pedestal, torch held high
+    const x = 330; g.fillStyle = '#c8b898'; g.fillRect(x - 22, 150, 44, 50); g.fillRect(x - 16, 126, 32, 26);
+    g.fillStyle = '#6ab8a0'; g.beginPath(); g.moveTo(x - 12, 128); g.lineTo(x - 8, 70); g.lineTo(x + 8, 70); g.lineTo(x + 12, 128); g.closePath(); g.fill();
+    g.beginPath(); g.arc(x, 64, 7, 0, TAU); g.fill(); for (let k = 0; k < 7; k++) { const a = -Math.PI + k * Math.PI / 6; g.beginPath(); g.moveTo(x + Math.cos(a) * 6, 64 + Math.sin(a) * 6); g.lineTo(x + Math.cos(a) * 13, 64 + Math.sin(a) * 13); g.lineWidth = 2; g.strokeStyle = '#6ab8a0'; g.stroke(); }
+    g.fillRect(x + 7, 34, 5, 34); g.fillStyle = '#5aa890'; g.fillRect(x - 13, 86, 7, 14);   // the raised arm, and the tablet
+    glow(x + 9.5, 30, 12, 'rgba(255,200,80,1)', 0.8); g.beginPath(); g.moveTo(x + 6, 33); g.quadraticCurveTo(x + 9.5, 20, x + 13, 33); g.fillStyle = '#ffc23a'; g.fill();
+  } },
+  { sp: 0.4, draw() {   // an orange ferry on its way across
+    const bx = 120; g.beginPath(); g.moveTo(bx, 194); g.lineTo(bx + 80, 194); g.lineTo(bx + 72, 206); g.lineTo(bx + 8, 206); g.closePath(); g.fillStyle = '#f08a2a'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(bx + 14, 182, 52, 12); for (let k = 0; k < 7; k++) { g.fillStyle = '#5a7ab0'; g.fillRect(bx + 18 + k * 7, 185, 4, 4); }
+  } },
+];
 SCENERY.pier = [
   { sp: 0.04, draw() {   // a sunset sun, and the Pilgrim Monument on the hill: a tall granite tower
     glow(380, 120, 60, 'rgba(255,220,140,1)', 0.6); g.beginPath(); g.arc(380, 120, 22, 0, TAU); g.fillStyle = '#ffe08a'; g.fill();
@@ -2182,6 +2391,7 @@ const SKIES = {
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
   shore: ['#3ab0f0', '#ffe8c0'], snow: ['#8ab8e8', '#eef6ff'], night: ['#0a1030', '#2a3070'], fort: ['#0e1a30', '#26405e'],
   canal: ['#5ab8f0', '#d8f0ff'], cranberry: ['#ff9a7a', '#ffe8c8'], dunes: ['#6ac0f0', '#fff4d8'], pier: ['#ff8a6a', '#ffd8a0'],
+  orchard: ['#6ab8f0', '#fff0d0'], falls: ['#7ac0f0', '#e8f6ff'], gwb: ['#5aa8e8', '#e0f0ff'], city: ['#ff9a6a', '#ffe0b0'], harbor: ['#4a90e0', '#d8ecff'],
   deep: ['#2a8a8a', '#0e3a48'], sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
 };
 // the sky and sun, painted once per world and screen size
@@ -2339,12 +2549,16 @@ function spawnFromSpec(e) {
     case 'fall': ents.push(mk('fall', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, st: 'wait', cyc: 0 })); break;
     case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
-    case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: e.hp || 3, maxHp: e.hp || 3, dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3 })); break;
+    case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: e.hp || 3, maxHp: e.hp || 3, kind: e.kind || 'grumbles', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3 })); break;
     case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
     case 'boat': ents.push(mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: 44, go: false, mx: 0, my: 0 })); break;
     case 'shark': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5) })); break;
     case 'whale': ents.push(mk('whale', x, LH + 40, { bx: x + 8, w: 14, h: 0, cyc: rand(0, 2) })); break;
     case 'sealhead': ents.push(mk('sealhead', x, 12 * TS - 6, { w: 0, h: 0 })); break;
+    case 'apple': ents.push(mk('appletree', x, 0, { w: 0, h: 0, cool: rand(0.3, 1.5) })); break;                 // a branch overhead that drops apples
+    case 'taxi': ents.push(mk('taxi', x, y + 2, { w: 28, h: 14, dir: -1, face: -1 })); break;
+    case 'crab': ents.push(mk('crab', x + 1, y + 4, { w: 16, h: 12, dir: -1 })); break;
+    case 'hint': ents.push(mk('hint', x - 16, y - 3 * TS, { w: 48, h: 4 * TS })); break;
     case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'sponge': ents.push(mk('sponge', x, 12 * TS - 7, { x0: x, y0: 12 * TS - 7, w: (e.w || 3) * TS, h: 9, deep: !!e.deep, mx: 0, my: 0, sq: 0 })); break;
     case 'frog': ents.push(mk('frog', x, y, { w: 14, h: 12, kick: rand(0.3, 1.2), face: -1 })); break;
@@ -2433,7 +2647,7 @@ function hitBlock(tx, ty, t, fromAbove) {
 function coinPop(x, y) { ents.push(mk('coinpop', x, y - 8, { vy: -260, w: 16, h: 16 })); }
 function sprout(kind, x, y) { ents.push(mk(kind, x + 1, y, { w: 14, h: 14, rise: 16, dir: 1 })); sfx.sprout(); }
 
-const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
+const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog', 'taxi', 'crab', 'applefall'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
 // knocked out by a shell, a spark, a bumped block or the horseshoe: flips over and falls off the screen
 function flipEnemy(e, from) {
   if (e.dead || e.k === 'boss') return;
@@ -2739,6 +2953,27 @@ function updateEnts(dt) {
         break;
       }
       case 'tadpoles': case 'turtle': case 'minnows': e.ph += dt; break;
+      case 'appletree': {   // when Leo walks near, a ripe apple drops from the branch
+        e.cool -= dt;
+        if (e.cool <= 0 && Math.abs(p.x - e.x) < 70) { e.cool = rand(1.6, 2.6); ents.push(mk('applefall', e.x + rand(-20, 20), 2 * TS, { w: 10, h: 10, vy: 0, life: 0 })); }
+        break;
+      }
+      case 'applefall': {   // falls, bounces once and rolls away
+        e.vy = Math.min(e.vy + 700 * dt, 260); moveX(e, e.vx * dt); moveY(e, e.vy * dt);
+        if (e.ground) { if (!e.bounced) { e.bounced = true; e.vy = -150; e.vx = rand(-50, 50); } else e.vy = 0; }
+        e.life += dt; if (e.life > 4 || e.y > LH + 20) e.gone = true;
+        break;
+      }
+      case 'taxi': case 'crab': {   // a yellow cab zooming along (turning at the ends of its road), and a sideways-scuttling crab
+        if (!groundAhead(e) && e.ground) e.dir *= -1;
+        e.vx = e.dir * (e.k === 'taxi' ? 78 : 46);
+        e.vy = Math.min(e.vy + 900 * dt, 300);
+        moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
+        moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+        if (e.y > LH + 30) e.gone = true;
+        e.face = e.dir;
+        break;
+      }
       case 'boat': {   // sails off once Leo is aboard, and stops at the far dock
         if (!e.go && p.ride === e) e.go = true;
         e.mx = e.go ? Math.min(e.sp * dt, e.x1 - e.x) : 0; e.my = 0; e.x += e.mx;
@@ -2770,7 +3005,7 @@ function updateEnts(dt) {
         break;
       case 'smudge': e.life -= dt; if (e.life <= 0) e.gone = true; break;
       case 'unicorn': updateUnicorn(e, dt); break;
-      case 'acorn': e.vy += 600 * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y > LH) e.gone = true; break;
+      case 'acorn': e.vy += (e.grav || 600) * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y > LH || e.t > 6) e.gone = true; break;
       case 'boss': updateBoss(e, dt); break;
       case 'pot': e.vy = Math.min((e.vy || 0) + 600 * dt, 300); moveY(e, e.vy * dt); break;
     }
@@ -2831,7 +3066,8 @@ function touchPlayer(e) {
     }
     return;
   }
-  if (['plat', 'fall', 'boat', 'sealhead', 'sponge', 'tadpoles', 'turtle', 'minnows'].includes(e.k)) return;
+  if (['plat', 'fall', 'boat', 'sealhead', 'sponge', 'tadpoles', 'turtle', 'minnows', 'appletree'].includes(e.k)) return;
+  if (e.k === 'hint') { if (overlap(p, e) && !e.told) { e.told = true; banner('WALL JUMP!', 'Jump in, hold towards a wall, and press jump to kick off it. Back and forth to the top!', 3.4); } return; }
   if (!overlap(p, e)) return;
   const stomp = p.vy > 0 && p.y + p.h - p.vy * STEP <= e.y + (p.mount ? 10 : 6), pounding = p.pound === 'drop';
   switch (e.k) {
@@ -2947,7 +3183,7 @@ function touchPlayer(e) {
         else if (e.k === 'snaily') { e.k = 'shell'; e.vx = 0; e.h = 14; e.y += 2; e.still = 0; }
         else if (e.k === 'shell') { e.vx = 0; }
         else if (e.k === 'buzzer') { e.dead = true; e.flip = true; e.vy = 0; }
-        else if (e.k === 'shark' || e.k === 'frog') { flipEnemy(e, p.face); }
+        else if (['shark', 'frog', 'taxi', 'crab', 'applefall'].includes(e.k)) { flipEnemy(e, p.face); }
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
@@ -2960,9 +3196,10 @@ function updateBoss(e, dt) {
   const p = player;
   if (e.hp <= 0) { e.vy = (e.vy || 0) + 700 * dt; e.y += e.vy * dt; if (e.y > LH + 60) e.gone = true; return; }
   if (Math.abs(p.x - e.x) > 260 && !e.awake) return;
-  if (!e.awake) { e.awake = true; music.play('boss'); banner('KING GRUMBLES!', `Hit him ${['', 'once', 'twice', 'three times', 'four times', 'five times'][e.maxHp || 3] || (e.maxHp + ' times')}: stomp him, or throw shells, sparks and hats!`); }
+  if (!e.awake) { e.awake = true; music.play('boss'); banner(BOSS_NAMES[e.kind] || 'KING GRUMBLES!', `Hit ${e.kind === 'grumbles' ? 'him' : 'it'} ${['', 'once', 'twice', 'three times', 'four times', 'five times'][e.maxHp || 3] || (e.maxHp + ' times')}: stomp ${e.kind === 'grumbles' ? 'him' : 'it'}, or throw shells, sparks and hats!`); }
   e.hurt = Math.max(0, e.hurt - dt);
-  const speed = 40 + (3 - e.hp) * 22;
+  const angry = (e.maxHp || 3) - e.hp;   // he gets faster and wilder with every hit
+  const speed = (e.kind === 'crab' ? 62 : e.kind === 'yeti' ? 34 : 40) + angry * 20;
   e.vx = e.dir * speed;
   e.vy = Math.min((e.vy || 0) + 900 * dt, 400);
   moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
@@ -2970,11 +3207,13 @@ function updateBoss(e, dt) {
   moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
   e.face = e.dir;
   e.jumpT -= dt; e.throwT -= dt;
-  if (e.jumpT <= 0 && e.ground) { e.vy = -330 - (3 - e.hp) * 40; e.jumpT = rand(1.6, 2.8); }
+  if (e.jumpT <= 0 && e.ground) { e.vy = (e.kind === 'crab' ? -240 : e.kind === 'yeti' ? -380 : -330) - angry * 30; e.jumpT = rand(1.6, 2.8); e.jumped = true; }
+  if (e.jumped && e.ground && e.vy >= 0) { e.jumped = false; if (e.kind === 'yeti') { shake = 0.3; sfx.pound(); RB.pad.rumble(160, 0.6); } }   // the yeti's landings shake the ground
   if (e.throwT <= 0) {
-    e.throwT = rand(1.8, 3) - (3 - e.hp) * 0.35;
+    e.throwT = Math.max(0.9, rand(1.8, 3) - angry * 0.3);
     const dx = p.x - e.x;
-    ents.push(mk('acorn', e.x + 10, e.y + 6, { vx: clamp(dx, -200, 200) * 0.9, vy: -260, w: 10, h: 10 }));
+    if (e.kind === 'crab') for (const k of [-1, 0, 1]) ents.push(mk('acorn', e.x + 10, e.y + 4, { vx: clamp(dx, -160, 160) * 0.5 + k * 40, vy: -120 - Math.abs(k) * 30, w: 10, h: 10, kind: 'bubble', grav: 90 }));   // three slow bubbles
+    else ents.push(mk('acorn', e.x + 10, e.y + 6, { vx: clamp(dx, -200, 200) * 0.9, vy: -260, w: 10, h: 10, kind: e.kind === 'yeti' ? 'snowball' : 'acorn' }));
     sfx.kick();
   }
 }
@@ -3053,14 +3292,15 @@ function afterDeath() {
 }
 let endFrom = 'castle';
 const WORLD_ENDS = {
+  ptown: { title: 'WORLD 3 <span>CLEAR!</span>', sub: '✈️ Captain Pinch is beaten! But King Grumbles hopped on a plane with the last of the gold and flew off to <b>New York</b>! World 4 is open.', btn: '✈️ On to World 4!', toast: '✈️ Fly west to the apple orchards of Western New York!' },
   castle: { title: 'WORLD 1 <span>CLEAR!</span>', sub: '🏃 King Grumbles dropped the pot of gold… and ran off with the rest, over New Hampshire\'s <b>White Mountains</b> towards <b>Maine</b>! World 2 is open.', btn: '🏔️ On to World 2!', toast: '🏔️ Follow the path up into the White Mountains!' },
-  fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '⛵ King Grumbles grabbed the last bag of gold and sailed from Maine down to <b>Cape Cod</b>! World 3 is open.', btn: '⛵ On to World 3!', toast: '⛵ Follow the path across the sea to Cape Cod!' },
+  fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '⛵ The Frost Yeti is beaten! But King Grumbles grabbed a bag of gold and sailed from Maine down to <b>Cape Cod</b>! World 3 is open.', btn: '⛵ On to World 3!', toast: '⛵ Follow the path across the sea to Cape Cod!' },
 };
 function winGame() {
-  const id = lvl.id, last = id === 'ptown';
+  const id = lvl.id, last = id === 'liberty';
   keep = { form: player.form, mount: !!player.mount, laser: !!player.laser };
   endFrom = id;
-  save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (last) save.beaten3 = true;
+  save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (id === 'ptown') save.beaten3 = true; if (last) save.beaten4 = true;
   save.gems[id] = levelGems.map((g2, i) => g2 || !!(save.gems[id] || [])[i]);
   save.best = Math.max(save.best, score);
   persist();
@@ -3068,7 +3308,7 @@ function winGame() {
   state = 'ending'; showTouch();
   const w = WORLD_ENDS[id];
   document.querySelector('#ending h1').innerHTML = last ? 'THE <span>GOLD</span> IS BACK!' : w.title;
-  document.querySelector('#ending .sub').innerHTML = last ? '🌈 King Grumbles is beaten for good on Provincetown Pier, and Leo has every last coin of his gold. Hooray!' : w.sub;
+  document.querySelector('#ending .sub').innerHTML = last ? '🗽 King Grumbles is beaten for good at the Statue of Liberty, and Leo has every last coin of his gold. Hooray!' : w.sub;
   document.getElementById('btnMapAgain').textContent = last ? '🗺️ Back to the map' : w.btn;
   document.getElementById('endStats').innerHTML = `SCORE <b>${score}</b><br>🌈 GEMS <b>${gemCount()}</b> of ${ORDER.length * 5}<br>${save.key ? '🗝️ Golden key found!' : '🗝️ The golden key is still hiding in Glimmer Caves…'}`;
   document.getElementById('ending').classList.remove('hidden');
@@ -3232,7 +3472,7 @@ function drawEnt0(e, t) {
     case 'snaily': drawSnaily(x - 1, y, tt, face, false); break;
     case 'shell': drawSnaily(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': drawThorny(x - 1, y - 3, tt, face); break;
-    case 'buzzer': if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'buzzer': if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
     case 'firebar': for (let i = 0; i <= e.len; i++) drawFireball(x + Math.cos(e.ang) * i * 8, y + Math.sin(e.ang) * i * 8, t + i * 0.05); break;
@@ -3313,6 +3553,36 @@ function drawEnt0(e, t) {
       g.fillStyle = '#e85a3a'; g.fillRect(-8, -0.4, 16, 1.2);   // the red edge of its shell
       g.restore(); break;
     }
+    case 'appletree': {   // a leafy branch hanging down from the top, with apples on it
+      g.beginPath(); g.ellipse(x, 6, 30, 16, 0, 0, TAU); g.fillStyle = '#3a9a3a'; g.fill(); g.beginPath(); g.ellipse(x - 10, 12, 16, 10, 0, 0, TAU); g.fillStyle = '#4aac48'; g.fill();
+      for (let k = 0; k < 6; k++) { g.beginPath(); g.arc(x - 20 + k * 8, 12 + (k % 2) * 6, 2.4, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); }
+      break;
+    }
+    case 'applefall': { g.save(); g.translate(x + 5, y + 5); g.rotate(e.life * 6 * Math.sign(e.vx || 1)); g.beginPath(); g.arc(0, 0.5, 4.6, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); g.beginPath(); g.arc(-1.6, -1, 1.4, 0, TAU); g.fillStyle = 'rgba(255,255,255,.45)'; g.fill();
+      g.fillStyle = '#5a3a1a'; g.fillRect(-0.4, -5.6, 0.8, 2.6); ell(1.8, -4.4, 1.8, 0.9, -0.5); g.fillStyle = '#4aac48'; g.fill(); g.restore(); break; }
+    case 'taxi': {   // a yellow New York taxi
+      g.save(); g.translate(x + 14, y + 14); g.scale(-(e.face || -1), 1);
+      rrect(-14, -11, 28, 9, 3); g.fillStyle = '#ffc81a'; g.fill(); rrect(-8, -16, 14, 6, [3, 3, 0, 0]); g.fill();
+      g.fillStyle = '#9ad0f0'; g.fillRect(-6.5, -14.5, 5, 4); g.fillRect(-0.5, -14.5, 5, 4);
+      for (let k = 0; k < 7; k++) { g.fillStyle = k % 2 ? '#1e2a3a' : '#ffffff'; g.fillRect(-13 + k * 3.7, -7, 3.7, 1.6); }   // the checker stripe
+      g.fillStyle = '#ffffff'; g.fillRect(-3, -19, 6, 3); g.fillStyle = '#1e2a3a'; g.font = 'bold 2.6px sans-serif'; g.textAlign = 'center'; g.fillText('TAXI', 0, -16.8);
+      for (const wx of [-8, 8]) { g.beginPath(); g.arc(wx, -2, 3, 0, TAU); g.fillStyle = '#23242a'; g.fill(); g.beginPath(); g.arc(wx, -2, 1.2, 0, TAU); g.fillStyle = '#a8a8b0'; g.fill(); }
+      g.beginPath(); g.arc(-13.2, -8.4, 1.2, 0, TAU); g.fillStyle = '#fff6b0'; g.fill();
+      g.restore(); break;
+    }
+    case 'crab': {   // a little red crab, scuttling sideways and snapping its claws
+      g.save(); g.translate(x + 8, y + 12);
+      const sn = Math.abs(Math.sin(e.t * 9));
+      for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) { g.save(); g.translate(sx * (2 + i * 2), -3); g.rotate(sx * (0.7 + Math.sin(e.t * 16 + i) * 0.3)); g.fillStyle = '#b83222'; g.fillRect(-0.5, 0, 1, 4); g.restore(); }
+      ell(0, -5, 7, 4.2); g.fillStyle = '#e84a32'; g.fill();
+      for (const sx of [-1, 1]) { ell(sx * 8, -8, 2.8, 2.2); g.fillStyle = '#e84a32'; g.fill(); g.beginPath(); g.moveTo(sx * 9, -9); g.lineTo(sx * 11.5, -11 - sn * 1.5); g.lineTo(sx * 10.5, -8); g.fillStyle = '#b83222'; g.fill(); }
+      for (const ex of [-2, 2]) { g.fillStyle = '#b83222'; g.fillRect(ex - 0.4, -11, 0.8, 3); g.beginPath(); g.arc(ex, -11.4, 1.2, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex, -11.4, 0.6, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }
+      g.restore(); break;
+    }
+    case 'hint': {   // up arrows in the wall-jump gap
+      for (let k = 0; k < 3; k++) { const yy = y + 30 - k * 14 - (t * 10 % 14); g.globalAlpha = 0.5; g.beginPath(); g.moveTo(x + 24, yy - 5); g.lineTo(x + 29, yy); g.lineTo(x + 19, yy); g.closePath(); g.fillStyle = '#ffffff'; g.fill(); g.globalAlpha = 1; }
+      break;
+    }
     case 'minnows': {   // a flicker of tiny silver fish
       for (let i = 0; i < 7; i++) { const a = e.ph * 1.6 + i * 0.5, fx2 = x + Math.cos(a) * 26 + i * 2, fy = y + Math.sin(a * 2) * 5 + (i % 3) * 3, dir = -Math.sin(a) >= 0 ? 1 : -1;
         g.save(); g.translate(fx2, fy); g.scale(dir, 1); ell(0, 0, 2.6, 0.9); g.fillStyle = '#cfe0e8'; g.fill(); g.beginPath(); g.moveTo(-2.4, 0); g.lineTo(-4, -1); g.lineTo(-4, 1); g.fill(); g.restore(); }
@@ -3340,11 +3610,13 @@ function drawEnt0(e, t) {
     case 'poop': drawPoop(e, t); break;
     case 'smudge': g.globalAlpha = Math.min(1, e.life / 1.5) * 0.8; ell(x, y, 2.2, 0.9); g.fillStyle = '#6a3e1c'; g.fill(); g.globalAlpha = 1; break;
     case 'unicorn': drawUnicorn(x + 8, y + 22, e.face || 1, t, e.st === 'flee' ? 1 : 0); break;
-    case 'acorn': drawAcorn(x, y, t); break;
+    case 'acorn': if (e.kind === 'snowball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); paint('#ffffff', 0.8, '#9ab8dc'); g.beginPath(); g.arc(x + 3.5, y + 3.5, 1.6, 0, TAU); paint('rgba(200,225,255,.9)'); }
+      else if (e.kind === 'bubble') { g.globalAlpha = 0.8; g.beginPath(); g.arc(x + 5, y + 5, 5.5, 0, TAU); g.fillStyle = 'rgba(180,230,255,.35)'; g.fill(); g.lineWidth = 0.9; g.strokeStyle = '#e8f8ff'; g.stroke(); g.beginPath(); g.arc(x + 3, y + 3, 1.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
+      else drawAcorn(x, y, t); break;
     case 'pot': drawPot(x, y, t); break;
     case 'boss': {
       const hurtBlink = e.hurt > 0 && Math.floor(t * 16) % 2 === 0;
-      drawBoss(x - 2, y, tt, face, hurtBlink);
+      if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
       if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - 16, 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
       break;
     }
@@ -3360,12 +3632,17 @@ function drawEnt0(e, t) {
 // The route never doubles back: World 1 goes up the west side (Connecticut, the Berkshires, Vermont) and across to New
 // Hampshire's North Country; World 2 comes down through the White Mountains, over to Maine's North Woods, out to the coast
 // at Acadia and west along it to Fort Knox; World 3 is a boat ride down the coast into Cape Cod Bay and out along the Cape.
-const MAP_W = 240;
-const GEO = (lon, lat) => [10 + (lon + 73.8) * 31, 5 + (46.6 - lat) * 37.9];   // (the far north of Maine runs off the top)
+const MAP_W = 395;
+const GEO = (lon, lat) => [10 + (lon + 79.9) * 28.5, 5 + (46.6 - lat) * 34.8];   // (the far north of Maine runs off the top, the south of New Jersey off the bottom)
 // the land round New England (New York, Quebec, New Brunswick, Long Island): plain, reaching right off the map
-const AROUND_LL = [[[-90, 40.5], [-73.66, 41.0], [-73.73, 41.1], [-73.48, 41.22], [-73.49, 42.05], [-73.26, 42.75], [-73.42, 43.6], [-73.35, 44.0], [-73.35, 44.55], [-73.34, 45.01], [-71.5, 45.01], [-71.08, 45.3], [-70.8, 45.4], [-70.3, 45.9], [-70.0, 46.7], [-69.22, 47.45], [-69.05, 47.45], [-68.2, 47.35], [-67.78, 47.07], [-67.78, 52], [-90, 52]],
+const AROUND_LL = [
+  // Ontario and Quebec, along the north (Lakes Erie and Ontario are the gaps between them and New York)
+  [[-90, 41.6], [-83, 41.7], [-81.5, 42.6], [-80.4, 42.6], [-79.0, 42.88], [-79.06, 43.25], [-79.4, 43.6], [-78.5, 43.9], [-77.5, 44.0], [-76.5, 44.2], [-75.8, 44.5], [-75.3, 44.85], [-74.7, 45.0],
+   [-73.34, 45.01], [-71.5, 45.01], [-71.08, 45.3], [-70.8, 45.4], [-70.3, 45.9], [-70.0, 46.7], [-69.22, 47.45], [-69.05, 47.45], [-68.2, 47.35], [-67.78, 47.07], [-67.78, 52], [-90, 52]],
+  // New Brunswick, east of Maine
   [[-67.78, 47.07], [-67.8, 45.7], [-67.2, 45.18], [-66.98, 44.82], [-66.1, 45.2], [-64.5, 45.9], [-50, 46.4], [-50, 52], [-67.78, 52]],
-  [[-73.75, 40.62], [-73.62, 40.9], [-73.0, 40.97], [-72.3, 41.04], [-71.9, 41.07], [-72.3, 40.88], [-73.0, 40.74]]];
+  // Pennsylvania and the land to the south-west
+  [[-90, 41.6], [-80.52, 41.98], [-79.76, 42.27], [-79.76, 42.0], [-75.35, 42.0], [-74.69, 41.36], [-75.2, 40.9], [-75.1, 40.6], [-74.75, 40.3], [-75.12, 40.0], [-75.55, 39.6], [-75.6, 38.0], [-90, 38.0]]];
 const CB = GEO(-70.62, 41.7);                                  // Cape Cod starts at the canal...
 const CAPEXY = (dx, dy) => [CB[0] + dx, CB[1] + dy];           // ...and its places are measured from there
 const CAPE_ARM = [[-3, 0], [14, 2.5], [32, 3], [50, 0], [55, -14], [52, -30], [42, -42], [28, -44], [19, -38]];   // the bent arm: elbow at Chatham, fist at Provincetown
@@ -3389,17 +3666,26 @@ const NODES = [
   at('ptown', CAPEXY(31, -44), 'Provincetown Pier', 'Cape Cod'),
   at('vineyard', CAPEXY(5, 20), "Martha's Vineyard", 'Massachusetts', { island: true }),   // the islands: secret levels, each just below the level
   at('nantucket', CAPEXY(50, 26), 'Nantucket', 'Massachusetts', { island: true }),          // whose secret exit opens it
+  at('orchard', GEO(-77.45, 43.15), 'Apple Orchard', 'Western New York'),
+  at('niagara', GEO(-79.02, 43.08), 'Niagara Falls', 'New York'),
+  at('bridge', GEO(-74.02, 41.1), 'George Washington Bridge', 'New York & New Jersey'),   // (the New York City levels are spread out a little so they fit)
+  at('city', GEO(-73.72, 40.8), 'Empire State Rooftops', 'New York City'),
+  at('liberty', GEO(-74.15, 40.5), 'Statue of Liberty', 'New York Harbor'),
 ];
 const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'bog'], ['bog', 'sky'], ['sky', 'castle'], ['caves', 'bonus'],
   ['castle', 'snow'], ['snow', 'night'], ['night', 'shore'], ['shore', 'fort'], ['fort', 'canal'],
   ['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'], ['dunes', 'ptown'],
+  ['ptown', 'orchard'], ['orchard', 'niagara'], ['niagara', 'bridge'], ['bridge', 'city'], ['city', 'liberty'],
   ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'dunes', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
-const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'whale', 'dunes', 'ptown']];
+const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['orchard', 'niagara', 'bridge', 'city', 'liberty']];
+const WORLD_NAMES = ['Green Mountain Trail', 'North Woods & Rocky Coast', 'Cape Cod & the Islands', 'New York & New Jersey'];
+const worldOf = id => WORLDS.findIndex(w => w.includes(id));
 const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
-const SEA_PATHS = new Set(['fort|canal', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
+const FLIGHT_PATHS = new Set(['ptown|orchard']);   // (Cape Cod to Western New York: Leo flies)
+const SEA_PATHS = new Set(['city|liberty', 'fort|canal', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
 // a few trails are bent by hand: the boat lane hugs the coast, and the secret paths swing round the levels in between
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
@@ -3407,6 +3693,7 @@ bend('fort|canal', GEO(-70.3, 43.0)); bend('caves|castle', GEO(-71.9, 43.5));
 bend('cranberry|whale', CAPEXY(46, 14)); bend('whale|dunes', CAPEXY(68, -2));   // the sea route sweeps round the elbow...
 bend('cranberry|dunes', CAPEXY(51, 1));                                          // ...and the secret land road follows the arm inside it
 bend('canal|vineyard', CAPEXY(3, 10)); bend('whale|nantucket', CAPEXY(57, 19));
+bend('ptown|orchard', GEO(-75.5, 47.6)); bend('niagara|bridge', GEO(-76.8, 41.4));   // a high flight west; then down through the Southern Tier to the Hudson
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -3512,6 +3799,8 @@ function drawMap() {
     ME: { name: 'MAINE', at: G([[-69.2, 46.05]])[0], c: '#5cba74', pts: G([[-71.08, 45.3], [-71.03, 44.7], [-70.97, 44.0], [-70.8, 43.4], [-70.7, 43.08], [-70.45, 43.35], [-70.2, 43.62], [-69.95, 43.75], [-69.7, 43.82], [-69.45, 43.95], [-69.15, 44.05], [-68.95, 44.25], [-68.8, 44.45], [-68.6, 44.3], [-68.4, 44.25], [-68.2, 44.35], [-67.85, 44.45], [-67.5, 44.55], [-67.2, 44.65], [-66.98, 44.82], [-67.2, 45.18], [-67.8, 45.7], [-67.78, 47.07], [-68.2, 47.35], [-69.05, 47.45], [-69.22, 47.45], [-70.0, 46.7], [-70.3, 45.9], [-70.8, 45.4]]) },
     MA: { name: 'MASS.', at: G([[-72.05, 42.45]])[0], c: '#6ac878', pts: G([[-73.5, 42.05], [-71.8, 42.02], [-71.38, 42.02], [-71.38, 41.89], [-71.34, 41.73], [-71.12, 41.65], [-71.12, 41.5], [-70.85, 41.63], [-70.65, 41.74], [-70.54, 41.77], [-70.55, 41.92], [-70.68, 42.12], [-70.97, 42.3], [-70.93, 42.43], [-70.6, 42.65], [-70.82, 42.87], [-71.29, 42.7], [-72.46, 42.73], [-73.26, 42.75]]) },
     CT: { name: 'CT', at: G([[-72.3, 41.58]])[0], c: '#98d684', pts: G([[-73.49, 42.05], [-71.8, 42.02], [-71.8, 41.33], [-72.4, 41.27], [-72.9, 41.24], [-73.3, 41.12], [-73.66, 41.0], [-73.73, 41.1], [-73.48, 41.22]]) },
+    NY: { name: 'NEW YORK', at: G([[-75.6, 42.75]])[0], c: '#7cc87c', pts: G([[-79.76, 42.27], [-79.76, 42.0], [-75.35, 42.0], [-74.69, 41.36], [-73.92, 41.0], [-74.02, 40.76], [-74.02, 40.7], [-73.98, 40.58], [-73.4, 40.62], [-72.6, 40.82], [-71.86, 41.07], [-72.4, 41.0], [-73.3, 40.92], [-73.75, 40.86], [-73.66, 41.0], [-73.73, 41.1], [-73.48, 41.22], [-73.49, 42.05], [-73.26, 42.75], [-73.42, 43.6], [-73.35, 44.0], [-73.35, 44.55], [-73.34, 45.01], [-74.7, 45.0], [-75.3, 44.85], [-75.8, 44.5], [-76.3, 44.2], [-76.2, 43.55], [-76.8, 43.32], [-77.6, 43.26], [-78.5, 43.37], [-79.06, 43.27], [-79.06, 43.08], [-78.92, 42.89], [-79.1, 42.72]]) },
+    NJ: { name: 'NJ', at: G([[-74.62, 40.62]])[0], c: '#a6d48c', pts: G([[-74.69, 41.36], [-73.92, 41.0], [-74.02, 40.7], [-74.25, 40.52], [-74.0, 40.4], [-74.0, 40.0], [-74.1, 39.75], [-74.4, 39.35], [-74.95, 38.93], [-75.5, 39.6], [-75.12, 40.0], [-74.75, 40.3], [-75.1, 40.6], [-75.2, 40.9]]) },
     RI: { name: 'RI', at: G([[-71.6, 41.68]])[0], c: '#b4dc88', pts: G([[-71.8, 42.02], [-71.38, 42.02], [-71.38, 41.89], [-71.34, 41.73], [-71.12, 41.65], [-71.13, 41.49], [-71.24, 41.47], [-71.42, 41.47], [-71.53, 41.38], [-71.86, 41.32], [-71.8, 41.33]]) },
   };
   const AROUND = AROUND_LL.map(G);
@@ -3530,16 +3819,21 @@ function drawMap() {
   g.fillStyle = '#6ab0e8';
   poly(G([[-73.42, 43.6], [-73.3, 44.1], [-73.25, 44.6], [-73.3, 45.0], [-73.4, 45.0], [-73.42, 44.6], [-73.42, 44.1]])); g.fill();
   blob(...GEO(-71.35, 43.6), 4, 2.4, 3); blob(...GEO(-69.6, 45.65), 3, 5, 5);
+  g.strokeStyle = '#6ab0e8'; g.lineWidth = 1.3; g.beginPath(); G([[-73.7, 43.3], [-73.75, 42.65], [-73.95, 42.0], [-73.95, 41.4], [-73.93, 41.0], [-74.0, 40.75]]).forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();   // the Hudson
+  g.beginPath(); G([[-73.75, 42.7], [-74.5, 42.95], [-75.3, 43.1], [-76.2, 43.05], [-77.6, 43.1]]).forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.lineWidth = 0.8; g.stroke();   // the Mohawk and the Erie Canal
+  for (const [lo, la] of [[-77.0, 42.65], [-76.75, 42.6], [-76.55, 42.65], [-77.25, 42.7]]) { const [x, y] = GEO(lo, la); ell(x, y, 0.9, 5); g.fillStyle = '#6ab0e8'; g.fill(); }   // the Finger Lakes
   g.strokeStyle = '#6ab0e8'; g.lineWidth = 1.2; g.beginPath(); G([[-71.5, 45.0], [-71.8, 44.3], [-72.05, 44.05], [-72.4, 43.55], [-72.55, 43.25], [-72.5, 42.7], [-72.6, 42.0], [-72.4, 41.27]]).forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.stroke();
   // trees: autumn maples in Vermont, pines in New Hampshire and Maine, round leafy trees in the south
-  for (let i = 0; i < 26 * 26; i++) {
-    const hx = 12 + (i % 26) * 7 + (rndB(i, 1) - 0.5) * 5, hy = 10 + Math.floor(i / 26) * 8 + (rndB(i, 2) - 0.5) * 5;
+  const TC = Math.ceil(MAP_W / 7);
+  for (let i = 0; i < TC * 27; i++) {
+    const hx = 12 + (i % TC) * 7 + (rndB(i, 1) - 0.5) * 5, hy = 10 + Math.floor(i / TC) * 8 + (rndB(i, 2) - 0.5) * 5;
     if (rndB(i, 3) < 0.45) continue;
     const st = Object.entries(STATES).find(([, v]) => inside(v.pts, hx, hy));
     if (!st || NODES.some(n => Math.hypot(n.x - hx, n.y - hy) < 11) || Math.hypot(st[1].at[0] - hx, st[1].at[1] - hy) < 9) continue;
     const k = st[0];
+    if (k === 'NJ' && hy > 205) continue;
     if (k === 'ME' || k === 'NH') { g.beginPath(); g.moveTo(hx - 2.2, hy + 1); g.lineTo(hx, hy - 4.6); g.lineTo(hx + 2.2, hy + 1); g.closePath(); g.fillStyle = k === 'ME' ? '#2a7a46' : '#3a8a50'; g.fill(); }
-    else { g.beginPath(); g.arc(hx, hy - 2, 2.2, 0, TAU); g.fillStyle = k === 'VT' ? ['#e8702a', '#d83a2a', '#f0b030', '#c84a2a'][i % 4] : '#2f9a46'; g.fill(); }
+    else { g.beginPath(); g.arc(hx, hy - 2, 2.2, 0, TAU); g.fillStyle = k === 'VT' || (k === 'NY' && i % 3 === 0) ? ['#e8702a', '#d83a2a', '#f0b030', '#c84a2a'][i % 4] : '#2f9a46'; g.fill(); }
   }
   // landmarks, small: the White Mountains and Katahdin, a moose, lighthouses, Boston, a red barn, the castle and the ice fortress
   const peak = (x, y, w2, h2, snowy) => { g.beginPath(); g.moveTo(x - w2, y); g.lineTo(x, y - h2); g.lineTo(x + w2, y); paint(snowy ? '#9ab8dc' : '#4aa858', 0.6, snowy ? '#6a88b0' : '#3a8a48'); if (snowy) { g.beginPath(); g.moveTo(x - w2 * 0.35, y - h2 * 0.65); g.lineTo(x, y - h2); g.lineTo(x + w2 * 0.35, y - h2 * 0.65); paint('#ffffff'); } };
@@ -3558,6 +3852,12 @@ function drawMap() {
   { const n = node('shore'); g.beginPath(); g.arc(n.x + 9, n.y + 2, 3, Math.PI, 0); paint('#ff5a6a', 0.4); g.fillStyle = '#fff'; g.fillRect(n.x + 8.6, n.y + 2, 0.8, 3); }
   { const n = node('castle'); rrect(n.x - 9, n.y - 17, 18, 14, 1.5); paint(vgrad(n.y - 17, n.y - 3, '#9a9aaa', '#6a6a7a'), 0.7); for (let i = 0; i < 4; i++) { rrect(n.x - 9 + i * 5.2, n.y - 20, 2.6, 4, 0.6); paint('#8a8a9a', 0.5); } rrect(n.x - 2.4, n.y - 10, 4.8, 7, [2.4, 2.4, 0, 0]); paint('#2a1a20'); }
   { const n = node('fort'); rrect(n.x - 9, n.y - 17, 18, 14, 1.5); paint(vgrad(n.y - 17, n.y - 3, '#e0f2ff', '#9ac0e0'), 0.7, '#5a7ab0'); for (let i = 0; i < 4; i++) { rrect(n.x - 9 + i * 5.2, n.y - 20, 2.6, 4, 0.6); paint('#c8e4fa', 0.5, '#5a7ab0'); } rrect(n.x - 2.4, n.y - 10, 4.8, 7, [2.4, 2.4, 0, 0]); paint('#26405e'); }
+  // World 4's landmarks: apple trees, Niagara Falls, the George Washington Bridge, the Manhattan skyline and the Statue of Liberty
+  { const n = node('orchard'); for (let k = 0; k < 3; k++) { const tx = n.x + 8 + k * 5, ty = n.y - 2 + (k % 2) * 3; g.beginPath(); g.arc(tx, ty - 3, 2.6, 0, TAU); g.fillStyle = '#3a9a3a'; g.fill(); g.beginPath(); g.arc(tx - 0.8, ty - 3.4, 0.7, 0, TAU); g.arc(tx + 1, ty - 2.4, 0.7, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); } }
+  { const n = node('niagara'); g.fillStyle = '#ffffff'; g.fillRect(n.x - 12, n.y - 9, 6, 9); g.fillStyle = '#c8e8ff'; g.fillRect(n.x - 10.5, n.y - 9, 1, 9); g.fillRect(n.x - 8, n.y - 9, 1, 9); g.beginPath(); g.arc(n.x - 9, n.y + 1, 4, 0, TAU); g.fillStyle = 'rgba(255,255,255,.8)'; g.fill(); }
+  { const n = node('bridge'); g.strokeStyle = '#8a9aa8'; g.lineWidth = 0.9; g.beginPath(); g.moveTo(n.x - 14, n.y - 2); g.lineTo(n.x - 14, n.y - 10); g.moveTo(n.x - 6, n.y - 2); g.lineTo(n.x - 6, n.y - 10); g.moveTo(n.x - 18, n.y - 7); g.quadraticCurveTo(n.x - 10, n.y - 2, n.x - 2, n.y - 7); g.moveTo(n.x - 18, n.y - 2); g.lineTo(n.x - 2, n.y - 2); g.stroke(); }
+  { const n = node('city'); for (let k = 0; k < 6; k++) { const h = 4 + (k * 5) % 7; g.fillStyle = ['#8a9ab0', '#a8b4c8', '#7a8aa0'][k % 3]; g.fillRect(n.x + 6 + k * 2.2, n.y - h, 2, h); } g.fillStyle = '#6a7a90'; g.fillRect(n.x + 12, n.y - 13, 2, 13); g.fillRect(n.x + 12.6, n.y - 16, 0.8, 3); }
+  { const n = node('liberty'); ell(n.x + 9, n.y + 2, 4, 1.6); g.fillStyle = '#6ac878'; g.fill(); g.fillStyle = '#c8b898'; g.fillRect(n.x + 7.6, n.y - 3, 2.8, 4); g.fillStyle = '#6ab8a0'; g.fillRect(n.x + 8, n.y - 9, 2, 6); g.beginPath(); g.arc(n.x + 9, n.y - 10, 1.2, 0, TAU); g.fill(); g.fillRect(n.x + 10, n.y - 13, 0.8, 4); g.beginPath(); g.arc(n.x + 10.4, n.y - 13.5, 0.9, 0, TAU); g.fillStyle = '#ffc23a'; g.fill(); }
   // the state names
   g.textAlign = 'center'; g.textBaseline = 'middle';
   for (const st of Object.values(STATES)) { g.font = `${st.name.length > 3 ? 6 : 7}px Bungee, system-ui, sans-serif`; g.fillStyle = 'rgba(20,60,30,.3)'; g.fillText(st.name, st.at[0] + 0.5, st.at[1] + 0.5); g.fillStyle = 'rgba(255,255,255,.85)'; g.fillText(st.name, st.at[0], st.at[1]); }
@@ -3589,11 +3889,19 @@ function drawMap() {
   for (const pth of PATHS) {
     if (!pathOpen(pth) && (node(pth[1]).secret || node(pth[1]).island || pth[2])) continue;
     const a = node(pth[0]), b = node(pth[1]), c = pathCtrl(pth), d = Math.hypot(b.x - a.x, b.y - a.y), open = pathOpen(pth), sea = SEA_PATHS.has(pth[0] + '|' + pth[1]);
-    const u0 = 7.5 / d, u1 = 1 - 7.5 / d, curve = () => { g.beginPath(); const q0 = qbez(a, c, b, u0); g.moveTo(q0.x, q0.y); for (let k = 1; k <= 24; k++) { const q = qbez(a, c, b, u0 + (u1 - u0) * k / 24); g.lineTo(q.x, q.y); } };
+    const u0 = 6.5 / d, u1 = 1 - 6.5 / d, curve = () => { g.beginPath(); const q0 = qbez(a, c, b, u0); g.moveTo(q0.x, q0.y); for (let k = 1; k <= 24; k++) { const q = qbez(a, c, b, u0 + (u1 - u0) * k / 24); g.lineTo(q.x, q.y); } };
     const next = open && (!save.cleared[pth[0]] || !save.cleared[pth[1]]);   // a trail that leads somewhere new
     const dots = (gap, r, col, march) => { const off = march ? (t * 9 % gap) / d : 0; for (let u = u0 + off; u <= u1; u += gap / d) { const q = qbez(a, c, b, u); g.beginPath(); g.arc(q.x, q.y + 0.6, r + 0.5, 0, TAU); g.fillStyle = 'rgba(20,50,30,.28)'; g.fill(); g.beginPath(); g.arc(q.x, q.y, r, 0, TAU); g.fillStyle = col; g.fill(); } };
     g.lineCap = 'round'; g.lineJoin = 'round';
     if (!open) { dots(4.6, 0.7, 'rgba(255,255,255,.35)', false); continue; }
+    if (FLIGHT_PATHS.has(pth[0] + '|' + pth[1])) {   // a flight: a dashed arc through the sky with a little plane
+      curve(); g.setLineDash([2, 3]); g.lineDashOffset = -t * 6; g.lineWidth = 1.1; g.strokeStyle = 'rgba(255,255,255,.85)'; g.stroke(); g.setLineDash([]);
+      const u = (t * 0.06) % 1, q = qbez(a, c, b, u), q2 = qbez(a, c, b, Math.min(1, u + 0.01));
+      g.save(); g.translate(q.x, q.y); g.rotate(Math.atan2(q2.y - q.y, q2.x - q.x)); g.scale(1, q2.x < q.x ? -1 : 1);
+      ell(0, 0, 5, 1.4); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(-1, 0); g.lineTo(-3, -4); g.lineTo(1, 0); g.lineTo(-3, 4); g.closePath(); g.fill(); g.beginPath(); g.moveTo(-4, 0); g.lineTo(-5.4, -2); g.lineTo(-3.6, 0); g.fill(); g.fillStyle = '#e8453a'; g.fillRect(-2, -0.4, 4, 0.8);
+      g.restore();
+      continue;
+    }
     if (sea) {
       curve(); g.setLineDash([3, 2.6]); g.lineDashOffset = -t * 7; g.lineWidth = 1.3; g.strokeStyle = pth[2] ? '#ffe14a' : 'rgba(255,255,255,.95)'; g.stroke(); g.setLineDash([]);
       const u = 0.2 + ((t * 0.07 + PATHS.indexOf(pth) * 0.3) % 1) * 0.6, q = qbez(a, c, b, u), bob = Math.sin(t * 3) * 0.5;   // a little sailboat
@@ -3610,12 +3918,12 @@ function drawMap() {
     if (n.secret && !save.key) continue;
     if (n.island && !nodeOpen(n)) continue;   // a secret island's level appears once its secret exit is found
     const open = nodeOpen(n), done = save.cleared[n.id], here = mapLeo.at === n.id && !mapLeo.to;
-    if (open && !done) glow(n.x, n.y, 14 + Math.sin(t * 4) * 2, 'rgba(255,230,120,1)', 0.6);
-    ell(n.x, n.y + 2, 8, 3); g.fillStyle = 'rgba(0,0,0,.2)'; g.fill();
-    ell(n.x, n.y, 7.5, 5.5); paint(!open ? vgrad(n.y - 5, n.y + 5, '#aaa', '#777') : done ? vgrad(n.y - 5, n.y + 5, '#ff7a6a', '#d0302a') : vgrad(n.y - 5, n.y + 5, '#fff08a', '#f0b020'), 1.1);
-    ell(n.x - 2, n.y - 2, 2.6, 1.2); paint('rgba(255,255,255,.6)');
-    if (n.id === 'castle' || n.id === 'fort' || n.id === 'ptown') { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
-    if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(n.x, n.y, 11, 8, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
+    if (open && !done) glow(n.x, n.y, 11 + Math.sin(t * 4) * 2, 'rgba(255,230,120,1)', 0.6);
+    ell(n.x, n.y + 1.6, 6.4, 2.4); g.fillStyle = 'rgba(0,0,0,.2)'; g.fill();
+    ell(n.x, n.y, 6, 4.4); paint(!open ? vgrad(n.y - 5, n.y + 5, '#aaa', '#777') : done ? vgrad(n.y - 5, n.y + 5, '#ff7a6a', '#d0302a') : vgrad(n.y - 5, n.y + 5, '#fff08a', '#f0b020'), 1.1);
+    ell(n.x - 1.6, n.y - 1.6, 2.1, 1); paint('rgba(255,255,255,.6)');
+    if (n.id === 'castle' || n.id === 'fort' || n.id === 'ptown' || n.id === 'liberty') { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
+    if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(n.x, n.y, 9, 6.6, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
   }
   // Leo, hopping along the paths
   const walking = !!mapLeo.to, hop = walking ? Math.abs(Math.sin(t * 10)) * 3 : Math.abs(Math.sin(t * 3)) * 1;
@@ -3653,8 +3961,8 @@ function drawHUD() {
     ctx.fillStyle = color; ctx.fillText(str, x, y);
   };
   if (state === 'map') {
-    text('LUCKY LEO', s * 8, s * 6, 18, '#ffd23a');
-    const n = node(mapLeo.to || mapLeo.at), gems = save.gems[n.id] || [];
+    const n = node(mapLeo.to || mapLeo.at), gems = save.gems[n.id] || [], wi = worldOf(n.id);
+    text(wi >= 0 ? `WORLD ${wi + 1}: ${WORLD_NAMES[wi].toUpperCase()}` : 'LUCKY LEO', s * 8, s * 6, wi >= 0 ? 12 : 18, '#ffd23a');
     text(`${levelTag(n.id)}  ${n.name.toUpperCase()}`, s * 8, s * 22, 13, '#ffffff');
     text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${save.cleared[n.id] ? '✔ CLEARED  ' : ''}🌈 ${gems.filter(Boolean).length}/5`, s * 8, s * 34, 11, '#fff2c0');
     text(`☘️ × ${lives}   🌈 ${gemCount()}`, s * 8, LH * s - s * 18, 12);
@@ -3695,13 +4003,13 @@ function showBest() {
   const bits = [];
   if (save.best) bits.push(`🏆 Best score <b>${save.best}</b>`);
   const g2 = gemCount(); if (g2) bits.push(`🌈 <b>${g2}</b> gems`);
-  if (save.beaten3) bits.push('👑 All three worlds done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
+  if (save.beaten4) bits.push('👑 All four worlds done!'); else if (save.beaten3) bits.push('👑 World 3 done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
   document.getElementById('titleBest').innerHTML = bits.join(' · ');
 }
 showBest();
 function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; keep = { form: 0, mount: false }; goMap(); }
 document.getElementById('btnPlay').addEventListener('click', startGame);
-document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'ptown') score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); });
+document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'liberty') score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); });
 
 // ---------- Loop ----------
 // The game moves on by exactly the time since the last frame (in small slices), so motion is smooth

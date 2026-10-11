@@ -1108,7 +1108,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo Worlds 2 and 3: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, and Provincetown Pier is the real ending', async () => {
+  await test('Lucky Leo Worlds 2 to 4: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, Provincetown flies on to New York, and the Statue of Liberty is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
@@ -1124,15 +1124,23 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const cape = { state, canal: nodeOpen(node('canal')), cranberry: nodeOpen(node('cranberry')), at: mapLeo.at };
       startLevel('ptown'); const boss3 = ents.find(e => e.k === 'boss'); const hp3 = boss3.hp;
       ['canal', 'cranberry', 'dunes'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end3 = { title: document.querySelector('#ending h1').textContent, beaten3: save.beaten3 };
-      return { before, end1, after, hp, end2, cape, hp3, end3, slippery: !!LEVELS.snow.slippery,
-        levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown'].every(id => ORDER.includes(id)) };
+      const end3 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten3: save.beaten3 };
+      document.getElementById('btnMapAgain').click();
+      const ny = { state, orchard: nodeOpen(node('orchard')), niagara: nodeOpen(node('niagara')), flight: FLIGHT_PATHS.has('ptown|orchard') };
+      startLevel('liberty'); const boss4 = ents.find(e => e.k === 'boss'); const hp4 = boss4.hp, kinds = { fort: LEVELS.fort.ents.find(e => e.k === 'boss').kind, ptown: LEVELS.ptown.ents.find(e => e.k === 'boss').kind, liberty: boss4.kind };
+      ['orchard', 'niagara', 'bridge', 'city'].forEach(id => { save.cleared[id] = true; }); winGame();
+      const end4 = { title: document.querySelector('#ending h1').textContent, beaten4: save.beaten4 };
+      return { before, end1, after, hp, end2, cape, hp3, end3, ny, hp4, kinds, end4, slippery: !!LEVELS.snow.slippery,
+        levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown', 'orchard', 'niagara', 'bridge', 'city', 'liberty'].every(id => ORDER.includes(id)) };
     });
     check(!r.before && /WORLD 1/.test(r.end1.title) && /World 2/.test(r.end1.btn), 'Goblin Castle should finish World 1 and offer World 2: ' + JSON.stringify(r));
     check(r.after.state === 'map' && r.after.snow && !r.after.night && r.after.at === 'castle', 'the path up to Frosty Peaks in the White Mountains should open: ' + JSON.stringify(r));
     check(r.hp === 4 && /WORLD 2/.test(r.end2.title) && /World 3/.test(r.end2.btn) && r.end2.beaten2 && r.slippery && r.levels, 'the Frost Fortress should finish World 2 and offer World 3: ' + JSON.stringify(r));
     check(r.cape.state === 'map' && r.cape.canal && !r.cape.cranberry && r.cape.at === 'fort', 'the path to Bourne Bridge on Cape Cod should open: ' + JSON.stringify(r));
-    check(r.hp3 === 5 && /GOLD/.test(r.end3.title) && r.end3.beaten3, 'Provincetown Pier should be the toughest, final ending: ' + JSON.stringify(r));
+    check(r.hp3 === 5 && /WORLD 3/.test(r.end3.title) && /World 4/.test(r.end3.btn) && r.end3.beaten3, 'Provincetown Pier should finish World 3 and offer World 4: ' + JSON.stringify(r));
+    check(r.ny.state === 'map' && r.ny.orchard && !r.ny.niagara && r.ny.flight, 'a flight from Cape Cod should open the Apple Orchard in Western New York: ' + JSON.stringify(r));
+    check(r.kinds.fort === 'yeti' && r.kinds.ptown === 'crab' && r.kinds.liberty === 'grumbles', 'new bosses: the Frost Yeti and Captain Pinch, and King Grumbles at the end: ' + JSON.stringify(r));
+    check(r.hp4 === 6 && /GOLD/.test(r.end4.title) && r.end4.beaten4, 'the Statue of Liberty should be the toughest, final ending: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-world2.png');
   });
 
@@ -1408,6 +1416,39 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.secret, 'the secret exit under the bog opens a golden road along the Cape to Nauset Dunes: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-bog.png');
+  });
+
+  await test('Lucky Leo World 4 extras: taxis, falling apples and crabs; a wall-jump tower up to a gem; and a more forgiving Shamrock gulp', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame();
+      // a taxi drives along the bridge; stomping it knocks it out
+      startLevel('bridge'); const taxi = ents.find(e => e.k === 'taxi'); player.x = taxi.x - 120; run(30); const tx0 = taxi.x; run(20); out.taxiDrives = Math.abs(taxi.x - tx0) > 10;
+      player.x = taxi.x + 6; player.y = taxi.y - player.h - 4; player.vy = 100; player.ground = false; run(4); out.taxiStomp = !!taxi.flip && phase === 'play';
+      // apples drop from the orchard branches when Leo walks underneath
+      startLevel('orchard'); const tree = ents.find(e => e.k === 'appletree'); player.x = tree.x - 10; tree.cool = 0; run(3); out.apple = ents.some(e => e.k === 'applefall');
+      // crabs scuttle at Niagara
+      startLevel('niagara'); const crab = ents.find(e => e.k === 'crab'); player.x = crab.x - 150; run(20); const cx0 = crab.x; run(30); out.crab = Math.abs(crab.x - cx0) > 8;
+      // the wall-jump tower on the rooftops: jump into the gap and kick back and forth to reach the gem at the top
+      startLevel('city'); ents = ents.filter(e => !isEnemy(e)); player.x = 188 * 16 + 4; player.y = 12 * 16 - player.h; player.vy = 0; run(5);
+      keys.jump = true; pressed.jump = true; let dir = 1, top = 999, kicks = 0;
+      run(240, () => { keys.right = dir > 0; keys.left = dir < 0; top = Math.min(top, player.y); if (player.slide && player.vy >= 0) { pressed.jump = true; dir = -dir; kicks++; } });
+      keys.jump = keys.right = keys.left = false;
+      out.tower = { top: Math.round(top), kicks, gem: levelGems[4] };
+      // Shamrock's gulp reaches a goblin a little ahead and a little above
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); mount({}); run(10);
+      const gob = mk('grumblin', player.x + player.w / 2 + 34, player.y + player.h - 30, { dir: 0, w: 14, h: 14 }); ents.push(gob); gob.vy = 0;
+      pressed.run = true; run(1); out.gulp = gob.gone === true;
+      paused = false; return out;
+    });
+    check(r.taxiDrives && r.taxiStomp, 'taxis drive along and can be stomped: ' + JSON.stringify(r));
+    check(r.apple && r.crab, 'apples drop in the orchard and crabs scuttle: ' + JSON.stringify(r));
+    check(r.tower.top < 40 && r.tower.kicks >= 2 && r.tower.gem, 'wall-kicking back and forth up the rooftop gap reaches the gem: ' + JSON.stringify(r));
+    check(r.gulp, "Shamrock's gulp is forgiving: " + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
