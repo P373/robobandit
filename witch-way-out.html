@@ -107,7 +107,7 @@
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261011-0018">
+<link rel="stylesheet" href="common.css?v=20261011-2000">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -161,9 +161,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261011-0018"></script>
-<script src="orbit-cam.js?v=20261011-0018"></script>
-<script src="touch-stick.js?v=20261011-0018"></script>
+<script src="common.js?v=20261011-2000"></script>
+<script src="orbit-cam.js?v=20261011-2000"></script>
+<script src="touch-stick.js?v=20261011-2000"></script>
 <script>
 'use strict';
 
@@ -841,6 +841,7 @@ if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 1: 'KeyC', 2: 'KeyX', 3: 'K
   '<b>Witch Way Out:</b> Ⓧ / Ⓨ 🎩 throw hat · <b>LT</b> ✨ boost · Ⓑ / <b>RB</b> ❔ use power-up · Ⓐ / <b>RT</b> 🛡️ shield · <b>LB</b> or click a stick: camera behind you');
 let state = 'title', paused = false;
 const stick = createTouchStick(canvas, { enabled: () => state === 'fly' && !paused });
+if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
 addEventListener('keydown', e => {
   if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
   if (e.repeat) return;

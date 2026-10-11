@@ -149,7 +149,7 @@
   #btnTorp { background: rgba(40,120,220,.55); }
   #fireButtons button:active { filter: brightness(1.6); }
 </style>
-<link rel="stylesheet" href="common.css?v=20261011-0018">
+<link rel="stylesheet" href="common.css?v=20261011-2000">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -175,8 +175,8 @@
   </div>
 </div>
 
-<script src="common.js?v=20261011-0018"></script>
-<script src="touch-stick.js?v=20261011-0018"></script>
+<script src="common.js?v=20261011-2000"></script>
+<script src="touch-stick.js?v=20261011-2000"></script>
 <script>
 'use strict';
 
@@ -3655,6 +3655,7 @@ function pointerTarget(e) {
 }
 // Touch screens steer with a floating joystick: put a thumb down anywhere and drag.
 const stick = createTouchStick(canvas, { enabled: () => state === 'playing' });
+if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
 canvas.addEventListener('pointerdown', e => {
   sfx.init();
   if (state === 'finale') { if (finaleT > 1) finishFinale(); return; }

@@ -18,7 +18,9 @@ function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
   const pad = () => (typeof RB !== 'undefined' && RB.pad) || {};   // (an old cached common.js has no right stick)
-  const cfg = () => pad().config || {};
+  const inv = k => !!(pad().inv && pad().inv(k));
+  // the camera can be inverted, in this game only, from the 🎮 controller settings
+  if (pad().useInvert) pad().useInvert({ RY: 'Camera up/down', RX: 'Camera left/right' });
   const cam = { yaw: 0, el: el0, yawS: 0, elS: el0, idle: 99, snap: false, drag: null, steerRef: null, steerSign: 0,
     el0, minEl, maxEl, keyL: false, keyR: false };
   // near the top and bottom limits the tilt slows down, so it settles instead of slamming into a stop
@@ -82,8 +84,8 @@ function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33
     canvas.addEventListener('pointermove', e => {
       const d = cam.drag;
       if (!d || e.pointerId !== d.id) return;
-      cam.yaw -= (e.clientX - d.x) * 0.008 * (cfg().invRX ? -1 : 1);
-      cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005 * (cfg().invRY ? -1 : 1), minEl, maxEl);
+      cam.yaw -= (e.clientX - d.x) * 0.008 * (inv('RX') ? -1 : 1);
+      cam.el = clamp(cam.el + (e.clientY - d.y) * 0.005 * (inv('RY') ? -1 : 1), minEl, maxEl);
       d.x = e.clientX; d.y = e.clientY; cam.idle = 0;
     });
     const end = e => { if (cam.drag && e.pointerId === cam.drag.id) cam.drag = null; };

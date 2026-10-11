@@ -132,7 +132,7 @@
   .ball.locked { cursor: default; opacity: .55; }
   .ball.locked i { filter: grayscale(1); }
 </style>
-<link rel="stylesheet" href="common.css?v=20261011-0018">
+<link rel="stylesheet" href="common.css?v=20261011-2000">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -198,9 +198,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261011-0018"></script>
-<script src="orbit-cam.js?v=20261011-0018"></script>
-<script src="touch-stick.js?v=20261011-0018"></script>
+<script src="common.js?v=20261011-2000"></script>
+<script src="orbit-cam.js?v=20261011-2000"></script>
+<script src="touch-stick.js?v=20261011-2000"></script>
 <script>
 'use strict';
 
@@ -1281,6 +1281,7 @@ addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = fals
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
 // Touch: the shared floating joystick (drag left/right to turn, up to float, down to dive)
 const stick = createTouchStick(canvas, { enabled: () => PLAYING.includes(state) && state !== 'intro' });
+if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
 canvas.addEventListener('pointerdown', e => {
   e.preventDefault();
   audio();

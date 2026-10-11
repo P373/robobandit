@@ -269,10 +269,18 @@ const RB = (() => {
     b.addEventListener('click', e => { e.stopPropagation(); b.blur(); openMenu(); });
     bar.insertBefore(b, bar.firstChild);
   }
-  function openMenu() {
+  // The one menu every page shares (☰ on screen or on the controller). The top part is for the game you're in
+  // (Back to the game, then the game's own items and its pause-screen buttons), the rest is the arcade's
+  // (every game and folder, settings, 🏠 All games).
+  // Closing it with ✕ / Esc / 🎮 Ⓑ goes back to how things were: if opening the menu paused the game, the game
+  // carries on. "Back to the game" always carries on.
+  let menuResume = false;
+  function openMenu({ resume, focusHome = false } = {}) {
     if (menuEl) return;
     // pause the game: every game already pauses when the window loses focus
+    const wasPaused = !!pauseEl;
     dispatchEvent(new Event('blur'));
+    menuResume = resume != null ? resume : !wasPaused && !!pauseEl;
     const hiddenPause = document.querySelector('.rb-pause');
     if (hiddenPause) hiddenPause.style.display = 'none';
     const here = location.href.split(/[?#]/)[0];
@@ -282,12 +290,14 @@ const RB = (() => {
     };
     let items = [];
     try { items = (gameItems && gameItems()) || []; } catch (e) { items = []; }
+    // the pause screen's own buttons belong here too (the controller screen is already under Settings)
+    for (const x of pauseExtras) if (!/controller/i.test(x.label) && !items.some(y => y.label === x.label)) items = [...items, x];
     menuEl = document.createElement('div');
     menuEl.className = 'rb-menu';
     menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="RoboBandit menu">
       <div class="rb-menu-head"><a href="${SITE_HOME}" class="rb-menu-logo" data-pad-home><img src="${SITE_ROOT}favicon.svg" alt="">ROBOBANDIT</a>
         <button type="button" class="rb-menu-x" title="Close (Esc)">✕</button></div>
-      ${items.length ? `<h3>⭐ This game</h3><div class="rb-menu-set rb-menu-this">${items.map((x, i) => `<button type="button" data-g="${i}">${x.label}</button>`).join('')}</div>` : ''}
+      <h3>⭐ This game</h3><div class="rb-menu-set rb-menu-this"><button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button>${items.map((x, i) => `<button type="button" data-g="${i}">${x.label}</button>`).join('')}</div>
       <h3>🎮 Games</h3><div class="rb-menu-games">${GAMES.map(g => link(g, 'rb-menu-game')).join('')}</div>
       <h3>📚 School folders</h3><div class="rb-menu-games">${FOLDERS.map(g => link(g, 'rb-menu-game')).join('')}</div>
       <h3>⚙️ Settings</h3><div class="rb-menu-set">
@@ -296,35 +306,38 @@ const RB = (() => {
         ${voice.ok ? '<button type="button" data-m="voice">🗣️ Read-aloud voice</button>' : ''}
         ${document.fullscreenEnabled ? `<button type="button" data-m="fs">⛶ ${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}
         ${menuShare ? '<button type="button" data-m="share">🔗 Share this game</button>' : ''}
-        <a href="${SITE_HOME}" class="rb-home-all">🏠 All games</a></div>
-      <button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button></div>`;
+        <a href="${SITE_HOME}" class="rb-home-all">🏠 All games</a></div></div>`;
     menuEl.addEventListener('pointerdown', e => { e.stopPropagation(); if (e.target === menuEl) closeMenu(); });
-    menuEl.querySelector('.rb-menu-x').addEventListener('click', closeMenu);
-    menuEl.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { closeMenu(); items[+b.dataset.g].onClick(); }));
-    menuEl.querySelector('.rb-menu-back').addEventListener('click', closeMenu);
+    menuEl.querySelector('.rb-menu-x').addEventListener('click', () => closeMenu());
+    menuEl.querySelectorAll('[data-g]').forEach(b => b.addEventListener('click', () => { closeMenu(false); items[+b.dataset.g].onClick(); }));
+    menuEl.querySelector('.rb-menu-back').addEventListener('click', () => closeMenu(true));
     menuEl.querySelectorAll('a').forEach(a => a.addEventListener('click', () => dispatchEvent(new Event('rb-leave'))));
     menuEl.querySelectorAll('[data-m]').forEach(b => b.addEventListener('click', () => {
       const m = b.dataset.m;
       if (m === 'sound') { audio(); setMuted(!muted); b.textContent = muted ? '🔇 Sound: off' : '🔊 Sound: on'; }
-      else if (m === 'pad') { closeMenu(); controllerScreen(); }
+      else if (m === 'pad') { const r = menuResume; closeMenu(false); controllerScreen({ onClose: () => openMenu({ resume: r }) }); }
       else if (m === 'voice') { let v = menuEl.querySelector('.rb-voicebox'); if (!v) { v = document.createElement('div'); v.className = 'rb-voicebox'; b.closest('.rb-menu-set').after(v); } voiceMenu(v); }
-      else if (m === 'fs') { closeMenu(); if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); }
-      else if (m === 'share') { closeMenu(); share(menuShare); }
+      else if (m === 'fs') { closeMenu(false); if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); }
+      else if (m === 'share') { closeMenu(false); share(menuShare); }
     }));
     menuEl.hiddenPause = hiddenPause;
     document.body.appendChild(menuEl);
     addEventListener('keydown', menuKeys, true);
+    if (focusHome) pad.focusHome();
   }
-  function closeMenu() {
+  // resume: true carries on with the game, false stays paused, left out goes back to how it was before the menu
+  function closeMenu(resume) {
     if (!menuEl) return;
+    if (typeof resume !== 'boolean') resume = menuResume;
     voice.stop();
     if (menuEl.hiddenPause) menuEl.hiddenPause.style.display = '';
-    menuEl.remove(); menuEl = null;
+    menuEl.remove(); menuEl = null; menuResume = false;
     removeEventListener('keydown', menuKeys, true);
+    if (resume && pauseEl) pauseEl.querySelector('button').click();   // ▶ KEEP PLAYING
   }
   // while the menu is open, Esc (or 🎮 Ⓑ) closes it and nothing else reaches the game
   function menuKeys(e) {
-    if (e.code === 'Escape') { e.preventDefault(); closeMenu(); }
+    if (e.code === 'Escape') { e.preventDefault(); closeMenu(); }   // (back to how things were)
     // (stopping it here doesn't stop Space / Enter from pressing the highlighted menu button)
     if (['Space', 'Enter', 'Escape', 'KeyP', 'KeyM', 'KeyX', 'KeyZ', 'KeyC', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.stopImmediatePropagation();
   }
@@ -339,14 +352,15 @@ const RB = (() => {
   }
 
   // ---------- Pausing ----------
-  let pauseEl = null;
+  let pauseEl = null, pauseExtras = [];
   function showPause(onResume, { extra = [] } = {}) {
     if (pauseEl) return;
+    pauseExtras = extra;
     pauseEl = document.createElement('div');
     pauseEl.className = 'rb-pause';
     pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>
       <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}<a href="${homeHref()}" class="rb-home">🏠 All games</a>
-      <div class="rb-hint">${pad.connected ? '🎮 ☰ Menu to carry on · ⧉ View twice for all games' : touch ? 'Tap the button to carry on' : 'Press P or Space to carry on'}</div></div>`;
+      <div class="rb-hint">${pad.connected ? '🎮 Ⓐ to pick · ☰ Menu for everything else · ⧉ View twice for all games' : touch ? 'Tap the button to carry on' : 'Press P or Space to carry on'}</div></div>`;
     pauseEl.querySelector('.rb-home').addEventListener('click', () => dispatchEvent(new Event('rb-leave')));
     pauseEl.addEventListener('pointerdown', e => e.stopPropagation());
     pauseEl.querySelector('button').addEventListener('click', () => { hidePause(); onResume(); });
@@ -356,7 +370,7 @@ const RB = (() => {
   }
   function hidePause() {
     if (!pauseEl) return;
-    pauseEl.remove(); pauseEl = null;
+    pauseEl.remove(); pauseEl = null; pauseExtras = [];
     if (ac && ac.state === 'suspended') ac.resume();
   }
   // Calls fn when the player switches tabs or apps, or the window loses focus.
@@ -369,34 +383,40 @@ const RB = (() => {
   // ---------- Game controllers (Xbox and other standard gamepads) ----------
   // During play the controller presses the game's own keys, so every game works without changes:
   //   left stick / D-pad → arrow keys, Ⓐ or RT → Space, Ⓑ or LT → X, Ⓧ → Space, Ⓨ → H (a game can change these: setButtons),
-  //   ☰ Menu → P (pause), ⧉ View → M (sound).
+  //   ☰ Menu opens the RoboBandit menu (and closes it again), ⧉ View: the menu with 🏠 highlighted, twice goes home.
   // Games with a touch joystick (touch-stick.js) also get the left stick as a smooth analog stick.
   // When a menu, pop-up or page of buttons is showing, the D-pad / stick moves a yellow highlight
   // between buttons, Ⓐ presses the highlighted one and Ⓑ is Escape (back).
   const pad = (() => {
     const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', KeyZ: 'z', KeyC: 'c', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
-    const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 9: 'KeyP', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+    const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
     let map = BUTTONS, legend = '';   // a game can give the buttons its own jobs (setButtons)
     const sticks = [];
-    // Controller settings, shared by every game (saved as rb_pad): invert each stick's axes,
-    // camera speed, how big the stick dead zone is, and vibration.
-    // Inverted sticks are a flying / 3D-camera habit (pull back to tip the nose up). Flat, side-on games (pad.flat)
-    // ignore them unless the player opts in a second time (inv2D), so a setting made for a flying game can't
-    // turn a platformer upside down.
-    const DEFAULTS = { invLX: false, invLY: false, invRX: false, invRY: false, inv2D: false, camSpeed: 1, dead: 1, rumble: true };
+    // Controller settings (saved as rb_pad): camera speed, how big the stick dead zone is and vibration are shared
+    // by every game. Inverted sticks are kept for each game on its own (inverts), and only for the sticks a game
+    // says can be inverted (useInvert): a flying stick (pull back to tip the nose up) or a 3D camera. That's how
+    // console games do it ("Invert Y" for flying / the camera): menus and walking, driving or a train's throttle
+    // are never upside down, and a setting made in a flying game can't flip another game.
+    const DEFAULTS = { inverts: {}, camSpeed: 1, dead: 1, rumble: true };
     const DEADZONES = [0.12, 0.22, 0.32];   // small, medium, large
     const cfg = { ...DEFAULTS };
     try {
       const saved = JSON.parse(store.get('rb_pad') || 'null');
-      if (saved) Object.assign(cfg, saved);
+      if (saved) for (const k in DEFAULTS) if (k in saved) cfg[k] = saved[k];   // (the old all-games invert switches are dropped)
       else {   // Witch Way Out's first camera options carry over
         const old = JSON.parse(store.get('ww_cam') || 'null');
-        if (old) { cfg.invRY = !!old.invertY; if (old.speed != null) cfg.camSpeed = old.speed; }
+        if (old && old.speed != null) cfg.camSpeed = old.speed;
       }
+      if (!cfg.inverts || typeof cfg.inverts !== 'object') cfg.inverts = {};
     } catch (e) { /* defaults */ }
     const saveCfg = () => store.set('rb_pad', JSON.stringify(cfg));
-    let flat = false;   // set by a flat, side-on game (see DEFAULTS)
-    const inv = k => !!cfg[k] && (!flat || !!cfg.inv2D);   // is this stick axis inverted in this game?
+    // this game's name in the saved settings, e.g. 'hamglider.html' or 'preschool/abc-train.html'
+    const here = location.href.split(/[?#]/)[0];
+    const GAME_KEY = (here.startsWith(SITE_ROOT) ? here.slice(SITE_ROOT.length) : here.replace(/^.*\//, '')) || 'index.html';
+    // the sticks this game lets you invert: { LY: 'Flying: up/down', RY: 'Camera: up/down', RX: 'Camera: left/right' }
+    const invertable = {};
+    const axisName = k => String(k).replace(/^inv/, '');
+    const inv = k => { k = axisName(k); return !!invertable[k] && !!(cfg.inverts[GAME_KEY] || {})[k]; };   // is this stick axis inverted in this game?
     let navOff = false;   // while the controller tester is testing, buttons only light up the picture
     const look = { x: 0, y: 0 }, game = { lx: 0, ly: 0 };   // game: the left stick as games see it   // the right stick, for games with a camera to swing around
     let pressedNow = [], ignore = [];   // ignore: buttons still held from before a menu opened or closed
@@ -489,6 +509,9 @@ const RB = (() => {
         const cost = along + side * 2.2;
         if (cost < bestCost) { bestCost = cost; best = el; }
       }
+      // nothing further that way (the end of a row of buttons): ↓ / ↑ go on to the next / previous one in the list,
+      // so every button can always be reached with up and down alone
+      if (!best && (dy || dx)) { const i = list.indexOf(focusEl); best = list[i + (dy > 0 || dx > 0 ? 1 : -1)] || null; if (dx && best && Math.abs(best.getBoundingClientRect().top - a.top) > a.height) best = null; }
       if (best) setFocus(best);
     }
     function activate() {
@@ -506,6 +529,7 @@ const RB = (() => {
     // ---- ⧉ View: back to all the games (press twice, so nobody leaves by accident) ----
     // The Xbox button itself belongs to the console, so web pages never see it.
     let leaveAt = -1e9, wantHome = 0;
+    const focusHome = () => { wantHome = performance.now() + 1500; cache.t = 0; };   // highlight 🏠 as soon as the menu is up
     function leaveRequest(now) {
       const href = homeHref();
       if (href.split('#')[0] === location.href.split('#')[0]) return;   // already home
@@ -514,9 +538,11 @@ const RB = (() => {
         location.href = href;
         return;
       }
-      leaveAt = now; wantHome = now + 1500;
-      if (!menuMode) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); cache.t = 0; }   // pause the game while you decide
-      toast('🏠 Press ⧉ View again to go back to all the games');
+      leaveAt = now;
+      if (padScreen) padScreen.close();
+      if (!menuEl) openMenu();   // the menu pauses the game while you decide
+      focusHome();
+      toast(href === SITE_HOME ? '🏠 Press ⧉ View again to go back to all the games' : '🏠 Press ⧉ View again to go back to the folder');
     }
 
     // ---- the polling loop ----
@@ -529,15 +555,13 @@ const RB = (() => {
         g.buttons.forEach((b, i) => { btn[i] = btn[i] || b.pressed || b.value > 0.5; });
         for (const i of [0, 1, 2, 3]) if (Math.abs(g.axes[i] || 0) > Math.abs(A[i])) A[i] = g.axes[i] || 0;
       }
-      if (inv('invLX')) A[0] = -A[0];
-      if (inv('invLY')) A[1] = -A[1];
-      if (inv('invRX')) A[2] = -A[2];
-      if (inv('invRY')) A[3] = -A[3];
       const dead = DEADZONES[cfg.dead] != null ? DEADZONES[cfg.dead] : 0.22, rdead = Math.max(0.1, dead - 0.04);
       const rmag = Math.hypot(A[2], A[3]), rk = rmag < rdead ? 0 : Math.min(1, (rmag - rdead) / (1 - rdead)) / rmag;
-      look.x = A[2] * rk; look.y = A[3] * rk;
+      look.x = A[2] * rk * (inv('RX') ? -1 : 1); look.y = A[3] * rk * (inv('RY') ? -1 : 1);
       const mag = Math.hypot(A[0], A[1]);
-      const lx = mag < dead ? 0 : A[0] / mag * Math.min(1, (mag - dead) / (1 - dead)), ly = mag < dead ? 0 : A[1] / mag * Math.min(1, (mag - dead) / (1 - dead));
+      // mx / my: the left stick as it really is (menus always use this); lx / ly: as this game sees it (inverted if asked)
+      const mx = mag < dead ? 0 : A[0] / mag * Math.min(1, (mag - dead) / (1 - dead)), my = mag < dead ? 0 : A[1] / mag * Math.min(1, (mag - dead) / (1 - dead));
+      const lx = inv('LX') ? -mx : mx, ly = inv('LY') ? -my : my;
       const edge = i => btn[i] && !prevBtn[i];
       game.lx = lx; game.ly = ly;
       if (navOff) {   // testing: nothing reaches the game or the menus
@@ -551,20 +575,25 @@ const RB = (() => {
       if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); ignore = btn.slice(); }
       ignore = ignore.map((b, i) => b && btn[i]);   // a button counts again once it's let go
       if (edge(8)) leaveRequest(now);
+      if (edge(9) && !ignore[9]) {   // ☰: the RoboBandit menu, from anywhere (and ☰ again closes it)
+        if (padScreen) padScreen.close();
+        else if (menuEl) closeMenu();
+        else openMenu();
+        cache.t = 0;
+      }
       if (menu) {
         const opts = choices();
         if (focusEl && !opts.includes(focusEl)) setFocus(null);
         if (now < wantHome) {   // just pressed View: highlight the way home in the pause menu
-          const home = opts.find(el => el.matches('.rb-home, [data-pad-home]') || (el.tagName === 'A' && el.href === homeHref()));
+          const home = opts.find(el => el.matches('.rb-home-all, .rb-home')) || opts.find(el => el.matches('[data-pad-home]') || (el.tagName === 'A' && el.href === homeHref()));
           if (home) { setFocus(home); wantHome = 0; }
         }
         if (!focusEl) setFocus(pickDefault(opts));
-        const dir = btn[12] || ly < -0.5 ? 'ArrowUp' : btn[13] || ly > 0.5 ? 'ArrowDown' : btn[14] || lx < -0.5 ? 'ArrowLeft' : btn[15] || lx > 0.5 ? 'ArrowRight' : null;
+        const dir = btn[12] || my < -0.5 ? 'ArrowUp' : btn[13] || my > 0.5 ? 'ArrowDown' : btn[14] || mx < -0.5 ? 'ArrowLeft' : btn[15] || mx > 0.5 ? 'ArrowRight' : null;
         if (dir && (dir !== last.dir || now >= last.next)) { move(dir, opts); last.next = now + (dir === last.dir ? 130 : 380); }
         last.dir = dir;
         if (edge(0) || edge(2) || edge(7)) activate();
         if (edge(1)) { if (padScreen) padScreen.close(); else if (menuEl) closeMenu(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
-        if (edge(9)) { key('keydown', 'KeyP'); key('keyup', 'KeyP'); }
       } else {
         // the left stick: smooth analog steering where the game has a joystick, arrow keys everywhere else
         const st = sticks.find(s => s.stick.id === null && s.enabled());
@@ -592,7 +621,7 @@ const RB = (() => {
       if (audio) audio();
       requestAnimationFrame(frame);
     }
-    addEventListener('gamepadconnected', () => { start(); style(); toast('🎮 Controller ready! Ⓐ to play · ☰ Menu to pause'); });
+    addEventListener('gamepadconnected', () => { start(); style(); toast('🎮 Controller ready! Ⓐ to play · ☰ for the menu'); });
     addEventListener('gamepaddisconnected', () => { if (!pads().length) { releaseAll(); setFocus(null); } });
     if (pads().length) start();
     return {
@@ -613,8 +642,12 @@ const RB = (() => {
       look,   // { x, y } from the right stick, -1 to 1 (y is +1 pulled down)
       pressed: i => !!pressedNow[i],   // is button i held right now (10 / 11 are the stick clicks)
       get menuMode() { return menuMode; },
-      config: cfg, DEFAULTS, DEADZONES, game, inv,
-      get flat() { return flat; }, set flat(v) { flat = !!v; },
+      config: cfg, DEFAULTS, DEADZONES, game, inv, GAME_KEY, focusHome,
+      // a game names the sticks it lets you invert, e.g. useInvert({ LY: 'Flying: up/down' }) (orbit-cam.js adds the camera's)
+      useInvert(axes) { Object.assign(invertable, axes); },
+      get invertable() { return { ...invertable }; },
+      setInvert(k, on) { k = axisName(k); cfg.inverts = { ...cfg.inverts, [GAME_KEY]: { ...(cfg.inverts[GAME_KEY] || {}), [k]: !!on } }; saveCfg(); },
+      flat: false,   // (old: flat games now simply don't call useInvert)
       setConfig(patch) { Object.assign(cfg, patch); saveCfg(); },
       get camSpeed() { return [0.65, 1, 1.45][cfg.camSpeed] || 1; },
       set navOff(v) { navOff = v; if (v) { releaseAll(); setFocus(null); } else ignore = prevBtn.slice(); },
@@ -635,6 +668,7 @@ const RB = (() => {
     const hiddenPause = pauseEl; if (hiddenPause) hiddenPause.style.display = 'none';
     const B = (i, x, y, r, label, cls = '') => `<g class="b ${cls}" data-b="${i}"><circle cx="${x}" cy="${y}" r="${r}"/><text x="${x}" y="${y + 1}">${label}</text></g>`;
     const R = (i, x, y, w, h, label, rx = 8) => `<g class="b" data-b="${i}"><rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${rx}"/><text x="${x + w / 2}" y="${y + h / 2 + 1}">${label}</text></g>`;
+    const invRows = Object.entries(pad.invertable);
     wrap.innerHTML = `<div class="rb-panel rb-padpanel">
       <h2>🎮 Controller</h2>
       <div class="pad-status" id="padStatus"></div>
@@ -654,11 +688,9 @@ const RB = (() => {
       <div class="pad-test" id="padTest">✋ <b>Testing:</b> press every button and move both sticks. <b>Hold Ⓑ</b> to finish testing.
         <div class="hold"><div id="padHold"></div></div></div>
       <div class="pad-settings" id="padSettings">
-        <div class="row"><b>Left stick</b> <button type="button" data-k="invLY"></button><button type="button" data-k="invLX"></button></div>
-        <div class="row"><b>Right stick (camera)</b> <button type="button" data-k="invRY"></button><button type="button" data-k="invRX"></button></div>
-        ${pad.flat ? `<div class="row pad-flat">↕️ Inverted sticks are for flying and 3D cameras (pull back to tip the nose up). This game is flat, so it keeps the sticks normal.
-          <button type="button" id="padInv2D" class="alt"></button></div>` : ''}
-        <div class="row"><b>Camera speed</b> <button type="button" data-k="camSpeed"></button>
+        ${invRows.length ? `<div class="row"><b>Invert (this game only)</b> ${invRows.map(([k, label]) => `<button type="button" data-inv="${k}" data-label="${esc(label)}"></button>`).join('')}</div>`
+          : `<div class="row pad-flat">↕️ Inverted sticks are for flying and 3D cameras (pull back to tip the nose up). This game has neither, so its sticks always work the normal way.</div>`}
+        <div class="row">${invRows.some(([k]) => k[0] === 'R') ? '<b>Camera speed</b> <button type="button" data-k="camSpeed"></button>' : ''}
           <b>Dead zone</b> <button type="button" data-k="dead"></button></div>
         <div class="row"><b>Vibration</b> <button type="button" data-k="rumble"></button> <button type="button" id="padBuzz">Test 📳</button></div>
         <div class="row"><button type="button" id="padReset" class="alt">↺ Reset to defaults</button>
@@ -672,30 +704,23 @@ const RB = (() => {
     const $p = sel => wrap.querySelector(sel);
     const cfg = pad.config;
     const NAMES = {
-      invLY: v => `Up/down: ${v ? 'Inverted' : 'Normal'}`, invLX: v => `Left/right: ${v ? 'Inverted' : 'Normal'}`,
-      invRY: v => `Up/down: ${v ? 'Inverted' : 'Normal'}`, invRX: v => `Left/right: ${v ? 'Inverted' : 'Normal'}`,
       camSpeed: v => ['Slow', 'Normal', 'Fast'][v] || 'Normal', dead: v => ['Small', 'Medium', 'Large'][v] || 'Medium', rumble: v => v ? 'On' : 'Off',
     };
-    let confirmInv = 0;
     const paint = () => {
       wrap.querySelectorAll('[data-k]').forEach(b => { b.textContent = NAMES[b.dataset.k](cfg[b.dataset.k]); b.classList.toggle('on', cfg[b.dataset.k] !== pad.DEFAULTS[b.dataset.k]); });
-      const b2 = wrap.querySelector('#padInv2D');
-      if (b2) { b2.textContent = cfg.inv2D ? '↕️ Inverted sticks in this game: On (tap to turn off)' : confirmInv ? '⚠️ Sure? Tap again to use inverted sticks here' : 'Use inverted sticks in this game too…'; b2.classList.toggle('on', !!cfg.inv2D || !!confirmInv); }
+      wrap.querySelectorAll('[data-inv]').forEach(b => { const on = pad.inv(b.dataset.inv); b.textContent = `${b.dataset.label}: ${on ? 'Inverted' : 'Normal'}`; b.classList.toggle('on', on); });
     };
     wrap.querySelectorAll('[data-k]').forEach(b => b.addEventListener('click', () => {
       const k = b.dataset.k, v = cfg[k];
       pad.setConfig({ [k]: typeof v === 'boolean' ? !v : (v + 1) % 3 });
       paint();
     }));
-    const inv2D = wrap.querySelector('#padInv2D');
-    if (inv2D) inv2D.addEventListener('click', () => {   // the second opt-in: one tap asks, a second tap (within a few seconds) turns it on
-      if (cfg.inv2D) { pad.setConfig({ inv2D: false }); confirmInv = 0; }
-      else if (confirmInv && performance.now() - confirmInv < 5000) { pad.setConfig({ inv2D: true }); confirmInv = 0; }
-      else confirmInv = performance.now();
-      paint();
-    });
+    wrap.querySelectorAll('[data-inv]').forEach(b => b.addEventListener('click', () => { pad.setInvert(b.dataset.inv, !pad.inv(b.dataset.inv)); paint(); }));
     $p('#padBuzz').addEventListener('click', () => { const was = cfg.rumble; cfg.rumble = true; pad.rumble(400, 0.8); cfg.rumble = was; });
-    $p('#padReset').addEventListener('click', () => { pad.setConfig({ ...pad.DEFAULTS }); paint(); });
+    $p('#padReset').addEventListener('click', () => {   // (another game's invert settings are its own)
+      const { [pad.GAME_KEY]: _mine, ...others } = cfg.inverts;
+      pad.setConfig({ ...pad.DEFAULTS, inverts: others }); paint();
+    });
     let testing = false, holdB = 0, last = performance.now();
     const setTesting = on => {
       testing = on && pad.connected; pad.navOff = testing; holdB = 0;
@@ -735,7 +760,7 @@ const RB = (() => {
       wrap.querySelectorAll('.trig').forEach(el => { const v = (g.buttons[+el.dataset.t] || {}).value || 0; el.querySelector('.fill').setAttribute('width', 70 * v); el.classList.toggle('on', v > 0.5); });
       // the sticks: the knob shows the direction the GAME sees (after your invert settings)
       const ax = i => g.axes[i] || 0;
-      const seen = [ax(0) * (pad.inv('invLX') ? -1 : 1), ax(1) * (pad.inv('invLY') ? -1 : 1), ax(2) * (pad.inv('invRX') ? -1 : 1), ax(3) * (pad.inv('invRY') ? -1 : 1)];
+      const seen = [ax(0) * (pad.inv('LX') ? -1 : 1), ax(1) * (pad.inv('LY') ? -1 : 1), ax(2) * (pad.inv('RX') ? -1 : 1), ax(3) * (pad.inv('RY') ? -1 : 1)];
       for (const [s, cx, cy, i] of [['L', 110, 115, 0], ['R', 262, 178, 2]]) {
         const k = wrap.querySelector(`[data-s="${s}"] .knob`);
         k.setAttribute('transform', `translate(${seen[i] * 20} ${seen[i + 1] * 20})`);

@@ -437,6 +437,22 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'flight-school.png');
   });
 
+  await test('Flight School: lessons use the whole screen (a big diagram, no card), on a wide screen and a phone', async () => {
+    const bad = [];
+    for (const vp of [{ width: 1400, height: 700 }, { width: 844, height: 390 }, { width: 390, height: 844 }]) {
+      const p = await open(browser, 'flight-school.html', { viewport: vp });
+      await p.evaluate(() => startLesson(2)); await p.waitForTimeout(300);
+      const r = await p.evaluate(() => {
+        const d = document.getElementById('dia').getBoundingClientRect(), c = getComputedStyle(document.getElementById('card'));
+        const fwd = document.getElementById('fwd').getBoundingClientRect();
+        return { w: d.width / innerWidth, h: d.height / innerHeight, border: c.borderTopWidth, sharp: document.getElementById('dia').width >= d.width, fwdOn: fwd.bottom <= innerHeight + 1 || innerHeight > innerWidth };
+      });
+      if (!(r.w > (vp.width > vp.height ? 0.55 : 0.9)) || r.border !== '0px' || !r.sharp || !r.fwdOn) bad.push(JSON.stringify({ vp, r }));
+      await done(p, vp.width === 1400 ? 'flight-lesson-wide.png' : null);
+    }
+    check(!bad.length, 'lesson layout: ' + bad.join(' | '));
+  });
+
   await test('Flight School: quiz with second chances, stars, cards, final exam and certificate', async () => {
     const p = await open(browser, 'flight-school.html', { viewport: { width: 960, height: 700 } });
     await p.evaluate(() => { settings.mode = 'easy'; cur = 0; startRound(true); round.over = true; round.win = true; round.end = 'test'; round.endT = 2; update(0.01); });
@@ -594,9 +610,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(sx > 0.3 && sx < 0.9, 'the left stick should steer smoothly (analog), got ' + sx);
     await padStick(p, 0, 0);
     await padTap(p, 'MENU');
-    check(await p.evaluate(() => paused), '☰ should pause');
+    check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), '☰ should open the menu and pause');
+    check((await padFocus(p)) === 'Back to the game' || await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-menu-back')), 'Back to the game should be highlighted');
     await padTap(p, 'A');
-    check(await p.evaluate(() => !paused), 'Ⓐ on Keep Playing should resume');
+    check(await p.evaluate(() => !paused && !document.querySelector('.rb-menu')), 'Ⓐ on Back to the game should resume');
     await p.evaluate(() => RB.noise(0.3, 0.5)); await p.waitForTimeout(50);
     check(await p.evaluate(() => window.__rumbles > 0), 'crashes should rumble the controller');
     // Flight School: menus with the D-pad, hold Ⓐ for the burner
@@ -719,7 +736,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padTap(p, 'MENU');
     check(await p.evaluate(() => !paused && RB.audio().state === 'running'), 'carrying on should bring the sound back');
     await view();
-    check(await p.evaluate(() => paused && document.querySelector('.rb-pad-focus')?.classList.contains('rb-home')), 'View once should pause with "All games" highlighted');
+    check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu') && document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all')), 'View once should open the menu (paused) with "All games" highlighted');
     await view(); await p.waitForTimeout(500);
     check(p.url().endsWith('/index.html'), 'View twice should go back to all the games: ' + p.url());
     await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(400);
@@ -758,10 +775,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padHold(p, 'A', false);
     await padHold(p, 'B', true); await p.waitForTimeout(2600); await padHold(p, 'B', false);
     check(await p.evaluate(() => !document.querySelector('.rb-padscreen.testing')), 'holding Ⓑ should finish testing');
-    // settings: invert the left stick's up/down and the right stick's up/down, switch vibration off
-    await p.click('[data-k="invLY"]'); await p.click('[data-k="invRY"]'); await p.click('[data-k="rumble"]');
+    // settings: invert flying up/down and the camera's up/down (in this game only), switch vibration off
+    await p.click('[data-inv="LY"]'); await p.click('[data-inv="RY"]'); await p.click('[data-k="rumble"]');
     const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('rb_pad')));
-    check(saved.invLY && saved.invRY && !saved.rumble, 'settings should save: ' + JSON.stringify(saved));
+    const mine = (saved.inverts || {})['witch-way-out.html'] || {};
+    check(mine.LY && mine.RY && !mine.RX && !saved.rumble, 'settings should save, for this game: ' + JSON.stringify(saved));
     await padTap(p, 'B'); await p.waitForTimeout(100);
     check(await p.evaluate(() => !document.querySelector('.rb-padscreen') && state === 'title'), 'Ⓑ should close the screen');
     await p.evaluate(() => startGame()); await p.waitForTimeout(200);
@@ -770,12 +788,19 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.stickY > 0.3 && r.lookY > 0.3, 'pushing both sticks up should now count as down (inverted): ' + JSON.stringify(r));
     await p.evaluate(() => { __pad.axes[1] = 0; __pad.axes[3] = 0; window.__rumbles = 0; RB.noise(0.3, 0.5); });
     check(await p.evaluate(() => !window.__rumbles), 'vibration off should stop the rumble');
-    // the pause menu has the controller screen too, and closing it returns to the pause menu
-    await padTap(p, 'MENU');
+    // the pause screen has the controller screen too, and closing it returns to the pause screen
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
     await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
-    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause menu should open the controller screen');
+    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause screen should open the controller screen');
     await p.keyboard.press('Escape'); await p.waitForTimeout(100);
-    check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause menu, still paused');
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause screen, still paused');
+    // and from the ☰ menu: closing the controller screen goes back to the menu, ☰ again carries on
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await padTap(p, 'MENU'); await p.click('.rb-menu [data-m="pad"]'); await p.waitForTimeout(150);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !!document.querySelector('.rb-menu') && paused), 'closing the controller screen goes back to the menu');
+    await padTap(p, 'MENU'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !document.querySelector('.rb-menu') && !paused), '☰ again closes the menu and carries on');
     await p.evaluate(() => { localStorage.removeItem('rb_pad'); });
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await p.screenshot({ path: path.join(OUT, 'witch-controller.png') });
@@ -847,6 +872,79 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('🎮 every game: the controller ☰ opens the same menu (this game, then the arcade) and the stick reaches 🏠 All games', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const bad = [];
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+      await p.goto(url(f)); await p.waitForTimeout(500);
+      await padTap(p, 'A'); await p.waitForTimeout(300);   // start playing (or press whatever the title screen highlights)
+      if (!p.url().includes(f.split('/').pop())) { await p.goto(url(f)); await p.waitForTimeout(500); }
+      if (await p.evaluate(() => !!document.querySelector('.rb-menu'))) await padTap(p, 'B');
+      await padTap(p, 'MENU'); await p.waitForTimeout(150);
+      const m = await p.evaluate(() => {
+        const el = document.querySelector('.rb-menu'), h = el ? [...el.querySelectorAll('h3')].map(x => x.textContent) : [];
+        return { open: !!el, heads: h, back: !!(el && el.querySelector('.rb-menu-this .rb-menu-back')), home: !!(el && el.querySelector('.rb-home-all')),
+          focus: document.querySelector('.rb-pad-focus')?.className || '' };
+      });
+      if (!m.open || !/This game/.test(m.heads[0] || '') || !m.heads.some(x => /Games/.test(x)) || !m.back || !m.home || !/rb-menu-back/.test(m.focus)) { bad.push(f + ' menu ' + JSON.stringify(m)); continue; }
+      // the stick (pushed down) walks the highlight to 🏠 All games, and Ⓐ goes there
+      for (let i = 0; i < 40 && !(await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all'))); i++) {
+        await padStick(p, 0, 0.9); await padStick(p, 0, 0);
+      }
+      if (!(await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all')))) { bad.push(f + ' could not reach All games: ' + await padFocus(p)); continue; }
+      try { await padTap(p, 'A'); } catch (e) { /* the page went away */ }
+      await p.waitForTimeout(400);
+      if (!/robobandit\/index\.html$|\/index\.html$/.test(p.url()) || p.url().includes('preschool/') || p.url().includes('grade/')) bad.push(f + ' went to ' + p.url());
+    }
+    check(!bad.length, 'menu problems: ' + bad.join(' || '));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('🎮 inverted sticks are per game and only for flying / the camera: menus, Lucky Leo and the train throttle stay normal', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('hamglider.html')); await p.waitForTimeout(600);
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.controllerScreen(); });
+    const rows = await p.$$eval('[data-inv]', bs => bs.map(b => b.dataset.inv).sort().join(','));
+    await p.click('[data-inv="LY"]', { force: true });
+    await p.evaluate(() => document.querySelector('.rb-padscreen').close());
+    const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('rb_pad')).inverts);
+    // the menu still moves the normal way with the flying stick inverted
+    await padTap(p, 'MENU'); await p.waitForTimeout(150);
+    const f0 = await padFocus(p); await padStick(p, 0, 0.9); await padStick(p, 0, 0); const f1 = await padFocus(p);
+    const down = await p.evaluate(() => { const a = [...document.querySelectorAll('.rb-menu button, .rb-menu a')]; const f = document.querySelector('.rb-pad-focus'); return f && f.getBoundingClientRect().top > document.querySelector('.rb-menu-back').getBoundingClientRect().top; });
+    await padTap(p, 'B');
+    // flying: stick up now dives (pull back to climb)
+    await p.evaluate(() => { __pad.axes[1] = -0.9; }); await p.waitForTimeout(200);
+    const fly = await p.evaluate(() => ({ y: stick.y, game: RB.pad.game.ly }));
+    await p.evaluate(() => { __pad.axes[1] = 0; });
+    // another game doesn't get it: the train's throttle goes forward when the stick is pushed up
+    await p.goto(url('preschool/abc-train.html')); await p.waitForTimeout(800);
+    await p.evaluate(() => { const c = JSON.parse(localStorage.getItem('rb_pad')); c.inverts['preschool/abc-train.html'] = { LY: true, LX: true, RX: false, RY: false }; localStorage.setItem('rb_pad', JSON.stringify(c)); });
+    await p.reload(); await p.waitForTimeout(800);
+    const train = await p.evaluate(() => ({ ly: RB.pad.inv('LY'), rows: (RB.controllerScreen(), [...document.querySelectorAll('[data-inv]')].map(b => b.dataset.inv).sort().join(',')) }));
+    await p.evaluate(() => document.querySelector('.rb-padscreen').close());
+    await p.evaluate(() => { RB.speak = () => {}; }); await p.click('#btnAbc'); await p.waitForTimeout(300);
+    await p.evaluate(() => { hold = 0; for (const st of stations) st.letter = null; next = 99; });
+    const th0 = await p.evaluate(() => train.th);
+    await p.evaluate(() => { __pad.axes[1] = -0.9; }); await p.waitForTimeout(700); await p.evaluate(() => { __pad.axes[1] = 0; }); await p.waitForTimeout(100);
+    const th1 = await p.evaluate(() => train.th);
+    check(rows === 'LY,RX,RY', 'Hamglider offers flying up/down and the camera: ' + rows);
+    check(saved['hamglider.html'] && saved['hamglider.html'].LY && Object.keys(saved).length === 1, 'the setting is saved for Hamglider only: ' + JSON.stringify(saved));
+    check(down && f1 !== f0, 'menus move the normal way even with an inverted stick: ' + JSON.stringify({ f0, f1, down }));
+    check(fly.game > 0.3, 'inverted flying: stick up pulls down in Hamglider: ' + JSON.stringify(fly));
+    check(!train.ly && train.rows === 'RX,RY', 'the train only offers its camera, never the left stick: ' + JSON.stringify(train));
+    check(th1 > th0 + 0.1, 'stick up pushes the train throttle forward: ' + JSON.stringify({ th0, th1 }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
   await test('every game has the ☰ menu: it pauses, lists every game and folder, and closes with Esc or Ⓑ', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
     await ctx.addInitScript(fakePad);
@@ -867,7 +965,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.keyboard.press('p'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
     await padTap(p, 'B'); await p.waitForTimeout(100);
-    check(await p.evaluate(() => !document.querySelector('.rb-menu') && paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ should close the menu, back to the pause screen');
+    check(await p.evaluate(() => !document.querySelector('.rb-menu') && !paused && !document.querySelector('.rb-pause')), 'Ⓑ should close the menu and carry on (the menu paused it)');
+    // over the game's own pause screen the menu goes back to it, and "Back to the game" carries on
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.click('#btnMenu'); await p.waitForTimeout(100);
+    await padTap(p, 'B'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ over the pause screen goes back to it');
+    await p.click('#btnMenu'); await p.waitForTimeout(100); await p.click('.rb-menu-back'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !paused && !document.querySelector('.rb-pause')), 'Back to the game carries on');
     // from a lesson in a folder, the links still point at the arcade's pages
     await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(300);
     await p.click('#btnMenu'); await p.waitForTimeout(100);
@@ -1334,23 +1439,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-ride.png');
   });
 
-  await test('Lucky Leo: controller settings in the pause menu; inverted sticks (a flying setting) stay off in this flat game unless asked for twice', async () => {
+  await test('Lucky Leo: controller settings in the pause menu; inverted sticks never apply here (only flying games and 3D cameras offer them)', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
-    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, invLY: true, invRY: true }); startGame(); startLevel('hills'); pause(); });
-    const r1 = await p.evaluate(() => ({ flat: RB.pad.flat, ly: RB.pad.inv('invLY'), ry: RB.pad.inv('invRY'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, inverts: { 'lucky-leo.html': { LY: true, LX: true } } }); startGame(); startLevel('hills'); pause(); });
+    const r1 = await p.evaluate(() => ({ ly: RB.pad.inv('LY'), lx: RB.pad.inv('invLX'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
     await p.evaluate(() => [...document.querySelectorAll('.rb-pause button')].find(b => /Controller/.test(b.textContent)).click());
-    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), btn: (document.querySelector('#padInv2D') || {}).textContent || '' }));
-    await p.evaluate(() => document.querySelector('#padInv2D').click());
-    const once = await p.evaluate(() => RB.pad.inv('invLY'));
-    await p.evaluate(() => document.querySelector('#padInv2D').click());
-    const twice = await p.evaluate(() => RB.pad.inv('invLY'));
+    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), rows: document.querySelectorAll('[data-inv]').length, cam: !!document.querySelector('[data-k="camSpeed"]') }));
     await p.evaluate(() => document.querySelector('#padDone').click());
     const back = await p.evaluate(() => ({ pause: !!document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display !== 'none', screen: !!document.querySelector('.rb-padscreen') }));
     await p.evaluate(() => RB.pad.setConfig({ ...RB.pad.DEFAULTS }));
-    check(r1.flat && !r1.ly && !r1.ry, 'inverted sticks are ignored in Lucky Leo by default: ' + JSON.stringify(r1));
+    check(!r1.ly && !r1.lx, 'inverted sticks are ignored in Lucky Leo, even if saved: ' + JSON.stringify(r1));
     check(!!r1.btn, 'the pause menu has a controller settings button: ' + JSON.stringify(r1));
-    check(screen.open && screen.note && /inverted/i.test(screen.btn), 'the controller screen explains and offers the second opt-in: ' + JSON.stringify(screen));
-    check(!once && twice, 'it takes two taps to turn inverted sticks on here: ' + JSON.stringify({ once, twice }));
+    check(screen.open && screen.note && !screen.rows && !screen.cam, 'the controller screen explains there is nothing to invert here: ' + JSON.stringify(screen));
     check(back.pause && !back.screen, 'Done goes back to the pause menu: ' + JSON.stringify(back));
     await done(p);
   });
@@ -1437,16 +1537,31 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       run(240, () => { keys.right = dir > 0; keys.left = dir < 0; top = Math.min(top, player.y); if (player.slide && player.vy >= 0) { pressed.jump = true; dir = -dir; kicks++; } });
       keys.jump = keys.right = keys.left = false;
       out.tower = { top: Math.round(top), kicks, gem: levelGems[4] };
+      // like Mario, between two walls: after the first kick, just keep tapping jump (no turning the stick round each time)
+      startLevel('city'); ents = ents.filter(e => !isEnemy(e)); player.x = 188 * 16 + 4; player.y = 12 * 16 - player.h; player.vy = 0; player.vx = 0; run(5);
+      let top2 = 999, kicks2 = 0, k0 = 0;
+      run(300, i => { keys.right = i < 40; keys.jump = i % 8 < 3; pressed.jump = i % 8 === 0; top2 = Math.min(top2, player.y); if (player.chainT > 0.58 && !k0) { kicks2++; k0 = 1; } if (player.chainT < 0.5) k0 = 0; });
+      keys.jump = keys.right = keys.left = false;
+      out.mash = { top: Math.round(top2), kicks: kicks2 };
       // Shamrock's gulp reaches a goblin a little ahead and a little above
       startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); mount({}); run(10);
       const gob = mk('grumblin', player.x + player.w / 2 + 34, player.y + player.h - 30, { dir: 0, w: 14, h: 14 }); ents.push(gob); gob.vy = 0;
       pressed.run = true; run(1); out.gulp = gob.gone === true;
+      // gulps 2, 3 (a poop) and 4: the fourth powers Shamrock up with the rainbow eye laser
+      out.eyes = [];
+      for (let n = 2; n <= 4; n++) {
+        run(30); const g = mk('grumblin', player.x + player.w / 2 + player.face * 30, player.y + player.h - 20, { dir: 0, w: 14, h: 14 }); ents.push(g); g.vy = 0;
+        pressed.run = true; run(1); out.eyes.push({ n, ate: g.gone === true, laser: !!player.laser });
+      }
+      run(100); out.poop = ents.filter(e => e.k === 'poop').length;
       paused = false; return out;
     });
     check(r.taxiDrives && r.taxiStomp, 'taxis drive along and can be stomped: ' + JSON.stringify(r));
     check(r.apple && r.crab, 'apples drop in the orchard and crabs scuttle: ' + JSON.stringify(r));
     check(r.tower.top < 40 && r.tower.kicks >= 2 && r.tower.gem, 'wall-kicking back and forth up the rooftop gap reaches the gem: ' + JSON.stringify(r));
+    check(r.mash.top < 40 && r.mash.kicks >= 3, 'tapping jump between two walls kicks back and forth to the top, like Mario: ' + JSON.stringify(r.mash));
     check(r.gulp, "Shamrock's gulp is forgiving: " + JSON.stringify(r));
+    check(r.eyes.every(x => x.ate) && !r.eyes[1].laser && r.eyes[2].laser && r.poop === 1, 'poop after 3 gulps, laser eyes after the 4th: ' + JSON.stringify({ eyes: r.eyes, poop: r.poop }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
   });

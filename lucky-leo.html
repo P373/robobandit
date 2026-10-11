@@ -71,7 +71,7 @@
   #tHat { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 88px) !important; width: 64px !important; height: 64px !important; font-size: 24px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261011-0018">
+<link rel="stylesheet" href="common.css?v=20261011-2000">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -118,7 +118,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261011-0018"></script>
+<script src="common.js?v=20261011-2000"></script>
 <script>
 'use strict';
 // ===================== Lucky Leo =====================
@@ -827,7 +827,7 @@ const pressed = { jump: false, run: false, start: false, left: false, right: fal
 const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'up', KeyW: 'up', KeyZ: 'jump', KeyK: 'jump',
   KeyX: 'run', ShiftLeft: 'run', ShiftRight: 'run', KeyJ: 'run', ArrowDown: 'down', KeyS: 'down', KeyC: 'hat', KeyL: 'hat', KeyQ: 'item', KeyE: 'item' };
 // 🎮 Ⓐ / Ⓑ jump, Ⓧ / RT run (and throw rainbow sparks), Ⓨ / RB throw the hat, LB drop the saved power-up, LT crouch: high jump, or ground pound in the air
-if (RB.pad) RB.pad.flat = true;   // a flat, side-on game: inverted sticks (a flying habit) stay off unless asked for twice
+// (a flat, side-on game: it never asks for inverted sticks, so a flying game's invert setting can't flip Leo)
 if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'KeyX', 3: 'KeyC', 4: 'KeyQ', 5: 'KeyC', 6: 'KeyS', 7: 'KeyX' },
   '<b>Lucky Leo:</b> Ⓐ / Ⓑ jump (hold to go higher; press again in the air to spin higher) · Ⓧ / RT run and throw rainbow sparks · Ⓨ / RB 🎩 throw your hat with the magic hat (hold up to throw it up, crouch with LT to throw it low) · <b>LB</b> drop the saved power-up from the box · <b>LT</b> + jump: high jump · <b>LT</b> in the air: ground pound');
 let paused = false;
@@ -881,9 +881,7 @@ function stickUD() {
   try {
     const gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected);
     if (!gp) return 0;
-    const inv = k => !!(RB.pad && RB.pad.inv && RB.pad.inv(k));
-    let lx = gp.axes[0] || 0, ly = gp.axes[1] || 0;
-    if (inv('invLX')) lx = -lx; if (inv('invLY')) ly = -ly;
+    const lx = gp.axes[0] || 0, ly = gp.axes[1] || 0;
     return ly > 0.55 && ly > Math.abs(lx) * 0.75 ? 1 : ly < -0.55 && -ly > Math.abs(lx) * 0.75 ? -1 : 0;
   } catch (e) { return 0; }
 }
@@ -1056,11 +1054,16 @@ function updateUnicorn(e, dt) {
   moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
   if (e.y > LH + 30) e.gone = true;
 }
-// gulp! after three, Shamrock has a little think… and leaves a poop behind
+// gulp! after three, Shamrock has a little think… and leaves a poop behind. The fourth gulp powers him up:
+// his eyes glow and he gets the rainbow eye laser (the same as the rainbow prism gives)
 function eatEnemy(e) {
   const m = player.mount;
-  e.gone = true; m.chew = 0.6; m.eaten = (m.eaten || 0) + 1; addScore(200, e.x, e.y); sfx.gulp();
+  e.gone = true; m.chew = 0.6; m.eaten = (m.eaten || 0) + 1; m.gulps = (m.gulps || 0) + 1; addScore(200, e.x, e.y); sfx.gulp();
   if (m.eaten >= 3) { m.eaten = 0; m.digest = 1.3; }
+  if (m.gulps === 4 && !player.laser) {
+    player.laser = true; m.eye = 1.2; sfx.power(); addScore(1000, e.x, e.y); sparkle(player.x + player.w / 2, player.y + 6, '#ff9ad0', 14);
+    banner('RAINBOW EYES!', 'Four gulps powered Shamrock up: press run (X) to fire his eye laser', 2.6);
+  }
 }
 function dropPoop() {
   const p = player, x = p.x + p.w / 2 - p.face * 14 - 6;
@@ -2453,6 +2456,15 @@ const tileAt = (tx, ty) => {
 const setTile = (tx, ty, v) => { if (tx >= 0 && tx < lvl.w && ty >= 0 && ty < lvl.h) lvl.t[ty * lvl.w + tx] = v; };
 const overlap = (a, b) => a.x < b.x + b.w && a.x + a.w > b.x && a.y < b.y + b.h && a.y + a.h > b.y;
 
+// is there a wall right beside this body (1: on its right, -1: on its left, 0: none)?
+function wallNear(a) {
+  const y0 = Math.floor((a.y + 2) / TS), y1 = Math.floor((a.y + a.h - 3) / TS);
+  for (const [side, x] of [[1, a.x + a.w + 1], [-1, a.x - 1]]) {
+    const tx = Math.floor(x / TS);
+    for (let ty = y0; ty <= y1; ty++) if (SOLID.has(tileAt(tx, ty))) return side;
+  }
+  return 0;
+}
 // moving through the tiles, one axis at a time. Returns what it hit.
 function moveX(a, dx) {
   a.x += dx; a.wall = 0;
@@ -2723,10 +2735,13 @@ function updatePlayer(dt) {
     if (!p.flip) p.form ? sfx.bigJump() : sfx.jump();
     p.squash = -0.9; puff(p.x + p.w / 2, p.y + p.h, 3);
   }
-  // the wall kick, like Mario Odyssey: sliding down a wall, press jump to kick off it, up and away (walls back to back: kick up between them)
-  if (pressed.jump && p.slide && !p.ground && !p.mount && !p.pound && phase === 'play') {
-    const d = -p.slide;
-    p.vx = d * 175; p.vy = -365; p.face = d; p.slide = 0; p.wallT = 0; p.kickLock = 0.2; p.spun = false; p.twirl = 0; p.buffer = 0; pressed.jump = false;
+  // the wall kick, like Mario: touching a wall in the air (sliding down it, or still on the way up), press jump to
+  // kick off it, up and away. Between two walls, kick back and forth to climb: each kick carries Leo across to the
+  // other wall and he can kick again the moment he touches it (a jump pressed just before counts too).
+  const touching = !p.ground && !p.swim && !p.mount && !p.pound && !p.carry && phase === 'play' ? (p.slide || wallNear(p)) : 0;
+  if (p.buffer > 0 && touching && !jumpedNow) {
+    const d = -touching;
+    p.vx = d * 175; p.vy = -365; p.face = d; p.slide = 0; p.wallT = 0; p.kickLock = 0.2; p.chainT = 0.6; p.spun = false; p.twirl = 0; p.buffer = 0; pressed.jump = false;
     sfx.kick(); p.form ? sfx.bigJump() : sfx.jump(); RB.pad.rumble(60, 0.3);
     puff(p.x + (d > 0 ? 0 : p.w), p.y + p.h / 2, 4); sparkle(p.x + (d > 0 ? 0 : p.w), p.y + p.h / 2, '#ffffff', 4);
   }
@@ -2792,7 +2807,10 @@ function updatePlayer(dt) {
   if (p.wall) p.vx = 0;
   // the wall slide: falling against a wall while holding towards it, Leo slides down slowly (and can wall kick)
   p.wallT = Math.max(0, (p.wallT || 0) - dt);
-  if (!p.ground && !p.swim && !p.mount && !p.pound && !p.carry && p.wall && dir === p.wall && p.vy > 0 && phase === 'play') { p.slide = p.wall; p.wallT = 0.13; }
+  // (just after a kick he grabs the next wall by himself, so a chain of kicks doesn't need the stick turned round each time)
+  p.chainT = Math.max(0, (p.chainT || 0) - dt);
+  const wallSide = !p.ground && !p.swim && !p.mount && !p.pound && !p.carry && phase === 'play' ? (p.wall || wallNear(p)) : 0;
+  if (wallSide && (dir === wallSide || (p.chainT > 0 && p.face === wallSide))) { p.slide = wallSide; p.wallT = 0.13; }
   else if (p.wallT <= 0 || p.ground || p.mount) p.slide = 0;
   if (p.slide && p.wallT > 0.1) { p.vy = Math.min(p.vy, 75); p.spun = false; if (Math.random() < 0.35) puff(p.x + (p.slide > 0 ? p.w : 0), p.y + p.h - 2, 1); }
   moveY(p, p.vy * dt);
