@@ -228,7 +228,8 @@ LEVELS.woods = builder('woods', 'Mushroom Woods', 'woods', 222)
 
 // 3. Glimmer Caves: underground, a low ceiling, hedgehogs, falling crush-stones and a hidden golden key
 LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 272)
-  .fill(0, 271, 0, 1, T.GROUND).fill(206, 271, 2, 13, T.GROUND).ground(0, 205)   // past the gate the rock is solid: the only way on is up on the roof.gap(36, 39).gap(96, 99).gap(150, 154)
+  .fill(0, 271, 0, 1, T.GROUND).fill(206, 271, 2, 13, T.GROUND).ground(0, 205)   // past the gate the rock is solid: the only way on is up on the roof
+  .gap(36, 39).gap(96, 99).gap(150, 154)   // each pit is also a hole in the ceiling: jump up through one to walk along the roof
   .at(10, 8, '?PCB').e('grumblin', 16, 11).e('thorny', 22, 11)
   .fill(26, 30, 2, 7, T.GROUND).e('snaily', 32, 11)
   .at(43, 8, 'BBBBBB').coins(43, 7, 6).e('thorny', 46, 11).e('crusher', 50, 2)
@@ -239,7 +240,8 @@ LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 272)
   .e('spring', 112, 11).at(106, 5, '====').e('key', 107, 4)
   .at(118, 8, '?S?').e('crusher', 124, 2).e('thorny', 128, 11).e('grumblin', 132, 11)
   .pipe(136, 9).e('snapper', 136, 9).at(142, 8, 'BPB').e('snaily', 146, 11)
-  .at(149, 9, '-------').e('crusher', 160, 2).e('thorny', 166, 11).e('thorny', 170, 11).stairs(176, 5)
+  .at(149, 9, '-------').at(152, 5, '===')   // a ledge under the right edge of the last hole in the ceiling: a high jump (or a jump and a spin) from it lands on the roof
+  .e('crusher', 160, 2).e('thorny', 166, 11).e('thorny', 170, 11).stairs(176, 5)
   .gems(12, 5, 38, 9, 62, 5, 97, 5, 153, 6)
   .done({ goal: 192, secretGoal: 262, music: 'caves', dark: true });
 

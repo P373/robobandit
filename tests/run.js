@@ -1044,10 +1044,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // with the lucky horseshoe's power, a crush-stone breaks to rubble when it hits Leo
       startLevel('caves'); ents = ents.filter(e => !isEnemy(e)); const cr = ents.find(e => e.k === 'crusher'); player.star = 5; player.x = cr.x + 4; player.y = 11 * 16 + 16 - player.h; run(90);
       out.smashed = !ents.includes(cr) && phase === 'play'; player.star = 0;
-      // Glimmer Caves: walk along the roof past the gate to the secret exit, which opens a golden path to Goblin Castle
+      // Glimmer Caves: from the ledge under the last hole in the ceiling, a high jump up onto the roof, then along it past the gate
+      // to the secret exit, which opens a golden path to Goblin Castle
       delete save.secrets.caves; delete save.cleared.castle; delete save.cleared.bog;
-      startLevel('caves'); ents = ents.filter(e => !isEnemy(e)); player.x = 186 * 16; player.y = -player.h - 1; player.vy = 0; run(5);
-      keys.right = true; keys.run = true; let gateClear = false; run(700, () => { if (phase === 'clear' && !lvl.secretExit) gateClear = true; }); keys.right = false; keys.run = false;
+      startLevel('caves'); ents = ents.filter(e => !isEnemy(e) && e.k !== 'crusher'); player.x = 153 * 16; player.y = 5 * 16 - player.h; player.vy = 0; run(10);
+      keys.down = true; run(2); pressed.jump = true; keys.jump = true; run(1); keys.down = false; run(4); keys.right = true; run(60); keys.jump = false;
+      out.upTop = player.y + player.h < 4 && player.ground;
+      keys.run = true; let gateClear = false; run(700, () => { if (phase === 'clear' && !lvl.secretExit) gateClear = true; }); keys.right = false; keys.run = false;
       out.secret = !gateClear && lvl.secretExit === true; run(300);
       out.secretPath = !!save.secrets.caves && state === 'map' && nodeOpen(node('castle'));
       // the box at the top: a saved clover drops when asked for
@@ -1069,7 +1072,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.carried && r.thrown, 'pick up a shell by holding run, throw it by letting go: ' + JSON.stringify(r));
     check(r.highPound, 'the ground pound should work above the top of the screen: ' + JSON.stringify(r));
     check(r.recalled, 'the saved power-up should drop from the box: ' + JSON.stringify(r));
-    check(r.secret && r.secretPath, 'Glimmer Caves: the secret exit on the roof past the gate should open the path to Goblin Castle: ' + JSON.stringify(r));
+    check(r.upTop && r.secret && r.secretPath, 'Glimmer Caves: a high jump through the hole in the ceiling should reach the roof, and the secret exit past the gate should open the path to Goblin Castle: ' + JSON.stringify(r));
     check(r.smashed, 'with the lucky horseshoe Leo should smash the crush-stone: ' + JSON.stringify(r));
     check(r.room === 'hillsTree' && r.back, 'down the hollow tree into the room and back out further on: ' + JSON.stringify(r));
     check(r.capUp && r.capLow, 'the hat should go up when looking up and low when crouching: ' + JSON.stringify(r));
