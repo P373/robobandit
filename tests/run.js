@@ -991,6 +991,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const spinH = twice => { startLevel('hills'); player.x = 6 * 16; run(10); ents = ents.filter(e => !isEnemy(e)); const y0 = player.y; let top = y0, spins = 0, tw = false;
         pressed.jump = true; keys.jump = true; run(90, i => { top = Math.min(top, player.y); if ((i === 22 || (twice && i === 40)) ) { pressed.jump = true; } if (player.twirl > 0 && !tw) spins++; tw = player.twirl > 0; }); keys.jump = false; run(60); return { h: y0 - top, spins, landed: player.ground && !player.spun }; };
       out.spin = spinH(false); out.spin2 = spinH(true);
+      // holding run, a running jump, then jump again right away: still a spin
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 4 * 16; run(10); keys.run = true; keys.right = true; run(40);
+      keys.jump = true; pressed.jump = true; run(1); keys.jump = false; run(4); keys.jump = true; pressed.jump = true; run(1); out.runSpin = player.spun && player.twirl > 0; keys.jump = false; keys.run = false; keys.right = false; run(60);
       // corner forgiveness: a jump that only clips the edge of a block slides round it
       startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 12 * 16 - player.w + 3; run(10);
       let top = player.y; pressed.jump = true; keys.jump = true; run(50, () => { top = Math.min(top, player.y); }); keys.jump = false; run(40);
@@ -1019,6 +1022,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.high > r.jump * 1.6, 'the high jump should go much higher: ' + JSON.stringify(r));
     check(r.spin.h > r.jump + 10 && r.spin.h < r.high && r.spin.spins === 1 && r.spin.landed, 'a spin at the top should go a little higher: ' + JSON.stringify(r));
     check(r.corner && r.ledge, 'corner and ledge forgiveness (like Mario): ' + JSON.stringify(r));
+    check(r.runSpin, 'holding run, jump then jump again spins: ' + JSON.stringify(r));
     check(r.spin2.spins === 1 && Math.abs(r.spin2.h - r.spin.h) < 3, 'only one spin a jump: ' + JSON.stringify(r));
     check(r.springPound < r.springNormal - 150, 'a ground pound onto a spring should launch Leo super high: ' + JSON.stringify({ normal: r.springNormal, pound: r.springPound }));
     check(r.poundGob && r.poundBlock, 'a ground pound should flatten a goblin and bump the clover block below: ' + JSON.stringify(r));
