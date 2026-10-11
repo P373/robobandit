@@ -1259,7 +1259,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('canal'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.vineyard = state === 'map' && nodeOpen(node('vineyard'));
       // the island levels and the boat level all start
       out.starts = ['vineyard', 'nantucket', 'whale'].map(id => { startLevel(id); run(30); return state === 'level' && player.y > 0 && phase === 'play'; });
-      out.path = PATHS.some(([a, b]) => a === 'dunes' && b === 'whale') && PATHS.some(([a, b]) => a === 'whale' && b === 'ptown');
+      out.path = PATHS.some(([a, b, s2]) => a === 'cranberry' && b === 'whale' && !s2) && PATHS.some(([a, b, s2]) => a === 'whale' && b === 'dunes' && !s2);
       paused = false; return out;
     });
     check(r.islandsHidden, 'the secret islands should start hidden: ' + JSON.stringify(r));
@@ -1268,7 +1268,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.spout, "a whale's spout should shoot Leo up: " + JSON.stringify(r));
     check(r.secretPhase && r.nantucket, 'the golden flag on Whale Watch should be a secret exit to Nantucket: ' + JSON.stringify(r));
     check(r.vineyard, "the golden flag on Bourne Bridge should open Martha's Vineyard: " + JSON.stringify(r));
-    check(r.starts.every(Boolean) && r.path, 'the new levels start, and Whale Watch sits between Nauset Dunes and Provincetown Pier: ' + JSON.stringify(r));
+    check(r.starts.every(Boolean) && r.path, 'the new levels start, and Whale Watch sits between Cranberry Bog and Nauset Dunes: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-cape.png');
   });
@@ -1398,14 +1398,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const gem = ents.find(e => e.k === 'gem'); out.gem = !!gem && gem.idx === 4;
       // the secret exit at the far end
       touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300);
-      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'whale' && s2));
+      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'dunes' && s2));
       paused = false; return out;
     });
     check(r.swims && r.stroke && r.alive, 'water: Leo swims instead of dying: ' + JSON.stringify(r));
     check(r.sank && r.rose, 'bog mats sink when stood on and bob back up: ' + JSON.stringify(r));
     check(r.panned && r.room === 'cranberryDeep' && r.critters && r.camBack && r.swimDeep, 'the dark mat dives under the bog, the camera pans down, frogs and tadpoles live there: ' + JSON.stringify(r));
     check(r.gem, 'one of the bog gems is down there: ' + JSON.stringify(r));
-    check(r.secret, 'the secret exit under the bog opens a golden path to Whale Watch: ' + JSON.stringify(r));
+    check(r.secret, 'the secret exit under the bog opens a golden road along the Cape to Nauset Dunes: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-bog.png');
   });

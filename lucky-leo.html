@@ -468,7 +468,7 @@ for (const [lv, bx, by, room, out, gi, kind] of [['hills', 23, 8, 'hillsSky', 11
   LEVELS[room] = skyRoom(room, lv, kind, gi);
 }
 
-// Under the Bog: down below Cranberry Bog, a world of frogs, tadpoles, turtles and minnows; the way on is a secret exit
+// Under the Bog: down below Cranberry Bog, a world of frogs, tadpoles, turtles and minnows; its secret exit opens a road along the Cape to Nauset Dunes
 LEVELS.cranberryDeep = builder('cranberryDeep', 'Under the Bog', 'deep', 96)
   .fill(0, 95, 0, 11, T.WATER).ground(0, 95).fill(0, 0, 0, 13, T.GROUND).fill(95, 95, 0, 13, T.GROUND)
   .fill(12, 16, 9, 11, T.GROUND).fill(26, 30, 5, 6, T.GROUND).fill(40, 45, 8, 11, T.GROUND).fill(54, 57, 3, 5, T.GROUND).fill(66, 72, 9, 11, T.GROUND).fill(80, 83, 6, 7, T.GROUND)
@@ -506,7 +506,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'dunes', 'whale', 'ptown', 'vineyard', 'nantucket'];
+const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -3384,26 +3384,29 @@ const NODES = [
   at('fort', GEO(-69.15, 44.25), 'Frost Fortress', 'Maine'),                     // like Fort Knox on the Penobscot
   at('canal', CAPEXY(1, 0), 'Bourne Bridge', 'Cape Cod'),
   at('cranberry', CAPEXY(25, 3), 'Cranberry Bog', 'Cape Cod'),
-  at('dunes', CAPEXY(54, -12), 'Nauset Dunes', 'Cape Cod'),
-  at('whale', CAPEXY(70, -34), 'Whale Watch', 'off Cape Cod'),
+  at('whale', CAPEXY(62, 12), 'Whale Watch', 'off Chatham'),                       // just offshore from the elbow
+  at('dunes', CAPEXY(55, -15), 'Nauset Dunes', 'Cape Cod'),
   at('ptown', CAPEXY(31, -44), 'Provincetown Pier', 'Cape Cod'),
-  at('vineyard', CAPEXY(8, 19), "Martha's Vineyard", 'Massachusetts', { island: true }),   // the islands: secret levels, opened by secret exits
-  at('nantucket', CAPEXY(45, 22), 'Nantucket', 'Massachusetts', { island: true }),
+  at('vineyard', CAPEXY(5, 20), "Martha's Vineyard", 'Massachusetts', { island: true }),   // the islands: secret levels, each just below the level
+  at('nantucket', CAPEXY(50, 26), 'Nantucket', 'Massachusetts', { island: true }),          // whose secret exit opens it
 ];
 const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'bog'], ['bog', 'sky'], ['sky', 'castle'], ['caves', 'bonus'],
   ['castle', 'snow'], ['snow', 'night'], ['night', 'shore'], ['shore', 'fort'], ['fort', 'canal'],
-  ['canal', 'cranberry'], ['cranberry', 'dunes'], ['dunes', 'whale'], ['whale', 'ptown'],
-  ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'whale', 'secret']];   // the secret ones open from secret exits
+  ['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'], ['dunes', 'ptown'],
+  ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'dunes', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
-const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'dunes', 'whale', 'ptown']];
+const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'whale', 'dunes', 'ptown']];
 const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
-const SEA_PATHS = new Set(['fort|canal', 'dunes|whale', 'whale|ptown', 'canal|vineyard', 'whale|nantucket']);
+const SEA_PATHS = new Set(['fort|canal', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
 // a few trails are bent by hand: the boat lane hugs the coast, and the secret paths swing round the levels in between
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
-bend('fort|canal', GEO(-70.3, 43.0)); bend('caves|castle', GEO(-72.1, 43.9)); bend('cranberry|whale', CAPEXY(70, 6)); bend('whale|nantucket', CAPEXY(86, 0));
+bend('fort|canal', GEO(-70.3, 43.0)); bend('caves|castle', GEO(-71.9, 43.5));
+bend('cranberry|whale', CAPEXY(46, 14)); bend('whale|dunes', CAPEXY(68, -2));   // the sea route sweeps round the elbow...
+bend('cranberry|dunes', CAPEXY(51, 1));                                          // ...and the secret land road follows the arm inside it
+bend('canal|vineyard', CAPEXY(3, 10)); bend('whale|nantucket', CAPEXY(57, 19));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -3430,7 +3433,7 @@ function goMap(from) {
     if (next) RB.toast(`☘️ ${node(next[1]).name} is open!`, 2200);
     if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Goblin Castle', 3200), 600);
     if (from === 'canal' && save.secrets.canal) setTimeout(() => RB.toast("⛴️ Secret exit! A ferry path now runs to Martha's Vineyard", 3200), 600);
-    if (from === 'cranberry' && save.secrets.cranberry) setTimeout(() => RB.toast('🐸 Secret exit! A golden path now runs from Cranberry Bog straight to Whale Watch', 3200), 600);
+    if (from === 'cranberry' && save.secrets.cranberry) setTimeout(() => RB.toast('🐸 Secret exit! A golden road now runs from Cranberry Bog along the Cape straight to Nauset Dunes', 3200), 600);
     if (from === 'whale' && save.secrets.whale) setTimeout(() => RB.toast('🐋 Secret exit! A golden path now runs out to Nantucket', 3200), 600);
     if (from === 'caves' && save.key && !save.cleared.bonus) setTimeout(() => RB.toast('🌈 Rainbow Road is open! (the secret path from Glimmer Caves)', 3000), 2400);
   }
@@ -3564,12 +3567,12 @@ function drawMap() {
   armPath(); g.lineWidth = 15; g.strokeStyle = 'rgba(140,220,255,.5)'; g.stroke();
   armPath(); g.lineWidth = 10; g.strokeStyle = '#f6e2a0'; g.stroke();
   armPath(); g.lineWidth = 6.6; g.strokeStyle = STATES.MA.c; g.stroke();
-  for (const [dx, dy, rx, ry] of [[8, 19, 10, 3.8], [45, 22, 8, 3]]) { const [x, y] = CAPEXY(dx, dy); ell(x, y, rx + 2.6, ry + 2.6); g.fillStyle = 'rgba(140,220,255,.5)'; g.fill(); ell(x, y, rx + 1.4, ry + 1.4); g.fillStyle = '#f6e2a0'; g.fill(); ell(x, y, rx, ry); g.fillStyle = STATES.MA.c; g.fill(); }
+  for (const [dx, dy, rx, ry] of [[5, 20, 10, 3.8], [50, 26, 8, 3]]) { const [x, y] = CAPEXY(dx, dy); ell(x, y, rx + 2.6, ry + 2.6); g.fillStyle = 'rgba(140,220,255,.5)'; g.fill(); ell(x, y, rx + 1.4, ry + 1.4); g.fillStyle = '#f6e2a0'; g.fill(); ell(x, y, rx, ry); g.fillStyle = STATES.MA.c; g.fill(); }
   { const [x, y] = CAPEXY(-2, 0); g.fillStyle = '#5aa0e0'; g.fillRect(x - 1, y - 5, 2, 9); g.beginPath(); g.arc(x, y - 1, 3.4, Math.PI, 0); g.lineWidth = 0.8; g.strokeStyle = '#5a7a6a'; g.stroke(); }   // the canal and the Bourne Bridge
   { const [x, y] = CAPEXY(58, -20); g.fillStyle = '#ffffff'; g.fillRect(x - 0.9, y - 5, 1.8, 5); g.fillStyle = '#d8302a'; g.fillRect(x - 0.9, y - 6, 1.8, 1.6); }   // Nauset Light
   { const [x, y] = CAPEXY(37, -48); g.fillStyle = '#b8b0a0'; g.fillRect(x - 0.8, y - 7, 1.6, 7); g.fillRect(x - 1.3, y - 8, 2.6, 1.4); }   // the Pilgrim Monument
-  { const [x, y] = CAPEXY(70, -34); ell(x + 1, y + 6, 5, 1.4); g.fillStyle = '#34405e'; g.fill(); }   // a whale out at sea
-  g.font = '6px Bungee, system-ui, sans-serif'; g.fillStyle = 'rgba(255,255,255,.85)'; g.fillText('CAPE COD', CB[0] + 30, CB[1] + 11);
+  { const [x, y] = CAPEXY(62, 12); ell(x + 1, y + 6, 5, 1.4); g.fillStyle = '#34405e'; g.fill(); }   // a whale out at sea
+  g.font = '6px Bungee, system-ui, sans-serif'; g.fillStyle = 'rgba(255,255,255,.85)'; g.fillText('CAPE COD', CB[0] + 30, CB[1] - 20);   // (in Cape Cod Bay, inside the hook)
   // a rainbow up to the secret level once the key is found
   if (save.key) for (let i = 0; i < 5; i++) { const n = node('bonus'); g.beginPath(); g.arc(n.x, n.y + 8, 12 - i * 1.4, Math.PI, 0); g.lineWidth = 1.4; g.strokeStyle = ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'][i]; g.stroke(); }
     } finally { g = old; }
