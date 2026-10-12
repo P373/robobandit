@@ -807,6 +807,89 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Witch Way Out 👥 two players: split screen, each controller flies its own witch, hats bonk each other, both finish', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+    await ctx.addInitScript(() => {   // two pretend Xbox controllers
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => { window.__rumbles = (window.__rumbles || 0) + 1; return Promise.resolve(); } } });
+      window.__pads = [mk(0), mk(1)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    const btn = (i, b, on) => p.evaluate(([i, b, on]) => { __pads[i].buttons[b] = { pressed: on, value: on ? 1 : 0 }; }, [i, b, on]);
+    const tap = async (i, b) => { await btn(i, b, true); await p.waitForTimeout(300); await btn(i, b, false); await p.waitForTimeout(300); };   // (two 3D views are slow to draw in a test browser)
+    const title = await p.evaluate(() => ({ two: !!document.getElementById('btnPlay2'), pads: document.getElementById('padCount').textContent }));
+    await p.click('#btnPlay2'); await p.waitForTimeout(300);
+    await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(300);
+    const split = await p.evaluate(() => ({ split: document.body.classList.contains('split'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      divider: !document.getElementById('divider').classList.contains('hidden'), direct: RB.pad.direct, p2: P2.mesh.visible, racers: players.length }));
+    // controller 2 steers and boosts Player 2 only
+    const y1 = await p.evaluate(() => [P1.yaw, P2.yaw]);
+    await p.evaluate(() => { __pads[1].axes[0] = 1; }); await btn(1, 6, true); await p.waitForTimeout(500);
+    const steer = await p.evaluate(() => ({ p1: P1.yaw, p2: P2.yaw, b1: P1.boosting, b2: P2.boosting, keys: Object.values(P1.keys).some(Boolean) }));
+    await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 6, false);
+    // Ⓧ on controller 1 throws Player 1's hat, not Player 2's
+    await tap(0, 2);
+    const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
+    // the keyboard is shared: W A S D for Player 1, the arrows for Player 2
+    await p.keyboard.down('ArrowLeft'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
+    const kb = await p.evaluate(() => ({ p1: { ...P1.keys }, p2: { ...P2.keys } }));
+    await p.keyboard.up('ArrowLeft'); await p.keyboard.up('KeyD');
+    // Player 2's hat can bonk Player 1
+    const bonk = await p.evaluate(() => {
+      clearProjectiles();   // (one evaluate runs start to end: the page's own loop waits)
+      friends.forEach(f => { f.z = P1.pos.z + 400; f.nextThrow = 99; });
+      P2.pos.copy(P1.pos).add(new THREE.Vector3(0, 0, 20)); P2.yaw = P1.yaw; P2.pitch = P1.pitch; P1.shieldT = 0; P1.cloakT = 0; P1.bonkT = 0;
+      for (let i = 0; i < 3; i++) update(1 / 60);
+      const locked = P2.lockMesh.visible;
+      throwHat(P2);
+      let hit = false;
+      for (let i = 0; i < 60 * 3 && !hit; i++) { update(1 / 60); updateVisuals(1 / 60); if (P1.bonkT > 0) hit = true; }
+      return { locked, hit, hits: P2.hatsHit, layers: P2.lockMesh.layers.mask !== P1.lockMesh.layers.mask };
+    });
+    // both fly the line to the moon (the pumpkin chases whoever is behind); the race ends when both are there
+    const race = await p.evaluate(() => {
+      for (let i = 0; i < 60 * 320 && state === 'fly'; i++) {
+        for (const q of players) {
+          const k = q.keys; k.l = k.r = k.u = k.d = false;
+          const z = q.pos.z - 35, wantYaw = Math.atan2(-(lineX(z) - q.pos.x), -(z - q.pos.z));
+          if (wantYaw - q.yaw < -0.05) k.r = true; else if (wantYaw - q.yaw > 0.05) k.l = true;
+          const wp = Math.atan2(lineY(z) - q.pos.y, 35);
+          if (wp - q.pitch > 0.05) k.u = true; else if (wp - q.pitch < -0.05) k.d = true;
+          if (q.strike && q.strike.t < 0.6) castShield(q);
+        }
+        update(1 / 60); if (i % 4 === 0) updateVisuals(1 / 60);
+      }
+      return { state, places: players.map(q => q.finishPlace), podium: document.querySelectorAll('.podium li.you').length, all: document.querySelectorAll('.podium li').length,
+        stats: document.getElementById('overStats').textContent, swap: document.getElementById('btnSwap').textContent };
+    });
+    await p.screenshot({ path: path.join(OUT, 'witch-2p-over.png') });
+    // race again: the split screen with both witches, then a screenshot of it
+    await p.evaluate(() => { startGame(); countT = 0; introT = 0; }); await p.waitForTimeout(900);
+    await p.screenshot({ path: path.join(OUT, 'witch-2p.png') });
+    // ☰ on the second controller opens the menu
+    await tap(1, 9);
+    const menu = await p.evaluate(() => ({ menu: !!document.querySelector('.rb-menu'), paused }));
+    await tap(1, 9);
+    // back to one player: no split, the controller presses keys again
+    await p.evaluate(() => startGame(false)); await p.waitForTimeout(200);
+    const one = await p.evaluate(() => ({ split: document.body.classList.contains('split'), direct: RB.pad.direct, p2: P2.mesh.visible, racers: players.length }));
+    check(title.two && /Two controllers/.test(title.pads), 'the title offers 2 players and sees both controllers: ' + JSON.stringify(title));
+    check(split.split && split.huds === 2 && split.divider && split.direct && split.p2 && split.racers === 2, 'two players split the screen: ' + JSON.stringify(split));
+    check(steer.p2 < y1[1] - 0.05 && Math.abs(steer.p1 - y1[0]) < 0.02 && steer.b2 && !steer.b1 && !steer.keys, 'controller 2 flies only Player 2: ' + JSON.stringify({ y1, steer }));
+    check(hats.length === 1 && hats[0] === 0, "controller 1's Ⓧ throws Player 1's hat: " + JSON.stringify(hats));
+    check(kb.p1.r && !kb.p1.l && kb.p2.l && !kb.p2.r, 'W A S D fly Player 1 and the arrows Player 2: ' + JSON.stringify(kb));
+    check(bonk.locked && bonk.hit && bonk.hits === 1 && bonk.layers, "Player 2's hat locks on and bonks Player 1: " + JSON.stringify(bonk));
+    check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 7) && race.places[0] !== race.places[1] && race.podium === 2 && race.all === 7 && /P1/.test(race.stats) && /P2/.test(race.stats) && /1 Player/.test(race.swap),
+      'both reach the moon and the results list both: ' + JSON.stringify(race));
+    check(menu.menu && menu.paused, "the second controller's ☰ opens the menu: " + JSON.stringify(menu));
+    check(!one.split && !one.direct && !one.p2 && one.racers === 1, 'one player again: ' + JSON.stringify(one));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
   await test('Witch Way Out race: hat bonks a witch and comes back, LT boosts with dust, boxes give power-ups, a racer using them wins', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);

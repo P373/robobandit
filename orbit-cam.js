@@ -14,7 +14,9 @@
 //
 // cam.yaw / cam.el are where you've pointed it (0 = straight behind), cam.yawS / cam.elS the smoothed angles.
 function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33, minEl = -0.17, maxEl = 1.05,
-  turn = 2.8, tilt = 1.3, idleBack = 1.5, lead = 0.22, recenter = [4, 10, 11], mouseButtons = [0], fingers = false } = {}) {
+  turn = 2.8, tilt = 1.3, idleBack = 1.5, lead = 0.22, recenter = [4, 10, 11], mouseButtons = [0], fingers = false, source = null } = {}) {
+  // source: for a two-player game, () => ({ x, y, recenter, keys }) gives this camera its own player's right stick
+  // (keys: whether Q / E / R work for it); left out, it uses the shared controller
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
   const pad = () => (typeof RB !== 'undefined' && RB.pad) || {};   // (an old cached common.js has no right stick)
@@ -29,14 +31,16 @@ function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33
   cam.reset = () => { cam.yaw = cam.yawS = 0; cam.el = cam.elS = el0; cam.idle = 99; cam.steerRef = null; cam.drag = null; };
   // Called once a frame while playing. sx is the steering input (-1..1): the camera leads a little into turns.
   cam.input = (dt, sx = 0) => {
-    const L = pad().look || { x: 0, y: 0 }, sp = pad().camSpeed || 1;
-    const lx = clamp(L.x + (cam.keyR ? 1 : 0) - (cam.keyL ? 1 : 0), -1, 1), ly = L.y;
+    const src = source ? source() : null, kb = !src || src.keys;
+    const L = src || pad().look || { x: 0, y: 0 }, sp = pad().camSpeed || 1;
+    const lx = clamp((L.x || 0) + (kb && cam.keyR ? 1 : 0) - (kb && cam.keyL ? 1 : 0), -1, 1), ly = L.y || 0;
     if (lx || ly) {
       cam.yaw -= lx * turn * sp * dt;   // push right: the view swings right
       cam.el = clamp(cam.el + softTilt(cam.el, ly * tilt * sp * dt), minEl, maxEl);   // push up: look up from lower down
       cam.idle = 0;
     } else if (!cam.drag) cam.idle += dt;
-    if ((pad().pressed && recenter.some(i => pad().pressed(i))) || cam.snap) { cam.yaw = 0; cam.el = el0; cam.idle = 99; cam.snap = false; }
+    if (!kb) cam.snap = false;
+    if ((src ? src.recenter : pad().pressed && recenter.some(i => pad().pressed(i))) || (cam.snap && kb)) { cam.yaw = 0; cam.el = el0; cam.idle = 99; cam.snap = false; }
     cam.yaw = wrap(cam.yaw);
     if (cam.idle > idleBack) {   // a soft spring back behind, the short way round, leading into turns
       const k = 1 - Math.exp(-dt / 0.6);

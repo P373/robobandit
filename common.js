@@ -418,6 +418,7 @@ const RB = (() => {
     const axisName = k => String(k).replace(/^inv/, '');
     const inv = k => { k = axisName(k); return !!invertable[k] && !!(cfg.inverts[GAME_KEY] || {})[k]; };   // is this stick axis inverted in this game?
     let navOff = false;   // while the controller tester is testing, buttons only light up the picture
+    let direct = false;   // a two-player game reads each controller itself (read(i)): play stops pressing keys
     const look = { x: 0, y: 0 }, game = { lx: 0, ly: 0 };   // game: the left stick as games see it   // the right stick, for games with a camera to swing around
     let pressedNow = [], ignore = [];   // ignore: buttons still held from before a menu opened or closed
     let running = false, held = {}, prevBtn = [], menuMode = false, focusEl = null, styled = false, last = { dir: null, t: 0, next: 0 }, cache = { t: 0, list: [] };
@@ -575,7 +576,7 @@ const RB = (() => {
       if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); ignore = btn.slice(); }
       ignore = ignore.map((b, i) => b && btn[i]);   // a button counts again once it's let go
       if (edge(8)) leaveRequest(now);
-      if (edge(9) && !ignore[9]) {   // ☰: the RoboBandit menu, from anywhere (and ☰ again closes it)
+      if (edge(9)) {   // ☰: the RoboBandit menu, from anywhere (and ☰ again closes it)
         if (padScreen) padScreen.close();
         else if (menuEl) closeMenu();
         else openMenu();
@@ -594,6 +595,9 @@ const RB = (() => {
         last.dir = dir;
         if (edge(0) || edge(2) || edge(7)) activate();
         if (edge(1)) { if (padScreen) padScreen.close(); else if (menuEl) closeMenu(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
+      } else if (direct) {   // the game reads each controller on its own: nothing pressed for it here
+        releaseAll();
+        for (const s of sticks) if (s.driving) { s.driving = false; s.stick.x = s.stick.y = 0; s.stick.active = false; }
       } else {
         // the left stick: smooth analog steering where the game has a joystick, arrow keys everywhere else
         const st = sticks.find(s => s.stick.id === null && s.enabled());
@@ -631,9 +635,9 @@ const RB = (() => {
       // (null leaves a button doing nothing); the legend is shown on the controller screen
       setButtons(m, text = '') { map = { ...BUTTONS, ...m }; legend = text; },
       get legend() { return legend; },
-      rumble(ms, strength = 0.6) {
+      rumble(ms, strength = 0.6, index = null) {   // index: just that controller (a two-player game)
         if (!cfg.rumble) return;
-        for (const g of pads()) {
+        for (const g of index == null ? pads() : pads().slice(index, index + 1)) {
           const v = g.vibrationActuator;
           if (v && v.playEffect) v.playEffect('dual-rumble', { duration: ms, strongMagnitude: strength, weakMagnitude: Math.min(1, strength + 0.2) }).catch(() => {});
         }
@@ -651,6 +655,20 @@ const RB = (() => {
       setConfig(patch) { Object.assign(cfg, patch); saveCfg(); },
       get camSpeed() { return [0.65, 1, 1.45][cfg.camSpeed] || 1; },
       set navOff(v) { navOff = v; if (v) { releaseAll(); setFocus(null); } else ignore = prevBtn.slice(); },
+      // two players: the game reads each controller itself while playing (menus still work from any controller)
+      get direct() { return direct; }, set direct(v) { if (!!v !== direct) { direct = !!v; releaseAll(); } },
+      // the i-th controller on its own (null if there isn't one): sticks with the dead zone and this game's invert
+      // settings, and pressed(b) for its buttons
+      read(i) {
+        const g = pads()[i];
+        if (!g) return null;
+        const dead = DEADZONES[cfg.dead] != null ? DEADZONES[cfg.dead] : 0.22, rdead = Math.max(0.1, dead - 0.04);
+        const st = (x, y, dz) => { const m = Math.hypot(x, y); if (m < dz) return [0, 0]; const k = Math.min(1, (m - dz) / (1 - dz)) / m; return [x * k, y * k]; };
+        const ax = j => g.axes[j] || 0;
+        const [lx, ly] = st(ax(0), ax(1), dead), [rx, ry] = st(ax(2), ax(3), rdead);
+        return { lx: inv('LX') ? -lx : lx, ly: inv('LY') ? -ly : ly, rx: inv('RX') ? -rx : rx, ry: inv('RY') ? -ry : ry,
+          pressed: b => !!(g.buttons[b] && (g.buttons[b].pressed || g.buttons[b].value > 0.5)), id: g.id };
+      },
       pads,
     };
   })();
