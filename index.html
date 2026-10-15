@@ -215,6 +215,13 @@ const GAMES = [
     thumb: 'thumbs/lucky-leo.jpg',
     blurb: 'Run, jump and stomp across four worlds, from New England and Cape Cod all the way to New York City, with Lucky Leo the leprechaun, and get his pot of gold back from King Grumbles! ☘️🌈',
   },
+  {
+    title: 'Lily Pad Lunch',
+    bestKey: 'lp_best',
+    url: 'lily-pad-lunch.html',
+    thumb: 'thumbs/lily-pad-lunch.jpg',
+    blurb: 'Flick your sticky tongue and snap up the bugs from morning to firefly night! Grow into a golden frog, dodge the bees and dive from the heron. One or two players. 🐸🪰',
+  },
 ];
 
 const grid = document.getElementById('games');
@@ -241,6 +248,6 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
 render();
 addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
-<script src="common.js?v=20261012-1523"></script>
+<script src="common.js?v=20261015-0233"></script>
 </body>
 </html>

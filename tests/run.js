@@ -78,7 +78,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -807,6 +807,174 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Lily Pad Lunch: the tongue snaps bugs into the jar, bees sting, hops, growing up, beetles fall in, the heron and diving, winning and losing a level', async () => {
+    const p = await open(browser, 'lily-pad-lunch.html', { viewport: { width: 1000, height: 600 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); update(1 / 60); } };
+      localStorage.removeItem('lp_save'); for (const k in save.cards) delete save.cards[k]; save.stars = {}; save.best = {};
+      easy = false; twoP = false; startLevel(1);
+      bugs = []; spawnT = 99; heronT = 99;
+      const f = frogs[0];
+      // a fly just above: snap it, it rides the tongue back and goes in the jar (and you get its Bug Card)
+      const fly = newBug('fly', f.x + 60, f.y - 120, 1); fly.vx = fly.vy = 0; fly.t = 0; bugs.push(fly);
+      const move = moveBug; moveBug = () => {};   // (hold the bugs still while we aim)
+      f.aim = aimAt(f, fly.x, fly.y); snap(f); run(40);
+      out.fly = { jar, gone: !bugs.includes(fly), card: !!save.cards.fly, tongue: !!f.tongue };
+      // a bee: ouch, and no snapping for a moment
+      const bee = newBug('bee', f.x - 50, f.y - 110, 1); bugs.push(bee);
+      f.aim = aimAt(f, bee.x, bee.y); snap(f); run(20);
+      out.sting = f.sting > 0; snap(f); out.blocked = !f.tongue; run(60 * 3);
+      // hop to the next pad
+      const from = f.pad; hop(f, from + 1); run(45); out.hop = f.pad === from + 1 && !f.hop;
+      // growing up: the 12th bug makes a bigger frog with a longer tongue
+      const reach0 = reach(f); f.eaten = 11;
+      const fly2 = newBug('fly', f.x, f.y - 100, 1); bugs.push(fly2); f.aim = aimAt(f, fly2.x, fly2.y); snap(f); run(40);
+      out.grow = { size: f.size, longer: reach(f) > reach0 };
+      // the golden frog's tongue grabs every bug on its way
+      f.size = 3; f.eaten = 80;
+      const line = [70, 130, 190].map(d => { const b = newBug('fly', f.x, f.y - 16 - d, 1); bugs.push(b); return b; });
+      const j0 = jar; f.aim = -Math.PI / 2; snap(f); run(40);
+      out.golden = jar - j0;
+      moveBug = move;
+      // a beetle on a pad falls in the water when a frog lands there
+      startLevel(3); bugs = bugs.filter(b => b.kind === 'beetle'); spawnT = 99; heronT = 99;
+      const bt = bugs[0], g = frogs[0];
+      if (bt.pad === g.pad) { hop(g, g.pad === 0 ? 1 : g.pad - 1); run(45); }
+      hop(g, bt.pad); run(50);
+      out.beetle = bt.swim === true;
+      // the heron: it aims at your pad, and its jab spills bugs out of the jar unless you dive
+      startLevel(2); bugs = []; spawnT = 99; jar = 6;
+      heronT = 0; run(5); for (let i = 0; i < 600 && (!heron || heron.st !== 'aim'); i++) update(1 / 60);
+      run(60 * 2.2);
+      out.heron = { jar, stun: frogs[0].stun > 0 || jar < 6 };
+      heron = null; heronT = 0; jar = 6; run(5); for (let i = 0; i < 600 && (!heron || heron.st !== 'aim'); i++) update(1 / 60);
+      run(40); dive(frogs[0]); run(60 * 1.2);
+      out.dive = { jar, safe: jar === 6 };
+      // fill the jar: the level is won and the next one opens; run out of time: try again
+      startLevel(0); jar = LEVELS[0].goal; run(2);
+      out.win = { state, stars: save.stars.morning, next: unlocked(1), best: +localStorage.getItem('lp_best') };
+      startLevel(1); timeLeft = 0.01; run(3);
+      out.lose = { state, title: document.getElementById('endTitle').textContent };
+      // little kids mode: the tongue slips past the bees
+      easy = true; startLevel(1); bugs = []; spawnT = 99;
+      const b2 = newBug('bee', frogs[0].x, frogs[0].y - 100, 1); b2.vx = b2.vy = 0; bugs.push(b2); moveBug = () => {};
+      frogs[0].aim = -Math.PI / 2; snap(frogs[0]); run(40);
+      out.easyBee = { sting: frogs[0].sting, beeThere: bugs.includes(b2) };
+      moveBug = move; easy = false;
+      return out;
+    });
+    check(r.fly.jar === 1 && r.fly.gone && r.fly.card && !r.fly.tongue, 'the tongue snaps a fly into the jar: ' + JSON.stringify(r.fly));
+    check(r.sting && r.blocked, 'a bee stings and the tongue is too puffy to snap: ' + JSON.stringify(r));
+    check(r.hop, 'the frog hops to the next pad');
+    check(r.grow.size === 1 && r.grow.longer, 'eating 12 bugs grows a bigger frog with a longer tongue: ' + JSON.stringify(r.grow));
+    check(r.golden === 3, "the golden frog's tongue grabs all three bugs in a line: " + r.golden);
+    check(r.beetle, 'landing on a pad knocks its beetle into the water');
+    check(r.heron.stun && r.heron.jar < 6, "the heron's jab spills bugs from the jar: " + JSON.stringify(r.heron));
+    check(r.dive.safe, 'diving under the water keeps you safe from the heron: ' + JSON.stringify(r.dive));
+    check(r.win.state === 'end' && r.win.stars === 3 && r.win.next && r.win.best >= 10, 'a full jar wins the level and opens the next: ' + JSON.stringify(r.win));
+    check(r.lose.state === 'end' && /sun went down/.test(r.lose.title), 'running out of time ends the level: ' + JSON.stringify(r.lose));
+    check(!r.easyBee.sting && r.easyBee.beeThere, 'in little kids mode the tongue slips past bees: ' + JSON.stringify(r.easyBee));
+    await done(p, 'lily-pad-lunch.png');
+  });
+
+  await test('Lily Pad Lunch: a robot frog (aim at the nearest bug, dodge bees, dive from the heron) fills the jar on all 5 levels', async () => {
+    const p = await open(browser, 'lily-pad-lunch.html', { viewport: { width: 900, height: 560 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      easy = false; twoP = false; frogs = [];
+      LEVELS.forEach((L, i) => {
+        startLevel.carry = i > 0; startLevel(i);
+        const f = frogs[0];
+        for (let n = 0; n < 60 * 120 && state === 'play'; n++) {
+          if (heron && heron.st === 'aim' && heron.pad === f.pad && heron.t > 1.2) dive(f);
+          if (!f.tongue && !f.hop && f.dive <= 0) {
+            let best = null, bd = Infinity;
+            for (const b of bugs) {
+              if (b.stuck || b.kind === 'bee') continue;
+              const d = Math.hypot(b.x - f.x, b.y - f.y);
+              if (d < reach(f) - 10 && d < bd) { bd = d; best = b; }
+            }
+            // a bee in the way? wait for it to move
+            if (best) {
+              const a = aimAt(f, best.x, best.y, best);
+              const beeInWay = bugs.some(b => b.kind === 'bee' && Math.abs(Math.atan2(b.y - f.y + 14, b.x - f.x) - a) < 0.25 && Math.hypot(b.x - f.x, b.y - f.y) < bd + 20);
+              if (!beeInWay) { f.aim = a; snap(f); }
+            } else if (n % 90 === 0) {   // nothing in reach: hop toward the busiest side
+              const left = bugs.filter(b => b.x < f.x && b.kind !== 'bee').length, right = bugs.filter(b => b.x > f.x && b.kind !== 'bee').length;
+              hop(f, f.pad + (right >= left ? 1 : -1));
+            }
+          }
+          update(1 / 60);
+        }
+        out[L.id] = { won: (save.stars[L.id] || 0) > 0 && document.getElementById('endTitle').textContent !== 'The sun went down!', jar, goal: L.goal, left: Math.round(timeLeft), size: f.size };
+      });
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) check(v.won, `${id}: the robot should fill the jar in time: ` + JSON.stringify(v));
+    await done(p);
+  });
+
+  await test('Lily Pad Lunch 🎮 two controllers and 📱 touch: each controller aims and snaps its own frog, race mode, tap to snap and hop', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+    await ctx.addInitScript(() => {
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } });
+      window.__pads = [mk(0), mk(1)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('lily-pad-lunch.html')); await p.waitForTimeout(800);
+    const btn = (i, b, on) => p.evaluate(([i, b, on]) => { __pads[i].buttons[b] = { pressed: on, value: on ? 1 : 0 }; }, [i, b, on]);
+    const tap = async (i, b) => { await btn(i, b, true); await p.waitForTimeout(150); await btn(i, b, false); await p.waitForTimeout(150); };
+    // the title is a menu the controller can drive: Ⓐ plays the highlighted level
+    await p.evaluate(() => { localStorage.removeItem('lp_save'); twoP = true; team = false; renderTitle(); });
+    await tap(0, 0); await p.waitForTimeout(300);
+    const started = await p.evaluate(() => ({ state, frogs: frogs.length, direct: RB.pad.direct }));
+    await p.evaluate(() => { spawnT = 99; bugs = []; heronT = 99; });
+    // controller 2's stick points Player 2's tongue up and left; its Ⓐ snaps Player 2's tongue only
+    const a0 = await p.evaluate(() => [frogs[0].aim, frogs[1].aim]);
+    await p.evaluate(() => { __pads[1].axes[0] = -0.7; __pads[1].axes[1] = -0.7; }); await p.waitForTimeout(400);
+    await p.evaluate(() => { __pads[1].axes[0] = 0; __pads[1].axes[1] = 0; });
+    const a1 = await p.evaluate(() => [frogs[0].aim, frogs[1].aim]);
+    await btn(1, 0, true); await p.waitForTimeout(150);
+    const tongues = await p.evaluate(() => frogs.map(f => !!f.tongue));
+    await btn(1, 0, false); await p.waitForTimeout(400);
+    // controller 1's LB hops Player 1 a pad to the left
+    const pad0 = await p.evaluate(() => frogs[0].pad);
+    await tap(0, 4); await p.waitForTimeout(700);
+    const pad1 = await p.evaluate(() => frogs[0].pad);
+    // race: each frog fills its own jar
+    const race = await p.evaluate(() => { frogs[1].jar = LEVELS[0].goal; update(1 / 60); return { state, text: document.getElementById('endText').textContent }; });
+    // ☰ on the second controller opens the menu
+    await p.evaluate(() => startLevel(0)); await p.waitForTimeout(200);
+    await tap(1, 9);
+    const menu = await p.evaluate(() => ({ menu: !!document.querySelector('.rb-menu'), paused }));
+    check(started.state === 'play' && started.frogs === 2 && started.direct, 'Ⓐ on the title starts a two-player game: ' + JSON.stringify(started));
+    check(Math.abs(a1[0] - a0[0]) < 0.01 && a1[1] < -2.0, "controller 2's stick aims only Player 2: " + JSON.stringify({ a0, a1 }));
+    check(!tongues[0] && tongues[1], "controller 2's Ⓐ snaps only Player 2's tongue: " + JSON.stringify(tongues));
+    check(pad1 === pad0 - 1, 'LB hops Player 1 to the pad on the left: ' + JSON.stringify({ pad0, pad1 }));
+    check(race.state === 'end' && /Player 2.*wins/.test(race.text), 'race mode: a full jar wins for that player: ' + JSON.stringify(race));
+    check(menu.menu && menu.paused, "the second controller's ☰ opens the menu: " + JSON.stringify(menu));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    // 📱 on a phone: tap near a bug to snap at it, tap a lily pad to hop there
+    const ph = await open(browser, 'lily-pad-lunch.html', PHONE);
+    await ph.evaluate(() => { twoP = false; startLevel(0); bugs = []; spawnT = 99; moveBug = () => {}; });
+    const t = await ph.evaluate(() => {
+      const f = frogs[0], b = newBug('fly', f.x + 40, f.y - 110, 1); bugs.push(b);
+      const sx = innerWidth / (canvas.width / scale), sy = innerHeight / (canvas.height / scale), off = (VH - H) / 2;
+      return { bug: [(b.x + 10) * sx, (b.y + off - 8) * sy], pad: [pads[(f.pad + 1) % pads.length].x * sx, (WATER_Y + off) * sy], next: (f.pad + 1) % pads.length };
+    });
+    await ph.touchscreen.tap(t.bug[0], t.bug[1]); await ph.waitForTimeout(600);
+    const snapped = await ph.evaluate(() => jar);
+    await ph.touchscreen.tap(t.pad[0], t.pad[1]); await ph.waitForTimeout(900);
+    const hopped = await ph.evaluate(() => frogs[0].pad);
+    check(snapped === 1, 'tapping next to a bug snaps it: jar ' + snapped);
+    check(hopped === t.next, 'tapping a lily pad hops there: ' + JSON.stringify({ hopped, want: t.next }));
+    await done(ph, 'lily-pad-lunch-phone.png');
+  });
+
   await test('Witch Way Out 👥 two players: split screen, each controller flies its own witch, hats bonk each other, both finish', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
     await ctx.addInitScript(() => {   // two pretend Xbox controllers
@@ -961,7 +1129,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const bad = [];
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(500);
       await padTap(p, 'A'); await p.waitForTimeout(300);   // start playing (or press whatever the title screen highlights)
       if (!p.url().includes(f.split('/').pop())) { await p.goto(url(f)); await p.waitForTimeout(500); }
@@ -1033,7 +1201,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
     }
@@ -1043,7 +1211,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 13 && m.cur.includes('Witch Way Out'), 'the menu should list 10 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 14 && m.cur.includes('Witch Way Out'), 'the menu should list 11 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('p'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
@@ -1930,7 +2098,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');
