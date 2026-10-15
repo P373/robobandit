@@ -48,9 +48,8 @@
   .site .go { display: inline-block; margin-top: 12px; font-weight: 700; color: var(--red); font-size: 15px; }
 
   /* video */
-  .video { aspect-ratio: 16 / 9; border-radius: 18px; background: var(--tint); border: 2px dashed #cfd4de; display: grid; place-items: center; text-align: center; color: var(--soft); }
-  .video .play { width: 74px; height: 74px; border-radius: 50%; background: #fff; border: 1px solid var(--line); display: grid; place-items: center; margin: 0 auto 12px; box-shadow: 0 6px 18px rgba(29,36,51,.08); }
-  .video iframe { width: 100%; height: 100%; border: 0; border-radius: 16px; }
+  .video { aspect-ratio: 1000 / 653; border-radius: 18px; overflow: hidden; background: #0f1420; box-shadow: 0 16px 34px rgba(29,36,51,.12); }
+  .video iframe { display: block; width: 100%; height: 100%; border: 0; }
 
   /* explanation */
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
@@ -117,11 +116,8 @@
 <section style="padding-top:8px"><div class="wrap">
   <div class="kicker">Watch</div>
   <h2>How we built it</h2>
-  <!-- the Loom video goes here: replace the .video placeholder with Loom's embed iframe -->
-  <div class="video"><div>
-    <div class="play"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#b8392f"/></svg></div>
-    Video coming soon
-  </div></div>
+  <!-- the Loom recording, at Loom's own aspect ratio -->
+  <div class="video"><iframe src="https://www.loom.com/embed/71f498147bf14ff0b86b3856beb5772d" title="How we built the West Falmouth Preschool redesign (video)" loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>
 </div></section>
 
 <section><div class="wrap">
