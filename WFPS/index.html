@@ -50,6 +50,13 @@
   /* video */
   .video { aspect-ratio: 1000 / 653; border-radius: 18px; overflow: hidden; background: #0f1420; box-shadow: 0 16px 34px rgba(29,36,51,.12); }
   .video iframe { display: block; width: 100%; height: 100%; border: 0; }
+  .cover { position: relative; display: grid; place-items: center; width: 100%; height: 100%; color: #fff; text-decoration: none; cursor: pointer; }
+  .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; filter: blur(2px) brightness(.45); transform: scale(1.03); }
+  .cover .play { position: relative; width: 92px; height: 92px; border-radius: 50%; background: var(--red); display: grid; place-items: center; padding-left: 5px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); transition: transform .15s; }
+  .cover:hover .play, .cover:focus-visible .play { transform: scale(1.08); }
+  .cover .label { position: absolute; left: 0; right: 0; bottom: 8%; text-align: center; font-weight: 600; font-size: clamp(15px, 2vw, 19px); text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+  .cover:focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
 
   /* explanation */
   .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
@@ -117,7 +124,13 @@
   <div class="kicker">Watch</div>
   <h2>How we built it</h2>
   <!-- the Loom recording, at Loom's own aspect ratio -->
-  <div class="video"><iframe src="https://www.loom.com/embed/71f498147bf14ff0b86b3856beb5772d" title="How we built the West Falmouth Preschool redesign (video)" loading="lazy" allow="fullscreen; picture-in-picture" allowfullscreen></iframe></div>
+  <!-- a light cover that shows instantly; the heavy Loom player loads only when someone presses play.
+       Without JavaScript the cover is a plain link to the video on Loom. -->
+  <div class="video"><a class="cover" id="loom" href="https://www.loom.com/share/71f498147bf14ff0b86b3856beb5772d" data-id="71f498147bf14ff0b86b3856beb5772d" aria-label="Play the video: how we built the West Falmouth Preschool redesign">
+    <img src="img/v2.jpg" alt="" width="800" height="500">
+    <span class="play"><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span>
+    <span class="label">Watch the 1-minute walkthrough</span>
+  </a></div>
 </div></section>
 
 <section><div class="wrap">
@@ -179,5 +192,32 @@
 
 <footer><div class="wrap">Prepared for the West Falmouth Preschool board by a WFPS family.</div></footer>
 
+<script>
+// Swap the cover for the Loom player on click. Hovering first opens the connection to Loom, so playback starts sooner.
+(function () {
+  var cover = document.getElementById('loom');
+  if (!cover) return;
+  var warmed = false;
+  function warm() {
+    if (warmed) return;
+    warmed = true;
+    ['https://www.loom.com', 'https://cdn.loom.com'].forEach(function (h) {
+      var l = document.createElement('link'); l.rel = 'preconnect'; l.href = h; l.crossOrigin = ''; document.head.appendChild(l);
+    });
+  }
+  cover.addEventListener('pointerenter', warm);
+  cover.addEventListener('focus', warm);
+  cover.addEventListener('touchstart', warm, { passive: true });
+  cover.addEventListener('click', function (e) {
+    e.preventDefault();
+    var f = document.createElement('iframe');
+    f.src = 'https://www.loom.com/embed/' + cover.dataset.id + '?autoplay=1';
+    f.title = 'How we built the West Falmouth Preschool redesign (video)';
+    f.allow = 'autoplay; fullscreen; picture-in-picture';
+    f.allowFullscreen = true;
+    cover.replaceWith(f);
+  });
+})();
+</script>
 </body>
 </html>
