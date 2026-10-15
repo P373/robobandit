@@ -247,3 +247,18 @@ nav.main a { padding: 8px 10px; font-size: 15px; white-space: nowrap; }
   details.menu nav a { padding: 12px 14px; text-decoration: none; color: var(--ink); font-weight: 700; border-radius: 10px; }
   details.menu nav a.on { background: var(--paper); color: var(--red); }
 }
+
+/* the header scrolls away with the page, and the menu is always the ☰ button (no row of links) */
+header.site { position: relative; backdrop-filter: none; background: var(--cream); }
+header.site .wrap { min-height: 64px; }
+header.site nav.main { display: none; }
+details.menu { display: block; }
+details.menu summary { list-style: none; cursor: pointer; padding: 10px 16px; border-radius: 12px; background: var(--navy); color: #fff; font-weight: 800; }
+details.menu summary::-webkit-details-marker { display: none; }
+details.menu nav { position: absolute; z-index: 20; right: 20px; top: 60px; background: #fff; border: 1px solid var(--line); border-radius: 16px; padding: 8px;
+  box-shadow: 0 12px 30px rgba(0,0,0,.15); display: grid; min-width: 240px; }
+details.menu nav a { padding: 12px 14px; text-decoration: none; color: var(--ink); font-weight: 700; border-radius: 10px; }
+details.menu nav a:hover { background: var(--paper); }
+details.menu nav a.on { background: var(--paper); color: var(--red); }
+details.menu summary { white-space: nowrap; }
+@media (max-width: 420px) { .brand img { width: 48px; } .brand b { font-size: 17px; } }
