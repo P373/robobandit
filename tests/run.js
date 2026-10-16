@@ -1427,6 +1427,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         for (let x = 0; x < W; x++) for (let y = 1; y < H - 1; y++) {
           const below = tile(x, y + 1);
           if (!SOLID.has(tile(x, y)) && !deadly(x, y) && (SOLID.has(below) || below === T.ONEWAY)) stand.add(k(x, y));
+          if (L.swim && tile(x, y) === T.WATER) stand.add(k(x, y));   // an underwater level: Leo can swim anywhere in it
         }
         for (const e of L.ents) {
           if (e.k === 'plat' || e.k === 'fall') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
@@ -1645,7 +1646,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo Worlds 2 to 4: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, Provincetown flies on to New York, and the Statue of Liberty is the real ending', async () => {
+  await test('Lucky Leo Worlds 2 to 5: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, Provincetown flies on to New York, the Statue of Liberty flies on to Florida, and Cape Canaveral is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
@@ -1666,8 +1667,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const ny = { state, orchard: nodeOpen(node('orchard')), niagara: nodeOpen(node('niagara')), flight: FLIGHT_PATHS.has('ptown|orchard') };
       startLevel('liberty'); const boss4 = ents.find(e => e.k === 'boss'); const hp4 = boss4.hp, kinds = { fort: LEVELS.fort.ents.find(e => e.k === 'boss').kind, ptown: LEVELS.ptown.ents.find(e => e.k === 'boss').kind, liberty: boss4.kind };
       ['orchard', 'niagara', 'bridge', 'city'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end4 = { title: document.querySelector('#ending h1').textContent, beaten4: save.beaten4 };
-      return { before, end1, after, hp, end2, cape, hp3, end3, ny, hp4, kinds, end4, slippery: !!LEVELS.snow.slippery,
+      const end4 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten4: save.beaten4 };
+      document.getElementById('btnMapAgain').click();
+      const fl = { state, miami: nodeOpen(node('miami')), reef: nodeOpen(node('reef')), flight: FLIGHT_PATHS.has('liberty|miami'), map: node('miami').map };
+      startLevel('canaveral'); const boss5 = ents.find(e => e.k === 'boss'); const hp5 = boss5.hp; kinds.castillo = LEVELS.castillo.ents.find(e => e.k === 'boss').kind; kinds.canaveral = boss5.kind;
+      WORLDS[4].slice(0, -1).forEach(id => { save.cleared[id] = true; }); winGame();
+      const end5 = { title: document.querySelector('#ending h1').textContent, beaten5: save.beaten5, space: nodeOpen(node('space')), levels5: WORLDS[4].length };
+      return { before, end1, after, hp, end2, cape, hp3, end3, ny, hp4, kinds, end4, fl, hp5, end5, slippery: !!LEVELS.snow.slippery,
         levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown', 'orchard', 'niagara', 'bridge', 'city', 'liberty'].every(id => ORDER.includes(id)) };
     });
     check(!r.before && /WORLD 1/.test(r.end1.title) && /World 2/.test(r.end1.btn), 'Goblin Castle should finish World 1 and offer World 2: ' + JSON.stringify(r));
@@ -1676,8 +1682,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.cape.state === 'map' && r.cape.canal && !r.cape.cranberry && r.cape.at === 'fort', 'the path to Bourne Bridge on Cape Cod should open: ' + JSON.stringify(r));
     check(r.hp3 === 5 && /WORLD 3/.test(r.end3.title) && /World 4/.test(r.end3.btn) && r.end3.beaten3, 'Provincetown Pier should finish World 3 and offer World 4: ' + JSON.stringify(r));
     check(r.ny.state === 'map' && r.ny.orchard && !r.ny.niagara && r.ny.flight, 'a flight from Cape Cod should open the Apple Orchard in Western New York: ' + JSON.stringify(r));
-    check(r.kinds.fort === 'yeti' && r.kinds.ptown === 'crab' && r.kinds.liberty === 'grumbles', 'new bosses: the Frost Yeti and Captain Pinch, and King Grumbles at the end: ' + JSON.stringify(r));
-    check(r.hp4 === 6 && /GOLD/.test(r.end4.title) && r.end4.beaten4, 'the Statue of Liberty should be the toughest, final ending: ' + JSON.stringify(r));
+    check(r.kinds.fort === 'yeti' && r.kinds.ptown === 'crab' && r.kinds.liberty === 'grumbles' && r.kinds.castillo === 'gator' && r.kinds.canaveral === 'grumbles', 'bosses: the Frost Yeti, Captain Pinch, King Grumbles, Captain Chomps, and King Grumbles at the end: ' + JSON.stringify(r.kinds));
+    check(r.hp4 === 6 && /WORLD 4/.test(r.end4.title) && /World 5/.test(r.end4.btn) && r.end4.beaten4, 'the Statue of Liberty should finish World 4 and offer World 5: ' + JSON.stringify(r));
+    check(r.fl.state === 'map' && r.fl.miami && !r.fl.reef && r.fl.flight && r.fl.map === 'fl', 'a flight from New York should open Miami Beach on the map of Florida: ' + JSON.stringify(r.fl));
+    check(r.hp5 === 7 && /GOLD/.test(r.end5.title) && r.end5.beaten5 && r.end5.space && r.end5.levels5 === 10, 'Cape Canaveral should be the toughest, final ending, with a bonus trip to space: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-world2.png');
   });
 
@@ -1996,6 +2004,74 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.eyes.every(x => x.ate) && !r.eyes[1].laser && r.eyes[2].laser && r.poop === 1, 'poop after 3 gulps, laser eyes after the 4th: ' + JSON.stringify({ eyes: r.eyes, poop: r.poop }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
+  });
+
+  await test('Lucky Leo World 5 (Florida): herons (walk under their legs, mind the beak), gators and gator backs, snakes, roosters, race cars, jellyfish, puffer fish, tarpon, mermaids, manatees, cannons, coconuts, the airboat, low gravity in space, and the flight between the maps', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      const only = (...ks) => { ents = ents.filter(e => !isEnemy(e) || ks.includes(e)); };
+      paused = true; startGame();
+      // a heron: small Leo walks right under its long legs; its beak jabs when he's in front; stomping its back knocks it out
+      startLevel('glades'); let h = ents.find(e => e.k === 'heron'); only(h); h.jabCD = 99; h.pause = 99;
+      player.x = h.x + 1; player.y = h.y + h.h - player.h; player.vy = 0; player.inv = 0; run(2); out.underLegs = { lives, form: player.form, phase };
+      startLevel('glades'); h = ents.find(e => e.k === 'heron'); only(h); h.pause = 99; h.dir = 1; h.face = 1; h.jabCD = 0; setForm(1); player.inv = 0;
+      player.x = h.x + h.w + 8; player.y = h.y + h.h - player.h; player.vy = 0; run(20); out.jab = { form: player.form, jabbed: h.jabCD > 0 };
+      startLevel('glades'); h = ents.find(e => e.k === 'heron'); only(h); h.pause = 99; h.jabCD = 99; player.x = h.x + 1; player.y = h.y - player.h - 6; player.vy = 120; player.ground = false; run(4); out.heronStomp = !!h.flip;
+      // the snake, the gator and (in Key West) a rooster can all be stomped
+      for (const [lv, k] of [['glades', 'snake'], ['glades', 'gator'], ['keywest', 'rooster'], ['daytona', 'racer']]) {
+        startLevel(lv); const e = ents.find(q => q.k === k); only(e); run(10); player.x = e.x + e.w / 2 - 6; player.y = e.y - player.h - 4; player.vy = 120; player.ground = false; player.inv = 0; run(4); out[k] = !!e.flip;
+      }
+      // race cars are fast
+      startLevel('daytona'); const car = ents.find(e => e.k === 'racer'); player.x = car.x - 200; run(10); const c0 = car.x; run(30); out.raceSpeed = Math.round(Math.abs(car.x - c0) * 2);
+      // gator backs in the Everglades sink under Leo's feet; the airboat sails once he's aboard
+      startLevel('glades'); ents = ents.filter(e => !isEnemy(e)); const gb = ents.find(e => e.k === 'sponge'); player.x = gb.x + 8; player.y = gb.y - player.h - 2; player.vy = 0; run(40); out.gatorBackSinks = gb.y > gb.y0 + 3;
+      startLevel('glades'); ents = ents.filter(e => !isEnemy(e)); const boat = ents.find(e => e.k === 'boat'); player.x = boat.x + 30; player.y = boat.y - player.h - 2; player.vy = 0; run(120); out.airboat = { go: boat.go, moved: Math.round(boat.x - boat.x0), riding: player.ride === boat };
+      // a puffer fish: stomp it while it's flat and it's knocked out; puffed up, it's spiky
+      startLevel('reef'); let pf = ents.find(e => e.k === 'puffer'); only(pf); pf.puff = 0; pf.kick = 9; player.x = pf.x + 1; player.y = pf.y - player.h - 30; player.vy = 0; run(1); pf.puff = 0;
+      player.y = pf.y - player.h - 2; player.vy = 70; player.inv = 0; player.form = 0; run(3); out.pufferFlat = !!pf.flip;
+      startLevel('reef'); pf = ents.find(e => e.k === 'puffer'); only(pf); pf.kick = 9; player.x = pf.x - 30; player.y = pf.y; run(30); out.puffs = pf.puff > 0.5;
+      setForm(1); player.inv = 0; player.x = pf.x + 1; player.y = pf.y - player.h - 2; player.vy = 70; run(3); out.pufferSpiky = { flipped: !!pf.flip, form: player.form };
+      // jellyfish drift, and can be stomped
+      startLevel('reef'); const jl = ents.find(e => e.k === 'jelly'); only(jl); run(30); const j0 = { x: jl.x, y: jl.y }; run(30); out.jellyDrifts = Math.hypot(jl.x - j0.x, jl.y - j0.y) > 2;
+      // a manatee carries Leo along
+      startLevel('reef'); ents = ents.filter(e => !isEnemy(e)); const man = ents.find(e => e.look === 'manatee'); run(5); player.x = man.x + 16; player.y = man.y - player.h - 1; player.vy = 30; run(3); const m0 = player.x; run(40); out.manatee = { riding: player.ride === man, moved: Math.round(Math.abs(player.x - m0)) };
+      // a mermaid gives Leo five coins
+      startLevel('springs'); const mm = ents.find(e => e.k === 'mermaid'); const coins0 = coins; player.x = mm.x + 2; player.y = mm.y + 4; run(2); out.mermaid = { gave: !!mm.gave, coins: coins - coins0 };
+      // the tarpon leap out of the water across the gaps in Key West
+      startLevel('keywest'); const tp = ents.find(e => e.k === 'shark' && e.look === 'tarpon'); player.x = tp.x0 - 100; tp.cool = 0; run(20); out.tarpon = tp.st === 'leap';
+      // palm trees drop coconuts
+      startLevel('keywest'); const palm = ents.find(e => e.k === 'appletree' && e.palm); player.x = palm.x - 10; palm.cool = 0; run(3); out.coconut = ents.some(e => e.k === 'applefall' && e.coconut);
+      // the fort's cannons fire along the ground (a cannonball can be stomped)
+      startLevel('castillo'); const cn = ents.find(e => e.k === 'cannon'); player.x = cn.x + 120; cn.cool = 0; run(3); const ball = ents.find(e => e.k === 'acorn' && e.kind === 'cannonball'); out.cannon = !!ball && ball.vx > 0;
+      // Captain Chomps guards a treasure chest: grabbing it clears the level and opens Daytona Beach (no ending screen)
+      startLevel('castillo'); const cb = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
+      for (let k = 0; k < 5; k++) { player.inv = 9; run(100); player.x = cb.x + 8; player.y = cb.y - 30; player.vy = 150; run(8); }
+      run(60 * 3); const chest = ents.find(e => e.k === 'pot'); if (chest) { player.x = chest.x; player.y = chest.y; run(3); } run(60 * 5);
+      out.chomps = { hp: cb.hp, state, daytona: nodeOpen(node('daytona')), cleared: !!save.cleared.castillo };
+      // out in space Leo jumps much higher
+      const jumpHeight = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); run(20); const y0 = player.y; let top = y0; keys.jump = true; pressed.jump = true; run(90, () => { top = Math.min(top, player.y); }); keys.jump = false; return y0 - top; };
+      out.jump = { hills: Math.round(jumpHeight('hills')), space: Math.round(jumpHeight('space')) };
+      // the map: from the Statue of Liberty, Leo flies off the bottom of New England and lands in Miami, on the map of Florida
+      save.cleared.liberty = true; goMap('liberty'); const v0 = mapView(); mapMove([0, 1]); const flyTo = mapLeo.to; run(60); const vMid = mapView(), flying = !!mapLeo.flying; run(150);
+      out.flight = { v0, flyTo, vMid, flying, at: mapLeo.at, v1: mapView() };
+      paused = false; return out;
+    });
+    check(r.underLegs.lives === 5 && r.underLegs.form === 0 && r.underLegs.phase === 'play', 'small Leo walks right under a heron\'s legs: ' + JSON.stringify(r.underLegs));
+    check(r.jab.jabbed && r.jab.form === 0, 'a heron jabs Leo when he stands in front of it: ' + JSON.stringify(r.jab));
+    check(r.heronStomp && r.snake && r.gator && r.rooster && r.racer, 'herons, snakes, gators, roosters and race cars can be stomped: ' + JSON.stringify(r));
+    check(r.raceSpeed > 90, 'race cars are fast: ' + r.raceSpeed);
+    check(r.gatorBackSinks && r.airboat.go && r.airboat.moved > 60 && r.airboat.riding, 'gator backs sink and the airboat sails with Leo aboard: ' + JSON.stringify(r));
+    check(r.pufferFlat && r.puffs && !r.pufferSpiky.flipped && r.pufferSpiky.form === 0, 'a puffer fish can be stomped when flat but is spiky when puffed up: ' + JSON.stringify(r));
+    check(r.jellyDrifts && r.manatee.riding && r.manatee.moved > 4, 'jellyfish drift and a manatee gives Leo a ride: ' + JSON.stringify(r));
+    check(r.mermaid.gave && r.mermaid.coins === 5, 'a mermaid gives Leo five coins: ' + JSON.stringify(r.mermaid));
+    check(r.tarpon && r.coconut && r.cannon, 'tarpon leap, coconuts drop and cannons fire: ' + JSON.stringify(r));
+    check(r.chomps.hp === 0 && r.chomps.state === 'map' && r.chomps.daytona && r.chomps.cleared, 'beating Captain Chomps and grabbing the treasure opens Daytona Beach: ' + JSON.stringify(r.chomps));
+    check(r.jump.space > r.jump.hills * 1.5, 'low gravity in space: much higher jumps: ' + JSON.stringify(r.jump));
+    check(r.flight.v0 === 'ne' && r.flight.flyTo === 'miami' && r.flight.flying && r.flight.at === 'miami' && r.flight.v1 === 'fl', 'Leo flies from New York to the map of Florida: ' + JSON.stringify(r.flight));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-florida.png');
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {

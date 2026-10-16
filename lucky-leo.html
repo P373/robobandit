@@ -90,7 +90,7 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>LUCKY <span>LEO</span></h1>
-    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across New England, from the hills of Connecticut to the mountains of New Hampshire and the coast of Maine, on to Cape Cod and all the way to New York, to get it all back.</div>
+    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across New England, from the hills of Connecticut to the mountains of New Hampshire and the coast of Maine, on to Cape Cod, New York and all the way down to sunny Florida, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
@@ -100,6 +100,7 @@
       <li>👑 <b>King Grumbles</b> can be stomped, or hit with a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power.</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable. Now and then there's a <b>rainbow-striped block</b>: bump it and a really long rainbow grows up into the sky. Jump on it to ride up to a <b>secret place above the clouds</b>, full of power-ups and coins, with a rainbow gem!</li>
       <li>🗽 After Cape Cod, Leo flies to <b>New York</b>: an apple orchard, Niagara Falls, the George Washington Bridge (watch out for taxis!), the rooftops of Manhattan (find the gap you can only climb by wall-kicking) and the Statue of Liberty. Watch for new bosses: the <b>Frost Yeti</b> and <b>Captain Pinch</b>!</li>
+      <li>🌴 Then it's down to <b>Florida</b>: Miami Beach, a coral reef, Key West, the Everglades, St. Pete Pier, the mermaids of Weeki Wachee Springs, a theme park, the old fort at St. Augustine, Daytona Beach and Cape Canaveral. Meet herons and flamingos (small Leo can run right under their long legs, but watch the beak!), alligators, snakes, puffer fish, roosters, race cars, and gentle manatees you can ride.</li>
       <li>🌊 Water won't hurt Leo: he <b>swims</b>! Press jump to paddle up, and jump at the surface to leap out. In Cranberry Bog the squishy bog mats sink under your feet… and one of them goes all the way down. 🐸</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
       <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… and a <b>secret exit</b> for anyone who can find another way to the end. 🤫</li>
@@ -539,6 +540,155 @@ LEVELS.liberty = builder('liberty', 'Statue of Liberty', 'harbor', 200)
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
+// ---- World 5: the Sunshine State (Leo flies down from New York to Florida) ----
+// New friends and foes: tall-legged herons and pink flamingos (stomp their backs, walk under their legs, mind the beak),
+// alligators (and gator backs that sink as you cross), snakes in the grass, puffer fish (spiky when puffed up), leaping
+// tarpon, Key West roosters, race cars, cannons, gentle manatees to ride, and the mermaids of Weeki Wachee.
+// 5-1. Miami Beach: Ocean Drive, pastel art deco hotels, palm trees and flamingos
+LEVELS.miami = builder('miami', 'Miami Beach', 'deco', 210)
+  .ground(0, 209).gap(40, 43).gap(94, 97).gap(146, 149)
+  .at(8, 8, '?PC').e('grumblin', 16, 11).e('palm', 20, 0).e('snaily', 24, 11)
+  .at(28, 8, 'B?B?B').coins(28, 4, 5).e('buzzer', 34, 6)
+  .arc(39, 8, 6).e('heron', 50, 11).at(54, 8, '?Y?').e('crab', 60, 11).e('palm', 62, 0)
+  .stairs(66, 4).fill(70, 74, 8, 11, T.STONE).e('grumblin', 72, 7).stairs(75, 4, false)
+  .e('snaily', 84, 11).arc(93, 8, 6).e('mid', 102, 11).at(106, 8, '?L?').e('heron', 112, 11)
+  .e('spring', 120, 11).at(118, 3, '====').coins(118, 2, 4).e('buzzer', 126, 6).e('crab', 132, 11).e('palm', 136, 0).e('grumblin', 138, 11)
+  .arc(145, 8, 6).at(154, 8, '?S?').e('snaily', 160, 11).e('heron', 168, 11).e('palm', 172, 0).e('grumblin', 176, 11).stairs(184, 5)
+  .gems(9, 5, 29, 3, 72, 4, 119, 1, 155, 5)
+  .done({ goal: 198, music: 'tropic' });
+
+// 5-2. Coral Reef: a dive off Key Largo. All underwater: coral heads, jellyfish, puffer fish, sea turtles and a manatee to ride
+LEVELS.reef = builder('reef', 'Coral Reef', 'reef', 200)
+  .fill(0, 199, 0, 11, T.WATER).ground(0, 199)
+  .fill(14, 18, 9, 11, T.GROUND).fill(30, 33, 4, 6, T.GROUND).fill(44, 50, 8, 11, T.GROUND).fill(62, 65, 2, 4, T.GROUND).fill(76, 82, 9, 11, T.GROUND)
+  .fill(96, 99, 5, 7, T.GROUND).fill(112, 118, 8, 11, T.GROUND).fill(130, 133, 3, 5, T.GROUND).fill(146, 152, 9, 11, T.GROUND).fill(166, 169, 5, 7, T.GROUND)
+  .at(6, 8, '?PC').arc(20, 8, 8).coins(30, 3, 4).e('jelly', 24, 5).e('puffer', 38, 8).coins(44, 7, 7)
+  .e('turtle', 54, 6).e('jelly', 56, 3).at(62, 7, '?Y?').e('puffer', 70, 6).coins(76, 8, 7).e('minnows', 86, 4)
+  .e('jelly', 88, 7).arc(96, 4, 4).e('mid', 104, 11).at(106, 6, '?L?').e('puffer', 110, 4)
+  .e('plat', 121, 6, { w: 3, dx: 3, sp: 0.5, look: 'manatee' }).coins(112, 7, 7).e('jelly', 126, 9).e('turtle', 138, 7)
+  .at(140, 7, 'BMB').e('puffer', 144, 4).e('jelly', 156, 5).arc(158, 9, 7).e('minnows', 162, 2).e('puffer', 174, 8).e('jelly', 180, 4)
+  .gems(7, 5, 31, 2, 64, 1, 98, 2, 167, 3)
+  .done({ goal: 188, music: 'reef', swim: true });
+
+// 5-3. Key West: sandy keys in turquoise water at the southernmost point; roosters run wild, coconuts drop, tarpon leap the gaps
+LEVELS.keywest = builder('keywest', 'Key West', 'keys', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 24).ground(30, 54).ground(60, 78).ground(84, 108).ground(114, 134).ground(140, 160).ground(166, 209)
+  .at(8, 8, '?PC').e('rooster', 14, 11).e('palm', 20, 0)
+  .e('tarpon', 27, 12).at(34, 8, 'B?B').e('snaily', 40, 11).e('palm', 46, 0).e('rooster', 48, 11)
+  .e('tarpon', 57, 12).at(64, 8, '?Y?').e('heron', 70, 11).e('crab', 76, 11)
+  .e('tarpon', 81, 12).e('mid', 88, 11).at(92, 8, 'BLB').e('rooster', 98, 11).e('palm', 102, 0).e('snaily', 104, 11)
+  .e('tarpon', 111, 12).e('spring', 118, 11).at(116, 3, '====').coins(116, 2, 4).e('rooster', 126, 11).e('palm', 130, 0)
+  .e('tarpon', 137, 12).at(144, 8, '?S?').e('heron', 150, 11).e('crab', 156, 11)
+  .e('tarpon', 163, 12).e('rooster', 172, 11).e('palm', 178, 0).e('snaily', 182, 11).stairs(188, 5)
+  .gems(9, 5, 35, 5, 65, 5, 117, 1, 145, 5)
+  .done({ goal: 200, music: 'tropic' });
+
+// 5-4. Everglades: the river of grass. Herons, snakes and gators on the hammocks; hop the gator backs (they sink!) and ride the airboat
+LEVELS.glades = builder('glades', 'Everglades', 'glades', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 22).ground(28, 48).ground(54, 62).ground(118, 140).ground(146, 160).ground(186, 213)
+  .at(8, 8, '?PC').e('heron', 16, 11).e('snake', 20, 11)
+  .e('sponge', 23, 12, { w: 3 }).at(32, 8, 'B?B').e('gator', 40, 11).e('buzzer', 44, 6)
+  .e('sponge', 49, 12, { w: 3 }).at(56, 8, '?Y?').e('snake', 60, 11)
+  .e('boat', 63, 12, { w: 6, to: 112, sp: 64 }).coins(70, 8, 4).e('buzzer', 78, 6).at(82, 8, '?M?').e('buzzer', 94, 5).coins(98, 8, 4).at(104, 8, 'BLB')
+  .e('mid', 122, 11).e('gator', 128, 11).at(132, 8, '?L?').e('heron', 137, 11)
+  .e('sponge', 141, 12, { w: 3 }).e('snake', 150, 11).e('gator', 156, 11)
+  .e('sponge', 162, 12, { w: 3 }).e('sponge', 167, 12, { w: 3 }).e('sponge', 172, 12, { w: 3 }).e('sponge', 177, 12, { w: 3 }).e('sponge', 182, 12, { w: 3 })
+  .coins(167, 8, 13).at(190, 8, '?S?').e('snake', 196, 11).stairs(198, 5)
+  .gems(9, 5, 33, 5, 83, 5, 133, 5, 174, 7)
+  .done({ goal: 206, music: 'glades' });
+
+// 5-5. St. Pete Pier: out along the long pier over Tampa Bay, pelicans gliding, tarpon leaping, the Bending Arc net billowing above
+LEVELS.stpete = builder('stpete', 'St. Pete Pier', 'stpete', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 13).stairs(11, 3).fill(14, 189, 9, 9, T.STONE).ground(190, 209)
+  .at(6, 8, '?PC').e('crab', 20, 8).at(26, 5, 'B?B').e('buzzer', 34, 4).fill(42, 46, 9, 9, T.EMPTY).e('tarpon', 44, 12)
+  .at(52, 5, '------').coins(52, 4, 6).e('heron', 58, 8).e('snaily', 66, 8)
+  .at(72, 5, '?Y?').e('buzzer', 78, 4).e('crab', 84, 8).fill(90, 94, 9, 9, T.EMPTY).e('tarpon', 92, 12)
+  .e('mid', 100, 8).at(104, 5, '?L?').e('heron', 112, 8).e('buzzer', 118, 4)
+  .e('spring', 124, 8).at(125, 1, '===').coins(125, 0, 3).fill(132, 136, 9, 9, T.EMPTY).e('tarpon', 134, 12)
+  .e('crab', 142, 8).at(146, 5, 'BMB').e('snaily', 152, 8).e('heron', 160, 8)
+  .at(166, 5, '?S?').e('buzzer', 170, 4).fill(176, 180, 9, 9, T.EMPTY).e('tarpon', 178, 12)
+  .gems(9, 5, 55, 3, 73, 3, 126, 0, 147, 3)
+  .done({ goal: 198, music: 'stpete' });
+
+// 5-6. Weeki Wachee Springs: dive into the crystal-clear spring past the underwater theater, where the mermaids wave (swim
+// up to one for a gift) and manatees drift by (stand on one for a ride)
+LEVELS.springs = builder('springs', 'Weeki Wachee Springs', 'springs', 210)
+  .fill(0, 209, 4, 11, T.WATER).ground(0, 209).ground(0, 12, 4).ground(197, 209, 4)
+  .at(5, 1, '?PC').arc(14, 6, 7).fill(26, 30, 9, 11, T.GROUND).e('mermaid', 22, 8).e('frog', 34, 9)
+  .fill(42, 46, 7, 8, T.GROUND).coins(42, 6, 5).e('plat', 52, 9, { w: 3, dx: 2, sp: 0.4, look: 'manatee' }).e('turtle', 60, 9)
+  .e('mermaid', 66, 6).at(70, 8, '?Y?').e('frog', 80, 6).e('minnows', 88, 7).fill(90, 95, 10, 11, T.GROUND).coins(90, 9, 6)
+  .e('mid', 100, 11).at(104, 7, '?L?').e('frog', 108, 9).e('mermaid', 118, 8).fill(124, 127, 5, 6, T.GROUND).coins(124, 4, 4)
+  .e('turtle', 132, 8).e('plat', 140, 8, { w: 3, dx: 3, sp: 0.35, look: 'manatee' }).e('frog', 150, 7).at(156, 8, 'BMB')
+  .e('mermaid', 168, 6).e('minnows', 172, 9).e('frog', 180, 8).fill(184, 188, 9, 11, T.GROUND).coins(184, 8, 5)
+  .gems(6, 0, 44, 5, 92, 8, 125, 3, 170, 9)
+  .done({ goal: 202, music: 'springs', swim: true });
+
+// 5-7. Thrill Park: a theme park at night, fireworks overhead; ride roller-coaster cars and spinning teacups over the gaps
+LEVELS.park = builder('park', 'Thrill Park', 'park', 214)
+  .ground(0, 28).ground(34, 58).ground(70, 92).ground(104, 126).ground(140, 160).ground(172, 213)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 22, 6)
+  .e('plat', 30, 10, { w: 3, dx: 1, sp: 1.1, look: 'coaster' })
+  .at(38, 8, 'B?B').e('snaily', 44, 11).e('grumblin', 50, 11).e('spring', 56, 11).coins(54, 3, 5)
+  .e('plat', 61, 9, { w: 3, dx: 3, sp: 1, look: 'coaster' })
+  .at(74, 8, '?Y?').e('thorny', 80, 11).e('grumblin', 86, 11)
+  .e('plat', 94, 9, { w: 3, dy: 2, sp: 1.2, look: 'teacup' }).e('plat', 99, 8, { w: 3, dy: 2, sp: 1, look: 'teacup' })
+  .e('mid', 108, 11).at(112, 8, '?L?').e('snaily', 118, 11).e('buzzer', 122, 6)
+  .e('plat', 129, 9, { w: 3, dx: 3, sp: 1.1, look: 'coaster' })
+  .at(144, 8, 'BMB').e('grumblin', 150, 11).e('thorny', 156, 11)
+  .e('plat', 163, 9, { w: 3, dx: 3, sp: 1, look: 'coaster' })
+  .at(176, 8, '?S?').e('snaily', 182, 11).e('grumblin', 186, 11).stairs(192, 5)
+  .gems(9, 5, 39, 5, 55, 1, 100, 5, 145, 5)
+  .done({ goal: 204, music: 'park' });
+
+// 5-8. Castillo de San Marcos: the old coquina-stone fort in St. Augustine. Cannons, a moat, and Captain Chomps, the pirate gator
+LEVELS.castillo = builder('castillo', 'Castillo de San Marcos', 'castillo', 196)
+  .fill(0, 195, 0, 0, T.STONE).fill(0, 195, 12, 13, T.WATER).ground(0, 22, 12, T.STONE).ground(27, 46, 12, T.STONE).ground(51, 72, 12, T.STONE)
+  .ground(78, 100, 12, T.STONE).ground(105, 132, 12, T.STONE).ground(136, 195, 12, T.STONE)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('cannon', 21, 11)
+  .e('crusher', 31, 1).e('snake', 38, 11).e('firebar', 44, 7, { len: 4, sp: -1 })
+  .at(48, 9, '==').e('cannon', 58, 11).e('snaily', 62, 11).at(66, 8, 'BSB').e('grumblin', 70, 11)
+  .e('plat', 73, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 82, 11).e('firebar', 88, 8, { len: 5, sp: 1.2 }).e('snake', 94, 11)
+  .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?L?').e('crusher', 116, 1).e('cannon', 124, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
+  .e('fall', 132, 10, { w: 3 })
+  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 5, kind: 'gator' })   // Captain Chomps guards the treasure
+  .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
+  .done({ goal: 0, boss: true, midBoss: true, music: 'castle' });
+
+// 5-9. Daytona Beach: race cars zoom along the hard-packed sand. Jump them, stomp them, or hop up onto the boardwalk
+LEVELS.daytona = builder('daytona', 'Daytona Beach', 'daytona', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 48).ground(53, 98).ground(104, 150).ground(156, 213)
+  .at(8, 8, '?PC').e('grumblin', 16, 11)
+  .at(22, 8, '------').coins(22, 7, 6).e('racer', 36, 11).e('buzzer', 40, 6)
+  .arc(47, 8, 7).at(58, 8, 'B?B').e('snaily', 64, 11).at(70, 8, '-----').at(76, 5, '?Y?').e('racer', 80, 11).at(84, 8, '-----')
+  .arc(97, 8, 8).e('mid', 108, 11).at(112, 8, '?L?').e('heron', 118, 11).at(124, 8, '------').coins(124, 7, 6).e('racer', 134, 11)
+  .e('spring', 142, 11).at(140, 3, '===').coins(140, 2, 3)
+  .arc(149, 8, 8).at(160, 8, '?S?').e('crab', 166, 11).at(172, 8, '-----').e('racer', 178, 11).e('grumblin', 186, 11).stairs(192, 5)
+  .gems(9, 5, 25, 6, 77, 3, 141, 1, 161, 5)
+  .done({ goal: 204, music: 'daytona' });
+
+// 5-10. Cape Canaveral: across the launch complex to the pad, where King Grumbles is trying to blast off with the gold. Seven hits.
+LEVELS.canaveral = builder('canaveral', 'Cape Canaveral', 'cape', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 22).ground(28, 50).ground(56, 76).ground(82, 104).ground(110, 136).ground(142, 199)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .e('plat', 23, 10, { w: 2, dx: 1, sp: 1, look: 'gantry' }).e('heron', 36, 11).e('snake', 44, 11)
+  .at(52, 8, 'B?B').e('crusher', 62, 1).e('gator', 66, 11).at(72, 8, 'BSB')
+  .e('plat', 77, 9, { w: 2, dy: 2, sp: 1, look: 'gantry' }).e('mid', 86, 11).e('firebar', 94, 8, { len: 4, sp: 1.3 }).e('thorny', 100, 11)
+  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1, look: 'gantry' }).at(116, 8, '?L?').e('crusher', 122, 1).e('snake', 128, 11).e('buzzer', 132, 6)
+  .e('fall', 137, 10, { w: 3 })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 7, kind: 'grumbles' })
+  .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
+  .done({ goal: 0, boss: true, music: 'launch' });
+
+// Bonus: Outer Space (the rocket's still fuelled up after Cape Canaveral). Low gravity: huge floaty jumps, coins among the stars
+LEVELS.space = builder('space', 'Outer Space', 'space', 176)
+  .ground(0, 40).ground(44, 80, 11).ground(84, 120).ground(124, 175, 11)   // the moon's surface, with a few little craters to hop
+  .at(10, 8, '?L?').at(18, 7, '-----').coins(18, 6, 5).at(26, 4, '-----').coins(26, 3, 5).at(34, 1, '-----').coins(34, 0, 4).e('buzzer', 30, 8)
+  .arc(40, 9, 6).at(50, 6, 'MBM').e('spring', 58, 10).coins(56, 1, 6).e('buzzer', 66, 5).at(70, 7, '----').at(76, 4, '----').coins(76, 3, 4)
+  .arc(80, 9, 6).e('buzzer', 92, 6).at(96, 8, 'LML').at(104, 5, '-----').coins(104, 4, 5).at(112, 2, '-----').coins(112, 1, 5)
+  .arc(120, 9, 6).e('buzzer', 130, 5).at(136, 8, 'MMMM').arc(142, 9, 10).e('buzzer', 152, 6)
+  .gems(22, 5, 38, 0, 58, 0, 98, 6, 114, 0)
+  .done({ goal: 162, music: 'space', lowGrav: true });
+
 // Under the Bog: down below Cranberry Bog, a world of frogs, tadpoles, turtles and minnows; its secret exit opens a road along the Cape to Nauset Dunes
 LEVELS.cranberryDeep = builder('cranberryDeep', 'Under the Bog', 'deep', 96)
   .fill(0, 95, 0, 11, T.WATER).ground(0, 95).fill(0, 0, 0, 13, T.GROUND).fill(95, 95, 0, 13, T.GROUND)
@@ -577,7 +727,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'orchard', 'niagara', 'bridge', 'city', 'liberty'];
+const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'space'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -721,6 +871,24 @@ const SONGS = {
     0, 3, 5, 7, null, 5, 7, 10, 9, null, 7, 5, 3, null, 0, null, 3, 5, 7, 10, null, 12, 10, 7, 5, 7, 5, 3, 0, null, null, null], bass: [0, 0, -2, -2, -4, -4, -2, 0] },
   bonus: { bpm: 144, key: 64, mode: 'major', beat: 3, lead: 'pulse', melody: [
     0, 2, 4, 7, 4, 2, 4, 7, 9, 7, 4, 2, 5, 4, 2, 4, 2, 1, 0, null, 4, 7, null, null], bass: [0, 0, 3, 4, 0, 0, 4, 0] },
+  tropic: { bpm: 128, key: 65, mode: 'major', beat: 4, lead: 'flute', melody: [   // a sunny calypso
+    0, null, 4, 7, null, 7, 9, 7, 5, null, 4, 2, 4, null, null, null, 2, null, 5, 9, null, 9, 11, 9, 7, null, 5, 4, 2, null, 0, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
+  reef: { bpm: 92, key: 62, mode: 'major', beat: 3, lead: 'soft', melody: [
+    4, null, 7, 9, null, 7, 4, null, 2, 4, null, null, 2, null, 4, 7, null, 4, 2, null, 0, -1, null, null], bass: [0, 0, 3, 3, 4, 4, 3, 3] },
+  glades: { bpm: 100, key: 57, mode: 'dorian', beat: 4, lead: 'reed', melody: [   // a swampy blues
+    0, null, 2, 3, null, 3, 2, 0, -2, null, 0, null, -3, null, null, null, 0, null, 3, 4, null, 4, 3, 0, 2, null, 0, -2, 0, null, null, null], bass: [0, 0, 3, 3, 0, 0, 4, 3] },
+  stpete: { bpm: 116, key: 67, mode: 'major', beat: 3, lead: 'flute', melody: [
+    0, 2, 4, null, 7, 4, 5, null, 4, 2, null, null, 4, 5, 7, null, 9, 7, 5, null, 4, 2, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  springs: { bpm: 84, key: 64, mode: 'major', beat: 3, lead: 'soft', melody: [   // a mermaid's waltz
+    7, null, 9, 11, null, 9, 7, null, 4, 5, null, null, 4, null, 5, 7, null, 5, 4, null, 2, 0, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  park: { bpm: 146, key: 64, mode: 'major', beat: 4, lead: 'pulse', melody: [   // a merry-go-round
+    0, 2, 4, 5, 7, null, 7, null, 9, 7, 5, 4, 5, null, null, null, 4, 5, 7, 9, 11, null, 9, 7, 5, 4, 2, 4, 0, null, null, null], bass: [0, 0, 3, 4, 0, 0, 4, 0] },
+  daytona: { bpm: 152, key: 62, mode: 'major', beat: 4, lead: 'pulse', melody: [   // pedal to the metal
+    0, 0, 4, 4, 7, null, 7, 9, 7, null, 4, null, 2, 4, 2, null, 0, 0, 4, 4, 7, null, 9, 11, 12, null, 11, 9, 7, null, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  launch: { bpm: 120, key: 57, mode: 'minor', beat: 4, lead: 'reed', melody: [   // the countdown
+    0, null, 0, null, 2, null, 3, null, 4, null, 3, 2, 0, null, null, null, 0, null, 0, null, 2, null, 3, null, 7, null, 6, 4, 3, null, null, null], bass: [0, 0, -2, -2, -3, -3, -4, -4] },
+  space: { bpm: 96, key: 60, mode: 'major', beat: 3, lead: 'soft', melody: [
+    7, null, 11, 14, null, 11, 9, null, 7, 4, null, null, 5, null, 9, 11, null, 9, 7, null, 4, 7, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
 };
 const MODES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10] };
 const music = (() => {
@@ -811,7 +979,7 @@ const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('ll_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4 };
+  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5 };
 })();
 function persist() {
   RB.store.set('ll_save', JSON.stringify(save));
@@ -1211,6 +1379,14 @@ const AIR = {
   falls: { n: 22, c: ['#ffffff', '#e0f4ff'], kind: 'spray', vx: -8, vy: -10 },              // the mist off the falls
   gwb: { n: 8, c: ['#ffffff'], kind: 'wisp', vx: -20, vy: 0 },
   harbor: { n: 14, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -4 },                                // bubbles
+  deco: { n: 10, c: ['#ff8ac8', '#ffffff', '#ffd23a'], kind: 'petal', vx: -12, vy: 6 },                         // hibiscus petals
+  keys: { n: 10, c: ['#ff8ac8', '#ffffff', '#ffd23a'], kind: 'petal', vx: -12, vy: 6 },
+  reef: { n: 20, c: ['#e8faff'], kind: 'mote', vx: 0, vy: -16 },
+  springs: { n: 16, c: ['#e8faff'], kind: 'mote', vx: 0, vy: -14 },
+  glades: { n: 10, c: ['#e8ff8a'], kind: 'mote', vx: 4, vy: -2 },
+  stpete: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -4 },
+  daytona: { n: 12, c: ['#f2dca0', '#fff4d8'], kind: 'spray', vx: -30, vy: 0 },                                 // blowing sand
+  park: { n: 18, c: ['#ff5a8a', '#ffe14a', '#5ad0ff', '#7aff8a'], kind: 'petal', vx: -6, vy: 10 },               // confetti
 };
 function drawAirborne(cx, t) {
   const a = lvl && AIR[lvl.theme];
@@ -1507,7 +1683,8 @@ function drawCrusher(x, y, angry, t) {
   rrect(6, 20, 12, 4.2, 2); paint('#2a2a34', 1); g.fillStyle = '#fff'; for (let i = 0; i < 4; i++) g.fillRect(7 + i * 2.8, 20, 1.6, 1.8);
   g.restore();
 }
-const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!' };
+const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!' };
+const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps' };
 // the Frost Yeti: a huge shaggy white snow-beast with little horns, a blue face and an icy grin; its landings shake the ground
 function drawYeti(x, y, t, face, hurt) {
   g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
@@ -1539,6 +1716,274 @@ function drawCrabBoss(x, y, t, face, hurt) {
   for (const ex of [-3.5, 3.5]) { g.fillStyle = dark; g.fillRect(ex - 0.7, -24, 1.4, 6); g.beginPath(); g.arc(ex, -25, 2.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.6, -25, 1.2, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }   // eyes on stalks
   rrect(-6, -31.5, 12, 3, 1); g.fillStyle = '#23324a'; g.fill(); rrect(-4, -35, 8, 4, [2, 2, 0, 0]); g.fill(); g.fillStyle = C.gold; g.fillRect(-1, -33.6, 2, 1.4);   // captain's hat
   g.beginPath(); g.moveTo(-4, -8); g.quadraticCurveTo(0, -5, 4, -8); g.lineWidth = 1; g.strokeStyle = '#5a1a12'; g.stroke();
+  g.restore();
+}
+// ---- World 5's characters (Florida) ----
+const FL_SEA = new Set(['deco', 'keys', 'stpete', 'daytona', 'cape', 'castillo']);              // turquoise Florida water
+const PELICANS = new Set(['deco', 'keys', 'glades', 'stpete', 'castillo', 'daytona', 'cape']);   // brown pelicans instead of bees
+const HERMITS = new Set(['deco', 'keys', 'stpete', 'daytona', 'reef', 'castillo']);              // hermit crabs instead of snails
+const FLAMINGOS = new Set(['deco', 'keys']);                                                     // the tall-legged birds are pink here
+function drawPelican(x, y, t, face) {   // a brown pelican: a big bill with a pouch, gliding on slow flaps
+  g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
+  const flap = Math.sin(t * 5);
+  for (const k of [-1, 1]) { g.beginPath(); g.moveTo(-3, -1); g.quadraticCurveTo(-7, -6 - flap * 5 * k, -14, -3 - flap * 4); g.lineTo(-2, 2); g.closePath(); g.fillStyle = k < 0 ? '#6a5240' : '#8a6a50'; g.fill(); }
+  ell(-1, 1, 7.5, 3.8); g.fillStyle = '#9a7a5a'; g.fill();
+  g.beginPath(); g.moveTo(-8, 0); g.lineTo(-12, -1.5); g.lineTo(-8, 2.5); g.fill();
+  g.beginPath(); g.arc(5.5, -2.5, 2.8, 0, TAU); g.fillStyle = '#f6f0e0'; g.fill();
+  g.beginPath(); g.moveTo(7, -3.4); g.lineTo(15, -1.6); g.lineTo(7.4, -1.2); g.closePath(); g.fillStyle = '#e8b84a'; g.fill();
+  g.beginPath(); g.moveTo(7.4, -1.2); g.quadraticCurveTo(11, 2.6, 14.6, -1.4); g.fillStyle = '#d89a3a'; g.fill();
+  g.beginPath(); g.arc(6.2, -3.2, 0.7, 0, TAU); g.fillStyle = INK; g.fill();
+  g.restore();
+}
+function drawUFO(x, y, t) {   // a little flying saucer with a green alien at the controls
+  g.save(); g.translate(x + 8, y + 8 + Math.sin(t * 3));
+  ell(0, -2, 4.5, 4); g.fillStyle = 'rgba(160,230,255,.85)'; g.fill();
+  g.beginPath(); g.arc(0, -2.4, 1.8, 0, TAU); g.fillStyle = '#7aff8a'; g.fill(); g.beginPath(); g.arc(0.6, -2.8, 0.5, 0, TAU); g.fillStyle = INK; g.fill();
+  ell(-1.4, -4, 1.4, 0.8); g.fillStyle = 'rgba(255,255,255,.7)'; g.fill();
+  ell(0, 1, 9, 3); g.fillStyle = '#b0b8d0'; g.fill(); ell(0, 2, 9, 1.6); g.fillStyle = '#6a7290'; g.fill();
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(-6 + i * 4, 1.4, 0.9, 0, TAU); g.fillStyle = Math.floor(t * 6 + i) % 2 ? '#ffe14a' : '#ff5a8a'; g.fill(); }
+  g.restore();
+}
+function drawHermit(x, y, t, face, shellOnly, spin) {   // a hermit crab peeking out of a pink-and-cream conch shell
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, 1);
+  if (!shellOnly) {
+    for (let i = 0; i < 3; i++) { const k = Math.sin(t * 12 + i * 2); g.save(); g.translate(2 + i * 1.8, -3); g.rotate(0.5 + k * 0.3); g.fillStyle = '#d8503a'; g.fillRect(-0.6, 0, 1.2, 4); g.restore(); }
+    ell(5, -5, 3.4, 2.6); g.fillStyle = '#e8603a'; g.fill();
+    g.beginPath(); g.moveTo(7, -6); g.lineTo(10, -8.6); g.lineTo(8.6, -4.6); g.closePath(); g.fillStyle = '#c8402a'; g.fill();
+    for (const ex of [5, 7]) { g.fillStyle = '#c8402a'; g.fillRect(ex - 0.3, -10.5, 0.6, 3.5); g.beginPath(); g.arc(ex, -11, 1.2, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.4, -11, 0.6, 0, TAU); g.fillStyle = INK; g.fill(); }
+  }
+  g.save(); g.translate(shellOnly ? 0 : -1.5, shellOnly ? -6.5 : -7.5); g.rotate((spin || 0) - 0.2);
+  g.beginPath(); g.moveTo(-7.5, 3.5); g.quadraticCurveTo(-7, -6, 0, -7); g.lineTo(7, -2); g.quadraticCurveTo(5, 5.5, -7.5, 3.5); g.closePath(); g.fillStyle = vgrad(-7, 4, '#fff0dc', '#f2a090'); g.fill();
+  g.beginPath(); g.moveTo(-5, 1.5); g.quadraticCurveTo(-1, -3, 4.6, -1.6); g.lineWidth = 1.1; g.strokeStyle = '#ff7a8a'; g.stroke();
+  for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(-4 + i * 3.4, -4.8 + i * 0.6, 1.2, 0, TAU); g.fillStyle = '#f6c8b0'; g.fill(); }
+  ell(-2, -4.4, 1.6, 0.8, -0.4); g.fillStyle = 'rgba(255,255,255,.6)'; g.fill();
+  g.restore(); g.restore();
+}
+// a great blue heron (or, in Miami and the Keys, a pink flamingo): long thin legs you can run under (if you're small),
+// a body you can stomp, and a dagger beak it jabs forward
+function drawHeron(e, t, pink) {
+  const face = e.face || -1, walk = e.t * 5, jab = e.jab > 0 ? Math.sin((1 - e.jab / 0.4) * Math.PI) : 0;
+  const body = pink ? '#ff8ab0' : '#7a96b8', dark = pink ? '#e85a8a' : '#5a7090', leg = pink ? '#e8708a' : '#c8a060';
+  g.save(); g.translate(e.x + 7, e.y + e.h); g.scale(face, 1);
+  for (const k of [0, 1]) { const s = e.vx ? Math.sin(walk + k * Math.PI) * 3 : (k ? 1.5 : -1.5); g.beginPath(); g.moveTo(0, -21); g.lineTo(-1 + s * 0.3, -11); g.lineTo(s, 0); g.lineWidth = 1.1; g.strokeStyle = leg; g.stroke(); g.beginPath(); g.moveTo(s - 2, 0); g.lineTo(s + 3, 0); g.stroke(); }
+  ell(-1, -24, 7, 4.4, -0.2); g.fillStyle = body; g.fill();
+  g.beginPath(); g.moveTo(-7, -23); g.lineTo(-11.5, -20); g.lineTo(-6, -21); g.fillStyle = dark; g.fill();
+  ell(-2, -25, 4.6, 2.3, -0.2); g.fillStyle = dark; g.fill();
+  const hx = 4 + jab * 9, hy = -34 + jab * 14;   // the S-neck straightens as it jabs
+  g.beginPath(); g.moveTo(3, -26); g.quadraticCurveTo(8 - jab * 2, -30 + jab * 4, hx, hy); g.lineWidth = 2.6; g.lineCap = 'round'; g.strokeStyle = body; g.stroke();
+  g.beginPath(); g.arc(hx, hy, 2.5, 0, TAU); g.fillStyle = pink ? body : '#e8eef6'; g.fill();
+  if (!pink) { g.beginPath(); g.moveTo(hx - 1, hy - 1.6); g.quadraticCurveTo(hx - 4, hy - 3.6, hx - 7, hy - 2.4); g.lineWidth = 0.8; g.strokeStyle = '#2a3a5a'; g.stroke(); }   // the crest plume
+  g.save(); g.translate(hx + 1.6, hy + 0.2); g.rotate(jab * 0.7);
+  if (pink) { g.beginPath(); g.moveTo(0, -1.2); g.lineTo(5, -0.6); g.quadraticCurveTo(6.2, 1.6, 4, 3.2); g.lineTo(0, 1.2); g.closePath(); g.fillStyle = '#2a2a2a'; g.fill(); g.beginPath(); g.moveTo(0, -1.2); g.lineTo(3, -0.9); g.lineTo(2.6, 1.1); g.lineTo(0, 1.2); g.closePath(); g.fillStyle = '#ffe0e8'; g.fill(); }
+  else { g.beginPath(); g.moveTo(0, -1.1); g.lineTo(8.5, 0); g.lineTo(0, 1.1); g.closePath(); g.fillStyle = '#e8b830'; g.fill(); }
+  g.restore();
+  g.beginPath(); g.arc(hx + 0.6, hy - 0.6, 0.9, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.beginPath(); g.arc(hx + 0.8, hy - 0.6, 0.45, 0, TAU); g.fillStyle = INK; g.fill();
+  g.restore();
+}
+function drawSnake(e, t) {   // a green snake with yellow stripes, slithering; now and then it rears up and flicks its tongue
+  const face = e.face || -1, ph = e.t * 8, rear = e.rear > 0 ? Math.sin(Math.min(1, e.rear / 0.7) * Math.PI) * 5 : 0;
+  g.save(); g.translate(e.x + 9, e.y + e.h); g.scale(face, 1); g.lineCap = 'round';
+  g.beginPath(); for (let i = 0; i <= 12; i++) { const sx = -10 + i * 1.6, sy = -2.2 + Math.sin(ph - i * 0.7) * 1.4 * (1 - i / 14) - (i > 9 ? (i - 9) / 3 * rear : 0); i ? g.lineTo(sx, sy) : g.moveTo(sx, sy); }
+  g.lineWidth = 3.4; g.strokeStyle = '#3a9a3a'; g.stroke(); g.setLineDash([1.4, 2]); g.lineWidth = 1.1; g.strokeStyle = '#e8d84a'; g.stroke(); g.setLineDash([]);
+  ell(9.6, -3.4 - rear, 3, 2.2); g.fillStyle = '#4aac48'; g.fill();
+  g.beginPath(); g.arc(10.2, -4.4 - rear, 0.8, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.fillStyle = INK; g.fillRect(10.05, -5, 0.4, 1.2);
+  if (Math.sin(t * 9) > 0.2) { g.beginPath(); g.moveTo(12.4, -3 - rear); g.lineTo(14.4, -3 - rear); g.lineTo(15.4, -3.9 - rear); g.moveTo(14.4, -3 - rear); g.lineTo(15.4, -2.1 - rear); g.lineWidth = 0.5; g.strokeStyle = '#e8303a'; g.stroke(); }
+  g.restore();
+}
+function drawGator(x, y, t, face, w = 30) {   // an alligator: long and bumpy, pale belly, and a toothy snout that snaps
+  g.save(); g.translate(x + w / 2 - 3, y + 12); g.scale(face, 1); g.scale(w / 30, w / 30);
+  const snap = Math.max(0, Math.sin(t * 3)) * 0.4, step = Math.sin(t * 8);
+  for (const [lx, k] of [[-7, 1], [4, -1]]) { g.fillStyle = '#3a6a2a'; g.fillRect(lx + step * k, -3, 2.6, 3); }
+  g.beginPath(); g.moveTo(-11, -3); g.quadraticCurveTo(-18, -2, -21, -0.5); g.quadraticCurveTo(-16, -7, -8, -7.5); g.closePath(); g.fillStyle = '#4a7a3a'; g.fill();
+  ell(-1, -5, 11, 4.4); g.fillStyle = '#5a8a3a'; g.fill(); ell(-1, -2.8, 10, 1.8); g.fillStyle = '#c8d890'; g.fill();
+  for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(-9 + i * 3.2, -9, 1.1, 0, TAU); g.fillStyle = '#3a6a2a'; g.fill(); }
+  g.beginPath(); g.moveTo(8, -4); g.lineTo(19, -4.4); g.quadraticCurveTo(20.4, -3.4, 19, -2.4); g.lineTo(8, -1.8); g.closePath(); g.fillStyle = '#4a7a3a'; g.fill();   // lower jaw
+  g.save(); g.translate(8, -5.6); g.rotate(-snap);
+  g.beginPath(); g.moveTo(0, -2.8); g.lineTo(11, -1.2); g.quadraticCurveTo(12.6, 0, 11, 1); g.lineTo(0, 1.2); g.closePath(); g.fillStyle = '#5a8a3a'; g.fill();
+  g.fillStyle = '#fff'; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(2.6 + i * 2.2, 1); g.lineTo(3.5 + i * 2.2, 2.4); g.lineTo(4.4 + i * 2.2, 1); g.fill(); }
+  g.beginPath(); g.arc(2.2, -3, 1.7, 0, TAU); g.fillStyle = '#5a8a3a'; g.fill(); g.beginPath(); g.arc(2.4, -3.3, 1, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.fillStyle = INK; g.fillRect(2.2, -4.2, 0.5, 1.8);
+  g.restore(); g.restore();
+}
+function drawGatorBack(xx, yy, w, h) {   // an Everglades gator lying low in the water: just its bumpy back, eyes and snout show
+  rrect(xx, yy + 1, w, h, 4); g.fillStyle = vgrad(yy, yy + h, '#5a8a3a', '#2a4a1a'); g.fill();
+  for (let i = 0; i < w / 5; i++) { g.beginPath(); g.arc(xx + 4 + i * 5, yy + 1.8, 1.4, 0, TAU); g.fillStyle = '#3a6a2a'; g.fill(); }
+  for (const ex of [xx + w - 7, xx + w - 3]) { g.beginPath(); g.arc(ex, yy, 1.7, 0, TAU); g.fillStyle = '#5a8a3a'; g.fill(); g.beginPath(); g.arc(ex, yy - 0.3, 0.9, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.fillStyle = INK; g.fillRect(ex - 0.2, yy - 1, 0.4, 1.4); }
+  rrect(xx + w - 1, yy + 2.4, 9, 3.4, 1.7); g.fillStyle = '#4a7a3a'; g.fill();
+}
+function drawRooster(x, y, t, face) {   // a Key West rooster: glossy tail feathers, a red comb, strutting
+  g.save(); g.translate(x + 7, y + 14); g.scale(face, 1);
+  const s = Math.sin(t * 10);
+  g.strokeStyle = '#e8a030'; g.lineWidth = 0.9; for (const k of [-1, 1]) { g.beginPath(); g.moveTo(-0.5 + k, -4); g.lineTo(k * 1.5 + s * k, 0); g.stroke(); }
+  for (const [c, a] of [['#2a6a3a', -0.9], ['#1e3a6a', -0.5], ['#3a2a1a', -0.1]]) { g.save(); g.translate(-4, -8); g.rotate(a); ell(-3, -3, 5, 1.8, 0.3); g.fillStyle = c; g.fill(); g.restore(); }
+  ell(0, -7, 5.2, 3.8); g.fillStyle = '#c8602a'; g.fill(); ell(-1, -6.4, 3, 2); g.fillStyle = '#8a3a1a'; g.fill();
+  g.beginPath(); g.arc(4, -11, 2.6, 0, TAU); g.fillStyle = '#e8803a'; g.fill();
+  g.fillStyle = '#e8303a'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(3 + i * 1.3, -13.6 + (i % 2) * 0.4, 1, 0, TAU); g.fill(); }
+  ell(5.4, -9, 0.9, 1.3); g.fill();
+  g.beginPath(); g.moveTo(6.2, -11.6); g.lineTo(8.4, -11); g.lineTo(6.2, -10.2); g.fillStyle = '#ffd23a'; g.fill();
+  g.beginPath(); g.arc(4.8, -11.6, 0.6, 0, TAU); g.fillStyle = INK; g.fill();
+  g.restore();
+}
+function drawRacer(x, y, face, n) {   // a stock car: low and fast, with a stripe, a number roundel and a spoiler
+  g.save(); g.translate(x + 14, y + 12); g.scale(face, 1);
+  const col = ['#e8302a', '#2a6ae8', '#ffb21a', '#2ab05a'][n % 4];
+  g.beginPath(); g.moveTo(-14, -3); g.lineTo(-13, -8); g.lineTo(-5, -9); g.lineTo(-2, -13); g.lineTo(6, -13); g.lineTo(10, -8); g.lineTo(14.5, -6.5); g.lineTo(14.5, -3); g.closePath(); g.fillStyle = col; g.fill();
+  g.beginPath(); g.moveTo(-1, -12); g.lineTo(5, -12); g.lineTo(8, -8.6); g.lineTo(-1, -8.6); g.closePath(); g.fillStyle = '#9ad0f0'; g.fill();
+  g.fillStyle = '#ffffff'; g.fillRect(-14, -7, 28.5, 1.2);
+  g.beginPath(); g.arc(-6, -5.6, 2.6, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.fillStyle = INK; g.fillRect(-6.4, -7.2, 0.9, 3.2);
+  g.fillStyle = '#23242a'; g.fillRect(-15, -11, 2.4, 1.2); g.fillRect(-14.2, -10, 0.8, 2);
+  for (const wx of [-8, 8]) { g.beginPath(); g.arc(wx, -2.4, 2.8, 0, TAU); g.fillStyle = '#23242a'; g.fill(); g.beginPath(); g.arc(wx, -2.4, 1.1, 0, TAU); g.fillStyle = '#c8c8d0'; g.fill(); }
+  g.restore();
+}
+function drawJelly(x, y, t) {   // a pink jellyfish, pulsing, its tentacles trailing
+  const p = Math.sin(t * 3);
+  g.save(); g.translate(x + 6, y + 5);
+  g.beginPath(); g.ellipse(0, 0.5, 6 + p * 0.6, 5.5 - p * 0.5, 0, Math.PI, 0); g.quadraticCurveTo(0, 3, -6 - p * 0.6, 0.5); g.closePath(); g.fillStyle = 'rgba(255,140,200,.82)'; g.fill();
+  ell(-2, -2, 2, 1.2); g.fillStyle = 'rgba(255,255,255,.6)'; g.fill();
+  g.strokeStyle = 'rgba(255,170,220,.85)'; g.lineWidth = 0.8;
+  for (let i = 0; i < 4; i++) { const tx = -4.5 + i * 3; g.beginPath(); g.moveTo(tx, 1.8); g.quadraticCurveTo(tx + Math.sin(t * 4 + i) * 2, 6, tx + Math.sin(t * 4 + i + 1) * 1.5, 10); g.stroke(); }
+  g.restore();
+}
+function drawPuffer(x, y, t, face, puff) {   // a puffer fish: round and spotty, and when it puffs up, a spiky ball
+  g.save(); g.translate(x + 7, y + 7); g.scale(face, 1);
+  const r = 4.8 + puff * 3.4;
+  if (puff > 0.2) for (let i = 0; i < 14; i++) { const a = i / 14 * TAU; g.beginPath(); g.moveTo(Math.cos(a) * r * 0.8, Math.sin(a) * r * 0.8); g.lineTo(Math.cos(a) * (r + 2.8 * puff), Math.sin(a) * (r + 2.8 * puff)); g.lineWidth = 1; g.strokeStyle = '#b8902a'; g.stroke(); }
+  g.beginPath(); g.moveTo(-r + 0.5, 0); g.lineTo(-r - 4, -3 + Math.sin(t * 10)); g.lineTo(-r - 4, 3 + Math.sin(t * 10)); g.closePath(); g.fillStyle = '#e8c860'; g.fill();
+  g.beginPath(); g.arc(0, 0, r, 0, TAU); g.fillStyle = '#f2d870'; g.fill();
+  g.save(); g.beginPath(); g.arc(0, 0, r, 0, TAU); g.clip(); ell(0, r * 0.65, r, r * 0.55); g.fillStyle = '#fff6d8'; g.fill(); g.restore();
+  for (let i = 0; i < 5; i++) { g.beginPath(); g.arc(-r * 0.5 + (i % 3) * r * 0.4, -r * 0.45 + Math.floor(i / 3) * r * 0.35, 0.8, 0, TAU); g.fillStyle = '#8a6a2a'; g.fill(); }
+  g.beginPath(); g.arc(r * 0.45, -r * 0.25, 1.7, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(r * 0.55, -r * 0.25, 0.85, 0, TAU); g.fillStyle = INK; g.fill();
+  g.beginPath(); g.arc(r * 0.95, r * 0.15, 0.9, 0, TAU); g.fillStyle = '#d87a5a'; g.fill();
+  g.restore();
+}
+function drawTarpon(e, t) {   // a tarpon, the "silver king": a big shiny fish that leaps right out of the water
+  if (e.st === 'swim') { g.strokeStyle = 'rgba(255,255,255,.6)'; g.lineWidth = 0.8; g.beginPath(); g.ellipse(e.x + 13, 12 * TS + 1.5, 6 + Math.sin(t * 3) * 2, 1.2, 0, 0, TAU); g.stroke(); return; }
+  g.save(); g.translate(e.x + 13, e.y + 6); g.rotate(Math.atan2(e.vy, e.vx) + Math.PI); g.scale(-1, 1);
+  ell(0, 0, 14, 4.6); g.fillStyle = vgrad(-5, 5, '#8aa8c0', '#f0f6fc'); g.fill();
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(-6 + i * 3.6, 0, 2, -1.2, 1.2); g.lineWidth = 0.5; g.strokeStyle = 'rgba(120,150,180,.7)'; g.stroke(); }
+  g.beginPath(); g.moveTo(-12, 0); g.lineTo(-20, -6); g.lineTo(-17, 0); g.lineTo(-20, 6); g.closePath(); g.fillStyle = '#7a98b0'; g.fill();
+  g.beginPath(); g.moveTo(-1, -4); g.lineTo(-5, -9); g.lineTo(2, -4); g.fill();
+  g.beginPath(); g.arc(10, -1, 1.6, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(10.3, -1, 0.8, 0, TAU); g.fillStyle = INK; g.fill();
+  g.beginPath(); g.moveTo(13.5, 0.5); g.lineTo(9, 2.8); g.lineWidth = 0.7; g.strokeStyle = '#4a6a80'; g.stroke();
+  g.restore();
+}
+function drawMermaid(x, y, t, gave) {   // a Weeki Wachee mermaid: she waves, her tail swishes, and bubbles rise
+  g.save(); g.translate(x + 9, y + 9 + Math.sin(t * 1.5) * 2);
+  const sw = Math.sin(t * 2.4);
+  g.beginPath(); g.moveTo(-3, 2); g.quadraticCurveTo(-4 + sw, 9, -1 + sw * 2, 13); g.lineTo(3 + sw * 2, 13); g.quadraticCurveTo(4 + sw, 8, 3, 2); g.closePath(); g.fillStyle = '#2ac0a8'; g.fill();
+  g.beginPath(); g.moveTo(1 + sw * 2, 12); g.lineTo(-4 + sw * 2.5, 17); g.lineTo(1 + sw * 2, 15); g.lineTo(6 + sw * 2.5, 17); g.closePath(); g.fillStyle = '#1aa08a'; g.fill();
+  g.strokeStyle = 'rgba(255,255,255,.4)'; g.lineWidth = 0.5; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(0, 3.5 + i * 3, 2.2, 0.3, Math.PI - 0.3); g.stroke(); }
+  g.beginPath(); g.moveTo(-3, -8); g.quadraticCurveTo(-9, -4 + sw, -8, 3); g.quadraticCurveTo(-5, -2, -2, -3); g.closePath(); g.fillStyle = '#ffb030'; g.fill();
+  rrect(-3, -4, 6, 7, 2.5); g.fillStyle = '#ffd9b8'; g.fill();
+  for (const sx of [-1.4, 1.4]) { g.beginPath(); g.arc(sx, -1.6, 1.4, 0, TAU); g.fillStyle = '#ff7aa8'; g.fill(); }
+  g.save(); g.translate(2.5, -3); g.rotate(-1.9 + Math.sin(t * 6) * 0.5); g.fillStyle = '#ffd9b8'; g.fillRect(0, -0.8, 6, 1.6); g.restore();
+  g.beginPath(); g.arc(0, -7, 3.4, 0, TAU); g.fillStyle = '#ffd9b8'; g.fill();
+  g.beginPath(); g.arc(0, -8.2, 3.7, Math.PI * 1.02, Math.PI * 1.98); g.closePath(); g.fillStyle = '#ffb030'; g.fill();
+  for (const ex of [-1.2, 1.4]) { g.beginPath(); g.arc(ex, -7, 0.55, 0, TAU); g.fillStyle = INK; g.fill(); }
+  g.beginPath(); g.arc(0.1, -5.9, 1, 0.2, Math.PI - 0.2); g.lineWidth = 0.5; g.strokeStyle = '#c84a5a'; g.stroke();
+  if (!gave) for (let i = 0; i < 2; i++) { const bt = (t * 0.6 + i * 0.5) % 1; g.beginPath(); g.arc(4 + i * 2, -10 - bt * 14, 1 + bt, 0, TAU); g.lineWidth = 0.5; g.strokeStyle = 'rgba(255,255,255,.75)'; g.stroke(); }
+  g.restore();
+}
+function drawManatee(x, y, w, t, face = 1) {   // a manatee: big, grey and gentle, with a paddle tail and a whiskery smile
+  g.save(); g.translate(x + w / 2, y + 6); g.scale(face, 1); g.scale(w / 48, w / 48);
+  const sw = Math.sin(t * 1.6);
+  g.beginPath(); g.ellipse(-27, 1 + sw, 7, 5, 0.3 * sw, 0, TAU); g.fillStyle = '#7a8a92'; g.fill();
+  ell(0, 2, 24, 7.5); g.fillStyle = vgrad(-6, 9, '#aab6bc', '#6a7a82'); g.fill();
+  ell(-2, -2.4, 16, 2.4); g.fillStyle = 'rgba(255,255,255,.2)'; g.fill();
+  g.save(); g.translate(8, 7); g.rotate(0.5 + sw * 0.2); ell(0, 0, 4.5, 1.6); g.fillStyle = '#6a7a82'; g.fill(); g.restore();
+  ell(22, 3, 5.4, 4.6); g.fillStyle = '#9aa6ac'; g.fill();
+  for (let i = 0; i < 4; i++) { g.beginPath(); g.arc(24 + (i % 2) * 1.6, 3 + Math.floor(i / 2) * 1.6, 0.4, 0, TAU); g.fillStyle = '#4a5458'; g.fill(); }
+  g.beginPath(); g.arc(17, -0.5, 0.9, 0, TAU); g.fillStyle = INK; g.fill();
+  g.beginPath(); g.arc(21, 5, 2.4, 0.3, Math.PI - 0.6); g.lineWidth = 0.6; g.strokeStyle = '#4a5458'; g.stroke();
+  g.restore();
+}
+function drawCannon(x, y, face, recoil) {   // an old fort cannon on its wooden carriage
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, 1);
+  rrect(-8, -8, 16, 8, 1.5); g.fillStyle = '#7a4a2a'; g.fill(); g.fillStyle = '#5a3418'; g.fillRect(-8, -3, 16, 1.2);
+  for (const wx of [-4, 4]) { g.beginPath(); g.arc(wx, -1.5, 3, 0, TAU); g.fillStyle = '#3a2414'; g.fill(); g.beginPath(); g.arc(wx, -1.5, 1, 0, TAU); g.fillStyle = '#8a6a4a'; g.fill(); }
+  g.save(); g.translate(-recoil * 3, -10); g.rotate(-0.1);
+  rrect(-6, -3.4, 16, 6.8, 3); g.fillStyle = vgrad(-3, 3, '#5a5a62', '#2a2a32'); g.fill();
+  rrect(9, -4, 3, 8, 1); g.fillStyle = '#3a3a42'; g.fill(); ell(-6, 0, 2.2, 2.8); g.fill();
+  ell(-1, -1.6, 5, 0.9); g.fillStyle = 'rgba(255,255,255,.25)'; g.fill();
+  g.restore(); g.restore();
+}
+function drawPalm(x, t) {   // a coconut palm: a curving ringed trunk and a crown of fronds with coconuts (they drop!)
+  const base = 12 * TS, top = 2.6 * TS, sway = Math.sin(t * 0.8) * 2;
+  g.beginPath(); g.moveTo(x - 3, base); g.quadraticCurveTo(x - 9, (base + top) / 2, x - 1.5 + sway, top); g.lineTo(x + 1.5 + sway, top + 1); g.quadraticCurveTo(x - 3, (base + top) / 2, x + 3, base); g.closePath(); g.fillStyle = vgrad(top, base, '#b8905a', '#8a6a3a'); g.fill();
+  g.strokeStyle = 'rgba(90,60,30,.45)'; g.lineWidth = 0.8;
+  for (let yy = top + 8; yy < base - 2; yy += 7) { const f = (yy - top) / (base - top), cx2 = x + sway * (1 - f) - 4.6 * Math.sin(f * Math.PI); g.beginPath(); g.moveTo(cx2 - 2.6, yy); g.lineTo(cx2 + 2.6, yy + 1); g.stroke(); }
+  g.lineCap = 'round';
+  for (let i = 0; i < 7; i++) { const a = -Math.PI * 0.98 + i * Math.PI * 0.33 + Math.sin(t + i) * 0.05, L = 21 + (i % 2) * 5, cx2 = x + sway;
+    g.beginPath(); g.moveTo(cx2, top); g.quadraticCurveTo(cx2 + Math.cos(a) * L * 0.6, top + Math.sin(a) * L * 0.5 - 7, cx2 + Math.cos(a) * L, top + Math.sin(a) * L * 0.6 + 7); g.lineWidth = 3.6; g.strokeStyle = i % 2 ? '#3a9a3a' : '#4ab448'; g.stroke(); }
+  for (const [dx, dy] of [[-3, 3], [2.4, 3.6], [-0.4, 1]]) { g.beginPath(); g.arc(x + sway + dx, top + dy, 2.6, 0, TAU); g.fillStyle = '#6a4a2a'; g.fill(); }
+}
+function drawPlatLook(e, t) {   // the special moving platforms: a manatee, a roller-coaster car, a teacup, a launch-tower lift
+  const x = e.x, y = e.y, w = e.w;
+  if (e.look === 'manatee') { drawManatee(x, y, w, t, e.lf || 1); return true; }
+  if (e.look === 'coaster') {
+    g.beginPath(); g.moveTo(x - 1, y + 9); g.lineTo(x - 1, y + 1); g.quadraticCurveTo(x - 1, y, x + 2, y); g.lineTo(x + w - 2, y); g.quadraticCurveTo(x + w + 7, y, x + w + 4, y + 9); g.closePath(); g.fillStyle = vgrad(y, y + 9, '#ff5a6a', '#c8203a'); g.fill();
+    g.fillStyle = '#ffe14a'; g.fillRect(x, y + 3, w + 2, 1.4);
+    for (const wx of [x + 6, x + w - 6]) { g.beginPath(); g.arc(wx, y + 9.5, 2.4, 0, TAU); g.fillStyle = '#3a3a48'; g.fill(); }
+    g.strokeStyle = '#c8c8d8'; g.lineWidth = 1; g.lineCap = 'round'; for (let hx = x + 9; hx < x + w - 4; hx += 16) { g.beginPath(); g.moveTo(hx, y); g.lineTo(hx, y - 4); g.lineTo(hx + 6, y - 4); g.stroke(); }
+    return true;
+  }
+  if (e.look === 'teacup') {
+    const sp = Math.sin(t * 4 + e.x);
+    g.beginPath(); g.moveTo(x - 1, y); g.lineTo(x + w + 1, y); g.quadraticCurveTo(x + w, y + 14, x + w / 2, y + 14); g.quadraticCurveTo(x, y + 14, x - 1, y); g.closePath(); g.fillStyle = vgrad(y, y + 14, '#ff9ad8', '#c84aa0'); g.fill();
+    ell(x + w / 2, y + 0.5, w / 2 + 1, 2); g.fillStyle = '#ffd0ec'; g.fill();
+    g.fillStyle = '#ffffff'; for (let i = 0; i < 3; i++) { g.beginPath(); g.arc(x + 8 + i * 16 + sp * 3, y + 7, 2, 0, TAU); g.fill(); }
+    g.beginPath(); g.arc(x + w + 2, y + 6, 3.4, -1.2, 1.2); g.lineWidth = 1.6; g.strokeStyle = '#c84aa0'; g.stroke();
+    return true;
+  }
+  if (e.look === 'gantry') {
+    g.strokeStyle = '#8a8a98'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + 3, y); g.lineTo(x + 3, -10); g.moveTo(x + w - 3, y); g.lineTo(x + w - 3, -10); g.stroke();
+    rrect(x, y, w, 7, 1); g.fillStyle = vgrad(y, y + 7, '#e0e0e8', '#8a8a98'); g.fill();
+    g.save(); rrect(x, y, w, 7, 1); g.clip(); g.fillStyle = '#ffc21a'; for (let i = -6; i < w; i += 6) { g.beginPath(); g.moveTo(x + i, y + 7); g.lineTo(x + i + 3, y + 7); g.lineTo(x + i + 6, y + 3.5); g.lineTo(x + i + 3, y + 3.5); g.fill(); } g.restore();
+    return true;
+  }
+  return false;
+}
+function drawAirboat(e, t) {   // an Everglades airboat: a flat hull and a big caged fan at the back
+  const x = e.x, y = e.y, w = e.w;
+  const fx = x + 5, fy = y - 15, spin = e.go ? t * 30 : t * 3;
+  g.fillStyle = '#5a5a68'; g.fillRect(fx - 1, fy, 2, 15);
+  for (let k = 0; k < 2; k++) { g.save(); g.translate(fx, fy); g.rotate(spin + k * Math.PI); ell(0, -5, 1.6, 5); g.fillStyle = 'rgba(80,60,40,.8)'; g.fill(); g.restore(); }
+  g.beginPath(); g.arc(fx, fy, 10.5, 0, TAU); g.lineWidth = 1; g.strokeStyle = '#9a9aa8'; g.stroke();
+  g.beginPath(); g.arc(fx, fy, 6.5, 0, TAU); g.lineWidth = 0.5; g.stroke();
+  for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(fx, fy); g.lineTo(fx + Math.cos(k * Math.PI / 2) * 10.5, fy + Math.sin(k * Math.PI / 2) * 10.5); g.stroke(); }
+  g.beginPath(); g.moveTo(x - 2, y); g.lineTo(x + w + 6, y); g.quadraticCurveTo(x + w + 2, y + 9, x + w - 6, y + 10); g.lineTo(x + 2, y + 10); g.closePath(); g.fillStyle = vgrad(y, y + 10, '#eef0f4', '#9aa0b0'); g.fill();
+  g.fillStyle = '#2a8a5a'; g.fillRect(x - 1, y + 4, w + 5, 2);
+  rrect(x + 10, y - 9, 6, 9, 1); g.fillStyle = '#3a3a48'; g.fill();
+}
+function drawGatorBoss(x, y, t, face, hurt) {   // Captain Chomps: a big pirate alligator standing tall, in a tricorn hat and an eyepatch
+  g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
+  const skin = hurt ? '#e0f0c0' : '#5a9a3a', dark = hurt ? '#b8d098' : '#3a6a2a', belly = '#ece4a8', bob = Math.abs(Math.sin(t * 5)) * 1.2, snap = Math.max(0, Math.sin(t * 4)) * 0.3;
+  g.beginPath(); g.moveTo(-8, -6); g.quadraticCurveTo(-20, -4, -24, 2); g.quadraticCurveTo(-16, 0, -6, -1); g.closePath(); g.fillStyle = dark; g.fill();
+  for (const sx of [-5, 5]) { ell(sx + Math.sin(t * 5) * (sx > 0 ? 1 : -1), -1.5, 4, 2.2); g.fillStyle = dark; g.fill(); }
+  g.translate(0, -bob);
+  ell(0, -12, 10, 11); g.fillStyle = skin; g.fill(); ell(2, -10, 6, 8); g.fillStyle = belly; g.fill();
+  g.strokeStyle = 'rgba(150,130,60,.5)'; g.lineWidth = 0.6; for (let i = 0; i < 4; i++) { g.beginPath(); g.moveTo(-3, -15 + i * 3); g.lineTo(7, -15 + i * 3); g.stroke(); }
+  g.fillStyle = '#8a3a2a'; g.fillRect(-10, -9, 20, 2.4); g.fillStyle = C.gold; g.fillRect(1, -9.4, 3, 3.2);
+  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 9, -16); g.rotate(sx * (0.5 + Math.sin(t * 5) * 0.2)); ell(0, 5, 2.6, 5.5); g.fillStyle = skin; g.fill(); g.restore(); }
+  g.beginPath(); g.moveTo(2, -21); g.lineTo(18, -21.6); g.quadraticCurveTo(19.4, -20.4, 17, -19.4); g.lineTo(2, -18); g.closePath(); g.fillStyle = dark; g.fill();
+  g.save(); g.translate(3, -23.5); g.rotate(-snap);
+  g.beginPath(); g.moveTo(-3, -3); g.lineTo(16, -1.4); g.quadraticCurveTo(18, 0.4, 16, 1.4); g.lineTo(-2, 2); g.closePath(); g.fillStyle = skin; g.fill();
+  g.fillStyle = '#fff'; for (let i = 0; i < 5; i++) { g.beginPath(); g.moveTo(2 + i * 2.6, 1.6); g.lineTo(3.2 + i * 2.6, 3.2); g.lineTo(4.4 + i * 2.6, 1.6); g.fill(); }
+  g.restore();
+  ell(0, -27, 6.4, 5.2); g.fillStyle = skin; g.fill();
+  g.beginPath(); g.arc(3.4, -28.6, 2, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.fillStyle = INK; g.fillRect(3, -30.2, 0.8, 3.2);
+  ell(-1.6, -28.6, 1.9, 1.7); g.fillStyle = '#1e1e24'; g.fill(); g.lineWidth = 0.6; g.strokeStyle = '#1e1e24'; g.beginPath(); g.moveTo(-6, -31.5); g.lineTo(2.4, -26.6); g.stroke();
+  g.beginPath(); g.moveTo(-10.5, -30.5); g.quadraticCurveTo(0, -35.5, 10.5, -30.5); g.lineTo(6, -38.5); g.quadraticCurveTo(0, -41.5, -6, -38.5); g.closePath(); g.fillStyle = '#23232e'; g.fill();
+  g.strokeStyle = C.gold; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-10.5, -30.5); g.quadraticCurveTo(0, -35.5, 10.5, -30.5); g.stroke();
+  g.beginPath(); g.arc(0, -36.4, 1.7, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.fillStyle = '#23232e'; g.fillRect(-0.9, -36.8, 0.6, 0.6); g.fillRect(0.4, -36.8, 0.6, 0.6);
+  g.restore();
+}
+function drawChest(x, y, t) {   // the pirate's treasure chest, glowing and stuffed with gold
+  g.save(); g.translate(x + 16, y + 30);
+  glow(0, -14, 26, 'rgba(255,220,90,1)', 0.5 + 0.2 * Math.sin(t * 4));
+  for (let i = 0; i < 7; i++) { g.beginPath(); g.arc(-9 + i * 3, -15 - (i % 2) * 1.6 + Math.sin(t * 5 + i) * 0.6, 2.2, 0, TAU); g.fillStyle = i % 2 ? '#ffd23a' : '#ffe88a'; g.fill(); }
+  rrect(-13, -14, 26, 14, 2); g.fillStyle = vgrad(-14, 0, '#9a5a2a', '#6a3a1a'); g.fill();
+  g.save(); g.translate(0, -14); g.rotate(-0.35); g.beginPath(); g.moveTo(-13, 0); g.quadraticCurveTo(-13, -8, 0, -9); g.quadraticCurveTo(13, -8, 13, 0); g.closePath(); g.fillStyle = '#8a4e22'; g.fill(); g.fillStyle = C.gold; g.fillRect(-10, -8, 2.2, 8); g.fillRect(8, -8, 2.2, 8); g.restore();
+  g.fillStyle = C.gold; for (const sx of [-10, 8]) g.fillRect(sx, -14, 2.2, 14); g.fillRect(-2.2, -11, 4.4, 4);
   g.restore();
 }
 function drawBoss(x, y, t, face, hurt) {
@@ -1815,6 +2260,17 @@ const THEMES = {
   harbor: { top: '#c8c0a8', topDk: '#9a9280', dirt: '#a89a80', dirtDk: '#8a7c64', edge: '#4a4232' },
   deep: { top: '#6a8a3a', topDk: '#4a6a2a', dirt: '#5a4430', dirtDk: '#43321f', edge: '#2a1e12' },   // the muddy bottom of the bog
   nantucket: { top: '#bdb8ac', topDk: '#8e897e', dirt: '#a09a8e', dirtDk: '#7e786e', edge: '#4a4842' },   // cobblestones
+  deco: { top: '#f6e2a8', topDk: '#e0c080', dirt: '#f0d498', dirtDk: '#d8b878', edge: '#a8884a' },        // Miami Beach sand
+  reef: { top: '#ff8a8a', topDk: '#e0587a', dirt: '#f2dca8', dirtDk: '#d8bc80', edge: '#a88a50' },        // coral heads on white sand
+  keys: { top: '#fff0c8', topDk: '#e8d098', dirt: '#f6e0a8', dirtDk: '#e0c488', edge: '#b0904a' },
+  glades: { top: '#a8c84a', topDk: '#6a9a2a', dirt: '#6a5a3a', dirtDk: '#4a3e26', edge: '#2e2616' },     // sawgrass on muck
+  stpete: { top: '#5ac86a', topDk: '#2f9e44', dirt: '#c8a46a', dirtDk: '#9a7a48', edge: '#6a5030' },
+  springs: { top: '#7ac85a', topDk: '#4a9a3a', dirt: '#ece4cc', dirtDk: '#cabea2', edge: '#8a7e62' },    // white limestone
+  park: { top: '#c08af0', topDk: '#8a5ac8', dirt: '#5a4a7a', dirtDk: '#43365a', edge: '#2a2040' },
+  castillo: { top: '#e8dab4', topDk: '#c8b48a', dirt: '#dcc8a0', dirtDk: '#bca67e', edge: '#7a6848' },
+  daytona: { top: '#ead6a2', topDk: '#c8aa70', dirt: '#dcc490', dirtDk: '#c0a670', edge: '#8a7040' },   // hard-packed racing sand
+  cape: { top: '#d0d4dc', topDk: '#9aa0aa', dirt: '#aab0b8', dirtDk: '#8a909a', edge: '#4a4e58' },       // the launch pad's concrete
+  space: { top: '#e0e0ec', topDk: '#a8a8c0', dirt: '#8a8aa8', dirtDk: '#6a6a88', edge: '#3a3a58' },      // moon rock
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -1892,9 +2348,13 @@ function drawTile(tile, tx, ty, x, y, th, t) {
       break;
     }
     case T.WATER: {
-      if (theme === 'deep') { g.fillStyle = 'rgba(40,150,150,.13)'; g.fillRect(x - 0.2, y, 16.4, 16); break; }   // (deep under the bog the water is everywhere: just a tint)
-      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme) || theme === 'gwb';
-      g.fillStyle = sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
+      if (theme === 'deep' || theme === 'reef') { g.fillStyle = theme === 'reef' ? 'rgba(30,170,230,.1)' : 'rgba(40,150,150,.13)'; g.fillRect(x - 0.2, y, 16.4, 16); break; }   // (deep under the bog, or out on the reef, the water is everywhere: just a tint)
+      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme) || theme === 'gwb', fl = FL_SEA.has(theme);
+      if (theme === 'springs') {   // crystal-clear spring water (the whole pool is tinted at once, behind the rock): just the shimmering surface
+        if (surf) { g.beginPath(); g.moveTo(x - 0.2, y + 1); for (let i = 0; i <= 4; i++) g.lineTo(x + i * 4, y + 1 + Math.sin(t * 2.5 + tx * 1.3 + i) * 0.8); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.75)'; g.stroke(); }
+        break;
+      }
+      g.fillStyle = fl ? vgrad(y, y + 16, surf ? 'rgba(40,196,206,.94)' : 'rgba(26,156,196,.96)', 'rgba(16,112,166,.98)') : sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
       if (surf) {
         g.beginPath(); g.moveTo(x - 0.2, y + 1);
         for (let i = 0; i <= 4; i++) g.lineTo(x + i * 4, y + 1 + Math.sin(t * 2.5 + tx * 1.3 + i) * 0.8);
@@ -1948,6 +2408,21 @@ function grassCap(th, L, Rt, v, theme) {
   }
 }
 function stoneTile(theme) {
+  if (theme === 'stpete') {   // the pier's wooden deck
+    rrect(-0.2, 0.4, 16.4, 15.2, 1); paint(vgrad(0, 16, '#dcae70', '#9a6a3a'));
+    g.fillStyle = 'rgba(80,50,20,.45)'; g.fillRect(-0.2, 5.2, 16.4, 0.8); g.fillRect(-0.2, 10.4, 16.4, 0.8); g.fillRect(7.6, 0.4, 0.8, 4.8); g.fillRect(3.6, 6, 0.8, 4.4); g.fillRect(11.6, 11.2, 0.8, 4.4);
+    g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(-0.2, 1, 16.4, 0.9); return;
+  }
+  if (theme === 'castillo') {   // coquina: soft stone made of tiny shells
+    rrect(0.4, 0.4, 15.2, 15.2, 2); paint(vgrad(0, 16, '#ecdcb4', '#c8b088'), 1, '#7a6848');
+    for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(2 + (i * 5.3) % 12, 2.5 + (i * 3.7) % 11, 0.5 + (i % 3) * 0.3, 0, TAU); g.fillStyle = i % 2 ? 'rgba(120,90,50,.35)' : 'rgba(255,255,255,.5)'; g.fill(); }
+    return;
+  }
+  if (theme === 'cape') {   // riveted steel
+    rrect(0.4, 0.4, 15.2, 15.2, 1.5); paint(vgrad(0, 16, '#d8dce4', '#8a909c'), 1, '#3a3e48');
+    for (const [a, b] of [[3, 3], [13, 3], [3, 13], [13, 13]]) { g.beginPath(); g.arc(a, b, 0.9, 0, TAU); g.fillStyle = '#6a707c'; g.fill(); }
+    return;
+  }
   const castle = theme === 'castle', sky = theme === 'sky';
   rrect(0.4, 0.4, 15.2, 15.2, 3);
   paint(vgrad(0, 16, sky ? '#f4f8ff' : castle ? '#a8a8b8' : '#cbb8a2', sky ? '#c8dcf2' : castle ? '#7a7a8c' : '#9a8670'), 1, sky ? '#8aa8cc' : '#4a4038');
@@ -2008,6 +2483,13 @@ function onewayTile(theme, L, Rt, alt) {
     rrect(L ? 0.5 : -0.5, 0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 8, [L ? 3 : 0, Rt ? 3 : 0, Rt ? 3 : 0, L ? 3 : 0]);
     paint(vgrad(0, 8, '#8a9ad8', '#4a5a9a'), 1, '#22264a');
     if (alt) { g.beginPath(); g.moveTo(6, 0.5); g.lineTo(7.5, -3.5); g.lineTo(9, 0.5); paint('rgba(170,230,255,.9)', 0.5, '#5a8ad0'); }
+  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys') {   // boardwalk planks on posts
+    rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 6, [L ? 2 : 0, Rt ? 2 : 0, Rt ? 2 : 0, L ? 2 : 0]); paint(vgrad(0, 6, '#dcae70', '#9a6a3a'), 1, '#5a3a1a');
+    g.fillStyle = 'rgba(80,50,20,.45)'; g.fillRect(alt ? 7 : 3, 0.5, 0.8, 5); g.fillRect(alt ? 13 : 10, 0.5, 0.8, 5);
+    g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(L ? 2 : 0, 0.8, 12, 0.8);
+  } else if (theme === 'space') {   // a hovering glass pad, glowing underneath
+    rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 6, [L ? 3 : 0, Rt ? 3 : 0, Rt ? 3 : 0, L ? 3 : 0]); paint(vgrad(0, 6, '#c8e8ff', '#6a8ad8'), 1, '#2a3a7a');
+    g.fillStyle = alt ? '#7affd8' : '#ff8ae8'; g.fillRect(7, 6, 2, 1.6);
   } else {   // a grassy ledge
     rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 9, [L ? 4 : 0, Rt ? 4 : 0, Rt ? 4 : 0, L ? 4 : 0]);
     paint(vgrad(0, 9, '#6ae07a', '#2f9e44'), 1, '#1e5a2a');
@@ -2389,12 +2871,224 @@ SCENERY.pier = [
     for (let i = 0; i < 3; i++) { const x = 60 + i * 150; g.beginPath(); g.moveTo(x, 188); g.lineTo(x + 46, 188); g.lineTo(x + 40, 198); g.lineTo(x + 6, 198); g.closePath(); g.fillStyle = ['#e8453a', '#3a6ad8', '#3cc456'][i]; g.fill(); g.fillStyle = '#6a4a2a'; g.fillRect(x + 20, 140, 2, 48); g.strokeStyle = '#23324a'; g.lineWidth = 0.6; g.beginPath(); g.moveTo(x + 21, 142); g.lineTo(x + 4, 188); g.moveTo(x + 21, 142); g.lineTo(x + 42, 188); g.stroke(); }
   } },
 ];
+// ---- World 5's scenery (Florida) ----
+function palmBG(x, base, h, c = '#2a7a3a', trunk = '#8a6a3a') {   // a palm tree in the background
+  g.lineCap = 'round'; g.strokeStyle = trunk; g.lineWidth = 3; g.beginPath(); g.moveTo(x, base); g.quadraticCurveTo(x - 6, base - h / 2, x + 2, base - h); g.stroke();
+  g.strokeStyle = c;
+  for (let i = 0; i < 6; i++) { const a = -Math.PI * 0.95 + i * Math.PI * 0.38, L = 18; g.beginPath(); g.moveTo(x + 2, base - h); g.quadraticCurveTo(x + 2 + Math.cos(a) * L * 0.6, base - h + Math.sin(a) * L * 0.4 - 6, x + 2 + Math.cos(a) * L, base - h + Math.sin(a) * L * 0.5 + 6); g.stroke(); }
+}
+SCENERY.deco = [
+  { sp: 0.04, draw() {   // downtown Miami's towers far off, the ocean, and a cruise ship heading out
+    for (let i = 0; i < 18; i++) { const h = 30 + rndB(i, 1) * 60, x = 250 + i * 12; g.fillStyle = 'rgba(120,150,190,.5)'; g.fillRect(x, 150 - h, 10, h + 20); }
+    g.fillStyle = vgrad(150, 224, '#4ad0e8', '#2a9ad0'); g.fillRect(0, 150, BG_W, 74);
+    const sx = 60; g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(sx, 140); g.lineTo(sx + 90, 140); g.lineTo(sx + 82, 152); g.lineTo(sx + 6, 152); g.closePath(); g.fill();
+    g.fillRect(sx + 12, 128, 64, 12); g.fillRect(sx + 24, 120, 40, 8); g.fillStyle = '#2a6ab8'; for (let k = 0; k < 10; k++) g.fillRect(sx + 14 + k * 6, 132, 3, 3); g.fillStyle = '#e8453a'; g.fillRect(sx + 56, 112, 7, 8);
+  } },
+  { sp: 0.25, draw() {   // pastel art deco hotels on Ocean Drive: rounded corners, racing stripes, neon signs
+    const cols = ['#ffb8d0', '#a8e8e0', '#fff0a0', '#c8b8ff', '#ffd0a8', '#b8f0c0'];
+    g.textAlign = 'center'; g.font = 'bold 7px sans-serif';
+    for (let i = 0; i < 6; i++) { const x = 6 + i * 80, h = 70 + (i % 3) * 18, top = 196 - h;
+      rrect(x, top, 64, h, [10, 10, 0, 0]); g.fillStyle = cols[i]; g.fill();
+      g.fillStyle = 'rgba(255,255,255,.7)'; g.fillRect(x + 4, top + 14, 56, 2);
+      rrect(x + 26, top - 14, 12, 16, [6, 6, 0, 0]); g.fillStyle = cols[(i + 2) % 6]; g.fill();
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) { rrect(x + 8 + c * 13, top + 24 + r * 14, 9, 8, 2); g.fillStyle = 'rgba(60,110,150,.55)'; g.fill(); }
+      g.fillStyle = ['#ff3aa8', '#1ab8d8', '#e8a01a'][i % 3]; g.fillText(['FLAMINGO', 'SUNSET', 'TROPICS', 'PALMS', 'COLONY', 'BREEZE'][i], x + 32, top + 10);
+    }
+  } },
+  { sp: 0.45, draw() {   // palms and a candy-coloured lifeguard tower on the beach
+    for (const x of [30, 150, 260, 400]) palmBG(x, 196, 64);
+    const lx = 330; g.fillStyle = '#8a6a4a'; g.fillRect(lx, 172, 3, 24); g.fillRect(lx + 25, 172, 3, 24);
+    rrect(lx - 4, 152, 36, 22, 3); g.fillStyle = '#ff6ab0'; g.fill(); g.fillStyle = '#ffe14a'; g.fillRect(lx - 4, 162, 36, 4);
+    g.beginPath(); g.moveTo(lx - 7, 153); g.lineTo(lx + 14, 140); g.lineTo(lx + 35, 153); g.closePath(); g.fillStyle = '#3ad0e8'; g.fill();
+  } },
+];
+SCENERY.reef = [
+  { sp: 0.03, draw() {   // sunbeams slanting down through the blue, and the dim shapes of the far reef
+    for (let i = 0; i < 7; i++) { const x = 20 + i * 70; g.fillStyle = 'rgba(200,240,255,.08)'; g.beginPath(); g.moveTo(x, 0); g.lineTo(x + 24, 0); g.lineTo(x + 70, 224); g.lineTo(x + 30, 224); g.closePath(); g.fill(); }
+    g.fillStyle = 'rgba(20,80,130,.5)'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 10) g.lineTo(x, 170 - Math.abs(Math.sin(x / 50)) * 30 - rndB(x, 1) * 8); g.lineTo(BG_W, 224); g.fill();
+  } },
+  { sp: 0.2, draw() {   // an old shipwreck on the sand, and big sea fans
+    g.fillStyle = 'rgba(70,60,60,.55)'; g.beginPath(); g.moveTo(280, 196); g.lineTo(300, 160); g.lineTo(400, 168); g.lineTo(420, 196); g.closePath(); g.fill(); g.fillRect(330, 110, 4, 56); g.fillRect(318, 124, 26, 3);
+    for (const [x, c] of [[60, '#b05ad8'], [200, '#e85a8a'], [450, '#8a5ad8']]) { g.strokeStyle = c; g.lineWidth = 1.2; for (let k = 0; k < 9; k++) { g.beginPath(); g.moveTo(x, 196); g.quadraticCurveTo(x - 20 + k * 5, 170, x - 26 + k * 6.5, 140 + Math.abs(k - 4) * 5); g.stroke(); } }
+  } },
+  { sp: 0.4, draw() {   // brain coral, staghorn coral and swaying seagrass
+    g.lineCap = 'round';
+    for (let i = 0; i < 8; i++) { const x = 20 + i * 60;
+      if (i % 2) { ell(x, 200, 18, 12); g.fillStyle = i % 4 === 1 ? '#e8a05a' : '#d8c85a'; g.fill(); g.strokeStyle = 'rgba(120,80,30,.5)'; g.lineWidth = 0.8; for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x, 204, 4 + k * 3.4, Math.PI * 1.1, Math.PI * 1.9); g.stroke(); } }
+      else { g.strokeStyle = i % 4 ? '#ffb05a' : '#ff7a5a'; g.lineWidth = 3; for (let k = 0; k < 5; k++) { const a = -Math.PI / 2 + (k - 2) * 0.4; g.beginPath(); g.moveTo(x, 206); g.lineTo(x + Math.cos(a) * 20, 206 + Math.sin(a) * 22); g.lineTo(x + Math.cos(a - 0.3) * 28, 206 + Math.sin(a - 0.3) * 30); g.stroke(); } }
+      g.strokeStyle = '#3aa86a'; g.lineWidth = 1.4; for (let k = 0; k < 5; k++) { g.beginPath(); g.moveTo(x + 24 + k * 3, 214); g.quadraticCurveTo(x + 22 + k * 3, 200, x + 26 + k * 3, 186 + (k % 2) * 6); g.stroke(); }
+    }
+  } },
+];
+SCENERY.keys = [
+  { sp: 0.03, draw() {   // the famous Key West sunset: a huge sun sinking into the sea, and a schooner under sail
+    glow(320, 150, 90, 'rgba(255,200,120,1)', 0.7); g.beginPath(); g.arc(320, 150, 30, 0, TAU); g.fillStyle = '#ffd86a'; g.fill();
+    g.fillStyle = vgrad(150, 224, '#3ac8d8', '#1a8ab8'); g.fillRect(0, 152, BG_W, 72);
+    g.fillStyle = 'rgba(255,220,140,.5)'; for (let i = 0; i < 6; i++) g.fillRect(300 - i * 3, 158 + i * 6, 40 + i * 6, 1.6);
+    const bx = 120; g.fillStyle = '#5a3a2a'; g.beginPath(); g.moveTo(bx, 150); g.lineTo(bx + 40, 150); g.lineTo(bx + 34, 157); g.lineTo(bx + 6, 157); g.fill(); g.fillRect(bx + 14, 110, 1.6, 40); g.fillRect(bx + 26, 116, 1.6, 34);
+    g.fillStyle = '#fff6e8'; g.beginPath(); g.moveTo(bx + 15.6, 112); g.lineTo(bx + 15.6, 146); g.lineTo(bx + 2, 146); g.closePath(); g.fill(); g.beginPath(); g.moveTo(bx + 27.6, 118); g.lineTo(bx + 27.6, 146); g.lineTo(bx + 40, 146); g.closePath(); g.fill();
+  } },
+  { sp: 0.22, draw() {   // conch cottages with tin roofs and porches, the lighthouse, and the striped Southernmost Point buoy
+    for (let i = 0; i < 6; i++) { const x = 10 + i * 78; g.fillStyle = ['#ffd0e0', '#c8f0e8', '#fff0b0', '#d8e0ff', '#ffe0c0', '#c0f0c8'][i]; g.fillRect(x, 160, 44, 30); g.beginPath(); g.moveTo(x - 4, 162); g.lineTo(x + 22, 144); g.lineTo(x + 48, 162); g.closePath(); g.fillStyle = '#c8ccd4'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(x, 174, 44, 2); for (let k = 0; k < 6; k++) g.fillRect(x + 2 + k * 8, 176, 1.4, 14); g.fillStyle = '#5a9ad0'; g.fillRect(x + 8, 164, 8, 8); g.fillRect(x + 28, 164, 8, 8); }
+    const lx = 250; g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(lx - 7, 190); g.lineTo(lx - 4, 96); g.lineTo(lx + 4, 96); g.lineTo(lx + 7, 190); g.closePath(); g.fill(); g.fillStyle = '#23242a'; g.fillRect(lx - 6, 86, 12, 10); g.beginPath(); g.moveTo(lx - 7, 86); g.lineTo(lx, 78); g.lineTo(lx + 7, 86); g.fill(); glow(lx, 91, 14, 'rgba(255,240,170,1)', 0.6);
+    const bx = 420; g.save(); g.beginPath(); g.moveTo(bx - 14, 192); g.lineTo(bx - 9, 130); g.quadraticCurveTo(bx, 124, bx + 9, 130); g.lineTo(bx + 14, 192); g.closePath(); g.clip();
+    ['#e8302a', '#23242a', '#ffd23a', '#23242a', '#e8302a'].forEach((c, k) => { g.fillStyle = c; g.fillRect(bx - 16, 124 + k * 14, 32, 14); }); g.fillStyle = '#ffffff'; g.fillRect(bx - 16, 151, 32, 6);
+    g.restore();
+  } },
+  { sp: 0.45, draw() { for (const x of [50, 190, 330, 455]) palmBG(x, 196, 70); } },
+];
+SCENERY.glades = [
+  { sp: 0.03, draw() {   // the river of grass stretching flat to the horizon, with domes of cypress trees
+    g.fillStyle = '#c8d890'; g.fillRect(0, 140, BG_W, 84);
+    for (const [x, w] of [[120, 70], [360, 90]]) { g.fillStyle = '#5a8a4a'; g.beginPath(); g.ellipse(x, 142, w / 2, 22, 0, Math.PI, 0); g.fill(); }
+    g.strokeStyle = 'rgba(110,140,60,.5)'; g.lineWidth = 1; for (let x = 0; x < BG_W; x += 4) { g.beginPath(); g.moveTo(x, 150 + rndB(x, 2) * 6); g.lineTo(x + 1, 140 + rndB(x, 3) * 6); g.stroke(); }
+  } },
+  { sp: 0.2, draw() {   // tree islands in the sawgrass, with white egrets dotted about
+    for (let i = 0; i < 5; i++) { const x = 40 + i * 100; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(x + k * 9 - 18, 160 - (k % 2) * 6, 12, 0, TAU); g.fillStyle = k % 2 ? '#3a7a3a' : '#4a8a3a'; g.fill(); } }
+    g.fillStyle = '#9ab84a'; g.fillRect(0, 168, BG_W, 56);
+    for (let i = 0; i < 14; i++) { const x = rndB(i, 4) * BG_W, y = 174 + rndB(i, 5) * 18; ell(x, y, 2.2, 1.4); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(x + 2, y - 2.4, 0.9, 0, TAU); g.fill(); }
+  } },
+  { sp: 0.42, draw() {   // bald cypress trees draped in Spanish moss
+    for (const x of [40, 190, 330, 440]) {
+      g.fillStyle = '#5a4a3a'; g.beginPath(); g.moveTo(x - 9, 200); g.quadraticCurveTo(x - 3, 170, x - 2, 80); g.lineTo(x + 2, 80); g.quadraticCurveTo(x + 3, 170, x + 9, 200); g.fill();
+      for (let k = 0; k < 4; k++) { const by = 92 + k * 18, dir = k % 2 ? 1 : -1; g.strokeStyle = '#5a4a3a'; g.lineWidth = 2; g.beginPath(); g.moveTo(x, by); g.lineTo(x + dir * 26, by - 8); g.stroke(); g.fillStyle = '#4a7a3a'; g.beginPath(); g.ellipse(x + dir * 22, by - 10, 14, 6, 0, 0, TAU); g.fill();
+        g.strokeStyle = 'rgba(190,200,180,.85)'; g.lineWidth = 1; for (let m = 0; m < 4; m++) { g.beginPath(); g.moveTo(x + dir * (10 + m * 5), by - 6); g.lineTo(x + dir * (10 + m * 5) + 1, by + 8 + (m % 2) * 6); g.stroke(); } }
+    }
+  } },
+];
+SCENERY.stpete = [
+  { sp: 0.03, draw() {   // a purple-and-orange sunset over Tampa Bay, the Sunshine Skyway's yellow cables far off, and the downtown skyline
+    glow(380, 120, 70, 'rgba(255,190,120,1)', 0.6); g.beginPath(); g.arc(380, 124, 20, 0, TAU); g.fillStyle = '#ffd08a'; g.fill();
+    g.fillStyle = vgrad(140, 224, '#4a7ac8', '#2a4a90'); g.fillRect(0, 140, BG_W, 84);
+    g.strokeStyle = '#ffd23a'; g.lineWidth = 0.7; for (const tx of [380, 420]) for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(tx, 112); g.lineTo(tx - 30 + k * 10, 136); g.stroke(); }
+    g.fillStyle = '#6a6aa0'; g.fillRect(378.5, 108, 3, 32); g.fillRect(418.5, 108, 3, 32); g.fillRect(320, 134, 160, 3);
+    for (let i = 0; i < 16; i++) { const h = 16 + rndB(i, 1) * 44; g.fillStyle = 'rgba(70,60,110,.75)'; g.fillRect(10 + i * 14, 140 - h, 12, h); }
+  } },
+  { sp: 0.18, draw() {   // the pier: the Bending Arc's net billowing in the breeze, and the pavilion at Pier Point
+    g.fillStyle = '#8a7a6a'; g.fillRect(0, 168, BG_W, 3); for (let x = 4; x < BG_W; x += 16) g.fillRect(x, 171, 2, 30);
+    const ax = 130; g.strokeStyle = '#ffffff'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(ax - 50, 168); g.lineTo(ax - 40, 70); g.moveTo(ax + 50, 168); g.lineTo(ax + 40, 64); g.moveTo(ax, 168); g.lineTo(ax + 4, 52); g.stroke();
+    g.fillStyle = 'rgba(255,255,255,.28)'; g.beginPath(); g.moveTo(ax - 40, 72); g.quadraticCurveTo(ax, 40, ax + 40, 66); g.quadraticCurveTo(ax + 20, 110, ax + 6, 140); g.quadraticCurveTo(ax - 10, 110, ax - 40, 72); g.fill();
+    g.strokeStyle = 'rgba(255,255,255,.55)'; g.lineWidth = 0.5; for (let k = 0; k < 9; k++) { g.beginPath(); g.moveTo(ax - 40 + k * 10, 66 - Math.sin(k / 8 * Math.PI) * 18); g.quadraticCurveTo(ax - 20 + k * 5, 100, ax + 6, 140); g.stroke(); }
+    const px = 330; g.fillStyle = '#e8eef4'; g.fillRect(px, 140, 70, 28); g.fillStyle = '#5a9ad0'; for (let k = 0; k < 6; k++) g.fillRect(px + 4 + k * 11, 146, 8, 14); g.fillStyle = '#c8d0d8'; g.beginPath(); g.moveTo(px - 6, 140); g.lineTo(px + 76, 140); g.lineTo(px + 70, 132); g.lineTo(px, 132); g.fill();
+  } },
+  { sp: 0.42, draw() {   // palms along the waterfront, and pelicans perched on old pilings
+    for (const x of [30, 250, 450]) palmBG(x, 196, 66);
+    for (const x of [130, 170, 360]) { g.fillStyle = '#7a5a3a'; g.fillRect(x - 3, 168, 6, 30); ell(x, 162, 5, 3.4); g.fillStyle = '#9a7a5a'; g.fill(); g.beginPath(); g.arc(x + 3, 157, 2.2, 0, TAU); g.fillStyle = '#f6f0e0'; g.fill(); g.fillStyle = '#e8b84a'; g.beginPath(); g.moveTo(x + 4, 157); g.lineTo(x + 6, 166); g.lineTo(x + 3, 159); g.fill(); }
+  } },
+];
+SCENERY.springs = [
+  { sp: 0.03, draw() {   // up top, oaks and cypress round the spring; below the surface, clear blue water and sunbeams
+    g.fillStyle = vgrad(64, 224, '#4ac8e8', '#1a6aa8'); g.fillRect(0, 64, BG_W, 160);
+    for (let i = 0; i < 6; i++) { const x = 30 + i * 80; g.fillStyle = 'rgba(220,250,255,.1)'; g.beginPath(); g.moveTo(x, 64); g.lineTo(x + 20, 64); g.lineTo(x + 60, 224); g.lineTo(x + 26, 224); g.closePath(); g.fill(); }
+    for (let i = 0; i < 12; i++) { g.beginPath(); g.arc(i * 42 + 10, 52 - (i % 3) * 6, 16 + (i % 2) * 6, 0, TAU); g.fillStyle = i % 2 ? '#3a8a4a' : '#2a7a3a'; g.fill(); }
+    g.fillStyle = '#2a7a3a'; g.fillRect(0, 52, BG_W, 12);
+  } },
+  { sp: 0.2, draw() {   // the underwater theater: long windows in the limestone, the audience watching the mermaids
+    g.fillStyle = '#d8d0b8'; g.fillRect(0, 96, BG_W, 60);
+    for (const x of [40, 280]) {
+      rrect(x, 102, 160, 46, 6); g.fillStyle = '#1a3a5a'; g.fill();
+      for (let r = 0; r < 3; r++) for (let k = 0; k < 14; k++) { g.beginPath(); g.arc(x + 10 + k * 11 + (r % 2) * 5, 120 + r * 10, 3.4, 0, TAU); g.fillStyle = ['#e8b890', '#c88a60', '#8a5a3a', '#f0c8a0'][(k + r) % 4]; g.fill(); }
+      g.fillStyle = 'rgba(160,230,255,.25)'; g.fillRect(x, 102, 160, 46); g.strokeStyle = '#8a7e62'; g.lineWidth = 3; g.strokeRect(x, 102, 160, 46);
+      for (let k = 1; k < 4; k++) { g.fillStyle = '#8a7e62'; g.fillRect(x + k * 40 - 1, 102, 2, 46); }
+    }
+    g.fillStyle = 'rgba(255,255,255,.8)'; g.font = 'bold 8px sans-serif'; g.textAlign = 'center'; g.fillText('★ MERMAIDS ★', 120, 94); g.fillText('★ MERMAIDS ★', 360, 94);
+  } },
+  { sp: 0.42, draw() {   // eelgrass waving from the sandy bottom, and pale limestone boulders
+    for (let i = 0; i < 40; i++) { const x = i * 12 + rndB(i, 1) * 8; g.strokeStyle = i % 2 ? '#3aa86a' : '#5ac87a'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x, 214); g.quadraticCurveTo(x + 6, 190, x + 2, 160 + rndB(i, 2) * 20); g.stroke(); }
+    for (const x of [90, 250, 410]) { ell(x, 206, 26, 14); g.fillStyle = '#e8e0c8'; g.fill(); }
+  } },
+];
+SCENERY.park = [
+  { sp: 0.03, draw() {   // a starry night, the moon, and the big wheel all lit up
+    for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(255,255,255,${0.3 + rndB(i, 1) * 0.6})`; g.fillRect(rndB(i, 2) * BG_W, rndB(i, 3) * 120, 1, 1); }
+    g.beginPath(); g.arc(80, 40, 14, 0, TAU); g.fillStyle = '#fff6d8'; g.fill();
+    const wx = 330, wy = 110, R = 62; g.strokeStyle = 'rgba(200,180,255,.6)'; g.lineWidth = 1.4; g.beginPath(); g.arc(wx, wy, R, 0, TAU); g.stroke();
+    for (let k = 0; k < 16; k++) { const a = k / 16 * TAU; g.beginPath(); g.moveTo(wx, wy); g.lineTo(wx + Math.cos(a) * R, wy + Math.sin(a) * R); g.lineWidth = 0.6; g.stroke(); g.beginPath(); g.arc(wx + Math.cos(a) * R, wy + Math.sin(a) * R, 2.4, 0, TAU); g.fillStyle = ['#ff5a8a', '#ffe14a', '#5ad0ff', '#7aff8a'][k % 4]; g.fill(); }
+    g.strokeStyle = 'rgba(200,180,255,.7)'; g.lineWidth = 2; g.beginPath(); g.moveTo(wx - 30, 200); g.lineTo(wx, wy); g.lineTo(wx + 30, 200); g.stroke();
+  } },
+  { sp: 0.2, draw() {   // a roller coaster's hills and a loop, edged with lights
+    const hy = x => 150 - Math.max(0, Math.sin(x / BG_W * TAU * 2)) * 60;
+    g.strokeStyle = 'rgba(255,180,220,.5)'; g.lineWidth = 0.8; for (let x = 6; x < BG_W; x += 14) { g.beginPath(); g.moveTo(x, hy(x)); g.lineTo(x, 200); g.stroke(); }
+    g.strokeStyle = '#ff6ab0'; g.lineWidth = 2.4; g.beginPath(); for (let x = 0; x <= BG_W; x += 4) x ? g.lineTo(x, hy(x)) : g.moveTo(x, hy(x)); g.stroke();
+    g.beginPath(); g.arc(240, 122, 26, 0, TAU); g.stroke();
+    for (let x = 0; x < BG_W; x += 10) { g.beginPath(); g.arc(x, hy(x) - 3, 1, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); }
+  } },
+  { sp: 0.42, draw() {   // a striped carousel and old-fashioned lamp posts
+    const cx = 120; g.fillStyle = '#ffffff'; g.fillRect(cx - 40, 160, 80, 34); for (let k = 0; k < 8; k++) { g.fillStyle = k % 2 ? '#e8303a' : '#ffffff'; g.beginPath(); g.moveTo(cx, 120); g.lineTo(cx - 44 + k * 11, 160); g.lineTo(cx - 33 + k * 11, 160); g.closePath(); g.fill(); }
+    g.fillStyle = '#ffd23a'; g.beginPath(); g.arc(cx, 118, 4, 0, TAU); g.fill(); for (let k = 0; k < 4; k++) { g.fillStyle = '#d8b84a'; g.fillRect(cx - 26.5 + k * 17, 160, 1, 16); g.fillStyle = ['#ff9ad8', '#9ad8ff', '#ffe08a', '#a8f0a8'][k]; ell(cx - 26 + k * 17, 180, 6, 4); g.fill(); }
+    for (const x of [260, 380, 460]) { g.fillStyle = '#2a2a3a'; g.fillRect(x - 1, 150, 2, 46); glow(x, 148, 12, 'rgba(255,230,150,1)', 0.7); g.beginPath(); g.arc(x, 148, 3, 0, TAU); g.fillStyle = '#fff4c0'; g.fill(); }
+  } },
+];
+SCENERY.castillo = [
+  { sp: 0.03, draw() {   // Matanzas Bay, and old St. Augustine's red-roofed towers across the water
+    g.fillStyle = vgrad(150, 224, '#3aa8c8', '#1a7aa8'); g.fillRect(0, 150, BG_W, 74);
+    for (let i = 0; i < 8; i++) { const x = 20 + i * 58, h = 20 + rndB(i, 1) * 26; g.fillStyle = '#e8dcc0'; g.fillRect(x, 150 - h, 22, h); g.fillStyle = '#c8603a'; g.beginPath(); g.moveTo(x - 2, 150 - h); g.lineTo(x + 11, 140 - h); g.lineTo(x + 24, 150 - h); g.fill(); }
+    const tx = 300; g.fillStyle = '#e8dcc0'; g.fillRect(tx, 70, 14, 80); g.fillStyle = '#c8603a'; g.beginPath(); g.moveTo(tx - 3, 70); g.lineTo(tx + 7, 52); g.lineTo(tx + 17, 70); g.fill();
+  } },
+  { sp: 0.25, draw() {   // the fort's coquina walls, diamond bastions with domed sentry boxes, and the old Spanish flag (the cross of Burgundy)
+    g.fillStyle = '#d8c8a0'; g.fillRect(0, 130, BG_W, 70); g.fillStyle = '#c8b48a'; for (let x = 0; x < BG_W; x += 12) g.fillRect(x, 124, 7, 8);
+    g.fillStyle = 'rgba(120,100,60,.25)'; for (let i = 0; i < 40; i++) g.fillRect(rndB(i, 1) * BG_W, 136 + rndB(i, 2) * 60, 3, 1);
+    for (const x of [100, 360]) { g.fillStyle = '#e0d2ac'; g.beginPath(); g.moveTo(x - 30, 200); g.lineTo(x - 20, 112); g.lineTo(x + 20, 112); g.lineTo(x + 30, 200); g.fill(); g.fillStyle = '#c8b48a'; for (let k = 0; k < 5; k++) g.fillRect(x - 20 + k * 9, 106, 6, 7);
+      g.fillStyle = '#ece0c4'; g.fillRect(x + 12, 92, 10, 16); g.beginPath(); g.arc(x + 17, 92, 5, Math.PI, 0); g.fill(); }
+    const fx = 230; g.fillStyle = '#5a4a3a'; g.fillRect(fx, 60, 1.6, 66); g.fillStyle = '#ffffff'; g.fillRect(fx + 1.6, 60, 22, 14); g.strokeStyle = '#c8202a'; g.lineWidth = 1.8; g.beginPath(); g.moveTo(fx + 3, 61); g.lineTo(fx + 22, 73); g.moveTo(fx + 22, 61); g.lineTo(fx + 3, 73); g.stroke();
+  } },
+];
+SCENERY.daytona = [
+  { sp: 0.03, draw() {   // the Atlantic, wide and blue
+    g.fillStyle = vgrad(140, 224, '#3ab0e0', '#1a7ab8'); g.fillRect(0, 140, BG_W, 84);
+    for (let i = 0; i < 4; i++) cloudPuff(60 + i * 120, 40 + (i % 2) * 20, 0.8);
+  } },
+  { sp: 0.2, draw() {   // the boardwalk: the pier on its legs, a clock tower, and a big wheel
+    g.fillStyle = '#8a6a4a'; g.fillRect(260, 140, 220, 4); for (let x = 264; x < BG_W; x += 12) g.fillRect(x, 144, 2, 30); g.fillStyle = '#e8e0d0'; g.fillRect(420, 124, 40, 16); g.fillStyle = '#5a9ad0'; g.fillRect(426, 128, 28, 6);
+    const ct = 80; g.fillStyle = '#f0e6d0'; g.fillRect(ct - 7, 96, 14, 80); g.beginPath(); g.arc(ct, 96, 7, Math.PI, 0); g.fill(); g.beginPath(); g.arc(ct, 108, 4.4, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.strokeStyle = INK; g.lineWidth = 0.6; g.beginPath(); g.moveTo(ct, 108); g.lineTo(ct, 105); g.moveTo(ct, 108); g.lineTo(ct + 2.4, 108); g.stroke();
+    const wx = 180, wy = 112, R = 40; g.strokeStyle = '#e8453a'; g.lineWidth = 1.2; g.beginPath(); g.arc(wx, wy, R, 0, TAU); g.stroke();
+    for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; g.beginPath(); g.moveTo(wx, wy); g.lineTo(wx + Math.cos(a) * R, wy + Math.sin(a) * R); g.lineWidth = 0.5; g.stroke(); rrect(wx + Math.cos(a) * R - 3, wy + Math.sin(a) * R, 6, 5, 1); g.fillStyle = ['#ffe14a', '#3ab0ff', '#ff6ab0'][k % 3]; g.fill(); }
+    g.strokeStyle = '#c8302a'; g.lineWidth = 2; g.beginPath(); g.moveTo(wx - 22, 176); g.lineTo(wx, wy); g.lineTo(wx + 22, 176); g.stroke();
+  } },
+  { sp: 0.42, draw() {   // beach umbrellas and checkered flags
+    for (let i = 0; i < 5; i++) { const x = 30 + i * 96; g.fillStyle = '#ffffff'; g.fillRect(x - 0.6, 168, 1.2, 26); g.beginPath(); g.moveTo(x - 16, 172); g.quadraticCurveTo(x, 152, x + 16, 172); g.closePath(); g.fillStyle = ['#ff5a5a', '#ffd23a', '#3ab0ff', '#5ad06a', '#ff8ad8'][i]; g.fill(); }
+    for (const x of [120, 310]) { g.fillStyle = '#3a3a48'; g.fillRect(x, 130, 1.6, 64); for (let r = 0; r < 3; r++) for (let c = 0; c < 4; c++) { g.fillStyle = (r + c) % 2 ? '#ffffff' : '#1e1e24'; g.fillRect(x + 1.6 + c * 4, 130 + r * 4, 4, 4); } }
+  } },
+];
+SCENERY.cape = [
+  { sp: 0.03, draw() {   // the giant assembly building far off, with the flag painted on its side
+    g.fillStyle = vgrad(160, 224, '#4a9ad0', '#2a6aa8'); g.fillRect(0, 160, BG_W, 64);
+    const vx = 60; g.fillStyle = '#d8dce4'; g.fillRect(vx, 70, 70, 92); g.fillStyle = '#b8bcc8'; g.fillRect(vx + 70, 100, 30, 62);
+    for (let k = 0; k < 7; k++) { g.fillStyle = k % 2 ? '#ffffff' : '#d8302a'; g.fillRect(vx + 8, 80 + k * 3, 24, 3); } g.fillStyle = '#2a4a9a'; g.fillRect(vx + 8, 80, 10, 9);
+  } },
+  { sp: 0.18, draw() {   // the rocket on its pad beside the tall launch tower, white and gleaming
+    const rx = 330; g.fillStyle = '#7a7a88'; g.fillRect(rx - 40, 30, 16, 140); g.strokeStyle = '#5a5a68'; g.lineWidth = 1; for (let y = 34; y < 168; y += 10) { g.beginPath(); g.moveTo(rx - 40, y); g.lineTo(rx - 24, y + 10); g.moveTo(rx - 24, y); g.lineTo(rx - 40, y + 10); g.stroke(); }
+    g.fillStyle = '#e8453a'; g.fillRect(rx - 24, 60, 14, 3); g.fillRect(rx - 24, 100, 14, 3);
+    g.fillStyle = '#f4f6f8'; rrect(rx - 9, 50, 18, 120, 2); g.fill(); g.beginPath(); g.moveTo(rx - 9, 52); g.quadraticCurveTo(rx, 10, rx + 9, 52); g.fill();
+    g.fillStyle = '#23242a'; g.fillRect(rx - 9, 90, 18, 4); g.fillRect(rx - 9, 140, 18, 3);
+    for (const s of [-1, 1]) { g.fillStyle = '#e8e8ee'; rrect(rx + s * 14 - 4, 110, 8, 60, 3); g.fill(); g.beginPath(); g.moveTo(rx + s * 14 - 4, 112); g.lineTo(rx + s * 14, 98); g.lineTo(rx + s * 14 + 4, 112); g.fill(); }
+    g.fillStyle = '#9a9aa8'; g.fillRect(rx - 60, 170, 120, 26);
+  } },
+  { sp: 0.42, draw() {   // palms, and red warning lights on the service towers
+    for (const x of [40, 200, 450]) palmBG(x, 196, 60);
+    for (const x of [120, 300]) { g.fillStyle = '#8a8a98'; g.fillRect(x - 2, 110, 4, 86); g.beginPath(); g.arc(x, 108, 3, 0, TAU); g.fillStyle = '#ff3a3a'; g.fill(); }
+  } },
+];
+SCENERY.space = [
+  { sp: 0.02, draw() {   // stars, a pink nebula, and the Earth hanging there, blue and green
+    for (let i = 0; i < 90; i++) { g.fillStyle = `rgba(255,255,255,${0.3 + rndB(i, 1) * 0.7})`; const s = rndB(i, 4) > 0.9 ? 1.6 : 0.8; g.fillRect(rndB(i, 2) * BG_W, rndB(i, 3) * 224, s, s); }
+    glow(120, 80, 70, 'rgba(255,90,200,1)', 0.18); glow(160, 110, 50, 'rgba(120,90,255,1)', 0.2);
+    const ex = 380, ey = 70; glow(ex, ey, 44, 'rgba(120,200,255,1)', 0.3); g.beginPath(); g.arc(ex, ey, 34, 0, TAU); g.fillStyle = '#2a7ad8'; g.fill();
+    g.save(); g.beginPath(); g.arc(ex, ey, 34, 0, TAU); g.clip(); g.fillStyle = '#4ab05a'; for (const [dx, dy, rx, ry] of [[-12, -10, 12, 8], [8, 6, 14, 10], [-4, 16, 8, 5]]) { ell(ex + dx, ey + dy, rx, ry); g.fill(); } g.fillStyle = 'rgba(255,255,255,.7)'; ell(ex + 4, ey - 20, 16, 3); g.fill(); ell(ex - 10, ey + 2, 10, 2); g.fill(); g.restore();
+  } },
+  { sp: 0.12, draw() {   // a ringed planet and a little red one
+    g.beginPath(); g.arc(90, 160, 18, 0, TAU); g.fillStyle = '#e8b86a'; g.fill(); g.strokeStyle = '#f6dca0'; g.lineWidth = 2; g.beginPath(); g.ellipse(90, 160, 30, 6, -0.3, 0, TAU); g.stroke();
+    g.beginPath(); g.arc(250, 40, 8, 0, TAU); g.fillStyle = '#d85a3a'; g.fill();
+  } },
+];
 const SKIES = {
   hills: ['#5ab8f5', '#bfeaff'], woods: ['#7ac88a', '#d8f0c8'], caves: ['#0a0c1c', '#1c1f3c'], sky: ['#3a9aec', '#e8f6ff'],
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
   shore: ['#3ab0f0', '#ffe8c0'], snow: ['#8ab8e8', '#eef6ff'], night: ['#0a1030', '#2a3070'], fort: ['#0e1a30', '#26405e'],
   canal: ['#5ab8f0', '#d8f0ff'], cranberry: ['#ff9a7a', '#ffe8c8'], dunes: ['#6ac0f0', '#fff4d8'], pier: ['#ff8a6a', '#ffd8a0'],
   orchard: ['#6ab8f0', '#fff0d0'], falls: ['#7ac0f0', '#e8f6ff'], gwb: ['#5aa8e8', '#e0f0ff'], city: ['#ff9a6a', '#ffe0b0'], harbor: ['#4a90e0', '#d8ecff'],
+  deco: ['#4ab8f0', '#ffe8f0'], reef: ['#2a9ad8', '#0a3a6a'], keys: ['#ff7a8a', '#ffd890'], glades: ['#8ac8e8', '#f0f0c8'], stpete: ['#6a6ad0', '#ffb880'],
+  springs: ['#5ac0f0', '#e8f8ff'], park: ['#0e0a30', '#3a1a5a'], castillo: ['#5ab0e8', '#f8ecd0'], daytona: ['#3aa8f0', '#e0f4ff'], cape: ['#3a90e0', '#e8f0ff'], space: ['#05051a', '#14143e'],
   deep: ['#2a8a8a', '#0e3a48'], sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
 };
 // the sky and sun, painted once per world and screen size
@@ -2429,6 +3123,16 @@ function drawBackground(camX, t) {
     g.beginPath(); g.moveTo(tx - 1, 88); g.quadraticCurveTo(tx + 3, 74 + fl, tx + 7, 88); paint('#ffa23a'); g.beginPath(); g.moveTo(tx + 1, 88); g.quadraticCurveTo(tx + 3, 80 + fl, tx + 5, 88); paint('#ffe48a');
   }
   if (th === 'sea') drawSeaLife(t);
+  if (th === 'park') for (let i = 0; i < 3; i++) {   // fireworks: a rocket climbs, then bursts into a ring of sparks
+    const ph = (t * 0.35 + i * 0.33) % 1, fx = ((i * 170 + 60 - camX * 0.05) % (LW + 60) + LW + 60) % (LW + 60) - 30, fy = 40 + i * 18;
+    if (ph < 0.25) { g.fillStyle = '#ffe8b0'; g.fillRect(fx, 190 - ph / 0.25 * (190 - fy), 1.2, 4); }
+    else { const k = (ph - 0.25) / 0.75, r = 6 + k * 30; g.globalAlpha = 1 - k; for (let s = 0; s < 14; s++) { const a = s / 14 * TAU; g.beginPath(); g.arc(fx + Math.cos(a) * r, fy + Math.sin(a) * r + k * k * 10, 1.4, 0, TAU); g.fillStyle = ['#ff5a8a', '#ffe14a', '#5ad0ff'][i]; g.fill(); } g.globalAlpha = 1; }
+  }
+  if (th === 'stpete' || th === 'keys') for (let i = 0; i < 2; i++) {   // dolphins leaping out in the bay
+    const ph = (t * 0.25 + i * 0.5) % 1; if (ph > 0.3) continue;
+    const k = ph / 0.3, dx = ((i * 230 + 120 - camX * 0.05) % (LW + 80) + LW + 80) % (LW + 80) - 40 + k * 26, dy = (th === 'keys' ? 168 : 152) - Math.sin(k * Math.PI) * 16;
+    g.save(); g.translate(dx, dy); g.rotate(-1 + k * 2); ell(0, 0, 7, 2.4); g.fillStyle = '#7a8aa0'; g.fill(); g.beginPath(); g.moveTo(-1, -2); g.lineTo(1, -5); g.lineTo(2, -2); g.fill(); g.beginPath(); g.moveTo(-7, 0); g.lineTo(-10, -2.4); g.lineTo(-10, 2.4); g.fill(); g.restore();
+  }
   if (th === 'rainbow' || th === 'caves') for (let i = 0; i < 24; i++) { const sx = (i * 97 + t * (th === 'caves' ? 3 : 14)) % LW, sy = (i * 53) % 150 + 10, tw = 0.5 + 0.5 * Math.sin(t * 3 + i); g.globalAlpha = tw; star(sx, sy, 1.6, th === 'caves' ? '#9ae8ff' : '#fff'); g.globalAlpha = 1; }
   // pits must look like pits: the scenery fades into a dark drop below the ground line
   if (th !== 'sky' && th !== 'castle') {
@@ -2557,19 +3261,30 @@ function spawnFromSpec(e) {
     case 'crusher': ents.push(mk('crusher', x - 4, y, { y0: y, w: 24, h: 30, st: 'wait', cyc: 0 })); break;
     case 'firebar': setTile(e.x, e.y, T.USED); ents.push(mk('firebar', x + 8, y + 8, { len: e.len || 4, sp: e.sp || 1, ang: Math.random() * 6, w: 0, h: 0 })); break;
     case 'spring': ents.push(mk('spring', x, y, { w: 16, h: 16, squash: 0 })); break;
-    case 'plat': ents.push(mk('plat', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, dx: (e.dx || 0) * TS, dy: (e.dy || 0) * TS, sp: e.sp || 1, ph: 0 })); break;
+    case 'plat': ents.push(mk('plat', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, dx: (e.dx || 0) * TS, dy: (e.dy || 0) * TS, sp: e.sp || 1, ph: 0, look: e.look })); break;
     case 'fall': ents.push(mk('fall', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, st: 'wait', cyc: 0 })); break;
     case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: e.hp || 3, maxHp: e.hp || 3, kind: e.kind || 'grumbles', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3 })); break;
     case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
-    case 'boat': ents.push(mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: 44, go: false, mx: 0, my: 0 })); break;
+    case 'boat': ents.push(mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: e.sp || 44, go: false, mx: 0, my: 0 })); break;
     case 'shark': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5) })); break;
     case 'whale': ents.push(mk('whale', x, LH + 40, { bx: x + 8, w: 14, h: 0, cyc: rand(0, 2) })); break;
     case 'sealhead': ents.push(mk('sealhead', x, 12 * TS - 6, { w: 0, h: 0 })); break;
     case 'apple': ents.push(mk('appletree', x, 0, { w: 0, h: 0, cool: rand(0.3, 1.5) })); break;                 // a branch overhead that drops apples
     case 'taxi': ents.push(mk('taxi', x, y + 2, { w: 28, h: 14, dir: -1, face: -1 })); break;
     case 'crab': ents.push(mk('crab', x + 1, y + 4, { w: 16, h: 12, dir: -1 })); break;
+    case 'heron': ents.push(mk('heron', x + 1, y + 16 - 34, { w: 14, h: 34, dir: -1, face: -1, jab: 0, jabCD: rand(0.5, 1.5), pause: 0 })); break;   // (a tall box: its legs are harmless, see touchPlayer)
+    case 'snake': ents.push(mk('snake', x, y + 8, { w: 18, h: 8, dir: -1, rear: 0, rearCD: rand(1, 3) })); break;
+    case 'gator': ents.push(mk('gator', x - 6, y + 4, { w: 28, h: 12, dir: -1 })); break;
+    case 'rooster': ents.push(mk('rooster', x + 1, y + 2, { w: 14, h: 14, dir: -1, hopCD: rand(0.5, 1.6) })); break;
+    case 'racer': ents.push(mk('racer', x - 6, y + 4, { w: 28, h: 12, dir: -1, face: -1, n: e.x })); break;
+    case 'jelly': ents.push(mk('jelly', x + 2, y, { x0: x + 2, y0: y, w: 12, h: 12, ph: rand(0, 6) })); break;
+    case 'puffer': ents.push(mk('puffer', x, y, { w: 14, h: 14, kick: rand(0.3, 1.2), face: -1, puff: 0 })); break;
+    case 'tarpon': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5), look: 'tarpon' })); break;   // (leaps like the sharks)
+    case 'mermaid': ents.push(mk('mermaid', x, y, { w: 18, h: 26 })); break;
+    case 'cannon': setTile(e.x, e.y, T.USED); ents.push(mk('cannon', x, y, { w: 0, h: 0, cool: rand(1, 2), recoil: 0, face: -1 })); break;
+    case 'palm': ents.push(mk('appletree', x, 0, { w: 0, h: 0, cool: rand(0.3, 1.5), palm: true })); break;   // a palm tree that drops coconuts
     case 'hint': ents.push(mk('hint', x - 16, y - 3 * TS, { w: 48, h: 4 * TS })); break;
     case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'sponge': ents.push(mk('sponge', x, 12 * TS - 7, { x0: x, y0: 12 * TS - 7, w: (e.w || 3) * TS, h: 9, deep: !!e.deep, mx: 0, my: 0, sq: 0 })); break;
@@ -2659,7 +3374,7 @@ function hitBlock(tx, ty, t, fromAbove) {
 function coinPop(x, y) { ents.push(mk('coinpop', x, y - 8, { vy: -260, w: 16, h: 16 })); }
 function sprout(kind, x, y) { ents.push(mk(kind, x + 1, y, { w: 14, h: 14, rise: 16, dir: 1 })); sfx.sprout(); }
 
-const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog', 'taxi', 'crab', 'applefall'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
+const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog', 'taxi', 'crab', 'applefall', 'heron', 'snake', 'gator', 'rooster', 'racer', 'jelly', 'puffer'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
 // knocked out by a shell, a spark, a bumped block or the horseshoe: flips over and falls off the screen
 function flipEnemy(e, from) {
   if (e.dead || e.k === 'boss') return;
@@ -2763,7 +3478,8 @@ function updatePlayer(dt) {
   if (!p.ground && !p.swim && pressed.down && (downFrom !== 'ArrowDown' || !(inp.left || inp.right)) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; p.flip = 0; sfx.spin(); }
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.22) { p.pound = 'drop'; p.vy = 470; } }
   const grav = p.swim ? 420 : p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && (inp.jump || p.superBounce > 0) ? 680 : 1500;   // (a super bounce soars, jump held or not)   // the twirl floats
-  p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, p.swim ? 75 : 290);
+  const gk = lvl.lowGrav ? 0.55 : 1;   // out in space everything floats
+  p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * gk * dt, p.swim ? 75 : 290 * (lvl.lowGrav ? 0.6 : 1));
   if (p.mount) {
     // on Shamrock: hold jump while falling to flutter-float for a moment
     if (!p.ground && inp.jump && p.vy > -60 && p.mount.flutter < 0.9 && !p.pound) { p.mount.flutter += dt; p.vy = Math.max(-25, p.vy - 1700 * dt); if (Math.random() < 0.5) sparkle(p.x + p.w / 2, p.y + p.h, '#ff9ad0', 1); }
@@ -2914,6 +3630,7 @@ function updateEnts(dt) {
         e.ph += dt * e.sp;
         e.x = e.x0 + Math.sin(e.ph) * e.dx; e.y = e.y0 + Math.sin(e.ph) * e.dy;
         e.mx = e.x - ox; e.my = e.y - oy;
+        if (e.mx) e.lf = e.mx > 0 ? 1 : -1;   // (a manatee faces the way it's swimming)
         break;
       }
       case 'fall': {
@@ -2960,9 +3677,10 @@ function updateEnts(dt) {
         if (e.deep && on && e.y > 12 * TS + 14 && phase === 'play' && lvl.deepRoom) startDive(e);
         break;
       }
-      case 'frog': {   // swims in kicks towards Leo when he's near
+      case 'frog': case 'puffer': {   // swims in kicks towards Leo when he's near (a puffer fish puffs up, spiky, when he's close)
         e.kick -= dt;
         const dx = p.x - e.x, dy = p.y + p.h / 2 - e.y;
+        if (e.k === 'puffer') { e.puff = clamp(e.puff + (Math.hypot(dx, dy) < 56 ? 3 : -1.2) * dt, 0, 1); if (e.puff > 0.5) e.kick = Math.max(e.kick, 0.2); }
         if (e.kick <= 0) { e.kick = rand(0.9, 1.5); const d = Math.hypot(dx, dy) || 1, near = d < 150; e.vx = near ? dx / d * 70 : rand(-40, 40); e.vy = near ? dy / d * 70 : rand(-40, 30); e.face = e.vx >= 0 ? 1 : -1; e.kt = 0.35; }
         e.kt = Math.max(0, (e.kt || 0) - dt);
         e.vx *= Math.exp(-dt * 1.6); e.vy *= Math.exp(-dt * 1.6);
@@ -2971,9 +3689,45 @@ function updateEnts(dt) {
         break;
       }
       case 'tadpoles': case 'turtle': case 'minnows': e.ph += dt; break;
+      case 'jelly': e.x = e.x0 + Math.sin(e.t * 0.6 + e.ph) * 20; e.y = e.y0 + Math.sin(e.t * 1.7 + e.ph) * 14; break;
+      case 'heron': {   // wades slowly along, stopping now and then; when Leo is just in front of it, it jabs with its beak
+        e.jabCD -= dt; e.jab = Math.max(0, e.jab - dt);
+        const front = (p.x + p.w / 2 - (e.x + e.w / 2)) * e.dir, low = p.y + p.h > e.y + 14 && p.y < e.y + e.h;
+        if (e.jabCD <= 0 && e.jab <= 0 && front > 0 && front < 46 && low) { e.jab = 0.4; e.jabCD = 1.3; sfx.kick(); }
+        if (e.pause > 0) e.pause -= dt; else if (Math.random() < dt * 0.3) e.pause = rand(0.6, 1.4);
+        if (e.ground && !groundAhead(e)) e.dir *= -1;
+        e.vx = e.pause > 0 || e.jab > 0 ? 0 : e.dir * 22;
+        e.vy = Math.min(e.vy + 900 * dt, 300);
+        moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
+        moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+        if (e.y > LH + 30) e.gone = true;
+        e.face = e.dir;
+        break;
+      }
+      case 'snake': case 'gator': case 'rooster': case 'racer': {   // walkers: a snake that rears up, a slow gator, a hopping rooster, a race car
+        if (!groundAhead(e) && e.ground) e.dir *= -1;
+        e.vx = e.dir * { snake: 30, gator: 24, rooster: 44, racer: 118 }[e.k];
+        e.vy = Math.min(e.vy + 900 * dt, 300);
+        if (e.k === 'rooster') { e.hopCD -= dt; if (e.hopCD <= 0 && e.ground) { e.vy = -230; e.hopCD = rand(0.9, 2); } }
+        if (e.k === 'snake') { e.rearCD -= dt; if (e.rear > 0) { e.rear -= dt; e.vx = 0; } else if (e.rearCD <= 0) { e.rear = 0.7; e.rearCD = rand(2, 4); } }
+        moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
+        moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+        if (e.k === 'racer' && e.ground && Math.random() < 0.35) particle(e.x + (e.dir > 0 ? 0 : e.w), e.y + e.h, -e.dir * rand(20, 60), rand(-40, -10), 'rgba(240,220,170,.8)', 0.4, rand(1.5, 2.5));
+        if (e.y > LH + 30) e.gone = true;
+        e.face = e.dir;
+        break;
+      }
+      case 'cannon': {   // fires a cannonball along the ground every few seconds, towards whichever side Leo is on
+        e.face = p.x < e.x ? -1 : 1; e.recoil = Math.max(0, e.recoil - dt * 3); e.cool -= dt;
+        if (e.cool <= 0 && Math.abs(p.x - e.x) < 240 && Math.abs(p.x - e.x) > 24) {
+          e.cool = rand(2.4, 3.2); e.recoil = 1; sfx.pound(); puff(e.x + 8 + e.face * 14, e.y + 6, 5, 'rgba(230,230,230,.9)');
+          ents.push(mk('acorn', e.x + 3 + e.face * 12, e.y + 3, { vx: e.face * 105, vy: 0, w: 10, h: 10, kind: 'cannonball', grav: 1e-9 }));
+        }
+        break;
+      }
       case 'appletree': {   // when Leo walks near, a ripe apple drops from the branch
         e.cool -= dt;
-        if (e.cool <= 0 && Math.abs(p.x - e.x) < 70) { e.cool = rand(1.6, 2.6); ents.push(mk('applefall', e.x + rand(-20, 20), 2 * TS, { w: 10, h: 10, vy: 0, life: 0 })); }
+        if (e.cool <= 0 && Math.abs(p.x - e.x) < 70) { e.cool = rand(1.6, 2.6); ents.push(mk('applefall', e.x + (e.palm ? rand(-5, 5) : rand(-20, 20)), (e.palm ? 3 : 2) * TS, { w: 10, h: 10, vy: 0, life: 0, coconut: !!e.palm })); }
         break;
       }
       case 'applefall': {   // falls, bounces once and rolls away
@@ -3085,8 +3839,15 @@ function touchPlayer(e) {
     return;
   }
   if (['plat', 'fall', 'boat', 'sealhead', 'sponge', 'tadpoles', 'turtle', 'minnows', 'appletree'].includes(e.k)) return;
+  if (e.k === 'mermaid') {   // swim up to a mermaid and she gives Leo a present: five coins
+    if (!e.gave && overlap(p, e)) {
+      e.gave = true; sparkle(e.x + 9, e.y + 8, '#ffffff', 14); pops.push({ x: e.x, y: e.y - 6, t: 0, txt: '♥' });
+      for (let i = 0; i < 5; i++) { coinPop(e.x - 8 + i * 6, e.y - 4 - (i % 2) * 6); getCoin(e.x, e.y); }
+    }
+    return;
+  }
   if (e.k === 'hint') { if (overlap(p, e) && !e.told) { e.told = true; banner('WALL JUMP!', 'Jump in, hold towards a wall, and press jump to kick off it. Back and forth to the top!', 3.4); } return; }
-  if (!overlap(p, e)) return;
+  if (e.k === 'heron' ? !heronTouch(e) : !overlap(p, e)) return;
   const stomp = p.vy > 0 && p.y + p.h - p.vy * STEP <= e.y + (p.mount ? 10 : 6), pounding = p.pound === 'drop';
   switch (e.k) {
     case 'coin': break;
@@ -3145,10 +3906,14 @@ function touchPlayer(e) {
       hurtPlayer();
       break;
     case 'acorn':
-      e.gone = true; hurtPlayer();
+      e.gone = true;
+      if (e.kind === 'cannonball' && stomp && p.star <= 0) { p.vy = (keys.jump || touchState.jump) ? -330 : -230; sfx.stomp(); addScore(100, e.x, e.y); puff(e.x + 5, e.y + 5, 4); break; }   // a cannonball can be stomped
+      hurtPlayer();
       break;
     case 'pot':
-      e.gone = true; winGame();
+      e.gone = true;
+      if (lvl.midBoss) { reachGoal(); banner('TREASURE!', `${BOSS_WHO[lvl.bossKind] || 'The boss'} is beaten! 🏴‍☠️`); }   // a boss partway through a world: on to the next level
+      else winGame();
       break;
     case 'prism':   // the rainbow prism: Shamrock's eye laser
       if (e.rise > 0) break;
@@ -3191,7 +3956,7 @@ function touchPlayer(e) {
         for (let i = 0; i < 6; i++) sparkle(e.x + 7 + rand(-6, 6), e.y + rand(0, 8), '#ff9ad0', 1);
         break;
       }
-      if (stomp && (e.k !== 'thorny' || p.mount) && e.k !== 'snapper') {
+      if (stomp && (e.k !== 'thorny' || p.mount) && e.k !== 'snapper' && !(e.k === 'puffer' && e.puff > 0.5 && !p.mount)) {   // (not a puffed-up puffer fish: spiky!)
         p.combo++;
         p.vy = (keys.jump || touchState.jump) ? -330 : -200;
         addScore(100 * Math.min(8, 2 ** (p.combo - 1)), e.x, e.y); sfx.stomp();
@@ -3201,7 +3966,7 @@ function touchPlayer(e) {
         else if (e.k === 'snaily') { e.k = 'shell'; e.vx = 0; e.h = 14; e.y += 2; e.still = 0; }
         else if (e.k === 'shell') { e.vx = 0; }
         else if (e.k === 'buzzer') { e.dead = true; e.flip = true; e.vy = 0; }
-        else if (['shark', 'frog', 'taxi', 'crab', 'applefall'].includes(e.k)) { flipEnemy(e, p.face); }
+        else if (['shark', 'frog', 'taxi', 'crab', 'applefall', 'heron', 'snake', 'gator', 'rooster', 'racer', 'jelly', 'puffer'].includes(e.k)) { flipEnemy(e, p.face); }
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
@@ -3209,15 +3974,23 @@ function touchPlayer(e) {
   }
 }
 
+// A heron's (or flamingo's) legs are harmless: only its body counts (and its beak, mid-jab). Small Leo runs right underneath.
+function heronTouch(e) {
+  const p = player, body = { x: e.x - 1, y: e.y, w: e.w + 2, h: 15 };
+  const beak = e.jab > 0.08 && e.jab < 0.32 ? { x: e.dir > 0 ? e.x + e.w : e.x - 16, y: e.y + 12, w: 16, h: 10 } : null;
+  if (beak && overlap(p, beak) && p.star <= 0 && !p.mount) { hurtPlayer(); return false; }
+  return overlap(p, body);
+}
+
 // ---------- King Grumbles ----------
 function updateBoss(e, dt) {
   const p = player;
   if (e.hp <= 0) { e.vy = (e.vy || 0) + 700 * dt; e.y += e.vy * dt; if (e.y > LH + 60) e.gone = true; return; }
   if (Math.abs(p.x - e.x) > 260 && !e.awake) return;
-  if (!e.awake) { e.awake = true; music.play('boss'); banner(BOSS_NAMES[e.kind] || 'KING GRUMBLES!', `Hit ${e.kind === 'grumbles' ? 'him' : 'it'} ${['', 'once', 'twice', 'three times', 'four times', 'five times'][e.maxHp || 3] || (e.maxHp + ' times')}: stomp ${e.kind === 'grumbles' ? 'him' : 'it'}, or throw shells, sparks and hats!`); }
+  if (!e.awake) { e.awake = true; lvl.bossKind = e.kind; music.play('boss'); const him = e.kind === 'grumbles' || e.kind === 'gator' ? 'him' : 'it'; banner(BOSS_NAMES[e.kind] || 'KING GRUMBLES!', `Hit ${him} ${['', 'once', 'twice', 'three times', 'four times', 'five times'][e.maxHp || 3] || (e.maxHp + ' times')}: stomp ${him}, or throw shells, sparks and hats!`); }
   e.hurt = Math.max(0, e.hurt - dt);
   const angry = (e.maxHp || 3) - e.hp;   // he gets faster and wilder with every hit
-  const speed = (e.kind === 'crab' ? 62 : e.kind === 'yeti' ? 34 : 40) + angry * 20;
+  const speed = (e.kind === 'crab' ? 62 : e.kind === 'yeti' ? 34 : e.kind === 'gator' ? 46 : 40) + angry * 20;
   e.vx = e.dir * speed;
   e.vy = Math.min((e.vy || 0) + 900 * dt, 400);
   moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
@@ -3231,7 +4004,7 @@ function updateBoss(e, dt) {
     e.throwT = Math.max(0.9, rand(1.8, 3) - angry * 0.3);
     const dx = p.x - e.x;
     if (e.kind === 'crab') for (const k of [-1, 0, 1]) ents.push(mk('acorn', e.x + 10, e.y + 4, { vx: clamp(dx, -160, 160) * 0.5 + k * 40, vy: -120 - Math.abs(k) * 30, w: 10, h: 10, kind: 'bubble', grav: 90 }));   // three slow bubbles
-    else ents.push(mk('acorn', e.x + 10, e.y + 6, { vx: clamp(dx, -200, 200) * 0.9, vy: -260, w: 10, h: 10, kind: e.kind === 'yeti' ? 'snowball' : 'acorn' }));
+    else ents.push(mk('acorn', e.x + 10, e.y + 6, { vx: clamp(dx, -200, 200) * 0.9, vy: -260, w: 10, h: 10, kind: e.kind === 'yeti' ? 'snowball' : e.kind === 'gator' ? 'cannonball' : 'acorn' }));
     sfx.kick();
   }
 }
@@ -3244,7 +4017,7 @@ function bossHit(e) {
   if (e.hp <= 0) {
     e.vy = -250; bossDown = true; music.stop();
     phase = 'boss-won'; phaseT = 0;
-    banner('YOU DID IT!', 'King Grumbles is beaten!');
+    banner('YOU DID IT!', `${BOSS_WHO[e.kind] || 'King Grumbles'} is beaten!`);
   } else { e.dir = player.x < e.x ? 1 : -1; e.jumpT = 0.6; }
 }
 function bossWonUpdate(dt) {
@@ -3310,15 +4083,16 @@ function afterDeath() {
 }
 let endFrom = 'castle';
 const WORLD_ENDS = {
+  liberty: { title: 'WORLD 4 <span>CLEAR!</span>', sub: '🗽 King Grumbles is beaten! But he grabbed the very last bag of gold and jetted off to sunny <b>Florida</b>! World 5 is open.', btn: '🌴 On to World 5!', toast: '✈️ Fly south to Miami Beach!' },
   ptown: { title: 'WORLD 3 <span>CLEAR!</span>', sub: '✈️ Captain Pinch is beaten! But King Grumbles hopped on a plane with the last of the gold and flew off to <b>New York</b>! World 4 is open.', btn: '✈️ On to World 4!', toast: '✈️ Fly west to the apple orchards of Western New York!' },
   castle: { title: 'WORLD 1 <span>CLEAR!</span>', sub: '🏃 King Grumbles dropped the pot of gold… and ran off with the rest, over New Hampshire\'s <b>White Mountains</b> towards <b>Maine</b>! World 2 is open.', btn: '🏔️ On to World 2!', toast: '🏔️ Follow the path up into the White Mountains!' },
   fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '⛵ The Frost Yeti is beaten! But King Grumbles grabbed a bag of gold and sailed from Maine down to <b>Cape Cod</b>! World 3 is open.', btn: '⛵ On to World 3!', toast: '⛵ Follow the path across the sea to Cape Cod!' },
 };
 function winGame() {
-  const id = lvl.id, last = id === 'liberty';
+  const id = lvl.id, last = id === 'canaveral';
   keep = { form: player.form, mount: !!player.mount, laser: !!player.laser };
   endFrom = id;
-  save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (id === 'ptown') save.beaten3 = true; if (last) save.beaten4 = true;
+  save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (id === 'ptown') save.beaten3 = true; if (id === 'liberty') save.beaten4 = true; if (last) save.beaten5 = true;
   save.gems[id] = levelGems.map((g2, i) => g2 || !!(save.gems[id] || [])[i]);
   save.best = Math.max(save.best, score);
   persist();
@@ -3326,7 +4100,7 @@ function winGame() {
   state = 'ending'; showTouch();
   const w = WORLD_ENDS[id];
   document.querySelector('#ending h1').innerHTML = last ? 'THE <span>GOLD</span> IS BACK!' : w.title;
-  document.querySelector('#ending .sub').innerHTML = last ? '🗽 King Grumbles is beaten for good at the Statue of Liberty, and Leo has every last coin of his gold. Hooray!' : w.sub;
+  document.querySelector('#ending .sub').innerHTML = last ? '🚀 King Grumbles is beaten for good at Cape Canaveral, and Leo has every last coin of his gold. Hooray! And that rocket is still fuelled up… a bonus trip to <b>Outer Space</b> is open on the map! 🌌' : w.sub;
   document.getElementById('btnMapAgain').textContent = last ? '🗺️ Back to the map' : w.btn;
   document.getElementById('endStats').innerHTML = `SCORE <b>${score}</b><br>🌈 GEMS <b>${gemCount()}</b> of ${ORDER.length * 5}<br>${save.key ? '🗝️ Golden key found!' : '🗝️ The golden key is still hiding in Glimmer Caves…'}`;
   document.getElementById('ending').classList.remove('hidden');
@@ -3366,6 +4140,7 @@ function drawLevel() {
   // scroll by whole screen pixels so nothing shimmers
   const camDev = Math.round((camX - sx) * scale), cx = camDev / scale;
   drawBackground(cx, t);
+  if (lvl.theme === 'springs') { g.fillStyle = vgrad(4 * TS, 12 * TS, 'rgba(110,225,240,.3)', 'rgba(30,130,200,.42)'); g.fillRect(0, 4 * TS, LW, 8 * TS); }   // the spring's clear water, all in one piece (the rock is drawn over it)
   g.save(); g.setTransform(1, 0, 0, 1, 0, offY);
   for (let ci = Math.floor(cx / (CHUNK * TS)); ci * CHUNK * TS < cx + LW; ci++) { const c = chunkPic(ci); g.drawImage(c, c.x0 - camDev, 0); }
   g.restore();
@@ -3487,15 +4262,16 @@ function drawEnt0(e, t) {
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
     case 'grumblin': drawGrumblin(x - 1, y - 2, tt, face, e.flat); break;
-    case 'snaily': drawSnaily(x - 1, y, tt, face, false); break;
-    case 'shell': drawSnaily(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
+    case 'snaily': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y, tt, face, false); break;
+    case 'shell': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': drawThorny(x - 1, y - 3, tt, face); break;
-    case 'buzzer': if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'buzzer': if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
     case 'firebar': for (let i = 0; i <= e.len; i++) drawFireball(x + Math.cos(e.ang) * i * 8, y + Math.sin(e.ang) * i * 8, t + i * 0.05); break;
     case 'spring': drawSpring(x, y, e.squash); break;
     case 'plat': case 'fall': {
+      if (e.look && drawPlatLook(e, t)) break;
       const sx = e.st === 'shake' ? Math.sin(t * 60) * 0.8 : 0;
       if (lvl.theme === 'bog' || e.k === 'fall') {
         rrect(x + sx, y, e.w, 8, 4); paint(vgrad(y, y + 8, '#b88248', '#7a4a22'), 1, '#3a2410');
@@ -3535,13 +4311,25 @@ function drawEnt0(e, t) {
       g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
       g.restore(); break;
     }
-    case 'boat': drawBoat(e, t); break;
+    case 'boat': if (lvl.theme === 'glades') drawAirboat(e, t); else drawBoat(e, t); break;
+    case 'heron': drawHeron(e, tt, FLAMINGOS.has(lvl.theme)); break;
+    case 'snake': drawSnake(e, tt); break;
+    case 'gator': drawGator(x, y, tt, face, e.w + 2); break;
+    case 'rooster': drawRooster(x, y, tt, face); break;
+    case 'racer': drawRacer(x, y, face, e.n || 0); break;
+    case 'jelly': drawJelly(x, y, tt); break;
+    case 'puffer': drawPuffer(x, y, tt, e.face || 1, e.puff || 0); break;
+    case 'mermaid': drawMermaid(x, y, tt, e.gave); break;
+    case 'cannon': drawCannon(x, y, e.face || -1, e.recoil || 0); break;
     case 'sponge': {   // a squishy mat of bog moss and cranberries (the deep one is darker, and bubbles)
       const sq = e.sq || 0, w = e.w + sq * 3, h = e.h - sq * 2.5, xx = x - sq * 1.5, yy = y + sq * 2.5;
+      if (lvl.theme === 'glades') drawGatorBack(xx, yy, w, h);   // (in the Everglades, the sinking things are gators!)
+      else {
       rrect(xx, yy, w, h, 4); paint(e.deep ? vgrad(yy, yy + h, '#6a5a3a', '#3a2e1e') : vgrad(yy, yy + h, '#9aa04a', '#6a6a2a'));
       g.fillStyle = 'rgba(0,0,0,.18)'; for (let i = 0; i < w / 5; i++) { g.beginPath(); g.arc(xx + 3 + i * 5, yy + h * 0.6 + (i % 2), 1, 0, TAU); g.fill(); }   // spongy holes
       for (let i = 0; i < w / 6; i++) { g.beginPath(); g.arc(xx + 4 + i * 6 + (i % 2) * 2, yy + 1, 1.6, 0, TAU); g.fillStyle = i % 3 ? '#d8303a' : '#ff5a5a'; g.fill(); }   // cranberries on top
       if (e.deep) { g.globalAlpha = 0.5 + 0.3 * Math.sin(t * 3); g.beginPath(); g.arc(xx + w / 2, yy + h / 2, 2.4, 0, TAU); g.lineWidth = 0.8; g.strokeStyle = '#cfefff'; g.stroke(); g.globalAlpha = 1; }
+      }
       const surf = 12 * TS; if (yy + h > surf) { g.fillStyle = 'rgba(30,110,190,.55)'; g.fillRect(xx - 1, Math.max(yy, surf), w + 2, yy + h - Math.max(yy, surf) + 1); }   // the part under the water
       break;
     }
@@ -3572,11 +4360,13 @@ function drawEnt0(e, t) {
       g.restore(); break;
     }
     case 'appletree': {   // a leafy branch hanging down from the top, with apples on it
+      if (e.palm) { drawPalm(x, t); break; }
       g.beginPath(); g.ellipse(x, 6, 30, 16, 0, 0, TAU); g.fillStyle = '#3a9a3a'; g.fill(); g.beginPath(); g.ellipse(x - 10, 12, 16, 10, 0, 0, TAU); g.fillStyle = '#4aac48'; g.fill();
       for (let k = 0; k < 6; k++) { g.beginPath(); g.arc(x - 20 + k * 8, 12 + (k % 2) * 6, 2.4, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); }
       break;
     }
-    case 'applefall': { g.save(); g.translate(x + 5, y + 5); g.rotate(e.life * 6 * Math.sign(e.vx || 1)); g.beginPath(); g.arc(0, 0.5, 4.6, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); g.beginPath(); g.arc(-1.6, -1, 1.4, 0, TAU); g.fillStyle = 'rgba(255,255,255,.45)'; g.fill();
+    case 'applefall': if (e.coconut) { g.save(); g.translate(x + 5, y + 5); g.rotate(e.life * 6 * Math.sign(e.vx || 1)); g.beginPath(); g.arc(0, 0, 5, 0, TAU); g.fillStyle = '#6a4a2a'; g.fill(); for (const [a, b] of [[-1.4, -1.6], [1.4, -1.6], [0, 0.8]]) { g.beginPath(); g.arc(a, b, 0.8, 0, TAU); g.fillStyle = '#3a2414'; g.fill(); } g.restore(); break; }
+    { g.save(); g.translate(x + 5, y + 5); g.rotate(e.life * 6 * Math.sign(e.vx || 1)); g.beginPath(); g.arc(0, 0.5, 4.6, 0, TAU); g.fillStyle = '#e8302a'; g.fill(); g.beginPath(); g.arc(-1.6, -1, 1.4, 0, TAU); g.fillStyle = 'rgba(255,255,255,.45)'; g.fill();
       g.fillStyle = '#5a3a1a'; g.fillRect(-0.4, -5.6, 0.8, 2.6); ell(1.8, -4.4, 1.8, 0.9, -0.5); g.fillStyle = '#4aac48'; g.fill(); g.restore(); break; }
     case 'taxi': {   // a yellow New York taxi
       g.save(); g.translate(x + 14, y + 14); g.scale(-(e.face || -1), 1);
@@ -3612,7 +4402,7 @@ function drawEnt0(e, t) {
       const by = y - 6 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 18, by); g.lineTo(x + 30, by + 6); g.lineTo(x + 18, by + 12); g.closePath(); g.fillStyle = '#ffe14a'; g.fill();
       break;
     }
-    case 'shark': drawShark(e, t); break;
+    case 'shark': if (e.look === 'tarpon') drawTarpon(e, t); else drawShark(e, t); break;
     case 'whale': drawWhale(e, t); break;
     case 'sealhead': drawSealHead(x, y, tt); break;
     case 'sflag': {   // a golden flag with a star: a secret way out
@@ -3628,13 +4418,15 @@ function drawEnt0(e, t) {
     case 'poop': drawPoop(e, t); break;
     case 'smudge': g.globalAlpha = Math.min(1, e.life / 1.5) * 0.8; ell(x, y, 2.2, 0.9); g.fillStyle = '#6a3e1c'; g.fill(); g.globalAlpha = 1; break;
     case 'unicorn': drawUnicorn(x + 8, y + 22, e.face || 1, t, e.st === 'flee' ? 1 : 0); break;
-    case 'acorn': if (e.kind === 'snowball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); paint('#ffffff', 0.8, '#9ab8dc'); g.beginPath(); g.arc(x + 3.5, y + 3.5, 1.6, 0, TAU); paint('rgba(200,225,255,.9)'); }
+    case 'acorn': if (e.kind === 'cannonball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); g.fillStyle = '#2a2a32'; g.fill(); g.beginPath(); g.arc(x + 3.4, y + 3.4, 1.6, 0, TAU); g.fillStyle = 'rgba(255,255,255,.45)'; g.fill(); }
+      else if (e.kind === 'snowball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); paint('#ffffff', 0.8, '#9ab8dc'); g.beginPath(); g.arc(x + 3.5, y + 3.5, 1.6, 0, TAU); paint('rgba(200,225,255,.9)'); }
       else if (e.kind === 'bubble') { g.globalAlpha = 0.8; g.beginPath(); g.arc(x + 5, y + 5, 5.5, 0, TAU); g.fillStyle = 'rgba(180,230,255,.35)'; g.fill(); g.lineWidth = 0.9; g.strokeStyle = '#e8f8ff'; g.stroke(); g.beginPath(); g.arc(x + 3, y + 3, 1.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
       else drawAcorn(x, y, t); break;
-    case 'pot': drawPot(x, y, t); break;
+    case 'pot': if (lvl.midBoss) drawChest(x, y, t); else drawPot(x, y, t); break;
     case 'boss': {
       const hurtBlink = e.hurt > 0 && Math.floor(t * 16) % 2 === 0;
-      if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
+      if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'gator') drawGatorBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
+      if (lvl.theme === 'cape' && e.kind === 'grumbles') { g.beginPath(); g.arc(x + 14, y + 7 - Math.abs(Math.sin(tt * 6)) * 1.5, 17, 0, TAU); g.fillStyle = 'rgba(200,240,255,.22)'; g.fill(); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.8)'; g.stroke(); ell(x + 8, y - 1, 4, 2.4, -0.6); g.fillStyle = 'rgba(255,255,255,.55)'; g.fill(); }   // King Grumbles in a space helmet
       if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - 16, 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
       break;
     }
@@ -3642,6 +4434,97 @@ function drawEnt0(e, t) {
   if (e.flip) g.restore();
   // a snapping plant stays inside its log: redraw the log's top over its stalk
   if (e.k === 'snapper') { const tx = Math.floor((e.x - 8) / TS); drawTile(T.PIPE_TL, tx, e.pipeY, tx * TS, e.pipeY * TS, THEMES[lvl.theme], t); drawTile(T.PIPE_TR, tx + 1, e.pipeY, (tx + 1) * TS, e.pipeY * TS, THEMES[lvl.theme], t); }
+}
+
+// ---------- The map of Florida (World 5) ----------
+// A second map, drawn the same way from real latitude and longitude. Leo flies there from the Statue of Liberty: the
+// plane heads off the bottom of the New England map and comes in over the Atlantic on this one. The route runs from
+// Miami down the Keys, across Florida Bay to the Everglades, up the Gulf coast, inland to Orlando, up to St. Augustine,
+// and back down the Atlantic coast to the launch pad (and from there, by rocket, out to space).
+const MAP_W_FL = 262;
+const FGEO = (lon, lat) => [10 + (lon + 87.7) * 30, 4 + (31.1 - lat) * 29.5];   // (squeezed a little top to bottom, so Key West clears the text at the bottom)
+const FL_LL = [[-87.6, 30.98], [-85.0, 31.0], [-84.86, 30.71], [-83.5, 30.65], [-82.2, 30.57], [-82.05, 30.75], [-81.95, 30.82], [-81.45, 30.72],
+  [-81.4, 30.4], [-81.3, 30.0], [-81.2, 29.7], [-81.0, 29.25], [-80.85, 28.95], [-80.6, 28.6], [-80.52, 28.45], [-80.6, 28.25], [-80.45, 27.85], [-80.3, 27.4],
+  [-80.15, 27.0], [-80.05, 26.6], [-80.1, 26.1], [-80.13, 25.78], [-80.3, 25.5], [-80.4, 25.25], [-80.7, 25.15], [-81.1, 25.12], [-81.2, 25.35], [-81.35, 25.8],
+  [-81.75, 26.1], [-81.95, 26.45], [-82.2, 26.75], [-82.4, 27.1], [-82.65, 27.45], [-82.75, 27.85], [-82.8, 28.2], [-82.72, 28.6], [-82.8, 29.0], [-83.1, 29.2],
+  [-83.5, 29.6], [-83.9, 29.95], [-84.3, 30.05], [-84.6, 29.9], [-85.0, 29.65], [-85.35, 29.7], [-85.4, 29.9], [-85.8, 30.15], [-86.3, 30.38], [-86.8, 30.4], [-87.3, 30.33], [-87.6, 30.28]];
+const FL_AROUND_LL = [[[-100, 30.25], [-87.6, 30.28], [-87.6, 30.98], [-85.0, 31.0], [-84.86, 30.71], [-83.5, 30.65], [-82.2, 30.57], [-82.05, 30.75], [-81.95, 30.82], [-81.45, 30.72], [-81.3, 31.2], [-81.1, 32.2], [-100, 32.2]]];   // Georgia and Alabama
+const FL_KEYS = [[-80.42, 25.18], [-80.55, 25.02], [-80.72, 24.9], [-80.92, 24.78], [-81.12, 24.7], [-81.32, 24.66], [-81.52, 24.62], [-81.72, 24.57]];
+const insidePoly = (pts, x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+function drawFloridaBase(ox) {
+  const key = scale + '|fl';
+  if (drawFloridaBase.key !== key) {
+    drawFloridaBase.key = key;
+    const c = drawFloridaBase.pic = document.createElement('canvas');
+    c.width = Math.ceil((MAP_W_FL + 40) * scale); c.height = Math.ceil(LH * scale);
+    const tc = c.getContext('2d'), old = g;
+    tc.setTransform(scale, 0, 0, scale, 20 * scale, 0); tc.lineJoin = 'round'; tc.lineCap = 'round'; g = tc;
+    try {
+      const G = pts => pts.map(([lo, la]) => FGEO(lo, la));
+      const poly = pts => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); };
+      const line = pts => { g.beginPath(); pts.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); };
+      const fl = G(FL_LL);
+      poly(fl); g.lineWidth = 9; g.strokeStyle = 'rgba(140,235,255,.55)'; g.stroke();   // shallow turquoise water
+      poly(fl); g.lineWidth = 3.6; g.strokeStyle = '#fbeec0'; g.stroke();              // white sand beaches
+      for (const [lo, la] of FL_KEYS) { const [x, y] = FGEO(lo, la); ell(x, y, 3.6, 2); g.fillStyle = 'rgba(140,235,255,.6)'; g.fill(); ell(x, y, 2.4, 1.2); g.fillStyle = '#fbeec0'; g.fill(); ell(x, y, 1.6, 0.8); g.fillStyle = '#86d070'; g.fill(); }   // the Keys
+      for (const pts of FL_AROUND_LL) { poly(G(pts)); g.fillStyle = '#b4cca4'; g.fill(); }
+      poly(fl); g.fillStyle = '#86d070'; g.fill();
+      g.setLineDash([2, 2]); g.lineWidth = 0.8; g.strokeStyle = 'rgba(255,255,255,.75)'; line(G(FL_LL.slice(0, 8))); g.stroke(); g.setLineDash([]);
+      // the Everglades, Lake Okeechobee, Tampa Bay and the St. Johns River
+      { const [x, y] = FGEO(-80.95, 25.72); g.fillStyle = 'rgba(170,195,90,.8)'; blob(x, y, 15, 10, 2); g.strokeStyle = 'rgba(90,130,40,.6)'; g.lineWidth = 0.6; for (let i = 0; i < 26; i++) { const gx = x - 13 + rndB(i, 1) * 26, gy = y - 7 + rndB(i, 2) * 14; g.beginPath(); g.moveTo(gx, gy); g.lineTo(gx + 0.6, gy - 2); g.stroke(); } }
+      { const [x, y] = FGEO(-80.83, 26.95); g.fillStyle = '#6ac0ea'; blob(x, y, 6, 5.4, 4); }
+      { const [x, y] = FGEO(-82.5, 27.82); g.save(); g.translate(x, y); g.rotate(0.5); ell(0, 0, 2.6, 7); g.fillStyle = '#6ac0ea'; g.fill(); g.restore(); }
+      g.strokeStyle = '#6ac0ea'; g.lineWidth = 1.1; line(G([[-81.6, 30.35], [-81.65, 29.9], [-81.55, 29.3], [-81.3, 28.8], [-80.95, 28.3]])); g.stroke();
+      // palm trees here and there
+      for (let i = 0; i < 160; i++) {
+        const hx = 14 + rndB(i, 1) * (MAP_W_FL - 20), hy = 12 + rndB(i, 2) * 200;
+        if (!insidePoly(fl, hx, hy) || NODES.some(n => n.map === 'fl' && Math.hypot(n.x - hx, n.y - hy) < 13)) continue;
+        g.strokeStyle = '#8a6a3a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + 0.6, hy - 4); g.stroke();
+        g.strokeStyle = i % 2 ? '#2f9a46' : '#3aaa50'; g.lineWidth = 1; for (const a of [-2.7, -2, -1.2, -0.45]) { g.beginPath(); g.moveTo(hx + 0.6, hy - 4); g.lineTo(hx + 0.6 + Math.cos(a) * 3, hy - 4 + Math.sin(a) * 2 + 1.6); g.stroke(); }
+      }
+      // little landmarks beside each level
+      { const n = node('miami'); rrect(n.x - 18, n.y - 10, 7, 9, [2, 2, 0, 0]); g.fillStyle = '#ffb8d0'; g.fill(); g.fillStyle = '#5ad0e0'; g.fillRect(n.x - 18, n.y - 7, 7, 1); rrect(n.x - 11, n.y - 8, 5, 7, [2, 2, 0, 0]); g.fillStyle = '#a8e8e0'; g.fill(); }
+      { const n = node('reef'); g.lineWidth = 1.2; for (let k = 0; k < 3; k++) { g.strokeStyle = ['#ff7a5a', '#ff9ad8', '#ffb05a'][k]; g.beginPath(); g.moveTo(n.x + 8 + k * 3, n.y + 4); g.lineTo(n.x + 8 + k * 3, n.y - 1); g.lineTo(n.x + 10 + k * 3, n.y - 3); g.stroke(); } }
+      { const n = node('keywest'); ['#e8302a', '#23242a', '#ffd23a'].forEach((cc, k) => { g.fillStyle = cc; g.fillRect(n.x - 13, n.y - 9 + k * 3, 4, 3); }); }
+      { const n = node('glades'); ell(n.x + 11, n.y + 3, 5, 1.4); g.fillStyle = '#3a6a2a'; g.fill(); g.beginPath(); g.arc(n.x + 14, n.y + 1.8, 0.8, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); }
+      { const n = node('stpete'); g.strokeStyle = '#c8945a'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(n.x + 5, n.y); g.lineTo(n.x + 15, n.y - 1); g.stroke(); g.fillStyle = '#ffffff'; g.fillRect(n.x + 14, n.y - 4, 4, 3); }
+      { const n = node('springs'); g.beginPath(); g.arc(n.x + 11, n.y + 1, 4, 0, TAU); g.fillStyle = '#5ad8f0'; g.fill(); g.beginPath(); g.moveTo(n.x + 11, n.y - 1); g.quadraticCurveTo(n.x + 13, n.y + 2, n.x + 10, n.y + 3); g.lineTo(n.x + 13, n.y + 3.6); g.lineWidth = 0.9; g.strokeStyle = '#1aa08a'; g.stroke(); }
+      { const n = node('park'); g.beginPath(); g.arc(n.x + 11, n.y - 6, 5, 0, TAU); g.lineWidth = 0.8; g.strokeStyle = '#c84aa8'; g.stroke(); for (let k = 0; k < 6; k++) { const a = k / 6 * TAU; g.beginPath(); g.arc(n.x + 11 + Math.cos(a) * 5, n.y - 6 + Math.sin(a) * 5, 0.8, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); } }
+      { const n = node('castillo'); g.beginPath(); for (let k = 0; k < 8; k++) { const a = k / 8 * TAU, r = k % 2 ? 3 : 6; g.lineTo(n.x + 13 + Math.cos(a) * r, n.y - 2 + Math.sin(a) * r); } g.closePath(); g.fillStyle = '#e8d8b0'; g.fill(); g.lineWidth = 0.5; g.strokeStyle = '#8a7a58'; g.stroke(); }
+      { const n = node('daytona'); g.fillStyle = '#3a3a48'; g.fillRect(n.x + 8, n.y - 10, 0.8, 10); for (let r = 0; r < 2; r++) for (let cc = 0; cc < 3; cc++) { g.fillStyle = (r + cc) % 2 ? '#ffffff' : '#1e1e24'; g.fillRect(n.x + 8.8 + cc * 1.8, n.y - 10 + r * 1.8, 1.8, 1.8); } }
+      { const n = node('canaveral'); rrect(n.x + 8, n.y - 12, 3.4, 11, 1); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(n.x + 8, n.y - 11); g.lineTo(n.x + 9.7, n.y - 15.5); g.lineTo(n.x + 11.4, n.y - 11); g.fill(); g.fillStyle = '#e8453a'; g.fillRect(n.x + 8, n.y - 4, 3.4, 1); }
+      // names
+      g.textAlign = 'center'; g.textBaseline = 'middle';
+      const label = (txt, lo, la, size, col = 'rgba(255,255,255,.85)') => { const [x, y] = FGEO(lo, la); g.font = `${size}px Bungee, system-ui, sans-serif`; g.fillStyle = 'rgba(20,60,30,.3)'; g.fillText(txt, x + 0.5, y + 0.5); g.fillStyle = col; g.fillText(txt, x, y); };
+      label('FLORIDA', -81.75, 27.35, 7); label('GEORGIA', -83.6, 30.9, 5); label('GULF OF MEXICO', -85.4, 27.6, 6, 'rgba(255,255,255,.6)'); label('ATLANTIC', -80.0, 30.2, 5, 'rgba(255,255,255,.6)');
+    } finally { g = old; }
+  }
+  g.save(); g.translate(ox, 0); g.fillStyle = '#b4cca4';   // (the neighbouring land, right out to the edges of the screen)
+  for (const pts of FL_AROUND_LL) { g.beginPath(); pts.forEach(([lo, la], i) => { const [x, y] = FGEO(lo, la); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.closePath(); g.fill(); }
+  g.restore();
+  g.save(); g.setTransform(1, 0, 0, 1, 0, offY); g.drawImage(drawFloridaBase.pic, Math.round((ox - 20) * scale), 0); g.restore();
+}
+// the flight between the two maps: on each map, a curve from the level off the edge (south-east off New York, in over the Atlantic to Miami)
+const mapOf = n => n.map || 'ne';
+const crossCurve = n => mapOf(n) === 'fl' ? { a: { x: n.x + 34, y: -30 }, c: { x: n.x + 44, y: n.y - 70 }, b: n } : { a: n, c: { x: n.x + 70, y: n.y - 24 }, b: { x: n.x + 84, y: LH + 30 } };
+const crossLabel = n => mapOf(n) === 'fl' ? { x: n.x - 4, y: n.y - 14, txt: 'TO NEW YORK' } : { x: n.x + 34, y: n.y - 6, txt: 'TO FLORIDA' };
+// which map is showing: the one Leo is on (or, partway through the flight, the one he's flying over)
+function mapView() {
+  const a = node(mapLeo.at), b = mapLeo.to && node(mapLeo.to);
+  if (b && mapOf(a) !== mapOf(b)) return (mapLeo.u || 0) < 0.5 ? mapOf(a) : mapOf(b);
+  return mapOf(a);
+}
+const mapWidth = view => view === 'fl' ? MAP_W_FL : MAP_W;
+function drawPlane(x, y, ang, s = 1) {   // a little white plane with a red stripe
+  g.save(); g.translate(x, y); g.rotate(ang); g.scale(s, Math.abs(ang) > Math.PI / 2 ? -s : s);
+  ell(0, 0, 5, 1.4); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(-1, 0); g.lineTo(-3, -4); g.lineTo(1, 0); g.lineTo(-3, 4); g.closePath(); g.fill(); g.beginPath(); g.moveTo(-4, 0); g.lineTo(-5.4, -2); g.lineTo(-3.6, 0); g.fill(); g.fillStyle = '#e8453a'; g.fillRect(-2, -0.4, 4, 0.8);
+  g.restore();
+}
+function drawRocketIcon(x, y, ang, s = 1) {   // a little rocket with a flame
+  g.save(); g.translate(x, y); g.rotate(ang); g.scale(s, s);
+  g.beginPath(); g.moveTo(-5, -1.2); g.lineTo(-7.5 - Math.random() * 2, 0); g.lineTo(-5, 1.2); g.fillStyle = '#ffb23a'; g.fill();
+  rrect(-5, -1.6, 8, 3.2, 1.2); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(3, -1.6); g.lineTo(6, 0); g.lineTo(3, 1.6); g.fillStyle = '#e8453a'; g.fill();
+  g.restore();
 }
 
 // ---------- The map of New England ----------
@@ -3689,21 +4572,35 @@ const NODES = [
   at('bridge', GEO(-74.02, 41.1), 'George Washington Bridge', 'New York & New Jersey'),   // (the New York City levels are spread out a little so they fit)
   at('city', GEO(-73.72, 40.8), 'Empire State Rooftops', 'New York City'),
   at('liberty', GEO(-74.15, 40.5), 'Statue of Liberty', 'New York Harbor'),
+  // World 5, on the map of Florida
+  at('miami', FGEO(-80.13, 25.79), 'Miami Beach', 'Florida', { map: 'fl' }),
+  at('reef', FGEO(-80.3, 25.05), 'Coral Reef', 'off Key Largo', { map: 'fl' }),
+  at('keywest', FGEO(-81.78, 24.56), 'Key West', 'the Florida Keys', { map: 'fl' }),
+  at('glades', FGEO(-81.2, 25.75), 'Everglades', 'Florida', { map: 'fl' }),
+  at('stpete', FGEO(-82.64, 27.77), 'St. Pete Pier', 'St. Petersburg', { map: 'fl' }),
+  at('springs', FGEO(-82.57, 28.52), 'Weeki Wachee Springs', 'Florida', { map: 'fl' }),
+  at('park', FGEO(-81.38, 28.54), 'Thrill Park', 'Orlando', { map: 'fl' }),
+  at('castillo', FGEO(-81.31, 29.9), 'Castillo de San Marcos', 'St. Augustine', { map: 'fl' }),
+  at('daytona', FGEO(-81.02, 29.21), 'Daytona Beach', 'Florida', { map: 'fl' }),
+  at('canaveral', FGEO(-80.6, 28.46), 'Cape Canaveral', 'Florida', { map: 'fl' }),
+  at('space', FGEO(-79.95, 28.95), 'Outer Space', 'way up high', { map: 'fl', bonus: true }),
 ];
 const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'bog'], ['bog', 'sky'], ['sky', 'castle'], ['caves', 'bonus'],
   ['castle', 'snow'], ['snow', 'night'], ['night', 'shore'], ['shore', 'fort'], ['fort', 'canal'],
   ['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'], ['dunes', 'ptown'],
   ['ptown', 'orchard'], ['orchard', 'niagara'], ['niagara', 'bridge'], ['bridge', 'city'], ['city', 'liberty'],
+  ['liberty', 'miami'], ['miami', 'reef'], ['reef', 'keywest'], ['keywest', 'glades'], ['glades', 'stpete'], ['stpete', 'springs'], ['springs', 'park'],
+  ['park', 'castillo'], ['castillo', 'daytona'], ['daytona', 'canaveral'], ['canaveral', 'space'],
   ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'dunes', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
-const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['orchard', 'niagara', 'bridge', 'city', 'liberty']];
-const WORLD_NAMES = ['Green Mountain Trail', 'North Woods & Rocky Coast', 'Cape Cod & the Islands', 'New York & New Jersey'];
+const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['orchard', 'niagara', 'bridge', 'city', 'liberty'], ['miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral']];
+const WORLD_NAMES = ['Green Mountain Trail', 'North Woods & Rocky Coast', 'Cape Cod & the Islands', 'New York & New Jersey', 'The Sunshine State'];
 const worldOf = id => WORLDS.findIndex(w => w.includes(id));
 const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
-const FLIGHT_PATHS = new Set(['ptown|orchard']);   // (Cape Cod to Western New York: Leo flies)
-const SEA_PATHS = new Set(['city|liberty', 'fort|canal', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
+const FLIGHT_PATHS = new Set(['ptown|orchard', 'liberty|miami', 'canaveral|space']);   // (Cape Cod to Western New York, and New York down to Florida: Leo flies; from Cape Canaveral he goes by rocket)
+const SEA_PATHS = new Set(['miami|reef', 'keywest|glades', 'city|liberty', 'fort|canal', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
 // a few trails are bent by hand: the boat lane hugs the coast, and the secret paths swing round the levels in between
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
@@ -3711,6 +4608,7 @@ bend('fort|canal', GEO(-70.3, 43.0)); bend('caves|castle', GEO(-71.9, 43.5));
 bend('cranberry|whale', CAPEXY(46, 14)); bend('whale|dunes', CAPEXY(68, -2));   // the sea route sweeps round the elbow...
 bend('cranberry|dunes', CAPEXY(51, 1));                                          // ...and the secret land road follows the arm inside it
 bend('canal|vineyard', CAPEXY(3, 10)); bend('whale|nantucket', CAPEXY(57, 19));
+bend('reef|keywest', FGEO(-80.95, 24.55)); bend('glades|stpete', FGEO(-81.85, 26.7)); bend('park|castillo', FGEO(-81.75, 29.2));   // along the Keys; up the Gulf coast; inland, west of Daytona
 bend('ptown|orchard', GEO(-75.5, 47.6)); bend('niagara|bridge', GEO(-76.8, 41.4));   // a high flight west; then down through the Southern Tier to the Hudson
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
@@ -3750,7 +4648,7 @@ function mapMove(dir) {
   let best = null, bestScore = 0.3;
   for (const pth of PATHS) {
     if (!pth.includes(here.id) || !pathOpen(pth)) continue;
-    const o = node(pth[0] === here.id ? pth[1] : pth[0]);
+    const o0 = node(pth[0] === here.id ? pth[1] : pth[0]), o = mapOf(o0) === mapOf(here) ? o0 : { id: o0.id, x: here.x + 30, y: here.y + (mapOf(here) === 'ne' ? 100 : -100) };
     const dx = o.x - here.x, dy = o.y - here.y, d = Math.hypot(dx, dy), s = (dx * dir[0] + dy * dir[1]) / d;
     if (s > bestScore) { bestScore = s; best = o; }
   }
@@ -3758,7 +4656,12 @@ function mapMove(dir) {
 }
 function mapTap(cxp, cyp) {
   const dpr = canvas.width / innerWidth, mx = cxp * dpr / scale + mapCam, my = (cyp * dpr - offY) / scale;
-  const n = NODES.find(nn => Math.hypot(nn.x - mx, nn.y - my) < 16 && nodeOpen(nn));
+  const view = mapView();
+  let n = NODES.find(nn => mapOf(nn) === view && Math.hypot(nn.x - mx, nn.y - my) < 16 && nodeOpen(nn));
+  if (!n) {   // the "TO FLORIDA" / "TO NEW YORK" sign: fly to the level on the other map
+    const pth = PATHS.find(pp => mapOf(node(pp[0])) !== mapOf(node(pp[1])) && pathOpen(pp) && [node(pp[0]), node(pp[1])].some(q => mapOf(q) === view && Math.hypot(crossLabel(q).x - mx, crossLabel(q).y - my) < 20));
+    if (pth) n = node(mapOf(node(pth[0])) === view ? pth[1] : pth[0]);
+  }
   if (!n) return;
   if (n.id === mapLeo.at && !mapLeo.to) { enterLevel(); return; }
   // walk there along open paths (breadth-first)
@@ -3779,20 +4682,26 @@ function updateMap(dt) {
   }
   if (mapLeo.to) {
     // Leo walks along the curve of the trail
-    const n = node(mapLeo.to), from = node(mapLeo.at), pth = pathBetween(mapLeo.at, mapLeo.to);
+    const n = node(mapLeo.to), from = node(mapLeo.at), pth = pathBetween(mapLeo.at, mapLeo.to), cross = mapOf(n) !== mapOf(from);
     const c = pth ? pathCtrl(pth) : { x: (from.x + n.x) / 2, y: (from.y + n.y) / 2 }, len = Math.hypot(n.x - from.x, n.y - from.y) * 1.06 || 1;
-    mapLeo.u = (mapLeo.u || 0) + 110 * dt / len;
+    mapLeo.u = (mapLeo.u || 0) + (cross ? dt / 2.6 : 110 * dt / len);   // (the flight between the maps takes a couple of seconds)
     if (mapLeo.u >= 1) {
-      mapLeo.u = 0; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.at = n.id; mapLeo.to = null;
+      mapLeo.u = 0; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.at = n.id; mapLeo.to = null; mapLeo.flying = false;
       if (mapLeo.path.length) mapLeo.to = mapLeo.path.shift();
       else if (mapLeo.autoEnter) { mapLeo.autoEnter = false; }
+    } else if (cross) {   // off the edge of one map on the first half of the flight, and in over the other on the second
+      const half = mapLeo.u < 0.5, k = half ? mapLeo.u * 2 : (mapLeo.u - 0.5) * 2, leg = crossCurve(half ? from : n), fwd = half ? mapOf(from) === 'ne' : mapOf(n) === 'fl';
+      const q = qbez(leg.a, leg.c, leg.b, fwd ? k : 1 - k), q2 = qbez(leg.a, leg.c, leg.b, clamp(fwd ? k + 0.02 : 1 - k - 0.02, 0, 1));
+      mapLeo.x = q.x; mapLeo.y = q.y; mapLeo.flying = Math.atan2(q2.y - q.y, q2.x - q.x) || 0.001; mapLeo.face = q2.x >= q.x ? 1 : -1;
     } else { const q = qbez(from, c, n, mapLeo.u); mapLeo.face = q.x >= mapLeo.x ? 1 : -1; mapLeo.x = q.x; mapLeo.y = q.y; }
   }
-  mapCam += (clamp(mapLeo.x - LW / 2, 0, Math.max(0, MAP_W - LW)) - mapCam) * Math.min(1, dt * 5);
-  if (LW >= MAP_W) mapCam = -(LW - MAP_W) / 2;
+  const view = mapView(), mw = mapWidth(view), want = clamp(mapLeo.x - LW / 2, 0, Math.max(0, mw - LW));
+  mapCam = view !== updateMap.view ? want : mapCam + (want - mapCam) * Math.min(1, dt * 5);   // (a new map: jump straight there)
+  updateMap.view = view;
+  if (LW >= mw) mapCam = -(LW - mw) / 2;
 }
 function drawMap() {
-  const t = clock, ox = -mapCam;
+  const t = clock, ox = -mapCam, view = mapView();
   // the sea, sparkling
   g.fillStyle = vgrad(0, LH, '#3a9ae8', '#1f6ec0'); g.fillRect(0, 0, LW, LH);
   for (let i = 0; i < 40; i++) {
@@ -3800,6 +4709,8 @@ function drawMap() {
     g.globalAlpha = a; g.beginPath(); g.moveTo(wx, wy); g.quadraticCurveTo(wx + 4, wy - 2, wx + 8, wy); g.lineWidth = 1; g.strokeStyle = '#cfeaff'; g.stroke();
   }
   g.globalAlpha = 1;
+  if (view === 'fl') drawFloridaBase(ox);
+  else {
   // the island is painted once (and again only if the screen size changes or the secret rainbow appears)
   const key = scale + '|' + save.key;
   if (drawMap.key !== key) {
@@ -3899,13 +4810,26 @@ function drawMap() {
   for (const pts of AROUND_LL) { g.beginPath(); pts.forEach(([lo, la], i) => { const [x, y] = GEO(lo, la); i ? g.lineTo(x, y) : g.moveTo(x, y); }); g.closePath(); g.fill(); }
   g.restore();
   g.save(); g.setTransform(1, 0, 0, 1, 0, offY); g.drawImage(drawMap.pic, Math.round((ox - 20) * scale), 0); g.restore();
+  }
   g.save(); g.translate(Math.round(ox * scale) / scale, 0);
-  { const n = node('castle'), fx = n.x - 0.5, fy = n.y - 28; g.fillStyle = '#5a3a2a'; g.fillRect(fx, fy, 0.9, 8); g.beginPath(); g.moveTo(fx + 0.9, fy); g.lineTo(fx + 6 + Math.sin(t * 4), fy + 2); g.lineTo(fx + 0.9, fy + 4); paint('#d8304a'); }
+  if (view === 'ne') { const n = node('castle'), fx = n.x - 0.5, fy = n.y - 28; g.fillStyle = '#5a3a2a'; g.fillRect(fx, fy, 0.9, 8); g.beginPath(); g.moveTo(fx + 0.9, fy); g.lineTo(fx + 6 + Math.sin(t * 4), fy + 2); g.lineTo(fx + 0.9, fy + 4); paint('#d8304a'); }
   // the trails: white dotted footpaths with a soft shadow, like a Mario world map. The trail to the next level you
   // haven't beaten marches with gold dots; secret trails are gold with a twinkle; boat lanes across the sea are dashed with a
   // little sailboat; locked trails are faint grey dots until they open.
   for (const pth of PATHS) {
-    if (!pathOpen(pth) && (node(pth[1]).secret || node(pth[1]).island || pth[2])) continue;
+    const pa = node(pth[0]), pb = node(pth[1]);
+    if (mapOf(pa) !== mapOf(pb)) {   // the flight to the other map: a dashed arc off the edge of this one, a plane, and a sign
+      if (!pathOpen(pth)) continue;
+      const here = mapOf(pa) === view ? pa : pb, cc = crossCurve(here), lb = crossLabel(here);
+      g.beginPath(); for (let k = 0; k <= 24; k++) { const q = qbez(cc.a, cc.c, cc.b, k / 24); k ? g.lineTo(q.x, q.y) : g.moveTo(q.x, q.y); }
+      g.setLineDash([2, 3]); g.lineDashOffset = -t * 6; g.lineWidth = 1.1; g.strokeStyle = 'rgba(255,255,255,.85)'; g.stroke(); g.setLineDash([]);
+      if (!mapLeo.flying) { const u = (t * 0.12) % 1, q = qbez(cc.a, cc.c, cc.b, u), q2 = qbez(cc.a, cc.c, cc.b, Math.min(1, u + 0.01)); drawPlane(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x)); }
+      g.font = '5px Bungee, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      const tw = g.measureText(lb.txt).width + 6; rrect(lb.x - tw / 2, lb.y - 4, tw, 8, 3); g.fillStyle = 'rgba(30,60,120,.75)'; g.fill(); g.fillStyle = '#ffffff'; g.fillText(lb.txt, lb.x, lb.y + 0.5);
+      continue;
+    }
+    if (mapOf(pa) !== view) continue;
+    if (!pathOpen(pth) && (node(pth[1]).secret || node(pth[1]).island || node(pth[1]).bonus || pth[2])) continue;
     const a = node(pth[0]), b = node(pth[1]), c = pathCtrl(pth), d = Math.hypot(b.x - a.x, b.y - a.y), open = pathOpen(pth), sea = SEA_PATHS.has(pth[0] + '|' + pth[1]);
     const u0 = 6.5 / d, u1 = 1 - 6.5 / d, curve = () => { g.beginPath(); const q0 = qbez(a, c, b, u0); g.moveTo(q0.x, q0.y); for (let k = 1; k <= 24; k++) { const q = qbez(a, c, b, u0 + (u1 - u0) * k / 24); g.lineTo(q.x, q.y); } };
     const next = open && (!save.cleared[pth[0]] || !save.cleared[pth[1]]);   // a trail that leads somewhere new
@@ -3915,9 +4839,7 @@ function drawMap() {
     if (FLIGHT_PATHS.has(pth[0] + '|' + pth[1])) {   // a flight: a dashed arc through the sky with a little plane
       curve(); g.setLineDash([2, 3]); g.lineDashOffset = -t * 6; g.lineWidth = 1.1; g.strokeStyle = 'rgba(255,255,255,.85)'; g.stroke(); g.setLineDash([]);
       const u = (t * 0.06) % 1, q = qbez(a, c, b, u), q2 = qbez(a, c, b, Math.min(1, u + 0.01));
-      g.save(); g.translate(q.x, q.y); g.rotate(Math.atan2(q2.y - q.y, q2.x - q.x)); g.scale(1, q2.x < q.x ? -1 : 1);
-      ell(0, 0, 5, 1.4); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(-1, 0); g.lineTo(-3, -4); g.lineTo(1, 0); g.lineTo(-3, 4); g.closePath(); g.fill(); g.beginPath(); g.moveTo(-4, 0); g.lineTo(-5.4, -2); g.lineTo(-3.6, 0); g.fill(); g.fillStyle = '#e8453a'; g.fillRect(-2, -0.4, 4, 0.8);
-      g.restore();
+      if (pth[0] === 'canaveral') drawRocketIcon(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x)); else drawPlane(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x));
       continue;
     }
     if (sea) {
@@ -3933,17 +4855,21 @@ function drawMap() {
   }
   // level badges
   for (const n of NODES) {
+    if (mapOf(n) !== view) continue;
     if (n.secret && !save.key) continue;
+    if (n.bonus && !nodeOpen(n)) continue;   // (Outer Space appears once the rocket's ready)
     if (n.island && !nodeOpen(n)) continue;   // a secret island's level appears once its secret exit is found
     const open = nodeOpen(n), done = save.cleared[n.id], here = mapLeo.at === n.id && !mapLeo.to;
     if (open && !done) glow(n.x, n.y, 11 + Math.sin(t * 4) * 2, 'rgba(255,230,120,1)', 0.6);
     ell(n.x, n.y + 1.6, 6.4, 2.4); g.fillStyle = 'rgba(0,0,0,.2)'; g.fill();
     ell(n.x, n.y, 6, 4.4); paint(!open ? vgrad(n.y - 5, n.y + 5, '#aaa', '#777') : done ? vgrad(n.y - 5, n.y + 5, '#ff7a6a', '#d0302a') : vgrad(n.y - 5, n.y + 5, '#fff08a', '#f0b020'), 1.1);
     ell(n.x - 1.6, n.y - 1.6, 2.1, 1); paint('rgba(255,255,255,.6)');
-    if (n.id === 'castle' || n.id === 'fort' || n.id === 'ptown' || n.id === 'liberty') { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
+    if (n.bonus) star(n.x, n.y - 0.4, 3.2, '#ffffff');
+    if (['castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral'].includes(n.id)) { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
     if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(n.x, n.y, 9, 6.6, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
   }
-  // Leo, hopping along the paths
+  // Leo, hopping along the paths (or, between the maps, flying in a plane)
+  if (mapLeo.flying) { drawPlane(mapLeo.x, mapLeo.y, mapLeo.flying, 2.2); g.restore(); return; }
   const walking = !!mapLeo.to, hop = walking ? Math.abs(Math.sin(t * 10)) * 3 : Math.abs(Math.sin(t * 3)) * 1;
   ell(mapLeo.x, mapLeo.y + 1, 5, 1.8); g.fillStyle = 'rgba(0,0,0,.25)'; g.fill();
   // he looks the way he'll start the next level: his power-up (big, rainbow, magic hat) and Shamrock if he has him
@@ -4021,13 +4947,13 @@ function showBest() {
   const bits = [];
   if (save.best) bits.push(`🏆 Best score <b>${save.best}</b>`);
   const g2 = gemCount(); if (g2) bits.push(`🌈 <b>${g2}</b> gems`);
-  if (save.beaten4) bits.push('👑 All four worlds done!'); else if (save.beaten3) bits.push('👑 World 3 done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
+  if (save.beaten5) bits.push('👑 All five worlds done!'); else if (save.beaten4) bits.push('👑 World 4 done!'); else if (save.beaten3) bits.push('👑 World 3 done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
   document.getElementById('titleBest').innerHTML = bits.join(' · ');
 }
 showBest();
 function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; keep = { form: 0, mount: false }; goMap(); }
 document.getElementById('btnPlay').addEventListener('click', startGame);
-document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'liberty') score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); });
+document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'canaveral') score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); if (endFrom === 'canaveral') setTimeout(() => RB.toast('🚀 3… 2… 1… Blast off to Outer Space!', 3000), 600); });
 
 // ---------- Loop ----------
 // The game moves on by exactly the time since the last frame (in small slices), so motion is smooth
