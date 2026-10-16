@@ -222,6 +222,13 @@ const GAMES = [
     thumb: 'thumbs/lily-pad-lunch.jpg',
     blurb: 'Flick your sticky tongue and snap up the bugs from morning to firefly night! Grow into a golden frog, dodge the bees and dive from the heron. One or two players. 🐸🪰',
   },
+  {
+    title: 'Pumpkin Pals',
+    bestKey: 'pp_best',
+    url: 'pumpkin-pals.html',
+    thumb: 'thumbs/pumpkin-pals.jpg',
+    blurb: 'Halloween night! Rescue the little pumplings, throw them at bats, cats and ghosts, and bring everyone home in the pumpkin wagon before the grumpy scarecrow gets you! 🎃👻',
+  },
 ];
 
 const grid = document.getElementById('games');
@@ -248,6 +255,6 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
 render();
 addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
-<script src="common.js?v=20261015-1230"></script>
+<script src="common.js?v=20261016-1843"></script>
 </body>
 </html>

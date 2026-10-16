@@ -78,7 +78,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -1123,13 +1123,194 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Pumpkin Pals: every level can be finished (a search over every place Patch can stand), and every lost pumpling and golden candy can be reached', async () => {
+    const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      for (const id of ORDER) {
+        const L = LEVELS[id], W = L.w, H = L.h;
+        // crates can be smashed (throw a pumpling, or ground pound), so for getting about they're open
+        const raw = (x, y) => (x < 0 || x >= W ? T.STONE : y < 0 || y >= H ? 0 : L.t[y * W + x]);
+        const solid = (x, y) => SOLID.has(raw(x, y)) && raw(x, y) !== T.CRATE;
+        const stand = new Set(), springs = new Set(), k = (x, y) => x + ',' + y;
+        for (let x = 0; x < W; x++) for (let y = 1; y < H - 1; y++) {
+          const below = raw(x, y + 1);
+          if (!solid(x, y) && raw(x, y) !== T.THORNS && (SOLID.has(below) || below === T.ONEWAY)) stand.add(k(x, y));
+        }
+        for (const e of L.ents) {
+          if (e.k === 'plat') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
+          if (e.k === 'spring') springs.add(k(e.x, e.y));
+        }
+        const pts = [...stand].map(q => q.split(',').map(Number));
+        const start = pts.filter(([x]) => x <= 4).sort((a, b) => b[1] - a[1])[0];
+        const seen = new Set([k(...start)]), q = [start];
+        const clearUp = (x, y, up) => { for (let i = 1; i <= up; i++) if (solid(x, y - i)) return false; return true; };
+        let far = 0;
+        while (q.length) {
+          const [x, y] = q.shift();
+          far = Math.max(far, x);
+          const spring = [-1, 0, 1].some(d => springs.has(k(x + d, y)));
+          for (const [x2, y2] of pts) {
+            if (seen.has(k(x2, y2))) continue;
+            const dx = Math.abs(x2 - x), up = y - y2;
+            // a walking jump covers about 4 tiles up or 5 across; a running one 7 across; a spring 9 up
+            const ok = up < 0 ? dx <= 7 + Math.min(4, -up) : spring && up <= 9 ? dx <= 5 : up <= 1 ? dx <= 7 : up <= 4 ? dx <= 5 : false;
+            if (ok && (up <= 0 || clearUp(x, y, Math.min(up, 3)) || clearUp(x2, y2 + up, up))) { seen.add(k(x2, y2)); q.push([x2, y2]); }
+          }
+        }
+        const reach = (ex, ey, upTo) => [...seen].some(s => { const [a, b] = s.split(',').map(Number); return Math.abs(a - ex) <= 2 && ey <= b && b - ey <= upTo; });
+        const lost = L.ents.filter(e => e.k === 'lost'), golds = L.ents.filter(e => e.k === 'gold');
+        out[id] = { far, goal: L.goal || L.arena + 36, lost: lost.length, lostMissing: lost.filter(e => !reach(e.x, e.y, 0)).map(e => e.x + ',' + e.y),
+          golds: golds.length, goldMissing: golds.filter(e => !reach(e.x, e.y, 4)).map(e => e.x + ',' + e.y) };
+      }
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) {
+      check(v.far >= v.goal, `${id}: Patch can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
+      check(v.golds === 3 && !v.goldMissing.length, `${id}: 3 golden candies, all reachable: ` + JSON.stringify(v));
+      check(v.lost >= 2 && !v.lostMissing.length, `${id}: every lost pumpling should be reachable: ` + JSON.stringify(v));
+    }
+    await done(p);
+  });
+
+  await test('Pumpkin Pals: a robot that only runs and jumps gets through all five levels to the wagon', async () => {
+    const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      paused = true;
+      for (const id of ORDER.filter(id => !LEVELS[id].boss)) {
+        lives = 99; startLevel(id);
+        let falls = 0, t = 0;
+        for (t = 0; t < 60 * 90 && state === 'level'; t++) {
+          if (phase === 'dying') { falls++; while (phase === 'dying' && state === 'level') step(1 / 60); continue; }
+          if (phase !== 'play') { step(1 / 60); continue; }
+          player.inv = 9;   // this is about the jumps, so the robot ignores enemies
+          const pl = player, fy = Math.floor((pl.y + pl.h - 1) / TS);
+          const tx = Math.floor((pl.x + pl.w + 4) / TS), wall = SOLID.has(tileAt(tx, fy)) || SOLID.has(tileAt(tx, fy - 1));
+          const floor = cx => { for (let y = fy + 1; y < 14; y++) { const t2 = tileAt(cx, y); if (SOLID.has(t2) || t2 === T.ONEWAY) return true; } return ents.some(e => e.k === 'plat' && Math.abs(e.x + e.w / 2 - cx * TS) < 40); };
+          const gap = pl.ground && ![1, 2].some(d => { const t2 = tileAt(Math.floor((pl.x + pl.w + d * 8) / TS), fy + 1); return SOLID.has(t2) || t2 === T.ONEWAY; })
+            && !ents.some(e => e.k === 'plat' && Math.abs(e.y - (pl.y + pl.h)) < 4 && e.x < pl.x + pl.w + 20 && e.x + e.w > pl.x);
+          keys.right = true; keys.run = true;
+          if ((wall || gap) && pl.ground && !keys.jump) { keys.jump = true; pressed.jump = true; } else if (keys.jump && pl.vy > 0) keys.jump = false;
+          if (!pl.ground && pl.vy > 40 && !pl.spun && !floor(Math.floor((pl.x + 6) / TS)) && !floor(Math.floor((pl.x + 22) / TS))) pressed.jump = true;   // spin over a pit
+          step(1 / 60);
+        }
+        keys.right = keys.run = keys.jump = false;
+        out[id] = { state, falls, cleared: !!save.cleared[id], secs: Math.round(t / 60) };
+      }
+      paused = false;
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) check(v.cleared && v.state === 'map' && v.falls <= 1, `${id}: the robot should reach the wagon: ` + JSON.stringify(v));
+    await done(p);
+  });
+
+  await test('Pumpkin Pals: rescuing, throwing (enemies, crates, blocks above), scattering and grabbing back, ghosts, skeletons, springs, the wagon and the scarecrow', async () => {
+    const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      const put = (tx, row) => { player.x = tx * 16 + 2; player.y = (row + 1) * 16 - player.h; player.vx = 0; player.vy = 0; };
+      localStorage.removeItem('pp_save'); for (const k in save.cleared) delete save.cleared[k]; save.beaten = false;
+      paused = true; startGame();
+      startLevel('patch'); run(5);
+      const lost = ents.find(e => e.k === 'lost'), n0 = pals.length;
+      player.x = lost.x; player.y = lost.y - 4; run(3);
+      out.rescue = { found: found.size, joined: pals.length - n0 };
+      const cat = ents.find(e => e.k === 'cat'); put(Math.floor(cat.x / 16) - 4, 11); player.face = 1; run(30);
+      cat.x = player.x + 40; cat.dir = -1; player.inv = 9; pressed.throw = true; run(40);
+      out.throwCat = { gone: cat.dead || !ents.includes(cat), back: pals.every(q => q.st === 'follow') };
+      put(9, 11); player.face = 1; run(30); keys.up = true; pressed.throw = true; run(30); keys.up = false;
+      out.throwUp = tileAt(9, 8) === T.USED;
+      startLevel('patch'); run(60);
+      const before = pals.length; player.inv = 0; hurtPlayer();
+      const sc = pals.filter(q => q.st === 'scatter');
+      out.hurt = { before, scattered: sc.length, lives };
+      run(50); for (const q of sc) { player.x = q.x; player.y = q.y; run(2); }
+      out.regrab = pals.filter(q => q.st === 'follow').length;
+      pals = []; player.inv = 0; const lv = lives; hurtPlayer(); run(60 * 3);
+      out.die = { lost: lv - lives, state, pals: pals.length };
+      startLevel('manor'); run(5);
+      const gh = ents.find(e => e.k === 'ghost'); put(Math.floor(gh.x / 16) - 6, 11); player.face = 1; run(10);
+      const gx = gh.x; run(30); out.ghostLook = { hide: gh.hide, moved: Math.abs(gh.x - gx) };
+      player.face = -1; const gx2 = gh.x; run(30); out.ghostAway = { hide: gh.hide, closer: gh.x < gx2 };
+      player.face = 1; gh.x = player.x + 40; gh.y = player.y - 2; player.inv = 9; pressed.throw = true; run(40);
+      out.ghostBoo = gh.dead || !ents.includes(gh);
+      put(35, 11); player.face = 1; player.inv = 9; run(20); pressed.throw = true; run(40);
+      out.crates = [8, 9, 10, 11].filter(y => tileAt(38, y) === T.CRATE).length;
+      const sk = ents.find(e => e.k === 'skel'); player.x = sk.x; player.y = sk.y - 40; player.vy = 100; player.inv = 0; run(20);
+      out.bones = sk.st; player.x = sk.x - 120; player.vy = 0; run(60 * 4.5); out.rattledBack = sk.st;
+      player.x = sk.x - 2; player.y = sk.y - 50; player.vy = 0; player.ground = false; pressed.down = true; run(60);
+      out.pound = sk.dead || !ents.includes(sk);
+      startLevel('patch'); const sp = ents.find(e => e.k === 'spring'); player.x = sp.x + 2; player.y = sp.y - 40; player.vy = 150; run(18);
+      out.spring = player.vy < -300 || player.y < sp.y - 60;
+      startLevel('patch'); put(162, 11); keys.right = true; run(40); keys.right = false; run(60 * 5);
+      out.goal = { state, cleared: !!save.cleared.patch, woodsOpen: nodeOpen(1), manorOpen: nodeOpen(2), score };
+      startLevel('barn'); put(70, 11); run(60);
+      const bo = ents.find(e => e.k === 'boss'); out.arena = arenaLock;
+      for (let h = 0; h < 3; h++) {
+        bo.st = 'dizzy'; bo.stT = 0; bo.inv = 0; bo.x = 80 * 16; bo.y = 12 * 16 - bo.h; player.inv = 9;
+        player.x = bo.x + 8; player.y = bo.y - 30; player.vy = 150; run(10);
+      }
+      out.bossHp = bo.hp; run(60 * 8);
+      out.ending = { state, beaten: save.beaten, best: +localStorage.getItem('pp_best'), shown: !document.getElementById('ending').classList.contains('hidden') };
+      paused = false;
+      return out;
+    });
+    check(r.rescue.found === 1 && r.rescue.joined === 1, 'touching a lost pumpling rescues it: ' + JSON.stringify(r.rescue));
+    check(r.throwCat.gone && r.throwCat.back, 'a thrown pumpling knocks out a cat and comes back: ' + JSON.stringify(r.throwCat));
+    check(r.throwUp, 'throwing straight up bumps the block above');
+    check(r.hurt.scattered === 3 && r.hurt.lives === 5 && r.regrab === r.hurt.before, 'a hit scatters 3 pumplings (no life lost) and they can be grabbed back: ' + JSON.stringify(r));
+    check(r.die.lost === 1 && r.die.state === 'level' && r.die.pals === 3, 'a hit with nobody left costs a life and restarts with the crew: ' + JSON.stringify(r.die));
+    check(r.ghostLook.hide && r.ghostLook.moved === 0 && !r.ghostAway.hide && r.ghostAway.closer && r.ghostBoo, 'ghosts hide when looked at, creep up otherwise, and a thrown pumpling scares them off: ' + JSON.stringify(r));
+    check(r.crates === 3, 'a thrown pumpling smashes a crate: ' + r.crates);
+    check(r.bones === 'bones' && r.rattledBack === 'walk' && r.pound, 'skeletons fall to bones, rattle back, and a ground pound finishes them: ' + JSON.stringify(r));
+    check(r.spring, 'the pumpkin spring bounces Patch up');
+    check(r.goal.state === 'map' && r.goal.cleared && r.goal.woodsOpen && !r.goal.manorOpen && r.goal.score > 0, 'the wagon clears the level and opens the next: ' + JSON.stringify(r.goal));
+    check(r.arena && r.bossHp === 0 && r.ending.state === 'ending' && r.ending.beaten && r.ending.shown && r.ending.best > 0, 'three hits beat the scarecrow, then the ending: ' + JSON.stringify(r));
+    await done(p, 'pumpkin-pals.png');
+  });
+
+  await test('Pumpkin Pals 🎮 controller and 📱 phone: Ⓐ starts and jumps, the stick walks, Ⓑ throws a pumpling; touch buttons do the same', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('pumpkin-pals.html')); await p.waitForTimeout(600);
+    await padTap(p, 'A'); await p.waitForTimeout(300);
+    const s1 = await p.evaluate(() => state);
+    await padTap(p, 'A'); await p.waitForTimeout(400);
+    const s2 = await p.evaluate(() => ({ state, id: lvl && lvl.id, x: player && player.x }));
+    await padStick(p, 0.9, 0); await p.waitForTimeout(700); await padStick(p, 0, 0);
+    const x2 = await p.evaluate(() => player.x);
+    await padTap(p, 'B'); await p.waitForTimeout(60);
+    const thrown = await p.evaluate(() => pals.some(q => q.st === 'thrown' || q.st === 'back'));
+    await padTap(p, 'A'); await p.waitForTimeout(100);
+    const jumped = await p.evaluate(() => !player.ground || player.vy < 0);
+    check(s1 === 'map' && s2.state === 'level' && s2.id === 'patch', 'Ⓐ starts the game, then the first level: ' + JSON.stringify({ s1, s2 }));
+    check(x2 > s2.x + 30 && thrown && jumped, 'the stick walks, Ⓑ throws, Ⓐ jumps: ' + JSON.stringify({ x0: s2.x, x2, thrown, jumped }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    const ph = await open(browser, 'pumpkin-pals.html', PHONE);
+    await ph.tap('#btnPlay'); await ph.waitForTimeout(300);
+    await ph.evaluate(() => enterLevel(0)); await ph.waitForTimeout(300);
+    const vis = await ph.evaluate(() => !document.getElementById('touch').classList.contains('hidden'));
+    const x0 = await ph.evaluate(() => player.x);
+    const box = await (await ph.$('#tRight')).boundingBox();
+    await ph.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await ph.dispatchEvent('#tRight', 'pointerdown', { pointerId: 7 }); await ph.waitForTimeout(600); await ph.dispatchEvent('#tRight', 'pointerup', { pointerId: 7 });
+    await ph.dispatchEvent('#tThrow', 'pointerdown', { pointerId: 8 }); await ph.waitForTimeout(50); await ph.dispatchEvent('#tThrow', 'pointerup', { pointerId: 8 });
+    const t = await ph.evaluate(() => ({ x: player.x, thrown: pals.some(q => q.st === 'thrown' || q.st === 'back') }));
+    check(vis && t.x > x0 + 20 && t.thrown, 'on a phone the touch buttons show, ▶ walks and 🎃 throws: ' + JSON.stringify({ vis, x0, ...t }));
+    await done(ph, 'pumpkin-pals-phone.png');
+  });
+
   await test('🎮 every game: the controller ☰ opens the same menu (this game, then the arcade) and the stick reaches 🏠 All games', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const bad = [];
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(500);
       await padTap(p, 'A'); await p.waitForTimeout(300);   // start playing (or press whatever the title screen highlights)
       if (!p.url().includes(f.split('/').pop())) { await p.goto(url(f)); await p.waitForTimeout(500); }
@@ -1201,7 +1382,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
     }
@@ -1211,7 +1392,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 14 && m.cur.includes('Witch Way Out'), 'the menu should list 11 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 15 && m.cur.includes('Witch Way Out'), 'the menu should list 12 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('p'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
@@ -2098,7 +2279,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');
