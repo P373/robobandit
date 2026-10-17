@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Lily Pad Lunch | RoboBandit</title>
+<meta name="description" content="Snap bugs with your sticky tongue and hop across the pond in Lily Pad Lunch, a free RoboBandit game for one or two players.">
+<link rel="canonical" href="https://robobandit.com/lily-pad-lunch.html">
+<meta name="theme-color" content="#3aa86a">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/lily-pad-lunch.html">
+<meta property="og:title" content="Lily Pad Lunch | RoboBandit">
+<meta property="og:description" content="Snap bugs with your sticky tongue and hop across the pond!">
+<meta property="og:image" content="https://robobandit.com/previews/lily-pad-lunch.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Lily Pad Lunch | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/lily-pad-lunch.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;700&family=Bungee&display=swap" rel="stylesheet">
+<style>
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: #2f8a5a; color: #fff;
+    font-family: 'Fredoka', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; cursor: crosshair; }
+  .hidden { display: none !important; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px;
+    padding-top: max(64px, calc(env(safe-area-inset-top) + 58px)); box-sizing: border-box;
+    background: radial-gradient(ellipse at center, rgba(10,60,40,.25), rgba(4,30,24,.7)); touch-action: pan-y; }
+  .panel { margin: auto; width: 100%; max-width: 640px; box-sizing: border-box; text-align: center; color: #133a2a;
+    background: #f7fff0; border: 4px solid #1d5a3a; border-radius: 24px; box-shadow: 0 8px 0 #1d5a3a; padding: 18px 20px 20px; }
+  .panel h1 { margin: 0; font: 46px/1.05 'Bungee', system-ui, sans-serif; color: #2fa860; text-shadow: 0 4px 0 #ffd84a; }
+  .panel h2 { margin: 0 0 6px; font: 32px/1.1 'Bungee', system-ui, sans-serif; color: #2fa860; }
+  .panel p { margin: 8px 0; font-size: 18px; line-height: 1.4; }
+  .how { text-align: left; margin: 10px auto; max-width: 540px; padding: 0; list-style: none; font-size: 16px; line-height: 1.4; }
+  .how li { margin: 6px 0; display: flex; gap: 10px; align-items: flex-start; }
+  .how .e { font-size: 22px; line-height: 1; }
+  kbd { display: inline-block; padding: 0 6px; font: bold 13px system-ui, sans-serif; color: #f7fff0; background: #1d5a3a; border-radius: 4px; }
+  .btn { display: inline-block; margin: 8px 4px 0; padding: 11px 20px; border: 3px solid #1d5a3a; border-radius: 16px; cursor: pointer;
+    font: 700 19px 'Fredoka', system-ui, sans-serif; color: #133a2a; background: #ffd84a; box-shadow: 0 5px 0 #1d5a3a; }
+  .btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #1d5a3a; }
+  .btn.alt { background: #fff; font-size: 16px; }
+  .btn.on { background: #b8f0b0; }
+  .levels { display: grid; gap: 8px; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); margin: 12px 0 4px; }
+  .lvl { padding: 8px 4px; border: 3px solid #1d5a3a; border-radius: 14px; cursor: pointer; background: #fff; font: inherit; color: inherit; box-shadow: 0 4px 0 #1d5a3a; }
+  .lvl .ic { display: block; font-size: 28px; }
+  .lvl b { display: block; font-size: 14px; line-height: 1.15; }
+  .lvl .st { display: block; color: #e0a000; font-size: 15px; letter-spacing: 1px; }
+  .lvl.locked { opacity: .45; cursor: default; box-shadow: none; }
+  .lvl.next { background: #fff3b0; }
+  .modes { margin: 6px 0; font-size: 15px; }
+  .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); margin: 12px 0; text-align: left; }
+  .card { padding: 8px 10px; border: 3px solid #c9971e; border-radius: 14px; background: linear-gradient(#fffaf0, #fff1cf); font-size: 14px; line-height: 1.3; }
+  .card .face { font-size: 34px; text-align: center; }
+  .card b { display: block; font-size: 16px; text-align: center; }
+  .card.locked { border-color: #b8c8b8; background: #eef2ee; color: #8a9a8a; }
+  .stars { font-size: 40px; color: #e0a000; letter-spacing: 4px; }
+  .newcard { margin: 8px auto; padding: 8px 12px; border-radius: 14px; background: #fff3b0; font-size: 16px; max-width: 460px; }
+  #diveBtn { position: fixed; z-index: 3; right: max(16px, env(safe-area-inset-right)); bottom: max(18px, env(safe-area-inset-bottom));
+    width: 84px; height: 84px; border-radius: 50%; border: 4px solid #fff; color: #fff; font: 700 15px 'Fredoka', system-ui, sans-serif;
+    background: radial-gradient(circle at 40% 35%, #5ac8ff, #1a6a9c); box-shadow: 0 5px 0 #0e3a5a; touch-action: none; }
+  #diveBtn .ico { display: block; font-size: 26px; }
+</style>
+<link rel="stylesheet" href="common.css?v=20261016-1843">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar"></div>
+<button type="button" id="diveBtn" class="hidden"><span class="ico">🫧</span>DIVE</button>
+
+<div id="title" class="screen">
+  <div class="panel">
+    <h1>Lily Pad Lunch</h1>
+    <p>🐸 Flick your sticky tongue, snap up the bugs and fill your jar before the sun goes down!</p>
+    <ul class="how">
+      <li><span class="e">👅</span><span><b>Snap:</b> <span class="key-only">aim with the mouse and click, or <kbd>←</kbd> <kbd>→</kbd> to aim and <kbd>Space</kbd> to snap.</span><span class="touch-only">tap a bug (or anywhere in the sky).</span> 🎮 aim with the stick, <b>Ⓐ</b> snaps.</span></li>
+      <li><span class="e">🍃</span><span><b>Hop</b> to another lily pad: <span class="key-only"><kbd>↑</kbd> hops the way you're aiming, or click a pad.</span><span class="touch-only">tap a lily pad.</span> 🎮 <b>Ⓑ</b> (or LB / RB).</span></li>
+      <li><span class="e">🐝</span><span><b>Don't snap the bees!</b> A sting makes your tongue too puffy to snap for a moment.</span></li>
+      <li><span class="e">🫧</span><span>Later on a hungry <b>heron</b> comes wading in. When it aims at you, <b>dive</b>! <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">the DIVE button</span> 🎮 <b>Ⓨ</b> or LT.</span></li>
+      <li><span class="e">🐸</span><span>Every bug helps you <b>grow</b>: a bigger frog has a longer tongue, and the golden frog's tongue grabs every bug in its path!</span></li>
+      <li><span class="e">👥</span><span><b>Two players</b> share the pond: a 🎮 controller each, or share the keyboard (<span class="key-only">Player 1 <kbd>A</kbd> <kbd>D</kbd> aim, <kbd>Space</kbd> snap, <kbd>W</kbd> hop, <kbd>S</kbd> dive · Player 2 <kbd>←</kbd> <kbd>→</kbd> aim, <kbd>Enter</kbd> snap, <kbd>↑</kbd> hop, <kbd>↓</kbd> dive</span>). Fill one jar together, or race for the most bugs!</span></li>
+    </ul>
+    <div class="levels" id="levels"></div>
+    <div class="modes">
+      <button type="button" class="btn alt" id="btnPlayers">🐸 1 Player</button>
+      <button type="button" class="btn alt" id="btnTeam">🤝 Team</button>
+      <button type="button" class="btn alt" id="btnEasy">👶 Little kids: off</button>
+    </div>
+    <button type="button" class="btn" id="btnPlay">▶ Play</button>
+    <button type="button" class="btn alt" id="btnCards">🐞 Bug Cards</button>
+    <p id="titleBest" style="font-size:16px"></p>
+  </div>
+</div>
+
+<div id="end" class="screen hidden">
+  <div class="panel">
+    <h2 id="endTitle">Lunch Time!</h2>
+    <div class="stars" id="endStars"></div>
+    <p id="endText"></p>
+    <div id="endCards"></div>
+    <button type="button" class="btn" id="btnNext">▶ Next</button>
+    <button type="button" class="btn alt" id="btnRetry">🔄 Play again</button>
+    <button type="button" class="btn alt" id="btnLevels">🗺️ Levels</button>
+  </div>
+</div>
+
+<div id="cardsScreen" class="screen hidden">
+  <div class="panel">
+    <h2>🐞 Bug Cards</h2>
+    <p style="font-size:16px">Snap a new kind of bug to collect its card.</p>
+    <div class="cards" id="cardList"></div>
+    <button type="button" class="btn" id="btnCardsBack">✓ Done</button>
+  </div>
+</div>
+
+<script src="common.js?v=20261016-1843"></script>
+<script>
+'use strict';
+
+// ---------- Tuning (logical pixels, seconds) ----------
+const H = 540, MIN_W = 460;
+const WATER_Y = 392;          // the pond's surface
+const TONGUE_OUT = 1500, TONGUE_BACK = 1900;
+const TONGUES = [205, 245, 280, 315];   // tongue reach as the frog grows: froglet, frog, big frog, golden frog
+const GROW_AT = [12, 35, 70];           // bugs eaten (points) to grow
+const HOP_TIME = 0.45, DIVE_TIME = 1.6, STING_TIME = 2.4, STUN_TIME = 1.4;
+const TAU = Math.PI * 2;
+const rand = (a, b) => a + Math.random() * (b - a);
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+// The tongue points up, or a little below level (to reach a beetle on a pad). Angles to the left run past -π
+// (so turning never jumps): the aim lives in [-π - 0.35, 0.35].
+const AIM_LOW = 0.35;
+function normAim(a) { if (a > Math.PI / 2) a -= TAU; return clamp(a, -Math.PI - AIM_LOW, AIM_LOW); }
+
+// ---------- Canvas ----------
+const canvas = document.getElementById('game');
+const ctx = canvas.getContext('2d');
+let W = 800, VH = H, scale = 1;
+function resize() {
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+  canvas.width = Math.round(innerWidth * dpr);
+  canvas.height = Math.round(innerHeight * dpr);
+  scale = Math.min(canvas.height / H, canvas.width / MIN_W);
+  W = canvas.width / scale;
+  VH = canvas.height / scale;
+  layoutPads();
+}
+addEventListener('resize', resize);
+addEventListener('orientationchange', () => setTimeout(resize, 200));
+const toLogical = e => ({ x: e.clientX * (canvas.width / innerWidth) / scale, y: e.clientY * (canvas.height / innerHeight) / scale - (VH - H) * 0.5 });
+
+// ---------- The bugs ----------
+// Each kind moves its own way. Facts are for the Bug Cards.
+const BUGS = {
+  fly: { icon: '🪰', name: 'House Fly', pts: 1, r: 12, fact: 'A fly tastes with its feet! Its eyes have about 4,000 little lenses, which is why it is so hard to swat.' },
+  mosquito: { icon: '🦟', name: 'Mosquito', pts: 1, r: 9, fact: 'Only mother mosquitoes bite. They lay their eggs on water, so ponds are full of baby mosquitoes: frog food!' },
+  dragonfly: { icon: '🐉', name: 'Dragonfly', pts: 3, r: 18, fact: 'Dragonflies catch about 95 out of every 100 bugs they chase, and they were flying before the dinosaurs.' },
+  moth: { icon: '🦋', name: 'Moth', pts: 2, r: 16, fact: 'Moths fly at night and find their way by the moon. Their fuzzy wings are covered in tiny scales.' },
+  beetle: { icon: '🪲', name: 'Water Beetle', pts: 2, r: 14, fact: 'Some water beetles carry a bubble of air under their wings, like a scuba tank, so they can swim under water.' },
+  firefly: { icon: '✨', name: 'Firefly', pts: 3, r: 12, fact: 'Fireflies make light without any heat. Each kind blinks its own special pattern to say hello.' },
+  golden: { icon: '🌟', name: 'Golden Jewel Beetle', pts: 10, r: 15, fact: 'Jewel beetles really do shine like metal, with colours made by tiny layers in their shells. Lucky catch!' },
+  bee: { icon: '🐝', name: 'Bumblebee', pts: 0, r: 15, fact: "Don't eat bees! Bumblebees help flowers make seeds, and they beat their wings 200 times a second." },
+};
+const CARD_ORDER = ['fly', 'mosquito', 'dragonfly', 'moth', 'beetle', 'firefly', 'golden', 'bee'];
+
+// ---------- Levels: one day at the pond ----------
+const LEVELS = [
+  { id: 'morning', name: 'Morning Mist', icon: '🌅', goal: 10, time: 75, mix: { fly: 1 }, max: 7,
+    sky: ['#ffd9b0', '#ffeec8', '#d8f0ff'], water: ['#5ab0c8', '#2a7a9a'], mist: true },
+  { id: 'noon', name: 'Sunny Noon', icon: '☀️', goal: 18, time: 75, mix: { fly: 5, dragonfly: 2, bee: 2 }, max: 8,
+    sky: ['#5ab8ff', '#9ad8ff', '#d8f4ff'], water: ['#3aa0c8', '#1a6a9a'] },
+  { id: 'rain', name: 'Rain Shower', icon: '🌧️', goal: 20, time: 80, mix: { mosquito: 4, fly: 3, dragonfly: 1, bee: 1 }, max: 9, heron: 14,
+    sky: ['#7a8aa0', '#9aaabb', '#b8c4d0'], water: ['#4a7a8a', '#2a5a6a'], rain: true },
+  { id: 'sunset', name: 'Sunset Glow', icon: '🌇', goal: 22, time: 85, mix: { moth: 3, dragonfly: 2, fly: 3, beetle: 2, bee: 2 }, max: 9, heron: 11, beetles: 2,
+    sky: ['#4a2a6a', '#e8607a', '#ffb860'], water: ['#7a5a8a', '#3a2a5a'] },
+  { id: 'night', name: 'Firefly Night', icon: '🌙', goal: 25, time: 90, mix: { firefly: 5, moth: 3, mosquito: 2, golden: 0.4 }, max: 10, heron: 10, beetles: 1,
+    sky: ['#060a24', '#16204a', '#2a3a6a'], water: ['#1a2a4a', '#0a1428'], night: true },
+];
+
+// ---------- Saved progress ----------
+const save = (() => { try { return JSON.parse(RB.store.get('lp_save') || 'null') || {}; } catch (e) { return {}; } })();
+save.stars = save.stars || {}; save.best = save.best || {}; save.cards = save.cards || {};
+const persist = () => {
+  RB.store.set('lp_save', JSON.stringify(save));
+  RB.store.set('lp_best', String(LEVELS.reduce((a, L) => a + (save.best[L.id] || 0), 0)));   // the arcade card shows this
+};
+const unlocked = i => i === 0 || (save.stars[LEVELS[i - 1].id] || 0) > 0 || save.all;
+
+// ---------- Sound ----------
+const beep = RB.beep;
+const sfx = {
+  snap: () => beep(900, 300, 0.08, 'square', 0.06),
+  gulp: () => { beep(220, 120, 0.12, 'sine', 0.2); beep(160, 90, 0.1, 'sine', 0.15, 0.08); },
+  miss: () => beep(500, 380, 0.06, 'triangle', 0.05),
+  hop: () => beep(300, 620, 0.16, 'triangle', 0.1),
+  splash: () => RB.noise(0.35, 0.18),
+  croak: () => { beep(140, 110, 0.12, 'sawtooth', 0.07); beep(150, 100, 0.12, 'sawtooth', 0.06, 0.16); },
+  sting: () => { beep(1400, 300, 0.25, 'sawtooth', 0.08); RB.noise(0.12, 0.1); },
+  grow: () => [392, 523, 659, 784].forEach((f, i) => beep(f, f, 0.14, 'triangle', 0.1, i * 0.08)),
+  card: () => [784, 988, 1175].forEach((f, i) => beep(f, f, 0.12, 'sine', 0.08, i * 0.07)),
+  win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => beep(f, f, 0.22, 'triangle', 0.11, i * 0.11)),
+  lose: () => [392, 330, 262].forEach((f, i) => beep(f, f * 0.95, 0.28, 'triangle', 0.09, i * 0.18)),
+  heron: () => { beep(320, 260, 0.3, 'sawtooth', 0.06); beep(300, 240, 0.3, 'sawtooth', 0.05, 0.25); },
+  jab: () => { beep(700, 200, 0.15, 'square', 0.08); RB.noise(0.2, 0.15); },
+  dive: () => { RB.noise(0.25, 0.12); beep(500, 200, 0.2, 'sine', 0.06); },
+  buzz: () => beep(180, 200, 0.2, 'sawtooth', 0.025),
+  tick: () => beep(1000, 1000, 0.04, 'square', 0.04),
+};
+// a gentle marimba loop in a major pentatonic key (the night gets slower and softer)
+const music = (() => {
+  let timer = null, step = 0;
+  const SCALE = [262, 294, 330, 392, 440, 523, 587, 659];
+  const TUNE = [0, 2, 4, 2, 5, 4, 2, 1, 0, 2, 4, 5, 7, 5, 4, 2];
+  function tick() {
+    if (paused || state !== 'play') return;
+    const night = level && level.night;
+    if (night && step % 2) { step++; return; }
+    const n = SCALE[TUNE[step % TUNE.length]];
+    beep(n, n, 0.18, 'sine', night ? 0.035 : 0.05);
+    if (step % 4 === 0) { const b = SCALE[[0, 3, 4, 3][Math.floor(step / 4) % 4]] / 2; beep(b, b, 0.4, 'triangle', night ? 0.03 : 0.045); }
+    step++;
+  }
+  return { start() { if (!timer) timer = setInterval(tick, 260); } };
+})();
+
+// ---------- State ----------
+let state = 'title', paused = false, level = null, levelIdx = 0;
+let twoP = false, team = true, easy = !!save.easy;
+let clock = 0, timeLeft = 0, jar = 0, bannerT = 0, bannerText = '', bannerSub = '', newCards = [];
+let pads = [], bugs = [], parts = [], ripples = [], rain = [], heron = null, spawnT = 0, heronT = 0;
+let last = performance.now();
+
+// the lily pads float in a row across the pond
+function layoutPads() {
+  const n = clamp(Math.round(W / 150), 4, 8), gap = W / n;
+  const old = pads;
+  pads = [];
+  for (let i = 0; i < n; i++) pads.push({ i, x: gap * (i + 0.5) + (i % 2 ? 6 : -6), y: WATER_Y + (i % 2 ? 8 : 0), w: Math.min(110, gap * 0.78), bob: 0, ph: i * 1.7, flower: i % 3 === 1 });
+  for (const f of frogs || []) if (old.length) { f.pad = Math.min(f.pad, n - 1); }
+}
+
+// ---------- The frogs ----------
+const FROG_LOOKS = [{ body: '#4ec85a', belly: '#d8f7a8', spot: '#2f9a3a', name: 'Player 1' }, { body: '#5ab8ff', belly: '#d8f0ff', spot: '#2a7ac8', name: 'Player 2' }];
+let frogs = [];
+function makeFrog(idx, pad) {
+  return { idx, look: FROG_LOOKS[idx], pad, x: 0, y: 0, aim: -Math.PI / 2 + (idx ? -0.4 : 0.4), face: idx ? -1 : 1,
+    hop: null, dive: 0, diveCool: 0, sting: 0, stun: 0, tongue: null, eaten: 0, size: 0, jar: 0, gulpT: 0, blink: 0, keys: {}, pad0: null, prevBtn: null };
+}
+const reach = f => TONGUES[f.size];
+const mouth = f => ({ x: f.x + Math.cos(f.aim) * 13 * (1 + f.size * 0.12), y: f.y - 16 - f.size * 4 });
+
+function snap(f, target) {
+  if (state !== 'play' || paused || f.tongue || f.sting > 0 || f.stun > 0 || f.dive > 0) return;
+  if (target) f.aim = aimAt(f, target.x, target.y);
+  else if (easy) { const b = autoTarget(f, f.aim, 1.2); if (b) f.aim = aimAt(f, b.x, b.y, b); }
+  f.tongue = { len: 0, out: true, caught: [], max: reach(f) };
+  f.face = Math.cos(f.aim) >= 0 ? 1 : -1;
+  sfx.snap();
+}
+// the angle from the frog's mouth to a point (aiming a little ahead of a moving bug), kept pointing up
+function aimAt(f, x, y, bug) {
+  const m = { x: f.x, y: f.y - 14 };
+  if (bug) { const d = Math.hypot(x - m.x, y - m.y), t = d / TONGUE_OUT; x += (bug.vx || 0) * t; y += (bug.vy || 0) * t; }
+  return normAim(Math.atan2(y - m.y, x - m.x));
+}
+// the bug nearest the aim (for a tap, little kids mode and the tongue's gentle help), never a bee in little kids mode
+function autoTarget(f, aim, cone) {
+  let best = null, bestS = Infinity;
+  for (const b of bugs) {
+    if (b.gone || b.stuck || (b.kind === 'bee' && easy)) continue;
+    const dx = b.x - f.x, dy = b.y - (f.y - 14), d = Math.hypot(dx, dy);
+    if (d > reach(f) + 20) continue;
+    const da = Math.abs(Math.atan2(Math.sin(Math.atan2(dy, dx) - aim), Math.cos(Math.atan2(dy, dx) - aim)));
+    if (da > cone) continue;
+    const s = da * 160 + d * 0.3;
+    if (s < bestS) { bestS = s; best = b; }
+  }
+  return best;
+}
+function hop(f, toPad) {
+  if (state !== 'play' || paused || f.hop || f.stun > 0 || f.dive > 0) return;
+  if (toPad == null) toPad = f.pad + (Math.cos(f.aim) >= 0 ? 1 : -1);
+  toPad = clamp(toPad, 0, pads.length - 1);
+  if (toPad === f.pad) return;
+  const a = pads[f.pad], b = pads[toPad];
+  f.hop = { from: { x: a.x, y: a.y }, to: toPad, t: 0, dur: HOP_TIME + Math.abs(toPad - f.pad) * 0.08 };
+  f.face = toPad > f.pad ? 1 : -1;
+  sfx.hop();
+}
+function dive(f) {
+  if (state !== 'play' || paused || f.dive > 0 || f.diveCool > 0 || f.hop || f.stun > 0) return;
+  f.dive = DIVE_TIME; f.diveCool = DIVE_TIME + 0.8; f.tongue = null;
+  sfx.dive();
+  splash(f.x, WATER_Y, 10);
+}
+
+// ---------- Level flow ----------
+function startLevel(i) {
+  levelIdx = i; level = LEVELS[i];
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('end').classList.add('hidden');
+  document.getElementById('cardsScreen').classList.add('hidden');
+  RB.audio(); music.start();
+  layoutPads();
+  const keep = frogs.map(f => ({ size: f.size, eaten: f.eaten }));
+  frogs = [makeFrog(0, twoP ? 1 : Math.floor((pads.length - 1) / 2))];
+  if (twoP) frogs.push(makeFrog(1, pads.length - 2));
+  // growing up carries on from level to level (a new game from the title starts small)
+  frogs.forEach((f, k) => { if (keep[k] && i > 0 && startLevel.carry) { f.size = keep[k].size; f.eaten = keep[k].eaten; } });
+  for (const f of frogs) { f.x = pads[f.pad].x; f.y = pads[f.pad].y; }
+  bugs = []; parts = []; ripples = []; rain = []; heron = null;
+  jar = 0; timeLeft = level.time; spawnT = 0.3; heronT = level.heron || 0; newCards = [];
+  for (let k = 0; k < (level.beetles || 0); k++) addBeetle();
+  for (let k = 0; k < 3; k++) spawnBug(true);
+  state = 'play'; paused = false;
+  banner(`${level.icon} ${level.name}`, `Fill the jar: ${level.goal} bugs${twoP && !team ? ' each… most wins!' : ''}`, 2.6);
+  sfx.croak();
+  diveBtn.classList.toggle('hidden', !(RB.touch && level.heron && !easy));
+}
+startLevel.carry = false;
+function banner(t, sub, time = 2.2) { bannerText = t; bannerSub = sub; bannerT = time; }
+
+function endLevel(won) {
+  state = 'end';
+  for (const f of frogs) f.tongue = null;
+  diveBtn.classList.add('hidden');
+  const total = twoP && !team ? Math.max(...frogs.map(f => f.jar)) : jar;
+  const stars = !won ? 0 : timeLeft > level.time * 0.4 ? 3 : timeLeft > level.time * 0.15 ? 2 : 1;
+  const id = level.id;
+  if (won) {
+    save.stars[id] = Math.max(save.stars[id] || 0, stars);
+    save.best[id] = Math.max(save.best[id] || 0, total);
+    persist();
+    sfx.win();
+  } else sfx.lose();
+  const isLast = levelIdx === LEVELS.length - 1;
+  $('endTitle').textContent = !won ? 'The sun went down!' : isLast ? 'Pond Champion!' : 'Lunch Time!';
+  $('endStars').textContent = won ? '★'.repeat(stars) + '☆'.repeat(3 - stars) : '🌙';
+  let text = won ? `You filled the jar with <b>${total}</b> bugs${stars === 3 ? ', super fast' : ''}!` : `Only <b>${total}</b> of ${level.goal} bugs. Try again: aim just ahead of the bugs!`;
+  if (twoP && !team) {
+    const [a, b] = frogs;
+    text = `Player 1 snapped <b>${a.jar}</b>, Player 2 snapped <b>${b.jar}</b>. ` + (a.jar === b.jar ? "It's a tie! 🤝" : `<b>${a.jar > b.jar ? 'Player 1' : 'Player 2'}</b> wins! 🏆`);
+    if (!won) text += ` (Fill a jar to ${level.goal} to open the next level.)`;
+  } else if (twoP) text = (won ? 'Teamwork! ' : '') + text;
+  if (won && isLast) text += '<br>🌟 You ate your way through a whole day at the pond!';
+  $('endText').innerHTML = text;
+  $('endCards').innerHTML = newCards.map(k => `<div class="newcard">🃏 New Bug Card: <b>${BUGS[k].icon} ${BUGS[k].name}</b><br>${BUGS[k].fact}</div>`).join('');
+  $('btnNext').classList.toggle('hidden', !won || isLast);
+  $('end').classList.remove('hidden');
+}
+function showTitle() {
+  state = 'title'; paused = false; RB.hidePause();
+  diveBtn.classList.add('hidden');
+  $('end').classList.add('hidden'); $('cardsScreen').classList.add('hidden');
+  $('title').classList.remove('hidden');
+  renderTitle();
+}
+
+// ---------- Bugs: spawning and moving ----------
+function pickKind() {
+  const mix = level.mix, total = Object.values(mix).reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (const k in mix) if ((r -= mix[k]) < 0) return k;
+  return 'fly';
+}
+const skyTop = () => WATER_Y - 300, skyLow = () => WATER_Y - 40;
+function spawnBug(inside) {
+  let kind = pickKind();
+  if (kind === 'beetle') { addBeetle(); return; }
+  if (kind === 'bee' && easy && Math.random() < 0.5) kind = 'fly';
+  const side = Math.random() < 0.5 ? -1 : 1;
+  // most bugs fly low over the pond, within a froglet's reach (a few dragonflies and moths go higher)
+  const y = level.rain ? rand(WATER_Y - 170, WATER_Y - 50) : rand(WATER_Y - (kind === 'dragonfly' || kind === 'moth' ? 260 : 200), WATER_Y - 50);
+  const x = inside ? rand(60, W - 60) : side < 0 ? -20 : W + 20;
+  if (kind === 'mosquito') {   // a little swarm
+    const n = 4, cx = x, cy = y;
+    for (let k = 0; k < n; k++) bugs.push(newBug('mosquito', cx + rand(-16, 16), cy + rand(-12, 12), side, { swarm: cx + cy }));
+    return;
+  }
+  bugs.push(newBug(kind, x, y, side));
+}
+function newBug(kind, x, y, side, extra = {}) {
+  const sp = { fly: 70, mosquito: 50, dragonfly: 150, moth: 45, firefly: 35, golden: 90, bee: 60 }[kind] || 60;
+  return { kind, x, y, vx: -side * sp * rand(0.7, 1.1), vy: 0, sp, t: rand(0, 10), r: BUGS[kind].r, life: rand(14, 22), hover: 0, glow: rand(0, 3), home: y, ...extra };
+}
+function addBeetle() {
+  const p = pads[Math.floor(Math.random() * pads.length)];
+  bugs.push({ kind: 'beetle', pad: p.i, ox: rand(-p.w * 0.3, p.w * 0.3), dir: Math.random() < 0.5 ? -1 : 1, x: p.x, y: p.y - 6, vx: 0, vy: 0, t: 0, r: BUGS.beetle.r, life: 40, swim: false });
+}
+function moveBug(b, dt) {
+  b.t += dt;
+  if (b.stuck) return;
+  if (b.kind === 'beetle') {
+    if (b.swim) {   // knocked into the water: it paddles back to a pad
+      b.x += b.dir * 22 * dt; b.y = WATER_Y + 2 + Math.sin(b.t * 6) * 1.5;
+      const p = pads.find(q => Math.abs(q.x - b.x) < q.w * 0.3);
+      if (p && b.t > 1.5) { b.swim = false; b.pad = p.i; b.ox = b.x - p.x; }
+      if (b.x < -20 || b.x > W + 20) b.gone = true;
+      return;
+    }
+    const p = pads[b.pad] || pads[0];
+    b.ox += b.dir * 14 * dt;
+    if (Math.abs(b.ox) > p.w * 0.36) b.dir = -b.dir;
+    b.x = p.x + b.ox; b.y = p.y - 6 + p.bob;
+    return;
+  }
+  const k = b.kind;
+  if (k === 'fly') { b.vy = Math.sin(b.t * 5.3) * 60 + Math.sin(b.t * 2.1) * 30 + (b.home - b.y) * 0.8; if (Math.random() < dt * 0.7) b.vx = -b.vx * rand(0.6, 1); }
+  else if (k === 'mosquito') { b.vy = Math.sin(b.t * 7 + b.swarm) * 50; b.vx += Math.sin(b.t * 3 + b.swarm) * 30 * dt; }
+  else if (k === 'dragonfly') {   // darts, then stops and hovers
+    b.hover -= dt;
+    if (b.hover <= 0 && b.hover > -0.5) { b.vx *= 0.9; b.vy *= 0.9; }
+    if (b.hover <= -0.5) {
+      b.hover = rand(0.8, 1.6);
+      const a = rand(-0.6, 0.6) + (Math.random() < 0.5 ? 0 : Math.PI);
+      b.vx = Math.cos(a) * 200; b.vy = Math.sin(a) * 90;
+    }
+    if (b.hover > 0 && b.hover < 0.8) { b.vx *= Math.pow(0.02, dt); b.vy *= Math.pow(0.02, dt); }
+  } else if (k === 'moth') { b.vy = Math.sin(b.t * 2.4) * 55 + (b.home - b.y) * 0.6; b.vx += Math.cos(b.t * 1.3) * 20 * dt; }
+  else if (k === 'firefly') { b.vy = Math.sin(b.t * 1.6) * 25 + (b.home - b.y) * 0.4; b.glow += dt; }
+  else if (k === 'golden') { b.vy = Math.sin(b.t * 4) * 90; }
+  else if (k === 'bee') { b.vy = Math.sin(b.t * 3.2) * 40 + (b.home - b.y) * 0.5; if (Math.random() < dt * 0.3) sfx.buzz(); }
+  b.x += b.vx * dt; b.y += b.vy * dt;
+  // stay over the pond, under the treetops
+  if (b.y < skyTop()) { b.y = skyTop(); b.vy = Math.abs(b.vy); }
+  if (b.y > skyLow()) { b.y = skyLow(); b.vy = -Math.abs(b.vy); }
+  b.life -= dt;
+  if (b.life > 0) { if (b.x < 20 && b.vx < 0) b.vx = Math.abs(b.vx); if (b.x > W - 20 && b.vx > 0) b.vx = -Math.abs(b.vx); }
+  else if (b.x < -40 || b.x > W + 40) b.gone = true;   // time to fly off
+}
+const glowing = b => b.kind !== 'firefly' || Math.sin(b.glow * 2.2) > -0.2;
+
+// ---------- Update ----------
+function update(dt) {
+  clock += dt;
+  for (const p of pads) p.bob = Math.sin(clock * 1.6 + p.ph) * 1.5;
+  for (const p of parts) { p.x += p.vx * dt; p.y += p.vy * dt; p.vy += (p.g || 500) * dt; p.life -= dt; }
+  parts = parts.filter(p => p.life > 0);
+  for (const r of ripples) r.t += dt;
+  ripples = ripples.filter(r => r.t < 1.2);
+  bannerT = Math.max(0, bannerT - dt);
+  if (state === 'title') { idleScene(dt); return; }
+  if (state !== 'play') return;
+
+  timeLeft -= dt;
+  if (timeLeft <= 10 && Math.floor(timeLeft + dt) !== Math.floor(timeLeft) && timeLeft > 0) sfx.tick();
+  if (level.rain) {
+    for (let k = 0; k < 6; k++) rain.push({ x: rand(0, W), y: rand(-40, 0), v: rand(500, 700) });
+    for (const r of rain) r.y += r.v * dt;
+    rain = rain.filter(r => { if (r.y >= WATER_Y + 4) { if (Math.random() < 0.15) ripples.push({ x: r.x, y: WATER_Y + rand(4, 30), t: 0, s: 0.4 }); return false; } return true; });
+  }
+  // keep the pond buzzing
+  spawnT -= dt;
+  const flying = bugs.filter(b => b.kind !== 'beetle' && !b.gone).length;
+  if (spawnT <= 0 && flying < level.max) { spawnBug(false); spawnT = rand(0.6, 1.4); }
+  for (const b of bugs) moveBug(b, dt);
+  bugs = bugs.filter(b => !b.gone);
+  for (const f of frogs) updateFrog(f, dt);
+  updateHeron(dt);
+
+  const full = twoP && !team ? frogs.some(f => f.jar >= level.goal) : jar >= level.goal;
+  if (full) endLevel(true);
+  else if (timeLeft <= 0) { timeLeft = 0; endLevel(false); }
+}
+// the title screen: a frog snaps at bugs on its own behind the menu
+function idleScene(dt) {
+  if (!level) level = LEVELS[1];
+  if (!frogs.length) { frogs = [makeFrog(0, Math.floor(pads.length / 2))]; frogs[0].x = pads[frogs[0].pad].x; frogs[0].y = pads[frogs[0].pad].y; }
+  if (bugs.length < 5) bugs.push(newBug(Math.random() < 0.7 ? 'fly' : 'dragonfly', Math.random() < 0.5 ? -20 : W + 20, rand(140, 320), Math.random() < 0.5 ? -1 : 1));
+  for (const b of bugs) moveBug(b, dt);
+  bugs = bugs.filter(b => !b.gone);
+  const f = frogs[0];
+  f.x = pads[f.pad].x; f.y = pads[f.pad].y + pads[f.pad].bob;
+  const t = autoTarget(f, -Math.PI / 2, 1.5);
+  if (t) f.aim += (aimAt(f, t.x, t.y, t) - f.aim) * Math.min(1, dt * 4);
+  if (f.tongue) tongueStep(f, dt, true);
+  else if (t && Math.random() < dt * 0.8) f.tongue = { len: 0, out: true, caught: [], max: reach(f) };
+}
+
+function updateFrog(f, dt) {
+  f.sting = Math.max(0, f.sting - dt); f.stun = Math.max(0, f.stun - dt); f.diveCool = Math.max(0, f.diveCool - dt);
+  f.gulpT = Math.max(0, f.gulpT - dt); f.blink = f.blink > 0 ? f.blink - dt : Math.random() < dt * 0.3 ? 0.15 : 0;
+  // aiming: keys turn the aim, the controller stick points it
+  const k = f.keys, g = f.pad0;
+  const turn = (k.r ? 1 : 0) - (k.l ? 1 : 0) + (g && (g.pressed(15)) ? 1 : 0) - (g && g.pressed(14) ? 1 : 0);
+  if (turn) f.aim = normAim(f.aim + turn * 2.4 * dt);
+  if (g && Math.hypot(g.lx, g.ly) > 0.45) {
+    const a = Math.atan2(g.ly, g.lx);
+    if (!(a > 0.5 && a < Math.PI - 0.5)) f.aim += (normAim(a) - f.aim) * Math.min(1, dt * 14);   // (pointing down: keep the aim)
+  }
+  if (!f.tongue) f.face = Math.cos(f.aim) >= 0 ? 1 : -1;
+  // hopping from pad to pad (a beetle on the pad you land on falls in!)
+  if (f.hop) {
+    const h = f.hop, to = pads[h.to];
+    h.t += dt;
+    const u = Math.min(1, h.t / h.dur);
+    f.x = h.from.x + (to.x - h.from.x) * u;
+    f.y = h.from.y + (to.y - h.from.y) * u - Math.sin(u * Math.PI) * (70 + Math.abs(to.x - h.from.x) * 0.15);
+    if (u >= 1) {
+      f.pad = h.to; f.hop = null;
+      splash(f.x, WATER_Y + 4, 4);
+      ripples.push({ x: f.x, y: WATER_Y + 6, t: 0, s: 1 });
+      for (const b of bugs) if (b.kind === 'beetle' && !b.swim && !b.stuck && b.pad === f.pad) { b.swim = true; b.t = 0; b.dir = Math.random() < 0.5 ? -1 : 1; b.x = to.x + b.ox; splash(b.x, WATER_Y, 4); }
+    }
+  } else {
+    const p = pads[f.pad];
+    f.x = p.x; f.y = p.y + p.bob;
+  }
+  if (f.dive > 0) { f.dive -= dt; if (Math.random() < dt * 8) parts.push({ x: f.x + rand(-10, 10), y: WATER_Y + 10, vx: 0, vy: -40, g: -20, life: 0.6, c: 'rgba(255,255,255,.7)', r: rand(2, 4) }); if (f.dive <= 0) { f.dive = 0; splash(f.x, WATER_Y, 8); } }
+  if (f.tongue) tongueStep(f, dt, false);
+}
+// the tongue flies out along the aim, grabs the first bug its tip touches (the golden frog: every bug on the way) and comes back
+function tongueStep(f, dt, demo) {
+  const tg = f.tongue, m = mouth(f);
+  if (tg.out) {
+    tg.len += TONGUE_OUT * dt;
+    if (tg.len >= tg.max) { tg.len = tg.max; tg.out = false; if (!tg.caught.length && !demo) sfx.miss(); }
+  } else {
+    tg.len -= TONGUE_BACK * dt;
+    if (tg.len <= 0) {
+      f.tongue = null;
+      if (tg.caught.length) eat(f, tg.caught, demo);
+      return;
+    }
+  }
+  const tip = { x: m.x + Math.cos(f.aim) * tg.len, y: m.y + Math.sin(f.aim) * tg.len };
+  tg.tip = tip;
+  for (const b of tg.caught) { b.x = tip.x; b.y = tip.y; }
+  if (!tg.out && !(f.size === 3)) return;
+  for (const b of bugs) {
+    if (b.gone || b.stuck) continue;
+    if (b.kind === 'bee' && easy) continue;   // little kids mode: the tongue slips past the bees
+    const d = Math.hypot(b.x - tip.x, b.y - tip.y);
+    // a little forgiving: the tip is sticky, and the tongue's middle helps too
+    const mx = m.x + Math.cos(f.aim) * tg.len * 0.6, my = m.y + Math.sin(f.aim) * tg.len * 0.6;
+    if (d < b.r + 14 || (tg.out && Math.hypot(b.x - mx, b.y - my) < b.r + 6)) {
+      if (b.kind === 'bee') {   // ouch!
+        if (demo) continue;
+        b.gone = true; f.sting = STING_TIME; tg.out = false; tg.caught = [];
+        sfx.sting(); RB.pad.rumble && RB.pad.rumble(200, 0.6, twoP ? f.idx : null);
+        for (let k = 0; k < 6; k++) parts.push({ x: tip.x, y: tip.y, vx: rand(-120, 120), vy: rand(-160, 40), life: 0.5, c: '#ffd84a', r: 3 });
+        say(f, 'OUCH! 🐝');
+        learn('bee');
+        return;
+      }
+      b.stuck = true; tg.caught.push(b);
+      if (f.size < 3) { tg.out = false; break; }
+    }
+  }
+}
+function eat(f, caught, demo) {
+  for (const b of caught) {
+    b.gone = true;
+    if (demo) continue;
+    const pts = BUGS[b.kind].pts;
+    f.eaten += pts; f.jar += pts; jar += pts;
+    learn(b.kind);
+    for (let k = 0; k < 3; k++) parts.push({ x: f.x, y: f.y - 20, vx: rand(-40, 40), vy: rand(-120, -60), life: 0.6, c: '#ffffff', r: 2 });
+    parts.push({ x: f.x, y: f.y - 40, vx: 0, vy: -50, g: 0, life: 0.9, text: `+${pts}`, c: b.kind === 'golden' ? '#ffd84a' : '#ffffff' });
+  }
+  if (demo) return;
+  f.gulpT = 0.35; sfx.gulp();
+  RB.pad.rumble && RB.pad.rumble(50, 0.25, twoP ? f.idx : null);
+  // growing up
+  const want = GROW_AT.filter(n => f.eaten >= n).length;
+  if (want > f.size) {
+    f.size = want; sfx.grow();
+    say(f, ['', 'Bigger! Longer tongue!', 'BIG FROG!', '🌟 GOLDEN FROG! 🌟'][f.size]);
+    for (let k = 0; k < 16; k++) parts.push({ x: f.x, y: f.y - 20, vx: rand(-160, 160), vy: rand(-220, -40), life: 0.9, c: f.size === 3 ? '#ffd84a' : '#b8ff9a', r: 3 });
+  }
+}
+function say(f, text) { parts.push({ x: f.x, y: f.y - 70, vx: 0, vy: -24, g: 0, life: 1.4, text, c: '#ffffff', big: true }); }
+function learn(kind) {
+  if (save.cards[kind]) return;
+  save.cards[kind] = 1; persist(); newCards.push(kind); sfx.card();
+  banner(`🃏 ${BUGS[kind].icon} New Bug Card!`, BUGS[kind].name, 1.8);
+}
+function splash(x, y, n) {
+  sfx.splash();
+  for (let k = 0; k < n; k++) parts.push({ x, y, vx: rand(-90, 90), vy: rand(-220, -80), life: 0.7, c: 'rgba(220,240,255,.9)', r: rand(2, 3.5) });
+  ripples.push({ x, y: y + 4, t: 0, s: 1 });
+}
+
+// ---------- The heron ----------
+// Wades in from the side, picks a frog, aims (a warning ring on that pad), then jabs. Dive under the water to be safe!
+function updateHeron(dt) {
+  if (!level.heron || easy) return;
+  if (!heron) {
+    heronT -= dt;
+    if (heronT <= 0 && timeLeft > 8) {
+      const side = Math.random() < 0.5 ? -1 : 1;
+      heron = { side, x: side < 0 ? -80 : W + 80, st: 'in', t: 0, target: null, head: 0 };
+      sfx.heron();
+    }
+    return;
+  }
+  const hr = heron;
+  hr.t += dt;
+  const standX = hr.side < 0 ? 70 : W - 70;
+  if (hr.st === 'in') {
+    hr.x += (standX - hr.x) * Math.min(1, dt * 2.2);
+    if (Math.abs(hr.x - standX) < 4) { hr.st = 'aim'; hr.t = 0; const f = frogs[Math.floor(Math.random() * frogs.length)]; hr.target = f; hr.pad = f.pad; banner('⚠️ HERON!', 'Dive! 🫧', 1.6); sfx.heron(); }
+  } else if (hr.st === 'aim') {
+    if (hr.target && !hr.target.hop) hr.pad = hr.target.pad;   // it follows you from pad to pad while it aims
+    if (hr.t > 1.7) { hr.st = 'jab'; hr.t = 0; sfx.jab(); }
+  } else if (hr.st === 'jab') {
+    if (hr.t > 0.12 && !hr.hit) {
+      hr.hit = true;
+      const p = pads[hr.pad];
+      for (const f of frogs) {
+        if (f.dive > 0 || f.hop) continue;
+        if (f.pad === hr.pad) {   // got you! a fright, and some bugs spill out of the jar
+          f.stun = STUN_TIME;
+          const lost = Math.min(3, twoP && !team ? f.jar : jar);
+          if (twoP && !team) f.jar -= lost; else jar -= lost;
+          f.tongue = null;
+          say(f, lost ? `Yikes! -${lost} 🪰` : 'Yikes!');
+          RB.pad.rumble && RB.pad.rumble(300, 0.8, twoP ? f.idx : null);
+        }
+      }
+      splash(p.x, WATER_Y, 12);
+    }
+    if (hr.t > 0.6) { hr.st = 'out'; hr.t = 0; }
+  } else if (hr.st === 'out') {
+    hr.x += hr.side * -1 * -260 * dt;
+    if (hr.x < -120 || hr.x > W + 120) { heron = null; heronT = level.heron * rand(0.8, 1.3); }
+  }
+}
+
+// ---------- Input ----------
+// One player: arrows / A D aim, Space snap, ↑ / W hop, ↓ / S dive, the mouse (or a finger) aims and snaps.
+// Two players: Player 1 A D aim, Space snap, W hop, S dive; Player 2 ← → aim, Enter snap, ↑ hop, ↓ dive.
+const KEYS1 = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' }, KEYS_P1 = { KeyA: 'l', KeyD: 'r' }, KEYS_P2 = { ArrowLeft: 'l', ArrowRight: 'r' };
+addEventListener('keydown', e => {
+  const P1 = frogs[0], P2 = frogs[1];
+  if (state === 'play' && !paused) {
+    const map = twoP ? (KEYS_P1[e.code] ? [P1, KEYS_P1[e.code]] : KEYS_P2[e.code] ? [P2, KEYS_P2[e.code]] : null) : KEYS1[e.code] ? [P1, KEYS1[e.code]] : null;
+    if (map && map[0]) { map[0].keys[map[1]] = true; e.preventDefault(); }
+  }
+  if (e.repeat) return;
+  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
+  if (state === 'play') {
+    if (e.code === 'Space') { e.preventDefault(); snap(P1); }
+    if (twoP) {
+      if (e.code === 'KeyW') hop(P1); if (e.code === 'KeyS') dive(P1);
+      if (e.code === 'Enter') { e.preventDefault(); snap(P2); }
+      if (e.code === 'ArrowUp') { e.preventDefault(); hop(P2); } if (e.code === 'ArrowDown') { e.preventDefault(); dive(P2); }
+    } else {
+      if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); hop(P1); }
+      if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); dive(P1); }
+      if (e.code === 'Enter') snap(P1);
+    }
+    if (e.code === 'KeyP' || e.code === 'Escape') pause();
+  } else if (state === 'title' && (e.code === 'Enter' || e.code === 'Space') && document.activeElement === document.body) { e.preventDefault(); play(); }
+  if (e.code === 'KeyM') RB.toggleMute();
+});
+addEventListener('keyup', e => {
+  for (const f of frogs) { const k = twoP ? (f.idx ? KEYS_P2 : KEYS_P1)[e.code] : !f.idx && KEYS1[e.code]; if (k) f.keys[k] = false; }
+});
+addEventListener('blur', () => { for (const f of frogs) f.keys = {}; });
+// the mouse aims Player 1's tongue; a click or tap snaps (at the bug nearest the spot), or hops onto the pad you tapped
+canvas.addEventListener('pointermove', e => {
+  if (state !== 'play' || paused || e.pointerType !== 'mouse' || !frogs[0]) return;
+  const q = toLogical(e); frogs[0].aim = aimAt(frogs[0], q.x, q.y);
+});
+canvas.addEventListener('pointerdown', e => {
+  e.preventDefault(); RB.audio();
+  if (state !== 'play' || paused || !frogs[0]) return;
+  const f = frogs[0], q = toLogical(e);
+  const pad = pads.findIndex(p => Math.abs(q.x - p.x) < p.w * 0.6 && q.y > WATER_Y - 30 && q.y < WATER_Y + 40);
+  if (pad >= 0 && q.y > WATER_Y - 30) { if (pad === f.pad) snap(f); else hop(f, pad); return; }
+  // a finger is wide: aim at the bug nearest the spot that was tapped
+  let best = null, bd = e.pointerType === 'mouse' ? 30 : 60;
+  for (const b of bugs) { if (b.stuck || (b.kind === 'bee' && easy)) continue; const d = Math.hypot(b.x - q.x, b.y - q.y); if (d < bd) { bd = d; best = b; } }
+  if (best) { f.aim = aimAt(f, best.x, best.y, best); snap(f); }
+  else snap(f, q);
+});
+const diveBtn = document.getElementById('diveBtn');
+diveBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (frogs[0]) dive(frogs[0]); });
+
+// 🎮 Each controller is read on its own while you play (the first is Player 1, the second Player 2):
+// stick aims, Ⓐ / Ⓧ / RT snap, Ⓑ hops the way you aim, LB / RB hop left / right, Ⓨ / LT dive
+const PAD_LEGEND = '<b>Lily Pad Lunch:</b> stick 👅 aim · Ⓐ / Ⓧ / RT snap · Ⓑ hop the way you aim · LB / RB hop left / right · Ⓨ / LT 🫧 dive<br>👥 Two players: the first controller is Player 1, the second is Player 2';
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({}, PAD_LEGEND);
+function pollPads() {
+  const on = state === 'play' && !paused;
+  if (RB.pad && 'direct' in RB.pad) RB.pad.direct = on;
+  frogs.forEach((f, i) => {
+    f.pad0 = on && RB.pad && RB.pad.read ? RB.pad.read(i) : null;
+    if (!f.pad0) { f.prevBtn = null; return; }
+    const now = []; for (let b = 0; b < 16; b++) now[b] = f.pad0.pressed(b);
+    if (f.prevBtn) {
+      const edge = b => now[b] && !f.prevBtn[b];
+      if (edge(0) || edge(2) || edge(7)) snap(f);
+      if (edge(1)) hop(f);
+      if (edge(4)) hop(f, f.pad - 1);
+      if (edge(5)) hop(f, f.pad + 1);
+      if (edge(3) || edge(6)) dive(f);
+    }
+    f.prevBtn = now;
+  });
+}
+
+// ---------- Pause and menus ----------
+function pause() {
+  if (paused || state !== 'play') return;
+  paused = true; for (const f of frogs) f.keys = {};
+  RB.showPause(resume, { extra: gameMenu() });
+}
+function resume() { paused = false; RB.hidePause(); last = performance.now(); for (const f of frogs) f.prevBtn = null; }
+function gameMenu() {
+  if (state !== 'play' && state !== 'end') return [{ label: '🐞 Bug Cards', onClick: showCards }];
+  return [
+    { label: '🔄 Start this level again', onClick: () => { RB.hidePause(); startLevel(levelIdx); } },
+    { label: '🗺️ Choose a level', onClick: showTitle },
+  ];
+}
+if (RB.setMenuItems) RB.setMenuItems(gameMenu);
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Lily Pad Lunch | RoboBandit', text: 'Snap the bugs with your sticky tongue! 🐸🪰' },
+});
+RB.onHide(pause);
+
+// ---------- Screens ----------
+const $ = id => document.getElementById(id);
+const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
+let pickIdx = 0;
+function renderTitle() {
+  const next = LEVELS.findIndex((L, i) => unlocked(i) && !save.stars[L.id]);
+  pickIdx = unlocked(pickIdx) ? pickIdx : 0;
+  if (next >= 0 && !$('levels').dataset.picked) pickIdx = next;
+  $('levels').innerHTML = LEVELS.map((L, i) => `<button type="button" class="lvl${unlocked(i) ? '' : ' locked'}${i === pickIdx ? ' next' : ''}" data-i="${i}" ${unlocked(i) ? '' : 'disabled'}>
+    <span class="ic">${unlocked(i) ? L.icon : '🔒'}</span><b>${i + 1}. ${L.name}</b><span class="st">${starStr(save.stars[L.id] || 0)}</span></button>`).join('');
+  $('levels').querySelectorAll('.lvl').forEach(b => b.addEventListener('click', () => { if (b.disabled) return; RB.audio(); pickIdx = +b.dataset.i; $('levels').dataset.picked = 1; play(); }));
+  $('btnPlayers').textContent = twoP ? '👥 2 Players' : '🐸 1 Player';
+  $('btnTeam').classList.toggle('hidden', !twoP);
+  $('btnTeam').textContent = team ? '🤝 Team: one jar' : '🏁 Race: most bugs';
+  $('btnEasy').textContent = easy ? '👶 Little kids: on' : '👶 Little kids: off';
+  $('btnEasy').classList.toggle('on', easy);
+  $('btnPlay').textContent = `▶ Play ${LEVELS[pickIdx].icon} ${LEVELS[pickIdx].name}`;
+  const got = CARD_ORDER.filter(k => save.cards[k]).length, total = LEVELS.reduce((a, L) => a + (save.best[L.id] || 0), 0);
+  $('titleBest').innerHTML = `🃏 ${got} of ${CARD_ORDER.length} Bug Cards${total ? ` · 🏆 Best bugs <b>${total}</b>` : ''}`;
+}
+function play() { startLevel.carry = false; frogs = []; startLevel(pickIdx); }
+function showCards() {
+  state = state === 'play' ? state : 'title';
+  $('cardList').innerHTML = CARD_ORDER.map(k => save.cards[k]
+    ? `<div class="card"><div class="face">${BUGS[k].icon}</div><b>${BUGS[k].name}</b>${BUGS[k].pts ? `<i>${BUGS[k].pts} point${BUGS[k].pts > 1 ? 's' : ''}</i> · ` : ''}${BUGS[k].fact}</div>`
+    : `<div class="card locked"><div class="face">❓</div><b>???</b>Snap one to find out!</div>`).join('');
+  $('cardsScreen').classList.remove('hidden');
+}
+$('btnPlay').addEventListener('click', play);
+$('btnPlayers').addEventListener('click', () => { twoP = !twoP; renderTitle(); });
+$('btnTeam').addEventListener('click', () => { team = !team; renderTitle(); });
+$('btnEasy').addEventListener('click', () => { easy = !easy; save.easy = easy; persist(); renderTitle(); });
+$('btnCards').addEventListener('click', showCards);
+$('btnCardsBack').addEventListener('click', () => $('cardsScreen').classList.add('hidden'));
+$('btnNext').addEventListener('click', () => { startLevel.carry = true; startLevel(levelIdx + 1); });
+$('btnRetry').addEventListener('click', () => { startLevel.carry = true; startLevel(levelIdx); });
+$('btnLevels').addEventListener('click', showTitle);
+
+// ---------- Drawing ----------
+function rr(x, y, w, h, r) { ctx.beginPath(); ctx.roundRect ? ctx.roundRect(x, y, w, h, r) : ctx.rect(x, y, w, h); }
+function drawSky() {
+  const L = level || LEVELS[1], top = -(VH - H) / 2;
+  const g = ctx.createLinearGradient(0, top, 0, WATER_Y);
+  g.addColorStop(0, L.sky[0]); g.addColorStop(0.6, L.sky[1]); g.addColorStop(1, L.sky[2]);
+  ctx.fillStyle = g; ctx.fillRect(0, top, W, WATER_Y - top);
+  // the sun (or moon) moves across the sky as the time runs out
+  const u = state === 'play' || state === 'end' ? 1 - timeLeft / L.time : 0.3;
+  const sx = W * (0.1 + u * 0.8), sy = 150 - Math.sin(u * Math.PI) * 90 + (L.id === 'sunset' ? 60 + u * 80 : 0);
+  if (L.night) {
+    ctx.fillStyle = 'rgba(255,255,255,.8)';
+    for (let i = 0; i < 60; i++) { const x = (i * 137.5) % W, y = top + ((i * 71) % 260); ctx.fillRect(x, y, 1.6, 1.6); }
+    ctx.fillStyle = '#fff6d8'; ctx.beginPath(); ctx.arc(sx, sy, 26, 0, TAU); ctx.fill();
+    ctx.fillStyle = L.sky[1]; ctx.beginPath(); ctx.arc(sx + 10, sy - 6, 22, 0, TAU); ctx.fill();
+  } else if (!L.rain) {
+    ctx.fillStyle = L.id === 'sunset' ? 'rgba(255,200,120,.35)' : 'rgba(255,240,180,.4)';
+    ctx.beginPath(); ctx.arc(sx, sy, 46, 0, TAU); ctx.fill();
+    ctx.fillStyle = L.id === 'sunset' ? '#ff9a4a' : '#ffe27a'; ctx.beginPath(); ctx.arc(sx, sy, 30, 0, TAU); ctx.fill();
+  }
+  if (L.rain) {   // grey clouds
+    ctx.fillStyle = 'rgba(90,100,120,.55)';
+    for (let i = 0; i < 6; i++) { const x = ((i * 220 + clock * 12) % (W + 300)) - 150; ctx.beginPath(); ctx.ellipse(x, top + 60 + (i % 2) * 30, 140, 40, 0, 0, TAU); ctx.fill(); }
+  }
+  // far shore: trees and bushes
+  ctx.fillStyle = L.night ? '#0a1a20' : L.id === 'sunset' ? '#3a2a4a' : L.rain ? '#4a6a5a' : '#3a8a5a';
+  ctx.beginPath(); ctx.moveTo(0, WATER_Y);
+  for (let x = 0; x <= W + 40; x += 40) ctx.lineTo(x, WATER_Y - 46 - Math.sin(x * 0.05) * 14 - Math.sin(x * 0.013 + 1) * 18);
+  ctx.lineTo(W, WATER_Y); ctx.fill();
+  ctx.fillStyle = L.night ? '#06121a' : L.id === 'sunset' ? '#2a1a3a' : L.rain ? '#3a5a4a' : '#2a7048';
+  ctx.beginPath(); ctx.moveTo(0, WATER_Y);
+  for (let x = 0; x <= W + 30; x += 30) ctx.lineTo(x, WATER_Y - 18 - Math.abs(Math.sin(x * 0.09)) * 12);
+  ctx.lineTo(W, WATER_Y); ctx.fill();
+}
+function drawWater() {
+  const L = level || LEVELS[1], bottom = H + (VH - H) / 2;
+  const g = ctx.createLinearGradient(0, WATER_Y, 0, bottom);
+  g.addColorStop(0, L.water[0]); g.addColorStop(1, L.water[1]);
+  ctx.fillStyle = g; ctx.fillRect(0, WATER_Y, W, bottom - WATER_Y);
+  // gentle wave lines
+  ctx.strokeStyle = L.night ? 'rgba(160,200,255,.18)' : 'rgba(255,255,255,.25)'; ctx.lineWidth = 2;
+  for (let row = 0; row < 6; row++) {
+    const y = WATER_Y + 18 + row * 24;
+    ctx.beginPath();
+    for (let x = ((clock * (10 + row * 4)) % 60) - 60; x < W; x += 60) { ctx.moveTo(x, y); ctx.quadraticCurveTo(x + 15, y - 3, x + 30, y); }
+    ctx.stroke();
+  }
+  for (const r of ripples) {
+    ctx.strokeStyle = `rgba(255,255,255,${0.5 * (1 - r.t / 1.2)})`; ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.ellipse(r.x, r.y, 6 + r.t * 40 * r.s, 2 + r.t * 10 * r.s, 0, 0, TAU); ctx.stroke();
+  }
+  // cattails and reeds at both edges
+  for (const [x0, dir] of [[0, 1], [W, -1]]) {
+    for (let k = 0; k < 5; k++) {
+      const x = x0 + dir * (8 + k * 11), top = WATER_Y - 70 - (k % 3) * 18, sway = Math.sin(clock * 1.2 + k) * 3;
+      ctx.strokeStyle = L.night ? '#1a3a2a' : '#4a8a3a'; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(x, WATER_Y + 10); ctx.quadraticCurveTo(x, top + 30, x + sway, top); ctx.stroke();
+      if (k % 2 === 0) { ctx.fillStyle = L.night ? '#2a1a10' : '#7a4a22'; rr(x + sway - 4, top - 4, 8, 26, 4); ctx.fill(); }
+    }
+  }
+}
+function drawPad(p) {
+  const y = p.y + p.bob, w = p.w;
+  ctx.fillStyle = 'rgba(0,30,40,.25)'; ctx.beginPath(); ctx.ellipse(p.x, y + 6, w / 2, 9, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = level && level.night ? '#2a6a3a' : '#4aa84a';
+  ctx.beginPath(); ctx.ellipse(p.x, y, w / 2, 12, 0, 0.22, TAU - 0.22); ctx.lineTo(p.x, y); ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = level && level.night ? '#1a4a2a' : '#2f7a34'; ctx.lineWidth = 2; ctx.stroke();
+  ctx.strokeStyle = 'rgba(255,255,255,.18)'; ctx.lineWidth = 1.5;
+  for (let k = -2; k <= 2; k++) { ctx.beginPath(); ctx.moveTo(p.x, y); ctx.lineTo(p.x - w * 0.42 * Math.cos(k * 0.5 + Math.PI / 2 + 1.2), y - 8 + Math.abs(k) * 2); ctx.stroke(); }
+  if (p.flower) {   // a pink water lily
+    const fx = p.x - w * 0.28, fy = y - 6;
+    for (let k = 0; k < 6; k++) { ctx.fillStyle = k % 2 ? '#ffb8d8' : '#ff8ac0'; ctx.beginPath(); ctx.ellipse(fx + Math.cos(k * 1.05) * 5, fy - 4 + Math.sin(k * 1.05) * 2, 4, 8, k * 1.05, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#ffe27a'; ctx.beginPath(); ctx.arc(fx, fy - 4, 3, 0, TAU); ctx.fill();
+  }
+}
+function drawFrog(f) {
+  const s = 1.3 + f.size * 0.16, x = f.x, y = f.y - (f.dive > 0 ? -18 : 0);
+  if (f.dive > 0) {   // under the water: just a shadow and bubbles
+    ctx.fillStyle = 'rgba(10,40,30,.35)'; ctx.beginPath(); ctx.ellipse(x, WATER_Y + 22, 22 * s, 9 * s, 0, 0, TAU); ctx.fill();
+    return;
+  }
+  const L = f.look, gold = f.size === 3, body = gold ? '#ffcf3a' : L.body, spot = gold ? '#e0a000' : L.spot;
+  ctx.save(); ctx.translate(x, y); ctx.scale(s * f.face, s);
+  if (f.stun > 0) ctx.rotate(Math.sin(clock * 30) * 0.08);
+  // back legs
+  ctx.fillStyle = spot; ctx.beginPath(); ctx.ellipse(-14, -6, 11, 7, -0.3, 0, TAU); ctx.fill(); ctx.beginPath(); ctx.ellipse(12, -5, 9, 6, 0.3, 0, TAU); ctx.fill();
+  // body
+  const squash = f.gulpT > 0 ? 1.12 : 1;
+  ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(0, -16, 20 * squash, 15 / squash, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = gold ? '#fff2b0' : L.belly; ctx.beginPath(); ctx.ellipse(5, -11, 12, 8, 0, 0, TAU); ctx.fill();
+  ctx.fillStyle = spot; for (const [sx, sy, sr] of [[-9, -22, 3], [-3, -26, 2.2], [-13, -15, 2]]) { ctx.beginPath(); ctx.arc(sx, sy, sr, 0, TAU); ctx.fill(); }
+  // front feet
+  ctx.fillStyle = body; ctx.beginPath(); ctx.ellipse(10, -2, 6, 3, 0, 0, TAU); ctx.fill();
+  // eyes on top of the head
+  for (const ex of [-2, 11]) {
+    ctx.fillStyle = body; ctx.beginPath(); ctx.arc(ex, -30, 7, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.beginPath(); ctx.arc(ex, -31, 5, 0, TAU); ctx.fill();
+    if (f.blink > 0 || f.stun > 0) { ctx.strokeStyle = '#123'; ctx.lineWidth = 1.5; ctx.beginPath(); ctx.moveTo(ex - 4, -31); ctx.lineTo(ex + 4, -31); ctx.stroke(); }
+    else { ctx.fillStyle = '#123'; ctx.beginPath(); ctx.arc(ex + Math.cos(f.aim) * 1.8 * f.face, -31 + Math.sin(f.aim) * 1.8, 2.4, 0, TAU); ctx.fill(); }
+  }
+  // the mouth: a big smile (puffy and red after a sting)
+  ctx.strokeStyle = f.sting > 0 ? '#e0405a' : '#1d4a2a'; ctx.lineWidth = f.sting > 0 ? 3 : 1.6;
+  ctx.beginPath(); ctx.moveTo(-2, -16); ctx.quadraticCurveTo(10, -10, 19, -18); ctx.stroke();
+  if (f.sting > 0) { ctx.fillStyle = '#ff7a8a'; ctx.beginPath(); ctx.ellipse(20, -16, 4 + Math.sin(clock * 12), 3, 0, 0, TAU); ctx.fill(); }
+  ctx.restore();
+  // a player tag over the frog in a two-player game
+  if (twoP && state === 'play') { ctx.fillStyle = L.body; ctx.font = '700 13px Fredoka, system-ui'; ctx.textAlign = 'center'; ctx.fillText(`P${f.idx + 1}`, x, y - 44 * s); }
+}
+function drawAim(f) {
+  if (f.tongue || f.dive > 0 || f.hop || state !== 'play') return;
+  const m = mouth(f), len = reach(f);
+  ctx.save();
+  ctx.strokeStyle = f.sting > 0 ? 'rgba(255,120,140,.35)' : f.idx ? 'rgba(90,184,255,.55)' : 'rgba(255,255,255,.55)';
+  ctx.setLineDash([4, 8]); ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(m.x + Math.cos(f.aim) * len, m.y + Math.sin(f.aim) * len); ctx.stroke();
+  ctx.setLineDash([]);
+  ctx.beginPath(); ctx.arc(m.x + Math.cos(f.aim) * len, m.y + Math.sin(f.aim) * len, 6, 0, TAU); ctx.stroke();
+  ctx.restore();
+}
+function drawTongue(f) {
+  if (!f.tongue || !f.tongue.tip) return;
+  const m = mouth(f), t = f.tongue.tip;
+  ctx.strokeStyle = '#b02a4a'; ctx.lineWidth = 7 + f.size; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+  ctx.strokeStyle = '#ff6a8a'; ctx.lineWidth = 4 + f.size;
+  ctx.beginPath(); ctx.moveTo(m.x, m.y); ctx.lineTo(t.x, t.y); ctx.stroke();
+  ctx.fillStyle = '#ff7a9a'; ctx.beginPath(); ctx.arc(t.x, t.y, 7 + f.size, 0, TAU); ctx.fill();
+}
+function drawBug(b) {
+  const flap = Math.sin(clock * 40 + b.t * 3) > 0;
+  ctx.save(); ctx.translate(b.x, b.y); ctx.scale(1.35, 1.35);
+  const k = b.kind;
+  if (k === 'firefly') {
+    const on = glowing(b), a = on ? 0.5 + 0.5 * Math.sin(b.glow * 2.2) : 0;
+    if (on) { const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 22); g.addColorStop(0, `rgba(230,255,120,${0.8 * a + 0.2})`); g.addColorStop(1, 'rgba(230,255,120,0)'); ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 22, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = on ? '#f4ff8a' : 'rgba(80,80,60,.5)'; ctx.beginPath(); ctx.arc(2, 1, 4, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(40,30,20,.8)'; ctx.beginPath(); ctx.ellipse(-2, 0, 4, 3, 0, 0, TAU); ctx.fill();
+    ctx.restore(); return;
+  }
+  if (k === 'beetle') {
+    ctx.scale(b.dir || 1, 1);
+    ctx.fillStyle = '#222'; for (const lx of [-4, 0, 4]) { ctx.fillRect(lx, 3, 1.5, 4); }
+    ctx.fillStyle = '#2a7a5a'; ctx.beginPath(); ctx.ellipse(0, 0, 9, 6, 0, Math.PI, TAU); ctx.fill();
+    ctx.fillStyle = '#1a4a3a'; ctx.beginPath(); ctx.arc(9, -1, 3, 0, TAU); ctx.fill();
+    ctx.strokeStyle = 'rgba(255,255,255,.4)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(0, -6); ctx.lineTo(0, 0); ctx.stroke();
+    ctx.restore(); return;
+  }
+  const dir = b.vx >= 0 ? 1 : -1;
+  ctx.scale(dir, 1);
+  if (k === 'dragonfly') {
+    ctx.fillStyle = 'rgba(200,240,255,.6)';
+    for (const [wx, wy] of [[-2, -5], [4, -5]]) { ctx.beginPath(); ctx.ellipse(wx, wy + (flap ? 0 : 2), 3, 11, flap ? 0.4 : 1.2, 0, TAU); ctx.fill(); }
+    ctx.fillStyle = '#2a9ad0'; rr(-16, -2, 22, 4, 2); ctx.fill();
+    ctx.fillStyle = '#1a6a9a'; ctx.beginPath(); ctx.arc(8, 0, 4, 0, TAU); ctx.fill();
+  } else if (k === 'moth') {
+    ctx.fillStyle = '#c8b090';
+    ctx.beginPath(); ctx.ellipse(-3, flap ? -6 : -2, 9, flap ? 7 : 4, -0.3, 0, TAU); ctx.fill();
+    ctx.beginPath(); ctx.ellipse(3, flap ? -6 : -2, 8, flap ? 6 : 3, 0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#7a6040'; ctx.beginPath(); ctx.ellipse(0, 0, 7, 3, 0, 0, TAU); ctx.fill();
+  } else if (k === 'bee') {
+    ctx.fillStyle = 'rgba(255,255,255,.75)'; ctx.beginPath(); ctx.ellipse(-1, flap ? -9 : -6, 5, 7, 0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#ffd23a'; ctx.beginPath(); ctx.ellipse(0, 0, 10, 7, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#2a1a0a'; ctx.fillRect(-4, -6.5, 3, 13); ctx.fillRect(2, -6.5, 3, 13);
+    ctx.beginPath(); ctx.moveTo(-10, 0); ctx.lineTo(-15, 1); ctx.lineTo(-10, 2); ctx.fill();
+    ctx.beginPath(); ctx.arc(9, -1, 1.3, 0, TAU); ctx.fill();
+  } else if (k === 'golden') {
+    const g = ctx.createRadialGradient(0, 0, 0, 0, 0, 20); g.addColorStop(0, 'rgba(255,230,120,.7)'); g.addColorStop(1, 'rgba(255,230,120,0)');
+    ctx.fillStyle = g; ctx.beginPath(); ctx.arc(0, 0, 20, 0, TAU); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.6)'; ctx.beginPath(); ctx.ellipse(-2, flap ? -9 : -6, 5, 8, 0.3, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#e0a000'; ctx.beginPath(); ctx.ellipse(0, 0, 9, 6, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = '#7af0a0'; ctx.beginPath(); ctx.ellipse(-1, -1, 6, 3.5, 0, 0, TAU); ctx.fill();
+  } else {   // fly, mosquito
+    const small = k === 'mosquito';
+    ctx.fillStyle = 'rgba(220,240,255,.7)';
+    ctx.beginPath(); ctx.ellipse(-1, flap ? -6 : -3, small ? 3 : 4.5, small ? 6 : 6.5, 0.4, 0, TAU); ctx.fill();
+    ctx.fillStyle = small ? '#5a4a3a' : '#2a2a3a'; ctx.beginPath(); ctx.ellipse(0, 0, small ? 5 : 6.5, small ? 2.5 : 4.5, 0, 0, TAU); ctx.fill();
+    ctx.fillStyle = small ? '#3a2a1a' : '#a02020'; ctx.beginPath(); ctx.arc(small ? 5 : 6, -1, small ? 1.6 : 2.6, 0, TAU); ctx.fill();
+    if (small) { ctx.strokeStyle = '#3a2a1a'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(6, -1); ctx.lineTo(10, 1); ctx.stroke(); }
+  }
+  ctx.restore();
+}
+function drawHeron() {
+  if (!heron) return;
+  const hr = heron, x = hr.x, base = WATER_Y + 26, face = hr.side < 0 ? 1 : -1;
+  let neck = 0, reachX = 0;
+  if (hr.st === 'aim') neck = -0.2 - Math.min(1, hr.t / 1.7) * 0.4;
+  const target = hr.st === 'jab' || hr.st === 'aim' ? pads[hr.pad] : null;
+  if (hr.st === 'jab' && target) reachX = Math.min(1, hr.t / 0.12) * (1 - Math.max(0, hr.t - 0.3) / 0.3);
+  // warning ring on the pad it's aiming at
+  if (hr.st === 'aim' && target) {
+    ctx.strokeStyle = `rgba(255,80,60,${0.5 + 0.4 * Math.sin(clock * 14)})`; ctx.lineWidth = 4;
+    ctx.beginPath(); ctx.ellipse(target.x, target.y - 18, target.w * 0.45, 26, 0, 0, TAU); ctx.stroke();
+  }
+  ctx.save(); ctx.translate(x, base);
+  // legs
+  ctx.strokeStyle = '#c8a050'; ctx.lineWidth = 3;
+  ctx.beginPath(); ctx.moveTo(-6, 0); ctx.lineTo(-4, -70); ctx.moveTo(6, 0); ctx.lineTo(4, -70); ctx.stroke();
+  // body
+  ctx.fillStyle = '#8a9ab0'; ctx.beginPath(); ctx.ellipse(0, -92, 30, 22, face * -0.3, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#6a7a90'; ctx.beginPath(); ctx.ellipse(-face * 16, -88, 22, 10, face * -0.4, 0, TAU); ctx.fill();
+  // neck and head: reaching out over the pond to jab
+  const hx = target && reachX ? (target.x - x) * reachX : face * (30 + neck * -20), hy = target && reachX ? -100 + (target.y - 30 - base + 100) * reachX : -150 + neck * -30;
+  ctx.strokeStyle = '#a8b8c8'; ctx.lineWidth = 9; ctx.lineCap = 'round';
+  ctx.beginPath(); ctx.moveTo(face * 14, -105); ctx.quadraticCurveTo(face * 30, -150, hx, hy); ctx.stroke();
+  ctx.fillStyle = '#c8d4e0'; ctx.beginPath(); ctx.arc(hx, hy, 9, 0, TAU); ctx.fill();
+  ctx.fillStyle = '#1a1a2a'; ctx.beginPath(); ctx.arc(hx + face * 3, hy - 3, 2, 0, TAU); ctx.fill();
+  ctx.strokeStyle = '#2a2a3a'; ctx.lineWidth = 3; ctx.beginPath(); ctx.moveTo(hx - face * 6, hy - 8); ctx.lineTo(hx - face * 16, hy - 12); ctx.stroke();   // crest
+  // the long yellow beak, pointing where it will jab
+  const bAng = target ? Math.atan2(target.y - 20 - (base + hy), target.x - (x + hx)) : (face > 0 ? 0.3 : Math.PI - 0.3);
+  ctx.fillStyle = '#ffb83a'; ctx.beginPath(); ctx.moveTo(hx + Math.cos(bAng - 1.2) * 5, hy + Math.sin(bAng - 1.2) * 5);
+  ctx.lineTo(hx + Math.cos(bAng) * 34, hy + Math.sin(bAng) * 34); ctx.lineTo(hx + Math.cos(bAng + 1.2) * 5, hy + Math.sin(bAng + 1.2) * 5); ctx.fill();
+  ctx.restore();
+}
+function drawHUD() {
+  if (state !== 'play' || !level) return;
+  const top = Math.max(8, -(VH - H) / 2 + 10);
+  // the jar (or two jars in a race), filling with bugs
+  const jars = twoP && !team ? frogs.map(f => ({ n: f.jar, c: f.look.body, tag: `P${f.idx + 1}` })) : [{ n: jar, c: '#4ec85a', tag: '' }];
+  jars.forEach((j, i) => {
+    const x = 12 + i * 120, y = top, w = 110, hgt = 44;
+    ctx.fillStyle = 'rgba(10,40,30,.55)'; rr(x, y, w, hgt, 12); ctx.fill();
+    ctx.fillStyle = 'rgba(255,255,255,.25)'; rr(x + 8, y + 8, 28, 28, 7); ctx.fill();
+    const fill = clamp(j.n / level.goal, 0, 1);
+    ctx.fillStyle = j.c; rr(x + 8, y + 8 + 28 * (1 - fill), 28, 28 * fill, 6); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '700 18px Fredoka, system-ui'; ctx.textAlign = 'left';
+    ctx.fillText(`${j.n}/${level.goal}`, x + 42, y + 22);
+    ctx.font = '700 12px Fredoka, system-ui'; ctx.fillText(j.tag ? `${j.tag} jar` : '🫙 bug jar', x + 42, y + 37);
+  });
+  // time left
+  const tx = 12 + jars.length * 120;
+  ctx.fillStyle = 'rgba(10,40,30,.55)'; rr(tx, top, 92, 44, 12); ctx.fill();
+  ctx.fillStyle = timeLeft < 10 ? '#ff8a7a' : '#fff'; ctx.font = '700 20px Fredoka, system-ui'; ctx.textAlign = 'left';
+  ctx.fillText(`${level.night ? '🌙' : '☀️'} ${Math.ceil(timeLeft)}`, tx + 10, top + 29);
+  // the growth meter for each frog
+  frogs.forEach((f, i) => {
+    const gx = 12 + i * 120, gy = top + 50, next = GROW_AT[f.size];
+    ctx.fillStyle = 'rgba(10,40,30,.45)'; rr(gx, gy, 110, 14, 7); ctx.fill();
+    const prev = f.size ? GROW_AT[f.size - 1] : 0, u = next ? clamp((f.eaten - prev) / (next - prev), 0, 1) : 1;
+    ctx.fillStyle = f.size === 3 ? '#ffd84a' : '#b8ff9a'; rr(gx + 2, gy + 2, 106 * u, 10, 5); ctx.fill();
+    ctx.fillStyle = '#fff'; ctx.font = '700 10px Fredoka, system-ui'; ctx.fillText(['froglet', 'frog', 'big frog', 'GOLDEN!'][f.size], gx + 6, gy + 11);
+  });
+}
+function draw() {
+  ctx.setTransform(scale, 0, 0, scale, 0, (VH - H) / 2 * scale);
+  drawSky();
+  if (level && level.mist) { ctx.fillStyle = 'rgba(255,255,255,.18)'; ctx.fillRect(0, WATER_Y - 90, W, 90); }
+  drawWater();
+  for (const p of pads) drawPad(p);
+  drawHeron();
+  for (const b of bugs) if (!b.stuck) drawBug(b);
+  for (const f of frogs) { drawAim(f); drawTongue(f); }
+  for (const b of bugs) if (b.stuck) drawBug(b);
+  for (const f of frogs) drawFrog(f);
+  if (level && level.rain && state === 'play') { ctx.strokeStyle = 'rgba(220,230,255,.5)'; ctx.lineWidth = 1.2; ctx.beginPath(); for (const r of rain) { ctx.moveTo(r.x, r.y); ctx.lineTo(r.x - 2, r.y + 10); } ctx.stroke(); }
+  for (const p of parts) {
+    ctx.globalAlpha = clamp(p.life * 2, 0, 1);
+    if (p.text) { ctx.fillStyle = p.c; ctx.font = `700 ${p.big ? 20 : 16}px Fredoka, system-ui`; ctx.textAlign = 'center'; ctx.strokeStyle = 'rgba(0,0,0,.5)'; ctx.lineWidth = 3; ctx.strokeText(p.text, p.x, p.y); ctx.fillText(p.text, p.x, p.y); }
+    else { ctx.fillStyle = p.c; ctx.beginPath(); ctx.arc(p.x, p.y, p.r || 2, 0, TAU); ctx.fill(); }
+  }
+  ctx.globalAlpha = 1;
+  if (level && level.night) { ctx.fillStyle = 'rgba(10,20,60,.18)'; ctx.fillRect(0, -(VH - H), W, VH * 2); }
+  drawHUD();
+  if (bannerT > 0 && state === 'play') {
+    ctx.globalAlpha = clamp(bannerT * 2, 0, 1);
+    ctx.textAlign = 'center'; ctx.fillStyle = '#fff'; ctx.strokeStyle = 'rgba(10,40,30,.8)'; ctx.lineWidth = 6;
+    ctx.font = '32px Bungee, system-ui'; ctx.strokeText(bannerText, W / 2, 170); ctx.fillText(bannerText, W / 2, 170);
+    ctx.font = '700 19px Fredoka, system-ui'; ctx.lineWidth = 4; ctx.strokeText(bannerSub, W / 2, 200); ctx.fillText(bannerSub, W / 2, 200);
+    ctx.globalAlpha = 1;
+  }
+}
+
+// ---------- Loop ----------
+function frame(now) {
+  const dt = Math.min(0.05, (now - last) / 1000);
+  last = now;
+  requestAnimationFrame(frame);
+  try {
+    pollPads();
+    if (!paused) update(dt);
+    draw();
+  } catch (e) {
+    if (!frame.warned) { frame.warned = true; console.error(e); }
+  }
+}
+resize();
+renderTitle();
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

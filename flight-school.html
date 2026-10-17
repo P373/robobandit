@@ -100,6 +100,29 @@
   }
 
   .card.wide { max-width: 860px; }
+  /* lessons fill the whole screen: no card, no frame round the diagram */
+  .screen.full { background: linear-gradient(#fffdf4, #f3f8ff); padding-left: max(14px, env(safe-area-inset-left)); padding-right: max(14px, env(safe-area-inset-right)); }
+  .card.lesson { margin: 0; flex: 1; max-width: none; min-height: 0; border: 0; border-radius: 0; box-shadow: none; background: transparent; padding: 0;
+    display: grid; grid-template-columns: minmax(0, 1fr) clamp(260px, 30vw, 420px); grid-template-rows: auto minmax(0, 1fr); grid-template-areas: "head head" "dia side"; gap: 4px 22px; }
+  .lesson .lz-head { grid-area: head; }
+  .lesson .lz-head h2 { margin: 4px 0 2px; font-size: clamp(22px, 3.2vw, 34px); }
+  .lesson .lz-dia { grid-area: dia; min-height: 0; display: flex; align-items: center; justify-content: center; }
+  .lesson #dia { margin: 0; width: auto; aspect-ratio: auto; border: 0; border-radius: 18px; box-shadow: 0 4px 18px rgba(11,42,92,.18); }
+  .lesson .lz-side { grid-area: side; align-self: center; overflow-y: auto; max-height: 100%; }
+  .lesson .lz-side p { font-size: clamp(18px, 1.7vw, 23px); }
+  .lesson .lz-btns { display: flex; flex-wrap: wrap; justify-content: center; }
+  @media (max-aspect-ratio: 20/21) {   /* a tall phone: the diagram across the top, the words under it, and the page scrolls */
+    .card.lesson { grid-template-columns: 1fr; grid-template-rows: auto auto auto; grid-template-areas: "head" "dia" "side"; align-content: start; }
+    .lesson .lz-side { max-height: none; overflow: visible; }
+  }
+  @media (max-height: 500px) and (min-aspect-ratio: 20/21) {   /* a phone on its side: the title tucks in beside the corner buttons */
+    .screen.full { padding-top: max(8px, env(safe-area-inset-top)); padding-bottom: 6px; }
+    .lesson .lz-head { text-align: left; padding-right: 320px; min-height: 46px; }
+    .lesson .lz-head h2 { font-size: 20px; margin: 2px 0 0; }
+    .lesson .lz-side p { font-size: 16px; margin: 4px 0; line-height: 1.3; }
+    .lesson .btn { margin-top: 5px; padding: 7px 13px; font-size: 16px; }
+    .lesson .btn.alt { font-size: 15px; }
+  }
   .chip { border: 0; font-family: inherit; vertical-align: middle; }
   .chip.alt, .modechip { cursor: pointer; background: #fff; color: #0b2a5c; border: 2px solid #0b2a5c; margin: 8px 4px 0; padding: 5px 12px; font-size: 15px; }
   .chipimg { width: 28px; height: 21px; border-radius: 5px; vertical-align: middle; margin-right: 4px; }
@@ -140,7 +163,7 @@
     .card { box-shadow: none; border: 0; max-width: none; }
   }
 </style>
-<link rel="stylesheet" href="common.css?v=20261011-0018">
+<link rel="stylesheet" href="common.css?v=20261016-1843">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -148,13 +171,13 @@
 <button id="actBtn" class="hidden" type="button"><span class="ico" id="actIco">🔥</span><span id="actLbl">THRUST</span></button>
 <div id="screen" class="screen"><div class="card" id="card"></div></div>
 
-<script src="common.js?v=20261011-0018"></script>
-<script src="touch-stick.js?v=20261011-0018"></script>
-<script src="flight-school/kit.js?v=20261011-0018"></script>
-<script src="flight-school/levels.js?v=20261011-0018"></script>
-<script src="flight-school/diagrams.js?v=20261011-0018"></script>
-<script src="flight-school/rounds-air.js?v=20261011-0018"></script>
-<script src="flight-school/rounds-space.js?v=20261011-0018"></script>
-<script src="flight-school/app.js?v=20261011-0018"></script>
+<script src="common.js?v=20261016-1843"></script>
+<script src="touch-stick.js?v=20261016-1843"></script>
+<script src="flight-school/kit.js?v=20261016-1843"></script>
+<script src="flight-school/levels.js?v=20261016-1843"></script>
+<script src="flight-school/diagrams.js?v=20261016-1843"></script>
+<script src="flight-school/rounds-air.js?v=20261016-1843"></script>
+<script src="flight-school/rounds-space.js?v=20261016-1843"></script>
+<script src="flight-school/app.js?v=20261016-1843"></script>
 </body>
 </html>

@@ -60,8 +60,16 @@
   .ctl { position: fixed; z-index: 3; border: 6px solid #fff; border-radius: 50%; cursor: pointer; display: grid; place-items: center;
     font: 700 22px 'Fredoka', system-ui, sans-serif; color: #fff; box-shadow: 0 8px 0 rgba(0,0,0,.2); touch-action: none; padding: 0; }
   .ctl:active { transform: translateY(5px); box-shadow: 0 3px 0 rgba(0,0,0,.2); }
-  #go { right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); width: 128px; height: 128px; font-size: 30px; background: #3cc456; }
+  #go { right: max(20px, env(safe-area-inset-right)); bottom: max(20px, env(safe-area-inset-bottom)); width: 112px; height: 112px; font-size: 28px; background: #3cc456; transition: background .2s; }
   #go.stop { background: #e8453a; }
+  #go.rev { background: #ff9a2a; }
+  /* the throttle: a tall slot the GO knob slides along. Up is forward (higher is faster), the notch is neutral, down is reverse */
+  #throttle { position: fixed; z-index: 2; right: calc(max(20px, env(safe-area-inset-right)) + 24px); bottom: max(20px, env(safe-area-inset-bottom));
+    width: 64px; height: min(330px, 58vh); border-radius: 32px; border: 5px solid #fff; box-sizing: border-box; touch-action: none; cursor: pointer;
+    background: linear-gradient(to top, #ff9a2a 0 22%, #d8dde6 22% 38%, #8adf6a 38%, #3cc456); box-shadow: 0 6px 0 rgba(0,0,0,.18); }
+  #throttle .mark { position: absolute; right: 70px; transform: translateY(50%); font: 700 22px/1 'Fredoka', system-ui, sans-serif; color: #fff;
+    text-shadow: 0 2px 0 rgba(0,0,0,.35); white-space: nowrap; pointer-events: none; }
+  #throttle .notch { position: absolute; left: -10px; right: -10px; height: 6px; border-radius: 3px; background: #fff; transform: translateY(50%); pointer-events: none; }
   #go.pulse { animation: pulse 1s ease-in-out infinite; }
   @keyframes pulse { 50% { transform: scale(1.1); box-shadow: 0 0 0 14px rgba(60,196,86,.35); } }
   #toot { right: calc(max(20px, env(safe-area-inset-right)) + 146px); bottom: max(26px, env(safe-area-inset-bottom)); width: 96px; height: 96px; background: #ffb020; font-size: 40px; }
@@ -73,7 +81,7 @@
   .fork small { font-size: 30px; }
   .fork.on { background: #ffd84a; transform: scale(1.12); box-shadow: 0 8px 0 rgba(0,0,0,.18), 0 0 0 10px rgba(255,216,74,.45); }
   .fork:active { transform: translateY(5px) scale(1.05); }
-  #forkL { left: max(16px, env(safe-area-inset-left)); } #forkR { right: max(16px, env(safe-area-inset-right)); }
+  #forkL { left: max(16px, env(safe-area-inset-left)); } #forkR { right: calc(max(16px, env(safe-area-inset-right)) + 130px); }
   .fork.ask { animation: wig 1.2s ease-in-out infinite; }
   @keyframes wig { 25% { transform: rotate(-8deg) scale(1.06); } 75% { transform: rotate(8deg) scale(1.06); } }
   #music { left: calc(max(20px, env(safe-area-inset-left)) + 88px); bottom: max(32px, env(safe-area-inset-bottom)); width: 58px; height: 58px; background: #ff7ac0; font-size: 24px; border-width: 5px; }
@@ -101,7 +109,7 @@
   #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
   .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
 </style>
-<link rel="stylesheet" href="../common.css?v=20261011-0018">
+<link rel="stylesheet" href="../common.css?v=20261016-1843">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -116,7 +124,8 @@
 <button class="fork hidden" id="forkL" aria-label="Go left"></button>
 <button class="fork hidden" id="forkR" aria-label="Go right"></button>
 <button class="ctl hidden" id="toot" aria-label="Toot the horn">📯</button>
-<button class="ctl hidden" id="go" aria-label="Go and stop">GO</button>
+<div id="throttle" class="hidden" aria-hidden="true"><span class="mark" data-th="1">🐇</span><span class="mark" data-th="0.35">🐢</span><span class="notch" data-th="0"></span><span class="mark" data-th="0">N</span><span class="mark" data-th="-0.75">◀ R</span></div>
+<button class="ctl hidden" id="go" aria-label="Go and stop (slide up and down to set the speed)">GO</button>
 
 <div id="title" class="screen">
   <div class="panel">
@@ -131,8 +140,8 @@
 </div>
 
 <script src="../vendor/three.min.js"></script>
-<script src="../orbit-cam.js?v=20261011-0018"></script>
-<script src="../common.js?v=20261011-0018"></script>
+<script src="../orbit-cam.js?v=20261016-1843"></script>
+<script src="../common.js?v=20261016-1843"></script>
 <script>
 'use strict';
 // ===================== ABC Train =====================
@@ -613,7 +622,7 @@ const park = (() => {
 })();
 
 // ---------- The train ----------
-const train = { e: 0, s: 2, v: 0, running: false, wagons: [], seats: [], cars: [], log: [] };
+const train = { e: 0, s: 2, v: 0, th: 0, running: false, wagons: [], seats: [], cars: [], log: [], odo: 0, hist: [] };   // v < 0: backing up
 const engine = new THREE.Group();
 {
   const e = engine;
@@ -672,16 +681,37 @@ function moveTrain(ds) {
   for (const c of train.cars) advance(c, ds, false);
   const k = Math.min(...train.cars.map(c => c.k));
   if (k > 0) { train.log.splice(0, k); for (const c of train.cars) c.k -= k; }
+  train.odo += ds;
+  if (!train.hist.length || train.odo - train.hist[train.hist.length - 1].o >= 0.25) remember();
+}
+// Backing up: the train remembers where the engine and every wagon were as it went forward, and reversing retraces that,
+// so the wagons follow properly (even back through a fork). It can back up as far as it remembers (about 200 steps).
+const snap = () => ({ o: train.odo, e: train.e, s: train.s, cars: train.cars.map(c => ({ e: c.e, s: c.s, k: c.k })), log: train.log.map(x => ({ ...x })) });
+function remember() { train.hist.push(snap()); if (train.hist.length > 800) train.hist.shift(); }
+function reverseTrain(ds) {
+  const H = train.hist;
+  if (!H.length) return false;
+  let to = train.odo - ds, end = false;
+  if (to <= H[0].o) { to = H[0].o; end = true; }
+  let i = H.length - 1; while (i > 0 && H[i].o > to) i--;
+  const a = H[i], b = H[i + 1], k = b ? (to - a.o) / Math.max(1e-6, b.o - a.o) : 0;
+  const mix = (pa, pb) => !pb || pa.e !== pb.e ? pa.s : pa.e === 0 ? wrap(pa.s + (((pb.s - pa.s) % LEN + LEN * 1.5) % LEN - LEN / 2) * k) : pa.s + (pb.s - pa.s) * k;
+  train.e = a.e; train.s = mix(a, b);
+  train.cars.forEach((c, j) => { c.e = a.cars[j].e; c.s = mix(a.cars[j], b && b.cars[j]); c.k = a.cars[j].k; });
+  train.log = a.log.map(x => ({ ...x }));
+  H.length = i + 1; train.odo = to;
+  return !end;
 }
 // put the train down with the engine at (e, s) and the wagons behind it
 function setTrain(e, s) {
-  train.e = e; train.s = s; train.log = e ? [{ f: e, branch: true }] : [];
+  train.e = e; train.s = s; train.log = e ? [{ f: e, branch: true }] : []; train.hist = []; train.odo = 0;
   let d = GAP[0];
   for (const c of train.cars) {
     if (e && s - d >= 0) { c.e = e; c.s = s - d; c.k = 1; }
     else { c.e = 0; c.s = wrap(e ? FORKS[e - 1].a + (s - d) : s - d); c.k = 0; }
     d += GAP[1];
   }
+  remember();
 }
 // how far ahead a place is, going the way the switches point now (Infinity if this way never gets there)
 function distAhead(t, from = train) {
@@ -768,6 +798,7 @@ const sfx = {
   cheer: () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => beep(f, f, 0.16, 'triangle', 0.08, i * 0.11)),
   chuff: v => RB.noise(0.08, Math.min(0.07, 0.02 + v * 0.006)),
   brake: () => RB.noise(0.4, 0.05),
+  beepBack: () => { beep(1000, 1000, 0.14, 'square', 0.05); beep(1000, 1000, 0.14, 'square', 0.05, 0.28); },
 };
 // the alphabet song tune (a traditional melody), played when you get all the way to Z
 const ABC_TUNE = [[60, 1], [60, 1], [67, 1], [67, 1], [69, 1], [69, 1], [67, 2], [65, 1], [65, 1], [64, 1], [64, 1], [62, 0.5], [62, 0.5], [62, 0.5], [62, 0.5], [60, 2],
@@ -1177,25 +1208,62 @@ function drawFork() {
 forkL.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); FORKS.forEach(f => { f.asked = true; }); chooseWay(-1); });
 forkR.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); FORKS.forEach(f => { f.asked = true; }); chooseWay(1); });
 showForkSigns();
+// The throttle (train.th): from -1 (full reverse) through 0 (neutral) to 1 (full speed ahead). The GO knob slides along it;
+// a tap is still GO / STOP, like before. The train still brakes by itself for the next animal, and the lever springs back.
+const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
+const MAXV = 13, REVV = 4.5, TH_GO = CRUISE_TH(), NEUTRAL_P = 0.3;
+function CRUISE_TH() { return 9 / 13; }   // a tap of GO goes at the usual cruising speed
+const thToP = th => th >= 0 ? NEUTRAL_P + th * (1 - NEUTRAL_P) : NEUTRAL_P + th * NEUTRAL_P;
+const pToTh = p => { const th = p >= NEUTRAL_P ? (p - NEUTRAL_P) / (1 - NEUTRAL_P) : (p - NEUTRAL_P) / NEUTRAL_P; return Math.abs(th) < 0.1 ? 0 : clamp(th, -1, 1); };   // (a little notch at neutral)
+// where along the slot a throttle setting sits (px up from the slot's bottom edge, to the knob's middle)
+const slotY = th => { const tr = $('throttle'), half = $('go').offsetHeight / 2 - 4; return half + thToP(th) * Math.max(1, tr.offsetHeight - half * 2); };
+function placeKnob() {
+  const go = $('go'), tr = $('throttle');
+  tr.classList.toggle('hidden', go.classList.contains('hidden'));
+  if (!tr.offsetHeight) return;
+  go.style.bottom = `calc(max(20px, env(safe-area-inset-bottom)) + ${Math.round(slotY(train.th) - go.offsetHeight / 2)}px)`;
+  // the N notch, the labels and the colours line up with exactly where the knob goes
+  tr.querySelectorAll('[data-th]').forEach(el => { el.style.bottom = Math.round(slotY(+el.dataset.th)) + 'px'; });
+  const pc = th => (slotY(th) / tr.offsetHeight * 100).toFixed(1) + '%';
+  tr.style.background = `linear-gradient(to top, #ff9a2a 0 ${pc(-0.1)}, #d8dde6 ${pc(-0.1)} ${pc(0.1)}, #8adf6a ${pc(0.1)}, #3cc456)`;
+}
+function setThrottle(th, byHand = true) {
+  if (state !== 'play' || hold > 0) th = 0;
+  const was = train.th;
+  train.th = th;
+  const fwd = th > 0;
+  if (fwd !== train.running) {
+    if (!fwd && train.running && mode === 'find' && !glide && byHand) {   // stopping near a station in Find the letter: glide right up to it
+      const st = stations.find(x => distAhead(x) < 16);
+      if (st) { glide = st; train.th = 0; sfx.brake(); placeKnob(); return; }
+    }
+    train.running = fwd; glide = null;
+    if (fwd) { sfx.toot(); idleT = 0; } else if (Math.abs(train.v) > 0.3) sfx.brake();
+  }
+  if (th < 0 && was >= 0) { sfx.beepBack(); idleT = 0; }   // backing up: beep beep
+  updateGo();
+}
 function updateGo() {
   const go = $('go');
-  go.textContent = train.running ? 'STOP' : 'GO';
+  go.textContent = train.running || train.th < 0 ? 'STOP' : 'GO';
   go.classList.toggle('stop', train.running);
-  go.classList.toggle('pulse', !train.running && state === 'play' && hold <= 0);
+  go.classList.toggle('rev', train.th < 0);
+  go.classList.toggle('pulse', !train.running && train.th >= 0 && state === 'play' && hold <= 0);
+  placeKnob();
 }
 function toggleGo() {
   if (state !== 'play' || hold > 0) return;
   RB.audio();
-  if (train.running && mode === 'find' && !glide) {
-    // stopping near a station (little hands are never exact): glide right up to it
-    const st = stations.find(x => distAhead(x) < 16);
-    if (st) { glide = st; sfx.brake(); return; }
-  }
-  train.running = !train.running;
-  glide = null;
-  if (train.running) { sfx.toot(); idleT = 0; } else sfx.brake();
-  updateGo();
+  setThrottle(train.running || train.th < 0 ? 0 : TH_GO);
 }
+// dragging the knob (or touching the slot) sets the speed; a quick tap on the knob is GO / STOP
+let drag = null;
+function thFromY(y) { const r = $('throttle').getBoundingClientRect(), half = $('go').offsetHeight / 2 - 4; return pToTh(clamp((r.bottom - half - y) / Math.max(1, r.height - half * 2), 0, 1)); }
+$('throttle').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (state !== 'play' || hold > 0) return; RB.audio(); drag = { id: e.pointerId, y0: e.clientY, moved: true }; setThrottle(thFromY(e.clientY)); });
+addEventListener('pointermove', e => { if (!drag || e.pointerId !== drag.id) return; if (Math.abs(e.clientY - drag.y0) > 10) drag.moved = true; if (drag.moved) setThrottle(thFromY(e.clientY)); });
+addEventListener('pointerup', e => { if (!drag || e.pointerId !== drag.id) return; const d = drag; drag = null; if (!d.moved) toggleGo(); });
+addEventListener('pointercancel', () => { drag = null; });
+addEventListener('resize', () => placeKnob());
 function toot() {
   RB.audio(); sfx.toot();
   for (const c of crossers) if (!c.hurry && c.onTrack) { c.hurry = true; say(LINE.byeBye(c.name)); }
@@ -1268,7 +1336,12 @@ function finale() {
 }
 
 // ---------- Controls ----------
-$('go').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toggleGo(); });
+$('go').addEventListener('pointerdown', e => {
+  e.preventDefault(); e.stopPropagation();
+  if (!e.isTrusted) { toggleGo(); return; }   // (a scripted press is a tap)
+  if (state !== 'play' || hold > 0) return;
+  RB.audio(); drag = { id: e.pointerId, y0: e.clientY, moved: false };
+});
 $('toot').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); toot(); });
 $('cam').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); nextView(); });
 $('music').addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); RB.audio(); music.toggle(); });
@@ -1305,7 +1378,12 @@ addEventListener('keydown', e => {
   if (e.code === 'Minus' || e.code === 'NumpadSubtract') setZoom(zoom * 1.2);
   if (state === 'farm') { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); allAboard(); } if (e.code.startsWith('Arrow')) { e.preventDefault(); held[e.code] = true; } return; }
   if (e.code === 'KeyF' && !$('walk').classList.contains('hidden')) { getOff(); return; }
-  if (e.code === 'Space' || e.code === 'Enter' || e.code === 'ArrowUp') { e.preventDefault(); toggleGo(); }
+  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); toggleGo(); }
+  else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {   // up / down move the throttle a notch at a time
+    e.preventDefault(); RB.audio();
+    const stepTh = e.code === 'ArrowUp' ? 0.2 : -0.2, th = train.th;
+    setThrottle(th > 0 && th + stepTh < 0.05 && stepTh < 0 ? 0 : th < 0 && th + stepTh > -0.05 && stepTh > 0 ? 0 : clamp(Math.round((th + stepTh) * 10) / 10, -1, 1));
+  }
   if (e.code === 'KeyH' || e.code === 'KeyX' || e.code === 'KeyT') toot();
   if (e.code === 'KeyC') nextView();
   if (e.code === 'ArrowLeft') chooseWay(-1);
@@ -1321,7 +1399,7 @@ addEventListener('blur', () => { for (const k in held) held[k] = false; });
 RB.topbar({ home: 'index.html', homeTitle: 'Back to Preschool', shareInfo: { title: 'ABC Train | RoboBandit', text: 'Drive the train, pick up the animals and learn the alphabet! 🚂🔤' } });
 
 // the ☰ menu (or switching apps) stops the train, so nothing is missed
-addEventListener('blur', () => { if (train.running) { train.running = false; glide = null; updateGo(); } });
+addEventListener('blur', () => { if (train.running || train.th) { train.running = false; train.th = 0; glide = null; updateGo(); } });
 document.addEventListener('gesturestart', e => e.preventDefault());   // pinching zooms the camera, not the page
 
 // ---------- Update ----------
@@ -1332,18 +1410,25 @@ function update(dt) {
   for (let i = laters.length - 1; i >= 0; i--) if (clock >= laters[i].at) laters.splice(i, 1)[0].fn();
   updateWorld(dt);
   if (state === 'farm') { updateWalker(dt); updateSmoke(dt); updateCamera(dt); return; }
+  // the lever and train.running agree (the game can stop the train, or start it, by itself)
+  if (!drag) { if (!train.running && train.th > 0) { train.th = 0; updateGo(); } else if (train.running && train.th <= 0) { train.th = TH_GO; updateGo(); } }
+  if ((state !== 'play' || hold > 0) && train.th < 0) { train.th = 0; updateGo(); }
   if (hold <= 0 && $('go').classList.contains('stop') !== train.running) updateGo();
   // speed: gentle start, gentle stops; the train brakes by itself for the next animal
-  let want = train.running ? CRUISE : 0;
+  let want = train.running ? Math.max(0.15, train.th) * MAXV : train.th < 0 ? train.th * REVV : 0;
   const g = train.running ? goal() : null, dG = g ? distAhead(g) : Infinity;
   if (dG < 40) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, dG - 0.05)) + 0.3);
   // an animal on the track: slow down and wait a safe way back (toot and it hurries off)
   const blk = blocker();
   if (blk) want = Math.min(want, Math.sqrt(2 * BRAKE * 0.6 * Math.max(0, blk.d - 10)));
   const wasMoving = train.v > 0.05;
-  if (train.v < want) train.v = Math.min(want, train.v + ACC * dt);
-  else train.v = Math.max(want, train.v - BRAKE * dt);
-  let step = train.v * dt;
+  const speedUp = Math.sign(want) === Math.sign(train.v || want) && Math.abs(want) > Math.abs(train.v);
+  const rate = (speedUp ? ACC : BRAKE) * dt;
+  train.v = train.v < want ? Math.min(want, train.v + rate) : Math.max(want, train.v - rate);
+  if (train.v < 0) {   // backing up
+    if (!reverseTrain(-train.v * dt)) { train.v = 0; if (train.th < 0) { train.th = 0; updateGo(); sfx.brake(); } }
+  }
+  let step = Math.max(0, train.v) * dt;
   const arrived = step >= dG - 0.01;
   if (arrived) step = dG;
   moveTrain(step);
@@ -1361,13 +1446,13 @@ function update(dt) {
   for (const f of FORKS) if (f !== fa) f.told = false;
   drawFork();
   // stopped at the farm: you can get off and visit the animals
-  const atFarm = state === 'play' && !train.running && train.v < 0.05 && hold <= 0 && farm.station.p.distanceTo(engine.position) < 7;
+  const atFarm = state === 'play' && !train.running && Math.abs(train.v) < 0.05 && hold <= 0 && farm.station.p.distanceTo(engine.position) < 7;
   $('walk').classList.toggle('hidden', !atFarm);
   if (atFarm && !farm.told) { farm.told = true; say(LINE.farmHere); }
   if (!atFarm && farm.station.p.distanceTo(engine.position) > 20) farm.told = false;
   // chuff-chuff, faster as the train speeds up
-  if (train.v > 0.3 && clock - lastChuff > 2.2 / (train.v + 1.5)) { lastChuff = clock; sfx.chuff(train.v); puff(); }
-  if (!train.running && train.v < 0.05 && state === 'play' && hold <= 0 && !atFarm) { idleT += dt; if (idleT > 12) { idleT = 0; say(LINE.pressGo); } } else idleT = 0;
+  if (Math.abs(train.v) > 0.3 && clock - lastChuff > 2.2 / (Math.abs(train.v) + 1.5)) { lastChuff = clock; sfx.chuff(Math.abs(train.v)); puff(); }
+  if (!train.running && Math.abs(train.v) < 0.05 && train.th >= 0 && state === 'play' && hold <= 0 && !atFarm) { idleT += dt; if (idleT > 12) { idleT = 0; say(LINE.pressGo); } } else idleT = 0;
   placeTrain();
   const spin = train.v * dt / 0.55;
   for (const w of engine.userData.wheels) w.rotation.x += spin;

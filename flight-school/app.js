@@ -206,7 +206,7 @@ let slide = 0, roundBest = 0, quiz = [], qi = 0, firstRight = 0, retryRight = 0,
 let diaCtx = null, diaT = 0, diaV = 0.3, examState = null;
 const card = $('card'), scr = $('screen');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-function show(html, cls = '') { scr.classList.remove('hidden'); card.className = 'card ' + cls; card.innerHTML = html; scr.scrollTop = 0; diaCtx = null; }
+function show(html, cls = '') { scr.classList.remove('hidden'); scr.classList.toggle('full', /\blesson\b/.test(cls)); card.className = 'card ' + cls; card.innerHTML = html; scr.scrollTop = 0; diaCtx = null; }
 function hideScreen() { scr.classList.add('hidden'); }
 function on(id, fn) { const el = $(id); if (el) el.addEventListener('click', () => { RB.audio(); sfx.click(); fn(); }); }
 const starStr = n => '★'.repeat(n) + '☆'.repeat(3 - n);
@@ -278,19 +278,20 @@ function lessonScreen() {
   mode = 'lesson';
   const L = LEVELS[cur], S = L.slides[slide], lastSlide = slide === L.slides.length - 1, tod = settings.mode === 'toddler';
   diaV = S.ui && S.ui.v != null ? S.ui.v : 0.3;
-  show(`<span class="chip">${levelImg(cur, 'chipimg')} Level ${cur + 1} · ${esc(L.name)} · ${L.year}</span>
-    <h2>${esc(S.t)}</h2>
-    <canvas id="dia"></canvas>
+  // the whole screen is the lesson: the moving diagram as big as it fits, the words and buttons beside it (or under it on a tall phone)
+  show(`<div class="lz-head"><span class="chip">${levelImg(cur, 'chipimg')} Level ${cur + 1} · ${esc(L.name)} · ${L.year}</span>
+    <h2>${esc(S.t)}</h2></div>
+    <div class="lz-dia"><canvas id="dia"></canvas></div>
+    <div class="lz-side">
     ${S.ui ? `<label class="sl"><span>${S.ui.label}</span><input type="range" id="diaSl" min="0" max="100" value="${Math.round(diaV * 100)}"></label>` : ''}
     <p class="${tod ? 'big-p' : ''}">${esc(tod ? S.tp : S.p)}</p>
     <div class="dots">${L.slides.map((_, k) => k === slide ? '<b>●</b>' : '●').join('')}</div>
-    <button class="btn alt" id="back">◀ ${slide ? 'Back' : 'Map'}</button>
+    <div class="lz-btns"><button class="btn alt" id="back">◀ ${slide ? 'Back' : 'Map'}</button>
     ${canSpeak ? '<button class="btn alt" id="read">🔊 Read to me</button>' : ''}
     ${starsOf(cur) && !lastSlide ? '<button class="btn alt" id="skip">Skip ▶▶</button>' : ''}
-    <button class="btn" id="fwd">${lastSlide ? 'Let\'s fly! ✈️' : 'Next ▶'}</button>`);
-  const c = $('dia'), dpr = Math.min(devicePixelRatio || 1, 2);
-  c.width = DW * dpr; c.height = DH * dpr;
-  diaCtx = c.getContext('2d'); diaCtx.scale(dpr, dpr); diaT = 0;
+    <button class="btn" id="fwd">${lastSlide ? 'Let\'s fly! ✈️' : 'Next ▶'}</button></div></div>`, 'lesson');
+  diaCtx = $('dia').getContext('2d'); diaT = 0;
+  fitDiagram();
   const sl = $('diaSl'); if (sl) sl.addEventListener('input', () => { diaV = sl.value / 100; });
   const text = `${S.t}. ${tod ? S.tp : S.p}`;
   speak(text);
@@ -299,6 +300,17 @@ function lessonScreen() {
   on('skip', readyScreen);
   on('fwd', () => { if (lastSlide) readyScreen(); else { slide++; lessonScreen(); } });
 }
+// sizes the diagram to fill its space (16:9), drawn sharp at that size: the diagrams draw in DW x DH units
+function fitDiagram() {
+  if (!diaCtx || !diaCtx.canvas.isConnected) return;
+  const c = diaCtx.canvas, box = c.parentElement, dpr = Math.min(devicePixelRatio || 1, 2);
+  const tall = innerHeight > innerWidth * 1.05;
+  const w = Math.max(200, Math.floor(Math.min(box.clientWidth, (tall ? innerHeight * 0.5 : box.clientHeight) * 16 / 9)));
+  c.style.width = w + 'px'; c.style.height = Math.round(w * 9 / 16) + 'px';
+  c.width = Math.round(w * dpr); c.height = Math.round(w * 9 / 16 * dpr);
+  const k = c.width / DW; diaCtx.setTransform(k, 0, 0, k, 0, 0);
+}
+addEventListener('resize', fitDiagram);
 function drawDiagram(dt) {
   if (!diaCtx || !diaCtx.canvas.isConnected) return;
   diaT += dt * (reduced() ? 0.5 : 1);

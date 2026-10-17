@@ -391,6 +391,7 @@ let mouse = null;   // { x, y } in logical coords while a mouse button is down o
 let round = null, mode = 'title', paused = false, cur = 0;
 let inputStyle = 'hold';
 const stick = createTouchStick(canvas, { enabled: () => mode === 'play' && !paused && inputStyle !== 'hold' });
+if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
 const holding = () => !!(keys.Space || keys.ArrowUp || keys.KeyW || ptrHeld || btnHeld);
 const actionHeld = () => !!(keys.Space || keys.Enter || btnHeld);
 // Mouse steering: rounds set round.anchor = {x, y} (where the craft is on screen) and a held mouse steers toward it.

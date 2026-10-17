@@ -78,7 +78,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -437,6 +437,22 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'flight-school.png');
   });
 
+  await test('Flight School: lessons use the whole screen (a big diagram, no card), on a wide screen and a phone', async () => {
+    const bad = [];
+    for (const vp of [{ width: 1400, height: 700 }, { width: 844, height: 390 }, { width: 390, height: 844 }]) {
+      const p = await open(browser, 'flight-school.html', { viewport: vp });
+      await p.evaluate(() => startLesson(2)); await p.waitForTimeout(300);
+      const r = await p.evaluate(() => {
+        const d = document.getElementById('dia').getBoundingClientRect(), c = getComputedStyle(document.getElementById('card'));
+        const fwd = document.getElementById('fwd').getBoundingClientRect();
+        return { w: d.width / innerWidth, h: d.height / innerHeight, border: c.borderTopWidth, sharp: document.getElementById('dia').width >= d.width, fwdOn: fwd.bottom <= innerHeight + 1 || innerHeight > innerWidth };
+      });
+      if (!(r.w > (vp.width > vp.height ? 0.55 : 0.9)) || r.border !== '0px' || !r.sharp || !r.fwdOn) bad.push(JSON.stringify({ vp, r }));
+      await done(p, vp.width === 1400 ? 'flight-lesson-wide.png' : null);
+    }
+    check(!bad.length, 'lesson layout: ' + bad.join(' | '));
+  });
+
   await test('Flight School: quiz with second chances, stars, cards, final exam and certificate', async () => {
     const p = await open(browser, 'flight-school.html', { viewport: { width: 960, height: 700 } });
     await p.evaluate(() => { settings.mode = 'easy'; cur = 0; startRound(true); round.over = true; round.win = true; round.end = 'test'; round.endT = 2; update(0.01); });
@@ -594,9 +610,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(sx > 0.3 && sx < 0.9, 'the left stick should steer smoothly (analog), got ' + sx);
     await padStick(p, 0, 0);
     await padTap(p, 'MENU');
-    check(await p.evaluate(() => paused), '☰ should pause');
+    check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), '☰ should open the menu and pause');
+    check((await padFocus(p)) === 'Back to the game' || await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-menu-back')), 'Back to the game should be highlighted');
     await padTap(p, 'A');
-    check(await p.evaluate(() => !paused), 'Ⓐ on Keep Playing should resume');
+    check(await p.evaluate(() => !paused && !document.querySelector('.rb-menu')), 'Ⓐ on Back to the game should resume');
     await p.evaluate(() => RB.noise(0.3, 0.5)); await p.waitForTimeout(50);
     check(await p.evaluate(() => window.__rumbles > 0), 'crashes should rumble the controller');
     // Flight School: menus with the D-pad, hold Ⓐ for the burner
@@ -719,7 +736,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padTap(p, 'MENU');
     check(await p.evaluate(() => !paused && RB.audio().state === 'running'), 'carrying on should bring the sound back');
     await view();
-    check(await p.evaluate(() => paused && document.querySelector('.rb-pad-focus')?.classList.contains('rb-home')), 'View once should pause with "All games" highlighted');
+    check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu') && document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all')), 'View once should open the menu (paused) with "All games" highlighted');
     await view(); await p.waitForTimeout(500);
     check(p.url().endsWith('/index.html'), 'View twice should go back to all the games: ' + p.url());
     await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(400);
@@ -758,10 +775,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padHold(p, 'A', false);
     await padHold(p, 'B', true); await p.waitForTimeout(2600); await padHold(p, 'B', false);
     check(await p.evaluate(() => !document.querySelector('.rb-padscreen.testing')), 'holding Ⓑ should finish testing');
-    // settings: invert the left stick's up/down and the right stick's up/down, switch vibration off
-    await p.click('[data-k="invLY"]'); await p.click('[data-k="invRY"]'); await p.click('[data-k="rumble"]');
+    // settings: invert flying up/down and the camera's up/down (in this game only), switch vibration off
+    await p.click('[data-inv="LY"]'); await p.click('[data-inv="RY"]'); await p.click('[data-k="rumble"]');
     const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('rb_pad')));
-    check(saved.invLY && saved.invRY && !saved.rumble, 'settings should save: ' + JSON.stringify(saved));
+    const mine = (saved.inverts || {})['witch-way-out.html'] || {};
+    check(mine.LY && mine.RY && !mine.RX && !saved.rumble, 'settings should save, for this game: ' + JSON.stringify(saved));
     await padTap(p, 'B'); await p.waitForTimeout(100);
     check(await p.evaluate(() => !document.querySelector('.rb-padscreen') && state === 'title'), 'Ⓑ should close the screen');
     await p.evaluate(() => startGame()); await p.waitForTimeout(200);
@@ -770,15 +788,273 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.stickY > 0.3 && r.lookY > 0.3, 'pushing both sticks up should now count as down (inverted): ' + JSON.stringify(r));
     await p.evaluate(() => { __pad.axes[1] = 0; __pad.axes[3] = 0; window.__rumbles = 0; RB.noise(0.3, 0.5); });
     check(await p.evaluate(() => !window.__rumbles), 'vibration off should stop the rumble');
-    // the pause menu has the controller screen too, and closing it returns to the pause menu
-    await padTap(p, 'MENU');
+    // the pause screen has the controller screen too, and closing it returns to the pause screen
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
     await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
-    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause menu should open the controller screen');
+    check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause screen should open the controller screen');
     await p.keyboard.press('Escape'); await p.waitForTimeout(100);
-    check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause menu, still paused');
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause screen, still paused');
+    // and from the ☰ menu: closing the controller screen goes back to the menu, ☰ again carries on
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await padTap(p, 'MENU'); await p.click('.rb-menu [data-m="pad"]'); await p.waitForTimeout(150);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !!document.querySelector('.rb-menu') && paused), 'closing the controller screen goes back to the menu');
+    await padTap(p, 'MENU'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !document.querySelector('.rb-menu') && !paused), '☰ again closes the menu and carries on');
     await p.evaluate(() => { localStorage.removeItem('rb_pad'); });
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await p.screenshot({ path: path.join(OUT, 'witch-controller.png') });
+    await ctx.close();
+  });
+
+  await test('Lily Pad Lunch: the tongue snaps bugs into the jar, bees sting, hops, growing up, beetles fall in, the heron and diving, winning and losing a level', async () => {
+    const p = await open(browser, 'lily-pad-lunch.html', { viewport: { width: 1000, height: 600 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); update(1 / 60); } };
+      localStorage.removeItem('lp_save'); for (const k in save.cards) delete save.cards[k]; save.stars = {}; save.best = {};
+      easy = false; twoP = false; startLevel(1);
+      bugs = []; spawnT = 99; heronT = 99;
+      const f = frogs[0];
+      // a fly just above: snap it, it rides the tongue back and goes in the jar (and you get its Bug Card)
+      const fly = newBug('fly', f.x + 60, f.y - 120, 1); fly.vx = fly.vy = 0; fly.t = 0; bugs.push(fly);
+      const move = moveBug; moveBug = () => {};   // (hold the bugs still while we aim)
+      f.aim = aimAt(f, fly.x, fly.y); snap(f); run(40);
+      out.fly = { jar, gone: !bugs.includes(fly), card: !!save.cards.fly, tongue: !!f.tongue };
+      // a bee: ouch, and no snapping for a moment
+      const bee = newBug('bee', f.x - 50, f.y - 110, 1); bugs.push(bee);
+      f.aim = aimAt(f, bee.x, bee.y); snap(f); run(20);
+      out.sting = f.sting > 0; snap(f); out.blocked = !f.tongue; run(60 * 3);
+      // hop to the next pad
+      const from = f.pad; hop(f, from + 1); run(45); out.hop = f.pad === from + 1 && !f.hop;
+      // growing up: the 12th bug makes a bigger frog with a longer tongue
+      const reach0 = reach(f); f.eaten = 11;
+      const fly2 = newBug('fly', f.x, f.y - 100, 1); bugs.push(fly2); f.aim = aimAt(f, fly2.x, fly2.y); snap(f); run(40);
+      out.grow = { size: f.size, longer: reach(f) > reach0 };
+      // the golden frog's tongue grabs every bug on its way
+      f.size = 3; f.eaten = 80;
+      const line = [70, 130, 190].map(d => { const b = newBug('fly', f.x, f.y - 16 - d, 1); bugs.push(b); return b; });
+      const j0 = jar; f.aim = -Math.PI / 2; snap(f); run(40);
+      out.golden = jar - j0;
+      moveBug = move;
+      // a beetle on a pad falls in the water when a frog lands there
+      startLevel(3); bugs = bugs.filter(b => b.kind === 'beetle'); spawnT = 99; heronT = 99;
+      const bt = bugs[0], g = frogs[0];
+      if (bt.pad === g.pad) { hop(g, g.pad === 0 ? 1 : g.pad - 1); run(45); }
+      hop(g, bt.pad); run(50);
+      out.beetle = bt.swim === true;
+      // the heron: it aims at your pad, and its jab spills bugs out of the jar unless you dive
+      startLevel(2); bugs = []; spawnT = 99; jar = 6;
+      heronT = 0; run(5); for (let i = 0; i < 600 && (!heron || heron.st !== 'aim'); i++) update(1 / 60);
+      run(60 * 2.2);
+      out.heron = { jar, stun: frogs[0].stun > 0 || jar < 6 };
+      heron = null; heronT = 0; jar = 6; run(5); for (let i = 0; i < 600 && (!heron || heron.st !== 'aim'); i++) update(1 / 60);
+      run(40); dive(frogs[0]); run(60 * 1.2);
+      out.dive = { jar, safe: jar === 6 };
+      // fill the jar: the level is won and the next one opens; run out of time: try again
+      startLevel(0); jar = LEVELS[0].goal; run(2);
+      out.win = { state, stars: save.stars.morning, next: unlocked(1), best: +localStorage.getItem('lp_best') };
+      startLevel(1); timeLeft = 0.01; run(3);
+      out.lose = { state, title: document.getElementById('endTitle').textContent };
+      // little kids mode: the tongue slips past the bees
+      easy = true; startLevel(1); bugs = []; spawnT = 99;
+      const b2 = newBug('bee', frogs[0].x, frogs[0].y - 100, 1); b2.vx = b2.vy = 0; bugs.push(b2); moveBug = () => {};
+      frogs[0].aim = -Math.PI / 2; snap(frogs[0]); run(40);
+      out.easyBee = { sting: frogs[0].sting, beeThere: bugs.includes(b2) };
+      moveBug = move; easy = false;
+      return out;
+    });
+    check(r.fly.jar === 1 && r.fly.gone && r.fly.card && !r.fly.tongue, 'the tongue snaps a fly into the jar: ' + JSON.stringify(r.fly));
+    check(r.sting && r.blocked, 'a bee stings and the tongue is too puffy to snap: ' + JSON.stringify(r));
+    check(r.hop, 'the frog hops to the next pad');
+    check(r.grow.size === 1 && r.grow.longer, 'eating 12 bugs grows a bigger frog with a longer tongue: ' + JSON.stringify(r.grow));
+    check(r.golden === 3, "the golden frog's tongue grabs all three bugs in a line: " + r.golden);
+    check(r.beetle, 'landing on a pad knocks its beetle into the water');
+    check(r.heron.stun && r.heron.jar < 6, "the heron's jab spills bugs from the jar: " + JSON.stringify(r.heron));
+    check(r.dive.safe, 'diving under the water keeps you safe from the heron: ' + JSON.stringify(r.dive));
+    check(r.win.state === 'end' && r.win.stars === 3 && r.win.next && r.win.best >= 10, 'a full jar wins the level and opens the next: ' + JSON.stringify(r.win));
+    check(r.lose.state === 'end' && /sun went down/.test(r.lose.title), 'running out of time ends the level: ' + JSON.stringify(r.lose));
+    check(!r.easyBee.sting && r.easyBee.beeThere, 'in little kids mode the tongue slips past bees: ' + JSON.stringify(r.easyBee));
+    await done(p, 'lily-pad-lunch.png');
+  });
+
+  await test('Lily Pad Lunch: a robot frog (aim at the nearest bug, dodge bees, dive from the heron) fills the jar on all 5 levels', async () => {
+    const p = await open(browser, 'lily-pad-lunch.html', { viewport: { width: 900, height: 560 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      easy = false; twoP = false; frogs = [];
+      LEVELS.forEach((L, i) => {
+        startLevel.carry = i > 0; startLevel(i);
+        const f = frogs[0];
+        for (let n = 0; n < 60 * 120 && state === 'play'; n++) {
+          if (heron && heron.st === 'aim' && heron.pad === f.pad && heron.t > 1.2) dive(f);
+          if (!f.tongue && !f.hop && f.dive <= 0) {
+            let best = null, bd = Infinity;
+            for (const b of bugs) {
+              if (b.stuck || b.kind === 'bee') continue;
+              const d = Math.hypot(b.x - f.x, b.y - f.y);
+              if (d < reach(f) - 10 && d < bd) { bd = d; best = b; }
+            }
+            // a bee in the way? wait for it to move
+            if (best) {
+              const a = aimAt(f, best.x, best.y, best);
+              const beeInWay = bugs.some(b => b.kind === 'bee' && Math.abs(Math.atan2(b.y - f.y + 14, b.x - f.x) - a) < 0.25 && Math.hypot(b.x - f.x, b.y - f.y) < bd + 20);
+              if (!beeInWay) { f.aim = a; snap(f); }
+            } else if (n % 90 === 0) {   // nothing in reach: hop toward the busiest side
+              const left = bugs.filter(b => b.x < f.x && b.kind !== 'bee').length, right = bugs.filter(b => b.x > f.x && b.kind !== 'bee').length;
+              hop(f, f.pad + (right >= left ? 1 : -1));
+            }
+          }
+          update(1 / 60);
+        }
+        out[L.id] = { won: (save.stars[L.id] || 0) > 0 && document.getElementById('endTitle').textContent !== 'The sun went down!', jar, goal: L.goal, left: Math.round(timeLeft), size: f.size };
+      });
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) check(v.won, `${id}: the robot should fill the jar in time: ` + JSON.stringify(v));
+    await done(p);
+  });
+
+  await test('Lily Pad Lunch 🎮 two controllers and 📱 touch: each controller aims and snaps its own frog, race mode, tap to snap and hop', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
+    await ctx.addInitScript(() => {
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } });
+      window.__pads = [mk(0), mk(1)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('lily-pad-lunch.html')); await p.waitForTimeout(800);
+    const btn = (i, b, on) => p.evaluate(([i, b, on]) => { __pads[i].buttons[b] = { pressed: on, value: on ? 1 : 0 }; }, [i, b, on]);
+    const tap = async (i, b) => { await btn(i, b, true); await p.waitForTimeout(150); await btn(i, b, false); await p.waitForTimeout(150); };
+    // the title is a menu the controller can drive: Ⓐ plays the highlighted level
+    await p.evaluate(() => { localStorage.removeItem('lp_save'); twoP = true; team = false; renderTitle(); });
+    await tap(0, 0); await p.waitForTimeout(300);
+    const started = await p.evaluate(() => ({ state, frogs: frogs.length, direct: RB.pad.direct }));
+    await p.evaluate(() => { spawnT = 99; bugs = []; heronT = 99; });
+    // controller 2's stick points Player 2's tongue up and left; its Ⓐ snaps Player 2's tongue only
+    const a0 = await p.evaluate(() => [frogs[0].aim, frogs[1].aim]);
+    await p.evaluate(() => { __pads[1].axes[0] = -0.7; __pads[1].axes[1] = -0.7; }); await p.waitForTimeout(400);
+    await p.evaluate(() => { __pads[1].axes[0] = 0; __pads[1].axes[1] = 0; });
+    const a1 = await p.evaluate(() => [frogs[0].aim, frogs[1].aim]);
+    await btn(1, 0, true); await p.waitForTimeout(150);
+    const tongues = await p.evaluate(() => frogs.map(f => !!f.tongue));
+    await btn(1, 0, false); await p.waitForTimeout(400);
+    // controller 1's LB hops Player 1 a pad to the left
+    const pad0 = await p.evaluate(() => frogs[0].pad);
+    await tap(0, 4); await p.waitForTimeout(700);
+    const pad1 = await p.evaluate(() => frogs[0].pad);
+    // race: each frog fills its own jar
+    const race = await p.evaluate(() => { frogs[1].jar = LEVELS[0].goal; update(1 / 60); return { state, text: document.getElementById('endText').textContent }; });
+    // ☰ on the second controller opens the menu
+    await p.evaluate(() => startLevel(0)); await p.waitForTimeout(200);
+    await tap(1, 9);
+    const menu = await p.evaluate(() => ({ menu: !!document.querySelector('.rb-menu'), paused }));
+    check(started.state === 'play' && started.frogs === 2 && started.direct, 'Ⓐ on the title starts a two-player game: ' + JSON.stringify(started));
+    check(Math.abs(a1[0] - a0[0]) < 0.01 && a1[1] < -2.0, "controller 2's stick aims only Player 2: " + JSON.stringify({ a0, a1 }));
+    check(!tongues[0] && tongues[1], "controller 2's Ⓐ snaps only Player 2's tongue: " + JSON.stringify(tongues));
+    check(pad1 === pad0 - 1, 'LB hops Player 1 to the pad on the left: ' + JSON.stringify({ pad0, pad1 }));
+    check(race.state === 'end' && /Player 2.*wins/.test(race.text), 'race mode: a full jar wins for that player: ' + JSON.stringify(race));
+    check(menu.menu && menu.paused, "the second controller's ☰ opens the menu: " + JSON.stringify(menu));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    // 📱 on a phone: tap near a bug to snap at it, tap a lily pad to hop there
+    const ph = await open(browser, 'lily-pad-lunch.html', PHONE);
+    await ph.evaluate(() => { twoP = false; startLevel(0); bugs = []; spawnT = 99; moveBug = () => {}; });
+    const t = await ph.evaluate(() => {
+      const f = frogs[0], b = newBug('fly', f.x + 40, f.y - 110, 1); bugs.push(b);
+      const sx = innerWidth / (canvas.width / scale), sy = innerHeight / (canvas.height / scale), off = (VH - H) / 2;
+      return { bug: [(b.x + 10) * sx, (b.y + off - 8) * sy], pad: [pads[(f.pad + 1) % pads.length].x * sx, (WATER_Y + off) * sy], next: (f.pad + 1) % pads.length };
+    });
+    await ph.touchscreen.tap(t.bug[0], t.bug[1]); await ph.waitForTimeout(600);
+    const snapped = await ph.evaluate(() => jar);
+    await ph.touchscreen.tap(t.pad[0], t.pad[1]); await ph.waitForTimeout(900);
+    const hopped = await ph.evaluate(() => frogs[0].pad);
+    check(snapped === 1, 'tapping next to a bug snaps it: jar ' + snapped);
+    check(hopped === t.next, 'tapping a lily pad hops there: ' + JSON.stringify({ hopped, want: t.next }));
+    await done(ph, 'lily-pad-lunch-phone.png');
+  });
+
+  await test('Witch Way Out 👥 two players: split screen, each controller flies its own witch, hats bonk each other, both finish', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+    await ctx.addInitScript(() => {   // two pretend Xbox controllers
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => { window.__rumbles = (window.__rumbles || 0) + 1; return Promise.resolve(); } } });
+      window.__pads = [mk(0), mk(1)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    const btn = (i, b, on) => p.evaluate(([i, b, on]) => { __pads[i].buttons[b] = { pressed: on, value: on ? 1 : 0 }; }, [i, b, on]);
+    const tap = async (i, b) => { await btn(i, b, true); await p.waitForTimeout(300); await btn(i, b, false); await p.waitForTimeout(300); };   // (two 3D views are slow to draw in a test browser)
+    const title = await p.evaluate(() => ({ two: !!document.getElementById('btnPlay2'), pads: document.getElementById('padCount').textContent }));
+    await p.click('#btnPlay2'); await p.waitForTimeout(300);
+    await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(300);
+    const split = await p.evaluate(() => ({ split: document.body.classList.contains('split'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      divider: !document.getElementById('divider').classList.contains('hidden'), direct: RB.pad.direct, p2: P2.mesh.visible, racers: players.length }));
+    // controller 2 steers and boosts Player 2 only
+    const y1 = await p.evaluate(() => [P1.yaw, P2.yaw]);
+    await p.evaluate(() => { __pads[1].axes[0] = 1; }); await btn(1, 6, true); await p.waitForTimeout(500);
+    const steer = await p.evaluate(() => ({ p1: P1.yaw, p2: P2.yaw, b1: P1.boosting, b2: P2.boosting, keys: Object.values(P1.keys).some(Boolean) }));
+    await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 6, false);
+    // Ⓧ on controller 1 throws Player 1's hat, not Player 2's
+    await tap(0, 2);
+    const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
+    // the keyboard is shared: W A S D for Player 1, the arrows for Player 2
+    await p.keyboard.down('ArrowLeft'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
+    const kb = await p.evaluate(() => ({ p1: { ...P1.keys }, p2: { ...P2.keys } }));
+    await p.keyboard.up('ArrowLeft'); await p.keyboard.up('KeyD');
+    // Player 2's hat can bonk Player 1
+    const bonk = await p.evaluate(() => {
+      clearProjectiles();   // (one evaluate runs start to end: the page's own loop waits)
+      friends.forEach(f => { f.z = P1.pos.z + 400; f.nextThrow = 99; });
+      P2.pos.copy(P1.pos).add(new THREE.Vector3(0, 0, 20)); P2.yaw = P1.yaw; P2.pitch = P1.pitch; P1.shieldT = 0; P1.cloakT = 0; P1.bonkT = 0;
+      for (let i = 0; i < 3; i++) update(1 / 60);
+      const locked = P2.lockMesh.visible;
+      throwHat(P2);
+      let hit = false;
+      for (let i = 0; i < 60 * 3 && !hit; i++) { update(1 / 60); updateVisuals(1 / 60); if (P1.bonkT > 0) hit = true; }
+      return { locked, hit, hits: P2.hatsHit, layers: P2.lockMesh.layers.mask !== P1.lockMesh.layers.mask };
+    });
+    // both fly the line to the moon (the pumpkin chases whoever is behind); the race ends when both are there
+    const race = await p.evaluate(() => {
+      for (let i = 0; i < 60 * 320 && state === 'fly'; i++) {
+        for (const q of players) {
+          const k = q.keys; k.l = k.r = k.u = k.d = false;
+          const z = q.pos.z - 35, wantYaw = Math.atan2(-(lineX(z) - q.pos.x), -(z - q.pos.z));
+          if (wantYaw - q.yaw < -0.05) k.r = true; else if (wantYaw - q.yaw > 0.05) k.l = true;
+          const wp = Math.atan2(lineY(z) - q.pos.y, 35);
+          if (wp - q.pitch > 0.05) k.u = true; else if (wp - q.pitch < -0.05) k.d = true;
+          if (q.strike && q.strike.t < 0.6) castShield(q);
+        }
+        update(1 / 60); if (i % 4 === 0) updateVisuals(1 / 60);
+      }
+      return { state, places: players.map(q => q.finishPlace), podium: document.querySelectorAll('.podium li.you').length, all: document.querySelectorAll('.podium li').length,
+        stats: document.getElementById('overStats').textContent, swap: document.getElementById('btnSwap').textContent };
+    });
+    await p.screenshot({ path: path.join(OUT, 'witch-2p-over.png') });
+    // race again: the split screen with both witches, then a screenshot of it
+    await p.evaluate(() => { startGame(); countT = 0; introT = 0; }); await p.waitForTimeout(900);
+    await p.screenshot({ path: path.join(OUT, 'witch-2p.png') });
+    // ☰ on the second controller opens the menu
+    await tap(1, 9);
+    const menu = await p.evaluate(() => ({ menu: !!document.querySelector('.rb-menu'), paused }));
+    await tap(1, 9);
+    // back to one player: no split, the controller presses keys again
+    await p.evaluate(() => startGame(false)); await p.waitForTimeout(200);
+    const one = await p.evaluate(() => ({ split: document.body.classList.contains('split'), direct: RB.pad.direct, p2: P2.mesh.visible, racers: players.length }));
+    check(title.two && /Two controllers/.test(title.pads), 'the title offers 2 players and sees both controllers: ' + JSON.stringify(title));
+    check(split.split && split.huds === 2 && split.divider && split.direct && split.p2 && split.racers === 2, 'two players split the screen: ' + JSON.stringify(split));
+    check(steer.p2 < y1[1] - 0.05 && Math.abs(steer.p1 - y1[0]) < 0.02 && steer.b2 && !steer.b1 && !steer.keys, 'controller 2 flies only Player 2: ' + JSON.stringify({ y1, steer }));
+    check(hats.length === 1 && hats[0] === 0, "controller 1's Ⓧ throws Player 1's hat: " + JSON.stringify(hats));
+    check(kb.p1.r && !kb.p1.l && kb.p2.l && !kb.p2.r, 'W A S D fly Player 1 and the arrows Player 2: ' + JSON.stringify(kb));
+    check(bonk.locked && bonk.hit && bonk.hits === 1 && bonk.layers, "Player 2's hat locks on and bonks Player 1: " + JSON.stringify(bonk));
+    check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 7) && race.places[0] !== race.places[1] && race.podium === 2 && race.all === 7 && /P1/.test(race.stats) && /P2/.test(race.stats) && /1 Player/.test(race.swap),
+      'both reach the moon and the results list both: ' + JSON.stringify(race));
+    check(menu.menu && menu.paused, "the second controller's ☰ opens the menu: " + JSON.stringify(menu));
+    check(!one.split && !one.direct && !one.p2 && one.racers === 1, 'one player again: ' + JSON.stringify(one));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
   });
 
@@ -847,12 +1123,266 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Pumpkin Pals: every level can be finished (a search over every place Patch can stand), and every lost pumpling and golden candy can be reached', async () => {
+    const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      for (const id of ORDER) {
+        const L = LEVELS[id], W = L.w, H = L.h;
+        // crates can be smashed (throw a pumpling, or ground pound), so for getting about they're open
+        const raw = (x, y) => (x < 0 || x >= W ? T.STONE : y < 0 || y >= H ? 0 : L.t[y * W + x]);
+        const solid = (x, y) => SOLID.has(raw(x, y)) && raw(x, y) !== T.CRATE;
+        const stand = new Set(), springs = new Set(), k = (x, y) => x + ',' + y;
+        for (let x = 0; x < W; x++) for (let y = 1; y < H - 1; y++) {
+          const below = raw(x, y + 1);
+          if (!solid(x, y) && raw(x, y) !== T.THORNS && (SOLID.has(below) || below === T.ONEWAY)) stand.add(k(x, y));
+        }
+        for (const e of L.ents) {
+          if (e.k === 'plat') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
+          if (e.k === 'spring') springs.add(k(e.x, e.y));
+        }
+        const pts = [...stand].map(q => q.split(',').map(Number));
+        const start = pts.filter(([x]) => x <= 4).sort((a, b) => b[1] - a[1])[0];
+        const seen = new Set([k(...start)]), q = [start];
+        const clearUp = (x, y, up) => { for (let i = 1; i <= up; i++) if (solid(x, y - i)) return false; return true; };
+        let far = 0;
+        while (q.length) {
+          const [x, y] = q.shift();
+          far = Math.max(far, x);
+          const spring = [-1, 0, 1].some(d => springs.has(k(x + d, y)));
+          for (const [x2, y2] of pts) {
+            if (seen.has(k(x2, y2))) continue;
+            const dx = Math.abs(x2 - x), up = y - y2;
+            // a walking jump covers about 4 tiles up or 5 across; a running one 7 across; a spring 9 up
+            const ok = up < 0 ? dx <= 7 + Math.min(4, -up) : spring && up <= 9 ? dx <= 5 : up <= 1 ? dx <= 7 : up <= 4 ? dx <= 5 : false;
+            if (ok && (up <= 0 || clearUp(x, y, Math.min(up, 3)) || clearUp(x2, y2 + up, up))) { seen.add(k(x2, y2)); q.push([x2, y2]); }
+          }
+        }
+        const reach = (ex, ey, upTo) => [...seen].some(s => { const [a, b] = s.split(',').map(Number); return Math.abs(a - ex) <= 2 && ey <= b && b - ey <= upTo; });
+        const lost = L.ents.filter(e => e.k === 'lost'), golds = L.ents.filter(e => e.k === 'gold');
+        out[id] = { far, goal: L.goal || L.arena + 36, lost: lost.length, lostMissing: lost.filter(e => !reach(e.x, e.y, 0)).map(e => e.x + ',' + e.y),
+          golds: golds.length, goldMissing: golds.filter(e => !reach(e.x, e.y, 4)).map(e => e.x + ',' + e.y) };
+      }
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) {
+      check(v.far >= v.goal, `${id}: Patch can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
+      check(v.golds === 3 && !v.goldMissing.length, `${id}: 3 golden candies, all reachable: ` + JSON.stringify(v));
+      check(v.lost >= 2 && !v.lostMissing.length, `${id}: every lost pumpling should be reachable: ` + JSON.stringify(v));
+    }
+    await done(p);
+  });
+
+  await test('Pumpkin Pals: a robot that only runs and jumps gets through all five levels to the wagon', async () => {
+    const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      paused = true;
+      for (const id of ORDER.filter(id => !LEVELS[id].boss)) {
+        lives = 99; startLevel(id);
+        let falls = 0, t = 0;
+        for (t = 0; t < 60 * 90 && state === 'level'; t++) {
+          if (phase === 'dying') { falls++; while (phase === 'dying' && state === 'level') step(1 / 60); continue; }
+          if (phase !== 'play') { step(1 / 60); continue; }
+          player.inv = 9;   // this is about the jumps, so the robot ignores enemies
+          const pl = player, fy = Math.floor((pl.y + pl.h - 1) / TS);
+          const tx = Math.floor((pl.x + pl.w + 4) / TS), wall = SOLID.has(tileAt(tx, fy)) || SOLID.has(tileAt(tx, fy - 1));
+          const floor = cx => { for (let y = fy + 1; y < 14; y++) { const t2 = tileAt(cx, y); if (SOLID.has(t2) || t2 === T.ONEWAY) return true; } return ents.some(e => e.k === 'plat' && Math.abs(e.x + e.w / 2 - cx * TS) < 40); };
+          const gap = pl.ground && ![1, 2].some(d => { const t2 = tileAt(Math.floor((pl.x + pl.w + d * 8) / TS), fy + 1); return SOLID.has(t2) || t2 === T.ONEWAY; })
+            && !ents.some(e => e.k === 'plat' && Math.abs(e.y - (pl.y + pl.h)) < 4 && e.x < pl.x + pl.w + 20 && e.x + e.w > pl.x);
+          keys.right = true; keys.run = true;
+          if ((wall || gap) && pl.ground && !keys.jump) { keys.jump = true; pressed.jump = true; } else if (keys.jump && pl.vy > 0) keys.jump = false;
+          if (!pl.ground && pl.vy > 40 && !pl.spun && !floor(Math.floor((pl.x + 6) / TS)) && !floor(Math.floor((pl.x + 22) / TS))) pressed.jump = true;   // spin over a pit
+          step(1 / 60);
+        }
+        keys.right = keys.run = keys.jump = false;
+        out[id] = { state, falls, cleared: !!save.cleared[id], secs: Math.round(t / 60) };
+      }
+      paused = false;
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) check(v.cleared && v.state === 'map' && v.falls <= 1, `${id}: the robot should reach the wagon: ` + JSON.stringify(v));
+    await done(p);
+  });
+
+  await test('Pumpkin Pals: rescuing, throwing (enemies, crates, blocks above), scattering and grabbing back, ghosts, skeletons, springs, the wagon and the scarecrow', async () => {
+    const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      const put = (tx, row) => { player.x = tx * 16 + 2; player.y = (row + 1) * 16 - player.h; player.vx = 0; player.vy = 0; };
+      localStorage.removeItem('pp_save'); for (const k in save.cleared) delete save.cleared[k]; save.beaten = false;
+      paused = true; startGame();
+      startLevel('patch'); run(5);
+      const lost = ents.find(e => e.k === 'lost'), n0 = pals.length;
+      player.x = lost.x; player.y = lost.y - 4; run(3);
+      out.rescue = { found: found.size, joined: pals.length - n0 };
+      const cat = ents.find(e => e.k === 'cat'); put(Math.floor(cat.x / 16) - 4, 11); player.face = 1; run(30);
+      cat.x = player.x + 40; cat.dir = -1; player.inv = 9; pressed.throw = true; run(40);
+      out.throwCat = { gone: cat.dead || !ents.includes(cat), back: pals.every(q => q.st === 'follow') };
+      put(9, 11); player.face = 1; run(30); keys.up = true; pressed.throw = true; run(30); keys.up = false;
+      out.throwUp = tileAt(9, 8) === T.USED;
+      startLevel('patch'); run(60);
+      const before = pals.length; player.inv = 0; hurtPlayer();
+      const sc = pals.filter(q => q.st === 'scatter');
+      out.hurt = { before, scattered: sc.length, lives };
+      run(50); for (const q of sc) { player.x = q.x; player.y = q.y; run(2); }
+      out.regrab = pals.filter(q => q.st === 'follow').length;
+      pals = []; player.inv = 0; const lv = lives; hurtPlayer(); run(60 * 3);
+      out.die = { lost: lv - lives, state, pals: pals.length };
+      startLevel('manor'); run(5);
+      const gh = ents.find(e => e.k === 'ghost'); put(Math.floor(gh.x / 16) - 6, 11); player.face = 1; run(10);
+      const gx = gh.x; run(30); out.ghostLook = { hide: gh.hide, moved: Math.abs(gh.x - gx) };
+      player.face = -1; const gx2 = gh.x; run(30); out.ghostAway = { hide: gh.hide, closer: gh.x < gx2 };
+      player.face = 1; gh.x = player.x + 40; gh.y = player.y - 2; player.inv = 9; pressed.throw = true; run(40);
+      out.ghostBoo = gh.dead || !ents.includes(gh);
+      put(35, 11); player.face = 1; player.inv = 9; run(20); pressed.throw = true; run(40);
+      out.crates = [8, 9, 10, 11].filter(y => tileAt(38, y) === T.CRATE).length;
+      const sk = ents.find(e => e.k === 'skel'); player.x = sk.x; player.y = sk.y - 40; player.vy = 100; player.inv = 0; run(20);
+      out.bones = sk.st; player.x = sk.x - 120; player.vy = 0; run(60 * 4.5); out.rattledBack = sk.st;
+      player.x = sk.x - 2; player.y = sk.y - 50; player.vy = 0; player.ground = false; pressed.down = true; run(60);
+      out.pound = sk.dead || !ents.includes(sk);
+      startLevel('patch'); const sp = ents.find(e => e.k === 'spring'); player.x = sp.x + 2; player.y = sp.y - 40; player.vy = 150; run(18);
+      out.spring = player.vy < -300 || player.y < sp.y - 60;
+      startLevel('patch'); put(162, 11); keys.right = true; run(40); keys.right = false; run(60 * 5);
+      out.goal = { state, cleared: !!save.cleared.patch, woodsOpen: nodeOpen(1), manorOpen: nodeOpen(2), score };
+      startLevel('barn'); put(70, 11); run(60);
+      const bo = ents.find(e => e.k === 'boss'); out.arena = arenaLock;
+      for (let h = 0; h < 3; h++) {
+        bo.st = 'dizzy'; bo.stT = 0; bo.inv = 0; bo.x = 80 * 16; bo.y = 12 * 16 - bo.h; player.inv = 9;
+        player.x = bo.x + 8; player.y = bo.y - 30; player.vy = 150; run(10);
+      }
+      out.bossHp = bo.hp; run(60 * 8);
+      out.ending = { state, beaten: save.beaten, best: +localStorage.getItem('pp_best'), shown: !document.getElementById('ending').classList.contains('hidden') };
+      paused = false;
+      return out;
+    });
+    check(r.rescue.found === 1 && r.rescue.joined === 1, 'touching a lost pumpling rescues it: ' + JSON.stringify(r.rescue));
+    check(r.throwCat.gone && r.throwCat.back, 'a thrown pumpling knocks out a cat and comes back: ' + JSON.stringify(r.throwCat));
+    check(r.throwUp, 'throwing straight up bumps the block above');
+    check(r.hurt.scattered === 3 && r.hurt.lives === 5 && r.regrab === r.hurt.before, 'a hit scatters 3 pumplings (no life lost) and they can be grabbed back: ' + JSON.stringify(r));
+    check(r.die.lost === 1 && r.die.state === 'level' && r.die.pals === 3, 'a hit with nobody left costs a life and restarts with the crew: ' + JSON.stringify(r.die));
+    check(r.ghostLook.hide && r.ghostLook.moved === 0 && !r.ghostAway.hide && r.ghostAway.closer && r.ghostBoo, 'ghosts hide when looked at, creep up otherwise, and a thrown pumpling scares them off: ' + JSON.stringify(r));
+    check(r.crates === 3, 'a thrown pumpling smashes a crate: ' + r.crates);
+    check(r.bones === 'bones' && r.rattledBack === 'walk' && r.pound, 'skeletons fall to bones, rattle back, and a ground pound finishes them: ' + JSON.stringify(r));
+    check(r.spring, 'the pumpkin spring bounces Patch up');
+    check(r.goal.state === 'map' && r.goal.cleared && r.goal.woodsOpen && !r.goal.manorOpen && r.goal.score > 0, 'the wagon clears the level and opens the next: ' + JSON.stringify(r.goal));
+    check(r.arena && r.bossHp === 0 && r.ending.state === 'ending' && r.ending.beaten && r.ending.shown && r.ending.best > 0, 'three hits beat the scarecrow, then the ending: ' + JSON.stringify(r));
+    await done(p, 'pumpkin-pals.png');
+  });
+
+  await test('Pumpkin Pals 🎮 controller and 📱 phone: Ⓐ starts and jumps, the stick walks, Ⓑ throws a pumpling; touch buttons do the same', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('pumpkin-pals.html')); await p.waitForTimeout(600);
+    await padTap(p, 'A'); await p.waitForTimeout(300);
+    const s1 = await p.evaluate(() => state);
+    await padTap(p, 'A'); await p.waitForTimeout(400);
+    const s2 = await p.evaluate(() => ({ state, id: lvl && lvl.id, x: player && player.x }));
+    await padStick(p, 0.9, 0); await p.waitForTimeout(700); await padStick(p, 0, 0);
+    const x2 = await p.evaluate(() => player.x);
+    await padTap(p, 'B'); await p.waitForTimeout(60);
+    const thrown = await p.evaluate(() => pals.some(q => q.st === 'thrown' || q.st === 'back'));
+    await padTap(p, 'A'); await p.waitForTimeout(100);
+    const jumped = await p.evaluate(() => !player.ground || player.vy < 0);
+    check(s1 === 'map' && s2.state === 'level' && s2.id === 'patch', 'Ⓐ starts the game, then the first level: ' + JSON.stringify({ s1, s2 }));
+    check(x2 > s2.x + 30 && thrown && jumped, 'the stick walks, Ⓑ throws, Ⓐ jumps: ' + JSON.stringify({ x0: s2.x, x2, thrown, jumped }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+    const ph = await open(browser, 'pumpkin-pals.html', PHONE);
+    await ph.tap('#btnPlay'); await ph.waitForTimeout(300);
+    await ph.evaluate(() => enterLevel(0)); await ph.waitForTimeout(300);
+    const vis = await ph.evaluate(() => !document.getElementById('touch').classList.contains('hidden'));
+    const x0 = await ph.evaluate(() => player.x);
+    const box = await (await ph.$('#tRight')).boundingBox();
+    await ph.touchscreen.tap(box.x + box.width / 2, box.y + box.height / 2);
+    await ph.dispatchEvent('#tRight', 'pointerdown', { pointerId: 7 }); await ph.waitForTimeout(600); await ph.dispatchEvent('#tRight', 'pointerup', { pointerId: 7 });
+    await ph.dispatchEvent('#tThrow', 'pointerdown', { pointerId: 8 }); await ph.waitForTimeout(50); await ph.dispatchEvent('#tThrow', 'pointerup', { pointerId: 8 });
+    const t = await ph.evaluate(() => ({ x: player.x, thrown: pals.some(q => q.st === 'thrown' || q.st === 'back') }));
+    check(vis && t.x > x0 + 20 && t.thrown, 'on a phone the touch buttons show, ▶ walks and 🎃 throws: ' + JSON.stringify({ vis, x0, ...t }));
+    await done(ph, 'pumpkin-pals-phone.png');
+  });
+
+  await test('🎮 every game: the controller ☰ opens the same menu (this game, then the arcade) and the stick reaches 🏠 All games', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const bad = [];
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+      await p.goto(url(f)); await p.waitForTimeout(500);
+      await padTap(p, 'A'); await p.waitForTimeout(300);   // start playing (or press whatever the title screen highlights)
+      if (!p.url().includes(f.split('/').pop())) { await p.goto(url(f)); await p.waitForTimeout(500); }
+      if (await p.evaluate(() => !!document.querySelector('.rb-menu'))) await padTap(p, 'B');
+      await padTap(p, 'MENU'); await p.waitForTimeout(150);
+      const m = await p.evaluate(() => {
+        const el = document.querySelector('.rb-menu'), h = el ? [...el.querySelectorAll('h3')].map(x => x.textContent) : [];
+        return { open: !!el, heads: h, back: !!(el && el.querySelector('.rb-menu-this .rb-menu-back')), home: !!(el && el.querySelector('.rb-home-all')),
+          focus: document.querySelector('.rb-pad-focus')?.className || '' };
+      });
+      if (!m.open || !/This game/.test(m.heads[0] || '') || !m.heads.some(x => /Games/.test(x)) || !m.back || !m.home || !/rb-menu-back/.test(m.focus)) { bad.push(f + ' menu ' + JSON.stringify(m)); continue; }
+      // the stick (pushed down) walks the highlight to 🏠 All games, and Ⓐ goes there
+      for (let i = 0; i < 40 && !(await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all'))); i++) {
+        await padStick(p, 0, 0.9); await padStick(p, 0, 0);
+      }
+      if (!(await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all')))) { bad.push(f + ' could not reach All games: ' + await padFocus(p)); continue; }
+      try { await padTap(p, 'A'); } catch (e) { /* the page went away */ }
+      await p.waitForTimeout(400);
+      if (!/robobandit\/index\.html$|\/index\.html$/.test(p.url()) || p.url().includes('preschool/') || p.url().includes('grade/')) bad.push(f + ' went to ' + p.url());
+    }
+    check(!bad.length, 'menu problems: ' + bad.join(' || '));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('🎮 inverted sticks are per game and only for flying / the camera: menus, Lucky Leo and the train throttle stay normal', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('hamglider.html')); await p.waitForTimeout(600);
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.controllerScreen(); });
+    const rows = await p.$$eval('[data-inv]', bs => bs.map(b => b.dataset.inv).sort().join(','));
+    await p.click('[data-inv="LY"]', { force: true });
+    await p.evaluate(() => document.querySelector('.rb-padscreen').close());
+    const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('rb_pad')).inverts);
+    // the menu still moves the normal way with the flying stick inverted
+    await padTap(p, 'MENU'); await p.waitForTimeout(150);
+    const f0 = await padFocus(p); await padStick(p, 0, 0.9); await padStick(p, 0, 0); const f1 = await padFocus(p);
+    const down = await p.evaluate(() => { const a = [...document.querySelectorAll('.rb-menu button, .rb-menu a')]; const f = document.querySelector('.rb-pad-focus'); return f && f.getBoundingClientRect().top > document.querySelector('.rb-menu-back').getBoundingClientRect().top; });
+    await padTap(p, 'B');
+    // flying: stick up now dives (pull back to climb)
+    await p.evaluate(() => { __pad.axes[1] = -0.9; }); await p.waitForTimeout(200);
+    const fly = await p.evaluate(() => ({ y: stick.y, game: RB.pad.game.ly }));
+    await p.evaluate(() => { __pad.axes[1] = 0; });
+    // another game doesn't get it: the train's throttle goes forward when the stick is pushed up
+    await p.goto(url('preschool/abc-train.html')); await p.waitForTimeout(800);
+    await p.evaluate(() => { const c = JSON.parse(localStorage.getItem('rb_pad')); c.inverts['preschool/abc-train.html'] = { LY: true, LX: true, RX: false, RY: false }; localStorage.setItem('rb_pad', JSON.stringify(c)); });
+    await p.reload(); await p.waitForTimeout(800);
+    const train = await p.evaluate(() => ({ ly: RB.pad.inv('LY'), rows: (RB.controllerScreen(), [...document.querySelectorAll('[data-inv]')].map(b => b.dataset.inv).sort().join(',')) }));
+    await p.evaluate(() => document.querySelector('.rb-padscreen').close());
+    await p.evaluate(() => { RB.speak = () => {}; }); await p.click('#btnAbc'); await p.waitForTimeout(300);
+    await p.evaluate(() => { hold = 0; for (const st of stations) st.letter = null; next = 99; });
+    const th0 = await p.evaluate(() => train.th);
+    await p.evaluate(() => { __pad.axes[1] = -0.9; }); await p.waitForTimeout(700); await p.evaluate(() => { __pad.axes[1] = 0; }); await p.waitForTimeout(100);
+    const th1 = await p.evaluate(() => train.th);
+    check(rows === 'LY,RX,RY', 'Hamglider offers flying up/down and the camera: ' + rows);
+    check(saved['hamglider.html'] && saved['hamglider.html'].LY && Object.keys(saved).length === 1, 'the setting is saved for Hamglider only: ' + JSON.stringify(saved));
+    check(down && f1 !== f0, 'menus move the normal way even with an inverted stick: ' + JSON.stringify({ f0, f1, down }));
+    check(fly.game > 0.3, 'inverted flying: stick up pulls down in Hamglider: ' + JSON.stringify(fly));
+    check(!train.ly && train.rows === 'RX,RY', 'the train only offers its camera, never the left stick: ' + JSON.stringify(train));
+    check(th1 > th0 + 0.1, 'stick up pushes the train throttle forward: ' + JSON.stringify({ th0, th1 }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
   await test('every game has the ☰ menu: it pauses, lists every game and folder, and closes with Esc or Ⓑ', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 600 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
     }
@@ -862,12 +1392,19 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 13 && m.cur.includes('Witch Way Out'), 'the menu should list 10 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 15 && m.cur.includes('Witch Way Out'), 'the menu should list 12 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('p'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
     await padTap(p, 'B'); await p.waitForTimeout(100);
-    check(await p.evaluate(() => !document.querySelector('.rb-menu') && paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ should close the menu, back to the pause screen');
+    check(await p.evaluate(() => !document.querySelector('.rb-menu') && !paused && !document.querySelector('.rb-pause')), 'Ⓑ should close the menu and carry on (the menu paused it)');
+    // over the game's own pause screen the menu goes back to it, and "Back to the game" carries on
+    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.click('#btnMenu'); await p.waitForTimeout(100);
+    await padTap(p, 'B'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ over the pause screen goes back to it');
+    await p.click('#btnMenu'); await p.waitForTimeout(100); await p.click('.rb-menu-back'); await p.waitForTimeout(100);
+    check(await p.evaluate(() => !paused && !document.querySelector('.rb-pause')), 'Back to the game carries on');
     // from a lesson in a folder, the links still point at the arcade's pages
     await p.goto(url('5th-grade/math.html')); await p.waitForTimeout(300);
     await p.click('#btnMenu'); await p.waitForTimeout(100);
@@ -890,11 +1427,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         for (let x = 0; x < W; x++) for (let y = 1; y < H - 1; y++) {
           const below = tile(x, y + 1);
           if (!SOLID.has(tile(x, y)) && !deadly(x, y) && (SOLID.has(below) || below === T.ONEWAY)) stand.add(k(x, y));
+          if (L.swim && tile(x, y) === T.WATER) stand.add(k(x, y));   // an underwater level: Leo can swim anywhere in it
         }
         for (const e of L.ents) {
           if (e.k === 'plat' || e.k === 'fall') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
           if (e.k === 'spring') springs.add(k(e.x, e.y));
-          if (e.k === 'whale') springs.add(k(e.x, 11));   // a whale's spout shoots Leo up like a spring
+          if (e.k === 'whale') springs.add(k(e.x, 11));
+          if (e.k === 'sponge') for (let ox = 0; ox < (e.w || 3); ox++) stand.add(k(e.x + ox, 11));   // a bog mat   // a whale's spout shoots Leo up like a spring
           if (e.k === 'boat') for (let ox = e.x; ox <= e.to + e.w - 1; ox++) stand.add(k(ox, e.y - 1));   // the boat carries Leo along
         }
         const pts = [...stand].map(q => q.split(',').map(Number));
@@ -990,6 +1529,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const spinH = twice => { startLevel('hills'); player.x = 6 * 16; run(10); ents = ents.filter(e => !isEnemy(e)); const y0 = player.y; let top = y0, spins = 0, tw = false;
         pressed.jump = true; keys.jump = true; run(90, i => { top = Math.min(top, player.y); if ((i === 22 || (twice && i === 40)) ) { pressed.jump = true; } if (player.twirl > 0 && !tw) spins++; tw = player.twirl > 0; }); keys.jump = false; run(60); return { h: y0 - top, spins, landed: player.ground && !player.spun }; };
       out.spin = spinH(false); out.spin2 = spinH(true);
+      // holding run, a running jump, then jump again right away: still a spin
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 4 * 16; run(10); keys.run = true; keys.right = true; run(40);
+      keys.jump = true; pressed.jump = true; run(1); keys.jump = false; run(4); keys.jump = true; pressed.jump = true; run(1); out.runSpin = player.spun && player.twirl > 0; keys.jump = false; keys.run = false; keys.right = false; run(60);
       // corner forgiveness: a jump that only clips the edge of a block slides round it
       startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 12 * 16 - player.w + 3; run(10);
       let top = player.y; pressed.jump = true; keys.jump = true; run(50, () => { top = Math.min(top, player.y); }); keys.jump = false; run(40);
@@ -1018,6 +1560,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.high > r.jump * 1.6, 'the high jump should go much higher: ' + JSON.stringify(r));
     check(r.spin.h > r.jump + 10 && r.spin.h < r.high && r.spin.spins === 1 && r.spin.landed, 'a spin at the top should go a little higher: ' + JSON.stringify(r));
     check(r.corner && r.ledge, 'corner and ledge forgiveness (like Mario): ' + JSON.stringify(r));
+    check(r.runSpin, 'holding run, jump then jump again spins: ' + JSON.stringify(r));
     check(r.spin2.spins === 1 && Math.abs(r.spin2.h - r.spin.h) < 3, 'only one spin a jump: ' + JSON.stringify(r));
     check(r.springPound < r.springNormal - 150, 'a ground pound onto a spring should launch Leo super high: ' + JSON.stringify({ normal: r.springNormal, pound: r.springPound }));
     check(r.poundGob && r.poundBlock, 'a ground pound should flatten a goblin and bump the clover block below: ' + JSON.stringify(r));
@@ -1106,7 +1649,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo Worlds 2 and 3: Goblin Castle opens the Frosty Isle, the Frost Fortress opens Cape Cod, and Provincetown Pier is the real ending', async () => {
+  await test('Lucky Leo Worlds 2 to 5: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, Provincetown flies on to New York, the Statue of Liberty flies on to Florida, and Cape Canaveral is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
@@ -1114,7 +1657,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('castle'); winGame();
       const end1 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
       document.getElementById('btnMapAgain').click();
-      const after = { state, shore: nodeOpen(node('shore')), snow: nodeOpen(node('snow')), at: mapLeo.at };
+      const after = { state, snow: nodeOpen(node('snow')), night: nodeOpen(node('night')), at: mapLeo.at };
       startLevel('fort'); const boss = ents.find(e => e.k === 'boss'); const hp = boss.hp;
       ['shore', 'snow', 'night'].forEach(id => { save.cleared[id] = true; }); winGame();
       const end2 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten2: save.beaten2 };
@@ -1122,19 +1665,34 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const cape = { state, canal: nodeOpen(node('canal')), cranberry: nodeOpen(node('cranberry')), at: mapLeo.at };
       startLevel('ptown'); const boss3 = ents.find(e => e.k === 'boss'); const hp3 = boss3.hp;
       ['canal', 'cranberry', 'dunes'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end3 = { title: document.querySelector('#ending h1').textContent, beaten3: save.beaten3 };
-      return { before, end1, after, hp, end2, cape, hp3, end3, slippery: !!LEVELS.snow.slippery,
-        levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown'].every(id => ORDER.includes(id)) };
+      const end3 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten3: save.beaten3 };
+      document.getElementById('btnMapAgain').click();
+      const ny = { state, orchard: nodeOpen(node('orchard')), niagara: nodeOpen(node('niagara')), flight: FLIGHT_PATHS.has('ptown|orchard') };
+      startLevel('liberty'); const boss4 = ents.find(e => e.k === 'boss'); const hp4 = boss4.hp, kinds = { fort: LEVELS.fort.ents.find(e => e.k === 'boss').kind, ptown: LEVELS.ptown.ents.find(e => e.k === 'boss').kind, liberty: boss4.kind };
+      ['orchard', 'niagara', 'bridge', 'city'].forEach(id => { save.cleared[id] = true; }); winGame();
+      const end4 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten4: save.beaten4 };
+      document.getElementById('btnMapAgain').click();
+      const fl = { state, miami: nodeOpen(node('miami')), reef: nodeOpen(node('reef')), flight: FLIGHT_PATHS.has('liberty|miami'), map: node('miami').map };
+      startLevel('canaveral'); const boss5 = ents.find(e => e.k === 'boss'); const hp5 = boss5.hp; kinds.castillo = LEVELS.castillo.ents.find(e => e.k === 'boss').kind; kinds.canaveral = boss5.kind;
+      WORLDS[4].slice(0, -1).forEach(id => { save.cleared[id] = true; }); winGame();
+      const end5 = { title: document.querySelector('#ending h1').textContent, beaten5: save.beaten5, space: nodeOpen(node('space')), levels5: WORLDS[4].length };
+      return { before, end1, after, hp, end2, cape, hp3, end3, ny, hp4, kinds, end4, fl, hp5, end5, slippery: !!LEVELS.snow.slippery,
+        levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown', 'orchard', 'niagara', 'bridge', 'city', 'liberty'].every(id => ORDER.includes(id)) };
     });
     check(!r.before && /WORLD 1/.test(r.end1.title) && /World 2/.test(r.end1.btn), 'Goblin Castle should finish World 1 and offer World 2: ' + JSON.stringify(r));
-    check(r.after.state === 'map' && r.after.shore && !r.after.snow && r.after.at === 'castle', 'the path to Seashell Shore should open: ' + JSON.stringify(r));
+    check(r.after.state === 'map' && r.after.snow && !r.after.night && r.after.at === 'castle', 'the path up to Frosty Peaks in the White Mountains should open: ' + JSON.stringify(r));
     check(r.hp === 4 && /WORLD 2/.test(r.end2.title) && /World 3/.test(r.end2.btn) && r.end2.beaten2 && r.slippery && r.levels, 'the Frost Fortress should finish World 2 and offer World 3: ' + JSON.stringify(r));
     check(r.cape.state === 'map' && r.cape.canal && !r.cape.cranberry && r.cape.at === 'fort', 'the path to Bourne Bridge on Cape Cod should open: ' + JSON.stringify(r));
-    check(r.hp3 === 5 && /GOLD/.test(r.end3.title) && r.end3.beaten3, 'Provincetown Pier should be the toughest, final ending: ' + JSON.stringify(r));
+    check(r.hp3 === 5 && /WORLD 3/.test(r.end3.title) && /World 4/.test(r.end3.btn) && r.end3.beaten3, 'Provincetown Pier should finish World 3 and offer World 4: ' + JSON.stringify(r));
+    check(r.ny.state === 'map' && r.ny.orchard && !r.ny.niagara && r.ny.flight, 'a flight from Cape Cod should open the Apple Orchard in Western New York: ' + JSON.stringify(r));
+    check(r.kinds.fort === 'yeti' && r.kinds.ptown === 'crab' && r.kinds.liberty === 'grumbles' && r.kinds.castillo === 'gator' && r.kinds.canaveral === 'grumbles', 'bosses: the Frost Yeti, Captain Pinch, King Grumbles, Captain Chomps, and King Grumbles at the end: ' + JSON.stringify(r.kinds));
+    check(r.hp4 === 6 && /WORLD 4/.test(r.end4.title) && /World 5/.test(r.end4.btn) && r.end4.beaten4, 'the Statue of Liberty should finish World 4 and offer World 5: ' + JSON.stringify(r));
+    check(r.fl.state === 'map' && r.fl.miami && !r.fl.reef && r.fl.flight && r.fl.map === 'fl', 'a flight from New York should open Miami Beach on the map of Florida: ' + JSON.stringify(r.fl));
+    check(r.hp5 === 7 && /GOLD/.test(r.end5.title) && r.end5.beaten5 && r.end5.space && r.end5.levels5 === 10, 'Cape Canaveral should be the toughest, final ending, with a bonus trip to space: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-world2.png');
   });
 
-  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, eye laser), comes along to the next level, and a hit only knocks Leo off', async () => {
+  await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, open-mouth gulp, eye laser with the prism), comes along to the next level, and a hit only knocks Leo off', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
@@ -1161,14 +1719,16 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // stomp a spiky hedgehog safely
       const th = mk('thorny', player.x, player.y - 60 + player.h, { dir: -1, w: 14, h: 13 }); th.y = player.y + player.h - 13; ents.push(th);
       player.y -= 50; player.vy = 150; player.ground = false; run(20); out.spiky = !!th.flip && !!player.mount;
-      // the eye laser reaches a goblin well ahead on the ground and turns it into a coin
-      run(30); const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
-      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
-      // walk into three goblins: Shamrock gobbles them, then leaves a poop behind; stepping in it smooshes it
-      let eaten = 0;
-      for (let i = 0; i < 3; i++) { const g2 = mk('grumblin', player.x + player.face * 8, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(g2); run(3); if (g2.gone && player.mount) eaten++; }
+      // no prism: run makes Shamrock open wide and gulp the goblin in front of him; three gulps, then a poop
+      run(30); let eaten = 0;
+      for (let i = 0; i < 3; i++) { const g2 = mk('grumblin', player.x + player.w / 2 + player.face * 24 - 7, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(g2); pressed.run = true; run(1); out.mouth = out.mouth || player.mount.mouth > 0; run(30); if (g2.gone && player.mount) eaten++; }
+      out.noLaserYet = !player.mount.beam;
       run(100); const poo = ents.find(e => e.k === 'poop'); out.ate = eaten === 3 && !!poo && !!player.mount;
       if (poo) { player.x = poo.x - 30; player.face = 1; keys.right = true; run(40); keys.right = false; out.smoosh = poo.smooshed === true && ents.some(e => e.k === 'smudge'); }
+      // the rainbow prism (from a power block while riding) gives the eye laser: it reaches a goblin well ahead and turns it into a coin
+      run(30); const prism = mk('prism', player.x, player.y, { w: 14, h: 14, rise: 0 }); ents.push(prism); touchPlayerAs(prism); out.prism = player.laser === true;
+      const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
+      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
       // the laser doesn't reach right across the screen
       const farGob = mk('grumblin', player.x + player.face * 120, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(farGob); run(30); pressed.run = true; run(1); out.shortLaser = !farGob.gone; farGob.gone = true;
       // finishing the level: Shamrock and the power come along to the next one
@@ -1180,7 +1740,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.carried && r.moved > 25 && r.onGround && r.bounce, 'carry a spring and it still works where you put it: ' + JSON.stringify(r));
     check(r.hatched && r.riding, 'the egg should hatch Shamrock and Leo should ride him: ' + JSON.stringify(r));
     check(r.rideJump > 66 && r.floatAir > r.plainAir + 15, 'riding: a higher jump and a float: ' + JSON.stringify(r));
-    check(r.spiky && r.zap, 'riding: stomp spiky hedgehogs and zap with the eye laser: ' + JSON.stringify(r));
+    check(r.spiky && r.mouth && r.noLaserYet && r.prism && r.zap, 'riding: stomp spiky hedgehogs, chomp with no prism, and the prism gives the eye laser: ' + JSON.stringify(r));
     check(r.kept, 'Shamrock and power-ups should come along to the next level: ' + JSON.stringify(r));
     check(r.ate && r.smoosh && r.shortLaser, 'Shamrock eats three enemies and poops, the poop smooshes, and the laser is short: ' + JSON.stringify(r));
     check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
@@ -1218,7 +1778,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       hold(); hp = boss.hp; ents.push(mk('spark', boss.x + 8, boss.y + 10, { vx: 230, vy: 0, w: 6, h: 6 })); run(1); hits.spark = boss.hp === hp - 1;
       hold(); hp = boss.hp; ents.push(mk('shell', boss.x - 16, boss.y + boss.h - 14, { vx: 240, w: 14, h: 14 })); run(6); hits.shell = boss.hp === hp - 1;
       hold(); hp = boss.hp; setForm(3); player.hatless = true; ents.push(mk('cap', boss.x + 8, boss.y + 10, { vx: 200, w: 12, h: 9, st: 'out', dir: 1 })); run(1); hits.hat = boss.hp === hp - 1;
-      hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
+      hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.laser = true; player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
       out.hits = hits; out.hpLeft = boss.hp;
       // stomping King Grumbles again and again, landing back on him even while he still flashes from the last hit: never hurts Leo,
       // and he goes down; walking into his side still does
@@ -1234,7 +1794,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         }
         keys.left = keys.right = keys.run = false; return bs.hp;
       };
-      out.stomps = { castle: stompAll('castle'), fort: stompAll('fort'), ptown: stompAll('ptown'), hurts };
+      out.stomps = {}; for (const id of ['castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral']) out.stomps[id] = stompAll(id); out.stomps.hurts = hurts;
       startLevel('castle'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const side = ents.find(e => e.k === 'boss'); run(5);
       hurts = 0; side.jumpT = side.throwT = 9; player.inv = 0; player.x = side.x - player.w + 4; player.y = side.y + side.h - player.h; player.vy = 0; run(1); out.sideHurts = hurts > 0;
       hurtPlayer = realHurt;
@@ -1245,7 +1805,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.afterHit === 1 && r.noThrowAfter, 'a hit takes the magic hat away: ' + JSON.stringify(r));
     check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
     check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 1, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
-    check(r.stomps.castle === 0 && r.stomps.fort === 0 && r.stomps.ptown === 0 && r.stomps.hurts === 0 && r.sideHurts, 'King Grumbles: stomping him again and again (even while he flashes) never hurts Leo and beats him in every world; walking into his side does hurt: ' + JSON.stringify(r));
+    check(Object.entries(r.stomps).every(([k, v]) => v === 0) && r.sideHurts, 'every boss: stomping him again and again (even while he flashes) never hurts Leo and beats him in every world; walking into his side does hurt: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-magic-hat.png');
   });
 
@@ -1274,7 +1834,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('canal'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.vineyard = state === 'map' && nodeOpen(node('vineyard'));
       // the island levels and the boat level all start
       out.starts = ['vineyard', 'nantucket', 'whale'].map(id => { startLevel(id); run(30); return state === 'level' && player.y > 0 && phase === 'play'; });
-      out.path = PATHS.some(([a, b]) => a === 'dunes' && b === 'whale') && PATHS.some(([a, b]) => a === 'whale' && b === 'ptown');
+      out.path = PATHS.some(([a, b, s2]) => a === 'cranberry' && b === 'whale' && !s2) && PATHS.some(([a, b, s2]) => a === 'whale' && b === 'dunes' && !s2);
       paused = false; return out;
     });
     check(r.islandsHidden, 'the secret islands should start hidden: ' + JSON.stringify(r));
@@ -1283,7 +1843,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.spout, "a whale's spout should shoot Leo up: " + JSON.stringify(r));
     check(r.secretPhase && r.nantucket, 'the golden flag on Whale Watch should be a secret exit to Nantucket: ' + JSON.stringify(r));
     check(r.vineyard, "the golden flag on Bourne Bridge should open Martha's Vineyard: " + JSON.stringify(r));
-    check(r.starts.every(Boolean) && r.path, 'the new levels start, and Whale Watch sits between Nauset Dunes and Provincetown Pier: ' + JSON.stringify(r));
+    check(r.starts.every(Boolean) && r.path, 'the new levels start, and Whale Watch sits between Cranberry Bog and Nauset Dunes: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-cape.png');
   });
@@ -1341,23 +1901,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-ride.png');
   });
 
-  await test('Lucky Leo: controller settings in the pause menu; inverted sticks (a flying setting) stay off in this flat game unless asked for twice', async () => {
+  await test('Lucky Leo: controller settings in the pause menu; inverted sticks never apply here (only flying games and 3D cameras offer them)', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
-    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, invLY: true, invRY: true }); startGame(); startLevel('hills'); pause(); });
-    const r1 = await p.evaluate(() => ({ flat: RB.pad.flat, ly: RB.pad.inv('invLY'), ry: RB.pad.inv('invRY'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, inverts: { 'lucky-leo.html': { LY: true, LX: true } } }); startGame(); startLevel('hills'); pause(); });
+    const r1 = await p.evaluate(() => ({ ly: RB.pad.inv('LY'), lx: RB.pad.inv('invLX'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
     await p.evaluate(() => [...document.querySelectorAll('.rb-pause button')].find(b => /Controller/.test(b.textContent)).click());
-    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), btn: (document.querySelector('#padInv2D') || {}).textContent || '' }));
-    await p.evaluate(() => document.querySelector('#padInv2D').click());
-    const once = await p.evaluate(() => RB.pad.inv('invLY'));
-    await p.evaluate(() => document.querySelector('#padInv2D').click());
-    const twice = await p.evaluate(() => RB.pad.inv('invLY'));
+    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), rows: document.querySelectorAll('[data-inv]').length, cam: !!document.querySelector('[data-k="camSpeed"]') }));
     await p.evaluate(() => document.querySelector('#padDone').click());
     const back = await p.evaluate(() => ({ pause: !!document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display !== 'none', screen: !!document.querySelector('.rb-padscreen') }));
     await p.evaluate(() => RB.pad.setConfig({ ...RB.pad.DEFAULTS }));
-    check(r1.flat && !r1.ly && !r1.ry, 'inverted sticks are ignored in Lucky Leo by default: ' + JSON.stringify(r1));
+    check(!r1.ly && !r1.lx, 'inverted sticks are ignored in Lucky Leo, even if saved: ' + JSON.stringify(r1));
     check(!!r1.btn, 'the pause menu has a controller settings button: ' + JSON.stringify(r1));
-    check(screen.open && screen.note && /inverted/i.test(screen.btn), 'the controller screen explains and offers the second opt-in: ' + JSON.stringify(screen));
-    check(!once && twice, 'it takes two taps to turn inverted sticks on here: ' + JSON.stringify({ once, twice }));
+    check(screen.open && screen.note && !screen.rows && !screen.cam, 'the controller screen explains there is nothing to invert here: ' + JSON.stringify(screen));
     check(back.pause && !back.screen, 'Done goes back to the pause menu: ' + JSON.stringify(back));
     await done(p);
   });
@@ -1388,6 +1943,157 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.rode && r.off && r.back, '↓ + jump hops off Shamrock (and he stays off until Leo walks back to him): ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
+  });
+
+  await test('Lucky Leo: water never hurts (Leo swims); Cranberry Bog mats sink when stood on; the dark mat dives under the bog to a world of frogs and tadpoles with a secret exit', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
+      paused = true; startGame(); save.cleared.cranberry = false;
+      // water: drop Leo into the canal; he swims, a stroke takes him up, and at the surface a jump leaps him out
+      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); player.x = 60 * 16 + 2; player.y = 150; player.vy = 0; run(80);
+      out.swims = player.swim === true && phase === 'play'; const y0 = player.y; pressed.jump = true; run(1); out.stroke = player.vy < -150;
+      run(90); out.alive = phase === 'play' && lives === 5;
+      // a bog mat sinks while Leo stands on it, and bobs back up when he leaves
+      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); const mat = ents.find(e => e.k === 'sponge' && !e.deep);
+      player.x = mat.x + 16; player.y = mat.y - player.h - 2; player.vy = 0; run(60); out.sank = mat.y > mat.y0 + 6 && player.ride === mat;
+      player.x = 2 * 16; player.y = 100; run(200); out.rose = mat.y < mat.y0 + 1;
+      // the dark mat: it keeps sinking, the camera pans down, and Leo arrives under the bog
+      const deep = ents.find(e => e.k === 'sponge' && e.deep); player.x = deep.x + 16; player.y = deep.y - player.h - 2; player.vy = 0;
+      let panned = 0; run(500, () => { panned = Math.max(panned, camY); });
+      out.panned = panned > 100; out.room = lvl.id; out.critters = ['frog', 'tadpoles', 'turtle', 'minnows'].every(k => ents.some(e => e.k === k));
+      run(120); out.camBack = Math.abs(camY) < 5; out.swimDeep = player.swim && phase === 'play';
+      const gem = ents.find(e => e.k === 'gem'); out.gem = !!gem && gem.idx === 4;
+      // the secret exit at the far end
+      touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300);
+      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'dunes' && s2));
+      paused = false; return out;
+    });
+    check(r.swims && r.stroke && r.alive, 'water: Leo swims instead of dying: ' + JSON.stringify(r));
+    check(r.sank && r.rose, 'bog mats sink when stood on and bob back up: ' + JSON.stringify(r));
+    check(r.panned && r.room === 'cranberryDeep' && r.critters && r.camBack && r.swimDeep, 'the dark mat dives under the bog, the camera pans down, frogs and tadpoles live there: ' + JSON.stringify(r));
+    check(r.gem, 'one of the bog gems is down there: ' + JSON.stringify(r));
+    check(r.secret, 'the secret exit under the bog opens a golden road along the Cape to Nauset Dunes: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-bog.png');
+  });
+
+  await test('Lucky Leo World 4 extras: taxis, falling apples and crabs; a wall-jump tower up to a gem; and a more forgiving Shamrock gulp', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame();
+      // a taxi drives along the bridge; stomping it knocks it out
+      startLevel('bridge'); const taxi = ents.find(e => e.k === 'taxi'); player.x = taxi.x - 120; run(30); const tx0 = taxi.x; run(20); out.taxiDrives = Math.abs(taxi.x - tx0) > 10;
+      player.x = taxi.x + 6; player.y = taxi.y - player.h - 4; player.vy = 100; player.ground = false; run(4); out.taxiStomp = !!taxi.flip && phase === 'play';
+      // apples drop from the orchard branches when Leo walks underneath
+      startLevel('orchard'); const tree = ents.find(e => e.k === 'appletree'); player.x = tree.x - 10; tree.cool = 0; run(3); out.apple = ents.some(e => e.k === 'applefall');
+      // crabs scuttle at Niagara
+      startLevel('niagara'); const crab = ents.find(e => e.k === 'crab'); player.x = crab.x - 150; run(20); const cx0 = crab.x; run(30); out.crab = Math.abs(crab.x - cx0) > 8;
+      // the wall-jump tower on the rooftops: jump into the gap and kick back and forth to reach the gem at the top
+      startLevel('city'); ents = ents.filter(e => !isEnemy(e)); player.x = 188 * 16 + 4; player.y = 12 * 16 - player.h; player.vy = 0; run(5);
+      keys.jump = true; pressed.jump = true; let dir = 1, top = 999, kicks = 0;
+      run(240, () => { keys.right = dir > 0; keys.left = dir < 0; top = Math.min(top, player.y); if (player.slide && player.vy >= 0) { pressed.jump = true; dir = -dir; kicks++; } });
+      keys.jump = keys.right = keys.left = false;
+      out.tower = { top: Math.round(top), kicks, gem: levelGems[4] };
+      // like Mario, between two walls: after the first kick, just keep tapping jump (no turning the stick round each time)
+      startLevel('city'); ents = ents.filter(e => !isEnemy(e)); player.x = 188 * 16 + 4; player.y = 12 * 16 - player.h; player.vy = 0; player.vx = 0; run(5);
+      let top2 = 999, kicks2 = 0, k0 = 0;
+      run(300, i => { keys.right = i < 40; keys.jump = i % 8 < 3; pressed.jump = i % 8 === 0; top2 = Math.min(top2, player.y); if (player.chainT > 0.58 && !k0) { kicks2++; k0 = 1; } if (player.chainT < 0.5) k0 = 0; });
+      keys.jump = keys.right = keys.left = false;
+      out.mash = { top: Math.round(top2), kicks: kicks2 };
+      // Shamrock's gulp reaches a goblin a little ahead and a little above
+      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); mount({}); run(10);
+      const gob = mk('grumblin', player.x + player.w / 2 + 34, player.y + player.h - 30, { dir: 0, w: 14, h: 14 }); ents.push(gob); gob.vy = 0;
+      pressed.run = true; run(1); out.gulp = gob.gone === true;
+      // gulps 2, 3 (a poop) and 4: the fourth powers Shamrock up with the rainbow eye laser
+      out.eyes = [];
+      for (let n = 2; n <= 4; n++) {
+        run(30); const g = mk('grumblin', player.x + player.w / 2 + player.face * 30, player.y + player.h - 20, { dir: 0, w: 14, h: 14 }); ents.push(g); g.vy = 0;
+        pressed.run = true; run(1); out.eyes.push({ n, ate: g.gone === true, laser: !!player.laser });
+      }
+      run(100); out.poop = ents.filter(e => e.k === 'poop').length;
+      paused = false; return out;
+    });
+    check(r.taxiDrives && r.taxiStomp, 'taxis drive along and can be stomped: ' + JSON.stringify(r));
+    check(r.apple && r.crab, 'apples drop in the orchard and crabs scuttle: ' + JSON.stringify(r));
+    check(r.tower.top < 40 && r.tower.kicks >= 2 && r.tower.gem, 'wall-kicking back and forth up the rooftop gap reaches the gem: ' + JSON.stringify(r));
+    check(r.mash.top < 40 && r.mash.kicks >= 3, 'tapping jump between two walls kicks back and forth to the top, like Mario: ' + JSON.stringify(r.mash));
+    check(r.gulp, "Shamrock's gulp is forgiving: " + JSON.stringify(r));
+    check(r.eyes.every(x => x.ate) && !r.eyes[1].laser && r.eyes[2].laser && r.poop === 1, 'poop after 3 gulps, laser eyes after the 4th: ' + JSON.stringify({ eyes: r.eyes, poop: r.poop }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
+  await test('Lucky Leo World 5 (Florida): herons (walk under their legs, mind the beak), gators and gator backs, snakes, roosters, race cars, jellyfish, puffer fish, tarpon, mermaids, manatees, cannons, coconuts, the airboat, low gravity in space, and the flight between the maps', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      const only = (...ks) => { ents = ents.filter(e => !isEnemy(e) || ks.includes(e)); };
+      paused = true; startGame();
+      // a heron: small Leo walks right under its long legs; its beak jabs when he's in front; stomping its back knocks it out
+      startLevel('glades'); let h = ents.find(e => e.k === 'heron'); only(h); h.jabCD = 99; h.pause = 99;
+      player.x = h.x + 1; player.y = h.y + h.h - player.h; player.vy = 0; player.inv = 0; run(2); out.underLegs = { lives, form: player.form, phase };
+      startLevel('glades'); h = ents.find(e => e.k === 'heron'); only(h); h.pause = 99; h.dir = 1; h.face = 1; h.jabCD = 0; setForm(1); player.inv = 0;
+      player.x = h.x + h.w + 8; player.y = h.y + h.h - player.h; player.vy = 0; run(20); out.jab = { form: player.form, jabbed: h.jabCD > 0 };
+      startLevel('glades'); h = ents.find(e => e.k === 'heron'); only(h); h.pause = 99; h.jabCD = 99; player.x = h.x + 1; player.y = h.y - player.h - 6; player.vy = 120; player.ground = false; run(4); out.heronStomp = !!h.flip;
+      // the snake, the gator and (in Key West) a rooster can all be stomped
+      for (const [lv, k] of [['glades', 'snake'], ['glades', 'gator'], ['keywest', 'rooster'], ['daytona', 'racer']]) {
+        startLevel(lv); const e = ents.find(q => q.k === k); only(e); run(10); player.x = e.x + e.w / 2 - 6; player.y = e.y - player.h - 4; player.vy = 120; player.ground = false; player.inv = 0; run(4); out[k] = !!e.flip;
+      }
+      // race cars are fast
+      startLevel('daytona'); const car = ents.find(e => e.k === 'racer'); player.x = car.x - 200; run(10); const c0 = car.x; run(30); out.raceSpeed = Math.round(Math.abs(car.x - c0) * 2);
+      // gator backs in the Everglades sink under Leo's feet; the airboat sails once he's aboard
+      startLevel('glades'); ents = ents.filter(e => !isEnemy(e)); const gb = ents.find(e => e.k === 'sponge'); player.x = gb.x + 8; player.y = gb.y - player.h - 2; player.vy = 0; run(40); out.gatorBackSinks = gb.y > gb.y0 + 3;
+      startLevel('glades'); ents = ents.filter(e => !isEnemy(e)); const boat = ents.find(e => e.k === 'boat'); player.x = boat.x + 30; player.y = boat.y - player.h - 2; player.vy = 0; run(120); out.airboat = { go: boat.go, moved: Math.round(boat.x - boat.x0), riding: player.ride === boat };
+      // a puffer fish: stomp it while it's flat and it's knocked out; puffed up, it's spiky
+      startLevel('reef'); let pf = ents.find(e => e.k === 'puffer'); only(pf); pf.puff = 0; pf.kick = 9; player.x = pf.x + 1; player.y = pf.y - player.h - 30; player.vy = 0; run(1); pf.puff = 0;
+      player.y = pf.y - player.h - 2; player.vy = 70; player.inv = 0; player.form = 0; run(3); out.pufferFlat = !!pf.flip;
+      startLevel('reef'); pf = ents.find(e => e.k === 'puffer'); only(pf); pf.kick = 9; player.x = pf.x - 30; player.y = pf.y; run(30); out.puffs = pf.puff > 0.5;
+      setForm(1); player.inv = 0; player.x = pf.x + 1; player.y = pf.y - player.h - 2; player.vy = 70; run(3); out.pufferSpiky = { flipped: !!pf.flip, form: player.form };
+      // jellyfish drift, and can be stomped
+      startLevel('reef'); const jl = ents.find(e => e.k === 'jelly'); only(jl); run(30); const j0 = { x: jl.x, y: jl.y }; run(30); out.jellyDrifts = Math.hypot(jl.x - j0.x, jl.y - j0.y) > 2;
+      // a manatee carries Leo along
+      startLevel('reef'); ents = ents.filter(e => !isEnemy(e)); const man = ents.find(e => e.look === 'manatee'); run(5); player.x = man.x + 16; player.y = man.y - player.h - 1; player.vy = 30; run(3); const m0 = player.x; run(40); out.manatee = { riding: player.ride === man, moved: Math.round(Math.abs(player.x - m0)) };
+      // a mermaid gives Leo five coins
+      startLevel('springs'); const mm = ents.find(e => e.k === 'mermaid'); const coins0 = coins; player.x = mm.x + 2; player.y = mm.y + 4; run(2); out.mermaid = { gave: !!mm.gave, coins: coins - coins0 };
+      // the tarpon leap out of the water across the gaps in Key West
+      startLevel('keywest'); const tp = ents.find(e => e.k === 'shark' && e.look === 'tarpon'); player.x = tp.x0 - 100; tp.cool = 0; run(20); out.tarpon = tp.st === 'leap';
+      // palm trees drop coconuts
+      startLevel('keywest'); const palm = ents.find(e => e.k === 'appletree' && e.palm); player.x = palm.x - 10; palm.cool = 0; run(3); out.coconut = ents.some(e => e.k === 'applefall' && e.coconut);
+      // the fort's cannons fire along the ground (a cannonball can be stomped)
+      startLevel('castillo'); const cn = ents.find(e => e.k === 'cannon'); player.x = cn.x + 120; cn.cool = 0; run(3); const ball = ents.find(e => e.k === 'acorn' && e.kind === 'cannonball'); out.cannon = !!ball && ball.vx > 0;
+      // Captain Chomps guards a treasure chest: grabbing it clears the level and opens Daytona Beach (no ending screen)
+      startLevel('castillo'); const cb = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
+      for (let k = 0; k < 5; k++) { player.inv = 9; run(100); player.x = cb.x + 8; player.y = cb.y - 30; player.vy = 150; run(8); }
+      run(60 * 3); const chest = ents.find(e => e.k === 'pot'); if (chest) { player.x = chest.x; player.y = chest.y; run(3); } run(60 * 5);
+      out.chomps = { hp: cb.hp, state, daytona: nodeOpen(node('daytona')), cleared: !!save.cleared.castillo };
+      // out in space Leo jumps much higher
+      const jumpHeight = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); run(20); const y0 = player.y; let top = y0; keys.jump = true; pressed.jump = true; run(90, () => { top = Math.min(top, player.y); }); keys.jump = false; return y0 - top; };
+      out.jump = { hills: Math.round(jumpHeight('hills')), space: Math.round(jumpHeight('space')) };
+      // the map: from the Statue of Liberty, Leo flies off the bottom of New England and lands in Miami, on the map of Florida
+      save.cleared.liberty = true; goMap('liberty'); const v0 = mapView(); mapMove([0, 1]); const flyTo = mapLeo.to; run(60); const vMid = mapView(), flying = !!mapLeo.flying; run(150);
+      out.flight = { v0, flyTo, vMid, flying, at: mapLeo.at, v1: mapView() };
+      paused = false; return out;
+    });
+    check(r.underLegs.lives === 5 && r.underLegs.form === 0 && r.underLegs.phase === 'play', 'small Leo walks right under a heron\'s legs: ' + JSON.stringify(r.underLegs));
+    check(r.jab.jabbed && r.jab.form === 0, 'a heron jabs Leo when he stands in front of it: ' + JSON.stringify(r.jab));
+    check(r.heronStomp && r.snake && r.gator && r.rooster && r.racer, 'herons, snakes, gators, roosters and race cars can be stomped: ' + JSON.stringify(r));
+    check(r.raceSpeed > 90, 'race cars are fast: ' + r.raceSpeed);
+    check(r.gatorBackSinks && r.airboat.go && r.airboat.moved > 60 && r.airboat.riding, 'gator backs sink and the airboat sails with Leo aboard: ' + JSON.stringify(r));
+    check(r.pufferFlat && r.puffs && !r.pufferSpiky.flipped && r.pufferSpiky.form === 0, 'a puffer fish can be stomped when flat but is spiky when puffed up: ' + JSON.stringify(r));
+    check(r.jellyDrifts && r.manatee.riding && r.manatee.moved > 4, 'jellyfish drift and a manatee gives Leo a ride: ' + JSON.stringify(r));
+    check(r.mermaid.gave && r.mermaid.coins === 5, 'a mermaid gives Leo five coins: ' + JSON.stringify(r.mermaid));
+    check(r.tarpon && r.coconut && r.cannon, 'tarpon leap, coconuts drop and cannons fire: ' + JSON.stringify(r));
+    check(r.chomps.hp === 0 && r.chomps.state === 'map' && r.chomps.daytona && r.chomps.cleared, 'beating Captain Chomps and grabbing the treasure opens Daytona Beach: ' + JSON.stringify(r.chomps));
+    check(r.jump.space > r.jump.hills * 1.5, 'low gravity in space: much higher jumps: ' + JSON.stringify(r.jump));
+    check(r.flight.v0 === 'ne' && r.flight.flyTo === 'miami' && r.flight.flying && r.flight.at === 'miami' && r.flight.v1 === 'fl', 'Leo flies from New York to the map of Florida: ' + JSON.stringify(r.flight));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-florida.png');
   });
 
   await test('Lucky Leo with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
@@ -1477,6 +2183,38 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(f.out[0].riders === 0 && f.out[1].riders === 1 && f.found === 1 && f.out.every(o => o.gap < 0.5), 'find the letter: ' + JSON.stringify(f));
     await done(ph, 'abc-train-phone.png');
+  });
+
+  await test('ABC Train: the throttle lever (slide the GO knob: up is faster, the notch is neutral, down backs up, wagons and all)', async () => {
+    const p = await open(browser, 'preschool/abc-train.html', { viewport: { width: 1000, height: 620 } });
+    await p.evaluate(() => { localStorage.removeItem('abc_train'); RB.speak = () => {}; });
+    await p.click('#btnAbc');
+    await p.evaluate(() => { hold = 0; for (const st of stations) st.letter = null; next = 99; });   // no stops in the way
+    const knob = async () => p.evaluate(() => { const r = document.getElementById('go').getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; });
+    const slot = await p.evaluate(() => { const r = document.getElementById('throttle').getBoundingClientRect(); return { top: r.top, bottom: r.bottom, x: r.x + r.width / 2, shown: r.height > 50 }; });
+    const dragTo = async y => { const k = await knob(); await p.mouse.move(k.x, k.y); await p.mouse.down(); await p.mouse.move(k.x, k.y - 20, { steps: 3 }); await p.mouse.move(k.x, y, { steps: 6 }); await p.mouse.up(); };
+    const runFor = n => p.evaluate(n => { for (let i = 0; i < n; i++) update(0.05); return { v: train.v, th: train.th, running: train.running, odo: train.odo }; }, n);
+    // half way up: a gentle speed; right to the top: faster
+    await dragTo(slot.top + (slot.bottom - slot.top) * 0.45); const half = await runFor(80);
+    await dragTo(slot.top + 4); const full = await runFor(80);
+    // back to the notch: neutral, the train rolls to a stop
+    const notchY = await p.evaluate(() => { const r = document.querySelector('#throttle .notch').getBoundingClientRect(); return r.y + r.height / 2; });
+    await dragTo(notchY); const neutral = await runFor(80);
+    // pull down into reverse: it backs up along the way it came, the wagons still coupled behind
+    const before = await p.evaluate(() => ({ odo: train.odo, e: engine.position.clone(), w: train.wagons.length ? train.wagons[0].position.distanceTo(engine.position) : 0 }));
+    await dragTo(slot.bottom - 6); const rev = await runFor(60);
+    const after = await p.evaluate(() => ({ odo: train.odo, gap: train.wagons.length ? train.wagons[0].position.distanceTo(engine.position) : 0, label: document.getElementById('go').textContent, rev: document.getElementById('go').classList.contains('rev') }));
+    // a tap on the knob is still GO / STOP
+    await p.evaluate(() => { train.th = 0; train.running = false; train.v = 0; updateGo(); });
+    await p.click('#go', { force: true }); const tapGo = await p.evaluate(() => train.running && train.th > 0.5);
+    await p.click('#go', { force: true }); const tapStop = await p.evaluate(() => !train.running && train.th === 0);
+    check(slot.shown, 'the throttle slot shows beside the GO knob');
+    check(half.running && half.v > 3 && full.v > half.v + 2, 'higher on the lever is faster: ' + JSON.stringify({ half, full }));
+    check(!neutral.running && Math.abs(neutral.v) < 0.1 && neutral.th === 0, 'the notch is neutral: ' + JSON.stringify(neutral));
+    check(rev.th < 0 && rev.v < -1 && after.odo < before.odo - 5 && after.rev && after.label === 'STOP', 'down is reverse, backing along the track: ' + JSON.stringify({ rev, before: before.odo, after }));
+    check(Math.abs(after.gap - before.w) < 1.5, 'the wagons stay coupled while backing up: ' + JSON.stringify({ before: before.w, after: after.gap }));
+    check(tapGo && tapStop, 'a tap on the knob is GO and STOP: ' + JSON.stringify({ tapGo, tapStop }));
+    await done(p, 'abc-train-throttle.png');
   });
 
   await test('ABC Train: forks (arrows pick the way, the wagons follow, the letter waits either way), rolling wheels, 360° camera, train horn', async () => {
@@ -1639,7 +2377,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');

@@ -36,18 +36,18 @@
   canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; }
   .hidden { display: none !important; }
   .spooky { font-family: 'Creepster', 'Fredoka', system-ui, sans-serif; letter-spacing: 1px; }
-  #hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
-  #hudTL { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top));
+  .hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  .hudTL { position: absolute; left: max(14px, env(safe-area-inset-left)); top: max(10px, env(safe-area-inset-top));
     font-size: 18px; font-weight: 700; line-height: 1.35; text-shadow: 0 2px 0 #000; }
-  #hudTL .dim { color: #c9b6ff; font-size: 15px; }
-  #pumpkinBar { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%);
+  .hudTL .dim { color: #c9b6ff; font-size: 15px; }
+  .pumpkinBar { position: absolute; left: 50%; bottom: max(18px, env(safe-area-inset-bottom)); transform: translateX(-50%);
     width: min(360px, 70vw); padding: 6px 10px; border-radius: 14px; background: rgba(20,10,40,.6); display: flex; align-items: center; gap: 8px; }
-  #pumpkinBar .track { flex: 1; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
-  #pumpkinFill { height: 100%; width: 50%; border-radius: 6px; background: linear-gradient(90deg, #ff8a1f, #ff3b1f); }
-  #banner { position: absolute; left: 0; right: 0; top: 22%; text-align: center; font-size: 54px; line-height: 1.05;
+  .pumpkinBar .track { flex: 1; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
+  .pumpkinFill { height: 100%; width: 50%; border-radius: 6px; background: linear-gradient(90deg, #ff8a1f, #ff3b1f); }
+  .banner { position: absolute; left: 0; right: 0; top: 22%; text-align: center; font-size: 54px; line-height: 1.05;
     color: #ffb347; text-shadow: 0 4px 0 #2a0a3a, 0 0 24px rgba(255,140,40,.6); padding: 0 12px; }
-  #banner small { display: block; font: 700 20px 'Fredoka', system-ui, sans-serif; color: #fff; margin-top: 10px; text-shadow: 0 2px 0 #000; }
-  #warn { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font: 700 26px 'Fredoka', system-ui, sans-serif;
+  .banner small { display: block; font: 700 20px 'Fredoka', system-ui, sans-serif; color: #fff; margin-top: 10px; text-shadow: 0 2px 0 #000; }
+  .warn { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font: 700 26px 'Fredoka', system-ui, sans-serif;
     color: #ffe14a; text-shadow: 0 3px 0 #000; animation: blink .4s steps(2) infinite; }
   @keyframes blink { 50% { opacity: .35; } }
   #tbtns { position: fixed; z-index: 3; right: max(14px, env(safe-area-inset-right)); bottom: max(96px, calc(env(safe-area-inset-bottom) + 86px));
@@ -60,29 +60,47 @@
   #boostBtn { background: radial-gradient(circle at 40% 35%, #ff9af5, #b02a8c); }
   #hatBtn { background: radial-gradient(circle at 40% 35%, #ffb347, #a8420a); }
   #itemBtn { background: radial-gradient(circle at 40% 35%, #7af0ff, #1a6a9c); }
-  #raceBar { position: absolute; left: 50%; top: max(16px, calc(env(safe-area-inset-top) + 6px)); transform: translateX(-50%);
+  .raceBar { position: absolute; left: 50%; top: max(16px, calc(env(safe-area-inset-top) + 6px)); transform: translateX(-50%);
     width: min(400px, 44vw); height: 10px; border-radius: 5px; background: rgba(255,255,255,.2); }
-  #raceBar .dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -8px 0 0 -8px; border-radius: 50%; border: 2px solid #fff; }
-  #raceBar .dot.me { width: 16px; height: 16px; margin: -10px 0 0 -10px; z-index: 2; box-shadow: 0 0 8px #fff; }
-  #raceBar .dot.pk { border-color: #ff3b1f; background: #ff8a1f; }
-  #raceBar .flag { position: absolute; right: -24px; top: -9px; font-size: 18px; }
-  @media (max-width: 700px) { #raceBar { left: max(14px, env(safe-area-inset-left)); transform: none; top: calc(max(10px, env(safe-area-inset-top)) + 112px); width: 38vw; } }
-  #hudTR { position: absolute; right: max(14px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 54px);
+  .raceBar .dot { position: absolute; top: 50%; width: 12px; height: 12px; margin: -8px 0 0 -8px; border-radius: 50%; border: 2px solid #fff; }
+  .raceBar .dot.me { width: 16px; height: 16px; margin: -10px 0 0 -10px; z-index: 2; box-shadow: 0 0 8px #fff; }
+  .raceBar .dot.pk { border-color: #ff3b1f; background: #ff8a1f; }
+  .raceBar .flag { position: absolute; right: -24px; top: -9px; font-size: 18px; }
+  @media (max-width: 700px) { .raceBar { left: max(14px, env(safe-area-inset-left)); transform: none; top: calc(max(10px, env(safe-area-inset-top)) + 112px); width: 38vw; } }
+  .hudTR { position: absolute; right: max(14px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 54px);
     display: flex; gap: 10px; align-items: center; }
-  #hPlaceBig { font: 56px/1 'Creepster', system-ui, sans-serif; color: #ffd84a; text-shadow: 0 4px 0 #3a0a4a, 0 0 14px rgba(255,200,60,.5); }
-  #hPlaceBig small { font-size: 26px; }
-  #itemSlot { width: 64px; height: 64px; border-radius: 16px; border: 3px solid #ffd27a; background: rgba(30,14,52,.75);
+  .placeBig { font: 56px/1 'Creepster', system-ui, sans-serif; color: #ffd84a; text-shadow: 0 4px 0 #3a0a4a, 0 0 14px rgba(255,200,60,.5); }
+  .placeBig small { font-size: 26px; }
+  .itemSlot { width: 64px; height: 64px; border-radius: 16px; border: 3px solid #ffd27a; background: rgba(30,14,52,.75);
     display: grid; place-items: center; font-size: 38px; box-shadow: 0 0 14px rgba(255,210,122,.4); }
-  #itemSlot.empty { opacity: .5; font: 700 12px 'Fredoka', system-ui, sans-serif; box-shadow: none; }
-  #itemSlot.rolling { animation: pop .12s infinite alternate; }
+  .itemSlot.empty { opacity: .5; font: 700 12px 'Fredoka', system-ui, sans-serif; box-shadow: none; }
+  .itemSlot.rolling { animation: pop .12s infinite alternate; }
   @keyframes pop { to { transform: scale(1.08); } }
-  #magicBar { position: absolute; left: 50%; bottom: calc(max(18px, env(safe-area-inset-bottom)) + 40px); transform: translateX(-50%);
+  .magicBar { position: absolute; left: 50%; bottom: calc(max(18px, env(safe-area-inset-bottom)) + 40px); transform: translateX(-50%);
     width: min(360px, 70vw); padding: 5px 10px; border-radius: 14px; background: rgba(20,10,40,.6); display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; }
-  #magicBar .track { flex: 1; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
-  #magicFill { height: 100%; width: 100%; border-radius: 6px; background: linear-gradient(90deg, #7af0ff, #b47cff, #ff7af5); }
-  #magicBar.on #magicFill { filter: brightness(1.4); }
-  #feed { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font: 700 22px 'Fredoka', system-ui, sans-serif; color: #fff;
+  .magicBar .track { flex: 1; height: 12px; border-radius: 6px; background: rgba(255,255,255,.15); overflow: hidden; }
+  .magicFill { height: 100%; width: 100%; border-radius: 6px; background: linear-gradient(90deg, #7af0ff, #b47cff, #ff7af5); }
+  .magicBar.on .magicFill { filter: brightness(1.4); }
+  .feed { position: absolute; left: 0; right: 0; top: 60%; text-align: center; font: 700 22px 'Fredoka', system-ui, sans-serif; color: #fff;
     text-shadow: 0 2px 0 #000, 0 0 10px rgba(0,0,0,.6); padding: 0 12px; transition: opacity .3s; }
+  /* two players: the screen splits in two, Player 1 on top, each with her own HUD */
+  .raceBar .dot.pl { width: 14px; height: 14px; margin: -9px 0 0 -9px; z-index: 1; }
+  .ptag { display: none; margin-right: 6px; padding: 0 8px; border-radius: 8px; color: #1a0a2a; font-weight: 700; text-shadow: none; }
+  .split .ptag, .pres .ptag { display: inline-block; }
+  .split .hud.p0 { bottom: 50%; } .split .hud.p1 { top: 50%; }
+  .split .hud.p1 .hudTL { top: 8px; } .split .hud.p1 .hudTR { top: 8px; } .split .hud.p1 .raceBar { top: 12px; }
+  .split .hud .hudTL { font-size: 15px; line-height: 1.25; } .split .hud .hudTL .dim { font-size: 13px; }
+  .split .hud .hudTR { top: calc(max(10px, env(safe-area-inset-top)) + 50px); }
+  .split .hud .placeBig { font-size: 38px; } .split .hud .placeBig small { font-size: 18px; }
+  .split .hud .itemSlot { width: 46px; height: 46px; font-size: 26px; border-radius: 12px; }
+  .split .hud .banner { top: 16%; font-size: 34px; } .split .hud .banner small { font-size: 15px; margin-top: 4px; }
+  .split .hud .warn { top: 44%; font-size: 18px; } .split .hud .feed { top: 60%; font-size: 16px; }
+  .split .hud .pumpkinBar { bottom: 8px; padding: 3px 8px; } .split .hud .magicBar { bottom: 34px; padding: 3px 8px; }
+  #divider { position: fixed; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; z-index: 2; pointer-events: none;
+    background: linear-gradient(90deg, #7a3fc8, #ff8a1f, #ffc21a); box-shadow: 0 0 12px rgba(255,138,31,.6); }
+  .pres { margin: 6px 0; font-size: 17px; }
+  .big-btn.two { background: linear-gradient(#ffe07a, #ffc21a); }
+  .padcount { margin-top: 8px; font-size: 15px; color: #c9b6ff; min-height: 18px; }
   .podium { list-style: none; padding: 0; margin: 10px auto 0; max-width: 320px; text-align: left; font-size: 19px; }
   .panel .podium li { padding: 4px 10px 4px 44px; border-radius: 10px; }
   .podium li.you { background: rgba(255,179,71,.25); font-weight: 700; }
@@ -107,22 +125,23 @@
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261011-0018">
+<link rel="stylesheet" href="common.css?v=20261016-1843">
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="topbar"></div>
 
-<div id="hud" class="hidden">
-  <div id="hudTL"><div id="hTime">0:00</div><div class="dim" id="hRings">💍 0 rings</div><div class="dim" id="hHat"></div><div class="dim" id="hShield"></div></div>
-  <div id="raceBar"><span class="flag">🏁</span></div>
-  <div id="hudTR"><div id="hPlaceBig">6<small>th</small></div><div id="itemSlot" class="empty">ITEM</div></div>
-  <div id="magicBar"><span>✨</span><div class="track"><div id="magicFill"></div></div><span id="magicTxt">BOOST</span></div>
-  <div id="feed"></div>
-  <div id="pumpkinBar"><span>🧹</span><div class="track"><div id="pumpkinFill"></div></div><span>🎃</span></div>
-  <div id="banner" class="spooky hidden"></div>
-  <div id="warn" class="hidden">⚡ LIGHTNING! CAST YOUR SHIELD! ⚡</div>
+<div id="hud0" class="hud hidden">
+  <div class="hudTL"><span class="ptag" data-u="tag"></span><div data-u="time">0:00</div><div class="dim" data-u="rings">💍 0 rings</div><div class="dim" data-u="hat"></div><div class="dim" data-u="shield"></div></div>
+  <div class="raceBar" data-u="bar"><span class="flag">🏁</span></div>
+  <div class="hudTR"><div class="placeBig" data-u="place">6<small>th</small></div><div class="itemSlot empty" data-u="slot">ITEM</div></div>
+  <div class="magicBar" data-u="magic"><span>✨</span><div class="track"><div class="magicFill" data-u="magicFill"></div></div><span data-u="magicTxt">BOOST</span></div>
+  <div class="feed" data-u="feed"></div>
+  <div class="pumpkinBar"><span>🧹</span><div class="track"><div class="pumpkinFill" data-u="pumpkinFill"></div></div><span>🎃</span></div>
+  <div class="banner spooky hidden" data-u="banner"></div>
+  <div class="warn hidden" data-u="warn">⚡ LIGHTNING! CAST YOUR SHIELD! ⚡</div>
 </div>
+<div id="divider" class="hidden"></div>
 <div id="tbtns" class="hidden">
   <button type="button" id="boostBtn" class="tbtn"><span class="ico">✨</span>BOOST</button>
   <button type="button" id="itemBtn" class="tbtn"><span class="ico" id="itemIco">❔</span>ITEM</button>
@@ -144,11 +163,16 @@
         🍬 rocket · 🦇 bats chase the leader · 🧪 boost refill · 👻 ghost cloak · 🎩 triple hat · 🕸️ web trap.</li>
       <li>🛡️ <b>Shield</b> (🎮 <b>Ⓐ</b><span class="key-only">, <kbd>Space</kbd></span>) blocks lightning in the storm and hats thrown at you.</li>
       <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. <b>LB</b> (or click a stick) swings back behind you.</li>
+      <li>👥 <b>Two players?</b> Press <b>2 Players</b> and the screen splits in two. Each player uses their own 🎮 controller (the first one plugged in is Player 1), or share the keyboard:
+        <span class="key-only">Player 1 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> fly, left <kbd>Shift</kbd> boost, <kbd>F</kbd> hat, <kbd>G</kbd> power-up, <kbd>Space</kbd> shield · Player 2 the arrows, right <kbd>Shift</kbd> boost, <kbd>K</kbd> hat, <kbd>L</kbd> power-up, <kbd>Enter</kbd> shield.</span>
+        Your hats and power-ups can bonk each other too!</li>
       <li>Race through the sky, a storm, a <b>backyard</b>, a <b>graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
     </ol>
     <div class="camopts"><button type="button" id="btnPad">🎮 Controller &amp; camera settings</button></div>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">🏁 Race!</button>
+    <button class="big-btn two" id="btnPlay2">👥 2 Players</button>
+    <div class="padcount" id="padCount"></div>
   </div>
 </div>
 
@@ -157,13 +181,14 @@
     <h1 id="overTitle">You Escaped!</h1>
     <div class="stats" id="overStats"></div>
     <button class="big-btn" id="btnAgain">🏁 Race Again</button>
+    <button class="big-btn two" id="btnSwap">👥 2 Players</button>
   </div>
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261011-0018"></script>
-<script src="orbit-cam.js?v=20261011-0018"></script>
-<script src="touch-stick.js?v=20261011-0018"></script>
+<script src="common.js?v=20261016-1843"></script>
+<script src="orbit-cam.js?v=20261016-1843"></script>
+<script src="touch-stick.js?v=20261016-1843"></script>
 <script>
 'use strict';
 
@@ -213,15 +238,6 @@ renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 const scene = new THREE.Scene();
 scene.fog = new THREE.Fog('#3a3352', 30, 260);
 scene.background = new THREE.Color('#14102a');
-const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 1500);
-function resize() {
-  renderer.setSize(innerWidth, innerHeight, false);
-  camera.aspect = innerWidth / innerHeight;
-  camera.fov = camera.userData.fov0 = camera.aspect < 0.8 ? 80 : 65;
-  camera.updateProjectionMatrix();
-}
-addEventListener('resize', resize);
-resize();
 
 scene.add(new THREE.HemisphereLight('#8a7ac8', '#1a1430', 0.65));
 const moonLight = new THREE.DirectionalLight('#c8d4ff', 0.7);
@@ -540,9 +556,7 @@ const WITCH_LOOKS = [
   ['#e04a9a', '#3a0a2a', '#7a4a2a'],
   ['#d0d0e0', '#1a1a1a', '#ffffff'],
 ];
-const NAMES = ['You', 'Willow', 'Ember', 'Luna', 'Pip', 'Hazel'];
-const me = makeWitch(...WITCH_LOOKS[0]);
-scene.add(me);
+const NAMES = ['You', 'Willow', 'Ember', 'Luna', 'Pip', 'Hazel'];   // (your own witch, or both players', is made in makePlayer)
 // the other racers: a little faster or slower each, and they keep the race close (see moveRivals)
 const RIVAL_SKILL = [31.8, 31.2, 30.6, 29.8, 28.4];
 const friends = WITCH_LOOKS.slice(1).map((look, i) => {
@@ -551,11 +565,6 @@ const friends = WITCH_LOOKS.slice(1).map((look, i) => {
   return { mesh: w, z: -20 - i * 9, x: 0, y: 0, off: rand(-14, 14), offY: rand(-5, 5), v: 0, base: RIVAL_SKILL[i], ph: Math.random() * TAU,
     name: NAMES[i + 1], color: look[0], knockT: 0, stuckT: 0, boostT: 0, nextBoost: 0, nextThrow: 0, finishT: 0 };
 });
-// a sparkly shield bubble
-const shieldMesh = new THREE.Mesh(new THREE.SphereGeometry(2.4, 20, 14), new THREE.MeshBasicMaterial({ color: '#b47cff', transparent: true, opacity: 0.28, depthWrite: false }));
-shieldMesh.visible = false;
-me.add(shieldMesh);
-shieldMesh.position.y = 1;
 
 // The Great Pumpkin
 const pumpkin = new THREE.Group();
@@ -600,11 +609,8 @@ const rainGeo = new THREE.BufferGeometry();
 rainGeo.setAttribute('position', new THREE.Float32BufferAttribute(new Float32Array(RAIN_N * 3), 3));
 const rain = new THREE.Points(rainGeo, new THREE.PointsMaterial({ color: '#b8c8f0', size: 0.35, transparent: true, opacity: 0.75 }));
 scene.add(rain);
-// lightning bolts and the warning glow where they'll strike
+// lightning bolts (each player has her own warning glow where they'll strike: makePlayer)
 const boltMat = new THREE.LineBasicMaterial({ color: '#fffbd0' });
-const warnMesh = new THREE.Mesh(new THREE.SphereGeometry(10, 20, 12), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.15, depthWrite: false }));
-warnMesh.visible = false;
-scene.add(warnMesh);
 
 // sparkles from rings and spells
 const SPARK_N = 200;
@@ -725,14 +731,6 @@ function updateDust(dt) {
 }
 const tailPos = (w, v = new THREE.Vector3()) => { w.updateMatrixWorld(); return w.localToWorld(v.set(0, 0, 2.6)); };
 
-// a ring that hovers over the witch your hat would fly to
-const lockMesh = new THREE.Mesh(new THREE.TorusGeometry(1.6, 0.15, 8, 28), new THREE.MeshBasicMaterial({ color: '#ffd84a', transparent: true, opacity: 0.85, depthTest: false }));
-lockMesh.visible = false;
-scene.add(lockMesh);
-// a ghostly glow while the cloak is on
-const cloakMesh = new THREE.Mesh(new THREE.SphereGeometry(2.6, 20, 14), new THREE.MeshBasicMaterial({ color: '#e8f4ff', transparent: true, opacity: 0.2, depthWrite: false }));
-cloakMesh.visible = false;
-cloakMesh.position.y = 1;
 // a little cloud of bats
 function makeBats() {
   const g = new THREE.Group(), wing = new THREE.MeshBasicMaterial({ color: '#2a1a3a', side: THREE.DoubleSide });
@@ -764,7 +762,6 @@ const webGeo = new THREE.PlaneGeometry(9, 9), webMat = new THREE.MeshBasicMateri
 
 buildCourse();
 buildRace();
-me.add(cloakMesh);
 
 // ---------- Spooky music ----------
 // A low drone, a creepy music-box tune in a minor key, a deep bell and the odd ghostly "wooo".
@@ -834,44 +831,134 @@ const sfx = {
 };
 
 // ---------- Input ----------
-const keys = {};
+// One player: the arrow keys or W A S D, Space shield, X hat, C power-up, Z / Shift boost, plus the touch
+// controls and any 🎮 controller (common.js presses the keys for it).
+// Two players (the screen splits in two): each 🎮 controller is read on its own (the first is Player 1, the
+// second Player 2), and the keyboard is shared: Player 1 W A S D, left Shift boost, F hat, G power-up, Space
+// shield; Player 2 the arrows, right Shift boost, K hat, L power-up, Enter shield.
 const KEYMAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', KeyZ: 'boost', ShiftLeft: 'boost', ShiftRight: 'boost' };
+const KEYS_P1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', KeyZ: 'boost' };
+const KEYS_P2 = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', ShiftRight: 'boost' };
 // 🎮 this game's buttons: Ⓧ / Ⓨ throw the hat, LT boosts, Ⓑ / RB use a power-up, Ⓐ / RT shield (LB and the stick clicks swing the camera back)
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 1: 'KeyC', 2: 'KeyX', 3: 'KeyX', 5: 'KeyC', 6: 'KeyZ' },
-  '<b>Witch Way Out:</b> Ⓧ / Ⓨ 🎩 throw hat · <b>LT</b> ✨ boost · Ⓑ / <b>RB</b> ❔ use power-up · Ⓐ / <b>RT</b> 🛡️ shield · <b>LB</b> or click a stick: camera behind you');
-let state = 'title', paused = false;
+const PAD_LEGEND = '<b>Witch Way Out:</b> Ⓧ / Ⓨ 🎩 throw hat · <b>LT</b> ✨ boost · Ⓑ / <b>RB</b> ❔ use power-up · Ⓐ / <b>RT</b> 🛡️ shield · <b>LB</b> or click a stick: camera behind you';
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 1: 'KeyC', 2: 'KeyX', 3: 'KeyX', 5: 'KeyC', 6: 'KeyZ' }, PAD_LEGEND + '<br>👥 Two players: the first controller is Player 1, the second is Player 2');
+let state = 'title', paused = false, twoP = false;
 const stick = createTouchStick(canvas, { enabled: () => state === 'fly' && !paused });
+if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
+
+// ---------- Players ----------
+// One or two witches race. Each player has her own broom, camera, half of the screen (two players: top and
+// bottom, like a kart racer), HUD and controller.
+const CAM_DIST = 11;
+const P2_LOOK = ['#ffc21a', '#3a1a0a', '#2a1a1a'];   // Player 2: a golden robe
+const SHIELD_GEO = new THREE.SphereGeometry(2.4, 20, 14), CLOAK_GEO = new THREE.SphereGeometry(2.6, 20, 14);
+const LOCK_GEO = new THREE.TorusGeometry(1.6, 0.15, 8, 28), WARN_GEO = new THREE.SphereGeometry(10, 20, 12);
+const hudTemplate = document.getElementById('hud0');
+function makePlayer(idx, look) {
+  const mesh = makeWitch(...look);
+  scene.add(mesh);
+  // a sparkly shield bubble, and a ghostly glow while the cloak is on
+  const shieldMesh = new THREE.Mesh(SHIELD_GEO, new THREE.MeshBasicMaterial({ color: '#b47cff', transparent: true, opacity: 0.28, depthWrite: false }));
+  shieldMesh.visible = false; shieldMesh.position.y = 1; mesh.add(shieldMesh);
+  const cloakMesh = new THREE.Mesh(CLOAK_GEO, new THREE.MeshBasicMaterial({ color: '#e8f4ff', transparent: true, opacity: 0.2, depthWrite: false }));
+  cloakMesh.visible = false; cloakMesh.position.y = 1; mesh.add(cloakMesh);
+  // a ring over the witch your hat would fly to: only your own camera sees yours (its own layer)
+  const lockMesh = new THREE.Mesh(LOCK_GEO, new THREE.MeshBasicMaterial({ color: idx ? '#7af0ff' : '#ffd84a', transparent: true, opacity: 0.85, depthTest: false }));
+  lockMesh.visible = false; lockMesh.layers.set(idx + 1); scene.add(lockMesh);
+  // the warning glow where lightning is about to strike you
+  const warnMesh = new THREE.Mesh(WARN_GEO, new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.15, depthWrite: false }));
+  warnMesh.visible = false; scene.add(warnMesh);
+  const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 1500);
+  camera.userData.fov0 = 65; camera.layers.enable(idx + 1);
+  const hud = idx ? hudTemplate.cloneNode(true) : hudTemplate;
+  if (idx) { hud.id = 'hud' + idx; hudTemplate.after(hud); }
+  hud.classList.add('p' + idx);
+  const p = { idx, isPlayer: true, look, mesh, shieldMesh, cloakMesh, lockMesh, warnMesh, camera, hud, ui: {}, keys: {}, pad: null, prevBtn: null,
+    pos: new THREE.Vector3(), dir: new THREE.Vector3(), camPos: new THREE.Vector3(0, 50, 30), camLook: new THREE.Vector3(),
+    fog: { color: new THREE.Color('#3a3352'), near: 30, far: 260 } };
+  hud.querySelectorAll('[data-u]').forEach(el => { p.ui[el.dataset.u] = el; });
+  p.ui.tag.textContent = `P${idx + 1}`;
+  p.ui.tag.style.background = look[0];
+  p.cam = Object.assign(createOrbitCam({ canvas: idx ? null : canvas, stick: idx ? null : stick, enabled: () => state === 'fly' && !paused,
+    source: () => (twoP ? camSource(p) : null) }), { dist: CAM_DIST, speedK: 0 });
+  // she can be a target too (hats, bats, webs): the same shape as the other racers
+  Object.defineProperties(p, {
+    name: { get: () => (twoP ? `Player ${idx + 1}` : 'You') },
+    x: { get: () => p.pos.x }, y: { get: () => p.pos.y }, z: { get: () => p.pos.z },
+    v: { get: () => p.speed }, knockT: { get: () => p.bonkT },
+  });
+  newRacer(p);
+  resetRun(p, 0);
+  return p;
+}
+const ALL = [];
+let players = [];   // the ones racing now: [Player 1], or both
+function camSource(p) {
+  const g = p.pad;
+  return { x: g ? g.rx : 0, y: g ? g.ry : 0, recenter: !!g && [4, 10, 11].some(b => g.pressed(b)), keys: p.idx === 0 };
+}
+function rumble(p, ms, strength) { if (RB.pad && RB.pad.rumble) RB.pad.rumble(ms, strength, twoP && p ? p.idx : null); }
+
 addEventListener('keydown', e => {
-  if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
+  const map = twoP ? (KEYS_P1[e.code] ? [P1, KEYS_P1[e.code]] : KEYS_P2[e.code] ? [P2, KEYS_P2[e.code]] : null) : KEYMAP[e.code] ? [P1, KEYMAP[e.code]] : null;
+  if (map) { map[0].keys[map[1]] = true; e.preventDefault(); }
   if (e.repeat) return;
   if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
-  if (e.code === 'Space') { e.preventDefault(); if (state === 'fly') castShield(); else if (state !== 'fly') startGame(); }
-  if (e.code === 'KeyX') throwHat();
-  if (e.code === 'KeyC') useItem();
+  if (e.code === 'Space') { e.preventDefault(); if (state === 'fly') castShield(P1); else startGame(); }
+  if (e.code === 'KeyX' || (twoP && e.code === 'KeyF')) throwHat(P1);
+  if (e.code === 'KeyC' || (twoP && e.code === 'KeyG')) useItem(P1);
+  if (twoP && state === 'fly') {
+    if (e.code === 'KeyK') throwHat(P2);
+    if (e.code === 'KeyL') useItem(P2);
+    if (e.code === 'Enter' || e.code === 'KeyJ') { e.preventDefault(); castShield(P2); }
+  }
   if (e.code === 'Enter' && state !== 'fly') startGame();
   if (e.code === 'KeyP' || e.code === 'Escape') pause();
   if (e.code === 'KeyM') RB.toggleMute();
 });
-addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
-addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
+addEventListener('keyup', e => {
+  for (const p of ALL) {
+    const k = twoP ? (p.idx ? KEYS_P2 : KEYS_P1)[e.code] : !p.idx && KEYMAP[e.code];
+    if (k) p.keys[k] = false;
+  }
+});
+const clearKeys = () => { for (const p of ALL) for (const k in p.keys) p.keys[k] = false; };
+addEventListener('blur', clearKeys);
 canvas.addEventListener('pointerdown', () => RB.audio());
-// the 360° orbit camera (orbit-cam.js): right stick, Q / E, a mouse drag or a second finger; LB, a stick click or R snaps it back
-const CAM_DIST = 11;
-const cam = Object.assign(createOrbitCam({ canvas, stick, enabled: () => state === 'fly' && !paused }), { dist: CAM_DIST, speedK: 0 });
 const spellBtn = document.getElementById('spellBtn');
-spellBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); castShield(); });
+spellBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); castShield(P1); });
 const tapBtn = (id, fn) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
-tapBtn('hatBtn', () => throwHat());
-tapBtn('itemBtn', () => useItem());
+tapBtn('hatBtn', () => throwHat(P1));
+tapBtn('itemBtn', () => useItem(P1));
 const boostBtn = document.getElementById('boostBtn');
-boostBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); keys.boost = true; try { boostBtn.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
-for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) boostBtn.addEventListener(ev, () => { keys.boost = false; });
+boostBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); P1.keys.boost = true; try { boostBtn.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) boostBtn.addEventListener(ev, () => { P1.keys.boost = false; });
+
+// Two players: each controller's buttons, read straight from that controller (common.js stops pressing keys for it)
+function pollPads() {
+  const on = twoP && state === 'fly';
+  if (RB.pad && 'direct' in RB.pad) RB.pad.direct = on;
+  for (const p of ALL) {
+    p.pad = on && RB.pad && RB.pad.read ? RB.pad.read(p.idx) : null;
+    if (!p.pad || paused) { p.prevBtn = null; continue; }
+    const now = [];
+    for (let b = 0; b < 16; b++) now[b] = p.pad.pressed(b);
+    if (p.prevBtn) {   // (a button already held when play starts or carries on doesn't count)
+      const edge = b => now[b] && !p.prevBtn[b];
+      if (edge(0) || edge(7)) castShield(p);
+      if (edge(2) || edge(3)) throwHat(p);
+      if (edge(1) || edge(5)) useItem(p);
+    }
+    p.prevBtn = now;
+  }
+}
+
 function pause() {
   if (paused || state !== 'fly') return;
-  paused = true; stick.reset(); for (const k in keys) keys[k] = false;
+  paused = true; stick.reset(); clearKeys();
   RB.showPause(resume, { extra: [{ label: '🎮 CONTROLLER', onClick: () => RB.controllerScreen() }] });
 }
-function resume() { paused = false; RB.hidePause(); last = performance.now(); }
+function resume() { paused = false; RB.hidePause(); last = performance.now(); for (const p of ALL) p.prevBtn = null; }
 RB.topbar({
   onPause: () => (paused ? resume() : pause()),
   shareInfo: { title: 'Witch Way Out | RoboBandit', text: 'Fly your broomstick and escape the giant pumpkin! 🎃🧙‍♀️' },
@@ -879,34 +966,48 @@ RB.topbar({
 RB.onHide(pause);
 
 // ---------- Game state ----------
-const pos = new THREE.Vector3(), dir = new THREE.Vector3();
-let yaw = 0, pitch = 0, roll = 0, speed = SPEED, boost = 0, slowT = 0, pumpkinZ = START_GAP;
-let shieldT = 0, shieldCool = 0, clock = 0, runT = 0, ringCount = 0, caughtCount = 0, section = null, bannerT = 0;
+let pumpkinZ = START_GAP, clock = 0, runT = 0, laughT = 0;
 let best = +(RB.store.get('ww_best') || 0);
 let introT = 0;   // a quick look back at the pumpkin when you take off
-let mercy = 0, mercySection = null;   // caught again in the same area? the pumpkin eases off a bit
-let stormTimer = 2, strike = null, boltLine = null, boltT = 0, flashT = 0, laughT = 0;
-// the race
-let countT = 0;                 // 3, 2, 1… GO!
-let magic = 1, boosting = false; // the boost meter (0–1) and whether you're boosting now
-let item = null, rollT = 0, rolled = null, rollTick = 0;   // your power-up, and the box "rolling" before you get it
-let rocketT = 0, cloakT = 0, bonkT = 0, place = 6, hatsHit = 0, finishOrder = [], feedT = 0;
+let countT = 0;   // 3, 2, 1… GO!
+let finishOrder = [];   // everyone who has reached the moon, witches and players, in order
 let bestPlace = +(RB.store.get('ww_place') || 0);
 
-function resetRun(fromZ = 0) {
-  pos.set(lineX(fromZ), lineY(fromZ), fromZ);
-  yaw = 0; pitch = 0; roll = 0; speed = SPEED; boost = 0; slowT = 0;
-  pumpkinZ = fromZ + START_GAP + mercy * 25;
-  shieldT = 0; shieldCool = 0; strike = null; warnMesh.visible = false;
-  rocketT = 0; bonkT = 0; boosting = false;
-  section = sectionAt(pos.z);
+// everything about one player's race
+function newRacer(p) {
+  Object.assign(p, { ringCount: 0, caughtCount: 0, hatsHit: 0, mercy: 0, mercySection: null, magic: 1, boosting: false,
+    item: null, rollT: 0, rolled: null, rollTick: 0, cloakT: 0, finishT: 0, finishPlace: 0, place: 6, section: null,
+    feedT: 0, bannerT: 0, flashT: 0, strike: null, stormTimer: 2, boltLine: null, boltT: 0 });
+  p.mesh.userData.hat.visible = true;
+  p.ui.banner.classList.add('hidden'); p.ui.feed.style.opacity = 0;
+}
+// back on the line at fromZ (the start, or the start of an area after the pumpkin catches you)
+function resetRun(p, fromZ = 0) {
+  p.pos.set(lineX(fromZ) + (twoP ? (p.idx ? 5 : -5) : 0), lineY(fromZ), fromZ);
+  Object.assign(p, { yaw: 0, pitch: 0, roll: 0, speed: SPEED, boost: 0, slowT: 0, shieldT: 0, shieldCool: 0, rocketT: 0, bonkT: 0, boosting: false, strike: null });
+  p.warnMesh.visible = false;
+  p.section = sectionAt(p.pos.z);
 }
 
-function startGame() {
+const P1 = makePlayer(0, WITCH_LOOKS[0]), P2 = makePlayer(1, P2_LOOK);
+ALL.push(P1, P2);
+players = [P1];
+P2.mesh.visible = false;
+// Player 1's race, by the names the game (and its tests) always used
+for (const k of ['pos', 'dir', 'yaw', 'pitch', 'roll', 'speed', 'boost', 'slowT', 'shieldT', 'shieldCool', 'magic', 'boosting', 'item', 'rollT',
+  'rocketT', 'cloakT', 'bonkT', 'place', 'ringCount', 'hatsHit', 'caughtCount', 'strike', 'keys', 'cam', 'camera', 'lockMesh']) {
+  Object.defineProperty(window, k, { get: () => P1[k], set: v => { P1[k] = v; }, configurable: true });
+}
+Object.defineProperty(window, 'me', { get: () => P1.mesh, configurable: true });
+
+function startGame(two) {
+  if (typeof two === 'boolean') twoP = two;
   RB.audio();
   music.start();
   document.getElementById('title').classList.add('hidden');
   document.getElementById('over').classList.add('hidden');
+  players = twoP ? [P1, P2] : [P1];
+  P2.mesh.visible = twoP;
   for (const r of rings) { r.got = false; r.mesh.visible = true; }
   for (const b of boxes) { b.gone = 0; b.mesh.visible = true; }
   for (const g of ghosts) { g.userData.goneT = 0; g.visible = true; }
@@ -919,27 +1020,30 @@ function startGame() {
   clearProjectiles();
   for (const w of webs) scene.remove(w.mesh);
   webs.length = 0;
-  runT = 0; ringCount = 0; caughtCount = 0; mercy = 0; mercySection = null;
-  magic = 1; item = null; rollT = 0; cloakT = 0; hatsHit = 0; finishOrder = []; place = 6;
-  me.userData.hat.visible = true;
-  resetRun(0);
-  section = null;   // so the first area's name pops up
+  runT = 0; finishOrder = [];
+  for (const p of ALL) {
+    newRacer(p); resetRun(p, 0);
+    p.section = null;   // so the first area's name pops up
+    p.cam.reset(); p.cam.dist = CAM_DIST; p.prevBtn = null;
+  }
+  pumpkinZ = START_GAP;
   state = 'fly';
   countT = 3; introT = 3;
-  cam.reset(); cam.dist = CAM_DIST;
   setTimeout(sfx.laugh, 400);
-  showBanner('3', 'Get ready to race!', 1.1);
+  for (const p of players) showBanner(p, '3', 'Get ready to race!', 1.1);
   sfx.count();
 }
 
 // ---- 🎩 your hat: thrown like a boomerang, it bonks the witch it flies into, then comes back to you
-function lockTarget(range = HAT_RANGE, cone = 0.55) {
+// everyone p can aim at: the other witches, and in a two-player race the other player
+const othersOf = p => [...friends, ...players.filter(o => o !== p)];
+function lockTarget(p, range = HAT_RANGE, cone = 0.55) {
   let best = null, bestD = range;
-  for (const f of friends) {
+  for (const f of othersOf(p)) {
     if (f.knockT > 0 || f.finishT) continue;
-    tmp2.set(f.x - pos.x, f.y + 1 - pos.y, f.z - pos.z);
+    tmp2.set(f.x - p.pos.x, f.y + 1 - p.pos.y, f.z - p.pos.z);
     const d = tmp2.length();
-    if (d < bestD && d > 2 && tmp2.dot(dir) / d > Math.cos(cone)) { best = f; bestD = d; }
+    if (d < bestD && d > 2 && tmp2.dot(p.dir) / d > Math.cos(cone)) { best = f; bestD = d; }
   }
   return best;
 }
@@ -956,112 +1060,155 @@ function spawn(kind, from, vel, extra = {}) {
 function clearProjectiles() {
   for (const h of projectiles) { scene.remove(h.mesh); if (h.owner) h.owner.mesh.userData.hat.visible = true; }
   projectiles.length = 0;
+  for (const p of ALL) p.mesh.userData.hat.visible = true;
 }
-function throwHat() {
-  if (state !== 'fly' || paused || countT > 0 || projectiles.some(h => h.kind === 'hat')) return;
-  me.userData.hat.visible = false;
-  const from = me.userData.hat.getWorldPosition(new THREE.Vector3());
-  spawn('hat', from, dir.clone().multiplyScalar(speed + HAT_SPEED), { target: lockTarget(), color: WITCH_LOOKS[0][1] });
+function throwHat(p = P1) {
+  if (state !== 'fly' || paused || countT > 0 || p.finishT || !players.includes(p) || projectiles.some(h => h.kind === 'hat' && h.by === p)) return;
+  p.mesh.userData.hat.visible = false;
+  const from = p.mesh.userData.hat.getWorldPosition(new THREE.Vector3());
+  spawn('hat', from, p.dir.clone().multiplyScalar(p.speed + HAT_SPEED), { target: lockTarget(p), color: p.look[1], by: p });
   sfx.throw();
 }
-function knock(f, how) {
+// a hat, bats or a web gets a racer: a witch falls off her broom; a player wobbles and slows down
+function knock(f, how, by) {
+  if (f.isPlayer) return hitPlayer(f, how, by);
   if (f.knockT > 0) return;
   f.knockT = KNOCK; f.boostT = 0;
-  if (how !== 'web') hatsHit++;
+  if (how !== 'web' && by && by.isPlayer) by.hatsHit++;
   sfx.bonk();
   sparkle(new THREE.Vector3(f.x, f.y + 1.2, f.z), how === 'bats' ? '#c89cff' : '#ffd84a');
-  feed(`${how === 'bats' ? '🦇' : '🎩'} BONK! ${f.name} fell off the broom!`);
-  if (RB.pad && RB.pad.rumble) RB.pad.rumble(120, 0.45);
+  if (by && by.isPlayer) {
+    feed(by, how === 'web' ? `🕸️ ${f.name} got stuck in your web!` : `${how === 'bats' ? '🦇' : '🎩'} BONK! ${f.name} fell off the broom!`);
+    rumble(by, 120, 0.45);
+  }
 }
-function feed(text, time = 2.2) { const el = $('feed'); el.textContent = text; el.style.opacity = 1; feedT = time; }
+function hitPlayer(p, how, by) {
+  if (p.finishT || p.bonkT > 0) return;
+  const what = how === 'bats' ? 'bats' : how === 'web' ? 'web' : 'hat', who = by ? `${by.name}'s` : 'a';
+  if (p.shieldT > 0 || p.cloakT > 0) {
+    sparkle(p.pos.clone(), '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1);
+    feed(p, `🛡️ Blocked ${who} ${what}!`);
+    return;
+  }
+  p.slowT = how === 'web' ? 1.6 : 0.9; p.bonkT = 0.6;
+  sfx.ouch();
+  feed(p, `💫 ${how === 'bats' ? '🦇' : how === 'web' ? '🕸️' : 'Bonk!'} ${who} ${what} got you!`);
+  rumble(p, 160, 0.7);
+  if (by && by.isPlayer && how !== 'web') { by.hatsHit++; feed(by, `${how === 'bats' ? '🦇' : '🎩'} BONK! You got ${p.name}!`); rumble(by, 120, 0.45); }
+}
+function feed(p, text, time = 2.2) { const el = p.ui.feed; el.textContent = text; el.style.opacity = 1; p.feedT = time; }
 
 // ---- ❔ power-ups
-function useItem() {
-  if (state !== 'fly' || paused || countT > 0 || !item || rollT > 0) return;
-  const it = item;
-  item = null;
+function useItem(p = P1) {
+  if (state !== 'fly' || paused || countT > 0 || !p.item || p.rollT > 0 || p.finishT) return;
+  const it = p.item;
+  p.item = null;
   sfx.item();
-  feed(`${ITEMS[it].icon} ${ITEMS[it].name}! ${ITEMS[it].tip}`);
-  if (it === 'rocket') { rocketT = 2.4; sfx.boost(); }
-  else if (it === 'potion') { magic = 1; sparkle(pos.clone(), '#7af0ff'); }
-  else if (it === 'cloak') cloakT = 5;
+  feed(p, `${ITEMS[it].icon} ${ITEMS[it].name}! ${ITEMS[it].tip}`);
+  const others = othersOf(p).filter(f => !f.knockT && !f.finishT);
+  if (it === 'rocket') { p.rocketT = 2.4; sfx.boost(); }
+  else if (it === 'potion') { p.magic = 1; sparkle(p.pos.clone(), '#7af0ff'); }
+  else if (it === 'cloak') p.cloakT = 5;
   else if (it === 'triple') {
-    const ahead = friends.filter(f => !f.knockT && !f.finishT && f.z < pos.z && pos.z - f.z < 160).sort((a, b) => b.z - a.z);
+    const ahead = others.filter(f => f.z < p.pos.z && p.pos.z - f.z < 160).sort((a, b) => b.z - a.z);
     for (let k = 0; k < 3; k++) {
-      const v = dir.clone().multiplyScalar(speed + 50).add(new THREE.Vector3((k - 1) * 8, 2, 0));
-      spawn('gold', pos.clone().add(new THREE.Vector3(0, 2, 0)), v, { target: ahead[k] || null });
+      const v = p.dir.clone().multiplyScalar(p.speed + 50).add(new THREE.Vector3((k - 1) * 8, 2, 0));
+      spawn('gold', p.pos.clone().add(new THREE.Vector3(0, 2, 0)), v, { target: ahead[k] || null, by: p });
     }
     sfx.throw();
   } else if (it === 'bats') {
     // the leader, or if that's you, whoever is closest behind
-    const racing = friends.filter(f => !f.knockT && !f.finishT);
-    const lead = racing.sort((a, b) => a.z - b.z)[0];
-    const target = lead && lead.z < pos.z ? lead : racing.filter(f => f.z > pos.z).sort((a, b) => a.z - b.z)[0] || null;
-    spawn('bats', pos.clone().add(new THREE.Vector3(0, 3, 0)), dir.clone().multiplyScalar(speed + 30), { target });
+    const lead = others.slice().sort((a, b) => a.z - b.z)[0];
+    const target = lead && lead.z < p.pos.z ? lead : others.filter(f => f.z > p.pos.z).sort((a, b) => a.z - b.z)[0] || null;
+    spawn('bats', p.pos.clone().add(new THREE.Vector3(0, 3, 0)), p.dir.clone().multiplyScalar(p.speed + 30), { target, by: p });
     sfx.bats();
   } else if (it === 'web') {
     const m = new THREE.Mesh(webGeo, webMat);
-    m.position.copy(pos).addScaledVector(dir, -5);
+    m.position.copy(p.pos).addScaledVector(p.dir, -5);
     scene.add(m);
-    webs.push({ mesh: m, t: 30 });
+    webs.push({ mesh: m, t: 30, owner: p });
     sfx.web();
   }
 }
-function pickBox(b) {
+function pickBox(b, p) {
   b.gone = 5; b.mesh.visible = false;
   sparkle(b.mesh.position.clone(), '#ff7af5');
   sfx.box();
-  if (!item && rollT <= 0) { rollT = 1.1; rolled = rollItem(place); }
+  if (!p.item && p.rollT <= 0) { p.rollT = 1.1; p.rolled = rollItem(p.place); }
 }
+const useWith = p => (p.pad || (!twoP && RB.pad && RB.pad.connected) ? 'Ⓑ' : !twoP && RB.touch ? 'the ITEM button' : twoP ? (p.idx ? 'L' : 'G') : 'C');
 
-function castShield() {
-  if (state !== 'fly' || shieldCool > 0) return;
-  shieldT = SHIELD_TIME; shieldCool = SHIELD_TIME + SHIELD_COOL;
+function castShield(p = P1) {
+  if (state !== 'fly' || p.shieldCool > 0 || p.finishT || !players.includes(p)) return;
+  p.shieldT = SHIELD_TIME; p.shieldCool = SHIELD_TIME + SHIELD_COOL;
   sfx.shield();
-  sparkle(me.position.clone().add(new THREE.Vector3(0, 1, 0)), '#c89cff');
+  sparkle(p.mesh.position.clone().add(new THREE.Vector3(0, 1, 0)), '#c89cff');
 }
 
-function caught() {
-  caughtCount++;
-  if (mercySection === section) mercy = Math.min(6, mercy + 1); else { mercy = 1; mercySection = section; }
+// the pumpkin chases whoever is furthest behind
+function chased() {
+  let t = null;
+  for (const p of players) if (!p.finishT && (!t || p.pos.z > t.pos.z)) t = p;
+  return t;
+}
+function caught(p) {
+  p.caughtCount++;
+  if (p.mercySection === p.section) p.mercy = Math.min(6, p.mercy + 1); else { p.mercy = 1; p.mercySection = p.section; }
   sfx.caught();
-  flashT = 0.6;
+  p.flashT = 0.6;
+  rumble(p, 300, 0.8);
   // back to the start of this area, with the pumpkin a safe way behind
-  showBanner('CAUGHT!', 'The pumpkin got you… try this part again!', 2.2);
-  resetRun(section ? section.z0 - 10 : 0);
+  showBanner(p, 'CAUGHT!', 'The pumpkin got you… try this part again!', 2.2);
+  const z = p.section ? p.section.z0 - 10 : 0;
+  resetRun(p, z);
+  pumpkinZ = z + START_GAP + p.mercy * 25;
 }
 
+// a player reaches the moon; the race ends when everyone racing has
+function playerFinished(p) {
+  p.finishT = runT; finishOrder.push(p); p.finishPlace = finishOrder.length; p.place = p.finishPlace;
+  p.lockMesh.visible = false; p.warnMesh.visible = false; p.strike = null; p.keys.boost = false; p.boosting = false;
+  if (players.some(o => !o.finishT)) {
+    showBanner(p, `${ORD[p.place - 1]}!`, 'You made it to the moon! 🌕 Cheer on your friend!', 99);
+    if (p.place <= 3) sfx.win(); else sfx.section();
+  }
+}
 function finishRun() {
   state = 'over';
-  keys.boost = false;
   clearProjectiles();
-  lockMesh.visible = false;
-  const myPlace = finishOrder.length + 1;
-  place = myPlace;
-  if (myPlace <= 3) sfx.win(); else sfx.section();
-  const isBest = !best || runT < best, isBestPlace = !bestPlace || myPlace < bestPlace;
-  if (isBest) { best = runT; RB.store.set('ww_best', best.toFixed(1)); }
-  if (isBestPlace) { bestPlace = myPlace; RB.store.set('ww_place', myPlace); }
-  // everyone who got there first, you, then the rest in the order they're flying
-  const order = [...finishOrder.map(f => f.name), 'You', ...friends.filter(f => !f.finishT).sort((a, b) => a.z - b.z).map(f => f.name)];
-  const medal = ['🥇', '🥈', '🥉', '', '', ''];
-  $('overTitle').textContent = myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
-  $('overStats').innerHTML = `<ol class="podium">${order.map((n, i) => `<li class="${n === 'You' ? 'you' : ''}">${medal[i]} ${n}</li>`).join('')}</ol>` +
-    `TIME <b>${fmt(runT)}</b> · RINGS <b>${ringCount}</b> · BONKS <b>${hatsHit}</b><br>CAUGHT BY THE PUMPKIN <b>${caughtCount}</b> time${caughtCount === 1 ? '' : 's'}<br>` +
-    (isBestPlace && myPlace === 1 ? '🏆 <b>YOU WON THE RACE!</b>' : isBestPlace ? `🏆 <b>YOUR BEST PLACE YET!</b>` : `BEST <b>${ORD[bestPlace - 1]}</b> place`) +
-    (isBest ? ' · ⏱ <b>NEW BEST TIME!</b>' : '');
+  for (const p of ALL) { p.keys.boost = false; p.lockMesh.visible = false; p.ui.banner.classList.add('hidden'); }
+  const order = [...finishOrder.map(f => f.name), ...friends.filter(f => !f.finishT).sort((a, b) => a.z - b.z).map(f => f.name)];
+  const mine = players.map(p => p.name);
+  const medal = ['🥇', '🥈', '🥉', '', '', '', ''];
+  const podium = `<ol class="podium">${order.map((n, i) => `<li class="${mine.includes(n) ? 'you' : ''}">${medal[i]} ${n}</li>`).join('')}</ol>`;
+  const winner = players.slice().sort((a, b) => a.finishPlace - b.finishPlace)[0];
+  if (winner.finishPlace <= 3) sfx.win(); else sfx.section();
+  if (!twoP) {
+    const myPlace = P1.finishPlace, runTime = P1.finishT;
+    const isBest = !best || runTime < best, isBestPlace = !bestPlace || myPlace < bestPlace;
+    if (isBest) { best = runTime; RB.store.set('ww_best', best.toFixed(1)); }
+    if (isBestPlace) { bestPlace = myPlace; RB.store.set('ww_place', myPlace); }
+    $('overTitle').textContent = myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
+    $('overStats').innerHTML = podium +
+      `TIME <b>${fmt(runTime)}</b> · RINGS <b>${P1.ringCount}</b> · BONKS <b>${P1.hatsHit}</b><br>CAUGHT BY THE PUMPKIN <b>${P1.caughtCount}</b> time${P1.caughtCount === 1 ? '' : 's'}<br>` +
+      (isBestPlace && myPlace === 1 ? '🏆 <b>YOU WON THE RACE!</b>' : isBestPlace ? `🏆 <b>YOUR BEST PLACE YET!</b>` : `BEST <b>${ORD[bestPlace - 1]}</b> place`) +
+      (isBest ? ' · ⏱ <b>NEW BEST TIME!</b>' : '');
+  } else {
+    $('overTitle').textContent = winner.finishPlace === 1 ? `${winner.name} Won!` : `${winner.name} Beat ${players.find(o => o !== winner).name}!`;
+    $('overStats').innerHTML = podium + players.map(p => `<div class="pres"><span class="ptag" style="background:${p.look[0]}">P${p.idx + 1}</span> <b>${ORD[p.finishPlace - 1]}</b> · ⏱ ${fmt(p.finishT)} · 💍 ${p.ringCount} · 🎩 ${p.hatsHit} bonk${p.hatsHit === 1 ? '' : 's'} · 🎃 caught ${p.caughtCount}</div>`).join('');
+  }
+  $('btnSwap').textContent = twoP ? '🧙 1 Player' : '👥 2 Players';
   $('over').classList.remove('hidden');
   showBestOnTitle();
 }
-const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th'];
+const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th'];
 const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
-const bannerEl = document.getElementById('banner');
-function showBanner(t, sub, time = 2.6) { bannerEl.innerHTML = `${t}<small>${sub}</small>`; bannerEl.classList.remove('hidden'); bannerT = time; }
+function showBanner(p, t, sub, time = 2.6) { p.ui.banner.innerHTML = `${t}<small>${sub}</small>`; p.ui.banner.classList.remove('hidden'); p.bannerT = time; }
 
 // ---------- Update ----------
-function steerInput() { return clamp((keys.r ? 1 : 0) - (keys.l ? 1 : 0) + stick.x, -1, 1); }
-function climbInput() { return clamp((keys.u ? 1 : 0) - (keys.d ? 1 : 0) - stick.y, -1, 1); }
+function steerInput(p = P1) { return clamp((p.keys.r ? 1 : 0) - (p.keys.l ? 1 : 0) + (p.idx ? 0 : stick.x) + (p.pad ? p.pad.lx : 0), -1, 1); }
+function climbInput(p = P1) { return clamp((p.keys.u ? 1 : 0) - (p.keys.d ? 1 : 0) - (p.idx ? 0 : stick.y) - (p.pad ? p.pad.ly : 0), -1, 1); }
 
 function update(dt) {
   clock += dt;
@@ -1079,16 +1226,19 @@ function update(dt) {
     b.mesh.position.y = b.y + Math.sin(clock * 2 + b.x) * 0.4;
     if (b.gone > 0 && (b.gone -= dt) <= 0) b.mesh.visible = true;
   }
-  if (feedT > 0 && (feedT -= dt) <= 0) $('feed').style.opacity = 0;
+  for (const p of ALL) {
+    if (p.feedT > 0 && (p.feedT -= dt) <= 0) p.ui.feed.style.opacity = 0;
+    if (p.bannerT > 0 && (p.bannerT -= dt) <= 0) p.ui.banner.classList.add('hidden');
+    p.flashT = Math.max(0, p.flashT - dt);
+  }
   updateDust(dt);
-  if (bannerT > 0 && (bannerT -= dt) <= 0) bannerEl.classList.add('hidden');
-  flashT = Math.max(0, flashT - dt);
 
   if (state !== 'fly') {
     // the title screen: drift through the fog with the flock
+    const pos = P1.pos;
     pos.z -= 12 * dt; if (pos.z < -1200) pos.z = 0;
     pos.x = lineX(pos.z); pos.y = lineY(pos.z);
-    yaw = 0; pitch = 0;
+    P1.yaw = 0; P1.pitch = 0;
     pumpkinZ = pos.z + 40;
     moveRivals(dt, 12);
     return;
@@ -1097,174 +1247,193 @@ function update(dt) {
     const was = Math.ceil(countT);
     countT -= dt; introT = Math.max(0, introT - dt);
     if (countT <= 0) {
-      countT = 0; showBanner('GO!', 'Race to the moon! 🌕', 1.2); sfx.go();
-      if (RB.pad && RB.pad.rumble) RB.pad.rumble(200, 0.5);
-    } else if (Math.ceil(countT) !== was) { showBanner(String(Math.ceil(countT)), 'Get ready to race!', 1.1); sfx.count(); }
-    pumpkinZ = pos.z + START_GAP;
+      countT = 0; for (const p of players) showBanner(p, 'GO!', 'Race to the moon! 🌕', 1.2); sfx.go();
+      rumble(null, 200, 0.5);
+    } else if (Math.ceil(countT) !== was) { for (const p of players) showBanner(p, String(Math.ceil(countT)), 'Get ready to race!', 1.1); sfx.count(); }
+    pumpkinZ = Math.max(...players.map(p => p.pos.z)) + START_GAP;
     moveRivals(dt, null);
     return;
   }
   runT += dt;
   if (introT > 0) introT -= dt;
-  cloakT = Math.max(0, cloakT - dt); bonkT = Math.max(0, bonkT - dt);
-  if (rollT > 0) {   // the box is "rolling" through power-ups…
-    rollT -= dt;
-    if ((rollTick -= dt) <= 0) { sfx.roll(); rollTick = 0.09; }
-    if (rollT <= 0) { item = rolled; sfx.item(); feed(`${ITEMS[item].icon} ${ITEMS[item].name}! Use it with ${RB.pad && RB.pad.connected ? 'Ⓑ' : RB.touch ? 'the ITEM button' : 'C'}`); }
+  for (const p of players) if (!p.finishT) updatePlayer(p, dt);
+
+  // --- the pumpkin closes in on whoever is last when they slow down, and never falls too far behind
+  const p = chased();
+  if (p) {
+    const gap = pumpkinZ - p.pos.z;
+    const ps = gap > MAX_GAP ? 36 : PUMPKIN_SPEED;
+    pumpkinZ -= ps * dt;
+    if (p.cloakT > 0) pumpkinZ = Math.max(pumpkinZ, p.pos.z + CATCH_GAP + 2);   // the cloak hides you from the pumpkin too
+    if (pumpkinZ - p.pos.z < CATCH_GAP) caught(p);
+    if (gap < 50 && (laughT -= dt) <= 0) { sfx.laugh(); laughT = 4; }
   }
-  const tough = cloakT > 0 || rocketT > 0;   // nothing slows you down
+
+  // --- the race: magic boxes, webs, hats and power-ups in flight, and where everyone is
+  for (const q of players) if (!q.finishT) for (const b of boxes) if (!b.gone && Math.abs(b.z - q.pos.z) < 3 && Math.hypot(b.x - q.pos.x, b.mesh.position.y - q.pos.y) < 4) pickBox(b, q);
+  for (let i = webs.length - 1; i >= 0; i--) {
+    const w = webs[i];
+    w.mesh.rotation.z += dt * 0.5;
+    w.mesh.position.x += (lineX(w.mesh.position.z) - w.mesh.position.x) * Math.min(1, dt * 0.4);   // drifts onto the racing line
+    const hit = othersOf(w.owner).find(f => !f.knockT && !f.stuckT && !f.finishT && Math.abs(f.z - w.mesh.position.z) < 2.5 && Math.hypot(f.x - w.mesh.position.x, f.y - w.mesh.position.y) < 9);
+    if (hit) {
+      sfx.web();
+      if (hit.isPlayer) hitPlayer(hit, 'web', w.owner);
+      else { hit.stuckT = 1.8; feed(w.owner, `🕸️ ${hit.name} got stuck in your web!`); }
+    }
+    if (hit || (w.t -= dt) <= 0) { scene.remove(w.mesh); webs.splice(i, 1); }
+  }
+  updateProjectiles(dt);
+  for (const q of players) {
+    if (q.finishT) continue;
+    q.place = 1 + othersOf(q).filter(o => o.finishT || o.z < q.pos.z).length;
+    const lock = projectiles.some(h => h.kind === 'hat' && h.by === q) ? null : lockTarget(q);
+    q.lockMesh.visible = !!lock;
+    if (lock) { q.lockMesh.position.set(lock.x, lock.y + 3.6, lock.z); q.lockMesh.rotation.set(0, clock * 3, 0); q.lockMesh.lookAt(q.camera.position); }
+  }
+
+  moveRivals(dt, null);
+  music.setWind(Math.min(0.12, Math.max(...players.map(q => q.speed)) / 400));
+  if (players.every(q => q.finishT)) finishRun();
+}
+
+// one player flying for a frame: steering, boosting, the areas, rings, bumps, the storm and the finish
+function updatePlayer(p, dt) {
+  p.cloakT = Math.max(0, p.cloakT - dt); p.bonkT = Math.max(0, p.bonkT - dt);
+  if (p.rollT > 0) {   // the box is "rolling" through power-ups…
+    p.rollT -= dt;
+    if ((p.rollTick -= dt) <= 0) { sfx.roll(); p.rollTick = 0.09; }
+    if (p.rollT <= 0) { p.item = p.rolled; sfx.item(); feed(p, `${ITEMS[p.item].icon} ${ITEMS[p.item].name}! Use it with ${useWith(p)}`); }
+  }
+  const tough = p.cloakT > 0 || p.rocketT > 0;   // nothing slows you down
+  const pos = p.pos, dir = p.dir;
 
   // --- flying
-  const sx = steerInput(), sy = climbInput();
+  const sx = steerInput(p), sy = climbInput(p);
   // left and right are the screen's left and right, wherever the camera is (like Mario Odyssey):
   // seen from in front, pushing right turns the witch toward her own left
   // The camera angle is "latched" while the stick is held the same way, so a camera that is still
   // swinging around never changes which way you're turning.
-  yaw -= sx * 1.5 * dt * cam.steer(sx);
-  if (!sx) yaw += (0 - yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
-  pitch += (sy * 0.65 - pitch) * Math.min(1, dt * 3);
-  roll += (sx * 0.6 - roll) * Math.min(1, dt * 5) + (bonkT > 0 ? Math.sin(bonkT * 30) * 0.15 : 0);
-  boost = Math.max(0, boost - dt * 6);
+  p.yaw -= sx * 1.5 * dt * p.cam.steer(sx);
+  if (!sx) p.yaw += (0 - p.yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
+  p.pitch += (sy * 0.65 - p.pitch) * Math.min(1, dt * 3);
+  p.roll += (sx * 0.6 - p.roll) * Math.min(1, dt * 5) + (p.bonkT > 0 ? Math.sin(p.bonkT * 30) * 0.15 : 0);
+  p.boost = Math.max(0, p.boost - dt * 6);
   // ✨ boost: hold LT (or Z / Shift) to spend the magic meter, leaving a trail of magic dust
-  const wasBoosting = boosting;
-  boosting = !!keys.boost && magic > (boosting ? 0 : 0.08);
-  if (boosting) { magic = Math.max(0, magic - dt * BOOST_DRAIN); boost = Math.max(boost, BOOST); if (!wasBoosting) sfx.boost(); }
-  else magic = Math.min(1, magic + dt * BOOST_FILL);
-  if (rocketT > 0) { rocketT -= dt; boost = Math.max(boost, 24); }
-  if (boosting || rocketT > 0) emitDust(tailPos(me), Math.ceil(dt * 140), 1, rocketT > 0 ? ROCKET_COLORS : DUST_COLORS);
-  slowT = Math.max(0, slowT - dt);
-  const target = (slowT > 0 ? SPEED * 0.45 : SPEED) + boost;
-  speed += (target - speed) * Math.min(1, dt * 3);
-  dir.set(-Math.sin(yaw) * Math.cos(pitch), Math.sin(pitch), -Math.cos(yaw) * Math.cos(pitch));
-  pos.addScaledVector(dir, speed * dt);
+  const wasBoosting = p.boosting;
+  p.boosting = !!(p.keys.boost || (p.pad && p.pad.pressed(6))) && p.magic > (p.boosting ? 0 : 0.08);
+  if (p.boosting) { p.magic = Math.max(0, p.magic - dt * BOOST_DRAIN); p.boost = Math.max(p.boost, BOOST); if (!wasBoosting) sfx.boost(); }
+  else p.magic = Math.min(1, p.magic + dt * BOOST_FILL);
+  if (p.rocketT > 0) { p.rocketT -= dt; p.boost = Math.max(p.boost, 24); }
+  if (p.boosting || p.rocketT > 0) emitDust(tailPos(p.mesh), Math.ceil(dt * 140), 1, p.rocketT > 0 ? ROCKET_COLORS : DUST_COLORS);
+  p.slowT = Math.max(0, p.slowT - dt);
+  const target = (p.slowT > 0 ? SPEED * 0.45 : SPEED) + p.boost;
+  p.speed += (target - p.speed) * Math.min(1, dt * 3);
+  dir.set(-Math.sin(p.yaw) * Math.cos(p.pitch), Math.sin(p.pitch), -Math.cos(p.yaw) * Math.cos(p.pitch));
+  pos.addScaledVector(dir, p.speed * dt);
   // soft walls: the fog thickens and gently turns you back
-  if (Math.abs(pos.x) > WIDTH) { pos.x = Math.sign(pos.x) * WIDTH; yaw += Math.sign(pos.x) * dt * 1.5; }
-  if (pos.y > CEILING) { pos.y = CEILING; pitch = Math.min(pitch, 0); }
+  if (Math.abs(pos.x) > WIDTH) { pos.x = Math.sign(pos.x) * WIDTH; p.yaw += Math.sign(pos.x) * dt * 1.5; }
+  if (pos.y > CEILING) { pos.y = CEILING; p.pitch = Math.min(p.pitch, 0); }
   const gy = (pos.z < -2895 ? groundAt(pos.x, pos.z) : 0) + 1.5;
-  if (pos.y < gy) { pos.y = gy; pitch = Math.max(pitch, 0.25); }
-  if (pos.z > 40) { pos.z = 40; yaw = 0; }
+  if (pos.y < gy) { pos.y = gy; p.pitch = Math.max(p.pitch, 0.25); }
+  if (pos.z > 40) { pos.z = 40; p.yaw = 0; }
   // flying into the cliff face from below: bump back and tip upward
   if (pos.z < -2878 && pos.z > -2895 && pos.x < 40 && pos.y < 47) {
-    pos.z = -2877; pitch = 0.6;
-    if (slowT <= 0) { slowT = 0.9; sfx.bump(); showBanner('CLIMB!', 'Fly up over the cliff!', 1.4); }
+    pos.z = -2877; p.pitch = 0.6;
+    if (p.slowT <= 0) { p.slowT = 0.9; sfx.bump(); showBanner(p, 'CLIMB!', 'Fly up over the cliff!', 1.4); }
   }
 
   // --- areas
   const sec = sectionAt(pos.z);
-  if (sec !== section && introT <= 0) {
-    if (section && sec !== mercySection) mercy = 0;   // made it to a new area: back to normal
-    section = sec;
-    showBanner(sec.name, sec.sub);
+  if (sec !== p.section && introT <= 0) {
+    if (p.section && sec !== p.mercySection) p.mercy = 0;   // made it to a new area: back to normal
+    p.section = sec;
+    showBanner(p, sec.name, sec.sub);
     sfx.section();
   }
-  // fog colour eases toward each area's mood
-  scene.fog.color.lerp(new THREE.Color(sec.fog), Math.min(1, dt * 1.5));
-  scene.fog.near += (sec.near - scene.fog.near) * Math.min(1, dt);
-  scene.fog.far += (sec.far - scene.fog.far) * Math.min(1, dt);
-  scene.background.copy(scene.fog.color).multiplyScalar(0.6);
+  // fog colour eases toward each area's mood (each player's view has her own)
+  p.fog.color.lerp(new THREE.Color(sec.fog), Math.min(1, dt * 1.5));
+  p.fog.near += (sec.near - p.fog.near) * Math.min(1, dt);
+  p.fog.far += (sec.far - p.fog.far) * Math.min(1, dt);
 
   // --- rings
   for (const r of rings) {
     if (r.got) continue;
     if (Math.abs(pos.z - r.z) < 1.6 && Math.hypot(pos.x - r.x, pos.y - r.y) < r.r) {
-      r.got = true; r.mesh.visible = false; ringCount++;
-      boost = BOOST; magic = Math.min(1, magic + 0.3); sfx.ring(); sparkle(pos);
+      r.got = true; r.mesh.visible = false; p.ringCount++;
+      p.boost = BOOST; p.magic = Math.min(1, p.magic + 0.3); sfx.ring(); sparkle(pos);
     }
   }
 
   // --- bumping into things
-  if (slowT <= 0 && !tough) for (const c of colliders) {
+  if (p.slowT <= 0 && !tough) for (const c of colliders) {
     if (Math.abs(c.z - pos.z) > c.r + 2) continue;
     const d = Math.hypot(pos.x - c.x, pos.y - c.y, pos.z - c.z);
     if (d < c.r + 0.8) {
-      slowT = 0.9; sfx.bump();
+      p.slowT = 0.9; sfx.bump();
       pos.y += 3; pos.x += pos.x > c.x ? 2 : -2;
       if (navigator.vibrate) navigator.vibrate(60);
+      rumble(p, 80, 0.4);
       break;
     }
   }
   for (const g of ghosts) {
-    if (slowT <= 0 && !tough && g.visible && g.position.distanceTo(pos) < 3) { slowT = 0.9; sfx.bump(); RB.beep(600, 300, 0.4, 'sine', 0.08); }
+    if (p.slowT <= 0 && !tough && g.visible && g.position.distanceTo(pos) < 3) { p.slowT = 0.9; sfx.bump(); RB.beep(600, 300, 0.4, 'sine', 0.08); }
   }
 
   // --- the storm: a warning glow, then lightning strikes there
-  shieldT = Math.max(0, shieldT - dt); shieldCool = Math.max(0, shieldCool - dt);
-  shieldMesh.visible = shieldT > 0;
-  shieldMesh.material.opacity = 0.2 + 0.1 * Math.sin(clock * 12);
+  p.shieldT = Math.max(0, p.shieldT - dt); p.shieldCool = Math.max(0, p.shieldCool - dt);
+  p.shieldMesh.visible = p.shieldT > 0;
+  p.shieldMesh.material.opacity = 0.2 + 0.1 * Math.sin(clock * 12);
   if (sec.id === 'storm') {
-    if (!strike && (stormTimer -= dt) <= 0) {
+    if (!p.strike && (p.stormTimer -= dt) <= 0) {
       // aim just ahead of where you're going
-      const p = pos.clone().addScaledVector(dir, speed * 1.4);
-      p.x += rand(-4, 4); p.y += rand(-3, 3);
-      if (mercy >= 3) p.x += (Math.random() < 0.5 ? -1 : 1) * 12;   // caught a lot here? the storm takes pity and misses
-      strike = { p, t: 1.4 };
-      warnMesh.position.copy(p); warnMesh.visible = true;
+      const s = pos.clone().addScaledVector(dir, p.speed * 1.4);
+      s.x += rand(-4, 4); s.y += rand(-3, 3);
+      if (p.mercy >= 3) s.x += (Math.random() < 0.5 ? -1 : 1) * 12;   // caught a lot here? the storm takes pity and misses
+      p.strike = { p: s, t: 1.4 };
+      p.warnMesh.position.copy(s); p.warnMesh.visible = true;
     }
-    if (strike && (strike.t -= dt) <= 0) {
-      sfx.thunder(); flashT = 0.35;
+    if (p.strike && (p.strike.t -= dt) <= 0) {
+      const s = p.strike.p;
+      sfx.thunder(); p.flashT = 0.35;
       // draw a jagged bolt from the clouds down to the strike point
-      const pts = [], top = new THREE.Vector3(strike.p.x + rand(-10, 10), 100, strike.p.z);
-      for (let i = 0; i <= 10; i++) pts.push(new THREE.Vector3().lerpVectors(top, strike.p, i / 10).add(new THREE.Vector3(i && i < 10 ? rand(-4, 4) : 0, 0, i && i < 10 ? rand(-3, 3) : 0)));
-      if (boltLine) scene.remove(boltLine);
-      boltLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), boltMat);
-      scene.add(boltLine); boltT = 0.25;
-      if (strike.p.distanceTo(pos) < 12) {
-        if (shieldT > 0 || cloakT > 0) { sparkle(pos, '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); }
-        else { slowT = 1.3; sfx.zap(); if (navigator.vibrate) navigator.vibrate(150); }
+      const pts = [], top = new THREE.Vector3(s.x + rand(-10, 10), 100, s.z);
+      for (let i = 0; i <= 10; i++) pts.push(new THREE.Vector3().lerpVectors(top, s, i / 10).add(new THREE.Vector3(i && i < 10 ? rand(-4, 4) : 0, 0, i && i < 10 ? rand(-3, 3) : 0)));
+      if (p.boltLine) scene.remove(p.boltLine);
+      p.boltLine = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), boltMat);
+      scene.add(p.boltLine); p.boltT = 0.25;
+      if (s.distanceTo(pos) < 12) {
+        if (p.shieldT > 0 || p.cloakT > 0) { sparkle(pos, '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); }
+        else { p.slowT = 1.3; sfx.zap(); if (navigator.vibrate) navigator.vibrate(150); rumble(p, 250, 0.9); }
       }
-      strike = null; warnMesh.visible = false; stormTimer = rand(1.2, 2.4) * (1 + mercy * 0.6);
+      p.strike = null; p.warnMesh.visible = false; p.stormTimer = rand(1.2, 2.4) * (1 + p.mercy * 0.6);
     }
-  } else if (strike) { strike = null; warnMesh.visible = false; }
-  if (boltLine && (boltT -= dt) <= 0) { scene.remove(boltLine); boltLine = null; }
-  const hatComing = projectiles.some(h => h.kind === 'rival' && h.mesh.position.distanceTo(pos) < 22);
-  document.getElementById('warn').classList.toggle('hidden', !((strike && strike.p.distanceTo(pos) < 30 || hatComing) && shieldT <= 0 && cloakT <= 0));
-  warnMesh.material.opacity = strike ? 0.1 + 0.15 * Math.abs(Math.sin(clock * 10)) : 0;
+  } else if (p.strike) { p.strike = null; p.warnMesh.visible = false; }
+  if (p.boltLine && (p.boltT -= dt) <= 0) { scene.remove(p.boltLine); p.boltLine = null; }
+  const hatComing = projectiles.some(h => h.kind === 'rival' && h.target === p && h.mesh.position.distanceTo(pos) < 22);
+  p.ui.warn.classList.toggle('hidden', !((p.strike && p.strike.p.distanceTo(pos) < 30 || hatComing) && p.shieldT <= 0 && p.cloakT <= 0));
+  p.warnMesh.material.opacity = p.strike ? 0.1 + 0.15 * Math.abs(Math.sin(clock * 10)) : 0;
 
-  // --- the pumpkin closes in when you slow down, and never falls too far behind
-  const gap = pumpkinZ - pos.z;
-  const ps = gap > MAX_GAP ? 36 : PUMPKIN_SPEED;
-  pumpkinZ -= ps * dt;
-  if (cloakT > 0) pumpkinZ = Math.max(pumpkinZ, pos.z + CATCH_GAP + 2);   // the cloak hides you from the pumpkin too
-  if (pumpkinZ - pos.z < CATCH_GAP) caught();
-  if (gap < 50 && (laughT -= dt) <= 0) { sfx.laugh(); laughT = 4; }
-
-  if (pos.z <= FINISH_Z && Math.hypot(pos.x - lineX(FINISH_Z), pos.y - 60) < 30) finishRun();
-  else if (pos.z < FINISH_Z - 60) finishRun();
-
-  // --- the race: magic boxes, webs, hats and power-ups in flight, and where you are
-  for (const b of boxes) if (!b.gone && Math.abs(b.z - pos.z) < 3 && Math.hypot(b.x - pos.x, b.mesh.position.y - pos.y) < 4) pickBox(b);
-  for (let i = webs.length - 1; i >= 0; i--) {
-    const w = webs[i];
-    w.mesh.rotation.z += dt * 0.5;
-    w.mesh.position.x += (lineX(w.mesh.position.z) - w.mesh.position.x) * Math.min(1, dt * 0.4);   // drifts onto the racing line
-    const hit = friends.find(f => !f.knockT && !f.stuckT && Math.abs(f.z - w.mesh.position.z) < 2.5 && Math.hypot(f.x - w.mesh.position.x, f.y - w.mesh.position.y) < 9);
-    if (hit) { hit.stuckT = 1.8; sfx.web(); feed(`🕸️ ${hit.name} got stuck in your web!`); }
-    if (hit || (w.t -= dt) <= 0) { scene.remove(w.mesh); webs.splice(i, 1); }
-  }
-  updateProjectiles(dt);
-  place = 1 + friends.filter(f => f.finishT || f.z < pos.z).length;
-  const lock = projectiles.some(h => h.kind === 'hat') ? null : lockTarget();
-  lockMesh.visible = !!lock;
-  if (lock) { lockMesh.position.set(lock.x, lock.y + 3.6, lock.z); lockMesh.rotation.set(0, clock * 3, 0); lockMesh.lookAt(camera.position); }
-
-  moveRivals(dt, null);
-  music.setWind(Math.min(0.12, speed / 400));
+  if ((pos.z <= FINISH_Z && Math.hypot(pos.x - lineX(FINISH_Z), pos.y - 60) < 30) || pos.z < FINISH_Z - 60) playerFinished(p);
 }
 
 // The other witches race the friendly line. They're a little faster or slower each, boost now and then,
 // grab magic boxes and throw their hats at you if you're just ahead. The race stays close: a witch far ahead
-// eases off a little and one far behind catches up.
+// eases off a little and one far behind catches up (measured from the players still racing).
 const tailV = new THREE.Vector3();
 function moveRivals(dt, fixedSpeed) {
   const racing = state === 'fly' && countT <= 0 && !fixedSpeed;
+  const flying = players.filter(p => !p.finishT);
+  const refZ = flying.length ? flying.reduce((a, p) => a + p.pos.z, 0) / flying.length : P1.pos.z;
   for (const f of friends) {
     const u = f.mesh.userData;
     if (fixedSpeed) {   // the title screen: drift along with you
       f.z -= fixedSpeed * dt;
-      if (f.z < pos.z - 60) f.z = pos.z + rand(10, 40);
+      if (f.z < P1.pos.z - 60) f.z = P1.pos.z + rand(10, 40);
       f.knockT = f.stuckT = f.boostT = 0;
     } else if (racing) {
-      const rel = f.z - pos.z;   // below 0: ahead of you
+      const rel = f.z - refZ;   // below 0: ahead of you
       let sp = f.base + Math.sin(clock * 0.3 + f.ph) * 1.2;
       if (rel < -90) sp -= 6; else if (rel < -40) sp -= 3;
       if (rel > 25) sp += 4;
@@ -1279,14 +1448,14 @@ function moveRivals(dt, fixedSpeed) {
       if (!f.finishT && f.z <= FINISH_Z) { f.finishT = runT; finishOrder.push(f); }
       if (f.z < FINISH_Z - 220) f.z = FINISH_Z - 220;
       for (const b of boxes) if (!b.gone && Math.abs(b.z - f.z) < 2.5 && Math.hypot(b.x - f.x, b.mesh.position.y - f.y) < 3.2) { b.gone = 5; b.mesh.visible = false; f.boostT = 1.5; }
-      // a hat thrown back at you: only from just behind, one at a time, never in the storm or with the pumpkin close
+      // a hat thrown back at a player: only from just behind, one at a time, never in the storm or with the pumpkin close
       if ((f.nextThrow -= dt) <= 0) {
         f.nextThrow = rand(9, 15);
-        if (!f.knockT && !f.finishT && rel > 4 && rel < 30 && runT > 12 && section && section.id !== 'storm' &&
-          pumpkinZ - pos.z > 65 && !projectiles.some(h => h.kind === 'rival')) {
+        const victim = flying.find(p => { const r = f.z - p.pos.z; return r > 4 && r < 30 && p.section && p.section.id !== 'storm' && pumpkinZ - p.pos.z > 65; });
+        if (victim && !f.knockT && !f.finishT && runT > 12 && !projectiles.some(h => h.kind === 'rival')) {
           u.hat.visible = false;
           const from = u.hat.getWorldPosition(new THREE.Vector3());
-          spawn('rival', from, new THREE.Vector3(0, 2, -(f.v + 14)), { owner: f, color: u.hatColor });
+          spawn('rival', from, new THREE.Vector3(0, 2, -(f.v + 14)), { owner: f, color: u.hatColor, target: victim });
           sfx.throw();
         }
       }
@@ -1324,43 +1493,44 @@ function updateProjectiles(dt) {
     let done = false;
     const aim = (f, extra) => want.set(f.x, f.y + 1.2, f.z).sub(m.position).normalize().multiplyScalar(f.v + extra);
     if (h.kind === 'hat') {
-      me.userData.hat.getWorldPosition(hatHome);
+      const p = h.by;
+      p.mesh.userData.hat.getWorldPosition(hatHome);
       if (h.phase === 'out') {
         if (h.target && !h.target.knockT) h.vel.lerp(aim(h.target, HAT_SPEED), Math.min(1, dt * 10));
-        else h.vel.lerp(want.copy(dir).multiplyScalar(speed), Math.min(1, dt * 4));   // slows to a hover just ahead
+        else h.vel.lerp(want.copy(p.dir).multiplyScalar(p.speed), Math.min(1, dt * 4));   // slows to a hover just ahead
         if (h.t > (h.target ? 1.5 : 0.6)) { h.phase = 'hover'; h.t = 0; }
       } else if (h.phase === 'hover') {
-        h.vel.copy(dir).multiplyScalar(speed);
+        h.vel.copy(p.dir).multiplyScalar(p.speed);
         if (h.t > 0.18) h.phase = 'back';
       } else {
-        h.vel.copy(hatHome).sub(m.position).normalize().multiplyScalar(speed + 55);
-        if (m.position.distanceTo(hatHome) < 2.2 || h.t > 4) { done = true; me.userData.hat.visible = true; sfx.catchHat(); }
+        h.vel.copy(hatHome).sub(m.position).normalize().multiplyScalar(p.speed + 55);
+        if (m.position.distanceTo(hatHome) < 2.2 || h.t > 4) { done = true; p.mesh.userData.hat.visible = true; sfx.catchHat(); }
       }
       if (h.phase !== 'back') {
-        for (const f of friends) if (!f.knockT && m.position.distanceTo(want.set(f.x, f.y + 1.2, f.z)) < 2.8) { knock(f, 'hat'); h.phase = 'back'; h.t = 0; }
+        for (const f of othersOf(p)) if (!f.knockT && !f.finishT && m.position.distanceTo(want.set(f.x, f.y + 1.2, f.z)) < 2.8) { knock(f, 'hat', p); h.phase = 'back'; h.t = 0; }
       }
       // like a boomerang it also grabs rings and boxes and spooks ghosts away
       for (const r of rings) if (!r.got && Math.abs(r.z - m.position.z) < 2 && Math.hypot(r.x - m.position.x, r.y - m.position.y) < r.r) {
-        r.got = true; r.mesh.visible = false; ringCount++; boost = BOOST; magic = Math.min(1, magic + 0.3); sfx.ring();
+        r.got = true; r.mesh.visible = false; p.ringCount++; p.boost = BOOST; p.magic = Math.min(1, p.magic + 0.3); sfx.ring();
       }
-      for (const b of boxes) if (!b.gone && m.position.distanceTo(b.mesh.position) < 2.8) pickBox(b);
+      for (const b of boxes) if (!b.gone && m.position.distanceTo(b.mesh.position) < 2.8) pickBox(b, p);
       for (const g of ghosts) if (g.visible && m.position.distanceTo(g.position) < 3) { g.userData.goneT = 8; g.visible = false; sparkle(g.position.clone(), '#e8f4ff'); RB.beep(700, 1400, 0.3, 'sine', 0.07); }
       emitDust(m.position, 1, 0.6, [DUST_COLORS[3], DUST_COLORS[5]]);
     } else if (h.kind === 'gold' || h.kind === 'bats') {
       const f = h.target;
       if (f && !f.knockT) h.vel.lerp(aim(f, h.kind === 'gold' ? 55 : 40), Math.min(1, dt * (h.kind === 'gold' ? 6 : 3)));
-      if (f && !f.knockT && m.position.distanceTo(want.set(f.x, f.y + 1.2, f.z)) < 3) { knock(f, h.kind === 'bats' ? 'bats' : 'hat'); done = true; }
+      if (f && !f.knockT && !f.finishT && m.position.distanceTo(want.set(f.x, f.y + 1.2, f.z)) < 3) { knock(f, h.kind === 'bats' ? 'bats' : 'hat', h.by); done = true; }
       if (h.t > (h.kind === 'gold' ? 3 : 7) || (f && f.knockT && !done)) done = true;
       if (h.kind === 'gold') emitDust(m.position, 1, 0.5, ROCKET_COLORS);
       else m.children.forEach((b, k) => { b.scale.x = 0.6 + 0.4 * Math.abs(Math.sin(clock * 25 + k)); b.position.y += Math.sin(clock * 9 + k) * dt * 2; });
-    } else {   // a rival's hat, coming for you
-      h.vel.lerp(want.copy(pos).add(new THREE.Vector3(0, 1, 0)).sub(m.position).normalize().multiplyScalar(speed + 16), Math.min(1, dt * 3));
-      if (m.position.distanceTo(want.copy(pos).add(new THREE.Vector3(0, 1, 0))) < 2.3) {
+    } else {   // a rival's hat, coming for a player
+      const p = h.target || P1, at = want.copy(p.pos).add(new THREE.Vector3(0, 1, 0));
+      h.vel.lerp(at.sub(m.position).normalize().multiplyScalar(p.speed + 16), Math.min(1, dt * 3));
+      if (m.position.distanceTo(want.copy(p.pos).add(new THREE.Vector3(0, 1, 0))) < 2.3) {
         done = true;
-        if (shieldT > 0 || cloakT > 0) { sparkle(pos.clone(), '#c89cff'); RB.beep(1200, 1800, 0.2, 'sine', 0.1); feed(`🛡️ Blocked ${h.owner.name}'s hat!`); }
-        else { slowT = 0.9; bonkT = 0.6; sfx.ouch(); feed(`💫 Bonk! ${h.owner.name}'s hat got you!`); if (RB.pad && RB.pad.rumble) RB.pad.rumble(160, 0.7); }
+        hitPlayer(p, 'rival', h.owner);
       }
-      if (h.t > 3.5) done = true;
+      if (h.t > 3.5 || p.finishT) done = true;
     }
     if (h.kind !== 'bats') m.rotation.y += dt * 16;
     else m.lookAt(want.copy(m.position).add(h.vel));
@@ -1395,60 +1565,24 @@ function clearDistance(origin, dirC, want) {
   return Math.max(3.5, free - 0.5);
 }
 const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
-const camPos = new THREE.Vector3(0, 50, 30), camLook = new THREE.Vector3();
 const tmp = new THREE.Vector3();
 function updateVisuals(dt) {
-  me.position.copy(pos);
-  me.rotation.set(0, 0, 0);
-  me.rotateY(yaw);
-  me.rotateX(pitch);
-  me.rotateZ(roll);
-  me.userData.cape.rotation.x = -0.9 + Math.sin(clock * 12) * 0.2;
-  cloakMesh.visible = cloakT > 0;
-  cloakMesh.material.opacity = 0.14 + 0.08 * Math.sin(clock * 8);
-  me.userData.rider.visible = !(cloakT > 0 && cloakT < 1.2 && Math.sin(clock * 30) > 0);   // flickers as the cloak wears off
-  // pumpkin: follows your line from behind, bobbing and turning to face you
-  const py = Math.max(10, pos.y + Math.sin(clock * 1.3) * 2);
-  pumpkin.position.lerp(tmp.set(pos.x * 0.8, py, pumpkinZ), Math.min(1, dt * 2));
+  // pumpkin: follows the line of whoever it's chasing from behind, bobbing and turning to face them
+  const ch = (state === 'fly' && chased()) || P1;
+  const py = Math.max(10, ch.pos.y + Math.sin(clock * 1.3) * 2);
+  pumpkin.position.lerp(tmp.set(ch.pos.x * 0.8, py, pumpkinZ), Math.min(1, dt * 2));
   pumpkin.position.z = pumpkinZ;
-  pumpkin.rotation.y = Math.atan2(pos.x - pumpkin.position.x, pos.z - pumpkin.position.z) + Math.PI;
+  pumpkin.rotation.y = Math.atan2(ch.pos.x - pumpkin.position.x, ch.pos.z - pumpkin.position.z) + Math.PI;
   pumpkin.rotation.z = Math.sin(clock * 2) * 0.08;
   pumpkin.userData.light.intensity = 1.6 + Math.sin(clock * 9) * 0.4;
-  const back = tmp.set(Math.sin(yaw), 0, Math.cos(yaw));
-  if (state !== 'fly' || introT > 0.6) {
-    // look back from ahead of the flock at the pumpkin chasing everyone
-    const want = pos.clone().add(new THREE.Vector3(9, 5, -24));
-    camPos.lerp(want, Math.min(1, dt * (state === 'fly' ? 6 : 2)));
-    camLook.lerp(new THREE.Vector3(pos.x, pos.y + 1, (pos.z + pumpkin.position.z) / 2), Math.min(1, dt * 4));
-  } else {
-    // orbit camera: a point on a sphere around the witch, measured from behind her
-    cam.input(dt, steerInput());
-    cam.speedK += (clamp(boost / BOOST, 0, 1) - cam.speedK) * Math.min(1, dt * 2);   // eased over about half a second
-    camOrigin.set(pos.x, pos.y + 0.3, pos.z);
-    cam.ray(yaw, pitch, camRay);
-    const free = clearDistance(camOrigin, camRay, CAM_DIST * (1 + 0.15 * cam.speedK));
-    cam.dist += (free - cam.dist) * Math.min(1, dt * (free < cam.dist ? 20 : 2));   // pull in fast, ease back out slowly
-    const want = camOrigin.clone().addScaledVector(camRay, cam.dist);
-    const floor = (want.z < -2895 ? groundAt(want.x, want.z) : 0) + 1.2;
-    if (want.y < floor) want.y = floor;   // never dip under the ground
-    camPos.lerp(want, Math.min(1, dt * 9));
-    // looking from behind, aim a little ahead of her; swung around, look right at her
-    const ahead = cam.ahead();
-    const lookAt = pos.clone().add(new THREE.Vector3(0, 1.2, 0)).addScaledVector(dir.lengthSq() ? dir : back.clone().negate(), 10 * ahead);
-    camLook.lerp(lookAt, Math.min(1, dt * 8));
-  }
-  camera.position.copy(camPos);
-  camera.lookAt(camLook);
-  if (flashT > 0 && !REDUCED) camera.position.x += (Math.random() - 0.5) * flashT * 0.6;   // just a little shake
-  const fov = camera.userData.fov0 + 5 * cam.speedK;
-  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
-  sky.position.set(camPos.x, 0, camPos.z);
+  for (const p of players) playerVisuals(p, dt);
   // rain falls around you in the storm
-  const inStorm = section && section.id === 'storm';
-  rain.visible = inStorm;
-  if (inStorm) {
+  const wet = players.filter(p => p.section && p.section.id === 'storm' && state === 'fly' && !p.finishT);
+  rain.visible = wet.length > 0;
+  if (wet.length) {
     const a = rainGeo.attributes.position.array;
     for (let i = 0; i < RAIN_N; i++) {
+      const pos = wet[i % wet.length].pos;
       a[i * 3 + 1] -= 60 * dt;
       if (a[i * 3 + 1] < pos.y - 30 || Math.abs(a[i * 3 + 2] - pos.z) > 60) {
         a[i * 3] = pos.x + rand(-50, 50); a[i * 3 + 1] = pos.y + rand(-10, 40); a[i * 3 + 2] = pos.z + rand(-60, 20);
@@ -1456,8 +1590,6 @@ function updateVisuals(dt) {
     }
     rainGeo.attributes.position.needsUpdate = true;
   }
-  // lightning flash brightens the whole sky for a moment
-  scene.background.offsetHSL(0, 0, flashT * 0.6);
   // sparkles
   if (sparkT < 1.2) {
     sparkT += dt;
@@ -1468,49 +1600,127 @@ function updateVisuals(dt) {
   }
   sparks.visible = sparkT < 1.2;
 }
+function playerVisuals(p, dt) {
+  const pos = p.pos, me = p.mesh, cam = p.cam, camera = p.camera;
+  me.position.copy(pos);
+  me.rotation.set(0, 0, 0);
+  me.rotateY(p.yaw);
+  me.rotateX(p.pitch);
+  me.rotateZ(p.roll);
+  me.userData.cape.rotation.x = -0.9 + Math.sin(clock * 12 + p.idx) * 0.2;
+  p.cloakMesh.visible = p.cloakT > 0;
+  p.cloakMesh.material.opacity = 0.14 + 0.08 * Math.sin(clock * 8);
+  me.userData.rider.visible = !(p.cloakT > 0 && p.cloakT < 1.2 && Math.sin(clock * 30) > 0);   // flickers as the cloak wears off
+  const back = tmp.set(Math.sin(p.yaw), 0, Math.cos(p.yaw));
+  if (state !== 'fly' || introT > 0.6) {
+    // look back from ahead of the flock at the pumpkin chasing everyone
+    const want = pos.clone().add(new THREE.Vector3(9, 5, -24));
+    p.camPos.lerp(want, Math.min(1, dt * (state === 'fly' ? 6 : 2)));
+    p.camLook.lerp(new THREE.Vector3(pos.x, pos.y + 1, (pos.z + pumpkin.position.z) / 2), Math.min(1, dt * 4));
+  } else {
+    // orbit camera: a point on a sphere around the witch, measured from behind her
+    cam.input(dt, p.finishT ? 0 : steerInput(p));
+    cam.speedK += (clamp(p.boost / BOOST, 0, 1) - cam.speedK) * Math.min(1, dt * 2);   // eased over about half a second
+    camOrigin.set(pos.x, pos.y + 0.3, pos.z);
+    cam.ray(p.yaw, p.pitch, camRay);
+    const free = clearDistance(camOrigin, camRay, CAM_DIST * (1 + 0.15 * cam.speedK));
+    cam.dist += (free - cam.dist) * Math.min(1, dt * (free < cam.dist ? 20 : 2));   // pull in fast, ease back out slowly
+    const want = camOrigin.clone().addScaledVector(camRay, cam.dist);
+    const floor = (want.z < -2895 ? groundAt(want.x, want.z) : 0) + 1.2;
+    if (want.y < floor) want.y = floor;   // never dip under the ground
+    p.camPos.lerp(want, Math.min(1, dt * 9));
+    // looking from behind, aim a little ahead of her; swung around, look right at her
+    const ahead = cam.ahead();
+    const lookAt = pos.clone().add(new THREE.Vector3(0, 1.2, 0)).addScaledVector(p.dir.lengthSq() ? p.dir : back.clone().negate(), 10 * ahead);
+    p.camLook.lerp(lookAt, Math.min(1, dt * 8));
+  }
+  camera.position.copy(p.camPos);
+  camera.lookAt(p.camLook);
+  if (p.flashT > 0 && !REDUCED) camera.position.x += (Math.random() - 0.5) * p.flashT * 0.6;   // just a little shake
+  const fov = camera.userData.fov0 + 5 * cam.speedK;
+  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
+}
+
+// One view, or two (top: Player 1, bottom: Player 2), each with that player's fog, sky and lightning flash
+function render() {
+  const W = innerWidth, H = innerHeight, split = twoP && state !== 'title';
+  const views = split ? players : [P1];
+  document.body.classList.toggle('split', split);
+  renderer.setScissorTest(split);
+  views.forEach((p, i) => {
+    const vh = split ? H / 2 : H, y = split && i === 0 ? H / 2 : 0;
+    renderer.setViewport(0, y, W, vh); renderer.setScissor(0, y, W, vh);
+    const cam = p.camera, aspect = W / vh;
+    if (Math.abs(cam.aspect - aspect) > 1e-3) {
+      cam.aspect = aspect;
+      cam.userData.fov0 = aspect < 0.8 ? 80 : aspect > 2.6 ? 50 : 65;   // a wide half-screen: a little narrower, so she isn't tiny
+      cam.fov = cam.userData.fov0 + 5 * p.cam.speedK; cam.updateProjectionMatrix();
+    }
+    scene.fog.color.copy(p.fog.color); scene.fog.near = p.fog.near; scene.fog.far = p.fog.far;
+    scene.background.copy(p.fog.color).multiplyScalar(0.6).offsetHSL(0, 0, p.flashT * 0.6);   // lightning brightens the whole sky for a moment
+    sky.position.set(cam.position.x, 0, cam.position.z);
+    renderer.render(scene, cam);
+  });
+}
+function resize() { renderer.setSize(innerWidth, innerHeight, false); }
+addEventListener('resize', resize);
+resize();
 
 const $ = id => document.getElementById(id);
 function updateHUD() {
   const fly = state === 'fly';
-  $('hud').classList.toggle('hidden', !fly);
+  for (const p of ALL) p.hud.classList.toggle('hidden', !fly || !players.includes(p));
   $('tbtns').classList.toggle('hidden', !(fly && RB.touch));
+  $('divider').classList.toggle('hidden', !(fly && twoP));
   if (!fly) return;
-  $('hTime').textContent = `⏱ ${fmt(runT)}`;
-  $('hRings').textContent = `💍 ${ringCount} ring${ringCount === 1 ? '' : 's'}`;
-  const hatOut = projectiles.some(h => h.kind === 'hat');
-  $('hHat').textContent = hatOut ? '🎩 Hat flying!' : lockMesh.visible ? '🎩 Throw! A witch is in range' : '🎩 Hat ready';
-  $('hatBtn').classList.toggle('cool', hatOut);
-  $('hPlaceBig').innerHTML = `${place}<small>${ORD[place - 1].slice(-2)}</small>`;
-  const slot = $('itemSlot'), show = rollT > 0 ? ITEMS[ITEM_KEYS[Math.floor(clock * 12) % ITEM_KEYS.length]].icon : item ? ITEMS[item].icon : '';
-  if (slot.textContent !== (show || 'ITEM')) slot.textContent = show || 'ITEM';
-  slot.className = rollT > 0 ? 'rolling' : item ? '' : 'empty';
-  $('itemIco').textContent = show || '❔';
-  $('itemBtn').classList.toggle('cool', !item);
-  $('magicFill').style.width = `${Math.round(magic * 100)}%`;
-  $('magicBar').classList.toggle('on', boosting);
-  $('magicTxt').textContent = rocketT > 0 ? '🍬 ROCKET!' : cloakT > 0 ? '👻 CLOAK' : boosting ? 'ZOOM!' : 'BOOST';
-  $('boostBtn').classList.toggle('cool', magic < 0.08);
-  // everyone's progress along the course
-  const bar = $('raceBar');
+  for (const p of players) playerHUD(p);
+}
+function playerHUD(p) {
+  const ui = p.ui;
+  ui.time.textContent = `⏱ ${fmt(p.finishT || runT)}`;
+  ui.rings.textContent = `💍 ${p.ringCount} ring${p.ringCount === 1 ? '' : 's'}`;
+  const hatOut = projectiles.some(h => h.kind === 'hat' && h.by === p);
+  ui.hat.textContent = hatOut ? '🎩 Hat flying!' : p.lockMesh.visible ? '🎩 Throw! A witch is in range' : '🎩 Hat ready';
+  if (!p.idx) $('hatBtn').classList.toggle('cool', hatOut);
+  ui.place.innerHTML = `${p.place}<small>${ORD[p.place - 1].slice(-2)}</small>`;
+  const show = p.rollT > 0 ? ITEMS[ITEM_KEYS[Math.floor(clock * 12) % ITEM_KEYS.length]].icon : p.item ? ITEMS[p.item].icon : '';
+  if (ui.slot.textContent !== (show || 'ITEM')) ui.slot.textContent = show || 'ITEM';
+  ui.slot.className = 'itemSlot' + (p.rollT > 0 ? ' rolling' : p.item ? '' : ' empty');
+  if (!p.idx) { $('itemIco').textContent = show || '❔'; $('itemBtn').classList.toggle('cool', !p.item); $('boostBtn').classList.toggle('cool', p.magic < 0.08); }
+  ui.magicFill.style.width = `${Math.round(p.magic * 100)}%`;
+  ui.magic.classList.toggle('on', p.boosting);
+  ui.magicTxt.textContent = p.rocketT > 0 ? '🍬 ROCKET!' : p.cloakT > 0 ? '👻 CLOAK' : p.boosting ? 'ZOOM!' : 'BOOST';
+  // everyone's progress along the course (you are the big dot)
+  const bar = ui.bar;
   if (!bar.dots) {
-    bar.dots = [...WITCH_LOOKS.map((l, i) => { const d = document.createElement('div'); d.className = 'dot' + (i ? '' : ' me'); d.style.background = l[0]; bar.appendChild(d); return d; })];
+    bar.dots = [...ALL, ...friends].map(r => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (r === p ? ' me' : r.isPlayer ? ' pl' : '');
+      d.style.background = r.isPlayer ? r.look[0] : r.color;
+      bar.appendChild(d); return d;
+    });
     bar.pk = document.createElement('div'); bar.pk.className = 'dot pk'; bar.appendChild(bar.pk);
   }
   const at = z => `${clamp(z / FINISH_Z, 0, 1) * 100}%`;
-  bar.dots[0].style.left = at(pos.z);
-  friends.forEach((f, i) => { bar.dots[i + 1].style.left = at(f.z); });
+  [...ALL, ...friends].forEach((r, i) => {
+    const d = bar.dots[i];
+    d.style.display = r.isPlayer && !players.includes(r) ? 'none' : '';
+    d.style.left = at(r.z);
+  });
   bar.pk.style.left = at(pumpkinZ);
-  $('warn').textContent = strike ? '⚡ LIGHTNING! CAST YOUR SHIELD! ⚡' : '🎩 A HAT IS COMING! SHIELD! 🛡️';
-  $('hShield').textContent = shieldT > 0 ? '🛡️ Shield on!' : shieldCool > 0 ? `🛡️ ready in ${Math.ceil(shieldCool)}` : '🛡️ Shield ready';
-  spellBtn.classList.toggle('cool', shieldCool > 0 && shieldT <= 0);
-  const gap = pumpkinZ - pos.z;
-  $('pumpkinFill').style.width = `${clamp(100 - (gap - CATCH_GAP) / (MAX_GAP - CATCH_GAP) * 100, 4, 100)}%`;
+  ui.warn.textContent = p.strike ? '⚡ LIGHTNING! CAST YOUR SHIELD! ⚡' : '🎩 A HAT IS COMING! SHIELD! 🛡️';
+  ui.shield.textContent = p.shieldT > 0 ? '🛡️ Shield on!' : p.shieldCool > 0 ? `🛡️ ready in ${Math.ceil(p.shieldCool)}` : '🛡️ Shield ready';
+  if (!p.idx) spellBtn.classList.toggle('cool', p.shieldCool > 0 && p.shieldT <= 0);
+  const gap = pumpkinZ - p.pos.z;
+  ui.pumpkinFill.style.width = p.finishT ? '0%' : `${clamp(100 - (gap - CATCH_GAP) / (MAX_GAP - CATCH_GAP) * 100, 4, 100)}%`;
 }
 
 // ---------- Screens ----------
-$('btnPlay').addEventListener('click', startGame);
+$('btnPlay').addEventListener('click', () => startGame(false));
+$('btnPlay2').addEventListener('click', () => startGame(true));
 $('btnPad').addEventListener('click', () => RB.controllerScreen());
-$('btnAgain').addEventListener('click', startGame);
+$('btnAgain').addEventListener('click', () => startGame());
+$('btnSwap').addEventListener('click', () => startGame(!twoP));
 function showBestOnTitle() {
   const bits = [];
   if (bestPlace) bits.push(`🏆 Best place <b>${ORD[bestPlace - 1]}</b>`);
@@ -1518,7 +1728,15 @@ function showBestOnTitle() {
   $('titleBest').innerHTML = bits.join(' · ');
 }
 showBestOnTitle();
-resetRun(0);
+// how many controllers are plugged in: two means two players can each have one
+function showPads() {
+  const n = RB.pad && RB.pad.pads ? RB.pad.pads().length : 0;
+  $('padCount').textContent = n >= 2 ? '🎮🎮 Two controllers ready: one each!' : n === 1 ? '🎮 One controller ready. Plug in a second for Player 2 (or Player 2 uses the arrow keys)' : '';
+}
+addEventListener('gamepadconnected', showPads);
+addEventListener('gamepaddisconnected', showPads);
+setInterval(showPads, 2000);
+showPads();
 
 // ---------- Loop ----------
 let last = performance.now();
@@ -1527,12 +1745,13 @@ function frame(now) {
   last = now;
   requestAnimationFrame(frame);   // ask for the next frame first, so one error can never freeze the game
   try {
+    pollPads();
     if (!paused) {
       update(dt);
       updateVisuals(dt);
     }
     updateHUD();
-    renderer.render(scene, camera);
+    render();
   } catch (e) {
     if (!frame.warned) { frame.warned = true; console.error(e); }
   }
