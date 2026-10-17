@@ -13,7 +13,7 @@ const GAMES = [
   { file: 'hamglider', title: 'HAMGLIDER', tag: 'Glide Pip the hamster onto the bullseye!', color: '#ff9a3c' },
   { file: 'web-hero', title: 'WEB HERO', tag: 'Swing across the city, bonk the Bandit Bots!', color: '#b98cff' },
   { file: 'sparkle-meadow', title: 'SPARKLE MEADOW', tag: 'Ride your pony and make animal friends!', color: '#ff8fc8' },
-  { file: 'witch-way-out', title: 'WITCH WAY OUT', tag: 'Fly your broomstick and escape the giant pumpkin!', color: '#ff8a1f' },
+  { file: 'witch-way-out', title: 'WITCH WAY OUT', tag: 'The Moonlight Grand Prix: up to 4 players!', color: '#ff8a1f' },
   { file: 'flight-school', title: 'FLIGHT SCHOOL', tag: 'Learn how flying works, from balloons to Mars!', color: '#7fd0ff' },
   { file: 'lucky-leo', title: 'LUCKY LEO', tag: 'Run, jump and stomp for the gold!', color: '#4ad05a' },
   { file: 'lily-pad-lunch', title: 'LILY PAD LUNCH', tag: 'Snap the bugs with your sticky tongue!', color: '#7ae07a' },

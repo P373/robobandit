@@ -109,7 +109,7 @@
   .quad .hud .raceBar { display: none; }
   .quad .hud .hudTR { top: 8px; right: 10px; gap: 6px; } .quad .hud.p1 .hudTR { top: 56px; }
   .quad .hud .placeBig { font-size: 30px; } .quad .hud .placeBig small { font-size: 15px; }
-  .quad .hud .itemSlot { width: 36px; height: 36px; font-size: 21px; border-radius: 10px; border-width: 2px; }
+  .quad .hud .itemSlot { width: 36px; height: 36px; font-size: 21px; border-radius: 10px; border-width: 2px; } .quad .hud .itemSlot.empty { font-size: 8px; }
   .quad .hud .banner { top: 18%; font-size: 26px; } .quad .hud .banner small { font-size: 12px; margin-top: 3px; }
   .quad .hud .warn { top: 46%; font-size: 13px; } .quad .hud .feed { top: 62%; font-size: 13px; }
   .quad .hud .pumpkinBar { bottom: 6px; padding: 2px 6px; width: 62%; } .quad .hud .magicBar { bottom: 30px; padding: 2px 6px; width: 62%; font-size: 11px; }
@@ -295,13 +295,15 @@ function cutPos(c, z, out = { x: 0, y: 0 }) {
   const t = clamp((c.z0 - z) / (c.z0 - c.z1), 0, 1);
   if (c.high) {   // up the updraft, along the highway, and back down
     const up = clamp((c.z0 - z) / 60, 0, 1), down = clamp((z - c.z1) / 90, 0, 1), k = Math.min(up, down), s = k * k * (3 - 2 * k);
-    out.x = lineX(z); out.y = lineY(z) + (c.high - lineY(z)) * s;
+    out.x = lineX(z) + UPDRAFT_OFF * clamp((40 - Math.abs(z - (c.z0 - 15))) / 18, 0, 1);   // (over to the updraft and up it)
+    out.y = lineY(z) + (c.high - lineY(z)) * s;
   } else {
     out.x = lineX(c.z0) + (lineX(c.z1) - lineX(c.z0)) * t;
     out.y = lineY(c.z0) + (lineY(c.z1) - lineY(c.z0)) * t;
   }
   return out;
 }
+const UPDRAFT_OFF = 22;   // the updraft stands this far to the side of the racing line
 const CUT_MID = CUTS.map(c => cutPos(c, (c.z0 + c.z1) / 2, {}));
 
 // ---------- Three.js setup ----------
@@ -331,17 +333,19 @@ const ghosts = [], bulbs = [], strikes = [];
 const animated = [];         // things that wobble or twinkle: fn(t)
 const dashes = [], updrafts = [], hazards = [];   // dash panels, rising winds, and the moving dangers (windmill, stompers, twisters, chandeliers, chomping gates)
 
-// Scenery that never moves is merged into one mesh per material (a few draw calls, even with four players' views).
+// Scenery that never moves is merged into one mesh per material for each 250 m of the course: only a few draw calls, even
+// with four players' views, and the parts behind the camera (or lost in the fog) aren't drawn at all.
 const statics = new Map();
 const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _s = new THREE.Vector3();
 function addStatic(geo, material, x, y, z, ry = 0, rx = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
   const g = geo.index ? geo.toNonIndexed() : geo.clone();
   g.applyMatrix4(_m4.compose(_v.set(x, y, z), _q.setFromEuler(_e.set(rx, ry, rz)), _s.set(sx, sy, sz)));
-  if (!statics.has(material)) statics.set(material, []);
-  statics.get(material).push(g);
+  const key = material.uuid + '|' + Math.floor(z / 250);
+  if (!statics.has(key)) statics.set(key, { material, list: [] });
+  statics.get(key).list.push(g);
 }
 function flushStatics() {
-  for (const [material, list] of statics) {
+  for (const { material, list } of statics.values()) {
     const n = list.reduce((a, g) => a + g.attributes.position.count, 0);
     const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
     let o = 0;
@@ -401,19 +405,21 @@ let skyMoon = null;
   aurora.position.y = 420;
   sky.add(aurora);
   animated.push(t => { aur.offset.x = t * 0.004; aurora.material.opacity = 0.75 + 0.25 * Math.sin(t * 0.7); });
-  // two rings of jagged mountains on the horizon
-  for (const [r, col, hmax, seed] of [[1000, '#2a2148', 170, 1], [940, '#171230', 110, 7]]) {
+  // jagged mountains all round the horizon: a far purple range and a nearer dark one, with a few lit windows (one layer)
+  {
     const mt = canvasTex(2048, 256, (g, w, h) => {
-      g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
-      for (let x = 0; x <= w; x += 8) {
-        const n = Math.sin(x * 0.006 + seed) * 0.5 + Math.sin(x * 0.017 + seed * 2) * 0.3 + Math.sin(x * 0.051 + seed) * 0.12;
-        g.lineTo(x, h - (0.35 + 0.5 * (n * 0.5 + 0.5)) * h * (hmax / 170));
+      for (const [col, hmax, seed] of [['#2a2148', 1, 1], ['#171230', 0.62, 7]]) {
+        g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
+        for (let x = 0; x <= w; x += 8) {
+          const n = Math.sin(x * 0.006 + seed) * 0.5 + Math.sin(x * 0.017 + seed * 2) * 0.3 + Math.sin(x * 0.051 + seed) * 0.12;
+          g.lineTo(x, h - (0.35 + 0.5 * (n * 0.5 + 0.5)) * h * hmax);
+        }
+        g.lineTo(w, h); g.fill();
       }
-      g.lineTo(w, h); g.fill();
-      if (seed === 7) for (let i = 0; i < 40; i++) { g.fillStyle = 'rgba(255,210,122,.9)'; g.fillRect((i * 997) % w, h - 10 - (i * 37) % 40, 2, 2); }   // a few lit windows far away
+      for (let i = 0; i < 40; i++) { g.fillStyle = 'rgba(255,210,122,.9)'; g.fillRect((i * 997) % w, h - 10 - (i * 37) % 40, 2, 2); }
     });
-    const m = new THREE.Mesh(new THREE.CylinderGeometry(r, r, hmax * 2.2, 64, 1, true), new THREE.MeshBasicMaterial({ map: mt, transparent: true, side: THREE.BackSide, fog: false, depthWrite: false }));
-    m.position.y = hmax * 1.1 - 10;
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(1000, 1000, 374, 64, 1, true), new THREE.MeshBasicMaterial({ map: mt, transparent: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+    m.position.y = 177;
     sky.add(m);
   }
   skyMoon = new THREE.Group();
@@ -522,7 +528,6 @@ function buildCourse() {
     // a ring of crystals round the arch, so you can spot it
     for (let k = 0; k < 14; k++) { const a = k / 14 * TAU; addStatic(new THREE.OctahedronGeometry(1.1), crystalMats[k % 3], c.x + Math.cos(a) * 9.5, c.y + 0.5 + Math.sin(a) * 9.5, z0 + 0.6, a, 0, 0, 1, 1.8, 1); }
     addDash(zc, c.x, c.y);
-    for (const zz of [z0, z1]) { const l = new THREE.PointLight('#7af0ff', 1.3, 40); add(l, c.x, c.y, zz); }
   }
   for (let i = 0; i < 9; i++) { const z = -460 - i * 72; if (Math.abs(z + 760) < 50) continue; addRing(lineX(z) + Math.sin(i * 2.1) * 8, lineY(z) + Math.cos(i * 1.4) * 4, z); }
   addDash(-540); addDash(-980);
@@ -530,7 +535,7 @@ function buildCourse() {
   // ===== 3. Thunder Peaks: storm clouds, jagged peaks, twisters, and an updraft up to the ring highway =====
   ground('#201b30', -1150, -1760);
   const cloudMat = mat('#3a3550', { flatShading: true }), peakMat = mat('#2a2440', { flatShading: true }), snowMat = mat('#c8c4e0', { flatShading: true });
-  for (let i = 0; i < 60; i++) addStatic(new THREE.IcosahedronGeometry(rand(14, 26), 1), cloudMat, lineX(-1150) + rand(-140, 140), rand(102, 135), rand(-1150, -1760));
+  for (let i = 0; i < 60; i++) addStatic(new THREE.IcosahedronGeometry(rand(14, 26), 1), cloudMat, lineX(-1150) + rand(-140, 140), rand(122, 150), rand(-1150, -1760));
   for (let z = -1160; z > -1760; z -= 55) for (const s of [-1, 1]) {
     const x = lineX(z) + s * (halfW(z) + rand(30, 70)), h = rand(70, 130), r = rand(25, 45);
     addStatic(new THREE.ConeGeometry(r, h, 6), peakMat, x, h / 2, z, rand(0, 3));
@@ -538,10 +543,10 @@ function buildCourse() {
   }
   // the updraft: a column of rising wind beside the line…
   {
-    const z = -1236, x = lineX(z) + 22;
+    const z = -1236, x = lineX(z) + UPDRAFT_OFF;
     addUpdraft(x, z, 92);
     for (let k = 0; k < 8; k++) { const zz = -1300 - k * 42; addRing(lineX(zz), 84 + Math.sin(k) * 2, zz); }   // …to the ring highway above the storm
-    for (let k = 0; k < 3; k++) { const zz = -1330 - k * 120; addDash(zz, lineX(zz) + 8, 84); }
+    for (let k = 0; k < 4; k++) { const zz = -1320 - k * 80; addDash(zz, lineX(zz), 84); }
   }
   for (const z of [-1340, -1480, -1630]) addTwister(z);
   for (let i = 0; i < 5; i++) { const z = -1200 - i * 110; addRing(lineX(z) + Math.sin(i * 1.3) * 10, lineY(z), z); }
@@ -596,7 +601,7 @@ function buildCourse() {
     for (const zf of [za, zb]) {   // the end walls, each with a big open doorway
       block(red, x0 - 1.5, x0 + 4, 0, 14, zf + 0.75, zf - 0.75); block(red, x1 - 4, x1 + 1.5, 0, 14, zf + 0.75, zf - 0.75); block(red, x0 + 4, x1 - 4, 13, 14, zf + 0.75, zf - 0.75);
       for (const [a, b2] of [[x0, x0 + 4], [x1 - 4, x1]]) { addStatic(BOX, white, (a + b2) / 2, 7, zf + Math.sign(zf - (za + zb) / 2) * 0.8, 0, 0, 0.9, 0.5, 13, 0.3); addStatic(BOX, white, (a + b2) / 2, 7, zf + Math.sign(zf - (za + zb) / 2) * 0.8, 0, 0, -0.9, 0.5, 13, 0.3); }
-      const l = new THREE.PointLight('#ffb35a', 1.2, 40); add(l, c.x, 11, zf);
+     
     }
     for (let z = za - 6; z > zb + 6; z -= 7) for (const s of [-1, 1]) addStatic(BOX, hay, c.x + s * 7.5, 1.2, z, rand(-0.2, 0.2), 0, 0, 3.4, 2.4, 2.4);
     for (let z = za - 10; z > zb + 8; z -= 18) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), glow('#ffd27a')); add(b, c.x, 12, z); bulbs.push(b); }
@@ -678,7 +683,6 @@ function buildCourse() {
     }
     for (let r = 0; r < 3; r++) for (let k = 0; k < 9; k++) addStatic(new THREE.PlaneGeometry(2.4, 3.4), (k + r) % 4 ? winMat2 : winMat, x0 - 0.06, 7 + r * 9, zf - 6 - k * 9.5, -Math.PI / 2);
     addStatic(BOX, trim, c.x, door + 0.6, zf + 0.4, 0, 0, 0, 18, 1.2, 1); for (const s of [-1, 1]) addStatic(BOX, trim, c.x + s * 8.6, door / 2, zf + 0.4, 0, 0, 0, 1.2, door, 1);
-    const porch = new THREE.PointLight('#ffb35a', 1.5, 60); add(porch, c.x, 14, zf + 8);
     // inside: a checkered floor, glowing portraits, candles, and two big swinging chandeliers
     const chk = canvasTex(64, 64, (g, w, h) => { for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { g.fillStyle = (x + y) % 2 ? '#2a1a2a' : '#c8b8a8'; g.fillRect(x * 8, y * 8, 8, 8); } });
     chk.wrapS = chk.wrapT = THREE.RepeatWrapping; chk.repeat.set(6, 11);
@@ -689,14 +693,13 @@ function buildCourse() {
       addStatic(new THREE.PlaneGeometry(4, 5.2), glow(['#5a3a8a', '#3a5a8a', '#8a3a5a', '#3a8a5a'][k]), px - s * 0.04, 14, pz, s < 0 ? Math.PI / 2 : -Math.PI / 2);
     }
     for (const z of [-2930, -2970]) addChandelier(c.x, 30, z);
-    const inside = new THREE.PointLight('#ffd27a', 1.4, 70); add(inside, c.x, 22, (zf + zb) / 2);
-    addDash(-2950, c.x, c.y);
+    for (const z of [-2914, -2950, -2986]) addDash(z, c.x, c.y);   // the ballroom is a dash corridor (between the chandeliers)
     // gnarled hedges and gate posts on the lawn
     const hedge = mat('#1f4a2a', { flatShading: true });
     for (let z = -2800; z > -3200; z -= 9) addStatic(new THREE.IcosahedronGeometry(4, 0), hedge, lineX(z) - halfW(z) - 4, 2.6, z, rand(0, 3), 0, 0, 1, 0.7, 1);
   }
   for (let i = 0; i < 4; i++) { const z = -2820 - i * 110; addRing(lineX(z), lineY(z) + 2, z); }
-  addDash(-2860); addDash(-3060);
+  // (no dash panels on the long way round the mansion: the dashes are inside, through the ballroom)
 
   // ===== 7. Moonlight Lake: islands, the clock tower, chomping pumpkin gates, and the climb to the moon =====
   const water = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1300, 50, 50), new THREE.MeshPhongMaterial({ color: '#1a3a6a', specular: '#9ab8ff', shininess: 80, flatShading: true }));
@@ -729,7 +732,6 @@ function buildCourse() {
       g.lineWidth = 10; g.beginPath(); g.moveTo(128, 128); g.lineTo(128, 52); g.moveTo(128, 128); g.lineTo(178, 118); g.stroke();   // nearly midnight!
     });
     for (const [fx, fz, ry] of [[x, z + 7.05, 0], [x - 7.05, z, -Math.PI / 2]]) addStatic(new THREE.CircleGeometry(5.6, 24), new THREE.MeshBasicMaterial({ map: face }), fx, 68, fz, ry);
-    const l = new THREE.PointLight('#fff0b0', 1.4, 80); add(l, x - 10, 68, z + 10);
   }
   for (const [z, s] of [[-3330, 1], [-3470, -1], [-3610, 1]]) addChomper(z, s);
   for (let i = 0; i < 10; i++) { const z = -3280 - i * 60; addRing(lineX(z) + Math.sin(i * 1.7) * 5, lineY(z) + 1, z); }
@@ -933,7 +935,7 @@ const WITCH_LOOKS = [
 ];
 const NAMES = ['You', 'Willow', 'Ember', 'Luna', 'Pip', 'Hazel'];   // (your own witch, or both players', is made in makePlayer)
 // the other racers: a little faster or slower each, and they keep the race close (see moveRivals)
-const RIVAL_SKILL = [31.8, 31.2, 30.6, 29.8, 28.4];
+const RIVAL_SKILL = [32.2, 31.6, 31, 30.2, 29];
 const friends = WITCH_LOOKS.slice(1).map((look, i) => {
   const w = makeWitch(...look);
   scene.add(w);
@@ -1086,7 +1088,7 @@ const dustTex = canvasTex(64, 64, (g, w, h) => {   // a soft round twinkle
 });
 const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: 0.7, map: dustTex, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
 // (the ring and spell sparkles use the same soft round twinkle, so one flying right past the camera is a glow, not a big square)
-Object.assign(sparks.material, { map: dustTex, blending: THREE.AdditiveBlending, depthWrite: false, size: 0.8 }); sparks.material.needsUpdate = true;
+Object.assign(sparks.material, { map: dustTex, blending: THREE.AdditiveBlending, depthWrite: false, size: 0.45 }); sparks.material.needsUpdate = true;
 dust.frustumCulled = false;
 scene.add(dust);
 let dustNext = 0;
@@ -1275,7 +1277,7 @@ function makePlayer(idx, look) {
   camera.userData.fov0 = 65; camera.layers.enable(idx + 1);
   const hud = idx ? hudTemplate.cloneNode(true) : hudTemplate;
   if (idx) { hud.id = 'hud' + idx; hudTemplate.after(hud); }
-  hud.classList.add('p' + idx);
+  hud.classList.remove('p0'); hud.classList.add('p' + idx);   // (a copy of Player 1's HUD: just this player's corner)
   const p = { idx, isPlayer: true, look, mesh, shieldMesh, cloakMesh, lockMesh, warnMesh, camera, hud, ui: {}, keys: {}, pad: null, prevBtn: null, speedLines, slSeeds,
     pos: new THREE.Vector3(), dir: new THREE.Vector3(), camPos: new THREE.Vector3(0, 50, 30), camLook: new THREE.Vector3(),
     fog: { color: new THREE.Color('#3a3352'), near: 30, far: 260 } };
@@ -1418,7 +1420,6 @@ function startGame(two) {
   document.getElementById('over').classList.add('hidden');
   players = ALL.slice(0, nP);
   for (const q of ALL) { q.mesh.visible = players.includes(q); q.speedLines.visible = players.includes(q); }
-  renderer.setPixelRatio(Math.min(devicePixelRatio || 1, nP > 2 ? 1 : 2)); resize();   // (four views: a little lighter on the graphics)
   finalStretch = false;
   for (const r of rings) { r.got = false; r.mesh.visible = true; }
   for (const b of boxes) { b.gone = 0; b.mesh.visible = true; }
@@ -1426,7 +1427,7 @@ function startGame(two) {
   // line up on the starting grid: two by two, with you at the back
   friends.forEach((f, i) => {
     f.z = -8 - Math.floor(i / 2) * 8; f.off = i === 4 ? 0 : i % 2 ? 7 : -7; f.offY = 0; f.v = 0;
-    f.knockT = f.stuckT = f.boostT = f.finishT = 0; f.nextBoost = rand(5, 11); f.nextThrow = rand(12, 18); f.cut = null; f.cutK = 0; f.prevZ = f.z;
+    f.knockT = f.stuckT = f.boostT = f.finishT = 0; f.nextBoost = rand(5, 11); f.nextThrow = rand(12, 18); f.cut = null; f.cutK = 0; f.prevZ = f.z; f.dashT = f.ringT = 0;
     f.mesh.userData.hat.visible = true;
   });
   clearProjectiles();
@@ -1863,7 +1864,7 @@ function updatePlayer(p, dt) {
   p.shieldMesh.visible = p.shieldT > 0;
   p.shieldMesh.material.opacity = 0.2 + 0.1 * Math.sin(clock * 12);
   if (sec.id === 'storm') {
-    if (!p.strike && (p.stormTimer -= dt) <= 0) {
+    if (!p.strike && (p.stormTimer -= dt) <= 0 && pos.y < 72) {   // (up on the ring highway you're above the lightning)
       // aim just ahead of where you're going
       const s = pos.clone().addScaledVector(dir, p.speed * 1.4);
       s.x += rand(-4, 4); s.y += rand(-3, 3);
@@ -1912,12 +1913,15 @@ function moveRivals(dt, fixedSpeed) {
     } else if (racing) {
       const rel = f.z - refZ;   // below 0: ahead of you
       let sp = f.base + Math.sin(clock * 0.3 + f.ph) * 1.2;
-      if (rel < -90) sp -= 6; else if (rel < -40) sp -= 3;
+      if (f.z > SECTIONS[6].z0) { if (rel < -120) sp -= 5; else if (rel < -60) sp -= 2; }   // (ahead, she eases off a little… but on the final stretch everyone goes all out)
       if (rel > 25) sp += 4;
       if (rel > 70) sp += 7;
       if (rel > 140) sp += 6;
       // they fly through the dash panels on the racing line too
-      for (const d of dashes) if (f.prevZ > d.z && f.z <= d.z && Math.abs(f.x - d.x) < 7 && Math.abs(f.y - d.y) < 7) f.boostT = Math.max(f.boostT, 1.3);
+      for (const d of dashes) if (f.prevZ > d.z && f.z <= d.z && (f.cut ? Math.abs(f.x - d.x) < 8 : Math.abs(d.x - lineX(d.z)) < 1)) f.dashT = 1.3;
+      for (const g of rings) if (f.prevZ > g.z && f.z <= g.z && Math.hypot(g.x - f.x, g.y - f.y) < 12) f.ringT = 1.4;   // and the rings
+      if (f.dashT > 0) { f.dashT -= dt; sp += 16; }   // (the same boosts you get)
+      if (f.ringT > 0) { f.ringT -= dt; sp += 8; }
       if (f.finishT) sp = 14;
       else if ((f.nextBoost -= dt) <= 0) { f.boostT = 1.5; f.nextBoost = rand(7, 13); }
       if (f.boostT > 0) { f.boostT -= dt; sp += 9; emitDust(tailPos(f.mesh, tailV), Math.ceil(dt * 90)); }
@@ -2097,7 +2101,7 @@ function updateVisuals(dt) {
     const a = sparkGeo.attributes.position.array;
     for (let i = 0; i < SPARK_N; i++) { a[i * 3] += sparkVel[i][0] * dt; a[i * 3 + 1] += sparkVel[i][1] * dt; a[i * 3 + 2] += sparkVel[i][2] * dt; }
     sparkGeo.attributes.position.needsUpdate = true;
-    sparks.material.opacity = Math.max(0, 1 - sparkT / 1.2);
+    sparks.material.opacity = Math.max(0, 0.7 - sparkT / 1.7);
   }
   sparks.visible = sparkT < 1.2;
 }
@@ -2165,7 +2169,15 @@ function updateSpecCam(dt) {
 
 // One view, two (top: Player 1, bottom: Player 2) or four corners (three players: the fourth is the pumpkin cam),
 // each with that player's fog, sky and lightning flash
+// the drawing resolution: full while racing (a little lighter for three or four views), and half behind the title and results
+// screens (the panel covers most of it anyway, and it keeps menus quick on slower devices)
+let resWas = 0;
+function applyRes() {
+  const r = state === 'fly' ? Math.min(devicePixelRatio || 1, nP > 2 ? 1 : 2) : 0.5;
+  if (r !== resWas) { resWas = r; renderer.setPixelRatio(r); resize(); }
+}
 function render() {
+  applyRes();
   const W = innerWidth, H = innerHeight, n = state === 'title' ? 1 : players.length, split = n > 1;
   const rects = n === 1 ? [[0, 0, W, H]] : n === 2 ? [[0, H / 2, W, H / 2], [0, 0, W, H / 2]] : [[0, H / 2, W / 2, H / 2], [W / 2, H / 2, W / 2, H / 2], [0, 0, W / 2, H / 2], [W / 2, 0, W / 2, H / 2]];
   const views = n === 1 ? [P1] : n === 3 ? [...players, null] : players;
@@ -2176,6 +2188,10 @@ function render() {
     const [x, y, vw, vh] = rects[i];
     renderer.setViewport(x, y, vw, vh); renderer.setScissor(x, y, vw, vh);
     const cam = p ? p.camera : specCam, aspect = vw / vh, src = p || chased() || P1;
+    // nothing past the fog is drawn: the camera stops just beyond it, and the sky shrinks to fit inside
+    const far = Math.round(src.fog.far + 70);
+    if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
+    sky.scale.setScalar((far - 25) / 1200);
     if (Math.abs(cam.aspect - aspect) > 1e-3) {
       cam.aspect = aspect;
       cam.userData.fov0 = aspect < 0.8 ? 80 : aspect > 2.6 ? 50 : 65;   // a wide half-screen: a little narrower, so she isn't tiny
