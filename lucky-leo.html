@@ -90,7 +90,7 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>LUCKY <span>LEO</span></h1>
-    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp across New England, from the hills of Connecticut to the mountains of New Hampshire and the coast of Maine, on to Cape Cod, New York and all the way down to sunny Florida, to get it all back.</div>
+    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp from Cape Cod up to the coast of Maine, over the mountains of New Hampshire and Vermont, down through Connecticut to New York, and all the way to sunny Florida, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
@@ -277,8 +277,8 @@ LEVELS.bog = builder('bog', 'Bubbling Bog', 'bog', 220)
   .gems(9, 5, 46, 6, 82, 5, 115, 4, 168, 5)
   .done({ goal: 208, music: 'bog', sky: ['#5a6a4a', '#a8b890'] });
 
-// 6. Goblin Castle: lava, spinning fire bars, crush-stones, and King Grumbles at the end
-LEVELS.castle = builder('castle', 'Goblin Castle', 'castle', 196)
+// Gillette Castle (Connecticut's real stone castle on a hill): lava, spinning fire bars, crush-stones, and King Grumbles at the end of World 3
+LEVELS.castle = builder('castle', 'Gillette Castle', 'castle', 196)
   .fill(0, 195, 0, 0, T.STONE).fill(0, 195, 12, 13, T.LAVA).ground(0, 22, 12, T.STONE).ground(27, 44, 12, T.STONE).ground(49, 70, 12, T.STONE)
   .ground(76, 98, 12, T.STONE).ground(103, 130, 12, T.STONE).ground(134, 195, 12, T.STONE)
   .at(8, 8, '?PC').e('grumblin', 14, 11).e('firebar', 20, 8, { len: 4 })
@@ -288,7 +288,7 @@ LEVELS.castle = builder('castle', 'Goblin Castle', 'castle', 196)
   .e('plat', 99, 10, { w: 2, dx: 1, sp: 1 }).at(108, 8, '?L?').e('crusher', 114, 1).e('thorny', 120, 11).e('firebar', 126, 7, { len: 4, sp: -1.2 })
   .e('fall', 130, 10, { w: 3 })
   // the throne room: walls on both sides, King Grumbles waiting
-  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9)
+  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 5 })   // King Grumbles at the end of World 3
   .gems(9, 5, 46, 7, 72, 4, 110, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
@@ -302,7 +302,7 @@ LEVELS.bonus = builder('bonus', 'Rainbow Road', 'rainbow', 170)
   .gems(16, 7, 32, 3, 66, 1, 90, 1, 140, 7)
   .done({ goal: 156, music: 'bonus', sky: ['#ff9ad0', '#fff2b0'] });
 
-// ---- World 2: northern New England: Rhode Island's beaches, New Hampshire's White Mountains and the coast of Maine (opens when King Grumbles runs off from Goblin Castle) ----
+// ---- the Maine levels (World 2) and New Hampshire's White Mountains (the start of World 3) ----
 // 8. Seashell Shore: sandy islands in the sea, crabby snails, sinking driftwood
 LEVELS.shore = builder('shore', 'Seashell Shore', 'shore', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 24).ground(29, 52).ground(57, 70).ground(75, 100).ground(105, 130).ground(134, 150).ground(155, 209)
@@ -430,7 +430,7 @@ LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
   .e('plat', 75, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 84, 11).e('firebar', 90, 8, { len: 4, sp: 1.2 }).e('thorny', 96, 11)
   .e('plat', 103, 10, { w: 2, dx: 1, sp: 1 }).at(112, 8, '?L?').e('crusher', 118, 1).e('snaily', 124, 11).e('buzzer', 128, 6)
   .e('fall', 135, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 5, kind: 'crab' })   // Captain Pinch, the giant crab
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 3, kind: 'crab' })   // Captain Pinch, the giant crab (World 1's boss: three hits)
   .gems(9, 5, 50, 7, 76, 4, 113, 5, 142, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
@@ -729,7 +729,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['hills', 'woods', 'caves', 'bog', 'sky', 'castle', 'bonus', 'snow', 'night', 'shore', 'fort', 'canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'space'];
+const ORDER = ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'bonus', 'woods', 'hills', 'castle', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'space'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -4090,16 +4090,18 @@ function afterDeath() {
 }
 let endFrom = 'castle';
 const WORLD_ENDS = {
+  ptown: { title: 'WORLD 1 <span>CLEAR!</span>', sub: '⛵ Captain Pinch is beaten! But King Grumbles grabbed a bag of gold and sailed north to the rocky coast of <b>Maine</b>! World 2 is open.', btn: '⛵ On to World 2!', toast: '⛵ Sail up the coast to Acadia!' },
+  fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '🏔️ The Frost Yeti is beaten! But King Grumbles ran off with the gold, over New Hampshire\'s <b>White Mountains</b> towards <b>Vermont</b>! World 3 is open.', btn: '🏔️ On to World 3!', toast: '🏔️ Follow the path up into the White Mountains!' },
+  castle: { title: 'WORLD 3 <span>CLEAR!</span>', sub: '🏰 King Grumbles dropped the pot of gold at Gillette Castle… and ran off with the rest along Long Island Sound to <b>New York</b>! World 4 is open.', btn: '🍎 On to World 4!', toast: '🍎 Follow the shore of Long Island Sound to the Hudson Valley!' },
   liberty: { title: 'WORLD 4 <span>CLEAR!</span>', sub: '🗽 King Grumbles is beaten! But he grabbed the very last bag of gold and jetted off to sunny <b>Florida</b>! World 5 is open.', btn: '🌴 On to World 5!', toast: '✈️ Fly south to Miami Beach!' },
-  ptown: { title: 'WORLD 3 <span>CLEAR!</span>', sub: '✈️ Captain Pinch is beaten! But King Grumbles hopped on a plane with the last of the gold and flew off to <b>New York</b>! World 4 is open.', btn: '✈️ On to World 4!', toast: '✈️ Fly west to the apple orchards of Western New York!' },
-  castle: { title: 'WORLD 1 <span>CLEAR!</span>', sub: '🏃 King Grumbles dropped the pot of gold… and ran off with the rest, over New Hampshire\'s <b>White Mountains</b> towards <b>Maine</b>! World 2 is open.', btn: '🏔️ On to World 2!', toast: '🏔️ Follow the path up into the White Mountains!' },
-  fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '⛵ The Frost Yeti is beaten! But King Grumbles grabbed a bag of gold and sailed from Maine down to <b>Cape Cod</b>! World 3 is open.', btn: '⛵ On to World 3!', toast: '⛵ Follow the path across the sea to Cape Cod!' },
 };
+// each world's last boss, and the save flag that says that world is done
+const WORLD_BOSS = { ptown: 'beaten', fort: 'beaten2', castle: 'beaten3', liberty: 'beaten4', canaveral: 'beaten5' };
 function winGame() {
   const id = lvl.id, last = id === 'canaveral';
   keep = { form: player.form, mount: !!player.mount, laser: !!player.laser };
   endFrom = id;
-  save.cleared[id] = true; save.beaten = true; if (id === 'fort') save.beaten2 = true; if (id === 'ptown') save.beaten3 = true; if (id === 'liberty') save.beaten4 = true; if (last) save.beaten5 = true;
+  save.cleared[id] = true; if (WORLD_BOSS[id]) save[WORLD_BOSS[id]] = true;
   save.gems[id] = levelGems.map((g2, i) => g2 || !!(save.gems[id] || [])[i]);
   save.best = Math.max(save.best, score);
   persist();
@@ -4537,9 +4539,10 @@ function drawRocketIcon(x, y, ang, s = 1) {   // a little rocket with a flame
 // ---------- The map of New England ----------
 // Drawn from real latitude and longitude (a little wider than true, so the levels have room). Cape Cod is where it really is,
 // just drawn bigger (a bold hook curling out into the sea) so its levels fit. The whole map fits on one screen.
-// The route never doubles back: World 1 goes up the west side (Connecticut, the Berkshires, Vermont) and across to New
-// Hampshire's North Country; World 2 comes down through the White Mountains, over to Maine's North Woods, out to the coast
-// at Acadia and west along it to Fort Knox; World 3 is a boat ride down the coast into Cape Cod Bay and out along the Cape.
+// The route never doubles back: World 1 runs out along Cape Cod to Provincetown; World 2 is a boat ride up the Gulf of
+// Maine to Acadia, inland to the North Woods and back down to the coast at Portland; World 3 goes west over New Hampshire's
+// White Mountains and Vermont's Green Mountains, then south through the Berkshires to Connecticut; World 4 follows Long
+// Island Sound to the Hudson Valley, out to Niagara Falls and down to New York City.
 const MAP_W = 395;
 const GEO = (lon, lat) => [10 + (lon + 79.9) * 28.5, 5 + (46.6 - lat) * 34.8];   // (the far north of Maine runs off the top, the south of New Jersey off the bottom)
 // the land round New England (New York, Quebec, New Brunswick, Long Island): plain, reaching right off the map
@@ -4556,17 +4559,6 @@ const CAPEXY = (dx, dy) => [CB[0] + dx, CB[1] + dy];           // ...and its pla
 const CAPE_ARM = [[-3, 0], [14, 2.5], [32, 3], [50, 0], [55, -14], [52, -30], [42, -42], [28, -44], [19, -38]];   // the bent arm: elbow at Chatham, fist at Provincetown
 const at = (id, xy, name, region, more = {}) => ({ id, x: xy[0], y: xy[1], name, region, ...more });
 const NODES = [
-  at('hills', GEO(-72.95, 41.75), 'Clover Hills', 'Connecticut'),                 // the Litchfield Hills
-  at('woods', GEO(-73.15, 42.38), 'Mushroom Woods', 'Massachusetts'),            // the Berkshires
-  at('caves', GEO(-72.95, 43.15), 'Glimmer Caves', 'Vermont'),                    // Vermont's marble quarries
-  at('bog', GEO(-73.15, 43.9), 'Bubbling Bog', 'Vermont'),                      // the swamps by Lake Champlain
-  at('sky', GEO(-72.75, 44.6), 'Cloud Hop', 'Vermont'),                          // up Mount Mansfield
-  at('castle', GEO(-71.85, 44.78), 'Goblin Castle', 'New Hampshire'),            // hidden up in the North Country
-  at('bonus', GEO(-73.75, 43.3), 'Rainbow Road', 'up in the sky', { secret: true }),
-  at('snow', GEO(-71.25, 44.15), 'Frosty Peaks', 'New Hampshire'),               // the White Mountains
-  at('night', GEO(-69.75, 45.3), 'Moonlit Meadow', 'Maine'),                     // the North Woods
-  at('shore', GEO(-68.25, 44.38), 'Seashell Shore', 'Maine'),                    // the beaches of Acadia
-  at('fort', GEO(-69.15, 44.25), 'Frost Fortress', 'Maine'),                     // like Fort Knox on the Penobscot
   at('canal', CAPEXY(1, 0), 'Bourne Bridge', 'Cape Cod'),
   at('cranberry', CAPEXY(25, 3), 'Cranberry Bog', 'Cape Cod'),
   at('whale', CAPEXY(62, 12), 'Whale Watch', 'off Chatham'),                       // just offshore from the elbow
@@ -4574,7 +4566,21 @@ const NODES = [
   at('ptown', CAPEXY(31, -44), 'Provincetown Pier', 'Cape Cod'),
   at('vineyard', CAPEXY(5, 20), "Martha's Vineyard", 'Massachusetts', { island: true }),   // the islands: secret levels, each just below the level
   at('nantucket', CAPEXY(50, 26), 'Nantucket', 'Massachusetts', { island: true }),          // whose secret exit opens it
-  at('orchard', GEO(-77.45, 43.15), 'Apple Orchard', 'Western New York'),
+  // World 2: up the coast to Maine
+  at('shore', GEO(-68.25, 44.38), 'Seashell Shore', 'Maine'),                    // the beaches of Acadia
+  at('night', GEO(-69.75, 45.3), 'Moonlit Meadow', 'Maine'),                     // the North Woods
+  at('fort', GEO(-70.25, 43.72), 'Frost Fortress', 'Maine'),                     // like the old forts by Portland Head Light
+  // World 3: west over the mountains of New Hampshire and Vermont, then south to Connecticut
+  at('snow', GEO(-71.25, 44.15), 'Frosty Peaks', 'New Hampshire'),               // the White Mountains
+  at('sky', GEO(-72.8, 44.55), 'Cloud Hop', 'Vermont'),                          // up Mount Mansfield
+  at('bog', GEO(-73.3, 44.05), 'Bubbling Bog', 'Vermont'),                      // the swamps by Lake Champlain
+  at('caves', GEO(-72.95, 43.55), 'Glimmer Caves', 'Vermont'),                    // Vermont's marble quarries
+  at('bonus', GEO(-73.75, 43.15), 'Rainbow Road', 'up in the sky', { secret: true }),
+  at('woods', GEO(-73.15, 42.38), 'Mushroom Woods', 'Massachusetts'),            // the Berkshires
+  at('hills', GEO(-73.2, 41.8), 'Clover Hills', 'Connecticut'),                 // the Litchfield Hills
+  at('castle', GEO(-72.43, 41.42), 'Gillette Castle', 'Connecticut'),            // the real stone castle on a hill above the Connecticut River
+  // World 4: along Long Island Sound into New York
+  at('orchard', GEO(-73.95, 41.72), 'Apple Orchard', 'the Hudson Valley'),
   at('niagara', GEO(-79.02, 43.08), 'Niagara Falls', 'New York'),
   at('bridge', GEO(-74.02, 41.1), 'George Washington Bridge', 'New York & New Jersey'),   // (the New York City levels are spread out a little so they fit)
   at('city', GEO(-73.72, 40.8), 'Empire State Rooftops', 'New York City'),
@@ -4592,31 +4598,32 @@ const NODES = [
   at('canaveral', FGEO(-80.6, 28.46), 'Cape Canaveral', 'Florida', { map: 'fl' }),
   at('space', FGEO(-79.95, 28.95), 'Outer Space', 'way up high', { map: 'fl', bonus: true }),
 ];
-const PATHS = [['hills', 'woods'], ['woods', 'caves'], ['caves', 'bog'], ['bog', 'sky'], ['sky', 'castle'], ['caves', 'bonus'],
-  ['castle', 'snow'], ['snow', 'night'], ['night', 'shore'], ['shore', 'fort'], ['fort', 'canal'],
-  ['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'], ['dunes', 'ptown'],
-  ['ptown', 'orchard'], ['orchard', 'niagara'], ['niagara', 'bridge'], ['bridge', 'city'], ['city', 'liberty'],
+const PATHS = [['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'], ['dunes', 'ptown'],
+  ['ptown', 'shore'], ['shore', 'night'], ['night', 'fort'],
+  ['fort', 'snow'], ['snow', 'sky'], ['sky', 'bog'], ['bog', 'caves'], ['caves', 'woods'], ['woods', 'hills'], ['hills', 'castle'], ['caves', 'bonus'],
+  ['castle', 'orchard'], ['orchard', 'niagara'], ['niagara', 'bridge'], ['bridge', 'city'], ['city', 'liberty'],
   ['liberty', 'miami'], ['miami', 'reef'], ['reef', 'keywest'], ['keywest', 'glades'], ['glades', 'stpete'], ['stpete', 'springs'], ['springs', 'park'],
   ['park', 'castillo'], ['castillo', 'daytona'], ['daytona', 'canaveral'], ['canaveral', 'space'],
   ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'dunes', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
-const WORLDS = [['hills', 'woods', 'caves', 'bog', 'sky', 'castle'], ['snow', 'night', 'shore', 'fort'], ['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['orchard', 'niagara', 'bridge', 'city', 'liberty'], ['miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral']];
-const WORLD_NAMES = ['Green Mountain Trail', 'North Woods & Rocky Coast', 'Cape Cod & the Islands', 'New York & New Jersey', 'The Sunshine State'];
+const START = 'canal';   // Leo's adventure starts at the Bourne Bridge, on Cape Cod
+const WORLDS = [['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['shore', 'night', 'fort'], ['snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle'], ['orchard', 'niagara', 'bridge', 'city', 'liberty'], ['miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral']];
+const WORLD_NAMES = ['Cape Cod & the Islands', 'The Coast of Maine', 'Mountains to Connecticut', 'New York & New Jersey', 'The Sunshine State'];
 const worldOf = id => WORLDS.findIndex(w => w.includes(id));
 const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
-const FLIGHT_PATHS = new Set(['ptown|orchard', 'liberty|miami', 'canaveral|space']);   // (Cape Cod to Western New York, and New York down to Florida: Leo flies; from Cape Canaveral he goes by rocket)
-const SEA_PATHS = new Set(['miami|reef', 'keywest|glades', 'city|liberty', 'fort|canal', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
+const FLIGHT_PATHS = new Set(['liberty|miami', 'canaveral|space']);   // (New York down to Florida: Leo flies; from Cape Canaveral he goes by rocket)
+const SEA_PATHS = new Set(['miami|reef', 'keywest|glades', 'city|liberty', 'ptown|shore', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
 // a few trails are bent by hand: the boat lane hugs the coast, and the secret paths swing round the levels in between
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
-bend('fort|canal', GEO(-70.3, 43.0)); bend('caves|castle', GEO(-71.9, 43.5));
+bend('ptown|shore', GEO(-69.2, 43.0)); bend('caves|castle', GEO(-72.1, 42.5));   // the boat sails up the Gulf of Maine; the secret path runs east of the Berkshires
 bend('cranberry|whale', CAPEXY(46, 14)); bend('whale|dunes', CAPEXY(68, -2));   // the sea route sweeps round the elbow...
 bend('cranberry|dunes', CAPEXY(51, 1));                                          // ...and the secret land road follows the arm inside it
 bend('canal|vineyard', CAPEXY(3, 10)); bend('whale|nantucket', CAPEXY(57, 19));
 bend('reef|keywest', FGEO(-80.95, 24.55)); bend('glades|stpete', FGEO(-81.85, 26.7)); bend('park|castillo', FGEO(-81.75, 29.2));   // along the Keys; up the Gulf coast; inland, west of Daytona
-bend('ptown|orchard', GEO(-75.5, 47.6)); bend('niagara|bridge', GEO(-76.8, 41.4));   // a high flight west; then down through the Southern Tier to the Hudson
+bend('castle|orchard', GEO(-73.2, 41.05)); bend('niagara|bridge', GEO(-76.8, 41.4));   // along Long Island Sound to the Hudson; then back down through the Southern Tier
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -4625,9 +4632,9 @@ const pathCtrl = pth => {
 };
 const qbez = (a, c, b, u) => ({ x: (1 - u) * (1 - u) * a.x + 2 * u * (1 - u) * c.x + u * u * b.x, y: (1 - u) * (1 - u) * a.y + 2 * u * (1 - u) * c.y + u * u * b.y });
 const pathBetween = (x, y) => PATHS.find(([a, b]) => (a === x && b === y) || (a === y && b === x));
-const nodeOpen = n => n.id === 'hills' || !!save.cleared[n.id] || (n.secret ? save.key : PATHS.some(pth => { const [a, b, sec] = pth; return pathReady(pth) && ((b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret && !sec)); }));
+const nodeOpen = n => n.id === START || !!save.cleared[n.id] || (n.secret ? save.key : PATHS.some(pth => { const [a, b, sec] = pth; return pathReady(pth) && ((b === n.id && save.cleared[a]) || (a === n.id && save.cleared[b] && !node(b).secret && !sec)); }));
 const pathOpen = pth => pathReady(pth) && nodeOpen(node(pth[0])) && nodeOpen(node(pth[1]));
-const mapLeo = { at: 'hills', x: 52, y: 168, to: null, path: [] };
+const mapLeo = { at: START, x: node(START).x, y: node(START).y, to: null, path: [] };
 let mapCam = 0;
 function goMap(from) {
   state = 'map'; phase = 'play';
@@ -4641,7 +4648,7 @@ function goMap(from) {
   if (from && save.cleared[from]) {
     const next = PATHS.find(([a, b, sec]) => a === from && !sec && !node(b).secret && nodeOpen(node(b)) && !save.cleared[b]);
     if (next) RB.toast(`☘️ ${node(next[1]).name} is open!`, 2200);
-    if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Goblin Castle', 3200), 600);
+    if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Gillette Castle', 3200), 600);
     if (from === 'canal' && save.secrets.canal) setTimeout(() => RB.toast("⛴️ Secret exit! A ferry path now runs to Martha's Vineyard", 3200), 600);
     if (from === 'cranberry' && save.secrets.cranberry) setTimeout(() => RB.toast('🐸 Secret exit! A golden road now runs from Cranberry Bog along the Cape straight to Nauset Dunes', 3200), 600);
     if (from === 'whale' && save.secrets.whale) setTimeout(() => RB.toast('🐋 Secret exit! A golden path now runs out to Nantucket', 3200), 600);

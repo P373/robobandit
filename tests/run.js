@@ -1498,12 +1498,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.key = gotKey; player.x = 192 * 16 + 8; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
       out.bonusOpen = nodeOpen(node('bonus'));
       startLevel('castle'); const b = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
-      for (let h = 0; h < 3; h++) { player.inv = 9; run(100); player.x = b.x + 8; player.y = b.y - 30; player.vy = 150; run(8); }
+      for (let h = 0, n = b.hp; h < n; h++) { player.inv = 9; run(100); player.x = b.x + 8; player.y = b.y - 30; player.vy = 150; run(8); }
       out.boss = b.hp;
       run(60 * 3);
       const pot = ents.find(e => e.k === 'pot'); out.pot = !!pot;
       if (pot) { player.x = pot.x; player.y = pot.y; run(5); }
-      out.ending = { state, beaten: save.beaten, best: +localStorage.getItem('ll_best') };
+      out.ending = { state, beaten: save.beaten3, best: +localStorage.getItem('ll_best') };
       paused = false;
       return out;
     });
@@ -1514,7 +1514,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.pit.lost === 1 && r.pit.state === 'level', 'a pit costs a life and restarts: ' + JSON.stringify(r.pit));
     check(r.goal.state === 'map' && r.goal.cleared && r.goal.woodsOpen && !r.goal.cavesOpen, 'the goal clears the level and opens the next: ' + JSON.stringify(r.goal));
     check(r.key && r.bonusOpen, 'the golden key opens Rainbow Road: ' + JSON.stringify(r));
-    check(r.boss === 0 && r.pot && r.ending.state === 'ending' && r.ending.beaten && r.ending.best > 0, 'three stomps beat King Grumbles, then the pot of gold: ' + JSON.stringify(r));
+    check(r.boss === 0 && r.pot && r.ending.state === 'ending' && r.ending.beaten && r.ending.best > 0, 'five stomps beat King Grumbles at Gillette Castle, then the pot of gold: ' + JSON.stringify(r));
     await done(p, 'lucky-leo.png');
   });
 
@@ -1588,7 +1588,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('caves'); ents = ents.filter(e => !isEnemy(e)); const cr = ents.find(e => e.k === 'crusher'); player.star = 5; player.x = cr.x + 4; player.y = 11 * 16 + 16 - player.h; run(90);
       out.smashed = !ents.includes(cr) && phase === 'play'; player.star = 0;
       // Glimmer Caves: from the ledge under the last hole in the ceiling, a high jump up onto the roof, then along it past the gate
-      // to the secret exit, which opens a golden path to Goblin Castle
+      // to the secret exit, which opens a golden path to Gillette Castle
       delete save.secrets.caves; delete save.cleared.castle; delete save.cleared.bog;
       startLevel('caves'); ents = ents.filter(e => !isEnemy(e) && e.k !== 'crusher'); player.x = 153 * 16; player.y = 5 * 16 - player.h; player.vy = 0; run(10);
       keys.down = true; run(2); pressed.jump = true; keys.jump = true; run(1); keys.down = false; run(4); keys.right = true; run(60); keys.jump = false;
@@ -1615,7 +1615,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.carried && r.thrown, 'pick up a shell by holding run, throw it by letting go: ' + JSON.stringify(r));
     check(r.highPound, 'the ground pound should work above the top of the screen: ' + JSON.stringify(r));
     check(r.recalled, 'the saved power-up should drop from the box: ' + JSON.stringify(r));
-    check(r.upTop && r.secret && r.secretPath, 'Glimmer Caves: a high jump through the hole in the ceiling should reach the roof, and the secret exit past the gate should open the path to Goblin Castle: ' + JSON.stringify(r));
+    check(r.upTop && r.secret && r.secretPath, 'Glimmer Caves: a high jump through the hole in the ceiling should reach the roof, and the secret exit past the gate should open the path to Gillette Castle: ' + JSON.stringify(r));
     check(r.smashed, 'with the lucky horseshoe Leo should smash the crush-stone: ' + JSON.stringify(r));
     check(r.room === 'hillsTree' && r.back, 'down the hollow tree into the room and back out further on: ' + JSON.stringify(r));
     check(r.capUp && r.capLow, 'the hat should go up when looking up and low when crouching: ' + JSON.stringify(r));
@@ -1649,46 +1649,32 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo Worlds 2 to 5: Goblin Castle opens the way to the White Mountains, the Frost Fortress opens Cape Cod, Provincetown flies on to New York, the Statue of Liberty flies on to Florida, and Cape Canaveral is the real ending', async () => {
+  await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, and Cape Canaveral is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
-      startGame(); const before = nodeOpen(node('shore'));
-      startLevel('castle'); winGame();
-      const end1 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
-      document.getElementById('btnMapAgain').click();
-      const after = { state, snow: nodeOpen(node('snow')), night: nodeOpen(node('night')), at: mapLeo.at };
-      startLevel('fort'); const boss = ents.find(e => e.k === 'boss'); const hp = boss.hp;
-      ['shore', 'snow', 'night'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end2 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten2: save.beaten2 };
-      document.getElementById('btnMapAgain').click();
-      const cape = { state, canal: nodeOpen(node('canal')), cranberry: nodeOpen(node('cranberry')), at: mapLeo.at };
-      startLevel('ptown'); const boss3 = ents.find(e => e.k === 'boss'); const hp3 = boss3.hp;
-      ['canal', 'cranberry', 'dunes'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end3 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten3: save.beaten3 };
-      document.getElementById('btnMapAgain').click();
-      const ny = { state, orchard: nodeOpen(node('orchard')), niagara: nodeOpen(node('niagara')), flight: FLIGHT_PATHS.has('ptown|orchard') };
-      startLevel('liberty'); const boss4 = ents.find(e => e.k === 'boss'); const hp4 = boss4.hp, kinds = { fort: LEVELS.fort.ents.find(e => e.k === 'boss').kind, ptown: LEVELS.ptown.ents.find(e => e.k === 'boss').kind, liberty: boss4.kind };
-      ['orchard', 'niagara', 'bridge', 'city'].forEach(id => { save.cleared[id] = true; }); winGame();
-      const end4 = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent, beaten4: save.beaten4 };
-      document.getElementById('btnMapAgain').click();
-      const fl = { state, miami: nodeOpen(node('miami')), reef: nodeOpen(node('reef')), flight: FLIGHT_PATHS.has('liberty|miami'), map: node('miami').map };
-      startLevel('canaveral'); const boss5 = ents.find(e => e.k === 'boss'); const hp5 = boss5.hp; kinds.castillo = LEVELS.castillo.ents.find(e => e.k === 'boss').kind; kinds.canaveral = boss5.kind;
-      WORLDS[4].slice(0, -1).forEach(id => { save.cleared[id] = true; }); winGame();
-      const end5 = { title: document.querySelector('#ending h1').textContent, beaten5: save.beaten5, space: nodeOpen(node('space')), levels5: WORLDS[4].length };
-      return { before, end1, after, hp, end2, cape, hp3, end3, ny, hp4, kinds, end4, fl, hp5, end5, slippery: !!LEVELS.snow.slippery,
-        levels: ['shore', 'snow', 'night', 'fort', 'canal', 'cranberry', 'dunes', 'ptown', 'orchard', 'niagara', 'bridge', 'city', 'liberty'].every(id => ORDER.includes(id)) };
+      startGame(); const start = { at: mapLeo.at, canal: nodeOpen(node('canal')), shore: nodeOpen(node('shore')), hills: nodeOpen(node('hills')), tag: levelTag('canal') };
+      const end = id => { const prev = WORLDS[worldOf(id)].slice(0, -1); prev.forEach(x => { save.cleared[x] = true; }); startLevel(id); const b = ents.find(e => e.k === 'boss');
+        const hp = b.hp, kind = b.kind; winGame();
+        const out = { hp, kind, title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
+        document.getElementById('btnMapAgain').click(); out.state = state; out.at = mapLeo.at; return out; };
+      const w1 = end('ptown'); w1.shore = nodeOpen(node('shore')); w1.night = nodeOpen(node('night')); w1.boat = SEA_PATHS.has('ptown|shore'); w1.beaten = save.beaten;
+      const w2 = end('fort'); w2.snow = nodeOpen(node('snow')); w2.sky = nodeOpen(node('sky')); w2.beaten2 = save.beaten2;
+      const w3 = end('castle'); w3.orchard = nodeOpen(node('orchard')); w3.niagara = nodeOpen(node('niagara')); w3.beaten3 = save.beaten3; w3.walk = !FLIGHT_PATHS.has('castle|orchard');
+      const w4 = end('liberty'); w4.miami = nodeOpen(node('miami')); w4.reef = nodeOpen(node('reef')); w4.flight = FLIGHT_PATHS.has('liberty|miami'); w4.map = node('miami').map; w4.beaten4 = save.beaten4;
+      const w5 = end('canaveral'); w5.beaten5 = save.beaten5; w5.space = nodeOpen(node('space')); w5.levels = WORLDS[4].length;
+      const regions = Object.fromEntries(['shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle', 'orchard'].map(id => [id, node(id).region]));
+      return { start, w1, w2, w3, w4, w5, regions, castillo: LEVELS.castillo.ents.find(e => e.k === 'boss').kind, slippery: !!LEVELS.snow.slippery,
+        allListed: WORLDS.flat().every(id => ORDER.includes(id) && node(id)), names: WORLD_NAMES.slice(0, 3) };
     });
-    check(!r.before && /WORLD 1/.test(r.end1.title) && /World 2/.test(r.end1.btn), 'Goblin Castle should finish World 1 and offer World 2: ' + JSON.stringify(r));
-    check(r.after.state === 'map' && r.after.snow && !r.after.night && r.after.at === 'castle', 'the path up to Frosty Peaks in the White Mountains should open: ' + JSON.stringify(r));
-    check(r.hp === 4 && /WORLD 2/.test(r.end2.title) && /World 3/.test(r.end2.btn) && r.end2.beaten2 && r.slippery && r.levels, 'the Frost Fortress should finish World 2 and offer World 3: ' + JSON.stringify(r));
-    check(r.cape.state === 'map' && r.cape.canal && !r.cape.cranberry && r.cape.at === 'fort', 'the path to Bourne Bridge on Cape Cod should open: ' + JSON.stringify(r));
-    check(r.hp3 === 5 && /WORLD 3/.test(r.end3.title) && /World 4/.test(r.end3.btn) && r.end3.beaten3, 'Provincetown Pier should finish World 3 and offer World 4: ' + JSON.stringify(r));
-    check(r.ny.state === 'map' && r.ny.orchard && !r.ny.niagara && r.ny.flight, 'a flight from Cape Cod should open the Apple Orchard in Western New York: ' + JSON.stringify(r));
-    check(r.kinds.fort === 'yeti' && r.kinds.ptown === 'crab' && r.kinds.liberty === 'grumbles' && r.kinds.castillo === 'gator' && r.kinds.canaveral === 'grumbles', 'bosses: the Frost Yeti, Captain Pinch, King Grumbles, Captain Chomps, and King Grumbles at the end: ' + JSON.stringify(r.kinds));
-    check(r.hp4 === 6 && /WORLD 4/.test(r.end4.title) && /World 5/.test(r.end4.btn) && r.end4.beaten4, 'the Statue of Liberty should finish World 4 and offer World 5: ' + JSON.stringify(r));
-    check(r.fl.state === 'map' && r.fl.miami && !r.fl.reef && r.fl.flight && r.fl.map === 'fl', 'a flight from New York should open Miami Beach on the map of Florida: ' + JSON.stringify(r.fl));
-    check(r.hp5 === 7 && /GOLD/.test(r.end5.title) && r.end5.beaten5 && r.end5.space && r.end5.levels5 === 10, 'Cape Canaveral should be the toughest, final ending, with a bonus trip to space: ' + JSON.stringify(r));
+    check(r.start.at === 'canal' && r.start.canal && !r.start.shore && !r.start.hills && r.start.tag === '1-1', 'Leo starts on Cape Cod at the Bourne Bridge (1-1): ' + JSON.stringify(r.start));
+    check(r.w1.hp === 3 && r.w1.kind === 'crab' && /WORLD 1/.test(r.w1.title) && /World 2/.test(r.w1.btn) && r.w1.shore && !r.w1.night && r.w1.boat && r.w1.beaten, 'Provincetown Pier (Captain Pinch, 3 hits) ends World 1 and a boat goes up to Maine: ' + JSON.stringify(r.w1));
+    check(r.w2.hp === 4 && r.w2.kind === 'yeti' && /WORLD 2/.test(r.w2.title) && /World 3/.test(r.w2.btn) && r.w2.snow && !r.w2.sky && r.w2.beaten2 && r.slippery, 'the Frost Fortress in Maine (the Frost Yeti, 4 hits) ends World 2 and opens the White Mountains: ' + JSON.stringify(r.w2));
+    check(r.w3.hp === 5 && r.w3.kind === 'grumbles' && /WORLD 3/.test(r.w3.title) && /World 4/.test(r.w3.btn) && r.w3.orchard && !r.w3.niagara && r.w3.walk && r.w3.beaten3, 'Gillette Castle in Connecticut (King Grumbles, 5 hits) ends World 3 and the path runs on into New York: ' + JSON.stringify(r.w3));
+    check(r.w4.hp === 6 && /WORLD 4/.test(r.w4.title) && /World 5/.test(r.w4.btn) && r.w4.miami && !r.w4.reef && r.w4.flight && r.w4.map === 'fl' && r.w4.beaten4, 'the Statue of Liberty (6 hits) ends World 4, and a flight opens Miami Beach on the map of Florida: ' + JSON.stringify(r.w4));
+    check(r.w5.hp === 7 && /GOLD/.test(r.w5.title) && r.w5.beaten5 && r.w5.space && r.w5.levels === 10 && r.castillo === 'gator', 'Cape Canaveral is the toughest, final ending, with a bonus trip to space: ' + JSON.stringify(r.w5));
+    check(r.regions.shore === 'Maine' && r.regions.night === 'Maine' && r.regions.fort === 'Maine' && r.regions.snow === 'New Hampshire' && r.regions.sky === 'Vermont' && r.regions.caves === 'Vermont' && r.regions.hills === 'Connecticut' && r.regions.castle === 'Connecticut', 'the levels sit in Maine, New Hampshire, Vermont and Connecticut: ' + JSON.stringify(r.regions));
+    check(r.allListed && /Cape Cod/.test(r.names[0]) && /Maine/.test(r.names[1]), 'every level is on the map and in the list: ' + JSON.stringify(r.names));
     await done(p, 'lucky-leo-world2.png');
   });
 
@@ -1768,8 +1754,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.slide = player.slide === 1 && player.vy <= 75;
       keys.right = false; const x0 = player.x; pressed.jump = true; run(1); out.kickV = [Math.round(player.vx), Math.round(player.vy)];
       run(12); out.kick = player.vx < -100 && player.x < x0 - 20 && player.y < 3 * 16;
-      // King Grumbles on Provincetown Pier (five hits)
-      startLevel('ptown'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss');
+      // King Grumbles on the Statue of Liberty (six hits)
+      startLevel('liberty'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss');
       const boss = ents.find(e => e.k === 'boss'); player.x = 168 * 16; run(30);
       const hold = () => { boss.hurt = 0; boss.vy = 0; boss.jumpT = 9; boss.throwT = 9; boss.y = 12 * 16 - boss.h; boss.x = 178 * 16; boss.dir = 1; ents = ents.filter(e => e.k !== 'acorn'); };
       const hits = {};
@@ -1804,7 +1790,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.sprouted && r.form === 3 && r.throws, 'the magic hat block gives the hat throw: ' + JSON.stringify(r));
     check(r.afterHit === 1 && r.noThrowAfter, 'a hit takes the magic hat away: ' + JSON.stringify(r));
     check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
-    check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 1, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
+    check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 2, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
     check(Object.entries(r.stomps).every(([k, v]) => v === 0) && r.sideHurts, 'every boss: stomping him again and again (even while he flashes) never hurts Leo and beats him in every world; walking into his side does hurt: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-magic-hat.png');
   });
@@ -2105,7 +2091,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padTap(p, 'A'); await p.waitForTimeout(300);
     check(await p.evaluate(() => state === 'map'), 'Ⓐ on the title should open the map');
     await padTap(p, 'A'); await p.waitForTimeout(400);
-    check(await p.evaluate(() => state === 'level' && lvl.id === 'hills'), 'Ⓐ on the map should start Clover Hills');
+    check(await p.evaluate(() => state === 'level' && lvl.id === 'canal'), 'Ⓐ on the map should start Bourne Bridge, the first level');
     await p.waitForTimeout(300);
     await padHold(p, 'A', true); await p.waitForTimeout(120);
     const air = await p.evaluate(() => !player.ground && player.vy < 0);
@@ -2121,9 +2107,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const q = await ph.newPage();
     await q.goto(url('lucky-leo.html')); await q.waitForTimeout(500);
     await q.tap('#btnPlay'); await q.waitForTimeout(400);
-    const pt = await q.evaluate(() => { const n = node('hills'), dpr = canvas.width / innerWidth; return { x: (n.x - mapCam) * scale / dpr, y: (n.y * scale + offY) / dpr }; });
+    const pt = await q.evaluate(() => { const n = node(START), dpr = canvas.width / innerWidth; return { x: (n.x - mapCam) * scale / dpr, y: (n.y * scale + offY) / dpr }; });
     await q.touchscreen.tap(pt.x, pt.y); await q.waitForTimeout(200); await q.touchscreen.tap(pt.x, pt.y); await q.waitForTimeout(500);
-    check(await q.evaluate(() => state === 'level' && !document.getElementById('touch').classList.contains('hidden')), 'tapping Clover Hills twice should start it, with the touch buttons showing');
+    check(await q.evaluate(() => state === 'level' && !document.getElementById('touch').classList.contains('hidden')), 'tapping the first level twice should start it, with the touch buttons showing');
     const cdp = await ph.newCDPSession(q), rb = await q.locator('#tRight').boundingBox(), jb = await q.locator('#tJump').boundingBox();
     const x0 = await q.evaluate(() => player.x);
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: rb.x + 30, y: rb.y + 30, id: 1 }] });
