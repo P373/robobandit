@@ -1220,6 +1220,24 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       hold(); hp = boss.hp; setForm(3); player.hatless = true; ents.push(mk('cap', boss.x + 8, boss.y + 10, { vx: 200, w: 12, h: 9, st: 'out', dir: 1 })); run(1); hits.hat = boss.hp === hp - 1;
       hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
       out.hits = hits; out.hpLeft = boss.hp;
+      // stomping King Grumbles again and again, landing back on him even while he still flashes from the last hit: never hurts Leo,
+      // and he goes down; walking into his side still does
+      const realHurt = hurtPlayer; let hurts = 0; hurtPlayer = () => { hurts++; };
+      const stompAll = id => {
+        startLevel(id); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); setForm(1); const bs = ents.find(e => e.k === 'boss'); run(30);
+        player.x = bs.x + bs.w / 2 - player.w / 2; player.y = bs.y - 70; player.vy = 100;
+        for (let i = 0; i < 60 * 30 && bs.hp > 0; i++) {
+          ents = ents.filter(e => e.k !== 'acorn');
+          const cx = player.x + player.w / 2, bx = bs.x + bs.w / 2; keys.left = cx > bx + 2; keys.right = cx < bx - 2; keys.run = true;
+          if (player.ground) { player.x = bx - player.w / 2; player.y = bs.y - 70; player.vy = 100; player.ground = false; }
+          run(1);
+        }
+        keys.left = keys.right = keys.run = false; return bs.hp;
+      };
+      out.stomps = { castle: stompAll('castle'), fort: stompAll('fort'), ptown: stompAll('ptown'), hurts };
+      startLevel('castle'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const side = ents.find(e => e.k === 'boss'); run(5);
+      hurts = 0; side.jumpT = side.throwT = 9; player.inv = 0; player.x = side.x - player.w + 4; player.y = side.y + side.h - player.h; player.vy = 0; run(1); out.sideHurts = hurts > 0;
+      hurtPlayer = realHurt;
       paused = false; return out;
     });
     check(r.noThrow, 'without the magic hat, Leo keeps his hat on: ' + JSON.stringify(r));
@@ -1227,6 +1245,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.afterHit === 1 && r.noThrowAfter, 'a hit takes the magic hat away: ' + JSON.stringify(r));
     check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
     check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 1, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
+    check(r.stomps.castle === 0 && r.stomps.fort === 0 && r.stomps.ptown === 0 && r.stomps.hurts === 0 && r.sideHurts, 'King Grumbles: stomping him again and again (even while he flashes) never hurts Leo and beats him in every world; walking into his side does hurt: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-magic-hat.png');
   });
 

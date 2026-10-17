@@ -2797,12 +2797,17 @@ function touchPlayer(e) {
       if (!e.whoosh || clock - e.whoosh > 0.5) { e.whoosh = clock; sfx.spring(); }
       if (Math.random() < 0.5) particle(p.x + p.w / 2 + rand(-6, 6), p.y + p.h, rand(-30, 30), rand(40, 120), '#cfeaff', 0.5, rand(2, 3));
       break;
-    case 'boss':
-      if (e.hurt > 0 || e.hp <= 0) break;
-      if (stomp) { p.vy = -340; bossHit(e); }
-      else if (p.star > 0) { bossHit(e); p.vx = (p.x < e.x ? -1 : 1) * 200; p.vy = -220; }   // the horseshoe's rainbow power bumps him too
+    case 'boss': {
+      if (e.hp <= 0) break;
+      // landing on top always bounces Leo off, even while King Grumbles is still flashing from the last hit (no sinking into
+      // him and getting hurt when the flash ends); measured against his own movement, as he jumps about a lot
+      const rv = p.vy - (e.vy || 0);
+      if (rv > 0 && p.y + p.h - rv * STEP <= e.y + 10) { p.vy = -340; p.y = Math.min(p.y, e.y - p.h); p.ground = false; if (e.hurt <= 0) bossHit(e); else sfx.stomp(); break; }
+      if (e.hurt > 0) break;
+      if (p.star > 0) { bossHit(e); p.vx = (p.x < e.x ? -1 : 1) * 200; p.vy = -220; }   // the horseshoe's rainbow power bumps him too
       else hurtPlayer();
       break;
+    }
     default:
       if (!isEnemy(e)) break;
       if (p.star > 0) { flipEnemy(e, p.face); break; }
