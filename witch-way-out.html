@@ -99,6 +99,22 @@
   .split .hud .pumpkinBar { bottom: 8px; padding: 3px 8px; } .split .hud .magicBar { bottom: 34px; padding: 3px 8px; }
   #divider { position: fixed; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; z-index: 2; pointer-events: none;
     background: linear-gradient(90deg, #7a3fc8, #ff8a1f, #ffc21a); box-shadow: 0 0 12px rgba(255,138,31,.6); }
+  #divider2 { position: fixed; top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; z-index: 2; pointer-events: none;
+    background: linear-gradient(#7a3fc8, #ff8a1f, #3ad07a); box-shadow: 0 0 12px rgba(255,138,31,.6); }
+  #specTag { position: fixed; z-index: 2; left: 50%; top: 50%; margin: 10px 0 0 14px; font: 26px 'Creepster', system-ui, sans-serif; color: #ff8a1f;
+    text-shadow: 0 3px 0 #2a0a3a; pointer-events: none; }
+  /* three or four players: a corner each (three: the fourth corner is the pumpkin cam) */
+  .quad .hud.p0 { right: 50%; bottom: 50%; } .quad .hud.p1 { left: 50%; bottom: 50%; } .quad .hud.p2 { right: 50%; top: 50%; } .quad .hud.p3 { left: 50%; top: 50%; }
+  .quad .ptag { display: inline-block; }
+  .quad .hud .hudTL { top: 8px; left: 10px; font-size: 14px; line-height: 1.2; } .quad .hud .hudTL .dim { display: none; }
+  .quad .hud .raceBar { display: none; }
+  .quad .hud .hudTR { top: 8px; right: 10px; gap: 6px; } .quad .hud.p1 .hudTR { top: 56px; }
+  .quad .hud .placeBig { font-size: 30px; } .quad .hud .placeBig small { font-size: 15px; }
+  .quad .hud .itemSlot { width: 36px; height: 36px; font-size: 21px; border-radius: 10px; border-width: 2px; } .quad .hud .itemSlot.empty { font-size: 8px; }
+  .quad .hud .banner { top: 18%; font-size: 26px; } .quad .hud .banner small { font-size: 12px; margin-top: 3px; }
+  .quad .hud .warn { top: 46%; font-size: 13px; } .quad .hud .feed { top: 62%; font-size: 13px; }
+  .quad .hud .pumpkinBar { bottom: 6px; padding: 2px 6px; width: 62%; } .quad .hud .magicBar { bottom: 30px; padding: 2px 6px; width: 62%; font-size: 11px; }
+  .big-btn.n { font-size: 24px; padding: 8px 18px; margin-left: 4px; }
   .pres { margin: 6px 0; font-size: 17px; }
   .big-btn.two { background: linear-gradient(#ffe07a, #ffc21a); }
   .padcount { margin-top: 8px; font-size: 15px; color: #c9b6ff; min-height: 18px; }
@@ -143,6 +159,8 @@
   <div class="warn hidden" data-u="warn">⚡ LIGHTNING! CAST YOUR SHIELD! ⚡</div>
 </div>
 <div id="divider" class="hidden"></div>
+<div id="divider2" class="hidden"></div>
+<div id="specTag" class="hidden">🎃 Pumpkin Cam</div>
 <div id="tbtns" class="hidden rb-touch">
   <button type="button" id="brakeBtn" class="tbtn"><span class="ico">🪂</span>BRAKE</button>
   <button type="button" id="boostBtn" class="tbtn"><span class="ico">✨</span>BOOST</button>
@@ -154,7 +172,7 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>Witch Way Out</h1>
-    <div class="sub">🏁 The great broomstick race! Beat the other witches to the moon… and stay ahead of the Great Pumpkin 🎃</div>
+    <div class="sub">🏁 The Moonlight Grand Prix! Race the other witches to the moon… and stay ahead of the Great Pumpkin 🎃</div>
     <ol>
       <li><b>Fly your broomstick</b> anywhere:
         <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> turn, <kbd>W</kbd> climb, <kbd>S</kbd> dive.</span>
@@ -166,15 +184,17 @@
         🍬 rocket · 🦇 bats chase the leader · 🧪 boost refill · 👻 ghost cloak · 🎩 triple hat · 🕸️ web trap.</li>
       <li>🛡️ <b>Shield</b> (🎮 <b data-pad="A">A</b><span class="key-only">, <kbd>Space</kbd></span><span class="touch-only">, 🛡️ button</span>) blocks lightning in the storm and hats thrown at you.</li>
       <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b> or click the right stick<span class="key-only"> (or <kbd>R</kbd>)</span> swings back behind you.</li>
-      <li>👥 <b>Two players?</b> Press <b>2 Players</b> and the screen splits in two. Each player uses their own 🎮 controller (the first one plugged in is Player 1), or share the keyboard:
+      <li>👥 <b>Up to four players!</b> Press <b>2</b>, <b>3</b> or <b>4</b> and the screen splits. Each player uses their own 🎮 controller (the first one plugged in is Player 1), and Players 1 and 2 can share the keyboard:
         <span class="key-only">Player 1 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> fly, left <kbd>Shift</kbd> boost, left <kbd>Ctrl</kbd> brake, <kbd>Space</kbd> shield, <kbd>G</kbd> hat, <kbd>F</kbd> power-up · Player 2 <kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> fly, right <kbd>Shift</kbd> boost, right <kbd>Ctrl</kbd> brake, <kbd>Enter</kbd> shield, <kbd>O</kbd> hat, <kbd>U</kbd> power-up.</span>
         Your hats and power-ups can bonk each other too!</li>
-      <li>Race through the sky, a storm, a <b>backyard</b>, a <b>graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
+      <li>⚡ <b>Fly through the glowing arrows</b> for a dash of speed. 🚀 <b>Rocket start:</b> start holding boost as the <b>2</b> shows (not before!). 💨 <b>Slipstream:</b> tuck in right behind another racer to shoot past.</li>
+      <li>✂️ <b>Find the shortcuts!</b> The arch through the rock spire, the updraft up to the ring highway, the old barn, and the haunted mansion's front door.</li>
+      <li>Off the castle battlements, down <b>Lantern Canyon</b>, over <b>Thunder Peaks</b>, along <b>Hollow Village</b>, through the <b>graveyard</b>, past the <b>Haunted Mansion</b> and across <b>Moonlight Lake</b>. Mind the windmill, the twisters, the stomping tombstones and the chomping pumpkin gates, or the pumpkin catches up!</li>
     </ol>
     <div class="camopts"><button type="button" id="btnPad">🎮 Controller &amp; camera settings</button></div>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">🏁 Race!</button>
-    <button class="big-btn two" id="btnPlay2">👥 2 Players</button>
+    <button class="big-btn two" id="btnPlay2">👥 2 Players</button><button class="big-btn two n" id="btnPlay3">3</button><button class="big-btn two n" id="btnPlay4">4</button>
     <div class="padcount" id="padCount"></div>
   </div>
 </div>
@@ -196,43 +216,98 @@
 'use strict';
 
 // ---------- Tuning (metres, seconds) ----------
-const SPEED = 30;            // broom cruising speed
+const SPEED = 31;            // broom cruising speed
 const BOOST = 14;            // extra speed from a ring, fading over a couple of seconds
+const DASH = 24;             // extra speed from a dash panel, a slipstream or a rocket start
 const PUMPKIN_SPEED = 29;    // just a little slower than you… so every crash lets it gain
 const CATCH_GAP = 18;        // the pumpkin catches you this close
 const START_GAP = 80;
 const MAX_GAP = 100;         // it never falls further behind than this
-const WIDTH = 70;            // the course is ±WIDTH wide
 const CEILING = 95;
 const SHIELD_TIME = 2.6, SHIELD_COOL = 3.5;
 const TAU = Math.PI * 2;
 const rand = (a, b) => a + Math.random() * (b - a);
 const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 
-// The course runs from z = 0 toward negative z, through five areas.
-// line(z) is the friendly flying path the other witches follow (and a good line for you too).
-const SECTIONS = [
-  { id: 'sky', name: 'The Foggy Sky', sub: 'Fly through the glowing rings!', z0: 0, z1: -700, fog: '#3a3352', near: 30, far: 260 },
-  { id: 'storm', name: 'Storm Clouds', sub: 'Lightning! Cast your shield spell!', z0: -700, z1: -1300, fog: '#241f38', near: 20, far: 200 },
-  { id: 'yard', name: 'The Backyard', sub: 'Swoop under the garden lights!', z0: -1300, z1: -1900, fog: '#1d2a3a', near: 40, far: 260 },
-  { id: 'grave', name: 'The Spooky Graveyard', sub: 'Watch out for ghosts…', z0: -1900, z1: -2500, fog: '#1f3328', near: 20, far: 200 },
-  { id: 'cliff', name: 'The House on the Hill', sub: 'Almost there! Fly past the house!', z0: -2500, z1: -3200, fog: '#1b2440', near: 50, far: 340 },
+// ---------- The track ----------
+// The Moonlight Grand Prix: from the battlements of Witchwood Castle, down through Lantern Canyon's hairpins,
+// over Thunder Peaks, along the high street of Hollow Village, through the graveyard, round (or through!) the
+// Haunted Mansion, and across Moonlight Lake up to the moon. The course runs from z = 0 toward negative z.
+// The racing line is a smooth curve through these points: [z, x, y, half-width of the track]. line(z) is the
+// line the other witches follow (and a good line for you too); the walls of the track are hw either side of it.
+const LINE_PTS = [
+  [80, 0, 58, 40], [0, 0, 58, 40],                                        // the start, on the castle bridge
+  [-70, 0, 58, 44], [-170, -4, 42, 50], [-290, -14, 22, 52],              // over the edge: a long dive off the castle
+  [-420, -20, 18, 48], [-520, 0, 18, 46], [-620, 12, 20, 46],              // Lantern Canyon's hairpins…
+  [-760, 42, 22, 48],                                                      // …round the Spire (or through its arch)
+  [-900, -10, 20, 46], [-1010, -40, 22, 46], [-1150, -5, 32, 58],
+  [-1300, 25, 42, 70], [-1450, -15, 40, 70], [-1600, 20, 44, 70],         // Thunder Peaks
+  [-1720, 5, 26, 56], [-1820, -5, 10, 32], [-1960, 10, 9, 34],            // down into Hollow Village
+  [-2100, 48, 9, 44],                                                      // round the barn (or through it)
+  [-2240, 10, 9, 34], [-2360, -15, 10, 34],
+  [-2470, -10, 14, 50], [-2600, 5, 12, 60], [-2740, -25, 13, 70],          // the graveyard
+  [-2950, -75, 16, 72],                                                    // round the Haunted Mansion (or through the front door)
+  [-3150, -25, 15, 70], [-3260, 0, 18, 70],
+  [-3420, 15, 16, 70], [-3560, 0, 14, 70],                                 // Moonlight Lake
+  [-3700, -10, 34, 70], [-3850, 0, 66, 70], [-3950, 0, 72, 70], [-4400, 0, 72, 70],   // the final climb to the moon
 ];
-const FINISH_Z = -3150;
+const FINISH_Z = -3900;
+// the curve, worked out once for every metre (Catmull-Rom through the points)
+const LINE_TOP = 80, LINE_N = 4481, LINE_TAB = new Float32Array(LINE_N * 3);
+{
+  const P = LINE_PTS;
+  for (let i = 0; i < LINE_N; i++) {
+    const z = LINE_TOP - i;
+    let k = 0; while (k < P.length - 2 && z < P[k + 1][0]) k++;
+    const p0 = P[Math.max(0, k - 1)], p1 = P[k], p2 = P[k + 1], p3 = P[Math.min(P.length - 1, k + 2)];
+    const t = clamp((p1[0] - z) / (p1[0] - p2[0]), 0, 1), t2 = t * t, t3 = t2 * t;
+    for (let a = 0; a < 3; a++) {
+      LINE_TAB[i * 3 + a] = 0.5 * (2 * p1[a + 1] + (-p0[a + 1] + p2[a + 1]) * t + (2 * p0[a + 1] - 5 * p1[a + 1] + 4 * p2[a + 1] - p3[a + 1]) * t2 + (-p0[a + 1] + 3 * p1[a + 1] - 3 * p2[a + 1] + p3[a + 1]) * t3);
+    }
+  }
+}
+function lineAt(z, a) {
+  const f = clamp(LINE_TOP - z, 0, LINE_N - 1.001), i = Math.floor(f), u = f - i;
+  return LINE_TAB[i * 3 + a] * (1 - u) + LINE_TAB[(i + 1) * 3 + a] * u;
+}
+const lineX = z => lineAt(z, 0);
+const lineY = z => lineAt(z, 1);
+const halfW = z => lineAt(z, 2);
+const groundAt = () => 0;
+
+const SECTIONS = [
+  { id: 'castle', name: 'Witchwood Castle', sub: 'Dive off the battlements! Fly through the glowing arrows!', z0: 80, z1: -420, fog: '#3a3352', near: 40, far: 300 },
+  { id: 'canyon', name: 'Lantern Canyon', sub: 'Hairpin bends… is that an arch through the rock spire?', z0: -420, z1: -1150, fog: '#3a2a40', near: 30, far: 240 },
+  { id: 'storm', name: 'Thunder Peaks', sub: 'Lightning and twisters! Ride the updraft to the ring highway!', z0: -1150, z1: -1740, fog: '#241f38', near: 20, far: 200 },
+  { id: 'village', name: 'Hollow Village', sub: 'Down the high street… or cut through the old barn!', z0: -1740, z1: -2450, fog: '#2a2442', near: 30, far: 230 },
+  { id: 'grave', name: 'The Spooky Graveyard', sub: 'Ghosts… and tombstones that STOMP!', z0: -2450, z1: -2780, fog: '#1f3328', near: 20, far: 200 },
+  { id: 'mansion', name: 'The Haunted Mansion', sub: 'Fly round it… or straight through the front door!', z0: -2780, z1: -3220, fog: '#2a1f3a', near: 25, far: 230 },
+  { id: 'lake', name: 'FINAL STRETCH!', sub: 'Across Moonlight Lake and up to the moon! 🌕', z0: -3220, z1: -4500, fog: '#1b2440', near: 60, far: 420 },
+];
 const sectionAt = z => SECTIONS.find(s => z <= s.z0 && z > s.z1) || SECTIONS[SECTIONS.length - 1];
-function lineY(z) {
-  if (z > -1250) return 42 + Math.sin(z * 0.012) * 10;
-  if (z > -1360) return 42 - (( -1250 - z) / 110) * 32;          // dive into the backyard
-  if (z > -2560) return 9 + Math.sin(z * 0.02) * 2;
-  if (z > -2860) return 9 + ((-2560 - z) / 300) * 50;             // climb toward the house on the hill
-  return 60;
+
+// The shortcuts: a straight line cutting the corner the racing line goes round (through the spire's arch, the barn and the
+// mansion), or a high road (the updraft up to the ring highway over the storm). The other witches take them now and then.
+const CUTS = [
+  { id: 'arch', name: 'the spire arch', z0: -620, z1: -900 },
+  { id: 'highway', name: 'the ring highway', z0: -1235, z1: -1650, high: 84 },
+  { id: 'barn', name: 'the old barn', z0: -1960, z1: -2240 },
+  { id: 'mansion', name: 'the haunted mansion', z0: -2740, z1: -3150 },
+];
+function cutPos(c, z, out = { x: 0, y: 0 }) {
+  const t = clamp((c.z0 - z) / (c.z0 - c.z1), 0, 1);
+  if (c.high) {   // up the updraft, along the highway, and back down
+    const up = clamp((c.z0 - z) / 60, 0, 1), down = clamp((z - c.z1) / 90, 0, 1), k = Math.min(up, down), s = k * k * (3 - 2 * k);
+    out.x = lineX(z) + UPDRAFT_OFF * clamp((40 - Math.abs(z - (c.z0 - 15))) / 18, 0, 1);   // (over to the updraft and up it)
+    out.y = lineY(z) + (c.high - lineY(z)) * s;
+  } else {
+    out.x = lineX(c.z0) + (lineX(c.z1) - lineX(c.z0)) * t;
+    out.y = lineY(c.z0) + (lineY(c.z1) - lineY(c.z0)) * t;
+  }
+  return out;
 }
-const lineX = z => Math.sin(z * 0.004) * 22;
-function groundAt(x, z) {
-  // cliff top around the house on the hill
-  if (z < -2880 && z > -3060 && x < 40) return 46;
-  return 0;
-}
+const UPDRAFT_OFF = 22;   // the updraft stands this far to the side of the racing line
+const CUT_MID = CUTS.map(c => cutPos(c, (c.z0 + c.z1) / 2, {}));
 
 // ---------- Three.js setup ----------
 const canvas = document.getElementById('game');
@@ -242,8 +317,8 @@ const scene = new THREE.Scene();
 scene.fog = new THREE.Fog('#3a3352', 30, 260);
 scene.background = new THREE.Color('#14102a');
 
-scene.add(new THREE.HemisphereLight('#8a7ac8', '#1a1430', 0.65));
-const moonLight = new THREE.DirectionalLight('#c8d4ff', 0.7);
+scene.add(new THREE.HemisphereLight('#9a8ad8', '#1a1430', 0.75));
+const moonLight = new THREE.DirectionalLight('#c8d4ff', 0.75);
 moonLight.position.set(-40, 120, -200);
 scene.add(moonLight);
 
@@ -255,243 +330,422 @@ function canvasTex(w, h, draw) {
   return new THREE.CanvasTexture(c);
 }
 function add(mesh, x, y, z, parent = scene) { mesh.position.set(x, y, z); parent.add(mesh); return mesh; }
+const colliders = [];        // spheres you bump into { x, y, z, r }, and blocks { box: true, x0, x1, y0, y1, z0, z1 }
+const rings = [];
+const ghosts = [], bulbs = [], strikes = [];
+const animated = [];         // things that wobble or twinkle: fn(t)
+const dashes = [], updrafts = [], hazards = [];   // dash panels, rising winds, and the moving dangers (windmill, stompers, twisters, chandeliers, chomping gates)
 
-// Night sky: gradient dome, stars and a big moon far ahead
+// Scenery that never moves is merged into one mesh per material for each 250 m of the course: only a few draw calls, even
+// with four players' views, and the parts behind the camera (or lost in the fog) aren't drawn at all.
+const statics = new Map();
+const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _s = new THREE.Vector3();
+function addStatic(geo, material, x, y, z, ry = 0, rx = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
+  const g = geo.index ? geo.toNonIndexed() : geo.clone();
+  g.applyMatrix4(_m4.compose(_v.set(x, y, z), _q.setFromEuler(_e.set(rx, ry, rz)), _s.set(sx, sy, sz)));
+  const key = material.uuid + '|' + Math.floor(z / 250);
+  if (!statics.has(key)) statics.set(key, { material, list: [] });
+  statics.get(key).list.push(g);
+}
+function flushStatics() {
+  for (const { material, list } of statics.values()) {
+    const n = list.reduce((a, g) => a + g.attributes.position.count, 0);
+    const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3);
+    let o = 0;
+    for (const g of list) { pos.set(g.attributes.position.array, o * 3); if (g.attributes.normal) nor.set(g.attributes.normal.array, o * 3); o += g.attributes.position.count; g.dispose(); }
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+    geo.computeBoundingSphere();
+    scene.add(new THREE.Mesh(geo, material));
+  }
+  statics.clear();
+}
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+// a solid block of scenery you bump into (sizes in metres, from x0 to x1 and so on)
+function block(material, x0, x1, y0, y1, z0, z1, solid = true) {
+  addStatic(BOX, material, (x0 + x1) / 2, (y0 + y1) / 2, (z0 + z1) / 2, 0, 0, 0, x1 - x0, y1 - y0, Math.abs(z1 - z0));
+  if (solid) colliders.push({ box: true, x0: Math.min(x0, x1), x1: Math.max(x0, x1), y0, y1, z0: Math.min(z0, z1), z1: Math.max(z0, z1) });
+}
+// a lumpy rock: a box with its corners pushed about (it still bumps like the box)
+function rockGeo(seg = 2, jit = 0.18) {
+  const g = new THREE.BoxGeometry(1, 1, 1, seg, seg, seg), p = g.attributes.position;
+  const key = i => `${p.getX(i).toFixed(3)},${p.getY(i).toFixed(3)},${p.getZ(i).toFixed(3)}`, off = {};
+  for (let i = 0; i < p.count; i++) { const k = key(i); off[k] = off[k] || [rand(-jit, jit), rand(-jit, jit), rand(-jit, jit)]; }
+  for (let i = 0; i < p.count; i++) { const o = off[key(i)]; p.setXYZ(i, p.getX(i) + o[0], p.getY(i) + o[1], p.getZ(i) + o[2]); }
+  g.computeVertexNormals();
+  return g;
+}
+const ROCKS = [rockGeo(2, 0.16), rockGeo(2, 0.2), rockGeo(3, 0.12)];
+
+// Night sky: gradient dome, stars, an aurora, distant mountains all round, and the moon (it grows as you near the finish)
 const sky = new THREE.Group();
+let skyMoon = null;
 {
   const tex = canvasTex(4, 256, (g, w, h) => {
     const gr = g.createLinearGradient(0, 0, 0, h);
-    gr.addColorStop(0, '#05030f'); gr.addColorStop(0.45, '#241a48'); gr.addColorStop(0.55, '#4a3a6a'); gr.addColorStop(1, '#4a3a6a');
+    gr.addColorStop(0, '#05030f'); gr.addColorStop(0.42, '#241a48'); gr.addColorStop(0.53, '#5a3a72'); gr.addColorStop(1, '#4a3a6a');
     g.fillStyle = gr; g.fillRect(0, 0, w, h);
   });
   sky.add(new THREE.Mesh(new THREE.SphereGeometry(1200, 32, 16), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false })));
   const sg = new THREE.BufferGeometry(), pts = [];
-  for (let i = 0; i < 600; i++) {
-    const a = Math.random() * TAU, e = Math.random() * 1.2 + 0.1, r = 1100;
+  for (let i = 0; i < 900; i++) {
+    const a = Math.random() * TAU, e = Math.random() * 1.2 + 0.12, r = 1100;
     pts.push(Math.cos(a) * Math.cos(e) * r, Math.sin(e) * r, Math.sin(a) * Math.cos(e) * r);
   }
   sg.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3));
   sky.add(new THREE.Points(sg, new THREE.PointsMaterial({ color: '#ffffff', size: 2.2, sizeAttenuation: false, fog: false })));
-  const moon = new THREE.Mesh(new THREE.SphereGeometry(60, 32, 16), new THREE.MeshBasicMaterial({ color: '#fff4cc', fog: false }));
-  moon.position.set(-120, 260, -1000);
-  sky.add(moon);
-  const halo = new THREE.Mesh(new THREE.SphereGeometry(90, 32, 16), new THREE.MeshBasicMaterial({ color: '#fff0b0', transparent: true, opacity: 0.12, fog: false }));
-  halo.position.copy(moon.position);
-  sky.add(halo);
+  // the aurora: soft green and pink curtains rippling high in the sky
+  const aur = canvasTex(1024, 128, (g, w, h) => {
+    for (let x = 0; x < w; x += 2) {
+      const k = 0.5 + 0.5 * Math.sin(x * 0.02) * Math.sin(x * 0.0057 + 1), top = 20 + Math.sin(x * 0.013) * 14;
+      const gr = g.createLinearGradient(0, top, 0, h);
+      gr.addColorStop(0, `rgba(255,120,220,${0.25 * k})`); gr.addColorStop(0.35, `rgba(90,255,170,${0.5 * k})`); gr.addColorStop(1, 'rgba(90,255,170,0)');
+      g.fillStyle = gr; g.fillRect(x, top, 2, h - top);
+    }
+  });
+  aur.wrapS = THREE.RepeatWrapping; aur.repeat.x = 2;
+  const aurora = new THREE.Mesh(new THREE.CylinderGeometry(1050, 1050, 260, 48, 1, true), new THREE.MeshBasicMaterial({ map: aur, transparent: true, side: THREE.BackSide, fog: false, depthWrite: false, blending: THREE.AdditiveBlending }));
+  aurora.position.y = 420;
+  sky.add(aurora);
+  animated.push(t => { aur.offset.x = t * 0.004; aurora.material.opacity = 0.75 + 0.25 * Math.sin(t * 0.7); });
+  // jagged mountains all round the horizon: a far purple range and a nearer dark one, with a few lit windows (one layer)
+  {
+    const mt = canvasTex(2048, 256, (g, w, h) => {
+      for (const [col, hmax, seed] of [['#2a2148', 1, 1], ['#171230', 0.62, 7]]) {
+        g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
+        for (let x = 0; x <= w; x += 8) {
+          const n = Math.sin(x * 0.006 + seed) * 0.5 + Math.sin(x * 0.017 + seed * 2) * 0.3 + Math.sin(x * 0.051 + seed) * 0.12;
+          g.lineTo(x, h - (0.35 + 0.5 * (n * 0.5 + 0.5)) * h * hmax);
+        }
+        g.lineTo(w, h); g.fill();
+      }
+      for (let i = 0; i < 40; i++) { g.fillStyle = 'rgba(255,210,122,.9)'; g.fillRect((i * 997) % w, h - 10 - (i * 37) % 40, 2, 2); }
+    });
+    const m = new THREE.Mesh(new THREE.CylinderGeometry(1000, 1000, 374, 64, 1, true), new THREE.MeshBasicMaterial({ map: mt, transparent: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+    m.position.y = 177;
+    sky.add(m);
+  }
+  skyMoon = new THREE.Group();
+  const moonTex = canvasTex(256, 256, (g, w, h) => {
+    const gr = g.createRadialGradient(110, 100, 10, 128, 128, 128); gr.addColorStop(0, '#fffbe8'); gr.addColorStop(1, '#f0dca0');
+    g.fillStyle = gr; g.beginPath(); g.arc(128, 128, 126, 0, TAU); g.fill();
+    g.fillStyle = 'rgba(180,160,110,.35)'; for (const [x, y, r] of [[90, 90, 22], [160, 140, 30], [110, 175, 14], [175, 80, 12], [70, 150, 10]]) { g.beginPath(); g.arc(x, y, r, 0, TAU); g.fill(); }
+    g.fillStyle = 'rgba(20,10,30,.85)';   // a witch on a broom across the moon
+    g.beginPath(); g.ellipse(150, 120, 26, 3, -0.15, 0, TAU); g.fill(); g.beginPath(); g.moveTo(140, 118); g.lineTo(150, 92); g.lineTo(158, 118); g.fill(); g.beginPath(); g.moveTo(138, 96); g.lineTo(156, 70); g.lineTo(160, 98); g.fill();
+  });
+  const moon = new THREE.Mesh(new THREE.CircleGeometry(70, 48), new THREE.MeshBasicMaterial({ map: moonTex, transparent: true, fog: false }));
+  skyMoon.add(moon);
+  const halo = new THREE.Mesh(new THREE.CircleGeometry(130, 48), new THREE.MeshBasicMaterial({ map: canvasTex(128, 128, (g, w, h) => { const gr = g.createRadialGradient(64, 64, 30, 64, 64, 64); gr.addColorStop(0, 'rgba(255,240,180,.35)'); gr.addColorStop(1, 'rgba(255,240,180,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); }), transparent: true, fog: false, depthWrite: false }));
+  halo.position.z = -1;
+  skyMoon.add(halo);
+  skyMoon.position.set(-60, 230, -1000);
+  sky.add(skyMoon);
 }
 scene.add(sky);
 
 // ---------- The course ----------
-const colliders = [];        // spheres you bump into: { x, y, z, r }
-const rings = [];
-const ghosts = [], bulbs = [], strikes = [];
-const animated = [];         // things that wobble or twinkle: fn(t)
 
-function ground(color, z0, z1, y = 0) {
-  const len = z0 - z1;
-  const m = new THREE.Mesh(new THREE.PlaneGeometry(600, len, 1, 1), mat(color));
+function ground(color, z0, z1, y = 0, w = 1400) {
+  const m = new THREE.Mesh(new THREE.PlaneGeometry(w, z0 - z1, 1, 1), mat(color));
   m.rotation.x = -Math.PI / 2;
   add(m, 0, y, (z0 + z1) / 2);
   return m;
 }
+// a strip laid along the racing line (a road, a river), w wide
+function ribbon(z0, z1, w, material, y = 0.06, step = 8) {
+  const pts = [], idx = [];
+  for (let z = z0, i = 0; z >= z1; z -= step, i++) {
+    const x = lineX(z), dx = (lineX(z - 1) - lineX(z + 1)) / 2, n = Math.hypot(1, dx), ox = 1 / n * w / 2, oz = dx / n * w / 2;
+    pts.push(x - ox, y, z - oz, x + ox, y, z + oz);
+    if (i) idx.push(i * 2 - 2, i * 2, i * 2 - 1, i * 2 - 1, i * 2, i * 2 + 1);
+  }
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); g.setIndex(idx); g.computeVertexNormals();
+  scene.add(new THREE.Mesh(g, material));
+}
 
 function buildCourse() {
-  // --- 1. foggy sky: misty fields far below, glowing rings
-  ground('#231d33', 60, -1300);
-  for (let i = 0; i < 14; i++) {
-    const z = -90 - i * 80 - (i > 7 ? 60 : 0);
-    addRing(lineX(z) + Math.sin(i * 1.7) * 14, lineY(z) + Math.cos(i * 1.1) * 8, z);
-  }
-  // drifting fog banks
-  const fogMat = new THREE.MeshBasicMaterial({ color: '#8a80a8', transparent: true, opacity: 0.18, depthWrite: false });
-  for (let i = 0; i < 40; i++) {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(rand(14, 30), 10, 8), fogMat);
-    m.scale.y = 0.35;
-    add(m, rand(-90, 90), rand(10, 70), rand(-40, -1250));
-  }
+  const rockMats = [mat('#4a3a58', { flatShading: true }), mat('#3a2e4a', { flatShading: true }), mat('#5a4462', { flatShading: true })];
+  const stoneMat = mat('#8a8498', { flatShading: true }), darkStone = mat('#5a5468', { flatShading: true }), roofMat = mat('#2a1a3a', { flatShading: true });
+  const winMat = glow('#ffd27a'), winMat2 = glow('#ffb35a'), crystalMats = [glow('#7af0ff'), glow('#c89cff'), glow('#ff9af5')];
+  const ironMat = mat('#1a1a22', { metalness: 0.6, roughness: 0.4 }), woodMat = mat('#6a4a30'), lanternMat = mat('#ff7a1f', { emissive: '#ff5a00', emissiveIntensity: 0.9 });
 
-  // --- 2. storm clouds overhead with rain
-  const cloudMat = mat('#3a3550', { flatShading: true });
-  for (let i = 0; i < 46; i++) {
-    const c = new THREE.Mesh(new THREE.IcosahedronGeometry(rand(12, 24), 1), cloudMat);
-    add(c, rand(-90, 90), rand(70, 100), rand(-700, -1300));
-  }
-
-  // --- 3. the backyard: lawn, trees, a fence, hanging garden lights and the house's back porch
-  ground('#2f6a3a', -1300, -1900);
-  const trunkMat = mat('#5a3a28'), leafMats = [mat('#2f8a3e', { flatShading: true }), mat('#3fa04a', { flatShading: true }), mat('#257a36', { flatShading: true })];
-  const treeAt = (x, z, s = 1) => {
-    add(new THREE.Mesh(new THREE.CylinderGeometry(0.6 * s, 0.9 * s, 7 * s, 8), trunkMat), x, 3.5 * s, z);
-    const leaf = leafMats[Math.floor(Math.random() * 3)];
-    add(new THREE.Mesh(new THREE.IcosahedronGeometry(4.5 * s, 1), leaf), x, 9 * s, z);
-    add(new THREE.Mesh(new THREE.IcosahedronGeometry(3.4 * s, 1), leaf), x + 2 * s, 11.5 * s, z + 1);
-    colliders.push({ x, y: 10 * s, z, r: 5 * s }, { x, y: 3.5 * s, z, r: 1.2 * s });
+  // ===== 1. Witchwood Castle: the starting bridge between two towers, then a dive between more towers =====
+  ground('#2a2440', 120, -420);
+  block(stoneMat, -15, 15, 48, 54, 25, -45);                                                  // the bridge you start on
+  for (let z = 24; z > -45; z -= 3) for (const s of [-1, 1]) addStatic(BOX, darkStone, s * 14.5, 55.2, z, 0, 0, 0, 1, 2.4, 1.6);   // battlements
+  addStatic(BOX, darkStone, 0, 24, -10, 0, 0, 0, 22, 48, 40);   // the gatehouse holding it up
+  const tower = (x, z, r, h, roofCol = '#3a1a4a', flag = '#ff8a1f') => {
+    addStatic(new THREE.CylinderGeometry(r, r * 1.08, h, 14), stoneMat, x, h / 2, z);
+    for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; addStatic(BOX, darkStone, x + Math.cos(a) * r, h + 1.2, z + Math.sin(a) * r, -a, 0, 0, 2, 2.4, 2); }
+    addStatic(new THREE.ConeGeometry(r * 1.15, r * 1.8, 14), mat(roofCol, { flatShading: true }), x, h + 2.4 + r * 0.9, z);
+    for (let k = 0; k < 6; k++) { const a = k * 1.3 + x, yy = h * (0.25 + 0.12 * k); addStatic(new THREE.PlaneGeometry(1.4, 2.2), k % 2 ? winMat : winMat2, x + Math.cos(a) * (r + 0.05), yy, z + Math.sin(a) * (r + 0.05), Math.PI / 2 - a); }
+    const fl = new THREE.Mesh(new THREE.PlaneGeometry(4, 2.2), new THREE.MeshStandardMaterial({ color: flag, side: THREE.DoubleSide, emissive: flag, emissiveIntensity: 0.25 }));
+    add(fl, x + 2, h + 2.4 + r * 1.8 + 1.5, z);
+    animated.push(t => { fl.rotation.y = Math.sin(t * 3 + x) * 0.4; });
+    addStatic(new THREE.CylinderGeometry(0.15, 0.15, 5, 5), ironMat, x, h + 2.4 + r * 1.8, z);
+    colliders.push({ box: true, x0: x - r, x1: x + r, y0: 0, y1: h + r * 2.4, z0: z - r, z1: z + r });
   };
-  for (let z = -1320; z > -1880; z -= 34) {
-    treeAt(-40 + rand(-8, 8), z + rand(-8, 8), rand(1, 1.4));
-    treeAt(40 + rand(-8, 8), z + rand(-8, 8), rand(1, 1.4));
-    if (Math.random() < 0.55) treeAt(rand(-24, 24), z - 17, rand(0.8, 1.1));
+  tower(-24, -10, 6, 66); tower(24, -10, 6, 66, '#1a2a4a', '#7af0ff');
+  tower(-38, -120, 7, 70); tower(36, -125, 7, 74, '#1a2a4a', '#c89cff');
+  tower(-44, -230, 8, 50, '#3a1a2a', '#ffd84a'); tower(34, -250, 6, 44);
+  tower(-80, 40, 10, 90); tower(70, 30, 9, 80, '#2a1a3a', '#ff7af5');   // the castle's great keep behind the start
+  addStatic(BOX, stoneMat, -5, 20, 40, 0, 0, 0, 150, 40, 12);   // the curtain wall
+  for (let x = -78; x < 70; x += 4) addStatic(BOX, darkStone, x, 41.5, 40, 0, 0, 0, 2, 3, 13);
+  for (let k = 0; k < 14; k++) addStatic(new THREE.PlaneGeometry(1.4, 2), winMat, -70 + k * 10, 26 + (k % 3) * 5, 33.9);
+  // banners strung high between the towers, and torches along the bridge
+  for (const [z, y] of [[-118, 82], [-238, 64]]) {
+    const pts = []; for (let i = 0; i <= 20; i++) { const t = i / 20; pts.push(new THREE.Vector3(-38 + 74 * t, y - Math.sin(t * Math.PI) * 6, z)); }
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: '#2a1a10' })));
+    for (let i = 1; i < 20; i += 2) addStatic(new THREE.ConeGeometry(1.1, 2.6, 3), [lanternMat, glow('#c89cff'), glow('#7af0ff')][i % 3], pts[i].x, pts[i].y - 1.4, z, 0, Math.PI);
   }
-  // fences down both sides
-  const fenceMat = mat('#e8dcc8');
-  for (const side of [-1, 1]) {
-    for (let z = -1300; z > -1900; z -= 6) add(new THREE.Mesh(new THREE.BoxGeometry(0.3, 2.4, 0.3), fenceMat), side * 58, 1.2, z);
-    const rail = new THREE.Mesh(new THREE.BoxGeometry(0.2, 0.25, 600), fenceMat);
-    add(rail, side * 58, 1.8, -1600);
-  }
-  // strings of warm garden lights swooping between posts across the yard
-  const postMat = mat('#3a2a20');
-  const bulbGeo = new THREE.SphereGeometry(0.28, 8, 6);
-  const bulbColors = ['#ffe9a8', '#ffd27a', '#fff4d6', '#ffcf9a'];
-  for (let k = 0; k < 7; k++) {
-    const z = -1360 - k * 75;
-    const h = rand(13, 17);
-    add(new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, h, 6), postMat), -46, h / 2, z);
-    add(new THREE.Mesh(new THREE.CylinderGeometry(0.25, 0.3, h, 6), postMat), 46, h / 2, z - 20);
-    // a sagging wire with bulbs every couple of metres
-    const pts = [];
-    for (let i = 0; i <= 40; i++) {
-      const t = i / 40, x = -46 + 92 * t, zz = z - 20 * t, y = h - Math.sin(t * Math.PI) * 6;
-      pts.push(new THREE.Vector3(x, y, zz));
-      if (i % 2 === 0) {
-        const b = new THREE.Mesh(bulbGeo, glow(bulbColors[i % 4]));
-        add(b, x, y - 0.45, zz);
-        bulbs.push(b);
-      }
-    }
-    const wire = new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: '#1a1410' }));
-    scene.add(wire);
-  }
-  // the back of the house, porch light glowing
-  const house = new THREE.Group();
-  add(new THREE.Mesh(new THREE.BoxGeometry(40, 16, 14), mat('#6a5a7a')), 0, 8, 0, house);
-  const roof = new THREE.Mesh(new THREE.ConeGeometry(28, 10, 4), mat('#3a2a3a'));
-  roof.rotation.y = Math.PI / 4; roof.scale.z = 0.5;
-  add(roof, 0, 21, 0, house);
-  for (let i = -2; i <= 2; i++) add(new THREE.Mesh(new THREE.PlaneGeometry(3.4, 4), glow('#ffd27a')), i * 7, 9, 7.05, house);
-  house.position.set(-82, 0, -1420);
-  house.rotation.y = Math.PI / 2;
-  scene.add(house);
-  const porch = new THREE.PointLight('#ffb35a', 1.2, 70);
-  add(porch, -70, 10, -1420);
+  for (let z = 20; z > -45; z -= 12) for (const s of [-1, 1]) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), glow('#ffb347')); add(b, s * 14.5, 58, z); bulbs.push(b); }
+  // fly through the rings on the way down
+  for (let i = 0; i < 6; i++) { const z = -120 - i * 32; addRing(lineX(z) + Math.sin(i * 1.7) * 6, lineY(z) + Math.cos(i * 1.3) * 3, z); }
+  addDash(-62); addDash(-300);
 
-  // --- 4. the graveyard: gate, tombstones, crooked trees, a crypt, ghosts and green mist
-  ground('#20302a', -1900, -2500);
-  const stoneMat = mat('#7a7a88'), ironMat = mat('#1a1a22', { metalness: 0.6, roughness: 0.4 });
-  // the iron gate arch you fly through, centred on the flying line
-  const gx = lineX(-1905);
-  for (const side of [-1, 1]) {
-    add(new THREE.Mesh(new THREE.BoxGeometry(3, 18, 3), stoneMat), gx + side * 16, 9, -1905);
-    colliders.push({ x: gx + side * 16, y: 9, z: -1905, r: 3 }, { x: gx + side * 16, y: 15, z: -1905, r: 3 });
+  // ===== 2. Lantern Canyon: towering walls, hairpin bends, rope bridges, crystals, and the Spire with an arch through it =====
+  ground('#2e2236', -400, -1170);
+  ribbon(-410, -1160, 12, new THREE.MeshBasicMaterial({ color: '#2ac0c8', transparent: true, opacity: 0.55 }), 0.08);   // a glowing river down the canyon floor
+  for (let z = -405; z > -1165; z -= 15) {
+    const x = lineX(z), w = halfW(z);
+    for (const s of [-1, 1]) {
+      const h = rand(70, 105), wx = x + s * (w + 9);
+      addStatic(ROCKS[(z / 15 | 0) & 1 ? 0 : 1], rockMats[Math.floor(Math.random() * 3)], wx, h / 2 - 4, z, rand(-0.2, 0.2), 0, 0, 18, h, 19);
+      if (Math.random() < 0.6) addStatic(new THREE.OctahedronGeometry(rand(0.8, 1.6)), crystalMats[Math.floor(Math.random() * 3)], wx - s * 9.2, rand(6, 45), z + rand(-6, 6), rand(0, 3), 0, rand(-0.4, 0.4), 1, 2.2, 1);
+    }
   }
-  const arch = new THREE.Mesh(new THREE.TorusGeometry(16, 0.8, 8, 32, Math.PI), ironMat);
-  add(arch, gx, 18, -1905);
-  for (let x = -58; x <= 58; x += 2.5) {
-    if (Math.abs(x - gx) < 17) continue;
-    add(new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.12, 4, 4), ironMat), x, 2, -1905);
+  // rope bridges high over the track (fly under), with lanterns hanging
+  for (const z of [-560, -1060]) {
+    const x = lineX(z), w = halfW(z) + 9;
+    block(woodMat, x - w, x + w, 40, 41.2, z + 1.6, z - 1.6);
+    for (const s of [-1, 1]) addStatic(new THREE.CylinderGeometry(0.12, 0.12, w * 2, 4), mat('#c8a060'), x, 43, z + s * 1.5, 0, 0, Math.PI / 2);
+    for (let k = -3; k <= 3; k++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), glow(k % 2 ? '#ffb347' : '#c89cff')); add(b, x + k * 8, 37.5, z); bulbs.push(b); addStatic(new THREE.CylinderGeometry(0.04, 0.04, 2.2, 3), ironMat, x + k * 8, 39, z); }
   }
-  // rows of tombstones with little glowing jack-o'-lanterns
+  // the Spire: a great rock tower in the middle of a bend. The racing line goes round it; the arch goes straight through.
+  {
+    const c = CUT_MID[0], zc = -760, z0 = zc + 11, z1 = zc - 11, ox = 7.5, oy0 = c.y - 7.5, oy1 = c.y + 8.5;
+    const rm = rockMats[1];
+    block(rm, c.x - 17, c.x - ox, 0, 112, z0, z1); block(rm, c.x + ox, c.x + 17, 0, 112, z0, z1);
+    block(rm, c.x - ox, c.x + ox, oy1, 112, z0, z1); block(rm, c.x - ox, c.x + ox, 0, oy0, z0, z1);
+    for (let k = 0; k < 5; k++) addStatic(ROCKS[2], rockMats[k % 3], c.x + rand(-8, 8), 112 + k * 7, zc + rand(-4, 4), rand(0, 3), 0, 0, 22 - k * 4, 10, 20 - k * 3.5);
+    // a ring of crystals round the arch, so you can spot it
+    for (let k = 0; k < 14; k++) { const a = k / 14 * TAU; addStatic(new THREE.OctahedronGeometry(1.1), crystalMats[k % 3], c.x + Math.cos(a) * 9.5, c.y + 0.5 + Math.sin(a) * 9.5, z0 + 0.6, a, 0, 0, 1, 1.8, 1); }
+    addDash(zc, c.x, c.y);
+  }
+  for (let i = 0; i < 9; i++) { const z = -460 - i * 72; if (Math.abs(z + 760) < 50) continue; addRing(lineX(z) + Math.sin(i * 2.1) * 8, lineY(z) + Math.cos(i * 1.4) * 4, z); }
+  addDash(-540); addDash(-980);
+
+  // ===== 3. Thunder Peaks: storm clouds, jagged peaks, twisters, and an updraft up to the ring highway =====
+  ground('#201b30', -1150, -1760);
+  const cloudMat = mat('#3a3550', { flatShading: true }), peakMat = mat('#2a2440', { flatShading: true }), snowMat = mat('#c8c4e0', { flatShading: true });
+  for (let i = 0; i < 60; i++) addStatic(new THREE.IcosahedronGeometry(rand(14, 26), 1), cloudMat, lineX(-1150) + rand(-140, 140), rand(122, 150), rand(-1150, -1760));
+  for (let z = -1160; z > -1760; z -= 55) for (const s of [-1, 1]) {
+    const x = lineX(z) + s * (halfW(z) + rand(30, 70)), h = rand(70, 130), r = rand(25, 45);
+    addStatic(new THREE.ConeGeometry(r, h, 6), peakMat, x, h / 2, z, rand(0, 3));
+    addStatic(new THREE.ConeGeometry(r * 0.32, h * 0.32, 6), snowMat, x, h * 0.85, z, rand(0, 3));
+  }
+  // the updraft: a column of rising wind beside the line…
+  {
+    const z = -1236, x = lineX(z) + UPDRAFT_OFF;
+    addUpdraft(x, z, 92);
+    for (let k = 0; k < 8; k++) { const zz = -1300 - k * 42; addRing(lineX(zz), 84 + Math.sin(k) * 2, zz); }   // …to the ring highway above the storm
+    for (let k = 0; k < 4; k++) { const zz = -1320 - k * 80; addDash(zz, lineX(zz), 84); }
+  }
+  for (const z of [-1340, -1480, -1630]) addTwister(z);
+  for (let i = 0; i < 5; i++) { const z = -1200 - i * 110; addRing(lineX(z) + Math.sin(i * 1.3) * 10, lineY(z), z); }
+  addDash(-1400); addDash(-1560);
+
+  // ===== 4. Hollow Village: a crooked high street, laundry lines, a windmill, and the old barn =====
+  ground('#26332a', -1740, -2460);
+  ribbon(-1745, -2455, 52, mat('#4a4450'), 0.05);   // the cobbled street
+  const houseCols = ['#5a4a6a', '#4a5a6a', '#6a4a4a', '#4a4a3a', '#5a5a7a', '#6a5a48'].map(c => mat(c, { flatShading: true }));
+  const house = (x, z, side) => {
+    const w = rand(11, 15), d = rand(9, 11), h = rand(9, 16), m = houseCols[Math.floor(Math.random() * houseCols.length)], tilt = rand(-0.05, 0.05);
+    addStatic(BOX, m, x + side * d / 2, h / 2, z, 0, 0, tilt, d, h, w);
+    addStatic(new THREE.ConeGeometry(Math.max(d, w) * 0.78, rand(6, 9), 4), roofMat, x + side * d / 2, h + 3.4, z, Math.PI / 4, 0, tilt, 1, 1, w / d);
+    addStatic(BOX, darkStone, x + side * (d * 0.75), h + 4, z + w * 0.25, 0, 0, 0, 1.6, 6, 1.6);   // a chimney
+    const fx = x - side * 0.06;
+    for (let r = 0; r < (h > 12 ? 2 : 1); r++) for (const wz of [-w * 0.25, w * 0.25]) if (Math.random() < 0.85) addStatic(new THREE.PlaneGeometry(2, 2.4), Math.random() < 0.5 ? winMat : winMat2, fx, 5 + r * 5, z + wz, side > 0 ? -Math.PI / 2 : Math.PI / 2);
+    addStatic(new THREE.PlaneGeometry(2, 3.4), mat('#3a2418'), fx, 1.7, z, side > 0 ? -Math.PI / 2 : Math.PI / 2);
+    if (Math.random() < 0.5) addStatic(new THREE.SphereGeometry(0.8, 10, 8), lanternMat, x - side * 1.4, 0.7, z + 3);
+  };
+  for (let z = -1770; z > -2440; z -= rand(15, 19)) {
+    for (const s of [-1, 1]) {
+      if (s < 0 && z < -1990 && z > -2215) continue;   // (the barn and its yard)
+      house(lineX(z) + s * (halfW(z) + 8), z, s);
+    }
+  }
+  // garden lights strung across the street
+  for (const z of [-1800, -1930, -2280, -2410]) {
+    const x = lineX(z), w = halfW(z) + 8, pts = [];
+    for (let i = 0; i <= 30; i++) { const t = i / 30, px = x - w + 2 * w * t, py = 21 - Math.sin(t * Math.PI) * 4; pts.push(new THREE.Vector3(px, py, z)); if (i % 2 === 0) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.3, 8, 6), glow(['#ffe9a8', '#ffd27a', '#c89cff', '#7af0ff'][i % 4])); add(b, px, py - 0.45, z); bulbs.push(b); } }
+    scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(pts), new THREE.LineBasicMaterial({ color: '#1a1410' })));
+  }
+  // laundry lines: shirts and socks flapping right across the street, just above the racing line
+  const clothCols = ['#ff7a7a', '#7ac8ff', '#ffe07a', '#9aff9a', '#ffffff', '#c89cff'].map(c => mat(c, { side: THREE.DoubleSide }));
+  for (const z of [-1870, -2340]) {
+    const x = lineX(z), w = halfW(z) + 8;
+    addStatic(new THREE.CylinderGeometry(0.06, 0.06, w * 2, 4), mat('#d8d0c0'), x, 16.6, z, 0, 0, Math.PI / 2);
+    for (let k = -w + 3; k < w - 2; k += rand(3, 5)) {
+      const cw = rand(1.4, 2.4), ch = rand(1.6, 3);
+      addStatic(BOX, clothCols[Math.floor(Math.random() * 6)], x + k, 16.4 - ch / 2, z, 0, 0, rand(-0.1, 0.1), cw, ch, 0.15);
+      colliders.push({ box: true, x0: x + k - cw / 2, x1: x + k + cw / 2, y0: 16.4 - ch, y1: 17, z0: z - 0.6, z1: z + 0.6 });
+    }
+  }
+  // the windmill on the right of the street: its sails sweep across the right-hand side
+  addWindmill(-2290);
+  // the old red barn, with its big doors open at both ends: a shortcut straight through
+  {
+    const c = CUT_MID[2], x0 = c.x - 10, x1 = c.x + 10, za = -2058, zb = -2142, red = mat('#a83a2a', { flatShading: true }), white = mat('#f0e8d8'), hay = mat('#e8c060', { flatShading: true });
+    block(red, x0 - 1.5, x0, 0, 14, za, zb); block(red, x1, x1 + 1.5, 0, 14, za, zb);                     // the side walls
+    block(roofMat, x0 - 2.5, x1 + 2.5, 14, 15.5, za + 1, zb - 1);                                       // the roof
+    addStatic(new THREE.ConeGeometry(16, 8, 4), roofMat, c.x, 19.5, (za + zb) / 2, Math.PI / 4, 0, 0, 1, 1, 6);
+    colliders.push({ box: true, x0: x0 - 2.5, x1: x1 + 2.5, y0: 14, y1: 24, z0: zb - 1, z1: za + 1 });
+    for (const zf of [za, zb]) {   // the end walls, each with a big open doorway
+      block(red, x0 - 1.5, x0 + 4, 0, 14, zf + 0.75, zf - 0.75); block(red, x1 - 4, x1 + 1.5, 0, 14, zf + 0.75, zf - 0.75); block(red, x0 + 4, x1 - 4, 13, 14, zf + 0.75, zf - 0.75);
+      for (const [a, b2] of [[x0, x0 + 4], [x1 - 4, x1]]) { addStatic(BOX, white, (a + b2) / 2, 7, zf + Math.sign(zf - (za + zb) / 2) * 0.8, 0, 0, 0.9, 0.5, 13, 0.3); addStatic(BOX, white, (a + b2) / 2, 7, zf + Math.sign(zf - (za + zb) / 2) * 0.8, 0, 0, -0.9, 0.5, 13, 0.3); }
+     
+    }
+    for (let z = za - 6; z > zb + 6; z -= 7) for (const s of [-1, 1]) addStatic(BOX, hay, c.x + s * 7.5, 1.2, z, rand(-0.2, 0.2), 0, 0, 3.4, 2.4, 2.4);
+    for (let z = za - 10; z > zb + 8; z -= 18) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.5, 8, 6), glow('#ffd27a')); add(b, c.x, 12, z); bulbs.push(b); }
+    addDash(-2100, c.x, c.y);
+    // haystacks and a fence out in the yard
+    for (let k = 0; k < 6; k++) addStatic(new THREE.SphereGeometry(4, 10, 6, 0, TAU, 0, Math.PI / 2), hay, x0 - 18 - rand(0, 30), 0, zb + 20 + k * 14, 0, 0, 0, 1, rand(1.2, 1.8), 1);
+  }
+  for (let i = 0; i < 6; i++) { const z = -1790 - i * 110; if (Math.abs(z + 2100) < 60) continue; addRing(lineX(z) + Math.sin(i * 1.9) * 6, lineY(z) + 2, z); }
+  addDash(-1850); addDash(-2390);
+
+  // ===== 5. The graveyard: the iron gate, tombstones, dead trees, a crypt, ghosts, and stomping tombstones =====
+  ground('#20302a', -2450, -2790);
+  const gx = lineX(-2475), gy = lineY(-2475);
+  for (const side of [-1, 1]) block(stoneMat, gx + side * 16 - 1.6, gx + side * 16 + 1.6, 0, 19, -2473.4, -2476.6);
+  add(new THREE.Mesh(new THREE.TorusGeometry(16, 0.8, 8, 32, Math.PI), ironMat), gx, 19, -2475);
+  for (let x = -60; x <= 60; x += 2.5) if (Math.abs(x) > 17.5) addStatic(new THREE.CylinderGeometry(0.12, 0.12, 4, 4), ironMat, gx + x, 2, -2475);
   const pumpkinMat = mat('#ff7a1f', { emissive: '#7a2a00', emissiveIntensity: 0.7 });
-  for (let z = -1930; z > -2470; z -= 22) {
-    for (let x = -50; x <= 50; x += rand(12, 20)) {
-      if (Math.random() < 0.3) continue;
-      const g = new THREE.Group();
-      const h = rand(2.2, 3.6);
-      add(new THREE.Mesh(new THREE.BoxGeometry(1.8, h, 0.5), stoneMat), 0, h / 2, 0, g);
-      const top = new THREE.Mesh(new THREE.CylinderGeometry(0.9, 0.9, 0.5, 12, 1, false, 0, Math.PI), stoneMat);
-      top.rotation.x = Math.PI / 2; top.rotation.z = Math.PI / 2;
-      add(top, 0, h, 0, g);
-      g.rotation.set(rand(-0.15, 0.15), rand(-0.3, 0.3), rand(-0.12, 0.12));
-      add(g, x + rand(-3, 3), 0, z + rand(-4, 4));
-      if (Math.random() < 0.18) add(new THREE.Mesh(new THREE.SphereGeometry(0.7, 10, 8), pumpkinMat), x + 1.6, 0.6, z + 1);
+  const tombGeo = new THREE.BoxGeometry(1.8, 1, 0.5), tombTop = new THREE.CylinderGeometry(0.9, 0.9, 0.5, 12, 1, false, 0, Math.PI);
+  for (let z = -2490; z > -2780; z -= 18) {
+    for (let x = -60; x <= 60; x += rand(10, 16)) {
+      const wx = lineX(z) + x; if (Math.abs(x) < 8 || Math.random() < 0.25) continue;
+      const h = rand(2.2, 3.6), r = rand(-0.3, 0.3), zz = z + rand(-4, 4);
+      addStatic(tombGeo, stoneMat, wx, h / 2, zz, r, rand(-0.12, 0.12), rand(-0.1, 0.1), 1, h, 1);
+      addStatic(tombTop, stoneMat, wx, h, zz, r, Math.PI / 2, Math.PI / 2);
+      if (Math.random() < 0.18) addStatic(new THREE.SphereGeometry(0.7, 10, 8), pumpkinMat, wx + 1.6, 0.6, zz + 1);
     }
   }
-  // crooked dead trees
-  const deadMat = mat('#2a2230');
+  const deadMat = mat('#2a2230', { flatShading: true });
   const deadTree = (x, z) => {
-    const g = new THREE.Group();
-    add(new THREE.Mesh(new THREE.CylinderGeometry(0.5, 1.1, 14, 6), deadMat), 0, 7, 0, g);
-    for (let k = 0; k < 5; k++) {
-      const b = new THREE.Mesh(new THREE.CylinderGeometry(0.15, 0.4, rand(5, 8), 5), deadMat);
-      b.position.set(0, rand(8, 13), 0);
-      b.rotation.set(rand(-1, 1), rand(0, TAU), rand(0.7, 1.3) * (k % 2 ? 1 : -1));
-      g.add(b);
-    }
-    add(g, x, 0, z);
+    addStatic(new THREE.CylinderGeometry(0.5, 1.1, 14, 6), deadMat, x, 7, z);
+    for (let k = 0; k < 5; k++) addStatic(new THREE.CylinderGeometry(0.15, 0.4, rand(5, 8), 5), deadMat, x, rand(8, 13), z, rand(0, TAU), rand(-1, 1), rand(0.7, 1.3) * (k % 2 ? 1 : -1));
     colliders.push({ x, y: 7, z, r: 2 }, { x, y: 12, z, r: 4 });
   };
-  for (let z = -1950; z > -2480; z -= 60) { deadTree(rand(-55, -25), z + rand(-15, 15)); deadTree(rand(25, 55), z + rand(-15, 15)); }
-  // a crypt in the middle: fly over it or round it
-  const crypt = new THREE.Group();
-  add(new THREE.Mesh(new THREE.BoxGeometry(12, 9, 14), stoneMat), 0, 4.5, 0, crypt);
-  const cr = new THREE.Mesh(new THREE.ConeGeometry(10, 5, 4), mat('#5a5a68'));
-  cr.rotation.y = Math.PI / 4; cr.scale.z = 1.2;
-  add(cr, 0, 11.5, 0, crypt);
-  add(new THREE.Mesh(new THREE.PlaneGeometry(3, 5), glow('#7aff9a')), 0, 3, 7.05, crypt);
-  crypt.position.set(lineX(-2200) + 26, 0, -2200);
-  scene.add(crypt);
-  colliders.push({ x: crypt.position.x, y: 5, z: -2200, r: 9 });
-  // floating ghosts
+  for (let z = -2500; z > -2780; z -= 45) for (const s of [-1, 1]) deadTree(lineX(z) + s * rand(28, 50), z + rand(-12, 12));
+  {
+    const cx = lineX(-2700) - 32;
+    block(stoneMat, cx - 6, cx + 6, 0, 9, -2693, -2707);
+    addStatic(new THREE.ConeGeometry(10, 5, 4), mat('#5a5a68'), cx, 11.5, -2700, Math.PI / 4, 0, 0, 1, 1, 1.2);
+    addStatic(new THREE.PlaneGeometry(3, 5), glow('#7aff9a'), cx, 3, -2692.9);
+  }
   const ghostMat = new THREE.MeshStandardMaterial({ color: '#f4f8ff', emissive: '#9ab8ff', emissiveIntensity: 0.4, transparent: true, opacity: 0.8 });
-  for (let i = 0; i < 9; i++) {
+  for (let i = 0; i < 7; i++) {
     const g = new THREE.Group();
     add(new THREE.Mesh(new THREE.SphereGeometry(1.6, 14, 10), ghostMat), 0, 1.6, 0, g);
     const tail = new THREE.Mesh(new THREE.ConeGeometry(1.6, 3.4, 14, 1, true), ghostMat);
-    tail.rotation.x = Math.PI;
-    add(tail, 0, -0.2, 0, g);
+    tail.rotation.x = Math.PI; add(tail, 0, -0.2, 0, g);
     for (const ex of [-0.55, 0.55]) add(new THREE.Mesh(new THREE.SphereGeometry(0.28, 8, 6), glow('#111')), ex, 1.9, 1.4, g);
-    const z = -1980 - i * 55;
-    g.userData = { x0: rand(-30, 30), y0: rand(5, 14), z, ph: Math.random() * TAU };
+    const z = -2510 - i * 40;
+    g.userData = { x0: lineX(z) + rand(-25, 25), y0: rand(6, 16), z, ph: Math.random() * TAU };
     add(g, g.userData.x0, g.userData.y0, z);
     ghosts.push(g);
   }
-  // green ground mist
   const mistMat = new THREE.MeshBasicMaterial({ color: '#7affb0', transparent: true, opacity: 0.08, depthWrite: false });
-  for (let i = 0; i < 30; i++) {
-    const m = new THREE.Mesh(new THREE.SphereGeometry(rand(10, 18), 10, 6), mistMat);
-    m.scale.y = 0.2;
-    add(m, rand(-60, 60), 1.5, rand(-1910, -2490));
-  }
+  for (let i = 0; i < 24; i++) { const m = new THREE.Mesh(new THREE.SphereGeometry(rand(10, 18), 10, 6), mistMat); m.scale.y = 0.2; add(m, lineX(-2600) + rand(-60, 60), 1.5, rand(-2460, -2780)); }
+  [[-2540, 1], [-2600, -1], [-2660, 1], [-2725, -1]].forEach(([z, s]) => addStomper(z, s));
+  addDash(-2560); addDash(-2700);
 
-  // --- 5. the lonely house on the hill, on a ledge over the water
-  const water = new THREE.Mesh(new THREE.PlaneGeometry(800, 900, 60, 60), new THREE.MeshPhongMaterial({ color: '#1a3a6a', specular: '#9ab8ff', shininess: 80, flatShading: true }));
+  // ===== 6. The Haunted Mansion: round it on the racing line, or in the front door, through the ballroom and out the back window =====
+  ground('#1f2a26', -2780, -3230);
+  {
+    const c = CUT_MID[3], x0 = c.x - 25, x1 = c.x + 25, zf = -2905, zb = -2995, H = 34, wall = mat('#4a3a5a', { flatShading: true }), trim = mat('#2a1f30');
+    const dx0 = c.x - 8, dx1 = c.x + 8, door = 20, wy0 = 6, wy1 = 22;
+    block(wall, x0, dx0, 0, H, zf, zf - 2); block(wall, dx1, x1, 0, H, zf, zf - 2); block(wall, dx0, dx1, door, H, zf, zf - 2);        // the front, with the big door
+    block(wall, x0, dx0, 0, H, zb + 2, zb); block(wall, dx1, x1, 0, H, zb + 2, zb); block(wall, dx0, dx1, 0, wy0, zb + 2, zb); block(wall, dx0, dx1, wy1, H, zb + 2, zb);   // the back, with a tall window
+    block(wall, x0, x0 + 2, 0, H, zf, zb); block(wall, x1 - 2, x1, 0, H, zf, zb);                                                  // the sides
+    block(trim, x0, x1, 30, H, zf - 2, zb + 2);                                                                                      // the ballroom ceiling
+    addStatic(new THREE.ConeGeometry(36, 18, 4), roofMat, c.x, H + 9, (zf + zb) / 2, Math.PI / 4, 0, 0, 0.98, 1, 1.75);
+    colliders.push({ box: true, x0, x1, y0: H, y1: H + 18, z0: zb, z1: zf });
+    for (const tz of [zf - 2, zb + 2]) {   // two towers on the far corners
+      addStatic(new THREE.CylinderGeometry(6, 6.4, 56, 12), wall, x1 + 2, 28, tz);
+      addStatic(new THREE.ConeGeometry(7.5, 16, 12), roofMat, x1 + 2, 64, tz);
+      colliders.push({ box: true, x0: x1 - 4, x1: x1 + 8.4, y0: 0, y1: 72, z0: tz - 6.4, z1: tz + 6.4 });
+      for (let k = 0; k < 4; k++) addStatic(new THREE.PlaneGeometry(1.6, 2.6), winMat, x1 + 2 - 6.05, 14 + k * 10, tz, -Math.PI / 2);
+    }
+    // glowing windows all over the outside, a porch light, and the door frame
+    for (let r = 0; r < 3; r++) for (let k = 0; k < 6; k++) {
+      const wx = x0 + 4 + k * 8.4; if (Math.abs(wx - c.x) < 10 && r < 2) continue;
+      addStatic(new THREE.PlaneGeometry(2.4, 3.4), (k + r) % 3 ? winMat : glow('#9aff9a'), wx, 7 + r * 9, zf + 0.06);
+    }
+    for (let r = 0; r < 3; r++) for (let k = 0; k < 9; k++) addStatic(new THREE.PlaneGeometry(2.4, 3.4), (k + r) % 4 ? winMat2 : winMat, x0 - 0.06, 7 + r * 9, zf - 6 - k * 9.5, -Math.PI / 2);
+    addStatic(BOX, trim, c.x, door + 0.6, zf + 0.4, 0, 0, 0, 18, 1.2, 1); for (const s of [-1, 1]) addStatic(BOX, trim, c.x + s * 8.6, door / 2, zf + 0.4, 0, 0, 0, 1.2, door, 1);
+    // inside: a checkered floor, glowing portraits, candles, and two big swinging chandeliers
+    const chk = canvasTex(64, 64, (g, w, h) => { for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) { g.fillStyle = (x + y) % 2 ? '#2a1a2a' : '#c8b8a8'; g.fillRect(x * 8, y * 8, 8, 8); } });
+    chk.wrapS = chk.wrapT = THREE.RepeatWrapping; chk.repeat.set(6, 11);
+    const floor = new THREE.Mesh(new THREE.PlaneGeometry(46, 88), new THREE.MeshStandardMaterial({ map: chk, roughness: 0.4 })); floor.rotation.x = -Math.PI / 2; add(floor, c.x, 0.08, (zf + zb) / 2);
+    for (let k = 0; k < 4; k++) for (const s of [-1, 1]) {
+      const pz = zf - 14 - k * 20, px = s < 0 ? x0 + 2.06 : x1 - 2.06;
+      addStatic(new THREE.PlaneGeometry(5, 6.4), mat('#c8a040', { emissive: '#5a3a10' }), px, 14, pz, s < 0 ? Math.PI / 2 : -Math.PI / 2);
+      addStatic(new THREE.PlaneGeometry(4, 5.2), glow(['#5a3a8a', '#3a5a8a', '#8a3a5a', '#3a8a5a'][k]), px - s * 0.04, 14, pz, s < 0 ? Math.PI / 2 : -Math.PI / 2);
+    }
+    for (const z of [-2930, -2970]) addChandelier(c.x, 30, z);
+    for (const z of [-2914, -2950, -2986]) addDash(z, c.x, c.y);   // the ballroom is a dash corridor (between the chandeliers)
+    // gnarled hedges and gate posts on the lawn
+    const hedge = mat('#1f4a2a', { flatShading: true });
+    for (let z = -2800; z > -3200; z -= 9) addStatic(new THREE.IcosahedronGeometry(4, 0), hedge, lineX(z) - halfW(z) - 4, 2.6, z, rand(0, 3), 0, 0, 1, 0.7, 1);
+  }
+  for (let i = 0; i < 4; i++) { const z = -2820 - i * 110; addRing(lineX(z), lineY(z) + 2, z); }
+  // (no dash panels on the long way round the mansion: the dashes are inside, through the ballroom)
+
+  // ===== 7. Moonlight Lake: islands, the clock tower, chomping pumpkin gates, and the climb to the moon =====
+  const water = new THREE.Mesh(new THREE.PlaneGeometry(1400, 1300, 50, 50), new THREE.MeshPhongMaterial({ color: '#1a3a6a', specular: '#9ab8ff', shininess: 80, flatShading: true }));
   water.rotation.x = -Math.PI / 2;
-  add(water, 0, 0, -2950);
+  add(water, 0, 0, -3220 - 650);
   const waterBase = water.geometry.attributes.position.array.slice();
   animated.push(t => {
     const p = water.geometry.attributes.position.array;
-    for (let i = 0; i < p.length; i += 3) p[i + 2] = Math.sin(waterBase[i] * 0.05 + t) * 0.5 + Math.cos(waterBase[i + 1] * 0.06 + t * 0.8) * 0.5;
+    for (let i = 0; i < p.length; i += 3) p[i + 2] = Math.sin(waterBase[i] * 0.05 + t) * 0.6 + Math.cos(waterBase[i + 1] * 0.06 + t * 0.8) * 0.6;
     water.geometry.attributes.position.needsUpdate = true;
-    water.geometry.computeVertexNormals();
   });
-  // the cliff and the hill on top
-  const rockMat = mat('#3a3448', { flatShading: true });
-  const cliff = new THREE.Mesh(new THREE.BoxGeometry(160, 46, 180, 6, 3, 6), rockMat);
-  const cp = cliff.geometry.attributes.position;
-  for (let i = 0; i < cp.count; i++) cp.setX(i, cp.getX(i) + (Math.random() - 0.5) * 6), cp.setZ(i, cp.getZ(i) + (Math.random() - 0.5) * 6);
-  cliff.geometry.computeVertexNormals();
-  add(cliff, -40, 23, -2970);
-  const hill = new THREE.Mesh(new THREE.SphereGeometry(50, 16, 10, 0, TAU, 0, Math.PI / 2), mat('#2a3a30', { flatShading: true }));
-  hill.scale.y = 0.25;
-  add(hill, -40, 46, -2970);
-  // the house itself, perched right at the edge
-  const hs = new THREE.Group();
-  add(new THREE.Mesh(new THREE.BoxGeometry(14, 12, 12), mat('#4a3a5a')), 0, 6, 0, hs);
-  add(new THREE.Mesh(new THREE.BoxGeometry(5, 18, 5), mat('#4a3a5a')), -6, 9, -3, hs);   // tower
-  const r1 = new THREE.Mesh(new THREE.ConeGeometry(11, 7, 4), mat('#2a1a2a')); r1.rotation.y = Math.PI / 4;
-  add(r1, 0, 15.5, 0, hs);
-  add(new THREE.Mesh(new THREE.ConeGeometry(4, 8, 4), mat('#2a1a2a')), -6, 22, -3, hs);
-  for (const [wx, wy] of [[-3, 5], [3, 5], [-3, 9.5], [3, 9.5]]) add(new THREE.Mesh(new THREE.PlaneGeometry(2.2, 2.6), glow('#ffd27a')), wx, wy, 6.05, hs);
-  add(new THREE.Mesh(new THREE.PlaneGeometry(1.6, 2), glow('#ffd27a')), -6, 15, -0.45, hs);
-  hs.position.set(28, 46, -2960);
-  hs.scale.setScalar(1.7);
-  scene.add(hs);
-  colliders.push({ x: 28, y: 56, z: -2960, r: 16 }, { x: 18, y: 72, z: -2965, r: 7 });
-  add(new THREE.PointLight('#ffc070', 1.5, 90), 28, 58, -2950);
+  const moonPath = new THREE.Mesh(new THREE.PlaneGeometry(40, 600), new THREE.MeshBasicMaterial({ color: '#fff0b0', transparent: true, opacity: 0.12, depthWrite: false }));
+  moonPath.rotation.x = -Math.PI / 2; add(moonPath, 0, 0.8, -4000);   // the moon's reflection, a path of light on the water
+  const pine = mat('#1a3a2a', { flatShading: true });
+  for (let i = 0; i < 16; i++) {
+    const z = -3260 - i * 42, s = i % 2 ? 1 : -1, x = lineX(z) + s * rand(halfW(z) + 10, halfW(z) + 70), r = rand(10, 22);
+    addStatic(new THREE.SphereGeometry(r, 10, 6, 0, TAU, 0, Math.PI / 2), rockMats[i % 3], x, 0, z, 0, 0, 0, 1, 0.35, 1);
+    for (let k = 0; k < 4; k++) addStatic(new THREE.ConeGeometry(2.4, rand(8, 13), 7), pine, x + rand(-r * 0.6, r * 0.6), r * 0.3 + 4, z + rand(-r * 0.6, r * 0.6));
+  }
+  // the clock tower on its island, its face glowing
+  {
+    const z = -3720, x = lineX(z) + 46;
+    addStatic(new THREE.SphereGeometry(20, 12, 6, 0, TAU, 0, Math.PI / 2), rockMats[0], x, 0, z, 0, 0, 0, 1, 0.4, 1);
+    block(stoneMat, x - 7, x + 7, 0, 86, z + 7, z - 7);
+    addStatic(new THREE.ConeGeometry(11, 20, 4), roofMat, x, 96, z, Math.PI / 4);
+    colliders.push({ box: true, x0: x - 8, x1: x + 8, y0: 86, y1: 106, z0: z - 8, z1: z + 8 });
+    const face = canvasTex(256, 256, (g, w, h) => {
+      g.fillStyle = '#fff4cc'; g.beginPath(); g.arc(128, 128, 120, 0, TAU); g.fill(); g.strokeStyle = '#3a2a1a'; g.lineWidth = 8; g.stroke();
+      g.fillStyle = '#3a2a1a'; for (let k = 0; k < 12; k++) { const a = k / 12 * TAU; g.fillRect(128 + Math.cos(a) * 96 - 5, 128 + Math.sin(a) * 96 - 5, 10, 10); }
+      g.lineWidth = 10; g.beginPath(); g.moveTo(128, 128); g.lineTo(128, 52); g.moveTo(128, 128); g.lineTo(178, 118); g.stroke();   // nearly midnight!
+    });
+    for (const [fx, fz, ry] of [[x, z + 7.05, 0], [x - 7.05, z, -Math.PI / 2]]) addStatic(new THREE.CircleGeometry(5.6, 24), new THREE.MeshBasicMaterial({ map: face }), fx, 68, fz, ry);
+  }
+  for (const [z, s] of [[-3330, 1], [-3470, -1], [-3610, 1]]) addChomper(z, s);
+  for (let i = 0; i < 10; i++) { const z = -3280 - i * 60; addRing(lineX(z) + Math.sin(i * 1.7) * 5, lineY(z) + 1, z); }
+  addDash(-3400); addDash(-3540); addDash(-3700); addDash(-3800);
   // the finish: a great ring of moonlight
   const finish = new THREE.Mesh(new THREE.TorusGeometry(16, 1.4, 12, 48), glow('#cfe0ff'));
-  add(finish, lineX(FINISH_Z), 60, FINISH_Z);
+  add(finish, lineX(FINISH_Z), lineY(FINISH_Z), FINISH_Z);
+  const finishIn = new THREE.Mesh(new THREE.CircleGeometry(15, 48), new THREE.MeshBasicMaterial({ color: '#fff4cc', transparent: true, opacity: 0.12, side: THREE.DoubleSide, depthWrite: false }));
+  finish.add(finishIn);
   animated.push(t => { finish.rotation.z = t * 0.5; finish.scale.setScalar(1 + Math.sin(t * 3) * 0.04); });
+  flushStatics();
 }
 
 function addRing(x, y, z) {
@@ -500,6 +754,129 @@ function addRing(x, y, z) {
   const inner = new THREE.Mesh(new THREE.RingGeometry(0.1, 6.3, 36), new THREE.MeshBasicMaterial({ color: '#ffd27a', transparent: true, opacity: 0.08, side: THREE.DoubleSide }));
   m.add(inner);
   rings.push({ mesh: m, x, y, z, r: 7, got: false });
+}
+// a dash panel: a glowing frame of scrolling arrows; fly through it for a big burst of speed
+const dashTex = canvasTex(128, 128, (g, w, h) => {
+  g.fillStyle = 'rgba(40,220,255,.25)'; g.fillRect(0, 0, w, h);
+  g.fillStyle = '#ffffff'; g.strokeStyle = '#7af0ff'; g.lineWidth = 6;
+  for (const y of [8, 72]) { g.beginPath(); g.moveTo(24, y + 44); g.lineTo(64, y + 8); g.lineTo(104, y + 44); g.lineTo(104, y + 60); g.lineTo(64, y + 24); g.lineTo(24, y + 60); g.closePath(); g.fill(); g.stroke(); }
+});
+dashTex.wrapT = THREE.RepeatWrapping;
+const dashGeo = new THREE.PlaneGeometry(7, 7), dashMat = new THREE.MeshBasicMaterial({ map: dashTex, transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending, fog: false });
+const dashFrameGeo = new THREE.TorusGeometry(5.2, 0.4, 6, 4), dashFrameMat = glow('#7af0ff');
+function addDash(z, x = lineX(z), y = lineY(z)) {
+  const g = new THREE.Group();
+  g.add(new THREE.Mesh(dashGeo, dashMat));
+  const fr = new THREE.Mesh(dashFrameGeo, dashFrameMat); fr.rotation.z = Math.PI / 4; g.add(fr);
+  add(g, x, y, z);
+  dashes.push({ mesh: g, x, y, z });
+}
+// a column of rising wind: fly into it and it carries you up
+function addUpdraft(x, z, top) {
+  const tex = canvasTex(64, 256, (g, w, h) => { for (let i = 0; i < 30; i++) { g.fillStyle = `rgba(200,240,255,${rand(0.15, 0.5)})`; g.fillRect(rand(0, w), rand(0, h), rand(1, 3), rand(20, 60)); } });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping; tex.repeat.set(3, 2);
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(7, 9, top, 20, 1, true), new THREE.MeshBasicMaterial({ map: tex, transparent: true, side: THREE.DoubleSide, depthWrite: false, blending: THREE.AdditiveBlending }));
+  m.scale.z = 2.6;
+  add(m, x, top / 2, z - 10);
+  animated.push(t => { tex.offset.y = -t * 1.2; m.rotation.y = t * 0.6 * 0; });
+  updrafts.push({ x, z0: z + 8, z1: z - 32, r: 9, top });
+}
+// --- the moving dangers. Each has update(t) to move it, and hit(pos) saying whether it got a racer there
+const segDist = (p, ax, ay, bx, by) => {   // distance from p (x, y) to the segment a–b, in x and y
+  const vx = bx - ax, vy = by - ay, t = clamp(((p.x - ax) * vx + (p.y - ay) * vy) / (vx * vx + vy * vy), 0, 1);
+  return Math.hypot(p.x - ax - vx * t, p.y - ay - vy * t);
+};
+function addWindmill(z) {
+  const x = lineX(z) + halfW(z) + 6, hy = 24, R = 21;
+  addStatic(new THREE.CylinderGeometry(3.5, 6.5, hy + 2, 8), mat('#d8c8a8', { flatShading: true }), x + 3, (hy + 2) / 2, z - 5);
+  addStatic(new THREE.ConeGeometry(5.5, 7, 8), mat('#8a3a2a', { flatShading: true }), x + 3, hy + 5.5, z - 5);
+  colliders.push({ box: true, x0: x - 3.5, x1: x + 9.5, y0: 0, y1: hy + 9, z0: z - 11, z1: z + 1 });
+  const sails = new THREE.Group(), cloth = mat('#f0e8d8', { side: THREE.DoubleSide }), frame = mat('#5a3a20');
+  for (let k = 0; k < 4; k++) {
+    const arm = new THREE.Group(); arm.rotation.z = k * Math.PI / 2;
+    add(new THREE.Mesh(new THREE.BoxGeometry(0.5, R, 0.5), frame), 0, R / 2, 0, arm);
+    add(new THREE.Mesh(new THREE.PlaneGeometry(4.2, R - 4), cloth), 2.4, R / 2 + 1.5, 0, arm);
+    sails.add(arm);
+  }
+  add(new THREE.Mesh(new THREE.CylinderGeometry(1.2, 1.2, 2, 10), frame), 0, 0, 0, sails).rotation.x = Math.PI / 2;
+  add(sails, x, hy, z + 1.5);
+  const h = { kind: 'windmill', x, y: hy, z: z + 1.5, ang: 0, msg: '🌬️ WHACK! The windmill got you!',
+    update(t) { h.ang = t * 0.9; sails.rotation.z = h.ang; },
+    hit(p) {
+      if (Math.abs(p.z - h.z) > 2.6) return false;
+      for (let k = 0; k < 4; k++) { const a = h.ang + k * Math.PI / 2 + Math.PI / 2, bx = h.x + Math.cos(a) * R, by = h.y + Math.sin(a) * R; if (segDist(p, h.x, h.y, bx, by) < 3) return true; }
+      return false;
+    } };
+  hazards.push(h);
+}
+function addStomper(z, side) {   // a giant tombstone that rises up, waits… and SLAMS down
+  const x = lineX(z) + side * 17, g = new THREE.Group(), st = mat('#8a8498', { flatShading: true });
+  add(new THREE.Mesh(new THREE.BoxGeometry(9, 12, 3), st), 0, 6, 0, g);
+  const top = new THREE.Mesh(new THREE.CylinderGeometry(4.5, 4.5, 3, 16, 1, false, 0, Math.PI), st); top.rotation.set(Math.PI / 2, 0, Math.PI / 2); add(top, 0, 12, 0, g);
+  const face = canvasTex(128, 128, (c, w, h) => { c.fillStyle = '#000'; c.fillRect(0, 0, w, h); c.fillStyle = '#ff3b1f'; c.beginPath(); c.moveTo(20, 40); c.lineTo(56, 52); c.lineTo(20, 60); c.fill(); c.beginPath(); c.moveTo(108, 40); c.lineTo(72, 52); c.lineTo(108, 60); c.fill(); c.fillRect(30, 84, 68, 10); });
+  add(new THREE.Mesh(new THREE.PlaneGeometry(7, 7), new THREE.MeshBasicMaterial({ map: face, blending: THREE.AdditiveBlending, transparent: true })), 0, 7, 1.55, g);
+  add(g, x, 22, z);
+  const ph = rand(0, 3.2);
+  const h = { kind: 'stomper', x, z, y: 22, msg: '🪦 STOMP! A tombstone squashed you!',
+    update(t) {
+      const k = (t + ph) % 3.4, was = h.y;
+      h.y = k < 1.2 ? 22 : k < 1.38 ? 22 * (1 - (k - 1.2) / 0.18) : k < 2.1 ? 0 : 22 * (k - 2.1) / 1.3;
+      g.position.y = h.y;
+      if (was > 0 && h.y <= 0) { h.slam = 0.35; }
+      h.slam = Math.max(0, (h.slam || 0) - 1 / 60);
+    },
+    hit(p) { return Math.abs(p.z - z) < 3 && Math.abs(p.x - x) < 5.2 && p.y > h.y - 0.5 && p.y < h.y + 14; } };
+  hazards.push(h);
+}
+function addTwister(z) {   // a twister weaving about on either side of the line
+  const tex = canvasTex(64, 128, (g, w, h) => { for (let i = 0; i < 16; i++) { g.strokeStyle = `rgba(220,210,255,${rand(0.2, 0.6)})`; g.lineWidth = rand(2, 5); g.beginPath(); g.moveTo(0, rand(0, h)); g.lineTo(w, rand(0, h)); g.stroke(); } });
+  tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(15, 2, 80, 24, 1, true), new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.8, side: THREE.DoubleSide, depthWrite: false, color: '#b8a8e0' }));
+  add(m, 0, 40, z);
+  const side = Math.random() < 0.5 ? -1 : 1, ph = rand(0, TAU);
+  const h = { kind: 'twister', x: 0, z, msg: '🌪️ Caught in a twister!',
+    update(t) { h.x = lineX(z) + side * (13 + 26 * (0.5 + 0.5 * Math.sin(t * 0.45 + ph))); m.position.x = h.x; m.rotation.y = t * 4; tex.offset.y = -t * 0.8; },
+    hit(p) { return p.y < 80 && Math.hypot(p.x - h.x, p.z - z) < (2 + p.y / 80 * 13) * 0.75; } };
+  hazards.push(h);
+}
+function addChandelier(x, top, z) {   // a crystal chandelier swinging across the ballroom
+  const g = new THREE.Group(), L = 10;
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.08, 0.08, L, 4), mat('#c8a040')), 0, -L / 2, 0, g);
+  const ring = new THREE.Mesh(new THREE.TorusGeometry(3, 0.3, 6, 18), mat('#c8a040', { emissive: '#5a3a10' })); ring.rotation.x = Math.PI / 2; add(ring, 0, -L, 0, g);
+  for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; add(new THREE.Mesh(new THREE.SphereGeometry(0.35, 8, 6), glow('#fff4cc')), Math.cos(a) * 3, -L + 0.5, Math.sin(a) * 3, g); }
+  add(new THREE.Mesh(new THREE.OctahedronGeometry(1.2), glow('#c8e8ff')), 0, -L - 1.5, 0, g);
+  add(g, x, top, z);
+  const ph = rand(0, TAU);
+  const h = { kind: 'chandelier', x, z, cx: x, cy: top - L, msg: '💎 Clonk! A chandelier!',
+    update(t) { const a = Math.sin(t * 1.5 + ph) * 0.8; g.rotation.z = a; h.cx = x + Math.sin(a) * L; h.cy = top - Math.cos(a) * L; },
+    hit(p) { return Math.abs(p.z - z) < 3.5 && Math.hypot(p.x - h.cx, p.y - h.cy) < 4; } };
+  hazards.push(h);
+}
+function addChomper(z, side) {   // a giant jack-o'-lantern ring that chomps: fly through while it's open for a huge boost
+  const x = lineX(z) + side * 24, y = lineY(z) + 4, g = new THREE.Group(), R = 9;
+  const body = mat('#ff7a1f', { emissive: '#7a2a00', emissiveIntensity: 0.8, flatShading: true });
+  for (let k = 0; k < 10; k++) { const a = k / 10 * TAU; add(new THREE.Mesh(new THREE.SphereGeometry(3.2, 10, 8), body), Math.cos(a) * R, Math.sin(a) * R, 0, g).scale.set(1, 1, 0.8); }
+  add(new THREE.Mesh(new THREE.CylinderGeometry(0.9, 1.4, 4, 8), mat('#3a5a20')), 0, R + 4, 0, g);
+  for (const ex of [-4, 4]) { const eye = new THREE.Mesh(new THREE.ConeGeometry(1.4, 2.4, 3), glow('#ffe14a')); eye.rotation.z = Math.PI; add(eye, ex, R + 0.5, 2.6, g); }
+  const jaw = canvasTex(128, 64, (c, w, h) => { c.fillStyle = '#ff7a1f'; c.fillRect(0, 0, w, h); c.fillStyle = '#fff4cc'; for (let i = 0; i < 6; i++) { c.beginPath(); c.moveTo(i * 22, h); c.lineTo(i * 22 + 11, h - 26); c.lineTo(i * 22 + 22, h); c.fill(); } });
+  const jawMat = new THREE.MeshStandardMaterial({ map: jaw, side: THREE.DoubleSide, emissive: '#5a1a00' });
+  const top = add(new THREE.Mesh(new THREE.PlaneGeometry(R * 2, R), jawMat), 0, R * 1.5, 0, g), bot = add(new THREE.Mesh(new THREE.PlaneGeometry(R * 2, R), jawMat), 0, -R * 1.5, 0, g);
+  bot.rotation.z = Math.PI;
+  const holeMat = new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.15, side: THREE.DoubleSide, depthWrite: false });
+  add(new THREE.Mesh(new THREE.CircleGeometry(R - 2, 32), holeMat), 0, 0, 0, g);
+  add(g, x, y, z);
+  const ph = rand(0, 3);
+  const h = { kind: 'chomper', x, y, z, open: 1, msg: '🎃 CHOMP! The pumpkin gate bit you!', boostMsg: '🎃 CHOMP-BOOST!',
+    update(t) {
+      const k = (t + ph) % 3, close = k < 2.1 ? 0 : k < 2.35 ? (k - 2.1) / 0.25 : k < 2.75 ? 1 : 1 - (k - 2.75) / 0.25;
+      h.open = 1 - close;
+      top.position.y = R * 1.5 - close * R * 1.0; bot.position.y = -R * 1.5 + close * R * 1.0;
+      holeMat.opacity = 0.1 + 0.1 * h.open;
+    },
+    // inside the ring while it's open: a boost; the ring itself (or the shut jaws): a bump
+    through(p) { return Math.abs(p.z - z) < 2.2 && Math.hypot(p.x - x, p.y - y) < R - 2.6 && h.open > 0.6; },
+    hit(p) { if (Math.abs(p.z - z) > 2.4) return false; const d = Math.hypot(p.x - x, p.y - y); return d < R + 3.4 && (d > R - 2.6 || h.open < 0.4); } };
+  hazards.push(h);
 }
 
 // ---------- Witches ----------
@@ -561,7 +938,7 @@ const WITCH_LOOKS = [
 ];
 const NAMES = ['You', 'Willow', 'Ember', 'Luna', 'Pip', 'Hazel'];   // (your own witch, or both players', is made in makePlayer)
 // the other racers: a little faster or slower each, and they keep the race close (see moveRivals)
-const RIVAL_SKILL = [31.8, 31.2, 30.6, 29.8, 28.4];
+const RIVAL_SKILL = [32.2, 31.6, 31, 30.2, 29];
 const friends = WITCH_LOOKS.slice(1).map((look, i) => {
   const w = makeWitch(...look);
   scene.add(w);
@@ -656,8 +1033,8 @@ function rollItem(place) {
 }
 
 function buildRace() {
-  // the start: a floating banner between two big jack-o'-lanterns
-  const sz = -30, sx = lineX(sz), sy = lineY(sz);
+  // the start: a floating banner between two big jack-o'-lanterns, over the castle bridge
+  const sz = -34, sx = lineX(sz), sy = lineY(sz);
   const flag = canvasTex(512, 96, (g, w, h) => {
     for (let x = 0; x < w; x += 24) for (let y = 0; y < h; y += 24) { g.fillStyle = (x + y) / 24 % 2 ? '#fff' : '#1a1030'; g.fillRect(x, y, 24, 24); }
     g.fillStyle = 'rgba(30,14,52,.85)'; g.fillRect(90, 14, w - 180, h - 28);
@@ -667,13 +1044,15 @@ function buildRace() {
   add(banner, sx, sy + 9, sz);
   const lantern = mat('#ff7a1f', { emissive: '#ff5a00', emissiveIntensity: 0.9 });
   for (const side of [-1, 1]) add(new THREE.Mesh(new THREE.SphereGeometry(2.4, 14, 10), lantern), sx + side * 20, sy + 9, sz);
-  // glowing lanterns mark both edges of the racing line all the way to the moon
+  // glowing lanterns mark both edges of the racing line all the way to the moon (never inside a wall)
   const lgeo = new THREE.SphereGeometry(0.8, 10, 8), lmat = [glow('#ffb347'), glow('#c89cff')];
-  for (let z = -90, k = 0; z > FINISH_Z + 40; z -= 70, k++) {
+  for (let z = -90, k = 0; z > FINISH_Z + 40; z -= 60, k++) {
     for (const side of [-1, 1]) {
+      const x = lineX(z) + side * Math.min(27, halfW(z) - 4), y = lineY(z) + 4;
+      if (insideSolid(x, y, z, 3)) continue;
       const m = new THREE.Mesh(lgeo, lmat[k % 2]);
-      add(m, lineX(z) + side * 27, lineY(z) + 4, z);
-      animated.push(t => { m.position.y = lineY(z) + 4 + Math.sin(t * 2 + z) * 0.6; });
+      add(m, x, y, z);
+      animated.push(t => { m.position.y = y + Math.sin(t * 2 + z) * 0.6; });
     }
   }
   // spinning magic boxes, a row of four across the line
@@ -685,13 +1064,17 @@ function buildRace() {
     g.font = 'bold 86px sans-serif'; g.fillStyle = '#fff'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('?', w / 2, h / 2 + 4);
   });
   const bmat = new THREE.MeshBasicMaterial({ map: tex, transparent: true, opacity: 0.92 }), bgeo = new THREE.BoxGeometry(2.4, 2.4, 2.4);
-  for (const z of [-160, -400, -620, -860, -1080, -1420, -1640, -1840, -2060, -2300, -2640, -2920]) {
-    for (const dx of [-13, -4.5, 4.5, 13]) {
-      const x = lineX(z) + dx, y = Math.max(lineY(z), groundAt(x, z) + 4), m = new THREE.Mesh(bgeo, bmat);
-      add(m, x, y, z);
-      boxes.push({ mesh: m, x, y, z, gone: 0 });
-    }
+  const box = (x, y, z) => { if (insideSolid(x, y, z, 2)) return; const m = new THREE.Mesh(bgeo, bmat); add(m, x, y, z); boxes.push({ mesh: m, x, y, z, gone: 0 }); };
+  for (const z of [-210, -480, -690, -980, -1200, -1430, -1560, -1880, -2200, -2400, -2560, -2860, -3080, -3380, -3560, -3760]) {
+    for (const dx of [-13, -4.5, 4.5, 13]) if (Math.abs(dx) < halfW(z) - 3) box(lineX(z) + dx, Math.max(lineY(z), 4), z);
   }
+  // a treat for taking a shortcut: boxes in the arch, on the ring highway, in the barn and in the ballroom
+  const cp = {};
+  for (const [c, z] of [[CUTS[0], -735], [CUTS[1], -1450], [CUTS[2], -2075], [CUTS[3], -2985]]) { cutPos(c, z, cp); box(cp.x - 2, cp.y, z); box(cp.x + 2.5, cp.y, z); }
+}
+// is this point inside (or within m of) a solid block?
+function insideSolid(x, y, z, m = 0) {
+  return colliders.some(c => c.box ? x > c.x0 - m && x < c.x1 + m && y > c.y0 - m && y < c.y1 + m && z > c.z0 - m && z < c.z1 + m : Math.hypot(x - c.x, y - c.y, z - c.z) < c.r + m);
 }
 
 // magic dust: little coloured sparks that hang in the air behind a boosting broom
@@ -707,6 +1090,8 @@ const dustTex = canvasTex(64, 64, (g, w, h) => {   // a soft round twinkle
   g.fillStyle = gr; g.fillRect(0, 0, w, h);
 });
 const dust = new THREE.Points(dustGeo, new THREE.PointsMaterial({ size: 0.7, map: dustTex, vertexColors: true, transparent: true, blending: THREE.AdditiveBlending, depthWrite: false }));
+// (the ring and spell sparkles use the same soft round twinkle, so one flying right past the camera is a glow, not a big square)
+Object.assign(sparks.material, { map: dustTex, blending: THREE.AdditiveBlending, depthWrite: false, size: 0.45 }); sparks.material.needsUpdate = true;
 dust.frustumCulled = false;
 scene.add(dust);
 let dustNext = 0;
@@ -769,7 +1154,7 @@ buildRace();
 // ---------- Spooky music ----------
 // A low drone, a creepy music-box tune in a minor key, a deep bell and the odd ghostly "wooo".
 const music = (() => {
-  let ac = null, out = null, timer = null, step = 0, wind = null;
+  let ac = null, out = null, timer = null, step = 0, wind = null, beat = 300;
   const CHORDS = [[220, 261.6, 329.6, 415.3], [174.6, 220, 261.6, 349.2], [146.8, 174.6, 220, 293.7], [164.8, 207.7, 246.9, 329.6]];   // Am, F, Dm, E
   function note(f, t, dur, type, vol) {
     const o = ac.createOscillator(), g = ac.createGain();
@@ -790,7 +1175,7 @@ const music = (() => {
     for (const f of [55, 55.35, 82.4]) { const o = ac.createOscillator(); o.type = 'sawtooth'; o.frequency.value = f; o.connect(lp); o.start(); }
     lp.connect(dg).connect(out);
     wind = RB.ambient(500);
-    timer = setInterval(tick, 300);
+    timer = setInterval(tick, beat);
   }
   function tick() {
     if (!ac || paused) return;
@@ -807,7 +1192,9 @@ const music = (() => {
     }
     step++;
   }
-  return { start, setWind: v => { if (wind) wind.gain.value = v; } };
+  // the final stretch: the same tune, faster (like a kart racer's last lap)
+  const setTempo = ms => { if (ms === beat) return; beat = ms; if (timer) { clearInterval(timer); timer = setInterval(tick, beat); } };
+  return { start, setTempo, setWind: v => { if (wind) wind.gain.value = v; } };
 })();
 const sfx = {
   ring: () => { RB.beep(880, 1320, 0.15, 'sine', 0.1); RB.beep(1320, 1760, 0.2, 'sine', 0.08, 0.08); },
@@ -831,6 +1218,15 @@ const sfx = {
   roll: () => RB.beep(900, 900, 0.03, 'square', 0.03),
   bats: () => [0, 0.1, 0.2, 0.3].forEach(d => RB.beep(2400, 1800, 0.06, 'sawtooth', 0.04, d)),
   web: () => RB.beep(200, 400, 0.3, 'triangle', 0.08),
+  dash: () => { RB.beep(500, 1600, 0.28, 'sawtooth', 0.05); RB.noise(0.3, 0.08); },
+  updraft: () => { RB.noise(0.9, 0.1); RB.beep(200, 700, 0.9, 'sine', 0.06); },
+  slip: () => [0, 0.06, 0.12].forEach(d => RB.beep(700 + d * 4000, 1400 + d * 4000, 0.1, 'sine', 0.05, d)),
+  rocketStart: () => { RB.beep(300, 1800, 0.5, 'sawtooth', 0.07); RB.beep(600, 2400, 0.5, 'square', 0.04, 0.05); RB.noise(0.5, 0.15); },
+  sputter: () => [0, 0.12, 0.24].forEach(d => RB.beep(160, 90, 0.1, 'square', 0.08, d)),
+  whack: () => { RB.beep(240, 80, 0.3, 'square', 0.12); RB.noise(0.25, 0.25); },
+  stomp: () => { RB.beep(90, 40, 0.5, 'sawtooth', 0.18); RB.noise(0.4, 0.3); },
+  chomp: () => { RB.beep(1200, 300, 0.15, 'square', 0.07); RB.beep(1600, 2400, 0.4, 'triangle', 0.08, 0.08); },
+  final: () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => RB.beep(f, f, 0.14, 'square', 0.06, i * 0.09)),
 };
 
 // ---------- Input ----------
@@ -867,6 +1263,9 @@ if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   //
 // bottom, like a kart racer), HUD and controller.
 const CAM_DIST = 11;
 const P2_LOOK = ['#ffc21a', '#3a1a0a', '#2a1a1a'];   // Player 2: a golden robe
+const P3_LOOK = ['#3ad07a', '#0a2a1a', '#ff9a3a'], P4_LOOK = ['#3a8aff', '#0a1a3a', '#f0f0f0'];   // Players 3 and 4: emerald and sapphire
+const GRID = [[-5, 0], [5, 0], [-12, 4], [12, 4]];   // where each player lines up (more than one player)
+const SL_N = 44;   // speed lines streaming past each player's camera
 const SHIELD_GEO = new THREE.SphereGeometry(2.4, 20, 14), CLOAK_GEO = new THREE.SphereGeometry(2.6, 20, 14);
 const LOCK_GEO = new THREE.TorusGeometry(1.6, 0.15, 8, 28), WARN_GEO = new THREE.SphereGeometry(10, 20, 12);
 const hudTemplate = document.getElementById('hud0');
@@ -885,11 +1284,17 @@ function makePlayer(idx, look) {
   const warnMesh = new THREE.Mesh(WARN_GEO, new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.15, depthWrite: false }));
   warnMesh.visible = false; scene.add(warnMesh);
   const camera = new THREE.PerspectiveCamera(65, 1, 0.1, 1500);
+  // speed lines: white streaks rushing past the camera on a boost (only this player's camera sees them)
+  const slPos = new Float32Array(SL_N * 6), slGeo = new THREE.BufferGeometry();
+  slGeo.setAttribute('position', new THREE.BufferAttribute(slPos, 3));
+  const speedLines = new THREE.LineSegments(slGeo, new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, fog: false, depthWrite: false }));
+  speedLines.layers.set(idx + 1); speedLines.frustumCulled = false; scene.add(speedLines);
+  const slSeeds = Array.from({ length: SL_N }, () => ({ a: rand(0, TAU), r: rand(2.4, 6.5), z: rand(-34, 0), len: rand(2.5, 6) }));
   camera.userData.fov0 = 65; camera.layers.enable(idx + 1);
   const hud = idx ? hudTemplate.cloneNode(true) : hudTemplate;
   if (idx) { hud.id = 'hud' + idx; hudTemplate.after(hud); }
-  hud.classList.add('p' + idx);
-  const p = { idx, isPlayer: true, look, mesh, shieldMesh, cloakMesh, lockMesh, warnMesh, camera, hud, ui: {}, keys: {}, pad: null, prevBtn: null,
+  hud.classList.remove('p0'); hud.classList.add('p' + idx);   // (a copy of Player 1's HUD: just this player's corner)
+  const p = { idx, isPlayer: true, look, mesh, shieldMesh, cloakMesh, lockMesh, warnMesh, camera, hud, ui: {}, keys: {}, pad: null, prevBtn: null, speedLines, slSeeds,
     pos: new THREE.Vector3(), dir: new THREE.Vector3(), camPos: new THREE.Vector3(0, 50, 30), camLook: new THREE.Vector3(),
     fog: { color: new THREE.Color('#3a3352'), near: 30, far: 260 } };
   hud.querySelectorAll('[data-u]').forEach(el => { p.ui[el.dataset.u] = el; });
@@ -899,7 +1304,7 @@ function makePlayer(idx, look) {
     source: () => (twoP ? camSource(p) : null) }), { dist: CAM_DIST, speedK: 0 });
   // she can be a target too (hats, bats, webs): the same shape as the other racers
   Object.defineProperties(p, {
-    name: { get: () => (twoP ? `Player ${idx + 1}` : 'You') },
+    name: { get: () => (twoP ? `Player ${idx + 1}` : 'You') },   // (twoP: more than one player)
     x: { get: () => p.pos.x }, y: { get: () => p.pos.y }, z: { get: () => p.pos.z },
     v: { get: () => p.speed }, knockT: { get: () => p.bonkT },
   });
@@ -997,22 +1402,27 @@ let bestPlace = +(RB.store.get('ww_place') || 0);
 function newRacer(p) {
   Object.assign(p, { ringCount: 0, caughtCount: 0, hatsHit: 0, mercy: 0, mercySection: null, magic: 1, boosting: false, braking: false,
     item: null, rollT: 0, rolled: null, rollTick: 0, cloakT: 0, finishT: 0, finishPlace: 0, place: 6, section: null,
-    feedT: 0, bannerT: 0, flashT: 0, strike: null, stormTimer: 2, boltLine: null, boltT: 0 });
+    feedT: 0, bannerT: 0, flashT: 0, shakeT: 0, strike: null, stormTimer: 2, boltLine: null, boltT: 0,
+    dashT: 0, lastDash: null, draft: 0, draftCool: 0, spinT: 0, inDraft: false, chargeAt: null, cuts: 0, cutSeen: {}, dashCount: 0, lastHaz: null });
   p.mesh.userData.hat.visible = true;
   p.ui.banner.classList.add('hidden'); p.ui.feed.style.opacity = 0;
 }
 // back on the line at fromZ (the start, or the start of an area after the pumpkin catches you)
 function resetRun(p, fromZ = 0) {
-  p.pos.set(lineX(fromZ) + (twoP ? (p.idx ? 5 : -5) : 0), lineY(fromZ), fromZ);
-  Object.assign(p, { yaw: 0, pitch: 0, roll: 0, speed: SPEED, boost: 0, slowT: 0, shieldT: 0, shieldCool: 0, rocketT: 0, bonkT: 0, boosting: false, braking: false, strike: null });
+  const gpos = twoP ? GRID[p.idx] : [0, 0];
+  p.pos.set(lineX(fromZ) + gpos[0], lineY(fromZ), fromZ + gpos[1]);
+  Object.assign(p, { yaw: 0, pitch: 0, roll: 0, speed: SPEED, boost: 0, slowT: 0, shieldT: 0, shieldCool: 0, rocketT: 0, bonkT: 0, boosting: false, strike: null, dashT: 0, spinT: 0 });
   p.warnMesh.visible = false;
   p.section = sectionAt(p.pos.z);
 }
 
-const P1 = makePlayer(0, WITCH_LOOKS[0]), P2 = makePlayer(1, P2_LOOK);
-ALL.push(P1, P2);
+const P1 = makePlayer(0, WITCH_LOOKS[0]), P2 = makePlayer(1, P2_LOOK), P3 = makePlayer(2, P3_LOOK), P4 = makePlayer(3, P4_LOOK);
+ALL.push(P1, P2, P3, P4);
 players = [P1];
-P2.mesh.visible = false;
+for (const q of [P2, P3, P4]) q.mesh.visible = false;
+let nP = 1;   // how many players are racing (1 to 4); twoP: more than one, so the screen is split
+// the pumpkin cam: with three players, the fourth corner of the screen watches the pumpkin chase
+const specCam = new THREE.PerspectiveCamera(60, 1, 0.1, 1500), specPos = new THREE.Vector3(0, 60, 40), specLook = new THREE.Vector3();
 // Player 1's race, by the names the game (and its tests) always used
 for (const k of ['pos', 'dir', 'yaw', 'pitch', 'roll', 'speed', 'boost', 'slowT', 'shieldT', 'shieldCool', 'magic', 'boosting', 'braking', 'item', 'rollT',
   'rocketT', 'cloakT', 'bonkT', 'place', 'ringCount', 'hatsHit', 'caughtCount', 'strike', 'keys', 'cam', 'camera', 'lockMesh']) {
@@ -1021,20 +1431,23 @@ for (const k of ['pos', 'dir', 'yaw', 'pitch', 'roll', 'speed', 'boost', 'slowT'
 Object.defineProperty(window, 'me', { get: () => P1.mesh, configurable: true });
 
 function startGame(two) {
-  if (typeof two === 'boolean') twoP = two;
+  if (typeof two === 'boolean') nP = two ? 2 : 1;
+  else if (typeof two === 'number') nP = clamp(Math.round(two), 1, 4);
+  twoP = nP > 1;
   RB.audio();
-  music.start();
+  music.start(); music.setTempo(300);
   document.getElementById('title').classList.add('hidden');
   document.getElementById('over').classList.add('hidden');
-  players = twoP ? [P1, P2] : [P1];
-  P2.mesh.visible = twoP;
+  players = ALL.slice(0, nP);
+  for (const q of ALL) { q.mesh.visible = players.includes(q); q.speedLines.visible = players.includes(q); }
+  finalStretch = false;
   for (const r of rings) { r.got = false; r.mesh.visible = true; }
   for (const b of boxes) { b.gone = 0; b.mesh.visible = true; }
   for (const g of ghosts) { g.userData.goneT = 0; g.visible = true; }
   // line up on the starting grid: two by two, with you at the back
   friends.forEach((f, i) => {
     f.z = -8 - Math.floor(i / 2) * 8; f.off = i === 4 ? 0 : i % 2 ? 7 : -7; f.offY = 0; f.v = 0;
-    f.knockT = f.stuckT = f.boostT = f.finishT = 0; f.nextBoost = rand(5, 11); f.nextThrow = rand(12, 18);
+    f.knockT = f.stuckT = f.boostT = f.finishT = 0; f.nextBoost = rand(5, 11); f.nextThrow = rand(12, 18); f.cut = null; f.cutK = 0; f.prevZ = f.z; f.dashT = f.ringT = 0;
     f.mesh.userData.hat.visible = true;
   });
   clearProjectiles();
@@ -1050,9 +1463,10 @@ function startGame(two) {
   state = 'fly';
   countT = 3; introT = 3;
   setTimeout(sfx.laugh, 400);
-  for (const p of players) showBanner(p, '3', 'Get ready to race!', 1.1);
+  for (const p of players) showBanner(p, '3', 'Hold ✨ BOOST as the 2 shows for a ROCKET START!', 1.1);
   sfx.count();
 }
+let finalStretch = false;
 
 // ---- 🎩 your hat: thrown like a boomerang, it bonks the witch it flies into, then comes back to you
 // everyone p can aim at: the other witches, and in a two-player race the other player
@@ -1156,7 +1570,7 @@ function pickBox(b, p) {
   sfx.box();
   if (!p.item && p.rollT <= 0) { p.rollT = 1.1; p.rolled = rollItem(p.place); }
 }
-const useWith = p => (p.pad || (!twoP && RB.pad && RB.pad.connected) ? RB.padText('{Y}') : !twoP && RB.touch ? 'the ITEM button' : twoP ? (p.idx ? 'U' : 'F') : 'F');
+const useWith = p => (p.pad || (!twoP && RB.pad && RB.pad.connected) ? RB.padText('{Y}') : !twoP && RB.touch ? 'the ITEM button' : twoP ? ['F', 'U', RB.padText('{Y}'), RB.padText('{Y}')][p.idx] : 'F');
 
 function castShield(p = P1) {
   if (state !== 'fly' || p.shieldCool > 0 || p.finishT || !players.includes(p)) return;
@@ -1179,7 +1593,7 @@ function caught(p) {
   rumble(p, 300, 0.8);
   // back to the start of this area, with the pumpkin a safe way behind
   showBanner(p, 'CAUGHT!', 'The pumpkin got you… try this part again!', 2.2);
-  const z = p.section ? p.section.z0 - 10 : 0;
+  const z = Math.min(0, p.section ? p.section.z0 - 10 : 0);
   resetRun(p, z);
   pumpkinZ = z + START_GAP + p.mercy * 25;
 }
@@ -1210,18 +1624,18 @@ function finishRun() {
     if (isBestPlace) { bestPlace = myPlace; RB.store.set('ww_place', myPlace); }
     $('overTitle').textContent = myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
     $('overStats').innerHTML = podium +
-      `TIME <b>${fmt(runTime)}</b> · RINGS <b>${P1.ringCount}</b> · BONKS <b>${P1.hatsHit}</b><br>CAUGHT BY THE PUMPKIN <b>${P1.caughtCount}</b> time${P1.caughtCount === 1 ? '' : 's'}<br>` +
+      `TIME <b>${fmt(runTime)}</b> · RINGS <b>${P1.ringCount}</b> · BONKS <b>${P1.hatsHit}</b> · SHORTCUTS <b>${P1.cuts}</b> of ${CUTS.length}<br>CAUGHT BY THE PUMPKIN <b>${P1.caughtCount}</b> time${P1.caughtCount === 1 ? '' : 's'}<br>` +
       (isBestPlace && myPlace === 1 ? '🏆 <b>YOU WON THE RACE!</b>' : isBestPlace ? `🏆 <b>YOUR BEST PLACE YET!</b>` : `BEST <b>${ORD[bestPlace - 1]}</b> place`) +
       (isBest ? ' · ⏱ <b>NEW BEST TIME!</b>' : '');
   } else {
-    $('overTitle').textContent = winner.finishPlace === 1 ? `${winner.name} Won!` : `${winner.name} Beat ${players.find(o => o !== winner).name}!`;
-    $('overStats').innerHTML = podium + players.map(p => `<div class="pres"><span class="ptag" style="background:${p.look[0]}">P${p.idx + 1}</span> <b>${ORD[p.finishPlace - 1]}</b> · ⏱ ${fmt(p.finishT)} · 💍 ${p.ringCount} · 🎩 ${p.hatsHit} bonk${p.hatsHit === 1 ? '' : 's'} · 🎃 caught ${p.caughtCount}</div>`).join('');
+    $('overTitle').textContent = winner.finishPlace === 1 ? `${winner.name} Won!` : players.length === 2 ? `${winner.name} Beat ${players.find(o => o !== winner).name}!` : `${winner.name} Was Fastest!`;
+    $('overStats').innerHTML = podium + players.slice().sort((a, b) => a.finishPlace - b.finishPlace).map(p => `<div class="pres"><span class="ptag" style="background:${p.look[0]}">P${p.idx + 1}</span> <b>${ORD[p.finishPlace - 1]}</b> · ⏱ ${fmt(p.finishT)} · 💍 ${p.ringCount} · 🎩 ${p.hatsHit} · ✂️ ${p.cuts} shortcut${p.cuts === 1 ? '' : 's'} · 🎃 ${p.caughtCount}</div>`).join('');
   }
   $('btnSwap').textContent = twoP ? '🧙 1 Player' : '👥 2 Players';
   $('over').classList.remove('hidden');
   showBestOnTitle();
 }
-const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th'];
+const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 const fmt = t => `${Math.floor(t / 60)}:${String(Math.floor(t % 60)).padStart(2, '0')}`;
 
 function showBanner(p, t, sub, time = 2.6) { p.ui.banner.innerHTML = `${t}<small>${sub}</small>`; p.ui.banner.classList.remove('hidden'); p.bannerT = time; }
@@ -1240,6 +1654,8 @@ function update(dt) {
     g.rotation.y = Math.PI + Math.sin(clock + u.ph) * 0.4;
   }
   for (const b of bulbs) b.scale.setScalar(0.85 + 0.3 * Math.abs(Math.sin(clock * 2 + b.position.x * 0.7)));
+  for (const h of hazards) h.update(clock);
+  dashTex.offset.y = -clock * 1.6;
   for (const r of rings) r.mesh.rotation.z = clock * 0.6;
   for (const b of boxes) {
     b.mesh.rotation.set(0.4, clock * 1.4 + b.x, 0);
@@ -1266,17 +1682,31 @@ function update(dt) {
   if (countT > 0) {   // 3, 2, 1… everyone waits on the starting line
     const was = Math.ceil(countT);
     countT -= dt; introT = Math.max(0, introT - dt);
+    // the rocket start: start holding boost while the 2 is showing (not before!) and keep holding through GO
+    for (const p of players) {
+      const held = !!(p.keys.boost || (p.pad && (p.pad.pressed(7) || p.pad.pressed(2))));
+      if (held && p.chargeAt === null) p.chargeAt = countT;
+      if (!held) p.chargeAt = null;
+    }
     if (countT <= 0) {
-      countT = 0; for (const p of players) showBanner(p, 'GO!', 'Race to the moon! 🌕', 1.2); sfx.go();
+      countT = 0; sfx.go();
+      for (const p of players) {
+        if (p.chargeAt !== null && p.chargeAt <= 2.05) { p.dashT = 1.8; sfx.rocketStart(); showBanner(p, 'GO!', '🚀 ROCKET START!', 1.4); rumble(p, 260, 0.8); }
+        else if (p.chargeAt !== null) { p.slowT = 0.8; p.spinT = 0.6; sfx.sputter(); showBanner(p, 'GO!', '💨 Too early… a wobbly start!', 1.4); }
+        else showBanner(p, 'GO!', 'Race to the moon! 🌕', 1.2);
+        p.chargeAt = null;
+      }
       rumble(null, 200, 0.5);
-    } else if (Math.ceil(countT) !== was) { for (const p of players) showBanner(p, String(Math.ceil(countT)), 'Get ready to race!', 1.1); sfx.count(); }
+    } else if (Math.ceil(countT) !== was) { for (const p of players) showBanner(p, String(Math.ceil(countT)), Math.ceil(countT) === 2 ? 'Hold ✨ BOOST now for a ROCKET START!' : 'Get ready…', 1.1); sfx.count(); }
     pumpkinZ = Math.max(...players.map(p => p.pos.z)) + START_GAP;
     moveRivals(dt, null);
     return;
   }
   runT += dt;
   if (introT > 0) introT -= dt;
-  for (const p of players) if (!p.finishT) updatePlayer(p, dt);
+  const leadZ = Math.min(...players.map(q => q.pos.z));
+  for (const p of players) { p.behind = twoP && p.pos.z - leadZ > 150; if (!p.finishT) updatePlayer(p, dt); }   // (a player far behind the others: the boost meter fills faster)
+  if (!finalStretch && players.some(q => !q.finishT && sectionAt(q.pos.z).id === 'lake')) { finalStretch = true; music.setTempo(225); sfx.final(); }
 
   // --- the pumpkin closes in on whoever is last when they slow down, and never falls too far behind
   const p = chased();
@@ -1337,15 +1767,18 @@ function updatePlayer(p, dt) {
   p.yaw -= sx * 1.5 * dt * p.cam.steer(sx);
   if (!sx) p.yaw += (0 - p.yaw) * Math.min(1, dt * 0.5);            // drift back to facing the way out
   p.pitch += (sy * 0.65 - p.pitch) * Math.min(1, dt * 3);
-  p.roll += (sx * 0.6 - p.roll) * Math.min(1, dt * 5) + (p.bonkT > 0 ? Math.sin(p.bonkT * 30) * 0.15 : 0);
+  p.roll += (sx * 0.6 - p.roll) * Math.min(1, dt * 5) + (p.bonkT > 0 ? Math.sin(p.bonkT * 30) * 0.15 : 0) + (p.spinT > 0 ? dt * 14 : 0);
   p.boost = Math.max(0, p.boost - dt * 6);
   // ✨ boost: hold RT / X (or Shift) to spend the magic meter, leaving a trail of magic dust
   const wasBoosting = p.boosting;
   p.boosting = !!(p.keys.boost || (p.pad && (p.pad.pressed(7) || p.pad.pressed(2)))) && p.magic > (p.boosting ? 0 : 0.08);
   if (p.boosting) { p.magic = Math.max(0, p.magic - dt * BOOST_DRAIN); p.boost = Math.max(p.boost, BOOST); if (!wasBoosting) sfx.boost(); }
-  else p.magic = Math.min(1, p.magic + dt * BOOST_FILL);
+  else p.magic = Math.min(1, p.magic + dt * BOOST_FILL * (p.behind ? 1.8 : 1));
   if (p.rocketT > 0) { p.rocketT -= dt; p.boost = Math.max(p.boost, 24); }
+  if (p.dashT > 0) { p.dashT -= dt; p.boost = Math.max(p.boost, DASH); }
   if (p.boosting || p.rocketT > 0) emitDust(tailPos(p.mesh), Math.ceil(dt * 140), 1, p.rocketT > 0 ? ROCKET_COLORS : DUST_COLORS);
+  else if (p.dashT > 0) emitDust(tailPos(p.mesh), Math.ceil(dt * 50), 0.7, ROCKET_COLORS);
+  p.spinT = Math.max(0, p.spinT - dt);
   p.slowT = Math.max(0, p.slowT - dt);
   // 🪂 air brake: hold LT (or Ctrl) to slow down, free; boosting or the rocket wins
   p.braking = !!(p.keys.brake || (p.pad && p.pad.pressed(6))) && !p.boosting && p.rocketT <= 0;
@@ -1353,17 +1786,17 @@ function updatePlayer(p, dt) {
   p.speed += (target - p.speed) * Math.min(1, dt * 3);
   dir.set(-Math.sin(p.yaw) * Math.cos(p.pitch), Math.sin(p.pitch), -Math.cos(p.yaw) * Math.cos(p.pitch));
   pos.addScaledVector(dir, p.speed * dt);
-  // soft walls: the fog thickens and gently turns you back
-  if (Math.abs(pos.x) > WIDTH) { pos.x = Math.sign(pos.x) * WIDTH; p.yaw += Math.sign(pos.x) * dt * 1.5; }
+  // the edges of the track (canyon walls, the houses, the fog): scrape along them and turn back in
+  const lx = lineX(pos.z), hw = halfW(pos.z), off = pos.x - lx;
+  if (Math.abs(off) > hw) {
+    pos.x = lx + Math.sign(off) * hw; p.yaw += Math.sign(off) * dt * 1.8; p.speed -= p.speed * dt * 0.8;
+    if (Math.random() < 0.5) emitDust(pos.clone().add(new THREE.Vector3(Math.sign(off) * 0.8, 0, 0)), 2, 0.6, ROCKET_COLORS);
+    if (!p.scrapeT) rumble(p, 60, 0.25);
+    p.scrapeT = 0.2;
+  } else p.scrapeT = 0;
   if (pos.y > CEILING) { pos.y = CEILING; p.pitch = Math.min(p.pitch, 0); }
-  const gy = (pos.z < -2895 ? groundAt(pos.x, pos.z) : 0) + 1.5;
-  if (pos.y < gy) { pos.y = gy; p.pitch = Math.max(p.pitch, 0.25); }
+  if (pos.y < 1.5) { pos.y = 1.5; p.pitch = Math.max(p.pitch, 0.25); }
   if (pos.z > 40) { pos.z = 40; p.yaw = 0; }
-  // flying into the cliff face from below: bump back and tip upward
-  if (pos.z < -2878 && pos.z > -2895 && pos.x < 40 && pos.y < 47) {
-    pos.z = -2877; p.pitch = 0.6;
-    if (p.slowT <= 0) { p.slowT = 0.9; sfx.bump(); showBanner(p, 'CLIMB!', 'Fly up over the cliff!', 1.4); }
-  }
 
   // --- areas
   const sec = sectionAt(pos.z);
@@ -1387,17 +1820,62 @@ function updatePlayer(p, dt) {
     }
   }
 
-  // --- bumping into things
-  if (p.slowT <= 0 && !tough) for (const c of colliders) {
-    if (Math.abs(c.z - pos.z) > c.r + 2) continue;
-    const d = Math.hypot(pos.x - c.x, pos.y - c.y, pos.z - c.z);
-    if (d < c.r + 0.8) {
-      p.slowT = 0.9; sfx.bump();
-      pos.y += 3; pos.x += pos.x > c.x ? 2 : -2;
-      if (navigator.vibrate) navigator.vibrate(60);
-      rumble(p, 80, 0.4);
-      break;
+  // --- bumping into things: you never pass through anything solid (even with the rocket or the cloak), and a
+  // bump slows you down. Flying head-on into a wall slides you along it, back toward the racing line.
+  let bumped = false;
+  for (const c of colliders) {
+    if (c.box) {
+      const m = 0.8;
+      if (pos.z < c.z0 - m || pos.z > c.z1 + m || pos.x < c.x0 - m || pos.x > c.x1 + m || pos.y < c.y0 - m || pos.y > c.y1 + m) continue;
+      const pen = [pos.x - (c.x0 - m), c.x1 + m - pos.x, pos.y - (c.y0 - m), c.y1 + m - pos.y, pos.z - (c.z0 - m), c.z1 + m - pos.z], k = pen.indexOf(Math.min(...pen));
+      if (k === 0) pos.x = c.x0 - m - 0.05; else if (k === 1) pos.x = c.x1 + m + 0.05; else if (k === 2) pos.y = c.y0 - m - 0.05; else if (k === 3) pos.y = c.y1 + m + 0.05;
+      else { pos.z = k === 4 ? c.z0 - m - 0.05 : c.z1 + m + 0.05; pos.x += Math.sign(lx - pos.x || 1) * 26 * dt; pos.y += 4 * dt; }
+      bumped = true;
+    } else {
+      if (Math.abs(c.z - pos.z) > c.r + 2) continue;
+      const d = Math.hypot(pos.x - c.x, pos.y - c.y, pos.z - c.z);
+      if (d < c.r + 0.8) { const k = (c.r + 0.85) / (d || 1); pos.set(c.x + (pos.x - c.x) * k, c.y + (pos.y - c.y) * k + 0.4, c.z + (pos.z - c.z) * k); bumped = true; }
     }
+  }
+  if (bumped && p.slowT <= 0 && !tough) {
+    p.slowT = 0.9; sfx.bump();
+    if (navigator.vibrate) navigator.vibrate(60);
+    rumble(p, 80, 0.4);
+  }
+  // --- dash panels, updrafts, the moving dangers, slipstreams and shortcuts
+  for (const d of dashes) {
+    if (d !== p.lastDash && Math.abs(pos.z - d.z) < 2.4 && Math.abs(pos.x - d.x) < 4.8 && Math.abs(pos.y - d.y) < 4.8) {
+      p.lastDash = d; p.dashT = 1.3; p.dashCount++; sfx.dash(); rumble(p, 90, 0.35);
+    }
+  }
+  let inDraft = false;
+  for (const u of updrafts) if (Math.abs(pos.x - u.x) < u.r && pos.z < u.z0 && pos.z > u.z1 && pos.y < u.top) {
+    inDraft = true; pos.y += 58 * dt; p.boost = Math.max(p.boost, 8);
+    if (Math.random() < 0.6) emitDust(pos, 2, 1.5, [DUST_COLORS[2], DUST_COLORS[5]]);
+  }
+  if (inDraft && !p.inDraft) { sfx.updraft(); feed(p, '🌪️ UPDRAFT! Up to the ring highway!'); }
+  p.inDraft = inDraft;
+  for (const h of hazards) {
+    if (h.through && h.through(pos)) {
+      if (p.lastHaz !== h) { p.lastHaz = h; p.dashT = 2; sfx.chomp(); feed(p, h.boostMsg); sparkle(pos.clone(), '#ffb347'); rumble(p, 140, 0.5); }
+    } else if (!tough && p.slowT <= 0 && h.hit(pos)) {
+      p.slowT = 1.1; p.spinT = 0.8; p.lastHaz = h; pos.y += 1.5;
+      (h.kind === 'stomper' ? sfx.stomp : sfx.whack)(); feed(p, h.msg); rumble(p, 220, 0.8); p.shakeT = 0.35;
+    }
+  }
+  for (const h of hazards) if (h.kind === 'stomper' && h.slam > 0.3 && Math.hypot(pos.x - h.x, pos.z - h.z) < 45) { p.shakeT = 0.3; if (Math.hypot(pos.x - h.x, pos.z - h.z) < 30) sfx.stomp(); h.slam = 0.29; }
+  // 💨 slipstream: tuck in right behind another racer for a moment and shoot past
+  p.draftCool = Math.max(0, p.draftCool - dt);
+  const ahead = p.draftCool <= 0 && runT > 4 && othersOf(p).some(o => !o.finishT && !o.knockT && p.pos.z - o.z > 2.5 && p.pos.z - o.z < 15 && Math.hypot(o.x - pos.x, o.y + 0.3 - pos.y) < 4.5);
+  p.draft = ahead ? p.draft + dt : Math.max(0, p.draft - dt * 2);
+  if (ahead && Math.random() < 0.4) emitDust(pos.clone().addScaledVector(dir, 3), 1, 1.4, [DUST_COLORS[5]]);
+  if (p.draft > 0.9) { p.draft = 0; p.draftCool = 3; p.dashT = Math.max(p.dashT, 1.2); sfx.slip(); feed(p, '💨 SLIPSTREAM! Zoom past!'); }
+  // shortcuts: count the ones you take (each has its own little gate: inside the arch, up on the highway, through the barn and the ballroom)
+  for (const c of CUTS) {
+    if (!p.cutSeen) p.cutSeen = {};
+    if (p.cutSeen[c.id] || Math.abs(pos.z - (c.z0 + c.z1) / 2) > 25) continue;
+    const m = CUT_MID[CUTS.indexOf(c)];
+    if (Math.hypot(pos.x - m.x, pos.y - m.y) < (c.high ? 14 : 9)) { p.cutSeen[c.id] = true; p.cuts++; feed(p, `✂️ SHORTCUT! Through ${c.name}!`); sfx.ring(); }
   }
   for (const g of ghosts) {
     if (p.slowT <= 0 && !tough && g.visible && g.position.distanceTo(pos) < 3) { p.slowT = 0.9; sfx.bump(); RB.beep(600, 300, 0.4, 'sine', 0.08); }
@@ -1408,7 +1886,7 @@ function updatePlayer(p, dt) {
   p.shieldMesh.visible = p.shieldT > 0;
   p.shieldMesh.material.opacity = 0.2 + 0.1 * Math.sin(clock * 12);
   if (sec.id === 'storm') {
-    if (!p.strike && (p.stormTimer -= dt) <= 0) {
+    if (!p.strike && (p.stormTimer -= dt) <= 0 && pos.y < 72) {   // (up on the ring highway you're above the lightning)
       // aim just ahead of where you're going
       const s = pos.clone().addScaledVector(dir, p.speed * 1.4);
       s.x += rand(-4, 4); s.y += rand(-3, 3);
@@ -1437,7 +1915,7 @@ function updatePlayer(p, dt) {
   p.ui.warn.classList.toggle('hidden', !((p.strike && p.strike.p.distanceTo(pos) < 30 || hatComing) && p.shieldT <= 0 && p.cloakT <= 0));
   p.warnMesh.material.opacity = p.strike ? 0.1 + 0.15 * Math.abs(Math.sin(clock * 10)) : 0;
 
-  if ((pos.z <= FINISH_Z && Math.hypot(pos.x - lineX(FINISH_Z), pos.y - 60) < 30) || pos.z < FINISH_Z - 60) playerFinished(p);
+  if ((pos.z <= FINISH_Z && Math.hypot(pos.x - lineX(FINISH_Z), pos.y - lineY(FINISH_Z)) < 30) || pos.z < FINISH_Z - 60) playerFinished(p);
 }
 
 // The other witches race the friendly line. They're a little faster or slower each, boost now and then,
@@ -1457,15 +1935,25 @@ function moveRivals(dt, fixedSpeed) {
     } else if (racing) {
       const rel = f.z - refZ;   // below 0: ahead of you
       let sp = f.base + Math.sin(clock * 0.3 + f.ph) * 1.2;
-      if (rel < -90) sp -= 6; else if (rel < -40) sp -= 3;
+      if (f.z > SECTIONS[6].z0) { if (rel < -120) sp -= 5; else if (rel < -60) sp -= 2; }   // (ahead, she eases off a little… but on the final stretch everyone goes all out)
       if (rel > 25) sp += 4;
       if (rel > 70) sp += 7;
+      if (rel > 140) sp += 6;
+      // they fly through the dash panels on the racing line too
+      for (const d of dashes) if (f.prevZ > d.z && f.z <= d.z && (f.cut ? Math.abs(f.x - d.x) < 8 : Math.abs(d.x - lineX(d.z)) < 1)) f.dashT = 1.3;
+      for (const g of rings) if (f.prevZ > g.z && f.z <= g.z && Math.hypot(g.x - f.x, g.y - f.y) < 12) f.ringT = 1.4;   // and the rings
+      if (f.dashT > 0) { f.dashT -= dt; sp += 16; }   // (the same boosts you get)
+      if (f.ringT > 0) { f.ringT -= dt; sp += 8; }
       if (f.finishT) sp = 14;
       else if ((f.nextBoost -= dt) <= 0) { f.boostT = 1.5; f.nextBoost = rand(7, 13); }
       if (f.boostT > 0) { f.boostT -= dt; sp += 9; emitDust(tailPos(f.mesh, tailV), Math.ceil(dt * 90)); }
+      // a shortcut now and then (the witches further back try them more often)
+      if (!f.cut && !f.finishT) for (const c of CUTS) if (f.prevZ > c.z0 && f.z <= c.z0 && Math.random() < (rel > 0 ? 0.6 : 0.35)) { f.cut = c; f.cutDone = false; }
+      if (f.cut && !f.cutDone) sp += 3;
       if (f.stuckT > 0) { f.stuckT -= dt; sp = 7; }
       if (f.knockT > 0) { f.knockT -= dt; sp = 5; }
       f.v += (sp - f.v) * Math.min(1, dt * 2);
+      f.prevZ = f.z;
       f.z -= f.v * dt;
       if (!f.finishT && f.z <= FINISH_Z) { f.finishT = runT; finishOrder.push(f); }
       if (f.z < FINISH_Z - 220) f.z = FINISH_Z - 220;
@@ -1482,9 +1970,14 @@ function moveRivals(dt, fixedSpeed) {
         }
       }
     }
-    const spread = state === 'fly' && countT > 0 ? 0 : 1;
-    f.x = lineX(f.z) + f.off + spread * Math.sin(clock * 0.35 + f.ph) * 9;
-    f.y = Math.max(groundAt(f.x, f.z) + 3, lineY(f.z) + f.offY + spread * Math.sin(clock * 1.1 + f.ph) * 2);
+    // where she flies: the racing line (spread out less where the track is narrow), or blended onto a shortcut
+    const spread = state === 'fly' && countT > 0 ? 0 : 1, sq = clamp((halfW(f.z) - 10) / 36, 0.3, 1);
+    let x = lineX(f.z) + (f.off + spread * Math.sin(clock * 0.35 + f.ph) * 9) * sq, y = lineY(f.z) + (f.offY + spread * Math.sin(clock * 1.1 + f.ph) * 2) * sq;
+    if (f.cut && f.z < f.cut.z1) f.cutDone = true;
+    f.cutK = clamp((f.cutK || 0) + (f.cut && !f.cutDone ? dt : -dt) * 1.4, 0, 1);
+    if (f.cut && f.cutK <= 0 && f.cutDone) f.cut = null;
+    if (f.cut) { const cp = cutPos(f.cut, f.z, tailV), k = f.cutK * f.cutK * (3 - 2 * f.cutK); x += (cp.x + f.off * 0.1 - x) * k; y += (cp.y + f.offY * 0.15 - y) * k; }
+    f.x = x; f.y = Math.max(3, y);
     f.mesh.position.set(f.x, f.y, f.z);
     f.mesh.rotation.set(0, 0, Math.sin(clock * 0.8 + f.ph) * 0.25);
     u.cape.rotation.x = -0.9 + Math.sin(clock * 10 + f.ph) * 0.15;
@@ -1573,6 +2066,17 @@ const camRay = new THREE.Vector3(), camOrigin = new THREE.Vector3();
 function clearDistance(origin, dirC, want) {
   let free = want;
   for (const c of colliders) {
+    if (c.box) {   // a block: where the ray first enters it (if it starts outside)
+      if (c.z0 > origin.z + want || c.z1 < origin.z - want) continue;
+      let t0 = 0, t1 = free, ok = true;
+      for (const [o, d, lo, hi] of [[origin.x, dirC.x, c.x0, c.x1], [origin.y, dirC.y, c.y0, c.y1], [origin.z, dirC.z, c.z0, c.z1]]) {
+        if (Math.abs(d) < 1e-6) { if (o < lo - 0.8 || o > hi + 0.8) { ok = false; break; } continue; }
+        let a = (lo - 0.8 - o) / d, b = (hi + 0.8 - o) / d; if (a > b) [a, b] = [b, a];
+        t0 = Math.max(t0, a); t1 = Math.min(t1, b); if (t0 > t1) { ok = false; break; }
+      }
+      if (ok && t0 > 0.01 && t0 < free) free = t0;
+      continue;
+    }
     if (Math.abs(c.z - origin.z) > want + c.r) continue;
     const ox = origin.x - c.x, oy = origin.y - c.y, oz = origin.z - c.z, rr = c.r + 0.8;
     const bb = ox * dirC.x + oy * dirC.y + oz * dirC.z, cc = ox * ox + oy * oy + oz * oz - rr * rr, disc = bb * bb - cc;
@@ -1582,7 +2086,7 @@ function clearDistance(origin, dirC, want) {
   }
   for (let t = 2; t < free; t += 1) {   // the ground (and the cliff) along the way
     const x = origin.x + dirC.x * t, y = origin.y + dirC.y * t, z = origin.z + dirC.z * t;
-    if (y < (z < -2895 ? groundAt(x, z) : 0) + 1) { free = t; break; }
+    if (y < 1) { free = t; break; }
   }
   return Math.max(3.5, free - 0.5);
 }
@@ -1598,6 +2102,7 @@ function updateVisuals(dt) {
   pumpkin.rotation.z = Math.sin(clock * 2) * 0.08;
   pumpkin.userData.light.intensity = 1.6 + Math.sin(clock * 9) * 0.4;
   for (const p of players) playerVisuals(p, dt);
+  if (nP === 3) updateSpecCam(dt);
   // rain falls around you in the storm
   const wet = players.filter(p => p.section && p.section.id === 'storm' && state === 'fly' && !p.finishT);
   rain.visible = wet.length > 0;
@@ -1618,7 +2123,7 @@ function updateVisuals(dt) {
     const a = sparkGeo.attributes.position.array;
     for (let i = 0; i < SPARK_N; i++) { a[i * 3] += sparkVel[i][0] * dt; a[i * 3 + 1] += sparkVel[i][1] * dt; a[i * 3 + 2] += sparkVel[i][2] * dt; }
     sparkGeo.attributes.position.needsUpdate = true;
-    sparks.material.opacity = Math.max(0, 1 - sparkT / 1.2);
+    sparks.material.opacity = Math.max(0, 0.7 - sparkT / 1.7);
   }
   sparks.visible = sparkT < 1.2;
 }
@@ -1648,8 +2153,7 @@ function playerVisuals(p, dt) {
     const free = clearDistance(camOrigin, camRay, CAM_DIST * (1 + 0.15 * cam.speedK));
     cam.dist += (free - cam.dist) * Math.min(1, dt * (free < cam.dist ? 20 : 2));   // pull in fast, ease back out slowly
     const want = camOrigin.clone().addScaledVector(camRay, cam.dist);
-    const floor = (want.z < -2895 ? groundAt(want.x, want.z) : 0) + 1.2;
-    if (want.y < floor) want.y = floor;   // never dip under the ground
+    if (want.y < 1.2) want.y = 1.2;   // never dip under the ground
     p.camPos.lerp(want, Math.min(1, dt * 9));
     // looking from behind, aim a little ahead of her; swung around, look right at her
     const ahead = cam.ahead();
@@ -1658,33 +2162,74 @@ function playerVisuals(p, dt) {
   }
   camera.position.copy(p.camPos);
   camera.lookAt(p.camLook);
-  if (p.flashT > 0 && !REDUCED) camera.position.x += (Math.random() - 0.5) * p.flashT * 0.6;   // just a little shake
-  const fov = camera.userData.fov0 + 5 * cam.speedK;
+  p.shakeT = Math.max(0, (p.shakeT || 0) - dt);
+  if ((p.flashT > 0 || p.shakeT > 0) && !REDUCED) { const k = Math.max(p.flashT, p.shakeT); camera.position.x += (Math.random() - 0.5) * k * 0.8; camera.position.y += (Math.random() - 0.5) * k * 0.8; }   // just a little shake
+  const fast = state === 'fly' ? clamp((p.speed - SPEED - 6) / 18, 0, 1) : 0;   // dash panels and boosts: a wider view, and speed lines
+  const fov = camera.userData.fov0 + 5 * cam.speedK + 7 * fast;
   if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  const sl = p.speedLines, a = sl.geometry.attributes.position.array;
+  sl.material.opacity = REDUCED ? 0 : fast * 0.5;
+  sl.visible = sl.material.opacity > 0.01;
+  if (sl.visible) {
+    sl.position.copy(camera.position); sl.quaternion.copy(camera.quaternion);
+    p.slSeeds.forEach((q, i) => {
+      q.z += p.speed * dt * 1.4;
+      if (q.z > 0) { q.z -= 34; q.a = rand(0, TAU); q.r = rand(2.4, 6.5); }
+      const cx = Math.cos(q.a) * q.r, cy = Math.sin(q.a) * q.r * 0.7;
+      a.set([cx, cy, q.z, cx, cy, q.z - q.len], i * 6);
+    });
+    sl.geometry.attributes.position.needsUpdate = true;
+  }
+}
+// the pumpkin cam (three players: the fourth corner of the screen): from just behind the pumpkin, watching it chase
+function updateSpecCam(dt) {
+  const ch = chased() || P1;
+  specPos.lerp(tmp.set(pumpkin.position.x * 0.6 + ch.pos.x * 0.4, pumpkin.position.y + 9, pumpkin.position.z + 30), Math.min(1, dt * 3));
+  specLook.lerp(ch.pos, Math.min(1, dt * 4));
+  specCam.position.copy(specPos); specCam.lookAt(specLook);
 }
 
-// One view, or two (top: Player 1, bottom: Player 2), each with that player's fog, sky and lightning flash
+// One view, two (top: Player 1, bottom: Player 2) or four corners (three players: the fourth is the pumpkin cam),
+// each with that player's fog, sky and lightning flash
+// the drawing resolution: full while racing (a little lighter for three or four views), and half behind the title and results
+// screens (the panel covers most of it anyway, and it keeps menus quick on slower devices)
+let resWas = 0;
+function applyRes() {
+  const r = state === 'fly' ? Math.min(devicePixelRatio || 1, nP > 2 ? 1 : 2) : 0.5;
+  if (r !== resWas) { resWas = r; renderer.setPixelRatio(r); resize(); }
+}
 function render() {
-  const W = innerWidth, H = innerHeight, split = twoP && state !== 'title';
-  const views = split ? players : [P1];
-  document.body.classList.toggle('split', split);
+  applyRes();
+  const W = innerWidth, H = innerHeight, n = state === 'title' ? 1 : players.length, split = n > 1;
+  const rects = n === 1 ? [[0, 0, W, H]] : n === 2 ? [[0, H / 2, W, H / 2], [0, 0, W, H / 2]] : [[0, H / 2, W / 2, H / 2], [W / 2, H / 2, W / 2, H / 2], [0, 0, W / 2, H / 2], [W / 2, 0, W / 2, H / 2]];
+  const views = n === 1 ? [P1] : n === 3 ? [...players, null] : players;
+  document.body.classList.toggle('split', n === 2);
+  document.body.classList.toggle('quad', n > 2);
   renderer.setScissorTest(split);
   views.forEach((p, i) => {
-    const vh = split ? H / 2 : H, y = split && i === 0 ? H / 2 : 0;
-    renderer.setViewport(0, y, W, vh); renderer.setScissor(0, y, W, vh);
-    const cam = p.camera, aspect = W / vh;
+    const [x, y, vw, vh] = rects[i];
+    renderer.setViewport(x, y, vw, vh); renderer.setScissor(x, y, vw, vh);
+    const cam = p ? p.camera : specCam, aspect = vw / vh, src = p || chased() || P1;
+    // nothing past the fog is drawn: the camera stops just beyond it, and the sky shrinks to fit inside
+    const far = Math.round(src.fog.far + 70);
+    if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
+    sky.scale.setScalar((far - 25) / 1200);
     if (Math.abs(cam.aspect - aspect) > 1e-3) {
       cam.aspect = aspect;
       cam.userData.fov0 = aspect < 0.8 ? 80 : aspect > 2.6 ? 50 : 65;   // a wide half-screen: a little narrower, so she isn't tiny
-      cam.fov = cam.userData.fov0 + 5 * p.cam.speedK; cam.updateProjectionMatrix();
+      cam.fov = cam.userData.fov0 + (p ? 5 * p.cam.speedK : 0); cam.updateProjectionMatrix();
     }
-    scene.fog.color.copy(p.fog.color); scene.fog.near = p.fog.near; scene.fog.far = p.fog.far;
-    scene.background.copy(p.fog.color).multiplyScalar(0.6).offsetHSL(0, 0, p.flashT * 0.6);   // lightning brightens the whole sky for a moment
+    scene.fog.color.copy(src.fog.color); scene.fog.near = src.fog.near; scene.fog.far = src.fog.far;
+    scene.background.copy(src.fog.color).multiplyScalar(0.6).offsetHSL(0, 0, (p ? p.flashT : 0) * 0.6);   // lightning brightens the whole sky for a moment
     sky.position.set(cam.position.x, 0, cam.position.z);
+    for (const d of dashes) d.mesh.visible = Math.abs(cam.position.z - d.z) > 5;   // (a camera never flies through a dash panel's glow)
+    // the moon looms bigger the nearer you are to the finish
+    skyMoon.scale.setScalar(1 + 1.6 * clamp(cam.position.z / FINISH_Z, 0, 1) ** 2);
+    skyMoon.position.y = 230 - 120 * clamp(cam.position.z / FINISH_Z, 0, 1) ** 2;
     renderer.render(scene, cam);
   });
 }
-function resize() { renderer.setSize(innerWidth, innerHeight, false); }
+function resize() { renderer.setSize(innerWidth, innerHeight, false); }   // (called from startGame too: a lighter pixel ratio for three or four players)
 addEventListener('resize', resize);
 resize();
 
@@ -1694,6 +2239,8 @@ function updateHUD() {
   for (const p of ALL) p.hud.classList.toggle('hidden', !fly || !players.includes(p));
   $('tbtns').classList.toggle('hidden', !(fly && RB.touch));
   $('divider').classList.toggle('hidden', !(fly && twoP));
+  $('divider2').classList.toggle('hidden', !(fly && nP > 2));
+  $('specTag').classList.toggle('hidden', !(fly && nP === 3));
   if (!fly) return;
   for (const p of players) playerHUD(p);
 }
@@ -1711,7 +2258,7 @@ function playerHUD(p) {
   if (!p.idx) { $('itemIco').textContent = show || '❔'; $('itemBtn').classList.toggle('cool', !p.item); $('boostBtn').classList.toggle('cool', p.magic < 0.08); }
   ui.magicFill.style.width = `${Math.round(p.magic * 100)}%`;
   ui.magic.classList.toggle('on', p.boosting);
-  ui.magicTxt.textContent = p.rocketT > 0 ? '🍬 ROCKET!' : p.cloakT > 0 ? '👻 CLOAK' : p.boosting ? 'ZOOM!' : p.braking ? 'BRAKE' : 'BOOST';
+  ui.magicTxt.textContent = p.rocketT > 0 ? '🍬 ROCKET!' : p.cloakT > 0 ? '👻 CLOAK' : p.dashT > 0 ? '⚡ DASH!' : p.boosting ? 'ZOOM!' : p.braking ? 'BRAKE' : p.draft > 0.2 ? '💨 SLIP…' : 'BOOST';
   // everyone's progress along the course (you are the big dot)
   const bar = ui.bar;
   if (!bar.dots) {
@@ -1740,6 +2287,8 @@ function playerHUD(p) {
 // ---------- Screens ----------
 $('btnPlay').addEventListener('click', () => startGame(false));
 $('btnPlay2').addEventListener('click', () => startGame(true));
+$('btnPlay3').addEventListener('click', () => startGame(3));
+$('btnPlay4').addEventListener('click', () => startGame(4));
 $('btnPad').addEventListener('click', () => RB.controllerScreen());
 $('btnAgain').addEventListener('click', () => startGame());
 $('btnSwap').addEventListener('click', () => startGame(!twoP));
@@ -1753,7 +2302,7 @@ showBestOnTitle();
 // how many controllers are plugged in: two means two players can each have one
 function showPads() {
   const n = RB.pad && RB.pad.pads ? RB.pad.pads().length : 0;
-  $('padCount').textContent = n >= 2 ? '🎮🎮 Two controllers ready: one each!' : n === 1 ? '🎮 One controller ready. Plug in a second for Player 2 (or Player 2 uses I J K L)' : '';
+  $('padCount').textContent = n >= 4 ? '🎮🎮🎮🎮 Four controllers ready: a four-player race!' : n === 3 ? '🎮🎮🎮 Three controllers ready: up to four players (Player 2 can use I J K L)' : n === 2 ? '🎮🎮 Two controllers ready: one each! (3 or 4 players need a controller each, Players 1 and 2 can use the keyboard)' : n === 1 ? '🎮 One controller ready. Plug in more for Players 2, 3 and 4 (or Player 2 uses I J K L)' : '';
 }
 addEventListener('gamepadconnected', showPads);
 addEventListener('gamepaddisconnected', showPads);

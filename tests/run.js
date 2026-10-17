@@ -1193,6 +1193,155 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Witch Way Out Grand Prix: seven areas, four shortcuts that are really faster, dash panels, the updraft, solid walls, the moving dangers, a rocket start and slipstreams', async () => {
+    const p = await open(browser, 'witch-way-out.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {};
+      // fly from z0 to z1 along a path (the racing line, or a shortcut's), steering like a player would
+      const flyPath = (z0, z1, path, opts = {}) => {
+        startGame(false); countT = 0; introT = 0; friends.forEach(f => { f.z = 300; f.nextThrow = 99; }); pumpkinZ = 9999;
+        pos.set(path(z0).x, path(z0).y, z0); yaw = 0; pitch = 0; speed = SPEED;
+        let t = 0, bumps = 0, was = false, maxY = 0;
+        while (pos.z > z1 && t < 60) {
+          keys.l = keys.r = keys.u = keys.d = false;
+          const w = path(pos.z - 22), wantYaw = Math.atan2(-(w.x - pos.x), 22), wp = Math.atan2(w.y - pos.y, 22);
+          if (wantYaw - yaw < -0.04) keys.r = true; else if (wantYaw - yaw > 0.04) keys.l = true;
+          if (wp - pitch > 0.04) keys.u = true; else if (wp - pitch < -0.04) keys.d = true;
+          if (strike && strike.t < 0.6) castShield();
+          if (opts.noHaz) P1.slowT = 0;
+          update(1 / 60); t += 1 / 60; maxY = Math.max(maxY, pos.y);
+          if (slowT > 0 && !was) bumps++; was = slowT > 0;
+        }
+        return { t, bumps, maxY, cuts: P1.cuts };
+      };
+      const line = z => ({ x: lineX(z), y: lineY(z) });
+      out.sections = SECTIONS.map(s => s.id);
+      out.cuts = CUTS.map((c, i) => {
+        const cp = {}, via = z => (z <= c.z0 + 30 ? cutPos(c, z, cp) : line(z)) && { x: cp.x !== undefined && z <= c.z0 + 30 ? cp.x : lineX(z), y: cp.y !== undefined && z <= c.z0 + 30 ? cp.y : lineY(z) };
+        const a = flyPath(c.z0 + 30, c.z1 - 10, line), b = flyPath(c.z0 + 30, c.z1 - 10, z => { if (z > c.z0) return line(z); cutPos(c, z, cp); return { x: cp.x, y: cp.y }; });
+        return { id: c.id, line: +a.t.toFixed(2), cut: +b.t.toFixed(2), counted: b.cuts === 1, bumps: b.bumps, high: Math.round(b.maxY) };
+      });
+      // a dash panel: a burst of speed
+      startGame(false); countT = 0; introT = 0; friends.forEach(f => { f.z = 300; });
+      const d = dashes[0]; pos.set(d.x, d.y, d.z + 3); yaw = 0; pitch = 0; for (let i = 0; i < 20; i++) update(1 / 60);
+      out.dash = { dashT: +P1.dashT.toFixed(2), speed: Math.round(speed) };
+      // solid walls: even with the candy rocket, flying straight at the mansion's wall never gets you inside it
+      startGame(false); countT = 0; introT = 0; pumpkinZ = 9999;
+      const mx = CUT_MID[3].x - 18; pos.set(mx, 14, -2870); yaw = 0; pitch = 0; P1.rocketT = 3; let inside = 0;
+      for (let i = 0; i < 60 * 3; i++) { keys.l = keys.r = keys.u = keys.d = false; update(1 / 60); if (pos.z < -2908 && pos.z > -2992 && Math.abs(pos.x - CUT_MID[3].x) < 23 && pos.y < 30 && Math.abs(pos.x - CUT_MID[3].x) > 9) inside++; }
+      out.wall = { inside, z: Math.round(pos.z) };
+      // the edges of the track turn you back in
+      startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; pos.set(lineX(-700) + 30, 20, -700); yaw = -0.9;
+      let maxOff = 0; for (let i = 0; i < 120; i++) { update(1 / 60); maxOff = Math.max(maxOff, Math.abs(pos.x - lineX(pos.z)) - halfW(pos.z)); }
+      out.edge = +maxOff.toFixed(2);
+      // the moving dangers each get you (a windmill sail, a stomping tombstone, a twister, a chandelier, a shut pumpkin gate), and an open gate is a boost
+      out.haz = {};
+      for (const h of hazards) {
+        if (out.haz[h.kind]) continue;
+        startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; friends.forEach(f => { f.z = 300; f.nextThrow = 99; });
+        let got = false, boost = false;
+        for (let k = 0; k < 400 && !(got && (boost || !h.through)); k++) {   // (a gate: until it's both bitten and been open)
+          const t = k * 0.05; h.update(t);
+          const q = h.kind === 'windmill' ? { x: h.x + Math.cos(h.ang + Math.PI / 2) * 12, y: h.y + Math.sin(h.ang + Math.PI / 2) * 12, z: h.z }
+            : h.kind === 'stomper' ? { x: h.x, y: Math.max(1.5, h.y + 4), z: h.z } : h.kind === 'twister' ? { x: h.x, y: 30, z: h.z }
+            : h.kind === 'chandelier' ? { x: h.cx, y: h.cy, z: h.z } : { x: h.x, y: h.y + 9, z: h.z };   // (a gate: on its rim)
+          if (h.hit(q)) got = true;
+          if (h.through && h.through({ x: h.x, y: h.y, z: h.z })) boost = true;
+        }
+        out.haz[h.kind] = { got, boost: h.through ? boost : null };
+      }
+      startGame(false); countT = 0; introT = 0; const st = hazards.find(h => h.kind === 'stomper'); st.update(1.3 - ((0) % 3.4)); pumpkinZ = 9999;
+      const ch = hazards.find(h => h.kind === 'chomper');
+      for (let i = 0; i < 600; i++) { pos.set(ch.x + 40, ch.y, ch.z + 40); slowT = 0; update(1 / 60); if (ch.open > 0.99) break; }   // wait for the gate to open
+      pos.set(ch.x, ch.y, ch.z + 1); slowT = 0; update(1 / 60);
+      out.chompBoost = P1.dashT > 1;
+      // a rocket start: hold boost as the 2 shows
+      startGame(false); for (let i = 0; i < 70; i++) update(1 / 60); keys.boost = true; while (countT > 0) update(1 / 60); keys.boost = false;
+      out.rocketStart = +P1.dashT.toFixed(2);
+      startGame(false); keys.boost = true; while (countT > 0) update(1 / 60); keys.boost = false;   // held from the 3: too early
+      out.tooEarly = { dash: P1.dashT, slow: slowT > 0 };
+      // a slipstream: tuck in right behind a witch
+      startGame(false); countT = 0; introT = 0; runT = 10; pumpkinZ = 9999;
+      const f = friends[0]; friends.slice(1).forEach(o => { o.z = 400; });
+      let slip = false;
+      for (let i = 0; i < 120 && !slip; i++) { f.knockT = 0; f.z = pos.z - 8; f.off = pos.x - lineX(f.z); f.offY = pos.y - lineY(f.z) - 0.3; f.ph = -clock * 0.35; f.base = 31; update(1 / 60); if (P1.dashT > 0) slip = true; }
+      out.slip = slip;
+      // the other witches take the shortcuts now and then
+      startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; pos.z = -50; let rivalCut = 0;
+      for (let i = 0; i < 60 * 150 && rivalCut < 1; i++) { pos.z = Math.min(...friends.map(q => q.z)) + 30; update(1 / 60); if (friends.some(q => q.cut && q.cutK > 0.9)) rivalCut++; }
+      out.rivalCut = rivalCut;
+      return out;
+    });
+    check(r.sections.length === 7 && r.sections[0] === 'castle' && r.sections[6] === 'lake', 'seven areas, from the castle to the lake: ' + JSON.stringify(r.sections));
+    for (const c of r.cuts) check(c.cut < c.line - 0.3 && c.counted && c.bumps <= 1, `the ${c.id} shortcut should be open (nothing in the way but its own swinging chandeliers) and faster than the racing line: ` + JSON.stringify(c));
+    check(r.cuts.find(c => c.id === 'highway').high > 75, 'the updraft lifts you up to the ring highway: ' + JSON.stringify(r.cuts));
+    check(r.dash.dashT > 0.8 && r.dash.speed > 40, 'a dash panel gives a burst of speed: ' + JSON.stringify(r.dash));
+    check(r.wall.inside === 0, 'walls are solid, even with the rocket: ' + JSON.stringify(r.wall));
+    check(r.edge < 0.5, 'the edges of the track keep you in: ' + r.edge);
+    for (const k of ['windmill', 'stomper', 'twister', 'chandelier', 'chomper']) check(r.haz[k] && r.haz[k].got, `the ${k} should be able to get you: ` + JSON.stringify(r.haz));
+    check(r.haz.chomper.boost && r.chompBoost, 'flying through an open pumpkin gate is a boost: ' + JSON.stringify(r));
+    check(r.rocketStart > 1 && !r.tooEarly.dash && r.tooEarly.slow, 'holding boost at the 2 gives a rocket start, too early a wobble: ' + JSON.stringify(r));
+    check(r.slip, 'tucking in behind a witch gives a slipstream boost');
+    check(r.rivalCut > 0, 'the other witches take shortcuts too');
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
+  await test('Witch Way Out 👥 three and four players: a corner each (three: the fourth is the pumpkin cam), each controller flies its own witch, everyone finishes', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+    await ctx.addInitScript(() => {   // four pretend controllers
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } });
+      window.__pads = [mk(0), mk(1), mk(2), mk(3)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    const title = await p.evaluate(() => ({ b3: !!document.getElementById('btnPlay3'), b4: !!document.getElementById('btnPlay4'), pads: document.getElementById('padCount').textContent }));
+    await p.click('#btnPlay3'); await p.waitForTimeout(300);
+    await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(400);
+    const three = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      spec: !document.getElementById('specTag').classList.contains('hidden'), racers: players.length, p4: P4.mesh.visible }));
+    await p.screenshot({ path: path.join(OUT, 'witch-3p.png') });
+    await p.evaluate(() => startGame(4)); await p.waitForTimeout(200);
+    await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(300);
+    // controller 4 steers Player 4 only; controller 3's Ⓧ throws Player 3's hat
+    const y0 = await p.evaluate(() => players.map(q => q.yaw));
+    await p.evaluate(() => { __pads[3].axes[0] = 1; }); await p.waitForTimeout(500);
+    const steer = await p.evaluate(() => players.map(q => q.yaw));
+    await p.evaluate(() => { __pads[3].axes[0] = 0; __pads[2].buttons[2] = { pressed: true, value: 1 }; }); await p.waitForTimeout(300);
+    await p.evaluate(() => { __pads[2].buttons[2] = { pressed: false, value: 0 }; });
+    const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
+    const four = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      spec: !document.getElementById('specTag').classList.contains('hidden'), racers: players.length, corners: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).map(h => { const b = h.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top)]; }) }));
+    await p.screenshot({ path: path.join(OUT, 'witch-4p.png') });
+    // all four fly the line to the moon
+    const race = await p.evaluate(() => {
+      for (let i = 0; i < 60 * 320 && state === 'fly'; i++) {
+        for (const q of players) {
+          const k = q.keys; k.l = k.r = k.u = k.d = false;
+          const z = q.pos.z - 35, wantYaw = Math.atan2(-(lineX(z) + (q.idx - 1.5) * 3 - q.pos.x), -(z - q.pos.z));
+          if (wantYaw - q.yaw < -0.05) k.r = true; else if (wantYaw - q.yaw > 0.05) k.l = true;
+          const wp = Math.atan2(lineY(z) - q.pos.y, 35);
+          if (wp - q.pitch > 0.05) k.u = true; else if (wp - q.pitch < -0.05) k.d = true;
+          if (q.strike && q.strike.t < 0.6) castShield(q);
+        }
+        update(1 / 60); if (i % 6 === 0) updateVisuals(1 / 60);
+      }
+      return { state, places: players.map(q => q.finishPlace), podium: document.querySelectorAll('.podium li').length, mine: document.querySelectorAll('.podium li.you').length, stats: document.getElementById('overStats').textContent };
+    });
+    check(title.b3 && title.b4 && /Four controllers/.test(title.pads), 'the title offers 3 and 4 players and sees four controllers: ' + JSON.stringify(title));
+    check(three.quad && three.huds === 3 && three.spec && three.racers === 3 && !three.p4, 'three players: three corners and the pumpkin cam: ' + JSON.stringify(three));
+    check(four.quad && four.huds === 4 && !four.spec && four.racers === 4 && new Set(four.corners.map(String)).size === 4, 'four players: a corner each: ' + JSON.stringify(four));
+    check(steer[3] < y0[3] - 0.05 && [0, 1, 2].every(i => Math.abs(steer[i] - y0[i]) < 0.03), 'controller 4 flies only Player 4: ' + JSON.stringify({ y0, steer }));
+    check(hats.length === 1 && hats[0] === 2, "controller 3's Ⓧ throws Player 3's hat: " + JSON.stringify(hats));
+    check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 9) && new Set(race.places).size === 4 && race.podium === 9 && race.mine === 4 && /P4/.test(race.stats), 'all four reach the moon and the results list them: ' + JSON.stringify(race));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
   await test('Pumpkin Pals: every level can be finished (a search over every place Patch can stand), and every lost pumpling and golden candy can be reached', async () => {
     const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
