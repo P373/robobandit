@@ -1171,7 +1171,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         if (out.haz[h.kind]) continue;
         startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; friends.forEach(f => { f.z = 300; f.nextThrow = 99; });
         let got = false, boost = false;
-        for (let k = 0; k < 400 && !got; k++) {
+        for (let k = 0; k < 400 && !(got && (boost || !h.through)); k++) {   // (a gate: until it's both bitten and been open)
           const t = k * 0.05; h.update(t);
           const q = h.kind === 'windmill' ? { x: h.x + Math.cos(h.ang + Math.PI / 2) * 12, y: h.y + Math.sin(h.ang + Math.PI / 2) * 12, z: h.z }
             : h.kind === 'stomper' ? { x: h.x, y: Math.max(1.5, h.y + 4), z: h.z } : h.kind === 'twister' ? { x: h.x, y: 30, z: h.z }
