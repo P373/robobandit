@@ -91,5 +91,6 @@ legend on the controller screen. The shared rows (pause, map, sound, guide, menu
 | Witch Way Out | boost | air brake | shield | boost | use power-up | throw hat | J throws the hat | Ctrl brakes; camera Z / X / R; 2 players: P1 W A S D, left Shift / Ctrl, Space, G hat, F power-up · P2 I J K L, right Shift / Ctrl, Enter, O hat, U power-up |
 | Lily Pad Lunch | snap | dive | hop | — | — | dive | J / left click snaps | A / D or mouse aim; S or Ctrl dives; LB / RB hop left / right; 2 players: P1 A / D, F, W, S · P2 J / L, Enter, I, K |
 | Lucky Leo | throw hat | crouch / ground pound | jump | run (and sparks) | hop off Shamrock | jump | J throws the hat | E drops the saved power-up (also LB) |
+| Pumpkin Pals | throw a pumpling | ground pound | jump | run | — | jump | J (or K) throws | W looks up to throw straight up; same layout as Lucky Leo |
 | ABC Train | speed up | slow down, then back up | go / stop | horn | get off / all aboard | stop (handbrake) | — | H / left-stick click horn; W / S throttle; A / D pick the way at a fork; C / RB camera view; Esc pauses |
 | Flight School | burner / thrust / action | — | action (stage, wake up, launch…) | action | — | — | — | W counts as "hold" in burner levels |

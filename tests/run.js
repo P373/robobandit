@@ -1340,7 +1340,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'pumpkin-pals.png');
   });
 
-  await test('Pumpkin Pals 🎮 controller and 📱 phone: Ⓐ starts and jumps, the stick walks, Ⓑ throws a pumpling; touch buttons do the same', async () => {
+  await test('Pumpkin Pals 🎮 controller and 📱 phone: Ⓐ starts and jumps, the stick walks, RT throws a pumpling; touch buttons do the same', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
@@ -1352,12 +1352,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const s2 = await p.evaluate(() => ({ state, id: lvl && lvl.id, x: player && player.x }));
     await padStick(p, 0.9, 0); await p.waitForTimeout(700); await padStick(p, 0, 0);
     const x2 = await p.evaluate(() => player.x);
-    await padTap(p, 'B'); await p.waitForTimeout(60);
+    await padTap(p, 'RT'); await p.waitForTimeout(60);
     const thrown = await p.evaluate(() => pals.some(q => q.st === 'thrown' || q.st === 'back'));
     await padTap(p, 'A'); await p.waitForTimeout(100);
     const jumped = await p.evaluate(() => !player.ground || player.vy < 0);
     check(s1 === 'map' && s2.state === 'level' && s2.id === 'patch', 'Ⓐ starts the game, then the first level: ' + JSON.stringify({ s1, s2 }));
-    check(x2 > s2.x + 30 && thrown && jumped, 'the stick walks, Ⓑ throws, Ⓐ jumps: ' + JSON.stringify({ x0: s2.x, x2, thrown, jumped }));
+    check(x2 > s2.x + 30 && thrown && jumped, 'the stick walks, RT throws, Ⓐ jumps: ' + JSON.stringify({ x0: s2.x, x2, thrown, jumped }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
     const ph = await open(browser, 'pumpkin-pals.html', PHONE);

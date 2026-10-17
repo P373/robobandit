@@ -66,13 +66,13 @@
   #tThrow { right: calc(max(14px, env(safe-area-inset-right)) + 100px); font-size: 26px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(240,122,26,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261016-1843">
+<link rel="stylesheet" href="common.css?v=20261017-1924">
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="topbar"></div>
 
-<div id="touch" class="hidden">
+<div id="touch" class="hidden rb-touch">
   <button id="tLeft" aria-label="Left">◀</button>
   <button id="tRight" aria-label="Right">▶</button>
   <button id="tDown" aria-label="Ground pound">▼</button>
@@ -85,12 +85,12 @@
     <h1>PUMPKIN <span>PALS</span></h1>
     <div class="sub">🎃 It's Halloween night, and the grumpy old scarecrow has scattered the little pumplings all over town! Help Patch find every one and bring them home in the pumpkin wagon.</div>
     <ol>
-      <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk (keep going and you'll speed up), <kbd>Space</kbd> or <kbd>Z</kbd> to jump. Hold <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk (keep going and you'll speed up), <b>A</b> to jump.</span> 🎮 Ⓐ jumps. Hold jump to go higher, and press it again in the air to <b>spin</b> a little higher!</li>
+      <li><b>Run and jump:</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> to walk (keep going and you'll speed up), <kbd>Space</kbd> to jump. Hold <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk (keep going and you'll speed up), <b>A</b> to jump.</span> 🎮 <b data-pad="A">Ⓐ</b> jumps, hold <b data-pad="X">Ⓧ</b> to run. Hold jump to go higher, and press it again in the air to <b>spin</b> a little higher!</li>
       <li><b>Find the lost pumplings.</b> Touch one and it joins your line, bouncing along behind you. Pumplings love candy corn… and talking nonsense. 🍬</li>
-      <li><b>Throw a pumpling</b> (<span class="key-only"><kbd>X</kbd> or <kbd>C</kbd>, </span>🎮 Ⓑ / Ⓧ / Ⓨ<span class="touch-only">, the 🎃 button</span>) to bonk bats, cats and skeletons, smash crates and bump blocks. Hold <b>up</b> to throw straight up. Don't worry: they always run back to you!</li>
+      <li><b>Throw a pumpling</b> (<span class="key-only"><kbd>J</kbd>, </span>🎮 <b data-pad="RT">RT</b><span class="touch-only">, the 🎃 button</span>) to bonk bats, cats and skeletons, smash crates and bump blocks. Hold <b>up</b> (<span class="key-only"><kbd>W</kbd></span><span class="touch-only">▲</span>, 🎮 stick up) to throw straight up. Don't worry: they always run back to you!</li>
       <li>👻 <b>Ghosts can't be stomped!</b> They sneak up when you look away and hide when you look at them. Turn and face them, then throw a pumpling to say BOO!</li>
       <li>💥 Get hit and a few pumplings scatter. Quick, grab them back! You only lose a life if you get hit with nobody left in your line.</li>
-      <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. It smashes crates and knocks out skeletons for good.</li>
+      <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) in the air. It smashes crates and knocks out skeletons for good.</li>
       <li>🍬 Grab candy corn (100 = an extra life), the <b>3 golden candies</b> in every level, and the 🌕 <b>moon candy</b> that makes you glow and unstoppable.</li>
       <li>🛒 Reach the <b>pumpkin wagon</b> at the end. Every pumpling you bring home is worth points!</li>
     </ol>
@@ -108,7 +108,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261016-1843"></script>
+<script src="common.js?v=20261017-1924"></script>
 <script>
 'use strict';
 // ===================== Pumpkin Pals =====================
@@ -357,33 +357,42 @@ const goldCount = () => Object.values(save.golds).reduce((a, gs) => a + gs.filte
 const palsIn = id => LEVELS[id].ents.filter(e => e.k === 'lost').length + [...LEVELS[id].t].filter(t => t === T.QPAL).length;
 
 // ---------- Input (like Lucky Leo's) ----------
-// Keys: ← → (or A / D) walk; Space, ↑, W or Z jump; Shift run; X, C, J or L throw a pumpling; ↓ / S ground pound; Enter starts.
+// Keys (the shared RoboBandit layout, see CONTROLS.md): A / D walk, W looks up (to throw straight up), S ground pounds,
+// Space jumps, Shift runs, J (or K) throws a pumpling, Esc pauses; on the map W A S D move and Space or Enter plays.
 const keys = { left: false, right: false, jump: false, run: false, down: false, up: false, throw: false };
 const pressed = { jump: false, start: false, left: false, right: false, up: false, down: false, throw: false };
-let downFrom = '';
-const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', Space: 'jump', ArrowUp: 'up', KeyW: 'up', KeyZ: 'jump', KeyK: 'jump',
-  ShiftLeft: 'run', ShiftRight: 'run', KeyX: 'throw', KeyC: 'throw', KeyJ: 'throw', KeyL: 'throw', ArrowDown: 'down', KeyS: 'down' };
-// 🎮 Ⓐ jump, Ⓑ / Ⓧ / Ⓨ throw a pumpling, RT / RB run, LT ground pound (a flat game: inverted sticks never apply)
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyX', 2: 'KeyX', 3: 'KeyX', 5: 'ShiftLeft', 6: 'KeyS', 7: 'ShiftLeft' },
-  '<b>Pumpkin Pals:</b> Ⓐ jump (hold to go higher; press again in the air to spin) · Ⓑ / Ⓧ / Ⓨ 🎃 throw a pumpling (hold up to throw it up) · RT / RB run · <b>LT</b> in the air: ground pound');
+let downFrom = '';   // which key pressed S: 'pad' for the controller's stick / D-pad (pushed to the side and a little down isn't a ground pound)
+const KEYMAP = { KeyA: 'left', KeyD: 'right', Space: 'jump', KeyW: 'up', ShiftLeft: 'run', ShiftRight: 'run', KeyJ: 'throw', KeyK: 'throw', KeyS: 'down' };
+// 🎮 Ⓐ / Ⓑ jump, Ⓧ run, RT (or RB) throw a pumpling, LT ground pound (a flat game: inverted sticks never apply)
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: null, 4: null, 5: 'KeyJ', 6: 'KeyS', 7: 'KeyJ', 10: null });
+RB.setControls({ name: 'Pumpkin Pals', camera: false, rows: [
+  { act: 'Walk', keys: 'A / D', pad: '{LS}', touch: '◀ ▶' },
+  { act: 'Look up (throw straight up)', keys: 'W', pad: '{LS} up' },
+  { act: 'Run', keys: 'hold Shift', pad: 'hold {X}', touch: 'keep walking' },
+  { act: 'Jump (hold = higher, again = spin)', keys: 'Space', pad: '{A}', touch: 'A button' },
+  { act: 'Throw a pumpling', keys: 'J (or K)', pad: '{RT} (or {RB})', touch: '🎃 button' },
+  { act: 'Ground pound (in the air)', keys: 'S', pad: '{LT}', touch: '▼' },
+  { act: 'Map: move / play a level', keys: 'W A S D, Space or Enter', pad: '{DPAD}, {A}', touch: 'tap a level, tap again' },
+] });
+const padLT = () => { try { const gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected); return !!(gp && gp.buttons[6] && gp.buttons[6].pressed); } catch (e) { return false; } };
+const downAlone = (l, r) => downFrom !== 'pad' || padLT() || !(l || r);
 let paused = false;
 addEventListener('keydown', e => {
-  const k = KEYMAP[e.code];
   RB.audio();
+  if (paused) { if (e.code === 'Escape') { e.preventDefault(); resume(); } return; }   // (Space / Enter press the focused Keep Playing)
+  const k = KEYMAP[e.code];
   if (k) {
     e.preventDefault();
     if (!keys[k]) {
       pressed[k] = true;
-      if (k === 'down') downFrom = e.code;
-      if (e.code === 'ArrowUp' || e.code === 'KeyW') pressed.up = true;
+      if (k === 'down') downFrom = e.isTrusted ? e.code : 'pad';   // the controller's keys are made up by common.js
+      if (e.code === 'KeyW') pressed.up = true;
     }
     keys[k] = true;
   }
   if (e.repeat) return;
-  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
   if (e.code === 'Enter') pressed.start = true;
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (e.code === 'Escape') pause();
 });
 addEventListener('keyup', e => { const k = KEYMAP[e.code]; if (k) keys[k] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
@@ -420,7 +429,7 @@ function stickUD() {
 }
 const input = () => {
   const left = keys.left || touchState.left, right = keys.right || touchState.right, sud = stickUD();
-  const down = touchState.down || sud > 0 || (keys.down && (downFrom !== 'ArrowDown' || !(left || right)));
+  const down = touchState.down || sud > 0 || (keys.down && downAlone(left, right));
   return { left, right, down, up: keys.up || sud < 0, jump: keys.jump || touchState.jump, run: keys.run, throw: keys.throw || touchState.throw };
 };
 canvas.addEventListener('pointerdown', e => { RB.audio(); if (state === 'map') mapTap(e.clientX, e.clientY); });
@@ -434,10 +443,10 @@ function pause() {
 function gameMenu() {
   const unpause = () => { if (paused) { paused = false; RB.hidePause(); last = performance.now(); } };
   if (state === 'level') return [
-    { label: '🗺️ Back to the map', onClick: () => { unpause(); goMap(lvl.id); } },
+    { label: '🗺️ Back to the map', map: true, onClick: () => { unpause(); goMap(lvl.id); } },
     { label: '🔄 Start this level again', onClick: () => { unpause(); checkpoint = null; startLevel(lvl.id); } },
   ];
-  if (state === 'map') return [{ label: '🏁 Title screen', onClick: () => { state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showBest(); showTouch(); music.play('map'); } }];
+  if (state === 'map') return [{ label: '🏁 Title screen', map: true, onClick: () => { state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showBest(); showTouch(); music.play('map'); } }];
   return [];
 }
 if (RB.setMenuItems) RB.setMenuItems(gameMenu);
@@ -972,7 +981,7 @@ function breakCrate(tx, ty) {
 const STEP = 1 / 60;
 function updatePlayer(dt) {
   const p = player, inp = input();
-  // keep holding a direction and Patch speeds up into a run (so phones run too); Shift / RT runs straight away
+  // keep holding a direction and Patch speeds up into a run (so phones run too); Shift / Ⓧ runs straight away
   const dirHeld = (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
   p.dash = dirHeld && dirHeld === p.face && p.ground ? p.dash + dt : dirHeld === p.face ? p.dash : 0;
   const run = inp.run || p.dash > 0.7, maxV = run ? 160 : 100, acc = p.ground ? 560 : 400;
@@ -999,7 +1008,7 @@ function updatePlayer(dt) {
   if (p.twirl > 0) p.twirl -= dt;
   if (p.ground) { p.spun = false; p.twirl = 0; }
   // the ground pound
-  if (!p.ground && pressed.down && (downFrom !== 'ArrowDown' || !(inp.left || inp.right)) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; sfx.spin(); }
+  if (!p.ground && pressed.down && downAlone(inp.left, inp.right) && !p.pound) { p.pound = 'spin'; p.poundT = 0; p.vx = 0; p.vy = 0; sfx.spin(); }
   if (p.pound === 'spin') { p.poundT += dt; p.vy = 0; p.vx = 0; if (p.poundT > 0.2) { p.pound = 'drop'; p.vy = 470; } }
   const grav = p.pound ? 0 : p.twirl > 0 ? 560 : p.vy < 0 && inp.jump ? 680 : 1500;
   p.vy = p.pound === 'drop' ? 470 : Math.min(p.vy + grav * dt, 300);
@@ -1527,7 +1536,7 @@ function drawHUD() {
     text(`${ORDER.indexOf(id) + 1}. ${L.name.toUpperCase()}`, s * 8, s * 26, 12, '#ffffff');
     text(`${save.cleared[id] ? '✔ DONE  ' : ''}🎃 ${save.found[id] || 0}/${palsIn(id)}  ✨ ${gs.filter(Boolean).length}/3`, s * 8, s * 40, 10, '#ffe8c0');
     text(`🎃 × ${lives}   ✨ ${goldCount()}`, s * 8, LH * s - s * 18, 12);
-    const hint = RB.touch ? 'TAP A LEVEL · TAP AGAIN TO PLAY' : RB.pad.connected ? '✚ MOVE · Ⓐ PLAY' : '← → MOVE · SPACE TO PLAY';
+    const hint = RB.touch ? 'TAP A LEVEL · TAP AGAIN TO PLAY' : RB.pad.connected ? RB.padText('{DPAD} MOVE · {A} PLAY') : 'W A S D MOVE · SPACE TO PLAY';
     if (RB.touch) text(hint, s * 8, s * 52, 8, '#ffffff'); else text(hint, W - s * 8, LH * s - s * 18, 10, '#ffffff', 'right');
     return;
   }
