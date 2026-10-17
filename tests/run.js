@@ -1649,7 +1649,39 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, and Cape Canaveral is the real ending', async () => {
+  await test('Lucky Leo World 6 (the Gulf Coast): crawfish, dragonflies and gator backs in the swamp, the pirogue and the steamboat set off with Leo aboard, streetcars and Mardi Gras floats carry him, and every level draws', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      paused = true; startGame(); lives = 9;
+      out.drawn = WORLDS[5].map(id => { startLevel(id); run(20); return lvl.id === id && phase === 'play' && !!SCENERY[lvl.theme] && !!SKIES[lvl.theme] && !!THEMES[lvl.theme] && !!SONGS[lvl.music]; });
+      // the pirogue in Honey Island Swamp and the steamboat on the Mississippi only set off once Leo steps aboard
+      const ride = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); const b = ents.find(e => e.k === 'boat'); run(30); const before = b.x;
+        player.x = b.x + 10; player.y = b.y - player.h - 2; player.vy = 0; run(120); return { still: before === b.x0, moved: b.x > b.x0 + 40, aboard: player.ride === b }; };
+      out.pirogue = ride('bayou'); out.steamboat = ride('river');
+      // a streetcar carries Leo along in the French Quarter
+      startLevel('quarter'); ents = ents.filter(e => !isEnemy(e)); const car = ents.find(e => e.k === 'plat' && e.look === 'streetcar');
+      player.x = car.x + 8; player.y = car.y - player.h - 1; player.vy = 0; const x0 = player.x; run(90); out.streetcar = player.ride === car && Math.abs(player.x - x0) > 4;
+      out.looks = ['streetcar', 'float'].every(k => LEVELS.quarter.ents.some(e => e.look === k));
+      // crawfish and dragonflies are the Gulf's own critters; a stomp still squashes a crawfish
+      startLevel('mobile'); ents = ents.filter(e => !isEnemy(e) || e.k === 'crab'); const cf = ents.find(e => e.k === 'crab');
+      player.x = cf.x; player.y = cf.y - 30; player.vy = 150; run(10); out.crawfish = { gulf: GULF.has(lvl.theme), stomped: !ents.includes(cf) || cf.dead || cf.squish > 0 };
+      out.swamp = SWAMP.has('bayou') && SWAMP.has('basin') && LEVELS.bayou.ents.some(e => e.k === 'sponge') && LEVELS.basin.dark;
+      out.map = WORLDS[5].every(id => node(id).map === 'fl' && node(id).y > 40);
+      paused = false; return out;
+    });
+    check(r.drawn.every(Boolean), 'every Gulf Coast level starts and has its own scenery, sky, ground and music: ' + JSON.stringify(r.drawn));
+    check(r.pirogue.still && r.pirogue.moved && r.steamboat.still && r.steamboat.moved, 'the pirogue and the steamboat wait for Leo, then carry him off: ' + JSON.stringify(r));
+    check(r.streetcar && r.looks, 'the streetcar carries Leo, and the Quarter has streetcars and Mardi Gras floats: ' + JSON.stringify(r));
+    check(r.crawfish.gulf && r.crawfish.stomped, 'a crawfish can be stomped: ' + JSON.stringify(r.crawfish));
+    check(r.swamp, 'the swamps have dragonflies and gator backs, and the Atchafalaya is dark: ' + JSON.stringify(r));
+    check(r.map, 'the Gulf Coast levels are on the map of Florida, clear of the names at the top: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-gulf.png');
+  });
+
+  await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, on along the Gulf Coast, and the Sabine River at the Texas line is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
@@ -1662,9 +1694,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const w2 = end('fort'); w2.snow = nodeOpen(node('snow')); w2.sky = nodeOpen(node('sky')); w2.beaten2 = save.beaten2;
       const w3 = end('castle'); w3.orchard = nodeOpen(node('orchard')); w3.niagara = nodeOpen(node('niagara')); w3.beaten3 = save.beaten3; w3.walk = !FLIGHT_PATHS.has('castle|orchard');
       const w4 = end('liberty'); w4.miami = nodeOpen(node('miami')); w4.reef = nodeOpen(node('reef')); w4.flight = FLIGHT_PATHS.has('liberty|miami'); w4.map = node('miami').map; w4.beaten4 = save.beaten4;
-      const w5 = end('canaveral'); w5.beaten5 = save.beaten5; w5.space = nodeOpen(node('space')); w5.levels = WORLDS[4].length;
+      const w5 = end('canaveral'); w5.beaten5 = save.beaten5; w5.space = nodeOpen(node('space')); w5.levels = WORLDS[4].length; w5.mobile = nodeOpen(node('mobile')); w5.bayou = nodeOpen(node('bayou')); w5.flight = FLIGHT_PATHS.has('canaveral|mobile');
+      const w6 = end('sabine'); w6.beaten6 = save.beaten6; w6.levels = WORLDS[5].length; w6.names = WORLDS[5].map(id => node(id).region); w6.texas = /Texas/.test(document.querySelector('#ending .sub').textContent);
       const regions = Object.fromEntries(['shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle', 'orchard'].map(id => [id, node(id).region]));
-      return { start, w1, w2, w3, w4, w5, regions, castillo: LEVELS.castillo.ents.find(e => e.k === 'boss').kind, slippery: !!LEVELS.snow.slippery,
+      return { start, w1, w2, w3, w4, w5, w6, regions, castillo: LEVELS.castillo.ents.find(e => e.k === 'boss').kind, slippery: !!LEVELS.snow.slippery,
         allListed: WORLDS.flat().every(id => ORDER.includes(id) && node(id)), names: WORLD_NAMES.slice(0, 3) };
     });
     check(r.start.at === 'canal' && r.start.canal && !r.start.shore && !r.start.hills && r.start.tag === '1-1', 'Leo starts on Cape Cod at the Bourne Bridge (1-1): ' + JSON.stringify(r.start));
@@ -1672,7 +1705,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.w2.hp === 4 && r.w2.kind === 'yeti' && /WORLD 2/.test(r.w2.title) && /World 3/.test(r.w2.btn) && r.w2.snow && !r.w2.sky && r.w2.beaten2 && r.slippery, 'the Frost Fortress in Maine (the Frost Yeti, 4 hits) ends World 2 and opens the White Mountains: ' + JSON.stringify(r.w2));
     check(r.w3.hp === 5 && r.w3.kind === 'grumbles' && /WORLD 3/.test(r.w3.title) && /World 4/.test(r.w3.btn) && r.w3.orchard && !r.w3.niagara && r.w3.walk && r.w3.beaten3, 'Gillette Castle in Connecticut (King Grumbles, 5 hits) ends World 3 and the path runs on into New York: ' + JSON.stringify(r.w3));
     check(r.w4.hp === 6 && /WORLD 4/.test(r.w4.title) && /World 5/.test(r.w4.btn) && r.w4.miami && !r.w4.reef && r.w4.flight && r.w4.map === 'fl' && r.w4.beaten4, 'the Statue of Liberty (6 hits) ends World 4, and a flight opens Miami Beach on the map of Florida: ' + JSON.stringify(r.w4));
-    check(r.w5.hp === 7 && /GOLD/.test(r.w5.title) && r.w5.beaten5 && r.w5.space && r.w5.levels === 10 && r.castillo === 'gator', 'Cape Canaveral is the toughest, final ending, with a bonus trip to space: ' + JSON.stringify(r.w5));
+    check(r.w5.hp === 7 && /WORLD 5/.test(r.w5.title) && /World 6/.test(r.w5.btn) && r.w5.beaten5 && r.w5.space && r.w5.levels === 10 && r.castillo === 'gator' && r.w5.mobile && !r.w5.bayou && r.w5.flight, 'Cape Canaveral ends World 5, opens the bonus trip to space, and a flight west opens Mobile Bay: ' + JSON.stringify(r.w5));
+    check(r.w6.hp === 8 && /GOLD/.test(r.w6.title) && r.w6.beaten6 && r.w6.levels === 6 && r.w6.texas && r.w6.names[0] === 'Alabama' && r.w6.names.includes('New Orleans'), 'the Sabine River Bridge (King Grumbles, 8 hits) is the real ending, with Texas coming soon: ' + JSON.stringify(r.w6));
     check(r.regions.shore === 'Maine' && r.regions.night === 'Maine' && r.regions.fort === 'Maine' && r.regions.snow === 'New Hampshire' && r.regions.sky === 'Vermont' && r.regions.caves === 'Vermont' && r.regions.hills === 'Connecticut' && r.regions.castle === 'Connecticut', 'the levels sit in Maine, New Hampshire, Vermont and Connecticut: ' + JSON.stringify(r.regions));
     check(r.allListed && /Cape Cod/.test(r.names[0]) && /Maine/.test(r.names[1]), 'every level is on the map and in the list: ' + JSON.stringify(r.names));
     await done(p, 'lucky-leo-world2.png');
@@ -1780,7 +1814,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         }
         keys.left = keys.right = keys.run = false; return bs.hp;
       };
-      out.stomps = {}; for (const id of ['castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral']) out.stomps[id] = stompAll(id); out.stomps.hurts = hurts;
+      out.stomps = {}; for (const id of ['castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral', 'sabine']) out.stomps[id] = stompAll(id); out.stomps.hurts = hurts;
       startLevel('castle'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const side = ents.find(e => e.k === 'boss'); run(5);
       hurts = 0; side.jumpT = side.throwT = 9; player.inv = 0; player.x = side.x - player.w + 4; player.y = side.y + side.h - player.h; player.vy = 0; run(1); out.sideHurts = hurts > 0;
       hurtPlayer = realHurt;

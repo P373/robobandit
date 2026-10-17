@@ -90,7 +90,7 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>LUCKY <span>LEO</span></h1>
-    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp from Cape Cod up to the coast of Maine, over the mountains of New Hampshire and Vermont, down through Connecticut to New York, and all the way to sunny Florida, to get it all back.</div>
+    <div class="sub">☘️ King Grumbles stole Leo's pot of gold! Run, jump and stomp from Cape Cod up to the coast of Maine, over the mountains of New Hampshire and Vermont, down through Connecticut to New York, all the way to sunny Florida and along the Gulf Coast to Louisiana, to get it all back.</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
@@ -101,6 +101,7 @@
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>X</kbd></span><span class="touch-only"><b>B</b></span>), and a <b>lucky horseshoe</b> makes him unstoppable. Now and then there's a <b>rainbow-striped block</b>: bump it and a really long rainbow grows up into the sky. Jump on it to ride up to a <b>secret place above the clouds</b>, full of power-ups and coins, with a rainbow gem!</li>
       <li>🗽 After Cape Cod, Leo flies to <b>New York</b>: an apple orchard, Niagara Falls, the George Washington Bridge (watch out for taxis!), the rooftops of Manhattan (find the gap you can only climb by wall-kicking) and the Statue of Liberty. Watch for new bosses: the <b>Frost Yeti</b> and <b>Captain Pinch</b>!</li>
       <li>🌴 Then it's down to <b>Florida</b>: Miami Beach, a coral reef, Key West, the Everglades, St. Pete Pier, the mermaids of Weeki Wachee Springs, a theme park, the old fort at St. Augustine, Daytona Beach and Cape Canaveral. Meet herons and flamingos (small Leo can run right under their long legs, but watch the beak!), alligators, snakes, puffer fish, roosters, race cars, and gentle manatees you can ride.</li>
+      <li>🎺 And on along the <b>Gulf Coast</b>: the mossy live oaks of Mobile Bay, the bayous of Honey Island Swamp (pole a pirogue and hop the gator backs!), the French Quarter in New Orleans (ride the streetcar and the Mardi Gras floats), a paddle-wheel steamboat up the Mississippi, the Atchafalaya swamp by firefly light, and a showdown at the Sabine River, where Texas begins. Watch out for crawfish!</li>
       <li>🌊 Water won't hurt Leo: he <b>swims</b>! Press jump to paddle up, and jump at the surface to leap out. In Cranberry Bog the squishy bog mats sink under your feet… and one of them goes all the way down. 🐸</li>
       <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
       <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… and a <b>secret exit</b> for anyone who can find another way to the end. 🤫</li>
@@ -691,6 +692,101 @@ LEVELS.space = builder('space', 'Outer Space', 'space', 176)
   .gems(22, 5, 38, 0, 58, 0, 98, 6, 114, 0)
   .done({ goal: 162, music: 'space', lowGrav: true });
 
+// ---- World 6: the Gulf Coast (Leo flies west from Cape Canaveral, across Alabama, Mississippi and Louisiana to the Texas line) ----
+// New friends and foes: crawfish scuttling in the mud, gators and snakes in the bayou, gar leaping out of the Mississippi,
+// pirogues and a paddle-wheel steamboat to ride, streetcars and Mardi Gras floats in New Orleans, and fireflies in the swamp.
+// 6-1. Mobile Bay: giant live oaks dripping with Spanish moss, azaleas in bloom, the old battleship out on the bay
+LEVELS.mobile = builder('mobile', 'Mobile Bay', 'oaks', 212)
+  .ground(0, 211).gap(38, 41).gap(92, 95).gap(150, 153)
+  .at(8, 8, '?PC').e('grumblin', 15, 11).e('snaily', 22, 11)
+  .at(26, 8, '-----').at(31, 5, '-----').coins(31, 4, 5).e('buzzer', 34, 2)
+  .arc(37, 8, 6).e('heron', 48, 11).at(52, 8, 'B?B?B').e('grumblin', 58, 11)
+  .stairs(64, 4).fill(68, 72, 8, 11, T.STONE).e('snaily', 70, 7).stairs(73, 4, false)
+  .e('crab', 80, 11).e('grumblin', 86, 11).arc(91, 8, 6).e('mid', 100, 11).at(104, 8, '?Y?').e('heron', 110, 11)
+  .at(116, 9, '----').at(121, 6, '----').at(126, 3, '----').coins(126, 2, 4).e('buzzer', 122, 3)
+  .e('spring', 134, 11).e('grumblin', 138, 11).e('crab', 144, 11)
+  .arc(149, 8, 6).at(158, 8, '?S?').e('snaily', 164, 11).e('heron', 170, 11).e('crab', 176, 11).e('grumblin', 180, 11).stairs(186, 5)
+  .gems(9, 5, 33, 3, 70, 5, 127, 1, 159, 5)
+  .done({ goal: 200, music: 'oaks' });
+
+// 6-2. Honey Island Swamp: the bayou. Cypress knees and misty green water, gators and snakes on the hummocks, gator backs
+// that sink as you cross, and a pirogue (a little flat Cajun boat) to pole across the open water
+LEVELS.bayou = builder('bayou', 'Honey Island Swamp', 'bayou', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 20).ground(26, 40).ground(46, 56).ground(110, 124).ground(130, 142).ground(178, 213)
+  .at(8, 8, '?PC').e('heron', 14, 11).e('snake', 18, 11)
+  .e('sponge', 21, 12, { w: 3 }).at(30, 8, 'B?B').e('gator', 36, 11)
+  .e('sponge', 41, 12, { w: 3 }).at(48, 8, '?Y?').e('crab', 53, 11)
+  .e('boat', 57, 12, { w: 5, to: 104, sp: 56 }).coins(66, 8, 4).e('buzzer', 72, 6).at(78, 8, '?M?').e('buzzer', 90, 5).coins(94, 8, 4)
+  .e('mid', 113, 11).at(116, 8, '?L?').e('gator', 120, 11)
+  .e('sponge', 125, 12, { w: 3 }).e('snake', 134, 11).e('heron', 139, 11)
+  .e('fall', 145, 10, { w: 3 }).e('sponge', 150, 12, { w: 3 }).e('fall', 155, 9, { w: 3 }).e('sponge', 160, 12, { w: 3 }).e('fall', 166, 10, { w: 3 }).e('sponge', 171, 12, { w: 3 })
+  .coins(150, 7, 10).at(184, 8, '?S?').e('crab', 190, 11).e('gator', 194, 11).stairs(198, 5)
+  .gems(9, 5, 31, 5, 79, 5, 117, 5, 161, 6)
+  .done({ goal: 206, music: 'bayou' });
+
+// 6-3. The French Quarter: New Orleans. Wrought-iron balconies, gas lamps, a jazz band on the corner; ride the St. Charles
+// streetcar and the Mardi Gras floats over the gaps, and catch the beads (they're coins!)
+LEVELS.quarter = builder('quarter', 'French Quarter', 'quarter', 214)
+  .ground(0, 30).ground(36, 62).ground(74, 98).ground(110, 134).ground(146, 170).ground(176, 213)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 26, 6)
+  .at(18, 8, '----').at(23, 5, '----').coins(23, 4, 4)
+  .e('plat', 31, 10, { w: 3, dx: 1, sp: 1, look: 'streetcar' })
+  .at(40, 8, 'B?B').e('snaily', 46, 11).e('grumblin', 51, 11).at(54, 8, '----').at(58, 5, '----').coins(58, 4, 4)
+  .e('plat', 65, 9, { w: 3, dx: 3, sp: 1, look: 'float' })
+  .at(78, 8, '?Y?').e('crab', 84, 11).e('grumblin', 90, 11).e('buzzer', 94, 6)
+  .e('plat', 101, 9, { w: 3, dx: 3, sp: 1.1, look: 'float' })
+  .e('mid', 114, 11).at(118, 8, '?L?').e('snaily', 124, 11).at(126, 8, '----').at(130, 5, '----').coins(130, 4, 4).e('grumblin', 132, 11)
+  .e('plat', 138, 10, { w: 3, dx: 3, sp: 1, look: 'streetcar' })
+  .at(150, 8, 'BMB').e('crab', 156, 11).e('grumblin', 162, 11).e('spring', 166, 11).coins(164, 3, 5)
+  .at(180, 8, '?S?').e('snaily', 186, 11).e('grumblin', 190, 11).stairs(194, 5)
+  .gems(9, 5, 24, 3, 59, 3, 131, 3, 181, 5)
+  .done({ goal: 206, music: 'jazz' });
+
+// 6-4. Old Man River: up the Mississippi on a paddle-wheel steamboat. It sets off once Leo is aboard: jump the gar that
+// leap out of the muddy water, and bump the blocks floating by
+LEVELS.river = builder('river', 'Mississippi Steamboat', 'river', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 8).ground(188, 199)
+  .at(3, 8, '?PC').e('boat', 9, 12, { w: 9, to: 178, sp: 40 })
+  .coins(16, 8, 4).e('tarpon', 28, 12).at(36, 8, '?B?').e('buzzer', 44, 6).e('tarpon', 52, 12)
+  .arc(58, 8, 6).at(68, 8, 'BMB').e('tarpon', 78, 12).e('buzzer', 86, 5).e('mid', 96, 11)
+  .at(108, 8, '?L?').e('tarpon', 118, 12).e('buzzer', 126, 6).arc(132, 8, 6).e('tarpon', 142, 12)
+  .at(150, 8, '?S?').e('buzzer', 158, 6).e('tarpon', 166, 12).coins(170, 8, 5)
+  .gems(20, 7, 37, 5, 69, 5, 109, 5, 151, 5)
+  .done({ goal: 194, music: 'river' });
+
+// 6-5. Atchafalaya Basin: the biggest swamp in America, at night. Fireflies, the moon through the cypress, boardwalks
+// over the black water, and gator eyes glinting
+LEVELS.basin = builder('basin', 'Atchafalaya Basin', 'basin', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 22).ground(30, 44).ground(60, 72).ground(96, 112).ground(128, 140).ground(170, 213)
+  .at(8, 8, '?PC').e('snake', 16, 11)
+  .e('sponge', 23, 12, { w: 3 }).e('buzzer', 26, 7)
+  .at(34, 8, 'B?B').e('gator', 40, 11)
+  .at(45, 10, '---').at(50, 8, '---').at(55, 10, '---').coins(50, 7, 3).e('buzzer', 52, 5)
+  .at(64, 8, '?Y?').e('crab', 68, 11)
+  .e('plat', 74, 9, { w: 3, dx: 3, sp: 0.9 }).e('fall', 82, 10, { w: 3 }).e('plat', 88, 9, { w: 3, dy: 2, sp: 1 })
+  .e('mid', 100, 11).at(104, 8, '?L?').e('gator', 108, 11)
+  .e('sponge', 113, 12, { w: 3 }).e('sponge', 118, 12, { w: 3 }).e('sponge', 123, 12, { w: 3 })
+  .e('heron', 134, 11)
+  .at(141, 9, '---').at(146, 7, '---').at(151, 9, '---').at(156, 7, '---').at(161, 9, '---').at(166, 10, '---')
+  .coins(146, 6, 3).coins(156, 6, 3).e('buzzer', 150, 4).e('buzzer', 160, 5)
+  .at(176, 8, '?S?').e('snake', 182, 11).e('gator', 188, 11).stairs(194, 5)
+  .gems(9, 5, 35, 5, 51, 5, 105, 5, 157, 4)
+  .done({ goal: 206, music: 'basin', dark: true });
+
+// 6-6. The Sabine River: the old steel bridge into Texas, at sunset. King Grumbles makes his last stand on this side of the
+// river (eight hits!) before he runs off into Texas
+LEVELS.sabine = builder('sabine', 'Sabine River Bridge', 'sabine', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 22).ground(28, 50).ground(56, 76).ground(82, 104).ground(110, 136).ground(142, 199)
+  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .e('plat', 23, 10, { w: 2, dx: 1, sp: 1 }).e('heron', 36, 11).e('snake', 44, 11)
+  .at(52, 8, 'B?B').e('gator', 66, 11).at(72, 8, 'BSB')
+  .e('plat', 77, 9, { w: 2, dy: 2, sp: 1 }).e('mid', 86, 11).e('crab', 94, 11).e('grumblin', 100, 11)
+  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?L?').e('snake', 126, 11).e('buzzer', 132, 6)
+  .e('fall', 137, 10, { w: 3 })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 8, kind: 'grumbles' })
+  .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
+  .done({ goal: 0, boss: true, music: 'sabine' });
+
 // Under the Bog: down below Cranberry Bog, a world of frogs, tadpoles, turtles and minnows; its secret exit opens a road along the Cape to Nauset Dunes
 LEVELS.cranberryDeep = builder('cranberryDeep', 'Under the Bog', 'deep', 96)
   .fill(0, 95, 0, 11, T.WATER).ground(0, 95).fill(0, 0, 0, 13, T.GROUND).fill(95, 95, 0, 13, T.GROUND)
@@ -729,7 +825,7 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
   L.ents.push({ k: 'warp', x, y: top, room, out });
 }
 
-const ORDER = ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'bonus', 'woods', 'hills', 'castle', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'space'];
+const ORDER = ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'vineyard', 'nantucket', 'shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'bonus', 'woods', 'hills', 'castle', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'space', 'mobile', 'bayou', 'quarter', 'river', 'basin', 'sabine'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -892,6 +988,20 @@ const SONGS = {
   space: { bpm: 96, key: 60, mode: 'major', beat: 3, lead: 'soft', melody: [
     7, null, 11, 14, null, 11, 9, null, 7, 4, null, null, 5, null, 9, 11, null, 9, 7, null, 4, 7, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
 };
+Object.assign(SONGS, {
+  oaks: { bpm: 104, key: 62, mode: 'major', beat: 3, lead: 'flute', melody: [   // a lazy Southern waltz under the oaks
+    4, null, 7, 9, null, 7, 4, null, 2, 0, null, null, 2, null, 4, 7, null, 9, 11, null, 9, 7, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
+  bayou: { bpm: 126, key: 62, mode: 'major', beat: 4, lead: 'reed', melody: [   // a Cajun two-step on the accordion
+    0, 2, 4, 4, 4, null, 2, 4, 5, null, 4, 2, 0, null, null, null, 4, 5, 7, 7, 7, null, 5, 4, 2, null, 4, 2, 0, null, null, null], bass: [0, 4, 0, 4, 3, 4, 0, 4] },
+  jazz: { bpm: 112, key: 60, mode: 'dorian', beat: 4, lead: 'reed', melody: [   // a second-line march for the parade
+    0, null, 2, 4, null, 4, 3, 2, 0, null, -2, 0, 2, null, null, null, 4, null, 6, 7, null, 7, 6, 4, 2, null, 0, 2, 0, null, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 4] },
+  river: { bpm: 96, key: 65, mode: 'major', beat: 4, lead: 'flute', melody: [   // rollin' on the river
+    0, null, 0, 2, 4, null, 4, null, 5, 4, 2, null, 0, null, null, null, 4, null, 4, 5, 7, null, 7, null, 9, 7, 5, 4, 2, null, null, null], bass: [0, 0, 3, 3, 4, 4, 0, 0] },
+  basin: { bpm: 84, key: 57, mode: 'minor', beat: 3, lead: 'soft', melody: [   // a hushed night in the swamp
+    0, null, 2, 3, null, 2, 0, null, -2, -3, null, null, 0, null, 2, 4, null, 3, 2, null, 0, null, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+  sabine: { bpm: 120, key: 57, mode: 'minor', beat: 4, lead: 'pulse', melody: [   // a showdown at sunset
+    0, null, 0, 2, 3, null, 2, 0, 7, null, 5, null, 3, null, null, null, 0, null, 0, 2, 3, null, 5, 7, 8, null, 7, 5, 4, null, null, null], bass: [0, 0, 5, 5, 3, 3, 4, 4] },
+});
 const MODES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10] };
 const music = (() => {
   let out = null, timer = null, song = null, step = 0, nextT = 0;
@@ -981,7 +1091,7 @@ const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('ll_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5 };
+  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6 };
 })();
 function persist() {
   RB.store.set('ll_save', JSON.stringify(save));
@@ -1389,6 +1499,12 @@ const AIR = {
   stpete: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -4 },
   daytona: { n: 12, c: ['#f2dca0', '#fff4d8'], kind: 'spray', vx: -30, vy: 0 },                                 // blowing sand
   park: { n: 18, c: ['#ff5a8a', '#ffe14a', '#5ad0ff', '#7aff8a'], kind: 'petal', vx: -6, vy: 10 },               // confetti
+  oaks: { n: 10, c: ['#ff8ab8', '#ffffff', '#ff5a8a'], kind: 'petal', vx: -10, vy: 8 },                          // azalea petals
+  bayou: { n: 12, c: ['#e8ff8a', '#ffffff'], kind: 'mote', vx: 3, vy: -2 },
+  quarter: { n: 18, c: ['#9a4ad8', '#3ab84a', '#ffd23a'], kind: 'petal', vx: -6, vy: 10 },                       // Mardi Gras confetti: purple, green and gold
+  river: { n: 8, c: ['#ffffff'], kind: 'wisp', vx: -16, vy: 0 },                                                // the steamboat's smoke drifting by
+  basin: { n: 24, c: ['#eaff6a', '#c8ff4a'], kind: 'mote', vx: 3, vy: -3 },                                      // fireflies
+  sabine: { n: 10, c: ['#e8a040', '#d8502e', '#f0c060'], kind: 'leaf', vx: -12, vy: 12 },
 };
 function drawAirborne(cx, t) {
   const a = lvl && AIR[lvl.theme];
@@ -1547,7 +1663,7 @@ function drawPoop(e, t) {
 }
 
 const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor']);   // (seagulls, and blue water)
-const BIGCITY = new Set(['gwb', 'city']);   // (pigeons)
+const BIGCITY = new Set(['gwb', 'city', 'quarter']);   // (pigeons)
 function drawPigeon(x, y, t, face) {   // a New York pigeon: grey, with a shimmery green-purple neck
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
   const flap = Math.sin(t * 13);
@@ -1722,7 +1838,9 @@ function drawCrabBoss(x, y, t, face, hurt) {
 }
 // ---- World 5's characters (Florida) ----
 const FL_SEA = new Set(['deco', 'keys', 'stpete', 'daytona', 'cape', 'castillo']);              // turquoise Florida water
-const PELICANS = new Set(['deco', 'keys', 'glades', 'stpete', 'castillo', 'daytona', 'cape']);   // brown pelicans instead of bees
+const PELICANS = new Set(['deco', 'keys', 'glades', 'stpete', 'castillo', 'daytona', 'cape', 'oaks', 'river', 'sabine']);   // brown pelicans instead of bees
+const GULF = new Set(['oaks', 'bayou', 'quarter', 'river', 'basin', 'sabine']);   // World 6: crawfish instead of crabs
+const SWAMP = new Set(['bayou', 'basin']);                                           // dragonflies instead of bees; gator backs to hop
 const HERMITS = new Set(['deco', 'keys', 'stpete', 'daytona', 'reef', 'castillo']);              // hermit crabs instead of snails
 const FLAMINGOS = new Set(['deco', 'keys']);                                                     // the tall-legged birds are pink here
 function drawPelican(x, y, t, face) {   // a brown pelican: a big bill with a pouch, gliding on slow flaps
@@ -1936,6 +2054,23 @@ function drawPlatLook(e, t) {   // the special moving platforms: a manatee, a ro
     g.beginPath(); g.arc(x + w + 2, y + 6, 3.4, -1.2, 1.2); g.lineWidth = 1.6; g.strokeStyle = '#c84aa0'; g.stroke();
     return true;
   }
+  if (e.look === 'streetcar') {   // a green New Orleans streetcar with red trim, its pole reaching up to the wire
+    rrect(x - 1, y, w + 2, 12, 2); g.fillStyle = vgrad(y, y + 12, '#3a9a5a', '#1e6a3a'); g.fill(); g.lineWidth = 0.8; g.strokeStyle = '#123a22'; g.stroke();
+    g.fillStyle = '#c8302a'; g.fillRect(x - 1, y + 9, w + 2, 1.6);
+    g.fillStyle = '#fff4c8'; for (let wx = x + 3; wx < x + w - 4; wx += 7) g.fillRect(wx, y + 2.5, 5, 4.5);
+    g.strokeStyle = '#3a3a42'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + w / 2, y); g.lineTo(x + w / 2 + 8, y - 14); g.stroke();
+    for (const wx of [x + 5, x + w - 5]) { g.beginPath(); g.arc(wx, y + 12.5, 2, 0, TAU); g.fillStyle = '#2a2a32'; g.fill(); }
+    return true;
+  }
+  if (e.look === 'float') {   // a Mardi Gras float: purple, green and gold, with a big jester's crown on top
+    rrect(x - 2, y, w + 4, 11, 2); g.fillStyle = vgrad(y, y + 11, '#9a4ad8', '#6a2aa8'); g.fill();
+    g.save(); rrect(x - 2, y, w + 4, 11, 2); g.clip(); for (let k = -1; k < w / 6 + 1; k++) { g.fillStyle = k % 2 ? '#3ab84a' : '#ffd23a'; g.beginPath(); g.moveTo(x + k * 6, y + 11); g.lineTo(x + k * 6 + 3, y + 6); g.lineTo(x + k * 6 + 6, y + 11); g.fill(); } g.restore();
+    g.fillStyle = '#ffd23a'; g.fillRect(x - 2, y, w + 4, 1.6);
+    const cx = x + w / 2, bob = Math.sin(t * 3 + e.x) * 1;
+    g.beginPath(); g.moveTo(cx - 8, y); g.lineTo(cx - 9, y - 8 + bob); g.lineTo(cx - 4, y - 4 + bob); g.lineTo(cx, y - 10 + bob); g.lineTo(cx + 4, y - 4 + bob); g.lineTo(cx + 9, y - 8 + bob); g.lineTo(cx + 8, y); g.closePath(); g.fillStyle = '#ffd23a'; g.fill(); g.lineWidth = 0.6; g.strokeStyle = '#a87a10'; g.stroke();
+    for (const [bx, c] of [[-9, '#9a4ad8'], [0, '#3ab84a'], [9, '#9a4ad8']]) { g.beginPath(); g.arc(cx + bx, y - 9 + bob - (bx ? 0 : 2), 1.4, 0, TAU); g.fillStyle = c; g.fill(); }
+    return true;
+  }
   if (e.look === 'gantry') {
     g.strokeStyle = '#8a8a98'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x + 3, y); g.lineTo(x + 3, -10); g.moveTo(x + w - 3, y); g.lineTo(x + w - 3, -10); g.stroke();
     rrect(x, y, w, 7, 1); g.fillStyle = vgrad(y, y + 7, '#e0e0e8', '#8a8a98'); g.fill();
@@ -1943,6 +2078,46 @@ function drawPlatLook(e, t) {   // the special moving platforms: a manatee, a ro
     return true;
   }
   return false;
+}
+function drawPirogue(e, t) {   // a pirogue: a long, low wooden Cajun canoe, with a pole and a lantern
+  const x = e.x, y = e.y, w = e.w;
+  g.beginPath(); g.moveTo(x - 6, y - 1); g.lineTo(x + w + 6, y - 1); g.quadraticCurveTo(x + w, y + 9, x + w - 8, y + 9); g.lineTo(x + 8, y + 9); g.quadraticCurveTo(x, y + 9, x - 6, y - 1); g.closePath();
+  g.fillStyle = vgrad(y, y + 9, '#a87a4a', '#6a4a2a'); g.fill(); g.lineWidth = 0.8; g.strokeStyle = '#3a2614'; g.stroke();
+  g.fillStyle = '#c89a62'; g.fillRect(x - 4, y - 1, w + 8, 1.4);
+  g.strokeStyle = '#8a6a3a'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x + w - 6, y - 1); g.lineTo(x + w + 4, y - 26); g.stroke();
+  g.fillStyle = '#3a3a42'; g.fillRect(x + 3, y - 9, 1, 8); glow(x + 3.5, y - 10, 8, 'rgba(255,210,110,1)', 0.5); rrect(x + 1.5, y - 13, 4, 5, 1); g.fillStyle = '#ffe08a'; g.fill();
+}
+function drawSteamboat(e, t) {   // a paddle-wheel steamboat: white decks with gingerbread railings, two tall smokestacks and a big red wheel at the back
+  const x = e.x, y = e.y, w = e.w, spin = e.go ? t * 4 : 0;
+  g.beginPath(); g.moveTo(x - 4, y); g.lineTo(x + w + 12, y); g.quadraticCurveTo(x + w + 6, y + 10, x + w - 6, y + 12); g.lineTo(x + 2, y + 12); g.closePath(); g.fillStyle = vgrad(y, y + 12, '#ffffff', '#c8ccd4'); g.fill(); g.lineWidth = 0.8; g.strokeStyle = '#5a5a68'; g.stroke();
+  g.fillStyle = '#c8302a'; g.fillRect(x - 2, y + 4, w + 10, 1.6);
+  g.save(); g.translate(x - 8, y + 4); g.rotate(spin); g.strokeStyle = '#c8302a'; g.lineWidth = 2; g.beginPath(); g.arc(0, 0, 9, 0, TAU); g.stroke(); for (let k = 0; k < 8; k++) { const a = k / 8 * TAU; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * 9, Math.sin(a) * 9); g.stroke(); } g.restore();
+  g.fillStyle = '#e8eaf0'; g.fillRect(x + 6, y - 16, w - 14, 2); for (let i = 0; i <= 6; i++) g.fillRect(x + 6 + i * (w - 16) / 6, y - 16, 2, 16);   // the main deck's roof on its posts
+  g.fillStyle = 'rgba(255,255,255,.95)'; g.fillRect(x + 8, y - 22, w - 18, 1.4); for (let i = 0; i <= 10; i++) g.fillRect(x + 8 + i * (w - 18) / 10, y - 22, 1, 6);   // the upper deck's railing
+  g.fillStyle = '#ffffff'; g.fillRect(x + 12, y - 30, w - 26, 8); g.fillStyle = '#5a7ab0'; for (let wx = x + 16; wx < x + w - 18; wx += 9) g.fillRect(wx, y - 28, 5, 4);
+  for (const sx of [x + w / 2 - 10, x + w / 2 + 4]) { g.fillStyle = '#23232a'; g.fillRect(sx, y - 58, 5, 28); g.beginPath(); g.moveTo(sx - 2, y - 58); g.lineTo(sx + 2.5, y - 62); g.lineTo(sx + 7, y - 58); g.fill(); }
+  if (e.go && Math.random() < 0.15) particle(x + w / 2 - 8 + Math.random() * 14, y - 64, rand(-30, -10), rand(-30, -10), 'rgba(220,220,230,.6)', 1.6, rand(3, 6));
+}
+function drawDragonfly(x, y, t, face) {   // a blue dragonfly darting about the swamp
+  g.save(); g.translate(x + 8, y + 7); g.scale(face, 1);
+  const flap = Math.sin(t * 60) * 0.4; g.globalAlpha = 0.7;
+  for (const [wx, k] of [[-1, 1], [2, -1]]) { g.save(); g.translate(wx, -1); g.rotate(-1.3 + flap * k); ell(0, -4, 1.8, 5); g.fillStyle = '#e0f4ff'; g.fill(); g.restore(); g.save(); g.translate(wx, -1); g.rotate(1.3 - flap * k + Math.PI); ell(0, -4, 1.6, 4.4); g.fillStyle = '#e0f4ff'; g.fill(); g.restore(); }
+  g.globalAlpha = 1;
+  rrect(-9, -0.8, 12, 2, 1); g.fillStyle = '#2a8ad8'; g.fill(); ell(4, 0, 3, 2.4); g.fillStyle = '#1a6ab0'; g.fill();
+  g.beginPath(); g.arc(6, -0.8, 1.4, 0, TAU); g.fillStyle = '#7ad8ff'; g.fill();
+  g.restore();
+}
+function drawCrawfish(x, y, t, dir) {   // a crawfish: red, with a long fanned tail, big pincers and feelers, scuttling along the mud
+  g.save(); g.translate(x + 8, y + 9); g.scale(dir < 0 ? 1 : -1, 1);
+  const sn = Math.abs(Math.sin(t * 9));
+  for (let i = 0; i < 3; i++) { g.strokeStyle = '#a82a1a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(-1 + i * 2.5, 1); g.lineTo(-2 + i * 2.5 + Math.sin(t * 16 + i), 4); g.stroke(); }
+  for (let k = 0; k < 4; k++) { ell(3 + k * 2.6, -1 + k * 0.4, 2.2 - k * 0.2, 2.6 - k * 0.3); g.fillStyle = k % 2 ? '#c83a26' : '#d84a30'; g.fill(); }
+  g.beginPath(); g.moveTo(12, 0); g.lineTo(15, -3); g.lineTo(15, 3); g.closePath(); g.fillStyle = '#c83a26'; g.fill();
+  ell(-2, -1, 4.4, 3); g.fillStyle = '#e04a32'; g.fill();
+  for (const sy of [-1, 1]) { g.save(); g.translate(-5, sy * 2); g.rotate(sy * (0.3 + sn * 0.2)); ell(-3, 0, 3, 1.6); g.fillStyle = '#e04a32'; g.fill(); g.beginPath(); g.moveTo(-5.5, -0.5); g.lineTo(-7.5, -1.5 - sn); g.lineTo(-6, 0.6); g.fill(); g.restore(); }
+  g.strokeStyle = '#a82a1a'; g.lineWidth = 0.5; for (const sy of [-1, 1]) { g.beginPath(); g.moveTo(-5, -2); g.quadraticCurveTo(-10, -6 + sy, -14, -4 + sy * 2); g.stroke(); }
+  for (const ex of [-4, -2]) { g.beginPath(); g.arc(ex, -3.6, 0.9, 0, TAU); g.fillStyle = '#1e1e24'; g.fill(); }
+  g.restore();
 }
 function drawAirboat(e, t) {   // an Everglades airboat: a flat hull and a big caged fan at the back
   const x = e.x, y = e.y, w = e.w;
@@ -2273,6 +2448,12 @@ const THEMES = {
   daytona: { top: '#ead6a2', topDk: '#c8aa70', dirt: '#dcc490', dirtDk: '#c0a670', edge: '#8a7040' },   // hard-packed racing sand
   cape: { top: '#d0d4dc', topDk: '#9aa0aa', dirt: '#aab0b8', dirtDk: '#8a909a', edge: '#4a4e58' },       // the launch pad's concrete
   space: { top: '#e0e0ec', topDk: '#a8a8c0', dirt: '#8a8aa8', dirtDk: '#6a6a88', edge: '#3a3a58' },      // moon rock
+  oaks: { top: '#7ac85a', topDk: '#4a9a3a', dirt: '#b86a3a', dirtDk: '#8a4a28', edge: '#4a2414' },        // Alabama's red clay
+  bayou: { top: '#8ab04a', topDk: '#5a8a2a', dirt: '#5a4a32', dirtDk: '#43361f', edge: '#2a2012' },       // swamp muck
+  quarter: { top: '#c8c0b0', topDk: '#9a9282', dirt: '#b8603a', dirtDk: '#8a4428', edge: '#4a2418' },     // flagstone sidewalks on old brick
+  river: { top: '#7ac05a', topDk: '#4a9a3a', dirt: '#a88a5a', dirtDk: '#806640', edge: '#4a3a20' },       // the grassy levee
+  basin: { top: '#4a7a4a', topDk: '#2e5a32', dirt: '#3a3428', dirtDk: '#2a241a', edge: '#14100a' },       // swamp muck by moonlight
+  sabine: { top: '#7ab85a', topDk: '#4a8a3a', dirt: '#c8784a', dirtDk: '#9a5432', edge: '#5a2a14' },
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -2351,12 +2532,12 @@ function drawTile(tile, tx, ty, x, y, th, t) {
     }
     case T.WATER: {
       if (theme === 'deep' || theme === 'reef') { g.fillStyle = theme === 'reef' ? 'rgba(30,170,230,.1)' : 'rgba(40,150,150,.13)'; g.fillRect(x - 0.2, y, 16.4, 16); break; }   // (deep under the bog, or out on the reef, the water is everywhere: just a tint)
-      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme) || theme === 'gwb', fl = FL_SEA.has(theme);
+      const surf = tileAt(tx, ty - 1) !== T.WATER, sea = CAPE.has(theme) || theme === 'gwb', fl = FL_SEA.has(theme), mud = theme === 'river' || theme === 'sabine';
       if (theme === 'springs') {   // crystal-clear spring water (the whole pool is tinted at once, behind the rock): just the shimmering surface
         if (surf) { g.beginPath(); g.moveTo(x - 0.2, y + 1); for (let i = 0; i <= 4; i++) g.lineTo(x + i * 4, y + 1 + Math.sin(t * 2.5 + tx * 1.3 + i) * 0.8); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.75)'; g.stroke(); }
         break;
       }
-      g.fillStyle = fl ? vgrad(y, y + 16, surf ? 'rgba(40,196,206,.94)' : 'rgba(26,156,196,.96)', 'rgba(16,112,166,.98)') : sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
+      g.fillStyle = mud ? vgrad(y, y + 16, surf ? 'rgba(170,140,90,.95)' : 'rgba(140,110,70,.97)', 'rgba(100,78,48,.98)') : fl ? vgrad(y, y + 16, surf ? 'rgba(40,196,206,.94)' : 'rgba(26,156,196,.96)', 'rgba(16,112,166,.98)') : sea ? vgrad(y, y + 16, surf ? 'rgba(40,130,210,.94)' : 'rgba(26,96,176,.96)', 'rgba(16,70,140,.98)') : vgrad(y, y + 16, surf ? 'rgba(80,120,90,.92)' : 'rgba(50,80,64,.95)', 'rgba(30,54,42,.97)'); g.fillRect(x - 0.2, y, 16.4, 16);
       if (surf) {
         g.beginPath(); g.moveTo(x - 0.2, y + 1);
         for (let i = 0; i <= 4; i++) g.lineTo(x + i * 4, y + 1 + Math.sin(t * 2.5 + tx * 1.3 + i) * 0.8);
@@ -2420,6 +2601,13 @@ function stoneTile(theme) {
     for (let i = 0; i < 9; i++) { g.beginPath(); g.arc(2 + (i * 5.3) % 12, 2.5 + (i * 3.7) % 11, 0.5 + (i % 3) * 0.3, 0, TAU); g.fillStyle = i % 2 ? 'rgba(120,90,50,.35)' : 'rgba(255,255,255,.5)'; g.fill(); }
     return;
   }
+  if (theme === 'sabine') {   // the old bridge's rusty riveted steel
+    rrect(0.4, 0.4, 15.2, 15.2, 1.5); paint(vgrad(0, 16, '#b8704a', '#7a4430'), 1, '#3a1e14');
+    for (const [a, b] of [[3, 3], [13, 3], [3, 13], [13, 13]]) { g.beginPath(); g.arc(a, b, 0.9, 0, TAU); g.fillStyle = '#5a2e1e'; g.fill(); }
+    g.strokeStyle = 'rgba(60,30,20,.45)'; g.lineWidth = 1; g.beginPath(); g.moveTo(2, 14); g.lineTo(14, 2); g.stroke();
+    return;
+  }
+  if (theme === 'quarter') { brickTile(); return; }
   if (theme === 'cape') {   // riveted steel
     rrect(0.4, 0.4, 15.2, 15.2, 1.5); paint(vgrad(0, 16, '#d8dce4', '#8a909c'), 1, '#3a3e48');
     for (const [a, b] of [[3, 3], [13, 3], [3, 13], [13, 13]]) { g.beginPath(); g.arc(a, b, 0.9, 0, TAU); g.fillStyle = '#6a707c'; g.fill(); }
@@ -2485,7 +2673,16 @@ function onewayTile(theme, L, Rt, alt) {
     rrect(L ? 0.5 : -0.5, 0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 8, [L ? 3 : 0, Rt ? 3 : 0, Rt ? 3 : 0, L ? 3 : 0]);
     paint(vgrad(0, 8, '#8a9ad8', '#4a5a9a'), 1, '#22264a');
     if (alt) { g.beginPath(); g.moveTo(6, 0.5); g.lineTo(7.5, -3.5); g.lineTo(9, 0.5); paint('rgba(170,230,255,.9)', 0.5, '#5a8ad0'); }
-  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys') {   // boardwalk planks on posts
+  } else if (theme === 'oaks') {   // a big mossy live-oak limb
+    rrect(L ? 0.5 : -0.5, 0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 7, [L ? 3.5 : 0, Rt ? 3.5 : 0, Rt ? 3.5 : 0, L ? 3.5 : 0]); paint(vgrad(0, 7, '#8a6a48', '#5a4430'), 1, '#3a2a1a');
+    g.fillStyle = '#5a8a42'; g.fillRect(L ? 2 : 0, 0, 16 - (L ? 2 : 0) - (Rt ? 2 : 0), 1.6);
+    g.strokeStyle = 'rgba(200,206,186,.9)'; g.lineWidth = 0.8; for (const mx of alt ? [4, 11] : [7, 13]) { g.beginPath(); g.moveTo(mx, 7); g.lineTo(mx + 0.5, 12 + (mx % 3)); g.stroke(); }
+  } else if (theme === 'quarter') {   // a wrought-iron balcony
+    rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 3, 0.6); paint('#2a2a32');
+    g.strokeStyle = '#2a2a32'; g.lineWidth = 0.7; for (let k = 1; k < 16; k += 3) { g.beginPath(); g.moveTo(k, 3); g.lineTo(k, 8); g.stroke(); }
+    g.beginPath(); g.moveTo(-0.5, 8); g.lineTo(16.5, 8); g.stroke(); g.beginPath(); g.arc(8, 5.5, 1.6, 0, TAU); g.stroke();
+    if (alt) { ell(8, 9.5, 3, 1.6); g.fillStyle = '#3a8a3a'; g.fill(); }   // a hanging fern
+  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys' || SWAMP.has(theme)) {   // boardwalk planks on posts
     rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 6, [L ? 2 : 0, Rt ? 2 : 0, Rt ? 2 : 0, L ? 2 : 0]); paint(vgrad(0, 6, '#dcae70', '#9a6a3a'), 1, '#5a3a1a');
     g.fillStyle = 'rgba(80,50,20,.45)'; g.fillRect(alt ? 7 : 3, 0.5, 0.8, 5); g.fillRect(alt ? 13 : 10, 0.5, 0.8, 5);
     g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(L ? 2 : 0, 0.8, 12, 0.8);
@@ -3071,6 +3268,121 @@ SCENERY.cape = [
     for (const x of [120, 300]) { g.fillStyle = '#8a8a98'; g.fillRect(x - 2, 110, 4, 86); g.beginPath(); g.arc(x, 108, 3, 0, TAU); g.fillStyle = '#ff3a3a'; g.fill(); }
   } },
 ];
+// ---- World 6's scenery (the Gulf Coast) ----
+function liveOak(x, base, h, moss = true) {   // a huge live oak: a short fat trunk, long low limbs reaching sideways, Spanish moss hanging down
+  g.fillStyle = '#5a4630'; g.beginPath(); g.moveTo(x - 10, base); g.quadraticCurveTo(x - 6, base - h * 0.4, x - 4, base - h * 0.55); g.lineTo(x + 4, base - h * 0.55); g.quadraticCurveTo(x + 6, base - h * 0.4, x + 10, base); g.fill();
+  g.strokeStyle = '#5a4630'; g.lineCap = 'round';
+  for (const [dx, dy, w] of [[-46, -8, 5], [42, -14, 5], [-24, -30, 4], [28, -34, 4]]) { g.lineWidth = w; g.beginPath(); g.moveTo(x, base - h * 0.5); g.quadraticCurveTo(x + dx * 0.5, base - h * 0.62 + dy * 0.3, x + dx, base - h * 0.55 + dy); g.stroke(); }
+  for (const [dx, dy, r] of [[-44, -h * 0.7, 18], [-20, -h * 0.86, 22], [8, -h * 0.92, 24], [34, -h * 0.78, 20], [-2, -h * 0.66, 18]]) { ell(x + dx, base + dy, r * 1.3, r * 0.7); g.fillStyle = '#3e6a34'; g.fill(); }
+  for (const [dx, dy, r] of [[-30, -h * 0.82, 12], [16, -h * 0.9, 14]]) { ell(x + dx, base + dy, r * 1.2, r * 0.5); g.fillStyle = '#4e7c3e'; g.fill(); }
+  if (moss) { g.strokeStyle = 'rgba(200,206,186,.85)'; g.lineWidth = 1; for (let k = 0; k < 16; k++) { const mx = x - 52 + k * 7, my = base - h * 0.62 - (k % 3) * 5; g.beginPath(); g.moveTo(mx, my); g.quadraticCurveTo(mx + 2, my + 8, mx + 0.5, my + 12 + (k % 4) * 4); g.stroke(); } }
+}
+function cypress(x, base, h, col = '#4a3e30', leaf = '#3a6a3a', moss = 'rgba(190,200,180,.85)') {   // a bald cypress: a flared trunk, a flat-topped crown and knobbly knees round its feet
+  g.fillStyle = col; g.beginPath(); g.moveTo(x - 10, base); g.quadraticCurveTo(x - 3, base - 20, x - 2, base - h); g.lineTo(x + 2, base - h); g.quadraticCurveTo(x + 3, base - 20, x + 10, base); g.fill();
+  for (const kx of [-16, 13, 20]) { g.beginPath(); g.moveTo(x + kx - 2, base); g.lineTo(x + kx, base - 7); g.lineTo(x + kx + 2, base); g.fill(); }
+  for (const [dx, dy, rx] of [[-14, 0, 18], [12, -6, 16], [0, -14, 14]]) { ell(x + dx, base - h + dy, rx, 6); g.fillStyle = leaf; g.fill(); }
+  if (moss) { g.strokeStyle = moss; g.lineWidth = 1; for (let m = 0; m < 7; m++) { const mx = x - 22 + m * 7; g.beginPath(); g.moveTo(mx, base - h + 4); g.lineTo(mx + 1, base - h + 14 + (m % 3) * 5); g.stroke(); } }
+}
+SCENERY.oaks = [
+  { sp: 0.03, draw() {   // Mobile Bay: the old battleship moored out on the water, and the city's towers across the bay
+    g.fillStyle = vgrad(150, 224, '#7ab8dc', '#4a88b8'); g.fillRect(0, 150, BG_W, 74);
+    for (let i = 0; i < 9; i++) { const h = 14 + rndB(i, 2) * 26; g.fillStyle = 'rgba(120,140,170,.7)'; g.fillRect(300 + i * 14, 150 - h, 12, h); }
+    g.fillStyle = 'rgba(110,130,160,.8)'; g.fillRect(352, 92, 12, 58); g.beginPath(); g.moveTo(352, 92); g.lineTo(358, 82); g.lineTo(364, 92); g.fill();
+    const bx = 60; g.fillStyle = '#7a8494'; g.beginPath(); g.moveTo(bx, 146); g.lineTo(bx + 150, 146); g.lineTo(bx + 140, 156); g.lineTo(bx + 8, 156); g.closePath(); g.fill();
+    g.fillRect(bx + 50, 132, 40, 14); g.fillRect(bx + 64, 112, 12, 20); g.fillRect(bx + 69, 96, 2, 16);
+    for (const tx of [bx + 22, bx + 106]) { g.fillRect(tx, 140, 18, 6); g.fillRect(tx + (tx < bx + 60 ? 16 : -10), 141, 12, 1.6); }
+  } },
+  { sp: 0.18, draw() {   // azaleas in bloom along an old garden wall, oaks behind
+    for (let i = 0; i < 7; i++) { ell(30 + i * 72, 150, 44, 26); g.fillStyle = i % 2 ? '#4a7a40' : '#3e6e38'; g.fill(); }
+    g.fillStyle = '#d8c8b0'; g.fillRect(0, 168, BG_W, 10);
+    for (let i = 0; i < 26; i++) { const x = i * 19 + 4, y = 176 + (i % 3) * 3; g.beginPath(); g.arc(x, y, 9, 0, TAU); g.fillStyle = '#3e7a3a'; g.fill(); for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(x - 6 + rndB(i, k) * 12, y - 5 + rndB(i, k + 7) * 8, 1.8, 0, TAU); g.fillStyle = ['#ff7ab8', '#ffffff', '#ff4a7a'][(i + k) % 3]; g.fill(); } }
+  } },
+  { sp: 0.42, draw() { liveOak(80, 200, 120); liveOak(330, 200, 110); } },
+];
+SCENERY.bayou = [
+  { sp: 0.03, draw() {   // misty cypress far off in the green haze
+    g.fillStyle = 'rgba(150,180,150,.55)'; g.fillRect(0, 150, BG_W, 74);
+    for (let i = 0; i < 8; i++) cypress(20 + i * 62, 156, 50 + rndB(i, 1) * 24, 'rgba(110,140,115,.7)', 'rgba(120,150,120,.7)', 'rgba(200,215,200,.5)');
+  } },
+  { sp: 0.18, draw() {   // a Cajun camp up on stilts, a pirogue tied up, and more cypress
+    g.fillStyle = 'rgba(70,100,70,.55)'; g.fillRect(0, 176, BG_W, 48);
+    const hx = 250; g.fillStyle = '#6a5440'; for (const sx of [0, 14, 30, 44]) g.fillRect(hx + sx, 150, 3, 34);
+    g.fillStyle = '#8a7258'; g.fillRect(hx - 4, 128, 54, 24); g.fillStyle = '#5a4a3a'; g.beginPath(); g.moveTo(hx - 10, 130); g.lineTo(hx + 23, 110); g.lineTo(hx + 56, 130); g.fill();
+    g.fillStyle = '#ffe08a'; g.fillRect(hx + 8, 136, 8, 8); g.fillStyle = '#4a3a2a'; g.fillRect(hx + 30, 136, 9, 16);
+    ell(hx + 70, 182, 20, 3); g.fillStyle = '#6a4a2e'; g.fill();
+    for (const x of [60, 150, 400]) cypress(x, 186, 86, '#4e4234', '#45724a');
+  } },
+  { sp: 0.42, draw() { for (const x of [30, 200, 430]) cypress(x, 204, 150); } },
+];
+SCENERY.quarter = [
+  { sp: 0.03, draw() {   // evening over the river: St. Louis Cathedral's three spires and the Mississippi bridge
+    glow(120, 130, 70, 'rgba(255,170,120,1)', 0.45);
+    const cx = 300; g.fillStyle = 'rgba(70,50,110,.75)'; g.fillRect(cx - 40, 110, 80, 60);
+    for (const [dx, h] of [[-34, 40], [0, 66], [34, 40]]) { g.fillRect(cx + dx - 7, 110 - h + 10, 14, h); g.beginPath(); g.moveTo(cx + dx - 8, 110 - h + 10); g.lineTo(cx + dx, 110 - h - 14); g.lineTo(cx + dx + 8, 110 - h + 10); g.fill(); }
+    g.strokeStyle = 'rgba(90,70,130,.6)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 150); g.lineTo(40, 120); g.lineTo(80, 150); g.lineTo(120, 120); g.lineTo(160, 150); g.stroke(); g.fillStyle = 'rgba(90,70,130,.6)'; g.fillRect(0, 148, 170, 3);
+  } },
+  { sp: 0.18, draw() {   // Creole townhouses in candy colours, with wrought-iron balconies, shutters and hanging ferns
+    const cols = ['#f4a8a0', '#a8d8c8', '#f8d888', '#c8b0e8', '#9ac8f0', '#f8c098'];
+    for (let i = 0; i < 6; i++) {
+      const x = i * 80, top = 96 + (i % 2) * 10; g.fillStyle = cols[i]; g.fillRect(x, top, 78, 128 - (top - 96));
+      for (let w = 0; w < 3; w++) { g.fillStyle = '#3a6a4a'; g.fillRect(x + 8 + w * 24, top + 12, 12, 22); g.fillRect(x + 8 + w * 24, top + 52, 12, 22); g.fillStyle = 'rgba(255,240,200,.85)'; g.fillRect(x + 11 + w * 24, top + 14, 6, 18); }
+      g.strokeStyle = '#2a2a32'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, top + 40); g.lineTo(x + 78, top + 40); g.moveTo(x, top + 46); g.lineTo(x + 78, top + 46); g.stroke();
+      for (let k = 0; k < 20; k++) { g.beginPath(); g.moveTo(x + 2 + k * 4, top + 40); g.lineTo(x + 2 + k * 4, top + 46); g.stroke(); }
+      for (const fx of [x + 14, x + 62]) { ell(fx, top + 50, 6, 3.6); g.fillStyle = '#3a8a3a'; g.fill(); }
+      for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(x + 10 + k * 18, top + 47, 1.6, 0, TAU); g.fillStyle = ['#9a4ad8', '#3ab84a', '#ffd23a'][k % 3]; g.fill(); }   // beads on the railings
+    }
+  } },
+  { sp: 0.42, draw() {   // gas lamps glowing along the street
+    for (const x of [60, 220, 380]) { g.fillStyle = '#23232a'; g.fillRect(x - 1.5, 120, 3, 84); g.fillRect(x - 6, 200, 12, 4); glow(x, 116, 22, 'rgba(255,210,120,1)', 0.5); rrect(x - 5, 106, 10, 14, 2); g.fillStyle = '#ffe8a0'; g.fill(); g.lineWidth = 1; g.strokeStyle = '#23232a'; g.stroke(); }
+  } },
+];
+SCENERY.river = [
+  { sp: 0.03, draw() {   // the wide brown Mississippi, the far bank, and the big cantilever bridge
+    g.fillStyle = vgrad(150, 224, '#b8a070', '#8a7048'); g.fillRect(0, 150, BG_W, 74);
+    g.fillStyle = '#6a9a5a'; g.fillRect(0, 144, BG_W, 7);
+    g.strokeStyle = 'rgba(90,100,120,.75)'; g.lineWidth = 2; g.beginPath(); for (let k = 0; k < 6; k++) { g.moveTo(240 + k * 30, 140); g.lineTo(255 + k * 30, 110 + (k === 2 || k === 3 ? -12 : 0)); g.lineTo(270 + k * 30, 140); } g.stroke(); g.fillStyle = 'rgba(90,100,120,.75)'; g.fillRect(230, 128, 200, 3);
+  } },
+  { sp: 0.18, draw() {   // a little river town on the levee: a church steeple, a water tower, willows
+    for (let i = 0; i < 6; i++) { ell(30 + i * 85, 160, 30, 22); g.fillStyle = '#5a8a4a'; g.fill(); }
+    g.fillStyle = '#f4f0e8'; g.fillRect(150, 136, 26, 30); g.fillRect(158, 110, 10, 26); g.beginPath(); g.moveTo(156, 110); g.lineTo(163, 92); g.lineTo(170, 110); g.fill();
+    g.fillStyle = '#a8b0b8'; g.fillRect(338, 126, 3, 40); g.fillRect(356, 126, 3, 40); ell(348, 120, 18, 10); g.fill();
+    g.fillStyle = '#7ab05a'; g.fillRect(0, 166, BG_W, 10);
+  } },
+  { sp: 0.42, draw() {   // cattails and reeds at the water's edge
+    for (let i = 0; i < 40; i++) { const x = i * 12 + rndB(i, 1) * 6, h = 20 + rndB(i, 2) * 16; g.strokeStyle = '#5a8a3a'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(x, 208); g.quadraticCurveTo(x + 2, 208 - h / 2, x + 1, 208 - h); g.stroke(); if (i % 3 === 0) { rrect(x - 1, 208 - h - 6, 3.4, 8, 1.6); g.fillStyle = '#6a4428'; g.fill(); } }
+  } },
+];
+SCENERY.basin = [
+  { sp: 0.02, draw() {   // stars, and a big yellow moon shining on the black water
+    for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(255,255,255,${0.3 + rndB(i, 1) * 0.6})`; g.fillRect(rndB(i, 2) * BG_W, rndB(i, 3) * 130, 1, 1); }
+    glow(330, 70, 60, 'rgba(255,240,180,1)', 0.35); g.beginPath(); g.arc(330, 70, 22, 0, TAU); g.fillStyle = '#fff4c8'; g.fill();
+    g.fillStyle = '#0a1424'; g.fillRect(0, 160, BG_W, 64); g.fillStyle = 'rgba(255,240,180,.35)'; for (let k = 0; k < 8; k++) g.fillRect(320 - k * 2, 166 + k * 6, 20 + k * 4, 1.4);
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 7; i++) cypress(30 + i * 70, 166, 60 + rndB(i, 4) * 30, '#141c28', '#1a2838', 'rgba(110,120,130,.6)'); } },
+  { sp: 0.42, draw() {   // near cypress trunks in silhouette, and fireflies glowing among them
+    for (const x of [50, 260, 420]) cypress(x, 204, 160, '#0c1018', '#121c24', 'rgba(80,90,100,.7)');
+    for (let i = 0; i < 18; i++) glow(rndB(i, 5) * BG_W, 70 + rndB(i, 6) * 110, 6, 'rgba(220,255,90,1)', 0.7);
+  } },
+];
+SCENERY.sabine = [
+  { sp: 0.03, draw() {   // a big orange sun going down over the marsh, and the pine woods of Texas across the river
+    glow(250, 120, 80, 'rgba(255,170,90,1)', 0.6); g.beginPath(); g.arc(250, 124, 28, 0, TAU); g.fillStyle = '#ffd27a'; g.fill();
+    g.fillStyle = 'rgba(110,80,70,.55)'; for (let i = 0; i < 40; i++) { const x = i * 12, h = 16 + rndB(i, 3) * 14; g.beginPath(); g.moveTo(x, 150); g.lineTo(x + 6, 150 - h); g.lineTo(x + 12, 150); g.fill(); }
+    g.fillStyle = vgrad(150, 224, '#d08a6a', '#8a5a5a'); g.fillRect(0, 150, BG_W, 74);
+  } },
+  { sp: 0.18, draw() {   // the old steel truss bridge over the Sabine, and the WELCOME TO TEXAS sign on the far bank
+    g.strokeStyle = 'rgba(70,60,70,.85)'; g.lineWidth = 2; g.beginPath(); g.moveTo(0, 150); g.lineTo(300, 150); for (let k = 0; k < 10; k++) { g.moveTo(k * 30, 150); g.lineTo(k * 30 + 15, 124); g.lineTo(k * 30 + 30, 150); } g.moveTo(15, 124); g.lineTo(285, 124); g.stroke();
+    g.fillStyle = 'rgba(70,60,70,.85)'; for (let k = 0; k < 6; k++) g.fillRect(20 + k * 50, 150, 4, 30);
+    const sx = 380; g.fillStyle = '#5a4030'; g.fillRect(sx - 30, 150, 4, 30); g.fillRect(sx + 26, 150, 4, 30);
+    rrect(sx - 40, 112, 80, 40, 3); g.fillStyle = '#f4f0e4'; g.fill(); g.lineWidth = 1.5; g.strokeStyle = '#2a3a8a'; g.stroke();
+    g.fillStyle = '#c8202a'; g.fillRect(sx - 36, 140, 72, 8); g.fillStyle = '#2a3a8a'; g.fillRect(sx - 36, 116, 16, 22); star(sx - 28, 127, 5, '#ffffff');
+    g.fillStyle = '#2a3a8a'; g.font = '8px Bungee, system-ui, sans-serif'; g.textAlign = 'center'; g.fillText('WELCOME', sx + 10, 124); g.fillText('TO TEXAS', sx + 10, 135);
+  } },
+  { sp: 0.42, draw() {   // tall pines and marsh grass
+    for (const x of [40, 170, 300, 450]) { g.fillStyle = '#5a3a28'; g.fillRect(x - 2, 90, 4, 114); for (let k = 0; k < 5; k++) { ell(x, 92 + k * 9, 16 - k, 5); g.fillStyle = '#2e5a32'; g.fill(); } }
+    for (let i = 0; i < 50; i++) { const x = i * 10; g.strokeStyle = '#8aa04a'; g.lineWidth = 1; g.beginPath(); g.moveTo(x, 206); g.lineTo(x + 3, 186 + rndB(i, 2) * 8); g.stroke(); }
+  } },
+];
 SCENERY.space = [
   { sp: 0.02, draw() {   // stars, a pink nebula, and the Earth hanging there, blue and green
     for (let i = 0; i < 90; i++) { g.fillStyle = `rgba(255,255,255,${0.3 + rndB(i, 1) * 0.7})`; const s = rndB(i, 4) > 0.9 ? 1.6 : 0.8; g.fillRect(rndB(i, 2) * BG_W, rndB(i, 3) * 224, s, s); }
@@ -3091,6 +3403,7 @@ const SKIES = {
   orchard: ['#6ab8f0', '#fff0d0'], falls: ['#7ac0f0', '#e8f6ff'], gwb: ['#5aa8e8', '#e0f0ff'], city: ['#ff9a6a', '#ffe0b0'], harbor: ['#4a90e0', '#d8ecff'],
   deco: ['#4ab8f0', '#ffe8f0'], reef: ['#2a9ad8', '#0a3a6a'], keys: ['#ff7a8a', '#ffd890'], glades: ['#8ac8e8', '#f0f0c8'], stpete: ['#6a6ad0', '#ffb880'],
   springs: ['#5ac0f0', '#e8f8ff'], park: ['#0e0a30', '#3a1a5a'], castillo: ['#5ab0e8', '#f8ecd0'], daytona: ['#3aa8f0', '#e0f4ff'], cape: ['#3a90e0', '#e8f0ff'], space: ['#05051a', '#14143e'],
+  oaks: ['#6ab8f0', '#fff0d8'], bayou: ['#86ae94', '#e4ecd4'], quarter: ['#4a3a8a', '#ff9a7a'], river: ['#6ab0e8', '#f4ecd8'], basin: ['#060e22', '#1a2c48'], sabine: ['#ff7a4a', '#ffd88a'],
   deep: ['#2a8a8a', '#0e3a48'], sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
 };
 // the sky and sun, painted once per world and screen size
@@ -3938,8 +4251,8 @@ function touchPlayer(e) {
       if (e.hp <= 0) break;
       // landing on top always bounces Leo off, even while King Grumbles is still flashing from the last hit (no sinking into
       // him and getting hurt when the flash ends); measured against his own movement, as he jumps about a lot
-      const rv = p.vy - (e.vy || 0);
-      if (rv > 0 && p.y + p.h - rv * STEP <= e.y + 10) { p.vy = -340; p.y = Math.min(p.y, e.y - p.h); p.ground = false; if (e.hurt <= 0) bossHit(e); else sfx.stomp(); break; }
+      const rv = p.vy - (e.vy || 0), feet = p.y + p.h, wasAbove = feet - p.vy * STEP <= e.y - (e.vy || 0) * STEP + 10 || feet <= e.y + 10;
+      if ((p.vy > 0 || rv > 0) && wasAbove) { p.vy = -340; p.y = Math.min(p.y, e.y - p.h); p.ground = false; if (e.hurt <= 0) bossHit(e); else sfx.stomp(); break; }
       if (e.hurt > 0) break;
       if (p.star > 0) { bossHit(e); p.vx = (p.x < e.x ? -1 : 1) * 200; p.vy = -220; }   // the horseshoe's rainbow power bumps him too
       else hurtPlayer();
@@ -4093,12 +4406,14 @@ const WORLD_ENDS = {
   ptown: { title: 'WORLD 1 <span>CLEAR!</span>', sub: '⛵ Captain Pinch is beaten! But King Grumbles grabbed a bag of gold and sailed north to the rocky coast of <b>Maine</b>! World 2 is open.', btn: '⛵ On to World 2!', toast: '⛵ Sail up the coast to Acadia!' },
   fort: { title: 'WORLD 2 <span>CLEAR!</span>', sub: '🏔️ The Frost Yeti is beaten! But King Grumbles ran off with the gold, over New Hampshire\'s <b>White Mountains</b> towards <b>Vermont</b>! World 3 is open.', btn: '🏔️ On to World 3!', toast: '🏔️ Follow the path up into the White Mountains!' },
   castle: { title: 'WORLD 3 <span>CLEAR!</span>', sub: '🏰 King Grumbles dropped the pot of gold at Gillette Castle… and ran off with the rest along Long Island Sound to <b>New York</b>! World 4 is open.', btn: '🍎 On to World 4!', toast: '🍎 Follow the shore of Long Island Sound to the Hudson Valley!' },
+  canaveral: { title: 'WORLD 5 <span>CLEAR!</span>', sub: '🚀 King Grumbles is beaten at Cape Canaveral! But he grabbed one last bag of gold and flew west along the Gulf of Mexico to <b>Alabama</b>! World 6 is open, and that rocket is still fuelled up for a bonus trip to <b>Outer Space</b>! 🌌', btn: '🦀 On to World 6!', toast: '✈️ Fly west to Mobile Bay, Alabama!' },
   liberty: { title: 'WORLD 4 <span>CLEAR!</span>', sub: '🗽 King Grumbles is beaten! But he grabbed the very last bag of gold and jetted off to sunny <b>Florida</b>! World 5 is open.', btn: '🌴 On to World 5!', toast: '✈️ Fly south to Miami Beach!' },
 };
 // each world's last boss, and the save flag that says that world is done
-const WORLD_BOSS = { ptown: 'beaten', fort: 'beaten2', castle: 'beaten3', liberty: 'beaten4', canaveral: 'beaten5' };
+const LAST_BOSS = 'sabine';   // (Texas is coming soon)
+const WORLD_BOSS = { ptown: 'beaten', fort: 'beaten2', castle: 'beaten3', liberty: 'beaten4', canaveral: 'beaten5', sabine: 'beaten6' };
 function winGame() {
-  const id = lvl.id, last = id === 'canaveral';
+  const id = lvl.id, last = id === LAST_BOSS;
   keep = { form: player.form, mount: !!player.mount, laser: !!player.laser };
   endFrom = id;
   save.cleared[id] = true; if (WORLD_BOSS[id]) save[WORLD_BOSS[id]] = true;
@@ -4109,7 +4424,7 @@ function winGame() {
   state = 'ending'; showTouch();
   const w = WORLD_ENDS[id];
   document.querySelector('#ending h1').innerHTML = last ? 'THE <span>GOLD</span> IS BACK!' : w.title;
-  document.querySelector('#ending .sub').innerHTML = last ? '🚀 King Grumbles is beaten for good at Cape Canaveral, and Leo has every last coin of his gold. Hooray! And that rocket is still fuelled up… a bonus trip to <b>Outer Space</b> is open on the map! 🌌' : w.sub;
+  document.querySelector('#ending .sub').innerHTML = last ? '🤠 King Grumbles is beaten at the Sabine River, and Leo has every last coin of his gold. Hooray! But look: King Grumbles is running off across the bridge into <b>Texas</b>… Leo\'s next adventure is coming soon! 🌵' : w.sub;
   document.getElementById('btnMapAgain').textContent = last ? '🗺️ Back to the map' : w.btn;
   document.getElementById('endStats').innerHTML = `SCORE <b>${score}</b><br>🌈 GEMS <b>${gemCount()}</b> of ${ORDER.length * 5}<br>${save.key ? '🗝️ Golden key found!' : '🗝️ The golden key is still hiding in Glimmer Caves…'}`;
   document.getElementById('ending').classList.remove('hidden');
@@ -4274,7 +4589,7 @@ function drawEnt0(e, t) {
     case 'snaily': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y, tt, face, false); break;
     case 'shell': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': drawThorny(x - 1, y - 3, tt, face); break;
-    case 'buzzer': if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'buzzer': if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
     case 'firebar': for (let i = 0; i <= e.len; i++) drawFireball(x + Math.cos(e.ang) * i * 8, y + Math.sin(e.ang) * i * 8, t + i * 0.05); break;
@@ -4320,7 +4635,7 @@ function drawEnt0(e, t) {
       g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
       g.restore(); break;
     }
-    case 'boat': if (lvl.theme === 'glades') drawAirboat(e, t); else drawBoat(e, t); break;
+    case 'boat': if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
     case 'heron': drawHeron(e, tt, FLAMINGOS.has(lvl.theme)); break;
     case 'snake': drawSnake(e, tt); break;
     case 'gator': drawGator(x, y, tt, face, e.w + 2); break;
@@ -4332,7 +4647,7 @@ function drawEnt0(e, t) {
     case 'cannon': drawCannon(x, y, e.face || -1, e.recoil || 0); break;
     case 'sponge': {   // a squishy mat of bog moss and cranberries (the deep one is darker, and bubbles)
       const sq = e.sq || 0, w = e.w + sq * 3, h = e.h - sq * 2.5, xx = x - sq * 1.5, yy = y + sq * 2.5;
-      if (lvl.theme === 'glades') drawGatorBack(xx, yy, w, h);   // (in the Everglades, the sinking things are gators!)
+      if (lvl.theme === 'glades' || SWAMP.has(lvl.theme)) drawGatorBack(xx, yy, w, h);   // (in the Everglades, the sinking things are gators!)
       else {
       rrect(xx, yy, w, h, 4); paint(e.deep ? vgrad(yy, yy + h, '#6a5a3a', '#3a2e1e') : vgrad(yy, yy + h, '#9aa04a', '#6a6a2a'));
       g.fillStyle = 'rgba(0,0,0,.18)'; for (let i = 0; i < w / 5; i++) { g.beginPath(); g.arc(xx + 3 + i * 5, yy + h * 0.6 + (i % 2), 1, 0, TAU); g.fill(); }   // spongy holes
@@ -4387,7 +4702,8 @@ function drawEnt0(e, t) {
       g.beginPath(); g.arc(-13.2, -8.4, 1.2, 0, TAU); g.fillStyle = '#fff6b0'; g.fill();
       g.restore(); break;
     }
-    case 'crab': {   // a little red crab, scuttling sideways and snapping its claws
+    case 'crab': {   // a little red crab, scuttling sideways and snapping its claws (on the Gulf Coast, a crawfish)
+      if (GULF.has(lvl.theme)) { drawCrawfish(x, y, e.t, e.dir || -1); break; }
       g.save(); g.translate(x + 8, y + 12);
       const sn = Math.abs(Math.sin(e.t * 9));
       for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) { g.save(); g.translate(sx * (2 + i * 2), -3); g.rotate(sx * (0.7 + Math.sin(e.t * 16 + i) * 0.3)); g.fillStyle = '#b83222'; g.fillRect(-0.5, 0, 1, 4); g.restore(); }
@@ -4449,15 +4765,24 @@ function drawEnt0(e, t) {
 // A second map, drawn the same way from real latitude and longitude. Leo flies there from the Statue of Liberty: the
 // plane heads off the bottom of the New England map and comes in over the Atlantic on this one. The route runs from
 // Miami down the Keys, across Florida Bay to the Everglades, up the Gulf coast, inland to Orlando, up to St. Augustine,
-// and back down the Atlantic coast to the launch pad (and from there, by rocket, out to space).
-const MAP_W_FL = 262;
-const FGEO = (lon, lat) => [10 + (lon + 87.7) * 30, 4 + (31.1 - lat) * 29.5];   // (squeezed a little top to bottom, so Key West clears the text at the bottom)
+// and back down the Atlantic coast to the launch pad (and from there, by rocket, out to space). The map carries on west
+// along the Gulf of Mexico for World 6: Leo flies from Cape Canaveral to Mobile Bay in Alabama, and on through the
+// bayous of Louisiana and New Orleans to the Sabine River, where Texas begins.
+const MAP_W_FL = 428;
+const FGEO = (lon, lat) => [10 + (lon + 95.0) * 26, 4 + (32.4 - lat) * 25];   // (the top sits well north of the Gulf coast, so its levels clear the names in the corner)   // (squeezed a little top to bottom, so Key West clears the text at the bottom)
 const FL_LL = [[-87.6, 30.98], [-85.0, 31.0], [-84.86, 30.71], [-83.5, 30.65], [-82.2, 30.57], [-82.05, 30.75], [-81.95, 30.82], [-81.45, 30.72],
   [-81.4, 30.4], [-81.3, 30.0], [-81.2, 29.7], [-81.0, 29.25], [-80.85, 28.95], [-80.6, 28.6], [-80.52, 28.45], [-80.6, 28.25], [-80.45, 27.85], [-80.3, 27.4],
   [-80.15, 27.0], [-80.05, 26.6], [-80.1, 26.1], [-80.13, 25.78], [-80.3, 25.5], [-80.4, 25.25], [-80.7, 25.15], [-81.1, 25.12], [-81.2, 25.35], [-81.35, 25.8],
   [-81.75, 26.1], [-81.95, 26.45], [-82.2, 26.75], [-82.4, 27.1], [-82.65, 27.45], [-82.75, 27.85], [-82.8, 28.2], [-82.72, 28.6], [-82.8, 29.0], [-83.1, 29.2],
   [-83.5, 29.6], [-83.9, 29.95], [-84.3, 30.05], [-84.6, 29.9], [-85.0, 29.65], [-85.35, 29.7], [-85.4, 29.9], [-85.8, 30.15], [-86.3, 30.38], [-86.8, 30.4], [-87.3, 30.33], [-87.6, 30.28]];
-const FL_AROUND_LL = [[[-100, 30.25], [-87.6, 30.28], [-87.6, 30.98], [-85.0, 31.0], [-84.86, 30.71], [-83.5, 30.65], [-82.2, 30.57], [-82.05, 30.75], [-81.95, 30.82], [-81.45, 30.72], [-81.3, 31.2], [-81.1, 32.2], [-100, 32.2]]];   // Georgia and Alabama
+const FL_AROUND_LL = [
+  [[-85.0, 33.5], [-85.0, 31.0], [-84.86, 30.71], [-83.5, 30.65], [-82.2, 30.57], [-82.05, 30.75], [-81.95, 30.82], [-81.45, 30.72], [-81.3, 31.2], [-80.6, 32.1], [-79.5, 33.5]],   // Georgia
+  [[-93.85, 29.72], [-94.3, 29.6], [-94.8, 29.35], [-96.5, 28.8], [-96.5, 33.5], [-94.04, 33.5], [-94.04, 32.2], [-93.8, 31.5], [-93.6, 31.0], [-93.75, 30.3]]];             // Texas (coming soon!)
+// World 6's land: the Gulf coast of Alabama, Mississippi and Louisiana, from the Florida line to the Sabine River
+const GULF_LL = [[-87.6, 30.28], [-87.9, 30.24], [-88.02, 30.22], [-87.95, 30.45], [-87.98, 30.68], [-88.05, 30.68], [-88.1, 30.4], [-88.12, 30.25], [-88.4, 30.37],
+  [-88.9, 30.4], [-89.3, 30.3], [-89.6, 30.2], [-89.75, 30.05], [-89.4, 29.9], [-89.5, 29.6], [-89.4, 29.4], [-89.15, 29.15], [-89.05, 29.0], [-89.25, 28.95], [-89.4, 29.2],
+  [-89.7, 29.3], [-90.1, 29.1], [-90.3, 29.2], [-90.6, 29.1], [-91.0, 29.2], [-91.3, 29.3], [-91.8, 29.5], [-92.2, 29.55], [-92.6, 29.6], [-93.0, 29.75], [-93.4, 29.78], [-93.85, 29.72],
+  [-93.75, 30.3], [-93.6, 31.0], [-93.8, 31.5], [-94.04, 32.2], [-94.04, 33.5], [-85.0, 33.5], [-85.0, 31.0], [-87.6, 30.98]];
 const FL_KEYS = [[-80.42, 25.18], [-80.55, 25.02], [-80.72, 24.9], [-80.92, 24.78], [-81.12, 24.7], [-81.32, 24.66], [-81.52, 24.62], [-81.72, 24.57]];
 const insidePoly = (pts, x, y) => { let c = false; for (let i = 0, j = pts.length - 1; i < pts.length; j = i++) { const [xi, yi] = pts[i], [xj, yj] = pts[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
 function drawFloridaBase(ox) {
@@ -4477,7 +4802,23 @@ function drawFloridaBase(ox) {
       poly(fl); g.lineWidth = 3.6; g.strokeStyle = '#fbeec0'; g.stroke();              // white sand beaches
       for (const [lo, la] of FL_KEYS) { const [x, y] = FGEO(lo, la); ell(x, y, 3.6, 2); g.fillStyle = 'rgba(140,235,255,.6)'; g.fill(); ell(x, y, 2.4, 1.2); g.fillStyle = '#fbeec0'; g.fill(); ell(x, y, 1.6, 0.8); g.fillStyle = '#86d070'; g.fill(); }   // the Keys
       for (const pts of FL_AROUND_LL) { poly(G(pts)); g.fillStyle = '#b4cca4'; g.fill(); }
+      const gulf = G(GULF_LL);
+      poly(gulf); g.lineWidth = 9; g.strokeStyle = 'rgba(140,235,255,.4)'; g.stroke(); poly(gulf); g.lineWidth = 3; g.strokeStyle = '#ecdcb0'; g.stroke();
+      poly(gulf); g.fillStyle = '#7ac464'; g.fill();
       poly(fl); g.fillStyle = '#86d070'; g.fill();
+      // Lake Pontchartrain, the Mississippi winding down to its delta, the Atchafalaya swamp and the Sabine River
+      { const [x, y] = FGEO(-90.1, 30.2); g.fillStyle = '#6ac0ea'; ell(x, y, 11, 4); g.fill(); }
+      g.strokeStyle = '#8ab0c8'; g.lineWidth = 1.4; line(G([[-91.4, 31.3], [-91.2, 30.9], [-91.3, 30.6], [-91.15, 30.42], [-90.8, 30.1], [-90.4, 30.0], [-90.07, 29.92], [-89.8, 29.7], [-89.5, 29.45], [-89.25, 29.1]])); g.stroke();
+      { const [x, y] = FGEO(-91.75, 30.1); g.fillStyle = 'rgba(90,120,60,.55)'; blob(x, y, 12, 7, 5); }
+      g.strokeStyle = '#8ab0c8'; g.lineWidth = 1.1; line(G([[-93.65, 31.2], [-93.7, 30.6], [-93.75, 30.2], [-93.85, 29.75]])); g.stroke();
+      g.setLineDash([2, 2]); g.lineWidth = 0.8; g.strokeStyle = 'rgba(255,255,255,.75)';
+      line(G([[-88.4, 30.37], [-88.3, 31.0], [-88.2, 33.5]])); g.stroke(); line(G([[-89.6, 30.2], [-89.75, 31.0], [-91.6, 31.0], [-91.3, 31.6], [-91.15, 33.0], [-91.2, 33.5]])); g.stroke(); line(G([[-87.6, 30.98], [-85.0, 31.0]])); g.stroke();
+      g.setLineDash([]);
+      for (let i = 0; i < 70; i++) {   // cypress and live oaks dotted over the Gulf states
+        const hx = 14 + rndB(i, 11) * 250, hy = 4 + rndB(i, 12) * 84;
+        if (!insidePoly(gulf, hx, hy) || NODES.some(n => n.map === 'fl' && Math.hypot(n.x - hx, n.y - hy) < 13)) continue;
+        g.fillStyle = '#5a4a32'; g.fillRect(hx - 0.4, hy - 3, 0.8, 3); ell(hx, hy - 4, 3, 1.6); g.fillStyle = i % 2 ? '#3e7a40' : '#4e8a46'; g.fill();
+      }
       g.setLineDash([2, 2]); g.lineWidth = 0.8; g.strokeStyle = 'rgba(255,255,255,.75)'; line(G(FL_LL.slice(0, 8))); g.stroke(); g.setLineDash([]);
       // the Everglades, Lake Okeechobee, Tampa Bay and the St. Johns River
       { const [x, y] = FGEO(-80.95, 25.72); g.fillStyle = 'rgba(170,195,90,.8)'; blob(x, y, 15, 10, 2); g.strokeStyle = 'rgba(90,130,40,.6)'; g.lineWidth = 0.6; for (let i = 0; i < 26; i++) { const gx = x - 13 + rndB(i, 1) * 26, gy = y - 7 + rndB(i, 2) * 14; g.beginPath(); g.moveTo(gx, gy); g.lineTo(gx + 0.6, gy - 2); g.stroke(); } }
@@ -4485,7 +4826,7 @@ function drawFloridaBase(ox) {
       { const [x, y] = FGEO(-82.5, 27.82); g.save(); g.translate(x, y); g.rotate(0.5); ell(0, 0, 2.6, 7); g.fillStyle = '#6ac0ea'; g.fill(); g.restore(); }
       g.strokeStyle = '#6ac0ea'; g.lineWidth = 1.1; line(G([[-81.6, 30.35], [-81.65, 29.9], [-81.55, 29.3], [-81.3, 28.8], [-80.95, 28.3]])); g.stroke();
       // palm trees here and there
-      for (let i = 0; i < 160; i++) {
+      for (let i = 0; i < 300; i++) {
         const hx = 14 + rndB(i, 1) * (MAP_W_FL - 20), hy = 12 + rndB(i, 2) * 200;
         if (!insidePoly(fl, hx, hy) || NODES.some(n => n.map === 'fl' && Math.hypot(n.x - hx, n.y - hy) < 13)) continue;
         g.strokeStyle = '#8a6a3a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(hx, hy); g.lineTo(hx + 0.6, hy - 4); g.stroke();
@@ -4502,10 +4843,17 @@ function drawFloridaBase(ox) {
       { const n = node('castillo'); g.beginPath(); for (let k = 0; k < 8; k++) { const a = k / 8 * TAU, r = k % 2 ? 3 : 6; g.lineTo(n.x + 13 + Math.cos(a) * r, n.y - 2 + Math.sin(a) * r); } g.closePath(); g.fillStyle = '#e8d8b0'; g.fill(); g.lineWidth = 0.5; g.strokeStyle = '#8a7a58'; g.stroke(); }
       { const n = node('daytona'); g.fillStyle = '#3a3a48'; g.fillRect(n.x + 8, n.y - 10, 0.8, 10); for (let r = 0; r < 2; r++) for (let cc = 0; cc < 3; cc++) { g.fillStyle = (r + cc) % 2 ? '#ffffff' : '#1e1e24'; g.fillRect(n.x + 8.8 + cc * 1.8, n.y - 10 + r * 1.8, 1.8, 1.8); } }
       { const n = node('canaveral'); rrect(n.x + 8, n.y - 12, 3.4, 11, 1); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(n.x + 8, n.y - 11); g.lineTo(n.x + 9.7, n.y - 15.5); g.lineTo(n.x + 11.4, n.y - 11); g.fill(); g.fillStyle = '#e8453a'; g.fillRect(n.x + 8, n.y - 4, 3.4, 1); }
+      { const n = node('mobile'); g.fillStyle = '#7a8494'; g.beginPath(); g.moveTo(n.x + 6, n.y + 4); g.lineTo(n.x + 20, n.y + 4); g.lineTo(n.x + 18, n.y + 6); g.lineTo(n.x + 7, n.y + 6); g.fill(); g.fillRect(n.x + 11, n.y + 1, 4, 3); g.fillRect(n.x + 12.6, n.y - 2, 0.8, 3); }   // the battleship
+      { const n = node('bayou'); g.fillStyle = '#5a4630'; g.fillRect(n.x + 10, n.y - 6, 1.2, 7); ell(n.x + 10.6, n.y - 7, 5, 1.8); g.fillStyle = '#3e6a3a'; g.fill(); g.strokeStyle = 'rgba(210,215,200,.9)'; g.lineWidth = 0.5; for (const mx of [7, 9.5, 12, 14]) { g.beginPath(); g.moveTo(n.x + mx, n.y - 6); g.lineTo(n.x + mx, n.y - 3); g.stroke(); } }
+      { const n = node('quarter'); g.fillStyle = '#f4a8a0'; g.fillRect(n.x - 19, n.y - 9, 9, 9); g.strokeStyle = '#2a2a32'; g.lineWidth = 0.5; g.beginPath(); g.moveTo(n.x - 19, n.y - 5); g.lineTo(n.x - 10, n.y - 5); g.stroke(); for (const [k, c] of [[0, '#9a4ad8'], [1, '#3ab84a'], [2, '#ffd23a']]) { g.beginPath(); g.arc(n.x - 17 + k * 3, n.y - 3, 0.8, 0, TAU); g.fillStyle = c; g.fill(); } }
+      { const n = node('river'); g.fillStyle = '#ffffff'; g.fillRect(n.x + 7, n.y - 3, 10, 3); g.fillRect(n.x + 9, n.y - 5, 6, 2); g.fillStyle = '#23232a'; g.fillRect(n.x + 11, n.y - 9, 1, 4); g.fillRect(n.x + 13, n.y - 9, 1, 4); g.beginPath(); g.arc(n.x + 6, n.y - 2, 1.6, 0, TAU); g.strokeStyle = '#c8302a'; g.lineWidth = 0.6; g.stroke(); }
+      { const n = node('basin'); g.beginPath(); g.arc(n.x + 12, n.y - 8, 2.4, 0, TAU); g.fillStyle = '#fff4c8'; g.fill(); g.fillStyle = '#2a3a2a'; g.fillRect(n.x + 8, n.y - 5, 1, 6); ell(n.x + 8.5, n.y - 6, 4, 1.4); g.fill(); }
+      { const n = node('sabine'); g.fillStyle = '#5a4030'; g.fillRect(n.x - 14, n.y - 6, 0.8, 6); rrect(n.x - 19, n.y - 12, 11, 7, 1); g.fillStyle = '#f4f0e4'; g.fill(); g.fillStyle = '#2a3a8a'; g.fillRect(n.x - 19, n.y - 12, 3.4, 7); star(n.x - 17.3, n.y - 8.5, 1.4, '#ffffff'); g.fillStyle = '#c8202a'; g.fillRect(n.x - 15.6, n.y - 7, 7.6, 2); }   // the Texas welcome sign
       // names
       g.textAlign = 'center'; g.textBaseline = 'middle';
       const label = (txt, lo, la, size, col = 'rgba(255,255,255,.85)') => { const [x, y] = FGEO(lo, la); g.font = `${size}px Bungee, system-ui, sans-serif`; g.fillStyle = 'rgba(20,60,30,.3)'; g.fillText(txt, x + 0.5, y + 0.5); g.fillStyle = col; g.fillText(txt, x, y); };
-      label('FLORIDA', -81.75, 27.35, 7); label('GEORGIA', -83.6, 30.9, 5); label('GULF OF MEXICO', -85.4, 27.6, 6, 'rgba(255,255,255,.6)'); label('ATLANTIC', -80.0, 30.2, 5, 'rgba(255,255,255,.6)');
+      label('FLORIDA', -81.75, 27.35, 7); label('GEORGIA', -83.2, 31.6, 6); label('GULF OF MEXICO', -86.6, 27.9, 6, 'rgba(255,255,255,.6)');
+      label('ALABAMA', -87.0, 31.9, 6); label('MISSISSIPPI', -89.6, 31.6, 6); label('LOUISIANA', -92.5, 31.0, 6); label('TEXAS', -94.45, 29.95, 6, 'rgba(255,255,255,.7)'); label('COMING SOON', -94.45, 29.72, 3.6, 'rgba(255,255,255,.6)'); label('ATLANTIC', -80.0, 30.2, 5, 'rgba(255,255,255,.6)');
     } finally { g = old; }
   }
   g.save(); g.translate(ox, 0); g.fillStyle = '#b4cca4';   // (the neighbouring land, right out to the edges of the screen)
@@ -4597,6 +4945,13 @@ const NODES = [
   at('daytona', FGEO(-81.02, 29.21), 'Daytona Beach', 'Florida', { map: 'fl' }),
   at('canaveral', FGEO(-80.6, 28.46), 'Cape Canaveral', 'Florida', { map: 'fl' }),
   at('space', FGEO(-79.95, 28.95), 'Outer Space', 'way up high', { map: 'fl', bonus: true }),
+  // World 6, west along the Gulf coast on the same map
+  at('mobile', FGEO(-88.05, 30.69), 'Mobile Bay', 'Alabama', { map: 'fl' }),
+  at('bayou', FGEO(-89.65, 30.45), 'Honey Island Swamp', 'Louisiana', { map: 'fl' }),
+  at('quarter', FGEO(-90.07, 29.92), 'French Quarter', 'New Orleans', { map: 'fl' }),
+  at('river', FGEO(-91.15, 30.5), 'Mississippi Steamboat', 'up to Baton Rouge', { map: 'fl' }),
+  at('basin', FGEO(-91.8, 30.12), 'Atchafalaya Basin', 'Louisiana', { map: 'fl' }),
+  at('sabine', FGEO(-93.72, 30.08), 'Sabine River Bridge', 'the Texas line', { map: 'fl' }),
 ];
 const PATHS = [['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'], ['dunes', 'ptown'],
   ['ptown', 'shore'], ['shore', 'night'], ['night', 'fort'],
@@ -4604,16 +4959,17 @@ const PATHS = [['canal', 'cranberry'], ['cranberry', 'whale'], ['whale', 'dunes'
   ['castle', 'orchard'], ['orchard', 'niagara'], ['niagara', 'bridge'], ['bridge', 'city'], ['city', 'liberty'],
   ['liberty', 'miami'], ['miami', 'reef'], ['reef', 'keywest'], ['keywest', 'glades'], ['glades', 'stpete'], ['stpete', 'springs'], ['springs', 'park'],
   ['park', 'castillo'], ['castillo', 'daytona'], ['daytona', 'canaveral'], ['canaveral', 'space'],
+  ['canaveral', 'mobile'], ['mobile', 'bayou'], ['bayou', 'quarter'], ['quarter', 'river'], ['river', 'basin'], ['basin', 'sabine'],
   ['caves', 'castle', 'secret'], ['canal', 'vineyard', 'secret'], ['whale', 'nantucket', 'secret'], ['cranberry', 'dunes', 'secret']];   // the secret ones open from secret exits
 const node = id => NODES.find(n => n.id === id);
 const START = 'canal';   // Leo's adventure starts at the Bourne Bridge, on Cape Cod
-const WORLDS = [['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['shore', 'night', 'fort'], ['snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle'], ['orchard', 'niagara', 'bridge', 'city', 'liberty'], ['miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral']];
-const WORLD_NAMES = ['Cape Cod & the Islands', 'The Coast of Maine', 'Mountains to Connecticut', 'New York & New Jersey', 'The Sunshine State'];
+const WORLDS = [['canal', 'cranberry', 'whale', 'dunes', 'ptown'], ['shore', 'night', 'fort'], ['snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle'], ['orchard', 'niagara', 'bridge', 'city', 'liberty'], ['miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral'], ['mobile', 'bayou', 'quarter', 'river', 'basin', 'sabine']];
+const WORLD_NAMES = ['Cape Cod & the Islands', 'The Coast of Maine', 'Mountains to Connecticut', 'New York & New Jersey', 'The Sunshine State', 'The Gulf Coast'];
 const worldOf = id => WORLDS.findIndex(w => w.includes(id));
 const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a];
 // the trails curve a little (alternating sides), and the ones across the sea are boat routes
-const FLIGHT_PATHS = new Set(['liberty|miami', 'canaveral|space']);   // (New York down to Florida: Leo flies; from Cape Canaveral he goes by rocket)
+const FLIGHT_PATHS = new Set(['liberty|miami', 'canaveral|space', 'canaveral|mobile']);   // (New York down to Florida, and Florida over to Alabama: Leo flies; from Cape Canaveral to space he goes by rocket)
 const SEA_PATHS = new Set(['miami|reef', 'keywest|glades', 'city|liberty', 'ptown|shore', 'cranberry|whale', 'whale|dunes', 'canal|vineyard', 'whale|nantucket']);
 // a few trails are bent by hand: the boat lane hugs the coast, and the secret paths swing round the levels in between
 const PATH_BEND = {};
@@ -4622,7 +4978,7 @@ bend('ptown|shore', GEO(-69.2, 43.0)); bend('caves|castle', GEO(-72.1, 42.5));  
 bend('cranberry|whale', CAPEXY(46, 14)); bend('whale|dunes', CAPEXY(68, -2));   // the sea route sweeps round the elbow...
 bend('cranberry|dunes', CAPEXY(51, 1));                                          // ...and the secret land road follows the arm inside it
 bend('canal|vineyard', CAPEXY(3, 10)); bend('whale|nantucket', CAPEXY(57, 19));
-bend('reef|keywest', FGEO(-80.95, 24.55)); bend('glades|stpete', FGEO(-81.85, 26.7)); bend('park|castillo', FGEO(-81.75, 29.2));   // along the Keys; up the Gulf coast; inland, west of Daytona
+bend('canaveral|mobile', FGEO(-84.4, 31.4)); bend('quarter|river', FGEO(-90.85, 29.95)); bend('reef|keywest', FGEO(-80.95, 24.55)); bend('glades|stpete', FGEO(-81.85, 26.7)); bend('park|castillo', FGEO(-81.75, 29.2));   // along the Keys; up the Gulf coast; inland, west of Daytona
 bend('castle|orchard', GEO(-73.2, 41.05)); bend('niagara|bridge', GEO(-76.8, 41.4));   // along Long Island Sound to the Hudson; then back down through the Southern Tier
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
@@ -4853,7 +5209,7 @@ function drawMap() {
     if (FLIGHT_PATHS.has(pth[0] + '|' + pth[1])) {   // a flight: a dashed arc through the sky with a little plane
       curve(); g.setLineDash([2, 3]); g.lineDashOffset = -t * 6; g.lineWidth = 1.1; g.strokeStyle = 'rgba(255,255,255,.85)'; g.stroke(); g.setLineDash([]);
       const u = (t * 0.06) % 1, q = qbez(a, c, b, u), q2 = qbez(a, c, b, Math.min(1, u + 0.01));
-      if (pth[0] === 'canaveral') drawRocketIcon(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x)); else drawPlane(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x));
+      if (pth[1] === 'space') drawRocketIcon(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x)); else drawPlane(q.x, q.y, Math.atan2(q2.y - q.y, q2.x - q.x));
       continue;
     }
     if (sea) {
@@ -4879,7 +5235,7 @@ function drawMap() {
     ell(n.x, n.y, 6, 4.4); paint(!open ? vgrad(n.y - 5, n.y + 5, '#aaa', '#777') : done ? vgrad(n.y - 5, n.y + 5, '#ff7a6a', '#d0302a') : vgrad(n.y - 5, n.y + 5, '#fff08a', '#f0b020'), 1.1);
     ell(n.x - 1.6, n.y - 1.6, 2.1, 1); paint('rgba(255,255,255,.6)');
     if (n.bonus) star(n.x, n.y - 0.4, 3.2, '#ffffff');
-    if (['castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral'].includes(n.id)) { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
+    if (['castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral', 'sabine'].includes(n.id)) { g.beginPath(); g.moveTo(n.x - 3, n.y - 4); g.lineTo(n.x - 3, n.y - 10); g.lineTo(n.x, n.y - 13); g.lineTo(n.x + 3, n.y - 10); g.lineTo(n.x + 3, n.y - 4); paint(done ? C.gold : '#8a8a9a', 0.8); }
     if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(n.x, n.y, 9, 6.6, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
   }
   // Leo, hopping along the paths (or, between the maps, flying in a plane)
@@ -4961,13 +5317,13 @@ function showBest() {
   const bits = [];
   if (save.best) bits.push(`🏆 Best score <b>${save.best}</b>`);
   const g2 = gemCount(); if (g2) bits.push(`🌈 <b>${g2}</b> gems`);
-  if (save.beaten5) bits.push('👑 All five worlds done!'); else if (save.beaten4) bits.push('👑 World 4 done!'); else if (save.beaten3) bits.push('👑 World 3 done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
+  if (save.beaten6) bits.push('👑 All six worlds done!'); else if (save.beaten5) bits.push('👑 World 5 done!'); else if (save.beaten4) bits.push('👑 World 4 done!'); else if (save.beaten3) bits.push('👑 World 3 done!'); else if (save.beaten2) bits.push('👑 World 2 done!'); else if (save.beaten) bits.push('👑 World 1 done!');
   document.getElementById('titleBest').innerHTML = bits.join(' · ');
 }
 showBest();
 function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; keep = { form: 0, mount: false }; goMap(); }
 document.getElementById('btnPlay').addEventListener('click', startGame);
-document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === 'canaveral') score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); if (endFrom === 'canaveral') setTimeout(() => RB.toast('🚀 3… 2… 1… Blast off to Outer Space!', 3000), 600); });
+document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === LAST_BOSS) score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); if (endFrom === 'canaveral') setTimeout(() => RB.toast('🚀 3… 2… 1… Blast off to Outer Space!', 3000), 3800); });
 
 // ---------- Loop ----------
 // The game moves on by exactly the time since the last frame (in small slices), so motion is smooth
