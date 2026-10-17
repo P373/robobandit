@@ -1069,8 +1069,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const steer = await p.evaluate(() => ({ p1: P1.yaw, p2: P2.yaw, b1: P1.boosting, b2: P2.boosting, keys: Object.values(P1.keys).some(Boolean) }));
     await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 7, false);
     // Ⓑ on controller 1 throws Player 1's hat, not Player 2's
+    await p.evaluate(() => { window.__hats = []; const t0 = performance.now(); (function watch() { for (const h of projectiles) if (h.kind === 'hat' && !__hats.includes(h.by.idx)) __hats.push(h.by.idx); if (performance.now() - t0 < 2000) requestAnimationFrame(watch); })(); });
     await tap(0, 1);
-    const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
+    const hats = await p.evaluate(() => __hats);   // (every hat thrown while the button was tapped)
     // the keyboard is shared: W A S D for Player 1, the arrows for Player 2
     await p.keyboard.down('KeyJ'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
     const kb = await p.evaluate(() => ({ p1: { ...P1.keys }, p2: { ...P2.keys } }));
@@ -1307,13 +1308,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.screenshot({ path: path.join(OUT, 'witch-3p.png') });
     await p.evaluate(() => startGame(4)); await p.waitForTimeout(200);
     await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(300);
-    // controller 4 steers Player 4 only; controller 3's Ⓧ throws Player 3's hat
+    // controller 4 steers Player 4 only; controller 3's Ⓑ throws Player 3's hat
     const y0 = await p.evaluate(() => players.map(q => q.yaw));
     await p.evaluate(() => { __pads[3].axes[0] = 1; }); await p.waitForTimeout(500);
     const steer = await p.evaluate(() => players.map(q => q.yaw));
-    await p.evaluate(() => { __pads[3].axes[0] = 0; __pads[2].buttons[2] = { pressed: true, value: 1 }; }); await p.waitForTimeout(300);
-    await p.evaluate(() => { __pads[2].buttons[2] = { pressed: false, value: 0 }; });
-    const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
+    await p.evaluate(() => { __pads[3].axes[0] = 0; __pads[2].buttons[1] = { pressed: true, value: 1 }; window.__hats = []; const t0 = performance.now(); (function watch() { for (const h of projectiles) if (h.kind === 'hat' && !__hats.includes(h.by.idx)) __hats.push(h.by.idx); if (performance.now() - t0 < 2000) requestAnimationFrame(watch); })(); }); await p.waitForTimeout(300);
+    await p.evaluate(() => { __pads[2].buttons[1] = { pressed: false, value: 0 }; }); await p.waitForTimeout(200);
+    const hats = await p.evaluate(() => __hats);
     const four = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
       spec: !document.getElementById('specTag').classList.contains('hidden'), racers: players.length, corners: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).map(h => { const b = h.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top)]; }) }));
     await p.screenshot({ path: path.join(OUT, 'witch-4p.png') });
@@ -1336,7 +1337,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(three.quad && three.huds === 3 && three.spec && three.racers === 3 && !three.p4, 'three players: three corners and the pumpkin cam: ' + JSON.stringify(three));
     check(four.quad && four.huds === 4 && !four.spec && four.racers === 4 && new Set(four.corners.map(String)).size === 4, 'four players: a corner each: ' + JSON.stringify(four));
     check(steer[3] < y0[3] - 0.05 && [0, 1, 2].every(i => Math.abs(steer[i] - y0[i]) < 0.03), 'controller 4 flies only Player 4: ' + JSON.stringify({ y0, steer }));
-    check(hats.length === 1 && hats[0] === 2, "controller 3's Ⓧ throws Player 3's hat: " + JSON.stringify(hats));
+    check(hats.length === 1 && hats[0] === 2, "controller 3's Ⓑ throws Player 3's hat: " + JSON.stringify(hats));
     check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 9) && new Set(race.places).size === 4 && race.podium === 9 && race.mine === 4 && /P4/.test(race.stats), 'all four reach the moon and the results list them: ' + JSON.stringify(race));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
