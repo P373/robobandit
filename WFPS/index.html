@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>West Falmouth Preschool Redesign</title>
+<meta name="description" content="A proposal to redesign the West Falmouth Preschool website and update it with AI.">
+<!-- unlisted: not linked from anywhere on the site, and kept out of search results -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ffffff">
+<link rel="icon" href="img/logo.png" type="image/png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root { --ink: #1d2433; --soft: #5b6475; --line: #e6e8ee; --red: #b8392f; --navy: #24365a; --tint: #f7f8fa; }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: #fff; color: var(--ink); font: 400 17px/1.65 'Inter', system-ui, sans-serif; }
+  .wrap { max-width: 1080px; margin: 0 auto; padding: 0 20px; }
+  h1, h2, h3 { font-family: 'Fraunces', Georgia, serif; color: var(--navy); line-height: 1.15; margin: 0 0 .4em; }
+  h1 { font-size: clamp(34px, 5vw, 54px); }
+  h2 { font-size: clamp(26px, 3.4vw, 34px); }
+  h3 { font-size: 20px; }
+  p { margin: 0 0 1em; }
+  a { color: var(--red); }
+  section { padding: 48px 0; }
+  .kicker { font-weight: 700; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--red); margin-bottom: 10px; }
+  .muted { color: var(--soft); }
+
+  header { padding: 56px 0 8px; text-align: center; }
+  header img { width: 96px; margin: 0 auto 14px; display: block; }
+  header p { font-size: 19px; color: var(--soft); margin: 0; }
+
+  /* the three versions */
+  .sites { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+  @media (max-width: 860px) { .sites { grid-template-columns: 1fr; max-width: 520px; margin: 0 auto; } }
+  a.site { display: block; text-decoration: none; color: inherit; border: 1px solid var(--line); border-radius: 18px; overflow: hidden; background: #fff; transition: transform .15s, box-shadow .15s; }
+  a.site:hover { transform: translateY(-4px); box-shadow: 0 16px 34px rgba(29,36,51,.12); }
+  .shot { aspect-ratio: 16 / 10; background: var(--tint); border-bottom: 1px solid var(--line); overflow: hidden; }
+  .shot img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+  .shot.today { display: grid; place-items: center; text-align: center; background: linear-gradient(#fff7ec, #fff); }
+  .shot.today img { width: 120px; height: auto; margin: 0 auto 10px; }
+  .shot.today span { font-weight: 600; color: var(--soft); font-size: 15px; }
+  .site .txt { padding: 18px 20px 20px; }
+  .tag { display: inline-block; font-size: 12px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 4px 10px; border-radius: 999px; background: var(--tint); color: var(--soft); margin-bottom: 8px; }
+  .tag.new { background: #fdecea; color: var(--red); }
+  .site .txt p { font-size: 15.5px; color: var(--soft); margin: 0; }
+  .site .go { display: inline-block; margin-top: 12px; font-weight: 700; color: var(--red); font-size: 15px; }
+
+  /* video */
+  .video { aspect-ratio: 1000 / 653; border-radius: 18px; overflow: hidden; background: #0f1420; box-shadow: 0 16px 34px rgba(29,36,51,.12); }
+  .video iframe { display: block; width: 100%; height: 100%; border: 0; }
+  .cover { position: relative; display: grid; place-items: center; width: 100%; height: 100%; color: #fff; text-decoration: none; cursor: pointer; }
+  .cover img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: top; filter: blur(2px) brightness(.45); transform: scale(1.03); }
+  .cover .play { position: relative; width: 92px; height: 92px; border-radius: 50%; background: var(--red); display: grid; place-items: center; padding-left: 5px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.35); transition: transform .15s; }
+  .cover:hover .play, .cover:focus-visible .play { transform: scale(1.08); }
+  .cover .label { position: absolute; left: 0; right: 0; bottom: 8%; text-align: center; font-weight: 600; font-size: clamp(15px, 2vw, 19px); text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+  .cover:focus-visible { outline: 3px solid var(--red); outline-offset: 4px; }
+
+  /* explanation */
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
+  @media (max-width: 760px) { .two { grid-template-columns: 1fr; } }
+  .box { border: 1px solid var(--line); border-radius: 18px; padding: 24px; }
+  .box.now { background: var(--tint); }
+  ul.dots { margin: 0; padding: 0; list-style: none; }
+  ul.dots li { position: relative; padding-left: 22px; margin: 0 0 10px; }
+  ul.dots li::before { content: ''; position: absolute; left: 2px; top: 10px; width: 8px; height: 8px; border-radius: 50%; background: var(--red); }
+  .box.now ul.dots li::before { background: #9aa3b2; }
+
+  .flow { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; counter-reset: s; }
+  @media (max-width: 860px) { .flow { grid-template-columns: 1fr 1fr; } }
+  @media (max-width: 480px) { .flow { grid-template-columns: 1fr; } }
+  .flow div { position: relative; border: 1px solid var(--line); border-radius: 16px; padding: 22px 18px 18px; }
+  .flow div::before { counter-increment: s; content: counter(s); position: absolute; top: -14px; left: 16px; width: 30px; height: 30px; border-radius: 50%; background: var(--navy); color: #fff;
+    font: 700 15px/30px 'Inter', sans-serif; text-align: center; }
+  .flow b { display: block; margin-bottom: 4px; }
+  .flow p { font-size: 15px; color: var(--soft); margin: 0; }
+  .say { font-family: 'Fraunces', Georgia, serif; font-weight: 600; color: var(--navy); }
+
+  table { width: 100%; border-collapse: collapse; font-size: 16px; }
+  th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-size: 13px; letter-spacing: .08em; text-transform: uppercase; color: var(--soft); font-weight: 700; }
+  td:first-child { font-weight: 600; white-space: nowrap; }
+  td.new { color: var(--ink); }
+  .scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 16px; }
+  .scroll table tr:last-child td { border-bottom: 0; }
+
+  .wins { display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; }
+  @media (max-width: 760px) { .wins { grid-template-columns: 1fr; } }
+  .wins div { border-radius: 16px; padding: 20px; background: var(--tint); }
+  .wins b { display: block; font: 700 22px 'Fraunces', serif; color: var(--red); margin-bottom: 4px; }
+  .wins span { color: var(--soft); font-size: 15.5px; }
+
+  footer { padding: 32px 0 48px; text-align: center; font-size: 13px; color: #8a92a2; border-top: 1px solid var(--line); margin-top: 24px; }
+</style>
+</head>
+<body>
+
+<header><div class="wrap">
+  <img src="img/logo.png" alt="West Falmouth Preschool logo" width="96" height="65">
+  <h1>West Falmouth Preschool Redesign</h1>
+  <p>Webpage redesign</p>
+</div></header>
+
+<section><div class="wrap">
+  <div class="sites">
+    <a class="site" href="https://westfalmouthpreschool.org/" target="_blank" rel="noopener">
+      <div class="shot today"><div><img src="img/logo.png" alt=""><span>westfalmouthpreschool.org</span></div></div>
+      <div class="txt"><span class="tag">Today</span><h3>The current website</h3><p>Our WordPress site as it is today.</p><span class="go">Visit ↗</span></div>
+    </a>
+    <a class="site" href="v1/">
+      <div class="shot"><img src="img/v1.jpg" alt="Version 1 home page" width="800" height="500"></div>
+      <div class="txt"><span class="tag new">Version 1</span><h3>Same content, fresh design</h3><p>Every page of today's site, rebuilt to be cleaner, faster and easy to read on a phone.</p><span class="go">Open version 1 →</span></div>
+    </a>
+    <a class="site" href="v2/">
+      <div class="shot"><img src="img/v2.jpg" alt="Version 2 home page" width="800" height="500"></div>
+      <div class="txt"><span class="tag new">Version 2</span><h3>Built for families and donors</h3><p>Adds tour booking, one clear enrollment page, a Parent Hub and a Give page.</p><span class="go">Open version 2 →</span></div>
+    </a>
+  </div>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <div class="kicker">Watch</div>
+  <h2>How we built it</h2>
+  <!-- the Loom recording, at Loom's own aspect ratio -->
+  <!-- a light cover that shows instantly; the heavy Loom player loads only when someone presses play.
+       Without JavaScript the cover is a plain link to the video on Loom. -->
+  <div class="video"><a class="cover" id="loom" href="https://www.loom.com/share/71f498147bf14ff0b86b3856beb5772d" data-id="71f498147bf14ff0b86b3856beb5772d" aria-label="Play the video: how we built the West Falmouth Preschool redesign">
+    <img src="img/v2.jpg" alt="" width="800" height="500">
+    <span class="play"><svg width="34" height="34" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg></span>
+    <span class="label">Watch the 1-minute walkthrough</span>
+  </a></div>
+</div></section>
+
+<section><div class="wrap">
+  <div class="kicker">The proposal</div>
+  <h2>How the website is run today, and going forward</h2>
+  <div class="two" style="margin-top:20px">
+    <div class="box now">
+      <h3>Today</h3>
+      <ul class="dots">
+        <li>A WordPress site, hosted and maintained by an outside company that we pay.</li>
+        <li>Updates mean logging into WordPress or asking the vendor, so pages fall out of date. The tuition page and fundraiser still refer to 2024–2025.</li>
+        <li>WordPress needs regular plugin and security updates to stay safe.</li>
+      </ul>
+    </div>
+    <div class="box">
+      <h3>Going forward</h3>
+      <ul class="dots">
+        <li><b>GitHub</b> stores the website and saves every change, so we can see who changed what and undo anything in one step.</li>
+        <li><b>Cloudflare Pages</b> hosts it for free, with security, HTTPS and fast loading built in. No plugins and no database to hack.</li>
+        <li>The board owns every account, so nothing depends on one vendor or one volunteer.</li>
+      </ul>
+    </div>
+  </div>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <h2>Updating the site by talking to AI</h2>
+  <p class="muted" style="max-width:46em">The board shares one AI account. Anyone on the board can describe a change in plain English, and the AI makes it.</p>
+  <div class="flow" style="margin-top:28px">
+    <div><b>Ask</b><p class="say">"Post the 2026–27 tuition rates and the registration dates."</p></div>
+    <div><b>AI makes the change</b><p>It edits the pages, keeping the design consistent.</p></div>
+    <div><b>Preview on staging</b><p>The change appears on a private staging site first, for the board to check.</p></div>
+    <div><b>Ship it</b><p>When it looks right, it goes live on westfalmouthpreschool.org.</p></div>
+  </div>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <div class="scroll"><table>
+    <thead><tr><th></th><th>Today</th><th>Going forward</th></tr></thead>
+    <tbody>
+      <tr><td>Hosting</td><td>Paid outside company</td><td class="new">Free (Cloudflare Pages and GitHub)</td></tr>
+      <tr><td>Making a change</td><td>Log into WordPress or wait for the vendor</td><td class="new">Ask the AI, in minutes</td></tr>
+      <tr><td>Checking first</td><td>Changes go straight live</td><td class="new">Preview on a staging site, then ship</td></tr>
+      <tr><td>Mistakes</td><td>Hard to undo</td><td class="new">Every version saved; undo in one step</td></tr>
+      <tr><td>Security</td><td>Plugins and updates to manage</td><td class="new">Built in; nothing to patch</td></tr>
+      <tr><td>Ownership</td><td>Tied to the vendor</td><td class="new">The board owns every account</td></tr>
+    </tbody>
+  </table></div>
+</div></section>
+
+<section style="padding-top:8px"><div class="wrap">
+  <div class="kicker">Why it matters</div>
+  <div class="wins">
+    <div><b>Saves money</b><span>No hosting or vendor fees. The only cost is one AI subscription.</span></div>
+    <div><b>Saves time</b><span>Updates take minutes, so the site stays current all year.</span></div>
+    <div><b>Looks professional</b><span>A modern site that works on every phone and makes a great first impression on new families and donors.</span></div>
+  </div>
+</div></section>
+
+<footer><div class="wrap">Prepared for the West Falmouth Preschool board by a WFPS family.</div></footer>
+
+<script>
+// Swap the cover for the Loom player on click. Hovering first opens the connection to Loom, so playback starts sooner.
+(function () {
+  var cover = document.getElementById('loom');
+  if (!cover) return;
+  var warmed = false;
+  function warm() {
+    if (warmed) return;
+    warmed = true;
+    ['https://www.loom.com', 'https://cdn.loom.com'].forEach(function (h) {
+      var l = document.createElement('link'); l.rel = 'preconnect'; l.href = h; l.crossOrigin = ''; document.head.appendChild(l);
+    });
+  }
+  cover.addEventListener('pointerenter', warm);
+  cover.addEventListener('focus', warm);
+  cover.addEventListener('touchstart', warm, { passive: true });
+  cover.addEventListener('click', function (e) {
+    e.preventDefault();
+    var f = document.createElement('iframe');
+    f.src = 'https://www.loom.com/embed/' + cover.dataset.id + '?autoplay=1';
+    f.title = 'How we built the West Falmouth Preschool redesign (video)';
+    f.allow = 'autoplay; fullscreen; picture-in-picture';
+    f.allowFullscreen = true;
+    cover.replaceWith(f);
+  });
+})();
+</script>
+</body>
+</html>
