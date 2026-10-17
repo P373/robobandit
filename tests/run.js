@@ -721,6 +721,76 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('🕹️ the shared controls: F1 / ? guide, controller button names (Xbox, PlayStation, Nintendo), N sound, M map, no P pause, no keys while typing, stick → W A S D', async () => {
+    const mkCtx = async id => {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+      await ctx.addInitScript(id => {
+        const gp = { id, index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } };
+        window.__pad = gp; navigator.getGamepads = () => (window.__noPad ? [] : [gp]);
+      }, id);
+      return ctx;
+    };
+    const ctx = await mkCtx('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)');
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('floppy-bird.html')); await p.waitForTimeout(500);
+    // F1, then ?: the guide lists this game's controls and the shared ones, with the controller's names
+    await p.keyboard.press('F1'); await p.waitForTimeout(150);
+    const g1 = await p.evaluate(() => ({ open: !!document.querySelector('.rb-guide'), text: document.querySelector('.rb-guide')?.textContent || '' }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    const closed = await p.evaluate(() => !document.querySelector('.rb-guide'));
+    await p.keyboard.press('Shift+Slash'); await p.waitForTimeout(150);
+    const g2 = await p.evaluate(() => !!document.querySelector('.rb-guide'));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    // N toggles the sound, P does nothing, M opens the menu (the map) and closes it again
+    const m0 = await p.evaluate(() => RB.muted);
+    await p.keyboard.press('KeyN'); const m1 = await p.evaluate(() => RB.muted);
+    await p.keyboard.press('KeyN'); const m2 = await p.evaluate(() => RB.muted);
+    await p.evaluate(() => { mode = 'play'; }); await p.keyboard.press('KeyP'); await p.waitForTimeout(100);
+    const pNoPause = await p.evaluate(() => !paused && !document.querySelector('.rb-pause'));
+    await p.keyboard.press('KeyM'); await p.waitForTimeout(150);
+    const mMenu = await p.evaluate(() => !!document.querySelector('.rb-menu'));
+    await p.keyboard.press('KeyM'); await p.waitForTimeout(150);
+    const mClosed = await p.evaluate(() => !document.querySelector('.rb-menu'));
+    // typing in a box: no game keys
+    await p.evaluate(() => { const i = document.createElement('input'); i.id = 'typeHere'; document.body.appendChild(i); i.focus(); });
+    const t0 = await p.evaluate(() => RB.muted); await p.keyboard.type('nmp'); const t1 = await p.evaluate(() => ({ muted: RB.muted, menu: !!document.querySelector('.rb-menu'), val: document.getElementById('typeHere').value }));
+    await p.evaluate(() => document.getElementById('typeHere').remove());
+    // the pause screen has a controls button, and its hint names Esc / the controller
+    await p.keyboard.press('Escape'); await p.waitForTimeout(150);
+    const pz = await p.evaluate(() => ({ paused, btn: !!document.querySelector('.rb-pause .rb-guide-btn'), focused: document.activeElement && document.activeElement.textContent.includes('KEEP PLAYING'), hint: document.querySelector('.rb-pause .rb-hint')?.textContent || '' }));
+    // ☰ on the controller carries on from the pause screen
+    await padTap(p, 'MENU'); await p.waitForTimeout(150);
+    const menuResumes = await p.evaluate(() => !paused && !document.querySelector('.rb-pause'));
+    // the left stick presses W A S D (not the arrows) in a game without a touch joystick
+    const codes = await p.evaluate(async () => { const seen = []; addEventListener('keydown', e => seen.push(e.code), true); mode = 'play'; __pad.axes[1] = -0.9; await new Promise(r => setTimeout(r, 200)); __pad.axes[1] = 0; __pad.axes[0] = 0.9; await new Promise(r => setTimeout(r, 200)); __pad.axes[0] = 0; await new Promise(r => setTimeout(r, 100)); return seen; });
+    const xbox = await p.evaluate(() => [RB.padText('{A} {RT} {LT} {MENU}'), RB.padStyle()]);
+    await ctx.close();
+    // PlayStation and Nintendo controllers get their own names, in text and in the guide
+    const names = {};
+    for (const [k, id] of [['ps', 'DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'], ['nin', 'Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)']]) {
+      const c = await mkCtx(id), q = await c.newPage();
+      await q.goto(url('lucky-leo.html')); await q.waitForTimeout(500);
+      names[k] = await q.evaluate(() => { const s = document.createElement('b'); s.dataset.pad = 'A'; document.body.appendChild(s); RB.applyPadLabels(); return { text: RB.padText('{A} {X} {LT} {RT} {MENU}'), el: s.textContent, style: RB.padStyle() }; });
+      await q.keyboard.press('F1'); await q.waitForTimeout(150);
+      names[k].guide = await q.evaluate(() => document.querySelector('.rb-guide')?.textContent || '');
+      await c.close();
+    }
+    check(g1.open && /Flap/i.test(g1.text) && /Esc/.test(g1.text) && /F1/.test(g1.text) && g1.text.includes('Ⓐ'), 'F1 opens the controls guide with this game, the shared keys and Xbox names: ' + g1.text.slice(0, 200));
+    check(closed && g2, 'Esc closes the guide and ? opens it');
+    check(m1 === !m0 && m2 === m0, 'N toggles the sound');
+    check(pNoPause, 'P no longer pauses');
+    check(mMenu && mClosed, 'M opens the map / menu and closes it again');
+    check(t1.muted === t0 && !t1.menu && t1.val === 'nmp', 'typing in a box fires no game keys: ' + JSON.stringify(t1));
+    check(pz.paused && pz.btn && pz.focused && /Ⓐ|Esc/.test(pz.hint), 'the pause screen has a controls button and focuses Keep Playing: ' + JSON.stringify(pz));
+    check(menuResumes, '☰ on the controller carries on from the pause screen');
+    check(codes.includes('KeyW') && codes.includes('KeyD') && !codes.some(c => c.startsWith('Arrow')), 'the left stick presses W A S D, not arrows: ' + codes.join(','));
+    check(xbox[0] === 'Ⓐ RT LT ☰ Menu' && xbox[1] === 'xbox', 'Xbox names: ' + xbox);
+    check(names.ps.style === 'ps' && names.ps.text === '✕ ▢ L2 R2 Options' && names.ps.el === '✕' && names.ps.guide.includes('R2'), 'PlayStation names: ' + JSON.stringify(names.ps).slice(0, 200));
+    check(names.nin.style === 'nin' && names.nin.text === 'B Y ZL ZR +' && names.nin.el === 'B' && names.nin.guide.includes('ZR'), 'Nintendo names: ' + JSON.stringify(names.nin).slice(0, 200));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+  });
+
   await test('pausing silences all sound; the controller View button (twice) goes home; pages load matching shared files', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
     await ctx.addInitScript(fakePad);
@@ -789,13 +859,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { __pad.axes[1] = 0; __pad.axes[3] = 0; window.__rumbles = 0; RB.noise(0.3, 0.5); });
     check(await p.evaluate(() => !window.__rumbles), 'vibration off should stop the rumble');
     // the pause screen has the controller screen too, and closing it returns to the pause screen
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
     check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause screen should open the controller screen');
     await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause screen, still paused');
     // and from the ☰ menu: closing the controller screen goes back to the menu, ☰ again carries on
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     await padTap(p, 'MENU'); await p.click('.rb-menu [data-m="pad"]'); await p.waitForTimeout(150);
     await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     check(await p.evaluate(() => !!document.querySelector('.rb-menu') && paused), 'closing the controller screen goes back to the menu');
@@ -914,7 +984,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lily Pad Lunch 🎮 two controllers and 📱 touch: each controller aims and snaps its own frog, race mode, tap to snap and hop', async () => {
+  await test('Lily Pad Lunch 🎮 two controllers and 📱 touch: each controller aims and snaps (RT) its own frog, race mode, tap to snap and hop', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
     await ctx.addInitScript(() => {
       const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
@@ -937,9 +1007,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { __pads[1].axes[0] = -0.7; __pads[1].axes[1] = -0.7; }); await p.waitForTimeout(400);
     await p.evaluate(() => { __pads[1].axes[0] = 0; __pads[1].axes[1] = 0; });
     const a1 = await p.evaluate(() => [frogs[0].aim, frogs[1].aim]);
-    await btn(1, 0, true); await p.waitForTimeout(150);
+    await btn(1, 7, true); await p.waitForTimeout(150);   // RT snaps (A hops)
     const tongues = await p.evaluate(() => frogs.map(f => !!f.tongue));
-    await btn(1, 0, false); await p.waitForTimeout(400);
+    await btn(1, 7, false); await p.waitForTimeout(400);
     // controller 1's LB hops Player 1 a pad to the left
     const pad0 = await p.evaluate(() => frogs[0].pad);
     await tap(0, 4); await p.waitForTimeout(700);
@@ -952,7 +1022,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const menu = await p.evaluate(() => ({ menu: !!document.querySelector('.rb-menu'), paused }));
     check(started.state === 'play' && started.frogs === 2 && started.direct, 'Ⓐ on the title starts a two-player game: ' + JSON.stringify(started));
     check(Math.abs(a1[0] - a0[0]) < 0.01 && a1[1] < -2.0, "controller 2's stick aims only Player 2: " + JSON.stringify({ a0, a1 }));
-    check(!tongues[0] && tongues[1], "controller 2's Ⓐ snaps only Player 2's tongue: " + JSON.stringify(tongues));
+    check(!tongues[0] && tongues[1], "controller 2's RT snaps only Player 2's tongue: " + JSON.stringify(tongues));
     check(pad1 === pad0 - 1, 'LB hops Player 1 to the pad on the left: ' + JSON.stringify({ pad0, pad1 }));
     check(race.state === 'end' && /Player 2.*wins/.test(race.text), 'race mode: a full jar wins for that player: ' + JSON.stringify(race));
     check(menu.menu && menu.paused, "the second controller's ☰ opens the menu: " + JSON.stringify(menu));
@@ -995,16 +1065,16 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       divider: !document.getElementById('divider').classList.contains('hidden'), direct: RB.pad.direct, p2: P2.mesh.visible, racers: players.length }));
     // controller 2 steers and boosts Player 2 only
     const y1 = await p.evaluate(() => [P1.yaw, P2.yaw]);
-    await p.evaluate(() => { __pads[1].axes[0] = 1; }); await btn(1, 6, true); await p.waitForTimeout(500);
+    await p.evaluate(() => { __pads[1].axes[0] = 1; }); await btn(1, 7, true); await p.waitForTimeout(500);
     const steer = await p.evaluate(() => ({ p1: P1.yaw, p2: P2.yaw, b1: P1.boosting, b2: P2.boosting, keys: Object.values(P1.keys).some(Boolean) }));
-    await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 6, false);
-    // Ⓧ on controller 1 throws Player 1's hat, not Player 2's
-    await tap(0, 2);
+    await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 7, false);
+    // Ⓑ on controller 1 throws Player 1's hat, not Player 2's
+    await tap(0, 1);
     const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
     // the keyboard is shared: W A S D for Player 1, the arrows for Player 2
-    await p.keyboard.down('ArrowLeft'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
+    await p.keyboard.down('KeyJ'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
     const kb = await p.evaluate(() => ({ p1: { ...P1.keys }, p2: { ...P2.keys } }));
-    await p.keyboard.up('ArrowLeft'); await p.keyboard.up('KeyD');
+    await p.keyboard.up('KeyJ'); await p.keyboard.up('KeyD');
     // Player 2's hat can bonk Player 1
     const bonk = await p.evaluate(() => {
       clearProjectiles();   // (one evaluate runs start to end: the page's own loop waits)
@@ -1047,8 +1117,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(title.two && /Two controllers/.test(title.pads), 'the title offers 2 players and sees both controllers: ' + JSON.stringify(title));
     check(split.split && split.huds === 2 && split.divider && split.direct && split.p2 && split.racers === 2, 'two players split the screen: ' + JSON.stringify(split));
     check(steer.p2 < y1[1] - 0.05 && Math.abs(steer.p1 - y1[0]) < 0.02 && steer.b2 && !steer.b1 && !steer.keys, 'controller 2 flies only Player 2: ' + JSON.stringify({ y1, steer }));
-    check(hats.length === 1 && hats[0] === 0, "controller 1's Ⓧ throws Player 1's hat: " + JSON.stringify(hats));
-    check(kb.p1.r && !kb.p1.l && kb.p2.l && !kb.p2.r, 'W A S D fly Player 1 and the arrows Player 2: ' + JSON.stringify(kb));
+    check(hats.length === 1 && hats[0] === 0, "controller 1's Ⓑ throws Player 1's hat: " + JSON.stringify(hats));
+    check(kb.p1.r && !kb.p1.l && kb.p2.l && !kb.p2.r, 'W A S D fly Player 1 and I J K L Player 2: ' + JSON.stringify(kb));
     check(bonk.locked && bonk.hit && bonk.hits === 1 && bonk.layers, "Player 2's hat locks on and bonks Player 1: " + JSON.stringify(bonk));
     check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 7) && race.places[0] !== race.places[1] && race.podium === 2 && race.all === 7 && /P1/.test(race.stats) && /P2/.test(race.stats) && /1 Player/.test(race.swap),
       'both reach the moon and the results list both: ' + JSON.stringify(race));
@@ -1058,7 +1128,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
-  await test('Witch Way Out race: hat bonks a witch and comes back, LT boosts with dust, boxes give power-ups, a racer using them wins', async () => {
+  await test('Witch Way Out race: hat bonks a witch and comes back, RT boosts with dust, boxes give power-ups, a racer using them wins', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
@@ -1067,12 +1137,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     // the countdown holds everyone on the line
     const c = await p.evaluate(() => { startGame(); const z = pos.z, fz = friends[0].z; for (let i = 0; i < 60; i++) update(1 / 60); return { moved: pos.z !== z || friends[0].z !== fz, countT }; });
     check(!c.moved && c.countT > 1, 'nobody should move before GO: ' + JSON.stringify(c));
-    // Ⓧ throws the hat at a witch in range: she falls off, and the hat comes back
+    // Ⓑ throws the hat at a witch in range: she falls off, and the hat comes back
     await p.evaluate(() => { countT = 0; introT = 0; for (let i = 0; i < 10; i++) { update(1 / 60); updateVisuals(1 / 60); }
       const f = friends[0]; f.z = pos.z - 18; f.off = pos.x - lineX(f.z); f.offY = pos.y - lineY(f.z); f.ph = -clock * 0.35; f.knockT = 0; f.nextThrow = 99;
       friends.slice(1).forEach(o => { o.z = pos.z - 300; }); update(1 / 60); updateVisuals(1 / 60); });
     check(await p.evaluate(() => lockMesh.visible), 'a witch just ahead should be marked as in range');
-    await padTap(p, 'X');
+    await padTap(p, 'B');
     const h = await p.evaluate(() => {
       const out = { thrown: projectiles.some(x => x.kind === 'hat') && !me.userData.hat.visible };
       for (let i = 0; i < 60 * 4 && !(out.hit && me.userData.hat.visible); i++) { update(1 / 60); updateVisuals(1 / 60); if (friends[0].knockT > 0) out.hit = true; }
@@ -1080,13 +1150,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return out;
     });
     check(h.thrown && h.hit && h.back, 'the hat should fly, bonk the witch and come back: ' + JSON.stringify(h));
-    // LT boosts: faster, the meter drains, magic dust behind
+    // RT boosts: faster, the meter drains, magic dust behind
     await p.evaluate(() => { magic = 1; });
-    await padHold(p, 'LT', true); await p.waitForTimeout(500);
+    await padHold(p, 'RT', true); await p.waitForTimeout(500);
     const b = await p.evaluate(() => { for (let i = 0; i < 40; i++) { update(1 / 60); updateVisuals(1 / 60); } let lit = 0; for (let i = 0; i < DUST_N; i++) if (dustAge[i] < DUST_LIFE) lit++; return { boosting, magic, speed, lit }; });
-    await padHold(p, 'LT', false);
+    await padHold(p, 'RT', false);
     check(b.boosting && b.magic < 0.95 && b.speed > 36 && b.lit > 20, 'LT should boost with a dust trail: ' + JSON.stringify(b));
-    // a magic box rolls a power-up; Ⓑ uses it (the bats chase the leader)
+    // a magic box rolls a power-up; Ⓨ uses it (the bats chase the leader)
     const it = await p.evaluate(() => {
       const box = boxes.find(x => x.z < pos.z - 30); pos.set(box.x, box.mesh.position.y, box.z + 0.5); friends.forEach(f => { f.knockT = 0; });
       update(1 / 60);
@@ -1096,10 +1166,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return { got, lead: lead.name };
     });
     check(it.got && ['rocket', 'bats', 'potion', 'cloak', 'triple', 'web'].includes(it.got), 'a box should give a power-up: ' + JSON.stringify(it));
-    await padTap(p, 'B');
+    await padTap(p, 'Y');
     const bats = await p.evaluate(lead => { const f = friends.find(x => x.name === lead); let hit = false;
       for (let i = 0; i < 60 * 6 && !hit; i++) { update(1 / 60); if (f.knockT > 0) hit = true; } return { used: item === null, hit }; }, it.lead);
-    check(bats.used && bats.hit, 'Ⓑ should send the bats after the leader: ' + JSON.stringify(bats));
+    check(bats.used && bats.hit, 'Ⓨ should send the bats after the leader: ' + JSON.stringify(bats));
     await p.screenshot({ path: path.join(OUT, 'witch-race.png') });
     // a racer who boosts, throws hats and uses power-ups beats everyone
     const race = await p.evaluate(() => {
@@ -1213,12 +1283,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
     check(m.games === 14 && m.cur.includes('Witch Way Out'), 'the menu should list 11 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('KeyJ'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
     await padTap(p, 'B'); await p.waitForTimeout(100);
     check(await p.evaluate(() => !document.querySelector('.rb-menu') && !paused && !document.querySelector('.rb-pause')), 'Ⓑ should close the menu and carry on (the menu paused it)');
     // over the game's own pause screen the menu goes back to it, and "Back to the game" carries on
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     await p.click('#btnMenu'); await p.waitForTimeout(100);
     await padTap(p, 'B'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ over the pause screen goes back to it');
@@ -1706,7 +1776,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo on the map shows his power-up and Shamrock when he has them; ↓ + jump hops off Shamrock', async () => {
+  await test('Lucky Leo on the map shows his power-up and Shamrock when he has them; S + jump (or F) hops off Shamrock', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {

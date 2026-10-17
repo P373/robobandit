@@ -383,7 +383,7 @@ const DIFFS = {
 const diff = () => DIFFS[settings.mode] || DIFFS.easy;
 
 // ---------- Input ----------
-// Each level picks a control style: 'hold' (hold anywhere / Space), 'stick' (joystick / arrow keys)
+// Each level picks a control style: 'hold' (hold anywhere / Space / W), 'stick' (joystick / W A S D)
 // or 'stickbtn' (joystick plus a big action button).
 const keys = {};
 let ptrHeld = false, btnHeld = false;
@@ -392,15 +392,17 @@ let round = null, mode = 'title', paused = false, cur = 0;
 let inputStyle = 'hold';
 const stick = createTouchStick(canvas, { enabled: () => mode === 'play' && !paused && inputStyle !== 'hold' });
 if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
-const holding = () => !!(keys.Space || keys.ArrowUp || keys.KeyW || ptrHeld || btnHeld);
-const actionHeld = () => !!(keys.Space || keys.Enter || btnHeld);
+const holding = () => !!(keys.Space || keys.KeyW || ptrHeld || btnHeld);
+const actionHeld = () => !!(keys.Space || btnHeld);
 // Mouse steering: rounds set round.anchor = {x, y} (where the craft is on screen) and a held mouse steers toward it.
 function mouseAxis(which) {
   if (!mouse || !round || !round.anchor) return 0;
   return clamp((which === 'x' ? mouse.x - round.anchor.x : mouse.y - round.anchor.y) / 80, -1, 1);
 }
-const axisX = () => ((keys.ArrowRight || keys.KeyD ? 1 : 0) - (keys.ArrowLeft || keys.KeyA ? 1 : 0)) || (stick.active ? stick.x : 0) || mouseAxis('x');
-const axisY = () => ((keys.ArrowDown || keys.KeyS ? 1 : 0) - (keys.ArrowUp || keys.KeyW ? 1 : 0)) || (stick.active ? stick.y : 0) || mouseAxis('y');
+const axisX = () => ((keys.KeyD ? 1 : 0) - (keys.KeyA ? 1 : 0)) || (stick.active ? stick.x : 0) || mouseAxis('x');
+const axisY = () => ((keys.KeyS ? 1 : 0) - (keys.KeyW ? 1 : 0)) || (stick.active ? stick.y : 0) || mouseAxis('y');
+// On-canvas prompts: controller wording when a pad is plugged in, else touch or keyboard wording.
+const say3 = (touch, key, pad) => RB.pad && RB.pad.connected ? RB.padText(pad) : RB.touch ? touch : key;
 const toLogical = e => ({ x: e.clientX * (canvas.width / innerWidth) / scale, y: e.clientY * (canvas.height / innerHeight) / scale - OFFY });
 
 // ---------- Effects shared by the rounds ----------

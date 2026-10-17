@@ -21,8 +21,8 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bungee&family=Fredoka:wght@400;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="../common.css?v=20261015-0233">
-<link rel="stylesheet" href="../lesson.css?v=20261015-0233">
+<link rel="stylesheet" href="../common.css?v=20261017-1913">
+<link rel="stylesheet" href="../lesson.css?v=20261017-1913">
 <style>
   :root { --c: #d63c4a; --c2: #ffd84a; --bg: #23407a; }
   .pad { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 6px auto 0; }
@@ -34,8 +34,8 @@
 <body>
 <div id="topbar"></div>
 <div class="screen"><div class="card" id="card"></div></div>
-<script src="../common.js?v=20261015-0233"></script>
-<script src="../lesson.js?v=20261015-0233"></script>
+<script src="../common.js?v=20261017-1913"></script>
+<script src="../lesson.js?v=20261017-1913"></script>
 <script>
 'use strict';
 const INK = '#14254d', RED = '#d63c4a', NAVY = '#23407a', BLUE = '#3d8ff0', GREEN = '#2fae5a', ORANGE = '#f08a24', YELLOW = '#ffd84a', PURPLE = '#7b4bd6', SEA = '#7fc4f0', LAND = '#9ccf7a';
@@ -500,7 +500,7 @@ function mapGame(api) {
       render();
     },
     key(k, e) {
-      const m = { arrowup: [0, -1], w: [0, -1], arrowdown: [0, 1], s: [0, 1], arrowleft: [-1, 0], a: [-1, 0], arrowright: [1, 0], d: [1, 0] }[k];
+      const m = { w: [0, -1], s: [0, 1], a: [-1, 0], d: [1, 0] }[k];
       if (m) { if (e) e.preventDefault(); step(...m); }
     },
     bot() {
@@ -691,7 +691,7 @@ School.start({
     {
       kind: 'game', id: 'quest', icon: '🧭', name: 'Map Quest', sub: 'Follow the compass', badge: 'Compass Captain',
       how: [['🤖', 'Help the robot walk around town using the <b>compass rose</b>.'],
-        ['🧭', 'Press <b>North</b>, <b>South</b>, <b>East</b> or <b>West</b> to move one block.'], ['⌨️', '<span class="key-only">Arrow keys work too!</span><span class="touch-only">Tap the arrows.</span>'], ['⭐', '150 points for taking the shortest way.']],
+        ['🧭', 'Press <b>North</b>, <b>South</b>, <b>East</b> or <b>West</b> to move one block.'], ['⌨️', '<span class="key-only">W A S D work too!</span><span class="touch-only">Tap the arrows.</span>'], ['⭐', '150 points for taking the shortest way.']],
       make: mapGame,
     },
     {

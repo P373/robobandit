@@ -1,8 +1,8 @@
 // 360° orbit camera for the RoboBandit 3D games, tuned in Witch Way Out after Super Mario Odyssey
 // and camera-design best practice:
-// - the 🎮 right stick (or Q / E, or a drag) swings it all the way around the player; up and down are slower,
+// - the 🎮 right stick (or Z / X, or a drag) swings it all the way around the player; up and down are slower,
 //   stop short of straight overhead / underneath, and ease off near the limits instead of hitting a wall
-// - LB (like Odyssey's L), clicking a stick, or R swings it back behind in a quick, smooth move
+// - LB or RB (like Odyssey's L), clicking the right stick, or R swings it back behind in a quick, smooth move
 // - after 1.5 s without camera input it springs back behind, leading a little into turns
 //   (it never moves on its own while you're holding the stick)
 // - left and right steering follow the screen wherever the camera is (see steer())
@@ -14,9 +14,9 @@
 //
 // cam.yaw / cam.el are where you've pointed it (0 = straight behind), cam.yawS / cam.elS the smoothed angles.
 function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33, minEl = -0.17, maxEl = 1.05,
-  turn = 2.8, tilt = 1.3, idleBack = 1.5, lead = 0.22, recenter = [4, 10, 11], mouseButtons = [0], fingers = false, source = null } = {}) {
+  turn = 2.8, tilt = 1.3, idleBack = 1.5, lead = 0.22, recenter = [4, 5, 11], mouseButtons = [0], fingers = false, source = null } = {}) {
   // source: for a two-player game, () => ({ x, y, recenter, keys }) gives this camera its own player's right stick
-  // (keys: whether Q / E / R work for it); left out, it uses the shared controller
+  // (keys: whether Z / X / R work for it); left out, it uses the shared controller
   const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   const wrap = a => Math.atan2(Math.sin(a), Math.cos(a));
   const pad = () => (typeof RB !== 'undefined' && RB.pad) || {};   // (an old cached common.js has no right stick)
@@ -69,13 +69,13 @@ function createOrbitCam({ canvas, enabled = () => true, stick = null, el0 = 0.33
   // how much to aim ahead of the player: all the way from behind, none when swung round or looking down
   cam.ahead = () => Math.pow(Math.max(0, Math.cos(cam.yawS)), 2) * clamp(1 - Math.abs(cam.elS - el0) / 0.7, 0, 1);
 
-  // keys: Q / E swing it round, R snaps it back
+  // keys: Z / X swing it round, R snaps it back (EBITDA Hero layout)
   addEventListener('keydown', e => {
-    if (e.code === 'KeyQ') cam.keyL = true;
-    if (e.code === 'KeyE') cam.keyR = true;
+    if (e.code === 'KeyZ') cam.keyL = true;
+    if (e.code === 'KeyX') cam.keyR = true;
     if (e.code === 'KeyR') cam.snap = true;
   });
-  addEventListener('keyup', e => { if (e.code === 'KeyQ') cam.keyL = false; if (e.code === 'KeyE') cam.keyR = false; });
+  addEventListener('keyup', e => { if (e.code === 'KeyZ') cam.keyL = false; if (e.code === 'KeyX') cam.keyR = false; });
   addEventListener('blur', () => { cam.keyL = cam.keyR = false; });
   // drag with the mouse, or a second finger (the first one steers with the touch stick), or any finger with fingers: true
   if (canvas) {

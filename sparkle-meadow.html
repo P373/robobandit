@@ -84,10 +84,12 @@
   .friend .nm { font-weight: 700; font-size: 17px; }
   .friend .ds { font-size: 14px; color: #8a5aa8; line-height: 1.3; }
   .touch-only { display: none; }
+  kbd { display: inline-block; min-width: 1.4em; padding: 0 5px; font: bold 14px system-ui, sans-serif; text-align: center;
+    background: #fff; color: #6a2c8f; border: 2px solid #c57be0; border-radius: 4px; box-shadow: 0 2px 0 #c57be0; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
   @media (max-width: 640px) { #quest { top: max(108px, calc(env(safe-area-inset-top) + 100px)); font-size: 15px; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261015-0233">
+<link rel="stylesheet" href="common.css?v=20261017-1913">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -98,15 +100,15 @@
   <div class="hudBtns"><button id="btnBook">📖 Friends</button><button id="btnStable">🎀 My Pony</button></div>
 </div>
 <div id="quest" class="hidden"></div>
-<button id="actBtn" class="hidden"><span class="ico">✨</span><span id="actLbl">JUMP</span></button>
+<button id="actBtn" class="hidden rb-touch"><span class="ico">✨</span><span id="actLbl">JUMP</span></button>
 
 <div id="title" class="screen">
   <div class="panel">
     <h1>Sparkle Meadow</h1>
     <div class="sub">🦄 Ride your pony, help the animals and make new friends!</div>
     <ul>
-      <li><span class="e">🐴</span><b>Ride</b> with the <span class="key-only">arrow keys</span><span class="touch-only">joystick (put your thumb down and drag)</span>.</li>
-      <li><span class="e">✨</span>Press <span class="key-only"><b>Space</b></span><span class="touch-only">the <b>pink button</b></span> to help an animal, shake a tree or do a happy jump.</li>
+      <li><span class="e">🐴</span><b>Ride</b> with <span class="key-only"><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> (or the 🎮 left stick)</span><span class="touch-only">joystick (put your thumb down and drag)</span>.</li>
+      <li><span class="e">✨</span>Press <span class="key-only"><kbd>Space</kbd> (or <kbd>E</kbd>, or 🎮 <b data-pad="A">A</b>)</span><span class="touch-only">the <b>pink button</b></span> to help an animal, shake a tree or do a happy jump.</li>
       <li><span class="e">🐰</span>Six animal friends need your help. Open the <b>📖 Friend Book</b> to see who, and follow the <b>pink arrow</b>!</li>
       <li><span class="e">🦄</span>Collect sparkles to dress up your pony. Can you unlock the <b>unicorn horn</b>?</li>
     </ul>
@@ -136,8 +138,8 @@
   </div>
 </div>
 
-<script src="common.js?v=20261015-0233"></script>
-<script src="touch-stick.js?v=20261015-0233"></script>
+<script src="common.js?v=20261017-1913"></script>
+<script src="touch-stick.js?v=20261017-1913"></script>
 <script>
 'use strict';
 
@@ -309,17 +311,26 @@ let mode = 'title', selected = null, celebrateT = 0, toast = null, camX = 0, cam
 
 // ---------- Input ----------
 const keys = {};
-const KEYMAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd' };
+// keyboard: W A S D ride, Space or E = the one action (help a friend / jump), Esc pause.
+// 🎮 left stick rides (analog, through the touch stick), A = action.
+const KEYMAP = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd' };
 const playing = () => mode === 'play' && !paused;
 const stick = createTouchStick(canvas, { enabled: playing });
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 2: null, 3: null, 6: null, 7: null, 10: null });
+RB.setControls({
+  name: 'Sparkle Meadow',
+  camera: false,
+  rows: [
+    { act: 'Ride', keys: 'W A S D', pad: 'Left stick', touch: 'Drag the joystick' },
+    { act: 'Help a friend / jump', keys: 'Space or E', pad: '{A}', touch: 'Pink button' },
+  ],
+});
 addEventListener('keydown', e => {
+  if (paused) { if (e.code === 'Escape' && !e.repeat) { e.preventDefault(); resume(); } return; }
   if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
   if (e.repeat) return;
-  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
-  if ((e.code === 'Space' || e.code === 'Enter') && mode === 'play') { e.preventDefault(); action(); }
-  else if (e.code === 'Enter' && mode === 'title') startGame();
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if ((e.code === 'Space' || e.code === 'KeyE') && mode === 'play') { e.preventDefault(); action(); }
+  if (e.code === 'Escape') pause();
 });
 addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });

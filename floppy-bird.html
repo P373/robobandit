@@ -33,13 +33,13 @@
   /* fixed + inset avoids the mobile address bar hiding the bottom of a 100vh canvas */
   canvas { position: fixed; inset: 0; display: block; width: 100%; height: 100%; cursor: pointer; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261015-0233">
+<link rel="stylesheet" href="common.css?v=20261017-1913">
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="topbar"></div>
 
-<script src="common.js?v=20261015-0233"></script>
+<script src="common.js?v=20261017-1913"></script>
 <script>
 'use strict';
 
@@ -649,15 +649,21 @@ RB.topbar({
 RB.onHide(pause);
 
 // ---------- Input ----------
+// One button: Space, a click / tap, or the controller's A or RT (go) flaps. Esc pauses.
+RB.pad.setButtons({ 0: 'Space', 7: 'Space', 2: null, 3: null, 6: null, 10: null });
+RB.setControls({
+  name: 'Floppy Bird', camera: false,
+  rows: [{ act: 'Flap', keys: 'Space', pad: '{A} or {RT}', touch: 'Tap anywhere' }],
+});
 addEventListener('keydown', e => {
   if (e.repeat) return;
   if (paused) {
-    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') { e.preventDefault(); resume(); }
+    // only Esc resumes here; Space / Enter press the focused KEEP PLAYING button
+    if (e.code === 'Escape') { e.preventDefault(); resume(); }
     return;
   }
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW' || e.code === 'Enter') { e.preventDefault(); flap(); }
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (e.code === 'Space') { e.preventDefault(); flap(); }
+  if (e.code === 'Escape') pause();
 });
 canvas.addEventListener('pointerdown', e => { e.preventDefault(); flap(); });
 
@@ -953,6 +959,13 @@ function heart(x, y, r, full) {
   ctx.lineWidth = 3; ctx.strokeStyle = '#543847'; ctx.stroke();
 }
 
+// "Tap", "Press Space" or "Press A": whatever this player flaps with
+function how(rest, both) {
+  if (RB.pad.connected) return RB.padText('Press {A} ' + rest);
+  if (both) return 'Tap or press Space ' + rest;
+  return (RB.touch ? 'Tap ' : 'Press Space ') + rest;
+}
+
 function drawUI() {
   const cx = W / 2;
   if (mode !== 'title') {
@@ -966,14 +979,14 @@ function drawUI() {
     const my = bird.y < 300 ? 355 : 160;
     text('OUCH!', cx, my, 54, '#ff6b35');
     text(`${lives} ${lives === 1 ? 'life' : 'lives'} left`, cx, my + 50, 26);
-    if (hurtT > 0.7) text('Tap to keep flying!', cx, my + 95, 26, '#ffd84a');
+    if (hurtT > 0.7) text(how('to keep flying!'), cx, my + 95, 26, '#ffd84a');
   }
   if (mode === 'title') {
     const bob = Math.sin(clock * 2.5) * 6;
     text('FLOPPY', cx, 120 + bob, 64, '#ffd84a');
     text('BIRD', cx, 186 + bob, 64, '#ff9f1c');
     text('3 lives · a new world every 7 points!', cx, H - GROUND - 100, 22, '#bdf2ff');
-    text('Tap or press Space to flap!', cx, H - GROUND - 60, 22);
+    text(how('to flap!', true), cx, H - GROUND - 60, 22);
     if (best > 0) text(`BEST: ${best}`, cx, H - GROUND + 45, 24, '#fff');
   } else {
     text(String(score), cx, 70, 64);
@@ -1006,7 +1019,7 @@ function drawUI() {
     text(String(best), cx + 55, y + 50, 40);
     text(`Made it to: ${WORLDS[world].name}`, cx, y + 132, 22, '#bdf2ff');
     if (newBest) text('NEW BEST!', cx, y + 170, 26, '#ffd84a');
-    if (deadTimer > 0.6) text('Tap to try again', cx, y + (newBest ? 210 : 175), 24);
+    if (deadTimer > 0.6) text(how('to try again'), cx, y + (newBest ? 210 : 175), 24);
     ctx.globalAlpha = 1;
   }
 }

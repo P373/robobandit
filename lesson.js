@@ -376,11 +376,10 @@ const School = (() => {
     on('map', mapScreen);
   }
 
-  // ---------- Keys: ← → for slides, 1-3 or A-C for answers, Enter to carry on, M for sound ----------
+  // ---------- Keys: ← → for slides, 1-3 or A-C for answers, Enter to carry on ----------  (N for sound and M for the menu are handled by common.js)
   addEventListener('keydown', e => {
     if (e.target.tagName === 'INPUT' || e.metaKey || e.ctrlKey || e.altKey) return;
     const k = e.key.toLowerCase();
-    if (k === 'm') { RB.toggleMute(); return; }
     if (mode === 'lesson') {
       if (k === 'arrowright' || k === 'enter') { e.preventDefault(); RB.audio(); fwd(); }
       if (k === 'arrowleft') { e.preventDefault(); back(); }

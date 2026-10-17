@@ -149,20 +149,20 @@
   #btnTorp { background: rgba(40,120,220,.55); }
   #fireButtons button:active { filter: brightness(1.6); }
 </style>
-<link rel="stylesheet" href="common.css?v=20261015-0233">
+<link rel="stylesheet" href="common.css?v=20261017-1913">
 </head>
 <body>
 <canvas id="game"></canvas>
 
 <div id="topbar" class="rb-topbar">
   <a id="btnHome" href="index.html" title="All RoboBandit games">🏠</a>
-  <button id="btnPause" title="Pause (P)">⏸&#xFE0F;</button>
-  <button id="btnMute" title="Sound on/off (M)">🔊</button>
-  <button id="btnFs" title="Fullscreen (F)">⛶</button>
+  <button id="btnPause" title="Pause (Esc)">⏸&#xFE0F;</button>
+  <button id="btnMute" title="Sound on/off (N)">🔊</button>
+  <button id="btnFs" title="Fullscreen">⛶</button>
   <button id="btnShare" title="Share this game">🔗</button>
 </div>
 
-<div id="fireButtons" class="hidden">
+<div id="fireButtons" class="hidden rb-touch">
   <button id="btnLaser">LASER<br>CANNONS</button>
   <button id="btnTorp">PLASMA<br>TORPEDO</button>
 </div>
@@ -175,8 +175,8 @@
   </div>
 </div>
 
-<script src="common.js?v=20261015-0233"></script>
-<script src="touch-stick.js?v=20261015-0233"></script>
+<script src="common.js?v=20261017-1913"></script>
+<script src="touch-stick.js?v=20261017-1913"></script>
 <script>
 'use strict';
 
@@ -2723,7 +2723,12 @@ function showOverlay(title, html, btn, action) {
   overlay.classList.remove('hidden');
   input.pointerFire = input.btnLaser = input.torp = false;
 }
-function hideOverlay() { overlay.classList.add('hidden'); }
+// put keyboard focus on a yes/no screen's main button, so Enter presses it
+function focusDefault() {
+  const b = ovBody.querySelector('[data-default]');
+  if (b) try { b.focus({ preventScroll: true }); } catch (e) { /* fine */ }
+}
+function hideOverlay() { overlay.classList.add('hidden'); if (overlay.contains(document.activeElement)) document.activeElement.blur(); }
 ovBtn.addEventListener('click', () => { sfx.init(); if (ovAction) ovAction(); });
 
 function assistPicker() {
@@ -2807,16 +2812,17 @@ function showHowTo() {
        correctly to launch. Crash, and ${QUIZ_NEED_RETRY} more gets you a new ship. Before launch, a 🎁 bonus round
        of trivia can earn extra ammo and shields.</p>
        <p>🕹️ <b>Controls</b><br>
-       Steer: mouse, arrow keys, WASD — or on a phone, drag the joystick that appears under your thumb<br>
-       Main guns (3 hits destroy an enemy): click or Space<br>
-       Special weapon — torpedo, blast charge, harpoon or missile (1 hit), or a rocket racer boost: right-click, X or E<br>
-       Pause or quit: P or ☰ · Fullscreen: F · Sound: M</p>
+       Steer: mouse, <kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd> or the <b data-pad="LS">left stick</b> — or on a phone, drag the joystick that appears under your thumb<br>
+       Main guns (3 hits destroy an enemy) — hold: <kbd>J</kbd>, <kbd>Space</kbd>, left click, <b data-pad="RT">RT</b> or <b data-pad="A">A</b><br>
+       Special weapon — torpedo, blast charge, harpoon or missile (1 hit), or a rocket racer boost: <kbd>K</kbd>, right click, <b data-pad="LT">LT</b> or <b data-pad="X">X</b><br>
+       Quiz: answer with <kbd>A</kbd>–<kbd>D</kbd> or <kbd>1</kbd>–<kbd>4</kbd> · hint: <kbd>H</kbd><br>
+       Pause or quit: <kbd>Esc</kbd> or ☰ · Sound: <kbd>N</kbd> · Map: <kbd>M</kbd> · All controls: <kbd>F1</kbd></p>
        <p>🎯 Shots are limited — grab <span style="color:#ffb35a">orange orbs</span> for ammo and <span style="color:#7fd0ff">blue orbs</span> for shields.</p>
        <p>🗺️ <b>The ${TOTAL_LEVELS} missions</b></p>
        <ul>${WORLDS.map(w => `<li>${w.icon} <b>${w.short}:</b> ${w.intro}</li>`).join('')}</ul>
        <p>🏆 You pick the first mission; the others come in a random order. Beat all ${TOTAL_LEVELS} for a secret ending!</p>
      </div>`,
-    '◀ BACK', showMenu);
+    '◀ BACK', showMenu);  if (RB.applyPadLabels) RB.applyPadLabels();   // controller button names for the plugged-in pad
 }
 
 function showSettings() {
@@ -2843,12 +2849,13 @@ function confirmQuit() {
     `<p class="big">Head back to the main menu?</p>
      <p>Your progress in this game will be lost, but your high score is saved.</p>
      <div class="yesno">
-       <button data-quit="yes">YES, QUIT</button>
+       <button data-quit="yes" data-default>YES, QUIT</button>
        <button class="no" data-quit="no">NO, KEEP PLAYING</button>
      </div>
-     <p class="keys">Press Y or N</p>`,
+     <p class="keys"><kbd>Enter</kbd> for yes · <kbd>Esc</kbd> for no</p>`,
     '', null);
   ovBtn.classList.add('hidden');
+  focusDefault();
 }
 
 function answerQuit(yes) {
@@ -2874,6 +2881,7 @@ function togglePause() {
     pausedFrom = state;
     state = 'paused';
     showOverlay('PAUSED', '<p>Steady hands, pilot. Take a breather.</p>' + gradePicker() + assistPicker() + quitButton(), 'RESUME', togglePause);
+    try { ovBtn.focus({ preventScroll: true }); } catch (e) { /* fine */ }   // Enter or Space carries on
   } else if (state === 'paused') {
     state = pausedFrom || 'playing';
     hideOverlay();
@@ -3477,12 +3485,13 @@ function offerBonus(launch) {
      <p>Answer ${BONUS_QUESTIONS} trivia questions about science and America!
      Every right answer earns <b>+${BONUS_TORP} ${world.secOne.toLowerCase()}</b> and <b>+${BONUS_SHIELD} shields</b>.</p>
      <div class="yesno">
-       <button data-bonus="yes">YES, BONUS ROUND! 🎁</button>
+       <button data-bonus="yes" data-default>YES, BONUS ROUND! 🎁</button>
        <button class="no" data-bonus="no">NO THANKS — LAUNCH 🚀</button>
      </div>
-     <p class="keys">Press Y or N</p>`,
+     <p class="keys"><kbd>Enter</kbd> for yes · <kbd>Esc</kbd> for no</p>`,
     '', null);
   ovBtn.classList.add('hidden');
+  focusDefault();
 }
 function chooseBonus(yes) {
   if (!bonusLaunch) return;
@@ -3612,34 +3621,55 @@ function answerQuiz(i) {
 }
 
 // ---------- Input ----------
+// Keyboard: W A S D steer, J / Space (hold) main guns, K special weapon (racer boost), Esc pause.
+// N (sound), M (map/menu) and F1 (controls guide) are handled by common.js before the game sees them.
 const KEYMAP = {
-  ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right',
-  ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', Space: 'fire',
+  KeyA: 'left', KeyD: 'right', KeyW: 'up', KeyS: 'down', KeyJ: 'fire', Space: 'fire',
 };
+// Controller: RT / Ⓐ main guns (hold), LT / Ⓧ special weapon; the left stick drives the joystick
+if (RB.pad) RB.pad.setButtons({ 7: 'KeyJ', 0: 'KeyJ', 6: 'KeyK', 2: 'KeyK', 1: null, 3: null });
+RB.setControls({
+  name: 'Space Wars', camera: false,
+  rows: [
+    { act: 'Steer', keys: 'W A S D or mouse', pad: '{LS}', touch: 'Drag the joystick' },
+    { act: 'Main guns (hold)', keys: 'J, Space or left click', pad: '{RT} or {A}', touch: 'LASER button' },
+    { act: 'Special weapon / boost', keys: 'K or right click', pad: '{LT} or {X}', touch: 'Special button' },
+    { act: 'Quiz answers', keys: 'A–D or 1–4', pad: '{A} on an answer', touch: 'Tap an answer' },
+    { act: 'Quiz hint', keys: 'H', pad: '{A} on 💡', touch: 'Tap 💡' },
+  ],
+});
 window.addEventListener('keydown', e => {
   if (state === 'finale') { if (finaleT > 1) finishFinale(); return; }
-  if (quitSnapshot) {
-    if (e.code === 'KeyY') answerQuit(true);
-    else if (e.code === 'KeyN' || e.code === 'Escape') answerQuit(false);
+  const onButton = !overlay.classList.contains('hidden') && document.activeElement && document.activeElement.tagName === 'BUTTON' && overlay.contains(document.activeElement);
+  if (quitSnapshot) {   // "Quit this game?" — Enter = yes (or the focused button), Esc = no
+    if (e.code === 'Escape') { e.preventDefault(); answerQuit(false); }
+    else if (e.code === 'Enter' && !onButton) { e.preventDefault(); answerQuit(true); }
     return;
   }
-  // Quiz answers use letters A–D (checked first, since A and D also steer)
+  if (state === 'paused') {   // only Esc resumes; Space/Enter press the focused button themselves
+    if (e.code === 'Escape') { e.preventDefault(); openGameMenu(); }
+    return;
+  }
+  if (state === 'quiz' && bonusLaunch) {   // bonus offer — Enter = yes (or the focused button), Esc = no
+    if (e.code === 'Escape') { e.preventDefault(); chooseBonus(false); }
+    else if (e.code === 'Enter' && !onButton) { e.preventDefault(); chooseBonus(true); }
+    return;
+  }
+  // Quiz answers use A–D or 1–4 (checked first, since A and D also steer)
   if (state === 'quiz' && /^Key[A-D]$/.test(e.code)) { answerQuiz(e.code.charCodeAt(3) - 65); return; }
+  if (state === 'quiz' && /^(Digit|Numpad)[1-4]$/.test(e.code)) { answerQuiz(+e.code.slice(-1) - 1); return; }
   const k = KEYMAP[e.code];
   if (k) {
-    e.preventDefault();
+    if (!onButton) e.preventDefault();   // (on a screen with buttons, Space still presses the focused one)
     if (k !== 'fire' && input.mouse) { input.mouse = false; target.x = player.x; target.y = player.y; }
     input[k] = true;
     sfx.init();
     return;
   }
-  if (e.code === 'KeyX' || e.code === 'KeyE') { if (!e.repeat) input.torp = true; }
-  else if (e.code === 'KeyP' || e.code === 'Escape') openGameMenu();
-  else if (e.code === 'KeyF') toggleFullscreen();
-  else if (e.code === 'KeyM') toggleMute();
+  if (e.code === 'KeyK') { if (!e.repeat) input.torp = true; }
+  else if (e.code === 'Escape') openGameMenu();
   else if (state === 'quiz' && e.code === 'KeyH') showHint();
-  else if (state === 'quiz' && bonusLaunch && (e.code === 'KeyY' || e.code === 'KeyN')) chooseBonus(e.code === 'KeyY');
-  else if (e.code === 'Enter' && !overlay.classList.contains('hidden') && !ovBtn.classList.contains('hidden')) ovBtn.click();
+  else if (e.code === 'Enter' && !onButton && !overlay.classList.contains('hidden') && !ovBtn.classList.contains('hidden')) { e.preventDefault(); ovBtn.click(); }
 });
 window.addEventListener('keyup', e => {
   const k = KEYMAP[e.code];
@@ -3666,7 +3696,7 @@ canvas.addEventListener('pointerdown', e => {
     return;
   }
   pointerTarget(e);
-  // Mouse buttons fire; touches use the on-screen buttons
+  // Mouse buttons fire (left = main guns, right = special weapon); touches use the on-screen buttons
   if (state === 'playing') {
     if (e.button === 2) input.torp = true;
     else if (e.button === 0) input.pointerFire = true;

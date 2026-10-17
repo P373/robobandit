@@ -72,8 +72,10 @@
   #howto .go { display: block; margin: 22px auto 0; }
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+  .pad-only { display: none; }
+  body.rb-pad-on .pad-only { display: inline; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261015-0233">
+<link rel="stylesheet" href="common.css?v=20261017-1913">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -88,15 +90,18 @@
       <li><b>You ride across the wave from left to right.</b> The white, crashing <b>curl</b> behind you is
         chasing you. Don't let it catch you!</li>
       <li><b>Steer your board.</b>
-        <span class="key-only"><kbd>↑</kbd> tips the nose <b>up</b> the wave. <kbd>↓</kbd> tips it <b>down</b>.
-          (<kbd>W</kbd>/<kbd>S</kbd> or <kbd>←</kbd>/<kbd>→</kbd> work too.)</span>
+        <span class="key-only"><kbd>W</kbd> tips the nose <b>up</b> the wave. <kbd>S</kbd> tips it <b>down</b>.
+          (<kbd>A</kbd>/<kbd>D</kbd> work too.)</span>
+        <span class="pad-only">On a controller, push the <b data-pad="LS">left stick</b> <b>up</b> to tip the nose
+          <b>up</b> the wave, <b>down</b> to tip it <b>down</b>. Push further to turn harder.</span>
         <span class="touch-only">Put your thumb anywhere and a joystick appears. Drag <b>up</b> to tip the nose
           <b>up</b> the wave, drag <b>down</b> to tip it <b>down</b>. Drag further to turn harder.</span></li>
       <li><b>Speed comes from going down.</b> Riding <b>down</b> the wave makes you faster. Riding <b>up</b> slows you down.</li>
       <li><b>Fly!</b> Drop to the bottom, turn hard, and race straight <b>up</b> the wave. If you're fast enough,
         you shoot off the top into the air.</li>
       <li><b>Do a trick.</b> In the air, keep holding
-        <span class="key-only"><kbd>↑</kbd> or <kbd>↓</kbd></span><span class="touch-only">the joystick up or down</span>
+        <span class="key-only"><kbd>W</kbd> or <kbd>S</kbd></span><span class="touch-only">the joystick up or down</span><span class="pad-only">
+          (or the <b data-pad="LS">left stick</b> up or down)</span>
         to spin. Go all the way around for a <b>360</b>!</li>
       <li><b>Land it.</b> Before you splash down, point your nose <b>down</b> the wave. Land pointing up and you wipe out.</li>
       <li><b>You get 60 seconds and 3 boards.</b> Each wipeout costs a board. When the ride ends, five judges score you out of 10.</li>
@@ -114,8 +119,8 @@
 </div>
 <div id="topbar"></div>
 
-<script src="common.js?v=20261015-0233"></script>
-<script src="touch-stick.js?v=20261015-0233"></script>
+<script src="common.js?v=20261017-1913"></script>
+<script src="touch-stick.js?v=20261017-1913"></script>
 <script>
 'use strict';
 
@@ -194,8 +199,9 @@ const WAKE_LIFE = 1.4;
 const TIP_TIME = 4.5;
 const tipsShown = new Set(), tipQueue = [];
 let tip = null, bottomT = 0;
-const UP_WORD = matchMedia('(pointer: coarse)').matches ? 'drag the joystick UP' : 'press ↑';
-const DOWN_WORD = matchMedia('(pointer: coarse)').matches ? 'drag the joystick DOWN' : 'press ↓';
+// checked when the tip pops up, so a controller plugged in mid-ride gets its own words
+const UP_WORD = () => RB.pad.connected ? RB.padText('push the {LS} UP') : matchMedia('(pointer: coarse)').matches ? 'drag the joystick UP' : 'press W';
+const DOWN_WORD = () => RB.pad.connected ? RB.padText('push the {LS} DOWN') : matchMedia('(pointer: coarse)').matches ? 'drag the joystick DOWN' : 'press S';
 function showTip(key, msg) {
   if (tipsShown.has(key)) return;
   tipsShown.add(key);
@@ -224,8 +230,9 @@ function addPoints(pts, label, big) {
 function surferY() { return s.air ? s.air.y : TROUGH - s.f * faceH(s.x); }
 
 // ---------- Input ----------
-// ↑ / ← / W / A = nose up (counter-clockwise). ↓ / → / S / D = nose down (clockwise).
+// W / A = nose up (counter-clockwise). S / D = nose down (clockwise). Space paddles out / surfs again.
 // Touch: a floating joystick; drag up for nose up, down for nose down (a small drag = a gentle turn).
+// Controller: the left stick drives that same joystick (smooth analog); Ⓐ = Space.
 const keys = { up: false, down: false };
 const stick = createTouchStick(canvas, { enabled: () => mode === 'ride' || mode === 'wipe' });
 function turnInput() {
@@ -272,22 +279,32 @@ function press() {
 document.getElementById('btnStart').addEventListener('click', startRide);
 document.getElementById('btnHow').addEventListener('click', () => { audio(); openHowTo(); });
 document.getElementById('btnGo').addEventListener('click', () => { localStorage.setItem('su_howto', '1'); startRide(); });
-const KEYS_UP = ['ArrowUp', 'ArrowLeft', 'KeyW', 'KeyA'], KEYS_DOWN = ['ArrowDown', 'ArrowRight', 'KeyS', 'KeyD'];
+RB.pad.setButtons({ 0: 'Space', 2: null, 3: null, 6: null, 7: null, 10: null });
+RB.setControls({
+  name: "Surf's Up", camera: false,
+  rows: [
+    { act: 'Nose up the wave', keys: 'W or A', pad: '{LS} up', touch: 'Drag the joystick up' },
+    { act: 'Nose down the wave', keys: 'S or D', pad: '{LS} down', touch: 'Drag the joystick down' },
+    { act: 'Spin in the air', keys: 'Hold W or S', pad: 'Hold {LS} up or down', touch: 'Hold the joystick up or down' },
+    { act: 'Paddle out / surf again', keys: 'Space', pad: '{A}', touch: 'Tap' },
+  ],
+});
+const KEYS_UP = ['KeyW', 'KeyA'], KEYS_DOWN = ['KeyS', 'KeyD'];
 addEventListener('keydown', e => {
   if (KEYS_UP.includes(e.code)) { keys.up = true; e.preventDefault(); }
   if (KEYS_DOWN.includes(e.code)) { keys.down = true; e.preventDefault(); }
   if (e.repeat) return;
   if (paused) {
-    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') { e.preventDefault(); resume(); }
+    // only Esc resumes here; Space / Enter press the focused KEEP PLAYING button
+    if (e.code === 'Escape') { e.preventDefault(); resume(); }
     return;
   }
-  if (e.code === 'Space' || e.code === 'Enter') {
+  if (e.code === 'Space') {
     e.preventDefault();
     if (!howto.classList.contains('hidden')) document.getElementById('btnGo').click();
     else press();
   }
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (e.code === 'Escape') pause();
 });
 addEventListener('keyup', e => {
   if (KEYS_UP.includes(e.code)) keys.up = false;
@@ -355,7 +372,7 @@ function updateFace(dt) {
     if (Math.sin(s.a) < 0) s.v -= 260 * -Math.sin(s.a) * dt;
   }
   bottomT = s.f < 0.03 ? bottomT + dt : 0;
-  if (bottomT > 0.6) showTip('bottom', `You're at the bottom of the wave. Now ${UP_WORD} to turn and race back up!`);
+  if (bottomT > 0.6) showTip('bottom', `You're at the bottom of the wave. Now ${UP_WORD()} to turn and race back up!`);
   const d = s.x - curlX;
   if (s.f > 1) {
     const up = s.v * Math.sin(s.a);
@@ -380,7 +397,7 @@ function updateFace(dt) {
   } else tubeT = 0;
 
   if (d < 0 && safeT <= 0) wipeout('CAUGHT BY THE CURL!');
-  else if (d < 150 && safeT <= 0) showTip('curl', `The curl is right behind you! ${DOWN_WORD} to ride down the wave and speed away.`);
+  else if (d < 150 && safeT <= 0) showTip('curl', `The curl is right behind you! ${DOWN_WORD()} to ride down the wave and speed away.`);
 
   // leave a trail of foam behind the board
   if ((wakeT += dt) > 0.05) {
@@ -420,7 +437,7 @@ function updateAir(dt) {
     s.f = 0.97;
     if (diff > 1.2) {
       wipeout('BAD LANDING!');
-      showTip('land', `Land with your nose pointing DOWN the wave. In the air, ${DOWN_WORD} to tip it down.`);
+      showTip('land', `Land with your nose pointing DOWN the wave. In the air, ${DOWN_WORD()} to tip it down.`);
       return;
     }
     s.v = clamp(Math.hypot(air.vx, air.vy) * 0.8, 200, 560);
@@ -849,7 +866,7 @@ function drawHUD() {
     ctx.fillStyle = i < boards ? '#f8e848' : 'rgba(255,255,255,.3)';
     ctx.fillRect(x + 3, y - 3, 18, 3);
   }
-  if (mode === 'ride' && timeLeft > RIDE_TIME - 4 && touchy) {
+  if (mode === 'ride' && timeLeft > RIDE_TIME - 4 && touchy && !RB.pad.connected) {
     ctx.globalAlpha = 0.85;
     text('THUMB DOWN, THEN DRAG', W / 2, VH * 0.72, 15);
     text('▲ UP = CARVE UP   ▼ DOWN = CARVE DOWN', W / 2, VH * 0.72 + 26, 13);
@@ -904,7 +921,7 @@ function drawResults() {
     const word = results.avg >= 9 ? 'TOTALLY RADICAL!' : results.avg >= 7 ? 'GNARLY RIDE!' : results.avg >= 4 ? 'NICE WORK, DUDE!' : 'KEEP PRACTICING!';
     text(results.isBest ? `NEW BEST! ${word}` : word, cx, cy + 194, 15);
   }
-  if (resultsT > 2.5) text(touchy ? 'TAP TO SURF AGAIN' : 'PRESS SPACE TO SURF AGAIN', cx, cy + 236, 13, '#a8e0ff');
+  if (resultsT > 2.5) text(RB.pad.connected ? RB.padText('PRESS {A} TO SURF AGAIN') : touchy ? 'TAP TO SURF AGAIN' : 'PRESS SPACE TO SURF AGAIN', cx, cy + 236, 13, '#a8e0ff');
 }
 
 function draw() {

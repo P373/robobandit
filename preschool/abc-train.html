@@ -109,7 +109,7 @@
   #btnAbc { background: #ffd84a; } #btnFind { background: #9fe0ff; }
   .stats { margin-top: 12px; font-size: 18px; color: #3a4a6a; }
 </style>
-<link rel="stylesheet" href="../common.css?v=20261015-0233">
+<link rel="stylesheet" href="../common.css?v=20261017-1913">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -117,15 +117,15 @@
 <div id="abc" class="hidden"></div>
 <div id="card"><div class="big" id="cardLetter">A</div><div class="word" id="cardWord"></div></div>
 <div id="ask" class="hidden"></div>
-<button class="ctl hidden" id="cam" aria-label="Change the camera">🎥</button>
+<button class="ctl hidden rb-touch" id="cam" aria-label="Change the camera">🎥</button>
 <button class="ctl hidden" id="music" aria-label="Music on or off">🎵</button>
 <button class="pill hidden" id="walk">🚶 Visit the farm</button>
 <button class="pill hidden" id="board">🚂 All aboard!</button>
 <button class="fork hidden" id="forkL" aria-label="Go left"></button>
 <button class="fork hidden" id="forkR" aria-label="Go right"></button>
-<button class="ctl hidden" id="toot" aria-label="Toot the horn">📯</button>
-<div id="throttle" class="hidden" aria-hidden="true"><span class="mark" data-th="1">🐇</span><span class="mark" data-th="0.35">🐢</span><span class="notch" data-th="0"></span><span class="mark" data-th="0">N</span><span class="mark" data-th="-0.75">◀ R</span></div>
-<button class="ctl hidden" id="go" aria-label="Go and stop (slide up and down to set the speed)">GO</button>
+<button class="ctl hidden rb-touch" id="toot" aria-label="Toot the horn">📯</button>
+<div id="throttle" class="hidden rb-touch" aria-hidden="true"><span class="mark" data-th="1">🐇</span><span class="mark" data-th="0.35">🐢</span><span class="notch" data-th="0"></span><span class="mark" data-th="0">N</span><span class="mark" data-th="-0.75">◀ R</span></div>
+<button class="ctl hidden rb-touch" id="go" aria-label="Go and stop (slide up and down to set the speed)">GO</button>
 
 <div id="title" class="screen">
   <div class="panel">
@@ -140,8 +140,8 @@
 </div>
 
 <script src="../vendor/three.min.js"></script>
-<script src="../orbit-cam.js?v=20261015-0233"></script>
-<script src="../common.js?v=20261015-0233"></script>
+<script src="../orbit-cam.js?v=20261017-1913"></script>
+<script src="../common.js?v=20261017-1913"></script>
 <script>
 'use strict';
 // ===================== ABC Train =====================
@@ -927,7 +927,7 @@ function getOff() {
 function allAboard() {
   if (state !== 'farm') return;
   state = 'play';
-  walker.visible = false; held.ArrowUp = held.ArrowDown = held.ArrowLeft = held.ArrowRight = false;
+  walker.visible = false; held.KeyW = held.KeyA = held.KeyS = held.KeyD = false;
   $('board').classList.add('hidden');
   for (const id of ['go', 'toot']) $(id).classList.remove('hidden');
   ask($('ask').innerHTML);
@@ -946,7 +946,7 @@ function farmHello(a) {
 function updateWalker(dt) {
   const w = walker, cam = camera.getWorldDirection(new THREE.Vector3()).setY(0).normalize(), right = new THREE.Vector3().crossVectors(cam, UP);
   let mv = new THREE.Vector3();
-  if (held.ArrowUp) mv.add(cam); if (held.ArrowDown) mv.sub(cam); if (held.ArrowRight) mv.add(right); if (held.ArrowLeft) mv.sub(right);
+  if (held.KeyW) mv.add(cam); if (held.KeyS) mv.sub(cam); if (held.KeyD) mv.add(right); if (held.KeyA) mv.sub(right);
   if (mv.lengthSq()) w.userData.target = null;
   else if (w.userData.target) { mv = w.userData.target.clone().sub(w.position).setY(0); if (mv.length() < 0.3) { w.userData.target = null; mv.set(0, 0, 0); } }
   const moving = mv.lengthSq() > 0;
@@ -1371,35 +1371,84 @@ canvas.addEventListener('pointerup', e => {
   if (o.userData.farm) { farmHello(o); return; }
   if (idx >= 0) { say(LINE.tap(idx)); sfx.hop(); }
 });
+// one notch of the throttle: W / RT speed up, S / LT slow down, stop, then back up
+function stepThrottle(dir) {
+  if (state !== 'play' || hold > 0) return;
+  RB.audio();
+  const stepTh = dir > 0 ? 0.2 : -0.2, th = train.th;
+  setThrottle(th > 0 && th + stepTh < 0.05 && stepTh < 0 ? 0 : th < 0 && th + stepTh > -0.05 && stepTh > 0 ? 0 : clamp(Math.round((th + stepTh) * 10) / 10, -1, 1));
+}
+// the handbrake: stop right now
+function stopTrain() { if (state !== 'play' || hold > 0) return; RB.audio(); if (train.running || train.th) setThrottle(0); }
+// ⏸ pause (Esc, or the ⏸ button): the train stops so nothing is missed
+let paused = false;
+function pause() {
+  if (paused || state === 'title') return;
+  paused = true;
+  for (const k in held) held[k] = false;
+  if (train.running || train.th) { train.running = false; train.th = 0; glide = null; updateGo(); }
+  RB.showPause(resume);
+}
+function resume() { if (!paused) return; paused = false; RB.hidePause(); }
 addEventListener('keydown', e => {
+  if (paused) { if (e.code === 'Escape') { e.preventDefault(); resume(); } return; }   // (Space / Enter press the focused button)
+  if (e.code === 'Escape') { if (state !== 'title') { e.preventDefault(); pause(); } return; }
   if (e.repeat) return;
-  if (state === 'title') { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); start('abc'); } return; }
+  if (state === 'title') { if (e.code === 'Space') { e.preventDefault(); start('abc'); } return; }
   if (e.code === 'Equal' || e.code === 'NumpadAdd') setZoom(zoom / 1.2);
   if (e.code === 'Minus' || e.code === 'NumpadSubtract') setZoom(zoom * 1.2);
-  if (state === 'farm') { if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); allAboard(); } if (e.code.startsWith('Arrow')) { e.preventDefault(); held[e.code] = true; } return; }
-  if (e.code === 'KeyF' && !$('walk').classList.contains('hidden')) { getOff(); return; }
-  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); toggleGo(); }
-  else if (e.code === 'ArrowUp' || e.code === 'ArrowDown') {   // up / down move the throttle a notch at a time
-    e.preventDefault(); RB.audio();
-    const stepTh = e.code === 'ArrowUp' ? 0.2 : -0.2, th = train.th;
-    setThrottle(th > 0 && th + stepTh < 0.05 && stepTh < 0 ? 0 : th < 0 && th + stepTh > -0.05 && stepTh > 0 ? 0 : clamp(Math.round((th + stepTh) * 10) / 10, -1, 1));
+  if (state === 'farm') {   // walking at the farm: W A S D; F (or Space) gets back on the train
+    if (e.code === 'KeyF' || e.code === 'Space') { e.preventDefault(); allAboard(); }
+    if (e.code === 'KeyW' || e.code === 'KeyA' || e.code === 'KeyS' || e.code === 'KeyD') { e.preventDefault(); held[e.code] = true; }
+    return;
   }
-  if (e.code === 'KeyH' || e.code === 'KeyX' || e.code === 'KeyT') toot();
+  if (e.code === 'KeyF' && !$('walk').classList.contains('hidden')) { getOff(); return; }
+  if (e.code === 'Space') { e.preventDefault(); toggleGo(); }
+  else if (e.code === 'KeyW' || e.code === 'KeyS') { e.preventDefault(); stepThrottle(e.code === 'KeyW' ? 1 : -1); }   // W / S move the throttle a notch at a time
+  if (e.code === 'KeyH') toot();
   if (e.code === 'KeyC') nextView();
-  if (e.code === 'ArrowLeft') chooseWay(-1);
-  if (e.code === 'ArrowRight') chooseWay(1);
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (e.code === 'KeyA') chooseWay(-1);
+  if (e.code === 'KeyD') chooseWay(1);
 });
-// 🎮 Ⓐ go / stop, Ⓧ / Ⓨ / Ⓑ toot the horn, ◀ ▶ pick the way at a fork, right stick swings the camera, LB snaps it back, RB changes it
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyH', 2: 'KeyH', 3: 'KeyH', 4: null, 5: 'KeyC', 6: null, 7: 'Space' },
-  '<b>ABC Train:</b> Ⓐ go and stop · Ⓧ / Ⓨ / Ⓑ toot the horn · ◀ ▶ choose the way at a fork · right stick: look around · <b>LB</b> camera back · <b>RB</b> change the camera (one is inside the train) · at the farm: left stick walks, Ⓐ all aboard');
+// 🎮 the D-pad / left stick are W A S D (▲ ▼ the throttle, ◀ ▶ the way at a fork; walking at the farm);
+// Ⓐ go / stop, Ⓑ stop, Ⓧ / left-stick click horn, Ⓨ get off / all aboard, RB camera view, LB camera back (orbit-cam).
+// RT / LT are read in the game loop (padTriggers) so holding one keeps moving the throttle.
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: null, 2: 'KeyH', 3: 'KeyF', 4: null, 5: 'KeyC', 6: null, 7: null, 10: 'KeyH' });
+const trig = { dir: 0, t: 0, b: false };
+function padTriggers() {
+  const pad = RB.pad;
+  if (!pad || !pad.connected || pad.menuMode || paused || state !== 'play') { trig.dir = 0; trig.b = false; return; }
+  const b = pad.pressed(1);
+  if (b && !trig.b) stopTrain();
+  trig.b = b;
+  const dir = (pad.pressed(7) ? 1 : 0) - (pad.pressed(6) ? 1 : 0);
+  const now = performance.now();   // (real time, so a held trigger repeats at the same pace however fast the frames come)
+  if (dir !== trig.dir) { trig.dir = dir; trig.t = now; }
+  if (dir && now >= trig.t) { stepThrottle(dir); trig.t = now + 250; }
+}
+RB.setControls({
+  name: 'ABC Train', camera: true,
+  rows: [
+    { act: 'Speed up', keys: 'W', pad: '{RT} / ▲', touch: 'Slide GO up' },
+    { act: 'Slow down / back up', keys: 'S', pad: '{LT} / ▼', touch: 'Slide GO down' },
+    { act: 'Go / stop', keys: 'Space', pad: '{A}', touch: 'Tap GO' },
+    { act: 'Stop (handbrake)', keys: 'Space', pad: '{B}', touch: 'Tap STOP' },
+    { act: 'Horn', keys: 'H', pad: '{X} / {L3}', touch: '📯' },
+    { act: 'Pick the way at a fork', keys: 'A / D', pad: '◀ ▶', touch: 'Tap an arrow' },
+    { act: 'Camera view', keys: 'C', pad: '{RB}', touch: '🎥' },
+    { act: 'Get off / all aboard', keys: 'F', pad: '{Y}', touch: 'Visit the farm / All aboard!' },
+    { act: 'Zoom', keys: '+ / −', touch: 'Pinch' },
+    { act: 'Walk at the farm', keys: 'W A S D', pad: '{LS}', touch: 'Tap the ground' },
+  ],
+});
 const held = {};
 addEventListener('keyup', e => { held[e.code] = false; });
 addEventListener('blur', () => { for (const k in held) held[k] = false; });
-RB.topbar({ home: 'index.html', homeTitle: 'Back to Preschool', shareInfo: { title: 'ABC Train | RoboBandit', text: 'Drive the train, pick up the animals and learn the alphabet! 🚂🔤' } });
+RB.topbar({ home: 'index.html', homeTitle: 'Back to Preschool', onPause: () => (paused ? resume() : pause()), shareInfo: { title: 'ABC Train | RoboBandit', text: 'Drive the train, pick up the animals and learn the alphabet! 🚂🔤' } });
 
 // the ☰ menu (or switching apps) stops the train, so nothing is missed
 addEventListener('blur', () => { if (train.running || train.th) { train.running = false; train.th = 0; glide = null; updateGo(); } });
+RB.onHide(pause);
 document.addEventListener('gesturestart', e => e.preventDefault());   // pinching zooms the camera, not the page
 
 // ---------- Update ----------
@@ -1409,6 +1458,7 @@ function update(dt) {
   hold = Math.max(0, hold - dt);
   for (let i = laters.length - 1; i >= 0; i--) if (clock >= laters[i].at) laters.splice(i, 1)[0].fn();
   updateWorld(dt);
+  padTriggers();
   if (state === 'farm') { updateWalker(dt); updateSmoke(dt); updateCamera(dt); return; }
   // the lever and train.running agree (the game can stop the train, or start it, by itself)
   if (!drag) { if (!train.running && train.th > 0) { train.th = 0; updateGo(); } else if (train.running && train.th <= 0) { train.th = TH_GO; updateGo(); } }

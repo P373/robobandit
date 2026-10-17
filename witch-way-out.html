@@ -57,6 +57,7 @@
     box-shadow: 0 0 18px rgba(180,124,255,.6); }
   .tbtn .ico { display: block; font-size: 28px; line-height: 1.05; }
   .tbtn.cool { filter: grayscale(.8) brightness(.7); box-shadow: none; }
+  #brakeBtn { background: radial-gradient(circle at 40% 35%, #9aa4c8, #3a4266); }
   #boostBtn { background: radial-gradient(circle at 40% 35%, #ff9af5, #b02a8c); }
   #hatBtn { background: radial-gradient(circle at 40% 35%, #ffb347, #a8420a); }
   #itemBtn { background: radial-gradient(circle at 40% 35%, #7af0ff, #1a6a9c); }
@@ -125,7 +126,7 @@
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261015-0233">
+<link rel="stylesheet" href="common.css?v=20261017-1913">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -142,7 +143,8 @@
   <div class="warn hidden" data-u="warn">⚡ LIGHTNING! CAST YOUR SHIELD! ⚡</div>
 </div>
 <div id="divider" class="hidden"></div>
-<div id="tbtns" class="hidden">
+<div id="tbtns" class="hidden rb-touch">
+  <button type="button" id="brakeBtn" class="tbtn"><span class="ico">🪂</span>BRAKE</button>
   <button type="button" id="boostBtn" class="tbtn"><span class="ico">✨</span>BOOST</button>
   <button type="button" id="itemBtn" class="tbtn"><span class="ico" id="itemIco">❔</span>ITEM</button>
   <button type="button" id="hatBtn" class="tbtn"><span class="ico">🎩</span>HAT</button>
@@ -155,16 +157,17 @@
     <div class="sub">🏁 The great broomstick race! Beat the other witches to the moon… and stay ahead of the Great Pumpkin 🎃</div>
     <ol>
       <li><b>Fly your broomstick</b> anywhere:
-        <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn, <kbd>↑</kbd> climb, <kbd>↓</kbd> dive.</span>
+        <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> turn, <kbd>W</kbd> climb, <kbd>S</kbd> dive.</span>
         <span class="touch-only">put your thumb down and drag to steer.</span></li>
-      <li>🎩 <b>Throw your hat</b> (🎮 <b>Ⓧ</b><span class="key-only"> or <kbd>X</kbd></span><span class="touch-only">, 🎩 button</span>) at the witches ahead to bonk them off their brooms! It flies back to you like a boomerang.</li>
-      <li>✨ <b>Boost</b> with magic dust (🎮 <b>LT</b><span class="key-only">, <kbd>Z</kbd> or <kbd>Shift</kbd></span><span class="touch-only">, ✨ button</span>). The meter fills up again, faster through the glowing rings.</li>
-      <li>❔ <b>Grab the magic boxes</b> for a power-up, then use it (🎮 <b>Ⓑ</b> / <b>RB</b><span class="key-only">, <kbd>C</kbd></span>):
+      <li>🎩 <b>Throw your hat</b> (🎮 <b data-pad="B">B</b><span class="key-only"> or <kbd>J</kbd></span><span class="touch-only">, 🎩 button</span>) at the witches ahead to bonk them off their brooms! It flies back to you like a boomerang.</li>
+      <li>✨ <b>Boost</b> with magic dust (hold 🎮 <b data-pad="RT">RT</b> or <b data-pad="X">X</b><span class="key-only">, or <kbd>Shift</kbd></span><span class="touch-only">, ✨ button</span>). The meter fills up again, faster through the glowing rings.</li>
+      <li>🪂 <b>Air brake</b> to slow down (hold 🎮 <b data-pad="LT">LT</b><span class="key-only">, or <kbd>Ctrl</kbd></span><span class="touch-only">, 🪂 button</span>). It costs no magic.</li>
+      <li>❔ <b>Grab the magic boxes</b> for a power-up, then use it (🎮 <b data-pad="Y">Y</b><span class="key-only">, <kbd>F</kbd></span><span class="touch-only">, ❔ button</span>):
         🍬 rocket · 🦇 bats chase the leader · 🧪 boost refill · 👻 ghost cloak · 🎩 triple hat · 🕸️ web trap.</li>
-      <li>🛡️ <b>Shield</b> (🎮 <b>Ⓐ</b><span class="key-only">, <kbd>Space</kbd></span>) blocks lightning in the storm and hats thrown at you.</li>
-      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. <b>LB</b> (or click a stick) swings back behind you.</li>
+      <li>🛡️ <b>Shield</b> (🎮 <b data-pad="A">A</b><span class="key-only">, <kbd>Space</kbd></span><span class="touch-only">, 🛡️ button</span>) blocks lightning in the storm and hats thrown at you.</li>
+      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a mouse drag</span><span class="touch-only"> or a second finger</span>. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b> or click the right stick<span class="key-only"> (or <kbd>R</kbd>)</span> swings back behind you.</li>
       <li>👥 <b>Two players?</b> Press <b>2 Players</b> and the screen splits in two. Each player uses their own 🎮 controller (the first one plugged in is Player 1), or share the keyboard:
-        <span class="key-only">Player 1 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> fly, left <kbd>Shift</kbd> boost, <kbd>F</kbd> hat, <kbd>G</kbd> power-up, <kbd>Space</kbd> shield · Player 2 the arrows, right <kbd>Shift</kbd> boost, <kbd>K</kbd> hat, <kbd>L</kbd> power-up, <kbd>Enter</kbd> shield.</span>
+        <span class="key-only">Player 1 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> fly, left <kbd>Shift</kbd> boost, left <kbd>Ctrl</kbd> brake, <kbd>Space</kbd> shield, <kbd>G</kbd> hat, <kbd>F</kbd> power-up · Player 2 <kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd> fly, right <kbd>Shift</kbd> boost, right <kbd>Ctrl</kbd> brake, <kbd>Enter</kbd> shield, <kbd>O</kbd> hat, <kbd>U</kbd> power-up.</span>
         Your hats and power-ups can bonk each other too!</li>
       <li>Race through the sky, a storm, a <b>backyard</b>, a <b>graveyard</b> and past the <b>house on the hill</b>. Don't crash, or the pumpkin catches up!</li>
     </ol>
@@ -186,9 +189,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261015-0233"></script>
-<script src="orbit-cam.js?v=20261015-0233"></script>
-<script src="touch-stick.js?v=20261015-0233"></script>
+<script src="common.js?v=20261017-1913"></script>
+<script src="orbit-cam.js?v=20261017-1913"></script>
+<script src="touch-stick.js?v=20261017-1913"></script>
 <script>
 'use strict';
 
@@ -831,17 +834,30 @@ const sfx = {
 };
 
 // ---------- Input ----------
-// One player: the arrow keys or W A S D, Space shield, X hat, C power-up, Z / Shift boost, plus the touch
-// controls and any 🎮 controller (common.js presses the keys for it).
+// One player: W A S D fly, hold Shift boost, hold Ctrl air brake, Space shield, J hat, F power-up, plus the
+// touch controls and any 🎮 controller (common.js presses the keys for it: RT / X boost, LT brake, A shield,
+// B hat, Y power-up; LB / RB / right-stick click swing the camera back, in orbit-cam.js).
 // Two players (the screen splits in two): each 🎮 controller is read on its own (the first is Player 1, the
-// second Player 2), and the keyboard is shared: Player 1 W A S D, left Shift boost, F hat, G power-up, Space
-// shield; Player 2 the arrows, right Shift boost, K hat, L power-up, Enter shield.
-const KEYMAP = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r', ArrowUp: 'u', KeyW: 'u', ArrowDown: 'd', KeyS: 'd', KeyZ: 'boost', ShiftLeft: 'boost', ShiftRight: 'boost' };
-const KEYS_P1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', KeyZ: 'boost' };
-const KEYS_P2 = { ArrowLeft: 'l', ArrowRight: 'r', ArrowUp: 'u', ArrowDown: 'd', ShiftRight: 'boost' };
-// 🎮 this game's buttons: Ⓧ / Ⓨ throw the hat, LT boosts, Ⓑ / RB use a power-up, Ⓐ / RT shield (LB and the stick clicks swing the camera back)
-const PAD_LEGEND = '<b>Witch Way Out:</b> Ⓧ / Ⓨ 🎩 throw hat · <b>LT</b> ✨ boost · Ⓑ / <b>RB</b> ❔ use power-up · Ⓐ / <b>RT</b> 🛡️ shield · <b>LB</b> or click a stick: camera behind you';
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 1: 'KeyC', 2: 'KeyX', 3: 'KeyX', 5: 'KeyC', 6: 'KeyZ' }, PAD_LEGEND + '<br>👥 Two players: the first controller is Player 1, the second is Player 2');
+// second Player 2) with the same buttons, and the keyboard is shared: Player 1 W A S D, left Shift boost,
+// left Ctrl brake, Space shield, G hat, F power-up; Player 2 I J K L, right Shift boost, right Ctrl brake,
+// Enter shield, O hat, U power-up.
+const KEYMAP = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', ShiftRight: 'boost', ControlLeft: 'brake', ControlRight: 'brake' };
+const KEYS_P1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', ControlLeft: 'brake' };
+const KEYS_P2 = { KeyJ: 'l', KeyL: 'r', KeyI: 'u', KeyK: 'd', ShiftRight: 'boost', ControlRight: 'brake' };
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'KeyJ', 2: 'ShiftLeft', 3: 'KeyF', 4: null, 5: null, 6: 'ControlLeft', 7: 'ShiftLeft', 10: null });
+RB.setControls({
+  name: 'Witch Way Out', camera: true,
+  rows: [
+    { act: 'Fly (turn, climb, dive)', keys: 'W A S D', pad: 'left stick', touch: 'drag your thumb' },
+    { act: 'Boost (hold)', keys: 'Shift', pad: '{RT} or {X}', touch: '✨ button' },
+    { act: 'Air brake (hold)', keys: 'Ctrl', pad: '{LT}', touch: '🪂 button' },
+    { act: 'Shield', keys: 'Space', pad: '{A}', touch: '🛡️ button' },
+    { act: 'Throw hat', keys: 'J', pad: '{B}', touch: '🎩 button' },
+    { act: 'Use power-up', keys: 'F', pad: '{Y}', touch: '❔ button' },
+  ],
+  note: '👥 2 players on one keyboard: Player 1 W A S D, left Shift boost, left Ctrl brake, Space shield, G hat, F power-up · Player 2 I J K L, right Shift boost, right Ctrl brake, Enter shield, O hat, U power-up. With two controllers, each one uses the buttons above.',
+});
+RB.guardLeave(() => state === 'fly');
 let state = 'title', paused = false, twoP = false;
 const stick = createTouchStick(canvas, { enabled: () => state === 'fly' && !paused });
 if (RB.pad && RB.pad.useInvert) RB.pad.useInvert({ LY: 'Flying up/down' });   // pull back to climb, for pilots who like it (this game only)
@@ -895,26 +911,26 @@ const ALL = [];
 let players = [];   // the ones racing now: [Player 1], or both
 function camSource(p) {
   const g = p.pad;
-  return { x: g ? g.rx : 0, y: g ? g.ry : 0, recenter: !!g && [4, 10, 11].some(b => g.pressed(b)), keys: p.idx === 0 };
+  return { x: g ? g.rx : 0, y: g ? g.ry : 0, recenter: !!g && [4, 5, 11].some(b => g.pressed(b)), keys: p.idx === 0 };
 }
 function rumble(p, ms, strength) { if (RB.pad && RB.pad.rumble) RB.pad.rumble(ms, strength, twoP && p ? p.idx : null); }
 
 addEventListener('keydown', e => {
+  // paused: only Esc carries on (Space / Enter press the focused KEEP PLAYING button themselves)
+  if (paused) { if (e.code === 'Escape' && !e.repeat) { e.preventDefault(); resume(); } return; }
   const map = twoP ? (KEYS_P1[e.code] ? [P1, KEYS_P1[e.code]] : KEYS_P2[e.code] ? [P2, KEYS_P2[e.code]] : null) : KEYMAP[e.code] ? [P1, KEYMAP[e.code]] : null;
   if (map) { map[0].keys[map[1]] = true; e.preventDefault(); }
   if (e.repeat) return;
-  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
   if (e.code === 'Space') { e.preventDefault(); if (state === 'fly') castShield(P1); else startGame(); }
-  if (e.code === 'KeyX' || (twoP && e.code === 'KeyF')) throwHat(P1);
-  if (e.code === 'KeyC' || (twoP && e.code === 'KeyG')) useItem(P1);
+  if (twoP ? e.code === 'KeyG' : e.code === 'KeyJ') throwHat(P1);
+  if (e.code === 'KeyF') useItem(P1);
   if (twoP && state === 'fly') {
-    if (e.code === 'KeyK') throwHat(P2);
-    if (e.code === 'KeyL') useItem(P2);
-    if (e.code === 'Enter' || e.code === 'KeyJ') { e.preventDefault(); castShield(P2); }
+    if (e.code === 'KeyO') throwHat(P2);
+    if (e.code === 'KeyU') useItem(P2);
+    if (e.code === 'Enter' || e.code === 'NumpadEnter') { e.preventDefault(); castShield(P2); }
   }
   if (e.code === 'Enter' && state !== 'fly') startGame();
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (e.code === 'Escape') pause();
 });
 addEventListener('keyup', e => {
   for (const p of ALL) {
@@ -933,8 +949,12 @@ tapBtn('itemBtn', () => useItem(P1));
 const boostBtn = document.getElementById('boostBtn');
 boostBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); P1.keys.boost = true; try { boostBtn.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
 for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) boostBtn.addEventListener(ev, () => { P1.keys.boost = false; });
+const brakeBtn = document.getElementById('brakeBtn');
+brakeBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); P1.keys.brake = true; try { brakeBtn.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
+for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) brakeBtn.addEventListener(ev, () => { P1.keys.brake = false; });
 
-// Two players: each controller's buttons, read straight from that controller (common.js stops pressing keys for it)
+// Two players: each controller's buttons, read straight from that controller (common.js stops pressing keys for it).
+// The same buttons as one player: Ⓐ shield, Ⓑ hat, Ⓨ power-up (RT / X boost and LT brake are held: updatePlayer)
 function pollPads() {
   const on = twoP && state === 'fly';
   if (RB.pad && 'direct' in RB.pad) RB.pad.direct = on;
@@ -945,9 +965,9 @@ function pollPads() {
     for (let b = 0; b < 16; b++) now[b] = p.pad.pressed(b);
     if (p.prevBtn) {   // (a button already held when play starts or carries on doesn't count)
       const edge = b => now[b] && !p.prevBtn[b];
-      if (edge(0) || edge(7)) castShield(p);
-      if (edge(2) || edge(3)) throwHat(p);
-      if (edge(1) || edge(5)) useItem(p);
+      if (edge(0)) castShield(p);
+      if (edge(1)) throwHat(p);
+      if (edge(3)) useItem(p);
     }
     p.prevBtn = now;
   }
@@ -975,7 +995,7 @@ let bestPlace = +(RB.store.get('ww_place') || 0);
 
 // everything about one player's race
 function newRacer(p) {
-  Object.assign(p, { ringCount: 0, caughtCount: 0, hatsHit: 0, mercy: 0, mercySection: null, magic: 1, boosting: false,
+  Object.assign(p, { ringCount: 0, caughtCount: 0, hatsHit: 0, mercy: 0, mercySection: null, magic: 1, boosting: false, braking: false,
     item: null, rollT: 0, rolled: null, rollTick: 0, cloakT: 0, finishT: 0, finishPlace: 0, place: 6, section: null,
     feedT: 0, bannerT: 0, flashT: 0, strike: null, stormTimer: 2, boltLine: null, boltT: 0 });
   p.mesh.userData.hat.visible = true;
@@ -984,7 +1004,7 @@ function newRacer(p) {
 // back on the line at fromZ (the start, or the start of an area after the pumpkin catches you)
 function resetRun(p, fromZ = 0) {
   p.pos.set(lineX(fromZ) + (twoP ? (p.idx ? 5 : -5) : 0), lineY(fromZ), fromZ);
-  Object.assign(p, { yaw: 0, pitch: 0, roll: 0, speed: SPEED, boost: 0, slowT: 0, shieldT: 0, shieldCool: 0, rocketT: 0, bonkT: 0, boosting: false, strike: null });
+  Object.assign(p, { yaw: 0, pitch: 0, roll: 0, speed: SPEED, boost: 0, slowT: 0, shieldT: 0, shieldCool: 0, rocketT: 0, bonkT: 0, boosting: false, braking: false, strike: null });
   p.warnMesh.visible = false;
   p.section = sectionAt(p.pos.z);
 }
@@ -994,7 +1014,7 @@ ALL.push(P1, P2);
 players = [P1];
 P2.mesh.visible = false;
 // Player 1's race, by the names the game (and its tests) always used
-for (const k of ['pos', 'dir', 'yaw', 'pitch', 'roll', 'speed', 'boost', 'slowT', 'shieldT', 'shieldCool', 'magic', 'boosting', 'item', 'rollT',
+for (const k of ['pos', 'dir', 'yaw', 'pitch', 'roll', 'speed', 'boost', 'slowT', 'shieldT', 'shieldCool', 'magic', 'boosting', 'braking', 'item', 'rollT',
   'rocketT', 'cloakT', 'bonkT', 'place', 'ringCount', 'hatsHit', 'caughtCount', 'strike', 'keys', 'cam', 'camera', 'lockMesh']) {
   Object.defineProperty(window, k, { get: () => P1[k], set: v => { P1[k] = v; }, configurable: true });
 }
@@ -1136,7 +1156,7 @@ function pickBox(b, p) {
   sfx.box();
   if (!p.item && p.rollT <= 0) { p.rollT = 1.1; p.rolled = rollItem(p.place); }
 }
-const useWith = p => (p.pad || (!twoP && RB.pad && RB.pad.connected) ? 'Ⓑ' : !twoP && RB.touch ? 'the ITEM button' : twoP ? (p.idx ? 'L' : 'G') : 'C');
+const useWith = p => (p.pad || (!twoP && RB.pad && RB.pad.connected) ? RB.padText('{Y}') : !twoP && RB.touch ? 'the ITEM button' : twoP ? (p.idx ? 'U' : 'F') : 'F');
 
 function castShield(p = P1) {
   if (state !== 'fly' || p.shieldCool > 0 || p.finishT || !players.includes(p)) return;
@@ -1167,7 +1187,7 @@ function caught(p) {
 // a player reaches the moon; the race ends when everyone racing has
 function playerFinished(p) {
   p.finishT = runT; finishOrder.push(p); p.finishPlace = finishOrder.length; p.place = p.finishPlace;
-  p.lockMesh.visible = false; p.warnMesh.visible = false; p.strike = null; p.keys.boost = false; p.boosting = false;
+  p.lockMesh.visible = false; p.warnMesh.visible = false; p.strike = null; p.keys.boost = p.keys.brake = false; p.boosting = p.braking = false;
   if (players.some(o => !o.finishT)) {
     showBanner(p, `${ORD[p.place - 1]}!`, 'You made it to the moon! 🌕 Cheer on your friend!', 99);
     if (p.place <= 3) sfx.win(); else sfx.section();
@@ -1319,15 +1339,17 @@ function updatePlayer(p, dt) {
   p.pitch += (sy * 0.65 - p.pitch) * Math.min(1, dt * 3);
   p.roll += (sx * 0.6 - p.roll) * Math.min(1, dt * 5) + (p.bonkT > 0 ? Math.sin(p.bonkT * 30) * 0.15 : 0);
   p.boost = Math.max(0, p.boost - dt * 6);
-  // ✨ boost: hold LT (or Z / Shift) to spend the magic meter, leaving a trail of magic dust
+  // ✨ boost: hold RT / X (or Shift) to spend the magic meter, leaving a trail of magic dust
   const wasBoosting = p.boosting;
-  p.boosting = !!(p.keys.boost || (p.pad && p.pad.pressed(6))) && p.magic > (p.boosting ? 0 : 0.08);
+  p.boosting = !!(p.keys.boost || (p.pad && (p.pad.pressed(7) || p.pad.pressed(2)))) && p.magic > (p.boosting ? 0 : 0.08);
   if (p.boosting) { p.magic = Math.max(0, p.magic - dt * BOOST_DRAIN); p.boost = Math.max(p.boost, BOOST); if (!wasBoosting) sfx.boost(); }
   else p.magic = Math.min(1, p.magic + dt * BOOST_FILL);
   if (p.rocketT > 0) { p.rocketT -= dt; p.boost = Math.max(p.boost, 24); }
   if (p.boosting || p.rocketT > 0) emitDust(tailPos(p.mesh), Math.ceil(dt * 140), 1, p.rocketT > 0 ? ROCKET_COLORS : DUST_COLORS);
   p.slowT = Math.max(0, p.slowT - dt);
-  const target = (p.slowT > 0 ? SPEED * 0.45 : SPEED) + p.boost;
+  // 🪂 air brake: hold LT (or Ctrl) to slow down, free; boosting or the rocket wins
+  p.braking = !!(p.keys.brake || (p.pad && p.pad.pressed(6))) && !p.boosting && p.rocketT <= 0;
+  const target = (p.slowT > 0 ? SPEED * 0.45 : p.braking ? SPEED * 0.5 : SPEED) + p.boost;
   p.speed += (target - p.speed) * Math.min(1, dt * 3);
   dir.set(-Math.sin(p.yaw) * Math.cos(p.pitch), Math.sin(p.pitch), -Math.cos(p.yaw) * Math.cos(p.pitch));
   pos.addScaledVector(dir, p.speed * dt);
@@ -1545,7 +1567,7 @@ function updateProjectiles(dt) {
 // ---------- Camera, visuals, HUD ----------
 // The orbit camera itself lives in orbit-cam.js (shared with Hamglider). Here it also:
 // - pulls in close when a tree, gate, crypt or the cliff gets between it and her, then eases back out
-// - pulls back a touch and widens the view on a boost (rings, LT, the candy rocket), slowly, for a sense of speed
+// - pulls back a touch and widens the view on a boost (rings, RT / X, the candy rocket), slowly, for a sense of speed
 // How far the camera can be from her before something (scenery or the ground) gets in the way.
 const camRay = new THREE.Vector3(), camOrigin = new THREE.Vector3();
 function clearDistance(origin, dirC, want) {
@@ -1689,7 +1711,7 @@ function playerHUD(p) {
   if (!p.idx) { $('itemIco').textContent = show || '❔'; $('itemBtn').classList.toggle('cool', !p.item); $('boostBtn').classList.toggle('cool', p.magic < 0.08); }
   ui.magicFill.style.width = `${Math.round(p.magic * 100)}%`;
   ui.magic.classList.toggle('on', p.boosting);
-  ui.magicTxt.textContent = p.rocketT > 0 ? '🍬 ROCKET!' : p.cloakT > 0 ? '👻 CLOAK' : p.boosting ? 'ZOOM!' : 'BOOST';
+  ui.magicTxt.textContent = p.rocketT > 0 ? '🍬 ROCKET!' : p.cloakT > 0 ? '👻 CLOAK' : p.boosting ? 'ZOOM!' : p.braking ? 'BRAKE' : 'BOOST';
   // everyone's progress along the course (you are the big dot)
   const bar = ui.bar;
   if (!bar.dots) {
@@ -1731,7 +1753,7 @@ showBestOnTitle();
 // how many controllers are plugged in: two means two players can each have one
 function showPads() {
   const n = RB.pad && RB.pad.pads ? RB.pad.pads().length : 0;
-  $('padCount').textContent = n >= 2 ? '🎮🎮 Two controllers ready: one each!' : n === 1 ? '🎮 One controller ready. Plug in a second for Player 2 (or Player 2 uses the arrow keys)' : '';
+  $('padCount').textContent = n >= 2 ? '🎮🎮 Two controllers ready: one each!' : n === 1 ? '🎮 One controller ready. Plug in a second for Player 2 (or Player 2 uses I J K L)' : '';
 }
 addEventListener('gamepadconnected', showPads);
 addEventListener('gamepaddisconnected', showPads);
