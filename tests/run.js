@@ -2385,6 +2385,16 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const fast = await p.evaluate(() => player.vx);
     await padHold(p, 'X', false); await p.evaluate(() => { __pad.axes[0] = 0; });
     check(air && fast > 120, 'Ⓐ should jump and Ⓧ + stick should run: ' + JSON.stringify({ air, fast }));
+    // Lucky Leo keeps its own Xbox layout: Ⓨ (or RB) throws the magic hat, RT runs too, and LT + Ⓐ hops off Shamrock
+    await p.evaluate(() => { setForm(3); player.hatless = false; ents = ents.filter(e => !isEnemy(e) && e.k !== 'cap'); });
+    await padTap(p, 'Y'); await p.waitForTimeout(100);
+    const yHat = await p.evaluate(() => ents.some(e => e.k === 'cap'));
+    await p.waitForTimeout(2500); await p.evaluate(() => { ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; player.vx = 0; __pad.axes[0] = 0.9; });
+    await padHold(p, 'RT', true); await p.waitForTimeout(1200); const rtFast = await p.evaluate(() => player.vx); await padHold(p, 'RT', false); await p.evaluate(() => { __pad.axes[0] = 0; });
+    await p.evaluate(() => { mount(mk('unicorn', player.x, player.y, { w: 16, h: 22, st: 'wait', t: 1 })); });
+    await p.waitForTimeout(200); await padHold(p, 'LT', true); await padTap(p, 'A'); await padHold(p, 'LT', false); await p.waitForTimeout(900);   // (time to hop up and land again)
+    const ltOff = await p.evaluate(() => !player.mount);
+    check(yHat && rtFast > 120 && ltOff, 'Lucky Leo on an Xbox controller: Ⓨ throws the hat, RT runs, LT + Ⓐ hops off Shamrock: ' + JSON.stringify({ yHat, rtFast, ltOff }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
     // on a phone: the game sits at the top like a handheld, with the buttons underneath

@@ -94,8 +94,8 @@
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> to walk, <kbd>Space</kbd> to jump. Hold <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 <b data-pad="A">A</b> jumps, <b data-pad="X">X</b> runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>E</kbd> · </span>🎮 <b data-pad="LB">LB</b>) to drop it when you need it.</li>
-      <li>🎩 Get the <b>magic hat</b> (Leo's hat turns purple with a gold star) and you can <b>throw your hat</b> (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="RT">RT</b><span class="touch-only"> · 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Get hit and the magic is gone. <b>Aim it</b> any way you like: push the stick (🎮) or hold two directions together (<span class="key-only"><kbd>W</kbd> <kbd>D</kbd> for a slant</span><span class="touch-only">▲ ▶ for a slant</span>) to throw it up, sideways, on a slant, or down from the air; straight up bumps blocks, and <b>crouching</b> throws it low at little enemies.</li>
-      <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs and snapping plants, trot right over spikes, press run and he opens wide and gulps down the enemy in front of him (after three… watch your step!). Grab a <b>rainbow prism</b> (from a ☘️ block while riding) and run fires a rainbow laser from his eyes instead. If you get hit you just fall off: catch him again! To hop off, press <span class="key-only"><kbd>F</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · hold ▼ and tap A</span>.</li>
+      <li>🎩 Get the <b>magic hat</b> (Leo's hat turns purple with a gold star) and you can <b>throw your hat</b> (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Get hit and the magic is gone. <b>Aim it</b> any way you like: push the stick (🎮) or hold two directions together (<span class="key-only"><kbd>W</kbd> <kbd>D</kbd> for a slant</span><span class="touch-only">▲ ▶ for a slant</span>) to throw it up, sideways, on a slant, or down from the air; straight up bumps blocks, and <b>crouching</b> throws it low at little enemies.</li>
+      <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs and snapping plants, trot right over spikes, press run and he opens wide and gulps down the enemy in front of him (after three… watch your step!). Grab a <b>rainbow prism</b> (from a ☘️ block while riding) and run fires a rainbow laser from his eyes instead. If you get hit you just fall off: catch him again! To hop off, press <span class="key-only"><kbd>F</kbd> · </span>🎮 hold <b data-pad="LT">LT</b> and press <b data-pad="A">A</b><span class="touch-only"> · hold ▼ and tap A</span>.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump). 🧱 <b>Wall kick:</b> jump into a wall and hold towards it to slide down, then press jump to kick off it. Kick back and forth between two walls to climb up!</li>
       <li>👑 <b>King Grumbles</b> can be stomped, or hit with a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power.</li>
       <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>Shift</kbd></span><span class="touch-only"><b>B</b> button</span> · 🎮 <b data-pad="X">X</b>), and a <b>lucky horseshoe</b> makes him unstoppable. Now and then there's a <b>rainbow-striped block</b>: bump it and a really long rainbow grows up into the sky. Jump on it to ride up to a <b>secret place above the clouds</b>, full of power-ups and coins, with a rainbow gem!</li>
@@ -1204,22 +1204,22 @@ let downFrom = '';   // which key pressed S: 'pad' for the controller's stick / 
 const pressed = { jump: false, run: false, start: false, left: false, right: false, up: false, down: false, item: false, off: false };
 const KEYMAP = { KeyA: 'left', KeyD: 'right', Space: 'jump', KeyW: 'up', ShiftLeft: 'run', ShiftRight: 'run', KeyS: 'down',
   KeyJ: 'hat', KeyK: 'hat', KeyE: 'item', KeyF: 'off' };
-// 🎮 A / B jump, X run (and throw rainbow sparks), RT / RB throw the hat, LT crouch: high jump, or ground pound in the air,
-// LB drop the saved power-up, Y hop off Shamrock; the D-pad and left stick are W A S D
+// 🎮 Lucky Leo keeps its own controller layout: A / B jump, X / RT run (and throw rainbow sparks), Y / RB throw the hat,
+// LB drop the saved power-up, LT crouch: high jump, or ground pound in the air (LT + A hops off Shamrock); the D-pad and left stick are W A S D
 // (a flat, side-on game: it never asks for inverted sticks, so a flying game's invert setting can't flip Leo)
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: 'KeyF', 4: 'KeyE', 5: 'KeyJ', 6: 'KeyS', 7: 'KeyJ', 10: null });
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: 'KeyJ', 4: 'KeyE', 5: 'KeyJ', 6: 'KeyS', 7: 'ShiftLeft', 10: null });
 // is the controller's LT (crouch) held? LT's S always counts, even while walking; the stick's / D-pad's S only on its own
 const padLT = () => { try { const gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected); return !!(gp && gp.buttons[6] && gp.buttons[6].pressed); } catch (e) { return false; } };
 const downAlone = (l, r) => downFrom !== 'pad' || padLT() || !(l || r);
 if (RB.setControls) RB.setControls({ name: 'Lucky Leo', camera: false, rows: [
   { act: 'Walk', keys: 'A / D', pad: '{LS} / {DPAD}', touch: '◀ ▶' },
   { act: 'Look up', keys: 'W', pad: '{LS} up', touch: '▲' },
-  { act: 'Run (and throw sparks)', keys: 'hold Shift', pad: '{X}', touch: 'hold B' },
+  { act: 'Run (and throw sparks)', keys: 'hold Shift', pad: '{X} / {RT}', touch: 'hold B' },
   { act: 'Jump (hold = higher, again = spin)', keys: 'Space', pad: '{A} / {B}', touch: 'A' },
   { act: 'Crouch · high jump · ground pound', keys: 'S', pad: '{LT}', touch: '▼' },
-  { act: 'Throw the magic hat', keys: 'J', pad: '{RT} / {RB}', touch: '🎩' },
+  { act: 'Throw the magic hat', keys: 'J', pad: '{Y} / {RB}', touch: '🎩' },
   { act: 'Drop the saved power-up', keys: 'E', pad: '{LB}', touch: 'tap the box at the top' },
-  { act: 'Hop off Shamrock', keys: 'F (or S + Space)', pad: '{Y}', touch: 'hold ▼, tap A' },
+  { act: 'Hop off Shamrock', keys: 'F (or S + Space)', pad: '{LT} + {A}', touch: 'hold ▼, tap A' },
   { act: 'Map: move / enter a level', keys: 'W A S D / Space or Enter', pad: '{DPAD} / {A}', touch: 'tap a level, tap again' },
 ] });
 let paused = false;
@@ -1411,7 +1411,7 @@ function updateSummon(e) {
 }
 // Leo rides on his back: higher jumps, hold jump to flutter-float, stomp anything
 // (even spiky hedgehogs), run (Shift / 🎮 X / touch B) to gulp the enemy in front (with the prism: fire the eye laser).
-// Get hit and Leo just falls off (no harm done) while Shamrock runs away, catch him again quickly! F (🎮 Y), or S + jump, hops off.
+// Get hit and Leo just falls off (no harm done) while Shamrock runs away, catch him again quickly! F, or S + jump (🎮 LT + A), hops off.
 const RIDE_H = 30;
 function mount(e) {
   const p = player, bottom = p.y + p.h;
@@ -1420,7 +1420,7 @@ function mount(e) {
   sfx.mount(); sparkle(p.x + 7, p.y + 10, '#ff9ad0', 12);
   if (e.k && !rideTold) {   // the first time he climbs on: how to get off again
     rideTold = true;
-    banner('SHAMROCK!', RB.touch ? 'To hop off: hold ▼ and tap A' : RB.pad.connected ? RB.padText('To hop off: press {Y} (or hold {LT} and press {A})') : 'To hop off: press F (or hold S and press Space)', 3);
+    banner('SHAMROCK!', RB.touch ? 'To hop off: hold ▼ and tap A' : RB.pad.connected ? RB.padText('To hop off: hold {LT} and press {A}') : 'To hop off: press F (or hold S and press Space)', 3);
   }
 }
 let rideTold = false;
@@ -1437,7 +1437,7 @@ function dismount(flee) {
 }
 function updateUnicorn(e, dt) {
   const p = player;
-  if (!e.clear && !overlap(p, e)) e.clear = true;
+  if (!e.clear && (p.x + p.w < e.x - 2 || p.x > e.x + e.w + 2)) e.clear = true;   // stepped away to the side (hopping straight up and landing back doesn't count)
   e.vy = Math.min((e.vy || 0) + 900 * dt, 300);
   if (e.st === 'flee') {
     e.vx = e.dir * 120; moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall; e.face = e.dir;
@@ -3879,7 +3879,7 @@ function updatePlayer(dt) {
   if (Math.abs(p.vx) > maxV && p.ground) p.vx -= Math.sign(p.vx) * Math.min(Math.abs(p.vx) - maxV, 400 * dt);
   // jumping: a little forgiveness both ways (press just before landing, or just after running off an edge)
   if (p.mount && pressed.jump && inp.down) { dismount(false); pressed.jump = false; }   // S + jump: hop off Shamrock
-  if (p.mount && pressed.off) dismount(false);   // F (🎮 Y): hop off Shamrock
+  if (p.mount && pressed.off) dismount(false);   // F: hop off Shamrock
   if (p.swim && pressed.jump && !p.ground) {   // a swimming stroke (or a leap out at the surface)
     const surface = !waterAt(p.x + p.w / 2, p.y - 3);
     p.vy = surface ? -390 : -175; pressed.jump = false; p.buffer = 0; p.squash = -0.4; sfx.swim();
@@ -4340,7 +4340,7 @@ function touchPlayer(e) {
         const f = e.k === 'flower' ? 2 : 3, had = p.form === 2 ? 'flower' : p.form === 3 ? 'magichat' : p.form === 1 ? 'clover' : null;
         if (p.form === f) reserve = e.k;
         else { if (had && (had !== 'clover' || !reserve)) reserve = had; setForm(f); }
-        if (f === 3 && !magicHatTold) { magicHatTold = true; banner('MAGIC HAT!', RB.touch ? 'Tap 🎩 to throw your hat' : RB.padText('Press J (or {RT}) to throw your hat')); }
+        if (f === 3 && !magicHatTold) { magicHatTold = true; banner('MAGIC HAT!', RB.touch ? 'Tap 🎩 to throw your hat' : RB.padText('Press J (or {Y}) to throw your hat')); }
       }
       break;
     case 'spring':
