@@ -1689,6 +1689,29 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-gulf.png');
   });
 
+  await test('Lucky Leo music: every level has a tune, and the orchestra (whimsical, epic, tender and swing) plays out loud and clear without clipping', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(async () => {
+      const missing = Object.values(LEVELS).filter(L => L.music && !SONGS[L.music]).map(L => L.id);
+      const realAudio = RB.audio, out = { missing, songs: {} };
+      for (const id of ['map', 'boss', 'caves', 'jazz']) {
+        const off = new OfflineAudioContext(2, 44100 * 6, 44100); RB.audio = () => off;
+        music.stop(); music.play(id); music.schedule(5.5); music.stop();
+        const buf = await off.startRendering(), d = buf.getChannelData(0);
+        let peak = 0, sum = 0; for (let i = 0; i < d.length; i++) { peak = Math.max(peak, Math.abs(d[i])); sum += d[i] * d[i]; }
+        out.songs[id] = { style: music.style(id), peak: +peak.toFixed(3), rms: +Math.sqrt(sum / d.length).toFixed(4) };
+      }
+      RB.audio = realAudio; return out;
+    });
+    check(r.missing.length === 0, 'levels with no tune: ' + r.missing.join(', '));
+    const styles = Object.values(r.songs).map(x => x.style);
+    check(['whimsy', 'epic', 'tender', 'swing'].every(st => styles.includes(st)), 'all four styles of score should be used: ' + JSON.stringify(r.songs));
+    check(Object.values(r.songs).every(x => x.rms > 0.004 && x.peak < 0.9), 'each style should be audible and never clip: ' + JSON.stringify(r.songs));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
   await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, on along the Gulf Coast, and the Sabine River at the Texas line is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
