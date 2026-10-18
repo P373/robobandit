@@ -229,6 +229,18 @@ const GAMES = [
     thumb: 'thumbs/pumpkin-pals.jpg',
     blurb: 'Halloween night! Rescue the little pumplings, throw them at bats, cats and ghosts, and bring everyone home in the pumpkin wagon before the grumpy scarecrow gets you! 🎃👻',
   },
+  {
+    title: 'Moto Rush',
+    url: 'moto-rush.html',
+    thumb: 'thumbs/moto-rush.jpg',
+    blurb: 'Race motorcycles round the figure 8 in the fields with up to 4 friends! Fly off the bridge, drift for a mini-turbo, pull wheelies, cut through the red barn and hop over the cows. 🏍️🐄🏁',
+  },
+  {
+    title: 'Moto Mania',
+    url: 'moto-mania.html',
+    thumb: 'thumbs/moto-mania.jpg',
+    blurb: 'Item boxes, four bikes and six courses! Race the Figure 8 Fields, Liberty Docks at night, Downtown in the rain, the Cape Cod Boardwalk at sunset or up and over Quarry Pass, with rockets, oil slicks, hay bales and cows, or pop balloons in the Hay Bale Arena battle. Up to 4 players. 🚀🎈🏍️',
+  },
 ];
 
 const grid = document.getElementById('games');
@@ -255,6 +267,6 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
 render();
 addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
-<script src="common.js?v=20261017-1936"></script>
+<script src="common.js?v=20261018-0528"></script>
 </body>
 </html>

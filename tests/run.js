@@ -78,7 +78,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
-    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'share.html']) {
+    for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'moto-rush.html', 'moto-mania.html', 'share.html']) {
       const html = fs.readFileSync(path.join(ROOT, f), 'utf8');
       const img = (html.match(/property="og:image" content="https:\/\/robobandit\.com\/([^"]+)"/) || [])[1];
       check(img && fs.existsSync(path.join(ROOT, img)), `${f}: og:image ${img} missing`);
@@ -1343,6 +1343,522 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  const wrapAngle = a => Math.atan2(Math.sin(a), Math.cos(a));
+  const until = async (p, fn, ms = 5000) => { const t0 = Date.now(); while (Date.now() - t0 < ms) { if (await p.evaluate(fn)) return true; await p.waitForTimeout(80); } return false; };
+  // Moto Rush: an autopilot that rides like a player (keys toward a point up the road), for the tests below
+  const MOTO_PILOT = `window.pilot = (r, opt = {}) => {
+    let lane = opt.lane || 0;
+    if (opt.pads) for (const pd of PADS) { const a = dS(pd.s - r.s); if (a > 0 && a < 60) { lane = pd.d; break; } }
+    for (const cw of COWS) { const a = dS(cw.s - r.s); if (a > -2 && a < 45 && Math.abs(cw.d) < HW + 1.5 && Math.abs(cw.d - lane) < 3.4) lane = cw.d > 0 ? cw.d - 4.5 : cw.d + 4.5; }
+    { const a = dS(TRACTOR_S - r.s); if (a > 0 && a < 40 && Math.abs(TRACTOR.u) < HW + 3) lane = TRACTOR.u > 0 ? TRACTOR.u - 5 : TRACTOR.u + 5; }
+    const q = trackPoint(r.s + 10 + Math.max(0, r.speed) * 0.3, lane), df = wrapA(Math.atan2(-(q.x - r.x), -(q.z - r.z)) - r.h);
+    r.keys = { u: opt.gas !== false, l: df > 0.03, r: df < -0.03, boost: !!opt.boost && r.nitro > 0.3 && bendAt(r.s + 30) === 0 };
+  };
+  window.follow = r => { const q = trackPoint(r.s + 14, 0), df = wrapA(Math.atan2(-(q.x - r.x), -(q.z - r.z)) - r.h); r.keys = { u: true, l: df > 0.03, r: df < -0.03 }; };`;   // (straight down the middle, whatever's there)
+
+  await test('Moto Rush riding (after EBITDA Hero\'s motorcycle): RT and LT are smooth gas and brake, the stick pulled back is a wheelie that fills the nitro, Ⓐ hops, Ⓧ is nitro, Ⓑ drifts and lets go with a mini-turbo, the right stick swings the camera all the way round and LB brings it back behind', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('moto-rush.html')); await p.waitForTimeout(1000);
+    const setBtn = (b, v) => p.evaluate(([b, v]) => { __pad.buttons[b] = { pressed: v > 0.5, value: v }; }, [b, v]);
+    const at = (s, v) => p.evaluate(([s, v]) => { startGame(1); countT = 0; cpus.forEach((c, i) => resetRider(c, 900 + i * 30, 0)); resetRider(P1, s, 0); P1.dist = s; P1.speed = v; }, [s, v]);
+    // how fast the speed climbs (per second of race time) with the trigger part way, then all the way
+    const climb = async v => {
+      await at(380, 5); await setBtn(PAD.RT, v);
+      const a = await p.evaluate(() => ({ v: P1.speed, t: runT })); await p.waitForTimeout(700);
+      const b = await p.evaluate(() => ({ v: P1.speed, t: runT })); await setBtn(PAD.RT, 0);
+      return (b.v - a.v) / Math.max(0.01, b.t - a.t);
+    };
+    const half = await climb(0.5), full = await climb(1);
+    await at(380, 30); await setBtn(PAD.LT, 1); await until(p, () => P1.speed < 20, 4000);
+    const braked = await p.evaluate(() => P1.speed); await setBtn(PAD.LT, 0);
+    // a wheelie: gas with the stick pulled back
+    await at(380, 25); await p.evaluate(() => { P1.nitro = 0; }); await setBtn(PAD.RT, 1); await p.evaluate(() => { __pad.axes[1] = 0.9; }); await until(p, () => P1.wheelie > 0.35 && P1.nitro > 0.03, 5000);
+    const wheelie = await p.evaluate(() => ({ w: P1.wheelie, nitro: P1.nitro })); await p.evaluate(() => { __pad.axes[1] = 0; });
+    // Ⓐ: a bunny hop
+    await padHold(p, 'A', true);
+    const hop = await p.evaluate(() => ({ air: P1.air, up: P1.y - groundY(P1.s, P1.d) })); await padHold(p, 'A', false);
+    // Ⓧ: nitro
+    await at(380, 30); await p.evaluate(() => { P1.nitro = 1; }); await setBtn(PAD.RT, 1); await padHold(p, 'X', true); await until(p, () => P1.boosting && P1.nitro < 0.97, 4000);
+    const nitro = await p.evaluate(() => ({ on: P1.boosting, meter: P1.nitro, flame: P1.bike.flame.visible })); await padHold(p, 'X', false);
+    // Ⓑ with the stick over: a drift that charges up, and letting go fires the mini-turbo
+    await at(380, 30); await p.evaluate(() => { __pad.axes[0] = 0.6; }); await padHold(p, 'B', true);
+    await until(p, () => P1.drifting, 2000);
+    const drifting = await p.evaluate(() => P1.drifting);
+    await until(p, () => !(P1.driftCharge < 1.0 && P1.drifting), 8000);
+    const charge = await p.evaluate(() => P1.driftCharge);
+    await padHold(p, 'B', false); await p.evaluate(() => { __pad.axes[0] = 0; });
+    const turbo = await p.evaluate(() => ({ dash: P1.dash, drifting: P1.drifting }));
+    await setBtn(PAD.RT, 0);
+    // the camera: the right stick swings it round the bike, LB brings it straight back behind
+    await at(380, 0);
+    await p.evaluate(() => { __pad.axes[2] = 1; }); await until(p, () => Math.abs(P1.cam.yaw) > 1.2, 5000);
+    const swung = await p.evaluate(() => { const c = P1.camera.position; return { yaw: P1.cam.yaw, dist: Math.hypot(c.x - P1.x, c.z - P1.z) }; });
+    await p.evaluate(() => { __pad.axes[2] = 0; __pad.buttons[4] = { pressed: true, value: 1 }; }); await until(p, () => Math.abs(P1.cam.yaw) < 0.05, 3000);
+    const behind = await p.evaluate(() => P1.cam.yaw);
+    await p.evaluate(() => { __pad.buttons[4] = { pressed: false, value: 0 }; });
+    check(half > 2 && full > half * 1.5, 'the trigger is smooth: more gas, quicker: ' + JSON.stringify({ half, full }));
+    check(braked < 25, 'LT brakes: ' + braked);
+    check(wheelie.w > 0.3 && wheelie.nitro > 0.02, 'the stick pulled back pulls a wheelie that fills the nitro: ' + JSON.stringify(wheelie));
+    check(hop.air > 0 || hop.up > 0.05, 'Ⓐ hops: ' + JSON.stringify(hop));
+    check(nitro.on && nitro.meter < 0.97 && nitro.flame, 'Ⓧ fires the nitro (a flame, the meter drains): ' + JSON.stringify(nitro));
+    check(drifting && charge >= 0.9 && turbo.dash > 5 && !turbo.drifting, 'Ⓑ drifts, and letting go fires a mini-turbo: ' + JSON.stringify({ drifting, charge, turbo }));
+    check(Math.abs(swung.yaw) > 1 && swung.dist > 3, 'the right stick swings the camera round the bike: ' + JSON.stringify(swung));
+    check(Math.abs(behind) < 0.05, 'LB brings the camera back behind: ' + behind);
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('Moto Rush track: the figure 8 goes over the bridge (with a jump off the crest and a trick for a boost) and then under it, never mixing the two roads up; dash pads; the barn shortcut is quicker and counted; the cows and the tractor knock you down (hop the cows!); kicks; the fences and the bridge walls keep you in; wrong way', async () => {
+    const p = await open(browser, 'moto-rush.html', { viewport: { width: 960, height: 540 } });
+    await p.addScriptTag({ content: MOTO_PILOT });
+    const r = await p.evaluate(() => {
+      const out = {}, dt = 1 / 60;
+      const fresh = (s, d = 0, v = 36) => { startGame(1); countT = 0; cpus.forEach((c, i) => resetRider(c, modS(s + 300 + i * 30), 0)); resetRider(P1, s, d); P1.dist = s; P1.speed = v; COWS.forEach(c => { c.wait = 99; c.d = 30; }); TRACTOR.u = 60; TRACTOR.wait = 99; };
+      const run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); else pilot(P1); update(dt); } };
+      // over the bridge: up on the deck where the roads cross, with a jump off the crest and a trick in the air
+      fresh(SA - 120); let yA = 0, air = 0, tricked = false, dash = 0, wallOut = 0;
+      run(330, () => { pilot(P1); if (Math.abs(dS(P1.s - SA)) < 2) yA = Math.max(yA, P1.y); air = Math.max(air, P1.air);
+        if (!tricked && P1.air > 0.12 && P1.y - groundY(P1.s, P1.d) > 0.55) { hop(P1); tricked = true; } dash = Math.max(dash, P1.dash); if (onBridge(P1.s)) wallOut = Math.max(wallOut, Math.abs(P1.d)); });
+      out.over = { yA: +yA.toFixed(1), air: +air.toFixed(2), tricked, tricks: P1.tricks, dash: +dash.toFixed(1), wallOut: +wallOut.toFixed(1), wipes: P1.wipes };
+      // the bridge walls: steering hard at them up on the deck
+      fresh(SA - 10, 0, 30); let maxD = 0; run(90, () => { P1.keys = { u: true, r: true }; if (onBridge(P1.s)) maxD = Math.max(maxD, Math.abs(P1.d)); });
+      out.walls = +maxD.toFixed(2);
+      // under it: down on the ground where the roads cross, and still on the lower road afterwards
+      fresh(SB - 60); let yB = 99; run(200, () => { pilot(P1); if (Math.abs(dS(P1.s - SB)) < 2) yB = Math.min(yB, P1.y); });
+      out.under = { yB: +yB.toFixed(2), after: Math.round(dS(P1.s - SB)) };
+      // a dash pad
+      const pd = PADS[0]; fresh(pd.s - 8, pd.d, 25); run(30, () => { P1.keys = { u: true }; }); out.pad = +P1.dash.toFixed(1);
+      // the barn shortcut against the road
+      const ride = (target, done) => { let t = 0; while (t < 30 && !done()) { const q = target(); const df = wrapA(Math.atan2(-(q.x - P1.x), -(q.z - P1.z)) - P1.h); P1.keys = { u: true, l: df > 0.04, r: df < -0.04 }; update(dt); t += dt; } return t; };
+      fresh(CUT.s0 - 40, 0, 30); P1.nitro = 0;
+      const tRoad = ride(() => trackPoint(P1.s + 14, 0), () => dS(P1.s - (CUT.s1 + 20)) > 0);
+      fresh(CUT.s0 - 40, 0, 30); P1.nitro = 0;
+      const tCut = ride(() => { const c = cutUV(P1.x, P1.z); if (dS(CUT.s0 - P1.s) > 25 && c.u < 0) return trackPoint(P1.s + 14, 0); if (c.u < CUT.len - 4) { const u = Math.max(0, c.u) + 14; return { x: CUT.ax + CUT.ux * u, z: CUT.az + CUT.uz * u }; } return trackPoint(CUT.s1 + 20, 0); },
+        () => dS(P1.s - (CUT.s1 + 20)) > 0 && !P1.onCut);
+      out.cut = { tRoad: +tRoad.toFixed(2), tCut: +tCut.toFixed(2), cuts: P1.cuts, wipes: P1.wipes };
+      // straight into a cow: down you go; hop just before it and you sail over
+      const cow = COWS[0];
+      fresh(cow.s - 30); cow.d = 0; updateFarm(0); run(80, () => follow(P1)); out.cowHit = { wipes: P1.wipes, banner: P1.ui.banner.textContent };
+      run(100, () => follow(P1)); out.back = { wipeT: +P1.wipeT.toFixed(2), onRoad: Math.abs(P1.d) < HW };
+      fresh(cow.s - 30); cow.d = 0; updateFarm(0); let hopped = false; run(80, () => { follow(P1); if (!hopped && dS(cow.s - P1.s) < 8.5) { hop(P1); hopped = true; } }); out.cowHop = P1.wipes;
+      // the tractor in the road
+      fresh(TRACTOR_S - 30); TRACTOR.u = 0; updateFarm(0); run(80, () => follow(P1)); out.tractor = P1.wipes;
+      // Ⓨ: a kick at the rider alongside
+      fresh(400, -1.2, 30); resetRider(cpus[0], 400, 1.4); cpus[0].speed = 30; kick(P1);
+      out.kick = { v: +cpus[0].speed.toFixed(1), wobble: cpus[0].wobbleT > 0, kicks: P1.kicks };
+      // off the road: the fence turns you back, the grass slows you
+      fresh(400, 0, 36); P1.h += 1.2; run(150, () => { P1.keys = { u: true }; }); out.fence = { d: +Math.abs(P1.d).toFixed(1), v: +P1.speed.toFixed(1) };
+      // the wrong way round
+      fresh(400, 0, 10); P1.h += Math.PI; run(120, () => { P1.keys = { u: true }; }); updateHUD(dt);
+      out.wrong = !P1.ui.warn.classList.contains('hidden');
+      return out;
+    });
+    check(r.over.yA >= 7.4 && r.over.air > 0.4 && r.over.wipes === 0, 'over the bridge: up on the deck, with air off the crest: ' + JSON.stringify(r.over));
+    check(r.over.tricked && r.over.tricks === 1 && r.over.dash > 8, 'a trick in the air lands with a boost: ' + JSON.stringify(r.over));
+    check(r.walls < 8, 'the bridge walls keep you on the deck: ' + r.walls);
+    check(r.under.yB < 0.2 && r.under.after > 20, 'under the bridge: on the ground where the roads cross, and on along the lower road: ' + JSON.stringify(r.under));
+    check(r.pad > 8, 'a dash pad: ' + r.pad);
+    check(r.cut.cuts === 1 && r.cut.tCut < r.cut.tRoad - 0.3 && r.cut.wipes === 0, 'the barn shortcut is counted and quicker than the road: ' + JSON.stringify(r.cut));
+    check(r.cowHit.wipes === 1 && /WIPED OUT/.test(r.cowHit.banner) && r.cowHop === 0 && r.back.wipeT <= 0 && r.back.onRoad, 'a cow knocks you down (and you are back on the road after), a hop clears it: ' + JSON.stringify({ hit: r.cowHit, hop: r.cowHop, back: r.back }));
+    check(r.tractor === 1, 'the tractor knocks you down: ' + r.tractor);
+    check(r.kick.v < 25 && r.kick.wobble && r.kick.kicks === 1, 'Ⓨ kicks the rider alongside: ' + JSON.stringify(r.kick));
+    check(r.fence.d < 21 && r.fence.v < 30, 'the fence keeps you in and the grass slows you: ' + JSON.stringify(r.fence));
+    check(r.wrong, 'riding the wrong way shows WRONG WAY');
+    await done(p);
+  });
+
+  await test('Moto Rush race: nobody moves in the countdown, a rocket start at the 2 (too early: wheelspin), three laps against five rivals who take the shortcut too, results and a saved best', async () => {
+    const p = await open(browser, 'moto-rush.html', { viewport: { width: 960, height: 540 } });
+    await p.addScriptTag({ content: MOTO_PILOT });
+    const r = await p.evaluate(() => {
+      const dt = 1 / 60, out = {};
+      // the countdown, with the gas going down as the 2 shows: a rocket start
+      startGame(1); const z0 = P1.z, lights = [];
+      while (countT > 0) { P1.keys = { u: countT <= 2 }; update(dt); if (countT > 0 && Math.abs(P1.z - z0) > 0.01) out.moved = true; }
+      lights.push(...window.eval('lights').map(l => l.material.color.getHexString()));
+      out.rocket = { dash: P1.dash, feed: P1.ui.feed.textContent, green: lights.every(c => c === '3ddc84') };
+      // too early: wheelspin
+      startGame(1); while (countT > 0) { P1.keys = { u: true }; update(dt); }
+      out.early = { stall: P1.stallT > 0, feed: P1.ui.feed.textContent };
+      for (let i = 0; i < 30; i++) { P1.keys = { u: true }; update(dt); } out.early.v = P1.speed;
+      // a whole race on autopilot (dash pads and nitro, like a good rider)
+      startGame(1); const banners = new Set();
+      for (let i = 0; i < 60 * 240 && state === 'race'; i++) { pilot(P1, { pads: true, boost: true }); update(dt); if (P1.bannerT > 0) banners.add(P1.ui.banner.firstChild.textContent); }
+      const first = Math.min(...racers.filter(x => x.finishT > 0).map(x => x.finishT));
+      out.race = { state, place: P1.place, behind: +(P1.finishT - first).toFixed(1), laps: P1.lapTimes.length, fin: P1.finishT, banners: [...banners], cuts: cpus.reduce((a, c) => a + c.cuts, 0),
+        rivals: cpus.filter(c => c.finishT > 0 || c.dist > LAPS * N_T - 250).length, podium: document.querySelectorAll('.podium li').length, you: document.querySelectorAll('.podium li.you').length,
+        title: document.getElementById('overTitle').textContent, best: +RB.store.get('mr_best'), lap: +RB.store.get('mr_lap') };
+      showBestOnTitle(); out.titleBest = document.getElementById('titleBest').textContent;
+      return out;
+    });
+    check(!r.moved, 'nobody moves in the countdown');
+    check(r.rocket.dash > 10 && /ROCKET/.test(r.rocket.feed) && r.rocket.green, 'gas as the 2 shows: a rocket start (and the start lights go green): ' + JSON.stringify(r.rocket));
+    check(r.early.stall && /early/i.test(r.early.feed), 'gas held from the start: wheelspin: ' + JSON.stringify(r.early));
+    check(r.race.state === 'over' && r.race.laps === 3 && r.race.fin > 90 && r.race.fin < 160, 'three laps to the finish: ' + JSON.stringify(r.race));
+    check(r.race.banners.includes('LAP 2/3') && r.race.banners.includes('FINAL LAP!'), 'lap banners: ' + JSON.stringify(r.race.banners));
+    check(r.race.behind < 6 && r.race.rivals >= 3 && r.race.cuts > 0, 'a good rider is right there at the finish, the rivals race (and use the barn shortcut): ' + JSON.stringify(r.race));
+    check(r.race.podium === 6 && r.race.you === 1 && /Won|Place/.test(r.race.title), 'the results list all six: ' + JSON.stringify(r.race));
+    check(Math.abs(r.race.best - r.race.fin) < 0.05 && r.race.lap > 20 && /Best race/.test(r.titleBest), 'the best race and lap are saved and shown: ' + JSON.stringify({ best: r.race.best, lap: r.race.lap, title: r.titleBest }));
+    await done(p, 'moto-rush.png');
+  });
+
+  await test('Moto Rush 👥 two to four players: the screen splits (three: the blimp cam in the fourth corner), each controller rides its own bike, the keyboard is shared by Players 1 and 2 (W A S D and I J K L), the second controller\'s ☰ opens the menu, and everyone finishes', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+    await ctx.addInitScript(() => {   // four pretend controllers
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } });
+      window.__pads = [mk(0), mk(1), mk(2), mk(3)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('moto-rush.html')); await p.waitForTimeout(1000);
+    await p.addScriptTag({ content: MOTO_PILOT });
+    const title = await p.evaluate(() => document.getElementById('padCount').textContent);
+    await p.click('#btnPlay2'); await p.waitForTimeout(300);
+    await p.evaluate(() => { countT = 0; for (const q of players) { resetRider(q, 400 + q.idx * 6, q.idx ? 3 : -3); q.dist = 400; } }); await p.waitForTimeout(300);
+    const two = await p.evaluate(() => ({ split: document.body.classList.contains('split'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      divider: !document.getElementById('divider').classList.contains('hidden'), racers: racers.length, marker: players.every(q => q.marker.visible || q.markerHid) }));
+    // controller 2's RT rides Player 2 only
+    const before = await p.evaluate(() => players.map(q => q.speed));
+    await p.evaluate(() => { __pads[1].buttons[7] = { pressed: true, value: 1 }; }); await until(p, () => P2.speed > 4, 6000);
+    const after = await p.evaluate(() => players.map(q => q.speed));
+    await p.evaluate(() => { __pads[1].buttons[7] = { pressed: false, value: 0 }; });
+    // the keyboard: W A S D for Player 1, the arrows for Player 2
+    await p.evaluate(() => { for (const q of players) { resetRider(q, 400 + q.idx * 6, q.idx ? 3 : -3); q.dist = 400; } });
+    await p.keyboard.down('KeyW'); await until(p, () => P1.speed > 4, 6000);
+    const kw = await p.evaluate(() => players.map(q => q.speed)); await p.keyboard.up('KeyW');
+    await p.evaluate(() => { for (const q of players) { resetRider(q, 400 + q.idx * 6, q.idx ? 3 : -3); q.dist = 400; } });
+    await p.keyboard.down('KeyI'); await until(p, () => P2.speed > 4, 6000);
+    const ku = await p.evaluate(() => players.map(q => q.speed)); await p.keyboard.up('KeyI');
+    // the second controller's ☰ opens the menu
+    await p.evaluate(() => { __pads[1].buttons[9] = { pressed: true, value: 1 }; }); await p.waitForTimeout(200);
+    await p.evaluate(() => { __pads[1].buttons[9] = { pressed: false, value: 0 }; }); await p.waitForTimeout(100);
+    const menu = await p.evaluate(() => !!document.querySelector('.rb-menu') && paused);
+    await p.evaluate(() => RB.closeMenu()); await p.waitForTimeout(100);
+    if (await p.evaluate(() => paused)) await p.evaluate(() => resume());
+    await p.screenshot({ path: path.join(OUT, 'moto-rush-2p.png') });
+    // three: the blimp cam takes the fourth corner; four: a corner each
+    await p.evaluate(() => startGame(3)); await p.waitForTimeout(400);
+    const three = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length, spec: !document.getElementById('specTag').classList.contains('hidden') }));
+    await p.evaluate(() => startGame(4)); await p.waitForTimeout(300);
+    await p.evaluate(() => { countT = 0; for (const q of players) { resetRider(q, 400 + q.idx * 8, 0); q.dist = 400; } });
+    const h0 = await p.evaluate(() => players.map(q => (q.h0 = q.h)));
+    await p.evaluate(() => { __pads[3].axes[0] = 1; __pads[3].buttons[7] = { pressed: true, value: 1 }; }); await until(p, () => Math.abs(wrapA(P4.h - P4.h0)) > 0.15, 8000);
+    const h1 = await p.evaluate(() => players.map(q => q.h));
+    await p.evaluate(() => { __pads[3].axes[0] = 0; __pads[3].buttons[7] = { pressed: false, value: 0 }; });
+    const four = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length, spec: !document.getElementById('specTag').classList.contains('hidden'),
+      corners: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).map(h => { const b = h.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top)]; }) }));
+    await p.screenshot({ path: path.join(OUT, 'moto-rush-4p.png') });
+    // all four ride to the finish
+    const race = await p.evaluate(() => {
+      startGame(4);
+      for (let i = 0; i < 60 * 260 && state === 'race'; i++) { for (const q of players) pilot(q, { lane: (q.idx - 1.5) * 3 }); update(1 / 60); if (i % 6 === 0) updateVisuals(1 / 60); }
+      return { state, fin: players.map(q => q.finishT > 0), podium: document.querySelectorAll('.podium li').length, you: document.querySelectorAll('.podium li.you').length, stats: document.getElementById('overStats').textContent };
+    });
+    check(/Four controllers/.test(title), 'the title sees four controllers: ' + title);
+    check(two.split && two.huds === 2 && two.divider && two.racers === 7 && two.marker, 'two players: the screen splits, a HUD each, seven riders, a marker over each player: ' + JSON.stringify(two));
+    check(after[1] > before[1] + 3 && Math.abs(after[0] - before[0]) < 0.5, "controller 2's RT rides only Player 2: " + JSON.stringify({ before, after }));
+    check(kw[0] > 3 && kw[1] < 0.5 && ku[1] > 3 && ku[0] < 0.5, 'W rides Player 1 and I Player 2: ' + JSON.stringify({ kw, ku }));
+    check(menu, "the second controller's ☰ opens the menu (and pauses)");
+    check(three.quad && three.huds === 3 && three.spec, 'three players: three corners and the blimp cam: ' + JSON.stringify(three));
+    check(four.quad && four.huds === 4 && !four.spec && new Set(four.corners.map(String)).size === 4, 'four players: a corner each: ' + JSON.stringify(four));
+    check(wrapAngle(h1[3] - h0[3]) < -0.1 && [0, 1, 2].every(i => Math.abs(h1[i] - h0[i]) < 0.02), 'controller 4 steers only Player 4: ' + JSON.stringify({ h0, h1 }));
+    check(race.state === 'over' && race.fin.every(Boolean) && race.podium === 9 && race.you === 4 && /Player 4/.test(race.stats), 'all four finish and the results list them: ' + JSON.stringify(race));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('Moto Rush on a phone: the touch buttons show, the bike goes by itself, a drag steers and HOP hops', async () => {
+    const p = await open(browser, 'moto-rush.html', PHONE);
+    await p.evaluate(() => { startGame(1); countT = 0; cpus.forEach((c, i) => resetRider(c, 900 + i * 30, 0)); resetRider(P1, 380, 0); P1.dist = 380; });
+    await until(p, () => P1.speed > 4, 8000);
+    const go = await p.evaluate(() => ({ v: P1.speed, btns: !document.getElementById('tbtns').classList.contains('hidden') }));
+    const h0 = await p.evaluate(() => (P1.h0 = P1.h));
+    const vp = p.viewportSize();
+    const end = await touchDrag(p, vp.width * 0.3, vp.height * 0.6, vp.width * 0.3 + 60, vp.height * 0.6);
+    await until(p, () => Math.abs(wrapA(P1.h - P1.h0)) > 0.08, 8000);
+    const h1 = await p.evaluate(() => P1.h); await end();
+    await p.tap('#hopBtn');
+    const hop = await p.evaluate(() => P1.air > 0 || P1.vy > 0);
+    check(go.btns && go.v > 3, 'the touch buttons show and the bike rides by itself: ' + JSON.stringify(go));
+    check(wrapAngle(h1 - h0) < -0.05, 'dragging right steers right: ' + JSON.stringify({ h0, h1 }));
+    check(hop, 'HOP hops');
+    await done(p, 'moto-rush-phone.png');
+  });
+
+  // Moto Mania: the same autopilot works on any course (in the arena it heads for the first rival still flying)
+  const MANIA_PILOT = MOTO_PILOT + `
+  window.arenaPilot = r => { const t = racers.filter(o => o !== r && !o.out)[0] || { x: 0, z: 0 }; const df = wrapA(Math.atan2(-(t.x - r.x), -(t.z - r.z)) - r.h); r.keys = { u: true, l: df > 0.05, r: df < -0.05 }; };
+  window.go = (n = 1, sel) => { if (sel) garage.sel = sel; openGarage(n); for (let i = 0; i < n; i++) garageReady(i, true); for (let i = 0; i < 30 && state !== 'race'; i++) updateGarage(1 / 30); countT = 0; };`;
+
+  await test('Moto Mania courses and bikes: six courses (each its own page), the garage picks one of four bikes for each player, the bikes really differ, the docks canal is cleared at speed and is a splash when slow, the warehouse shortcut counts', async () => {
+    const p = await open(browser, 'moto-mania.html?course=fields', { viewport: { width: 960, height: 540 } });
+    await p.addScriptTag({ content: MANIA_PILOT });
+    const title = await p.evaluate(() => ({ cards: [...document.querySelectorAll('#courses button')].map(b => b.dataset.c + (b.classList.contains('on') ? '*' : '')).join(','), course: COURSE }));
+    // the garage: A / D pick the bike, Space is ready, and the race starts on that bike
+    await p.click('#btnPlay'); await p.waitForTimeout(200);
+    const g0 = await p.evaluate(() => ({ state, cols: document.querySelectorAll('.gcol').length, buttons: document.querySelectorAll('#garage button').length, bike: garage.sel[0] }));
+    await p.keyboard.press('KeyD'); await p.keyboard.press('KeyD');
+    const picked = await p.evaluate(() => garage.sel[0]);
+    await p.keyboard.press('Space');
+    for (let i = 0; i < 40 && await p.evaluate(() => state !== 'race'); i++) await p.waitForTimeout(100);
+    const raced = await p.evaluate(() => ({ state, bike: P1.bike.type, bk: P1.bk.name, saved: RB.store.get('mm_bike0') }));
+    // the four bikes: the scooter pulls away first, the chopper is quickest flat out, the dirt bike keeps its speed on grass
+    const bikes = await p.evaluate(() => {
+      const out = {};
+      for (const k of BIKE_KEYS) {
+        go(1, [k]); cpus.forEach((c, i) => resetRider(c, 900 + i * 30, 0)); resetRider(P1, 380, 0); P1.dist = 380;
+        let t1 = 0; for (let i = 0; i < 60 * 8; i++) { follow(P1); update(1 / 60); if (!t1 && P1.speed > 25) t1 = i / 60; }
+        out[k] = { to25: +t1.toFixed(2), top: +P1.speed.toFixed(1) };
+        resetRider(P1, 400, 0); P1.dist = 400; P1.speed = 30; P1.h += 1.2; for (let i = 0; i < 100; i++) { P1.keys = { u: true }; update(1 / 60); }
+        out[k].grass = +P1.speed.toFixed(1);
+      }
+      return out;
+    });
+    await done(p);
+    // the docks: the canal and the warehouse
+    const d = await open(browser, 'moto-mania.html?course=docks', { viewport: { width: 960, height: 540 } });
+    await d.addScriptTag({ content: MANIA_PILOT });
+    const docks = await d.evaluate(() => {
+      const out = { course: COURSE, night: NIGHT };
+      const jump = (v, gas) => { go(1, ['sport']); cpus.forEach((c, i) => resetRider(c, 900 + i * 30, 0)); resetRider(P1, CANAL.s - 50, 0); P1.dist = CANAL.s - 50; P1.speed = v;
+        let splashed = false; for (let i = 0; i < 360; i++) { follow(P1); if (!gas) P1.keys.u = P1.speed < v; update(1 / 60); if (P1.sinking) splashed = true; }
+        return { splashed, past: dS(P1.s - CANAL.s) > CANAL.gap + 5, banner: P1.ui.banner.textContent };
+      };
+      out.fast = jump(40, true); out.slow = jump(16, false);
+      go(1, ['sport']); cpus.forEach((c, i) => resetRider(c, 900 + i * 30, 0)); resetRider(P1, CUT.s0 - 40, 0); P1.dist = CUT.s0 - 40; P1.speed = 30;
+      let t = 0;
+      while (t < 25 && !(dS(P1.s - (CUT.s1 + 20)) > 0 && !P1.onCut)) {
+        const c = cutUV(P1.x, P1.z), q = dS(CUT.s0 - P1.s) > 25 && c.u < 0 ? trackPoint(P1.s + 14, 0) : c.u < CUT.len - 4 ? { x: CUT.ax + CUT.ux * (Math.max(0, c.u) + 14), z: CUT.az + CUT.uz * (Math.max(0, c.u) + 14) } : trackPoint(CUT.s1 + 20, 0);
+        const df = wrapA(Math.atan2(-(q.x - P1.x), -(q.z - P1.z)) - P1.h); P1.keys = { u: true, l: df > 0.04, r: df < -0.04 }; update(1 / 60); t += 1 / 60;
+      }
+      out.cut = { cuts: P1.cuts, wipes: P1.wipes, t: +t.toFixed(1) };
+      return out;
+    });
+    await done(d, 'moto-mania-docks.png');
+    check(title.cards === 'fields*,docks,city,beach,quarry,arena' && title.course === 'fields', 'the title offers the six courses: ' + JSON.stringify(title));
+    check(g0.state === 'garage' && g0.cols === 1 && g0.buttons === 0, 'Race! opens the garage (no menu buttons in it, so each controller picks for itself): ' + JSON.stringify(g0));
+    check(picked !== g0.bike && raced.state === 'race' && raced.bike === picked && raced.saved === picked, 'D picks another bike, Space is ready, the race starts on it: ' + JSON.stringify({ g0, picked, raced }));
+    check(bikes.scooter.to25 < bikes.sport.to25 && bikes.sport.to25 < bikes.chopper.to25, 'the scooter pulls away first, the chopper last: ' + JSON.stringify(bikes));
+    check(bikes.chopper.top > bikes.sport.top && bikes.sport.top > bikes.scooter.top, 'the chopper is quickest flat out: ' + JSON.stringify(bikes));
+    check(bikes.dirt.grass > bikes.sport.grass + 3, 'the dirt bike keeps its speed on the grass: ' + JSON.stringify(bikes));
+    check(docks.night && !docks.fast.splashed && docks.fast.past, 'at the docks, flat out clears the canal: ' + JSON.stringify(docks.fast));
+    check(docks.slow.splashed && /SPLASH/.test(docks.slow.banner), 'too slow: a splash: ' + JSON.stringify(docks.slow));
+    check(docks.cut.cuts === 1 && docks.cut.wipes === 0, 'the warehouse shortcut is counted: ' + JSON.stringify(docks.cut));
+  });
+
+  await test('Moto Mania new courses: Downtown (the subway\'s walls, taxis and buses across the junctions under a traffic light), the Cape Cod Boardwalk (the pier jump, sand that slows the road bikes, the tide that floods the shortcut), Quarry Pass (quicker downhill, the tunnel\'s walls, the cliff with no fence); the CPUs get round each', async () => {
+    const VP = { viewport: { width: 960, height: 540 } };
+    const HW_ = 8;   // (the road's half width)
+    // a lap's worth of racing for the CPUs: how far each gets in 75 s
+    const lap = () => {
+      go(1, ['sport']); resetRider(P1, -30, 0); P1.dist = -30;
+      const t0 = cpus.map(c => c.dist);
+      for (let i = 0; i < 60 * 75; i++) { P1.keys = {}; update(1 / 60); }
+      return cpus.map((c, i) => Math.round(c.dist - t0[i]));
+    };
+    // Downtown
+    const c = await open(browser, 'moto-mania.html?course=city', VP);
+    await c.addScriptTag({ content: MANIA_PILOT });
+    const city = await c.evaluate(() => {
+      const out = { junctions: JUNCTIONS.length, crossings: CROSSINGS.length, depth: profile(TRENCH.s) };
+      go(1, ['sport']); cpus.forEach((q, i) => resetRider(q, TRENCH.s + 300 + i * 30, 0));
+      // down in the subway, steering hard for the wall: it keeps you in
+      resetRider(P1, TRENCH.s - 45, 0); P1.dist = TRENCH.s - 45; P1.speed = 25;
+      let maxD = 0; for (let i = 0; i < 150; i++) { P1.keys = { u: true, r: true }; update(1 / 60); if (P1.y < -1) maxD = Math.max(maxD, Math.abs(P1.d)); }
+      out.sub = { y: +P1.y.toFixed(1), maxD: +maxD.toFixed(2) };
+      // a taxi stopped across the road: ride into it and you're down
+      const cr = CROSSINGS.find(x => !x.deck), v = cr.cars[0];
+      cr.t = 6; for (const q of cr.cars) { q.active = false; q.mesh.visible = false; }
+      Object.assign(v, { active: true, u: 0, dir: 1, lane: 0, speed: 0 }); v.mesh.visible = true;
+      resetRider(P1, cr.s - 40, 0); P1.dist = cr.s - 40; P1.speed = 30;
+      for (let i = 0; i < 120 && !P1.wipeT; i++) { follow(P1); update(1 / 60); }
+      out.taxi = { wipe: P1.wipeT > 0, banner: P1.ui.banner.textContent, red: cr.light.red.material === SIGNAL_RED };
+      v.speed = 14; cr.t = 6; for (let i = 0; i < 60 * 8; i++) update(1 / 60);
+      out.clear = { red: cr.light.red.material === SIGNAL_RED, green: cr.light.green.material === SIGNAL_GREEN };
+      return out;
+    }).catch(e => ({ error: e.message }));
+    const cityLap = await c.evaluate(lap);
+    await done(c, 'moto-mania-city.png');
+    // the Cape Cod Boardwalk
+    const b = await open(browser, 'moto-mania.html?course=beach', VP);
+    await b.addScriptTag({ content: MANIA_PILOT });
+    const beach = await b.evaluate(() => {
+      const out = {};
+      const jump = (v, gas) => { go(1, ['sport']); cpus.forEach((q, i) => resetRider(q, CANAL.s + 300 + i * 30, 0)); resetRider(P1, CANAL.s - 50, 0); P1.dist = CANAL.s - 50; P1.speed = v;
+        let splashed = false; for (let i = 0; i < 360; i++) { follow(P1); if (!gas) P1.keys.u = P1.speed < v; update(1 / 60); if (P1.sinking) splashed = true; }
+        return { splashed, past: dS(P1.s - CANAL.s) > CANAL.gap + 5, banner: P1.ui.banner.textContent };
+      };
+      out.fast = jump(40, true); out.slow = jump(16, false);
+      // the sand: flat out along the beach, the sport bike against the dirt bike
+      const sand = k => { go(1, [k]); cpus.forEach((q, i) => resetRider(q, SAND.s0 - 400 + i * 30, 0)); resetRider(P1, SAND.s0 + 20, 0); P1.dist = SAND.s0 + 20; P1.speed = 20;
+        for (let i = 0; i < 60 * 5; i++) { follow(P1); update(1 / 60); } return +P1.speed.toFixed(1); };
+      out.sand = { sport: sand('sport'), dirt: sand('dirt') };
+      // the tide: out at the start, in for the last lap; the CPUs keep off the flat once it's coming in
+      go(1, ['sport']); out.tide0 = +tide.toFixed(2);
+      for (const q of racers) q.dist = 2.3 * N_T;
+      for (let i = 0; i < 60 * 12; i++) { P1.keys = {}; update(1 / 60); }
+      out.tide = +tide.toFixed(2); out.water = tidePlane.visible && tidePlane.position.y > 0;
+      const q = cpus[0]; resetRider(q, CUT.s0 - 160 - 20, 0); let planned = 0;
+      for (let i = 0; i < 30; i++) { aiInput(q, 1 / 60); q.s += 1; if (q.cutPlan) planned++; }
+      out.cpuCut = planned;
+      // on the flat with the tide in: slow going
+      resetRider(P1, CUT.s0, 0); P1.dist = CUT.s0;
+      P1.x = CUT.ax + CUT.ux * 20; P1.z = CUT.az + CUT.uz * 20; P1.h = Math.atan2(-CUT.ux, -CUT.uz); P1.speed = 30;
+      for (let i = 0; i < 60; i++) { P1.keys = { u: true }; update(1 / 60); }
+      out.flat = { onCut: P1.onCut, speed: +P1.speed.toFixed(1) };
+      return out;
+    });
+    const beachLap = await b.evaluate(lap);
+    await done(b, 'moto-mania-beach.png');
+    // Quarry Pass
+    const q = await open(browser, 'moto-mania.html?course=quarry', VP);
+    await q.addScriptTag({ content: MANIA_PILOT });
+    const quarry = await q.evaluate(() => {
+      const out = { summit: +profile((TUNNEL.s0 + TUNNEL.s1) / 2).toFixed(1) };
+      const ride = (s, k = 'chopper') => { go(1, [k]); cpus.forEach((c, i) => resetRider(c, s + 400 + i * 30, 0)); resetRider(P1, s, 0); P1.dist = s; P1.speed = 30;
+        for (let i = 0; i < 60 * 5; i++) { follow(P1); update(1 / 60); } return +P1.speed.toFixed(1); };
+      out.down = ride(modS(TUNNEL.s1 + 30)); out.up = ride(sNear(40, 4)); out.flat = BIKES.chopper.max;
+      out.grades = [+gradeAt(modS(TUNNEL.s1 + 80)).toFixed(3), +gradeAt(sNear(110, 0)).toFixed(3)];
+      // the tunnel's walls
+      go(1, ['sport']); resetRider(P1, TUNNEL.s0 + 10, 0); P1.dist = TUNNEL.s0 + 10; P1.speed = 25;
+      let maxD = 0; for (let i = 0; i < 120; i++) { P1.keys = { u: true, l: true }; update(1 / 60); if (inTunnel(P1.s)) maxD = Math.max(maxD, Math.abs(P1.d)); }
+      out.tunnel = +maxD.toFixed(2);
+      // the cliff: steer off the edge and down you go, then back on the road
+      resetRider(P1, modS(CLIFF.s0 + 60), CLIFF.side * 4); P1.dist = CLIFF.s0 + 60; P1.speed = 20; P1.h -= CLIFF.side * 0.7;
+      let fell = false, minY = 99, banner = '';
+      for (let i = 0; i < 60 * 4; i++) { P1.keys = { u: true }; update(1 / 60); if (P1.sinking) { fell = true; banner = banner || P1.ui.banner.textContent; } minY = Math.min(minY, P1.y - profile(P1.s)); }
+      out.cliff = { fell, banner, minY: +minY.toFixed(1), back: !P1.sinking && Math.abs(P1.d) < HW && Math.abs(P1.y - profile(P1.s)) < 1 };
+      // the other side has its barrier
+      resetRider(P1, modS(CLIFF.s0 + 60), -CLIFF.side * 4); P1.dist = CLIFF.s0 + 60; P1.speed = 20; P1.h += CLIFF.side * 0.7;
+      let fell2 = false; for (let i = 0; i < 60 * 3; i++) { P1.keys = { u: true }; update(1 / 60); if (P1.sinking) fell2 = true; }
+      out.wall = { fell: fell2, d: +Math.abs(P1.d).toFixed(1) };
+      return out;
+    });
+    const quarryLap = await q.evaluate(lap);
+    const N = await q.evaluate(() => N_T);
+    await done(q, 'moto-mania-quarry.png');
+    check(!city.error && city.junctions >= 8 && city.crossings === 4 && city.depth < -6, 'downtown: a street grid of junctions, three with traffic (and more over the subway), the subway sunk under the road: ' + JSON.stringify(city));
+    check(city.sub.y < -5 && city.sub.maxD < HW_ + 0.5, "the subway's walls keep you in: " + JSON.stringify(city.sub));
+    check(city.taxi.wipe && /TAXI/.test(city.taxi.banner) && city.taxi.red, 'a taxi across the road: ride into it and you\'re down, and the light\'s red: ' + JSON.stringify(city.taxi));
+    check(city.clear.green && !city.clear.red, 'the traffic gone, the light goes green: ' + JSON.stringify(city.clear));
+    check(cityLap.every(d => d > 1200), 'downtown: every CPU gets most of the way round in 75 s: ' + JSON.stringify(cityLap));
+    check(!beach.fast.splashed && beach.fast.past, 'flat out clears the gap off the end of the pier: ' + JSON.stringify(beach.fast));
+    check(beach.slow.splashed && /SPLASH/.test(beach.slow.banner), 'too slow: a splash: ' + JSON.stringify(beach.slow));
+    check(beach.sand.dirt > beach.sand.sport + 3, 'on the sand the dirt bike is quicker than the sport bike: ' + JSON.stringify(beach.sand));
+    check(beach.tide0 === 0 && beach.tide > 0.9 && beach.water && beach.cpuCut === 0, 'the tide is out at the start and in for the last lap, and the CPUs keep off the flat: ' + JSON.stringify(beach));
+    check(beach.flat.speed < 20, 'with the tide in, the flat is slow going: ' + JSON.stringify(beach.flat));
+    check(beachLap.every(d => d > 1200), 'the boardwalk: every CPU gets most of the way round in 75 s: ' + JSON.stringify(beachLap));
+    check(quarry.summit > 40 && quarry.grades[0] < -0.05 && quarry.grades[1] > 0.04, 'Quarry Pass climbs to the tunnel and drops away after it: ' + JSON.stringify(quarry));
+    check(quarry.down > quarry.flat + 3 && quarry.up < quarry.flat - 2, 'quicker than flat out downhill, slower up: ' + JSON.stringify(quarry));
+    check(quarry.tunnel < HW_ + 0.5, "the tunnel's walls keep you in: " + JSON.stringify(quarry));
+    check(quarry.cliff.fell && /EDGE/.test(quarry.cliff.banner) && quarry.cliff.minY < -4 && quarry.cliff.back, 'off the cliff edge (no fence): down you go, then back on the road: ' + JSON.stringify(quarry.cliff));
+    check(!quarry.wall.fell && quarry.wall.d < HW_ + 4, 'the other side has a barrier: ' + JSON.stringify(quarry.wall));
+    check(quarryLap.every(d => d > 0.6 * N), 'the quarry: every CPU gets well round in 75 s: ' + JSON.stringify({ quarryLap, N }));
+  });
+
+  await test('Moto Mania items: a box rolls an item (the roulette, then the HUD shows it), the back of the pack gets the good stuff, and oil, hay bales, cows, rockets, shields, magnets and mega nitro all work; Ⓨ uses an item and LB kicks', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
+    await ctx.addInitScript(fakePad);
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('moto-mania.html?course=fields')); await p.waitForTimeout(1000);
+    await p.addScriptTag({ content: MANIA_PILOT });
+    const r = await p.evaluate(() => {
+      const out = {}, dt = 1 / 60;
+      const fresh = (s = 400) => { go(1, ['sport']); cpus.forEach((c, i) => resetRider(c, modS(s + 300 + i * 30), 0)); resetRider(P1, s, 0); P1.dist = s; P1.speed = 30; COWS.forEach(c => { c.wait = 99; c.d = 30; }); TRACTOR.u = 60; TRACTOR.wait = 99; };
+      // a box: the roulette, then the item
+      fresh(BOX_ROWS[0] - 20); P1.d = -1.8; setFromTrack(P1);
+      let rolled = false; for (let i = 0; i < 40; i++) { follow(P1); P1.keys.l = P1.keys.r = false; update(dt); if (P1.rolled) rolled = true; }
+      for (let i = 0; i < 70; i++) { follow(P1); update(dt); }
+      updateHUD(dt);
+      out.box = { rolled, item: P1.item, slot: P1.ui.slot.textContent, gone: boxes.filter(b => b.gone > 0).length };
+      // the back of the pack gets rockets, magnets and nitro; the front doesn't get rockets
+      const count = (place, k) => { let n = 0; P1.place = place; for (let i = 0; i < 3000; i++) if (rollItem(P1) === k) n++; return n; };
+      out.odds = { rocket1: count(1, 'rocket'), rocket6: count(6, 'rocket'), nitro1: count(1, 'nitro'), nitro6: count(6, 'nitro'), oil1: count(1, 'oil'), oil6: count(6, 'oil') };
+      // oil dropped behind spins out the rider coming through
+      fresh(); const a = cpus[0]; resetRider(a, 380, 0); a.dist = 380; a.speed = 30;
+      P1.item = 'oil'; useItem(P1); for (let i = 0; i < 90; i++) { follow(P1); a.keys = {}; update(dt); }
+      out.oil = { spun: a.spinT > 0 || a.speed < 20, left: drops.length };
+      // a hay bale rolled ahead knocks over the rider in front
+      fresh(); const b = cpus[1]; resetRider(b, 430, 0); b.dist = 430; b.speed = 20;
+      P1.item = 'bale'; useItem(P1); let baleHit = 0; for (let i = 0; i < 120; i++) { follow(P1); update(dt); if (b.wipeT > 0) baleHit = 1; }
+      out.bale = { hit: baleHit, hits: P1.hits };
+      // a cow dropped behind; a rocket from the back finds the leader; a shield stops it
+      fresh(); const c = cpus[2]; resetRider(c, 384, 0); c.dist = 384; c.speed = 30;
+      P1.item = 'cow'; useItem(P1); let cowHit = 0; for (let i = 0; i < 90; i++) { follow(P1); update(dt); if (c.wipeT > 0) cowHit = 1; }
+      out.cow = cowHit;
+      const behind = () => cpus.forEach((q, i) => { if (q !== lead) { resetRider(q, 150 + i * 12, 0); q.dist = 150 + i * 12; } });
+      fresh(); const lead = cpus[3]; resetRider(lead, 600, 0); lead.dist = 600; lead.speed = 30; behind(); update(dt);
+      P1.item = 'rocket'; useItem(P1); const target = shots[0] && shots[0].target; let rocketHit = 0; for (let i = 0; i < 400 && shots.length; i++) { follow(P1); update(dt); if (lead.wipeT > 0) rocketHit = 1; }
+      out.rocket = { target: target && target.name, lead: lead.name, hit: rocketHit };
+      fresh(); resetRider(lead, 600, 0); lead.dist = 600; lead.speed = 30; behind(); lead.item = 'shield'; useItem(lead); update(dt);
+      P1.item = 'rocket'; useItem(P1); for (let i = 0; i < 400 && shots.length; i++) { follow(P1); update(dt); }
+      out.shield = { wiped: lead.wipes, shieldLeft: lead.shieldT };
+      // a magnet pulls you up to the rider ahead; mega nitro fills the tank
+      fresh(); const m = cpus[4]; resetRider(m, 440, 3); m.dist = 440; m.speed = 25; P1.speed = 25;
+      const gap0 = m.dist - P1.dist; P1.item = 'magnet'; useItem(P1); for (let i = 0; i < 150; i++) { follow(P1); update(dt); } out.magnet = { gap0, gap1: +(m.dist - P1.dist).toFixed(1) };
+      fresh(); P1.nitro = 0; P1.item = 'nitro'; useItem(P1); out.nitro = { tank: P1.nitro, dash: P1.dash };
+      return out;
+    });
+    // the controller: Ⓨ uses the item, LB kicks the rider alongside
+    await p.evaluate(() => { go(1, ['sport']); cpus.forEach((c, i) => resetRider(c, 900 + i * 30, 0)); resetRider(P1, 400, -1.2); resetRider(cpus[0], 400, 1.4); P1.item = 'shield'; });
+    await padTap(p, 'Y');
+    const yUsed = await p.evaluate(() => ({ item: P1.item, shield: P1.shieldT > 0 }));
+    await p.evaluate(() => { __pad.buttons[4] = { pressed: true, value: 1 }; }); await p.waitForTimeout(150); await p.evaluate(() => { __pad.buttons[4] = { pressed: false, value: 0 }; });
+    const lbKick = await p.evaluate(() => ({ kicks: P1.kicks, wobble: cpus[0].wobbleT > 0 }));
+    check(r.box.rolled && r.box.item && r.box.slot === { oil: '🛢️', bale: '🌾', cow: '🐄', magnet: '🧲', shield: '🛡️', rocket: '🚀', nitro: '⚡' }[r.box.item] && r.box.gone >= 1, 'a box rolls the roulette, then the item shows in the HUD: ' + JSON.stringify(r.box));
+    check(r.odds.rocket1 === 0 && r.odds.rocket6 > 300 && r.odds.nitro6 > r.odds.nitro1 * 2 && r.odds.oil1 > r.odds.oil6, 'the back of the pack gets rockets and nitro, the front gets oil: ' + JSON.stringify(r.odds));
+    check(r.oil.spun, 'oil spins out the rider behind: ' + JSON.stringify(r.oil));
+    check(r.bale.hit && r.bale.hits >= 1, 'a hay bale knocks over the rider ahead: ' + JSON.stringify(r.bale));
+    check(r.cow === 1, 'a dropped cow knocks over the rider behind');
+    check(r.rocket.target === r.rocket.lead && r.rocket.hit, 'a rocket flies to the leader and gets them: ' + JSON.stringify(r.rocket));
+    check(r.shield.wiped === 0 && r.shield.shieldLeft === 0, 'a shield takes the rocket (and is used up): ' + JSON.stringify(r.shield));
+    check(r.magnet.gap1 < r.magnet.gap0 - 10, 'a magnet pulls you up to the rider ahead: ' + JSON.stringify(r.magnet));
+    check(r.nitro.tank === 1 && r.nitro.dash > 10, 'mega nitro fills the tank: ' + JSON.stringify(r.nitro));
+    check(!yUsed.item && yUsed.shield, 'Ⓨ uses the item: ' + JSON.stringify(yUsed));
+    check(lbKick.kicks === 1 && lbKick.wobble, 'LB kicks the rider alongside: ' + JSON.stringify(lbKick));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('Moto Mania balloon battle: everyone starts with three balloons in a ring round the mound; item hits and kicks pop them; with none left you are out (a ghost); the last rider flying wins; two players split the screen', async () => {
+    const p = await open(browser, 'moto-mania.html?course=arena', { viewport: { width: 960, height: 540 } });
+    await p.addScriptTag({ content: MANIA_PILOT });
+    const r = await p.evaluate(() => {
+      const out = {}, dt = 1 / 60;
+      go(1, ['dirt']);
+      out.start = { racers: racers.length, balloons: racers.map(q => q.balloons).join(''), ring: racers.every(q => Math.abs(Math.hypot(q.x, q.z) - 44) < 1), shown: P1.bike.balloons.every(b => b.visible), btn: document.getElementById('btnPlay').textContent };
+      // a bale pops a balloon; a kick pops one; the last one and you're out
+      const v = cpus[0]; v.x = P1.x; v.z = P1.z; hitBy(v, 'bale', P1); out.bale = { balloons: v.balloons, hits: P1.hits };
+      v.ghostT = 0; v.wipeT = 0; resetRider(P1, 0, 0); P1.x = 0; P1.z = 30; P1.h = Math.PI / 2; P1.y = 0; v.x = 0; v.z = 31.6; v.y = 0; v.h = Math.PI / 2; P1.kickCool = 0; kick(P1);
+      out.kick = v.balloons;
+      v.ghostT = 0; v.wipeT = 0; hitBy(v, 'rocket', P1);
+      out.out = { out: v.out, ghost: v.ghostT > 1000, canBeHit: hitBy(v, 'bale', P1) };
+      // the battle plays out to the end
+      for (let i = 0; i < 60 * 160 && state === 'race'; i++) { arenaPilot(P1); update(dt); }
+      for (let i = 0; i < 300 && state === 'race'; i++) update(dt);
+      out.end = { state, alive: racers.filter(q => !q.out).length, time: +runT.toFixed(0), meOut: P1.out, podium: document.querySelectorAll('.podium li').length, title: document.getElementById('overTitle').textContent, again: document.getElementById('btnAgain').textContent };
+      return out;
+    });
+    await p.screenshot({ path: path.join(OUT, 'moto-mania-battle.png') });
+    // two players: the screen splits, balloons in each HUD
+    await p.evaluate(() => go(2, ['sport', 'chopper'])); await p.waitForTimeout(400);
+    const two = await p.evaluate(() => { updateHUD(1 / 60);
+      return { split: document.body.classList.contains('split'), racers: racers.length, huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length, b: P2.ui.place.textContent, p2bike: P2.bike.type }; });
+    check(r.start.racers === 6 && r.start.balloons === '333333' && r.start.ring && r.start.shown && /Battle/.test(r.start.btn), 'six riders, three balloons each, in a ring: ' + JSON.stringify(r.start));
+    check(r.bale.balloons === 2 && r.bale.hits === 1, 'a hay bale pops a balloon: ' + JSON.stringify(r.bale));
+    check(r.kick === 1, 'a kick pops a balloon: ' + r.kick);
+    check(r.out.out && r.out.ghost && !r.out.canBeHit, 'the last balloon: out, a ghost who can\'t be hit: ' + JSON.stringify(r.out));
+    check(r.end.state === 'over' && r.end.podium === 6 && (r.end.alive <= 1 || r.end.time >= 150 || r.end.meOut) && /Win|Place/.test(r.end.title) && /Battle Again/.test(r.end.again), 'the battle ends (one rider left, the time up, or every player out) with the results: ' + JSON.stringify(r.end));
+    check(two.split && two.racers === 6 && two.huds === 2 && two.b === '🎈🎈🎈' && two.p2bike === 'chopper', 'two players: the screen splits, balloons in each HUD: ' + JSON.stringify(two));
+    await done(p);
+  });
+
   await test('Pumpkin Pals: every level can be finished (a search over every place Patch can stand), and every lost pumpling and golden candy can be reached', async () => {
     const p = await open(browser, 'pumpkin-pals.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
@@ -1530,7 +2046,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const bad = [];
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'moto-rush.html', 'moto-mania.html', 'preschool/abc-train.html', 'preschool/index.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(500);
       await padTap(p, 'A'); await p.waitForTimeout(300);   // start playing (or press whatever the title screen highlights)
       if (!p.url().includes(f.split('/').pop())) { await p.goto(url(f)); await p.waitForTimeout(500); }
@@ -1602,7 +2118,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
-    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
+    for (const f of ['space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'moto-rush.html', 'moto-mania.html', 'preschool/abc-train.html', '5th-grade/math.html', '2nd-grade/math.html']) {
       await p.goto(url(f)); await p.waitForTimeout(300);
       check(await p.evaluate(() => document.querySelectorAll('.rb-topbar #btnMenu').length === 1), f + ' should have one menu button');
     }
@@ -1612,7 +2128,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 15 && m.cur.includes('Witch Way Out'), 'the menu should list 12 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 17 && m.cur.includes('Witch Way Out'), 'the menu should list 14 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('KeyJ'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
@@ -2674,7 +3190,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await ctx.newPage();
     await p.goto(url('floppy-bird.html'));
     await p.evaluate(() => RB.setMuted(true));
-    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
+    for (const f of ['surfs-up.html', 'hamglider.html', 'space-wars.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'moto-rush.html', 'moto-mania.html', 'preschool/abc-train.html', '5th-grade/math.html']) {
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');
