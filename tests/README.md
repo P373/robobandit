@@ -3,6 +3,7 @@
 `tests/run.js` opens every page in a headless browser and checks that it works:
 
 - the game list shows a card (and thumbnail) for every game, with best scores
+- the home page: today's game (the newest) up top with a big PLAY button and the school folders under the games; Keep playing shows what was played last with its best (times as m:ss); the filter chips (Little kids, 2–4 players, Racing, …) show only matching games; every card shows players and age, Moto Rush is marked CLASSIC, blurbs stay short; the cards and the JSON-LD game list written into index.html are up to date; no sideways scroll on a phone
 - every page's link-preview picture exists, and nothing still says "Starfighter Run"
 - **Floppy Bird**: an autopilot scores 9+ points, crashes use up the 3 lives, pause freezes time
 - **Surf's Up**: an autopilot launches aerials and the five judges score the ride; the touch joystick carves
@@ -65,7 +66,9 @@ ONLY=witch npm test       # just the tests whose name matches
 After changing any shared file (`common.js`, `common.css`, `touch-stick.js`, `lesson.js`, …) run `node tools/bump-version.js`, so visitors never get a mix of old and new files.
 
 When you add a game, add a block for it to `tests/run.js`, then make its link-preview picture with
-`npm run previews` (add the game to the list at the top of `tools/make-previews.js` first).
+`npm run previews` (add the game to the list at the top of `tools/make-previews.js` first). After changing the
+GAMES list in `index.html` (a new game, a blurb, players, ages, filter tags), run `node tools/build-index.js`: it writes
+the cards and the JSON-LD game list into the page itself, so search engines see them (the tests fail until you do).
 
 After changing anything that is read aloud (lesson slides, ABC Train's lines), record it with the 🌟 RoboBandit voice:
 `node tools/voice-lines.js` then `python3 tools/make-voice.py` (see the top of `tools/make-voice.py` for what it needs).

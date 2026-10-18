@@ -258,6 +258,15 @@ const RB = (() => {
     ['preschool/abc-train.html', '🚂', 'ABC Train'],
   ];
   const FOLDERS = [['preschool/index.html', '🧸', 'Preschool'], ['2nd-grade/index.html', '✏️', '2nd Grade'], ['5th-grade/index.html', '🎒', '5th Grade']];
+  // Remember the games this browser played last (newest first): the arcade page shows them under "Keep playing"
+  (() => {
+    const here = location.href.split(/[?#]/)[0], g = GAMES.find(([url]) => here === SITE_ROOT + url);
+    if (!g) return;
+    let list = [];
+    try { list = JSON.parse(store.get('rb_recent') || '[]'); } catch (e) { /* start again */ }
+    list = [{ url: g[0], t: Date.now() }, ...list.filter(x => x && x.url !== g[0])].slice(0, 8);
+    store.set('rb_recent', JSON.stringify(list));
+  })();
   let menuEl = null, menuShare = null, gameItems = null;
   // a game can add its own buttons at the top of the menu (e.g. Back to the map): setMenuItems(() => [{ label, onClick }])
   function setMenuItems(fn) { gameItems = fn; }
