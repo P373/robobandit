@@ -76,6 +76,52 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'index.png');
   });
 
+  await test("home page: today's game up top, Keep playing, filter chips, card details, and the cards are in the HTML itself", async () => {
+    // the cards and the JSON-LD game list are written into index.html (search engines see them without the script)
+    check(require('child_process').spawnSync('node', [path.join(ROOT, 'tools/build-index.js'), '--check']).status === 0, 'index.html is out of date: run node tools/build-index.js');
+    const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
+    const ld = JSON.parse(html.match(/<script type="application\/ld\+json">(.*?)<\/script>/)[1]);
+    const staticCards = (html.match(/<!-- games:start -->[\s\S]*?<!-- games:end -->/)[0].match(/class="card[ "]/g) || []).length;
+    const p = await open(browser, 'index.html');
+    const info = await p.evaluate(() => ({ games: GAMES.length, extras: EXTRAS.length, newest: GAMES[GAMES.length - 1].title }));
+    check(ld['@type'] === 'ItemList' && ld.itemListElement.length === info.games + info.extras, 'JSON-LD lists every game: ' + ld.itemListElement.length);
+    check(staticCards === info.games + 1, `${staticCards} cards written into the HTML for ${info.games} games`);
+    // today's game: the newest, with a big play button, above the game list
+    const hero = await p.evaluate(() => { const h = document.getElementById('hero'), g = document.getElementById('games');
+      return { text: h.textContent, play: h.querySelector('.play')?.textContent, above: h.getBoundingClientRect().top < g.getBoundingClientRect().top,
+        foldersBelow: document.querySelector('.folder').getBoundingClientRect().top > g.getBoundingClientRect().bottom }; });
+    check(hero.text.includes(info.newest) && /TODAY'S GAME/.test(hero.text) && /PLAY/.test(hero.play) && hero.above && hero.foldersBelow, "today's game up top, school folders under the games: " + JSON.stringify(hero));
+    // Keep playing: hidden until a game was played, then shows it with its best (times as m:ss)
+    check(await p.evaluate(() => document.getElementById('recentWrap').hidden), 'Keep playing starts hidden');
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(500);
+    await p.goto(url('index.html')); await p.waitForTimeout(500);
+    await p.evaluate(() => { localStorage.setItem('ww_best', '83.4'); render(); });
+    const recent = await p.evaluate(() => ({ hidden: document.getElementById('recentWrap').hidden, text: document.getElementById('recent').textContent }));
+    check(!recent.hidden && /Witch Way Out/.test(recent.text) && /1:23/.test(recent.text), 'playing a game puts it in Keep playing with its best time: ' + JSON.stringify(recent));
+    // card details: players, age, Moto Rush is the classic, blurbs are short
+    const cards = await p.$$eval('#games .card', els => els.map(e => e.textContent));
+    check(cards.some(t => /Moto Rush/.test(t) && /CLASSIC/.test(t)), 'Moto Rush is marked CLASSIC');
+    check(cards.filter(t => /👤|👥/.test(t) && /🧸/.test(t)).length === info.games, 'every card shows players and age');
+    check(await p.evaluate(() => GAMES.every(g => g.blurb.length <= 90)), 'every blurb is 90 letters or fewer');
+    // filter chips
+    const counts = {};
+    for (const f of ['little', 'multi', 'racing', 'learning', 'all']) {
+      await p.click(`#filters .chip[data-f="${f}"]`);
+      counts[f] = await p.evaluate(f => ({ n: document.querySelectorAll('#games .card:not(.soon)').length,
+        ok: [...document.querySelectorAll('#games .card:not(.soon)')].every(c => f === 'all' || c.dataset.tags.split(' ').includes(f)),
+        pressed: document.querySelector(`#filters .chip[data-f="${f}"]`).getAttribute('aria-pressed') }), f);
+    }
+    check(Object.values(counts).every(c => c.ok && c.pressed === 'true') && counts.little.n >= 2 && counts.multi.n >= 3 && counts.all.n === info.games, 'filters show only matching games: ' + JSON.stringify(counts));
+    check(/ABC Train/.test(await p.evaluate(() => { document.querySelector('#filters .chip[data-f="little"]').click(); return document.getElementById('games').textContent; })), 'Little kids includes ABC Train');
+    check(/FOR GROWN-UPS/.test(await p.textContent('body')), 'the grown-ups strip shows');
+    await done(p, 'index-filters.png');
+    // a phone: the hero and the games come before the folders, nothing scrolls sideways
+    const ph = await open(browser, 'index.html', PHONE);
+    const phone = await ph.evaluate(() => ({ wide: document.documentElement.scrollWidth > innerWidth + 1, play: document.querySelector('#hero .play').getBoundingClientRect().bottom < innerHeight * 1.2 }));
+    check(!phone.wide && phone.play, 'phone layout: ' + JSON.stringify(phone));
+    await done(ph, 'index-phone.png');
+  });
+
   await test('share page and link previews', async () => {
     const p = await open(browser, 'share.html');
     for (const f of ['index.html', 'space-wars.html', 'floppy-bird.html', 'surfs-up.html', 'hamglider.html', 'web-hero.html', 'sparkle-meadow.html', 'witch-way-out.html', 'flight-school.html', 'lucky-leo.html', 'lily-pad-lunch.html', 'pumpkin-pals.html', 'moto-rush.html', 'moto-mania.html', 'share.html']) {
@@ -593,6 +639,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const first = await padFocus(p);
     await padTap(p, 'RIGHT');
     check(first && (await padFocus(p)) !== first, 'D-pad should move the highlight on the game list');
+    for (let i = 0; i < 8 && !(await p.evaluate(() => !!document.querySelector('#games .card.rb-pad-focus'))); i++) await padTap(p, 'DOWN');
+    check(await p.evaluate(() => !!document.querySelector('#games .card.rb-pad-focus')), 'D-pad down reaches the game cards');
     await padTap(p, 'A'); await p.waitForTimeout(500);
     check(/\.html$/.test(p.url()) && !p.url().endsWith('index.html'), 'Ⓐ should open the highlighted game: ' + p.url());
     // Floppy Bird: Ⓐ flaps
