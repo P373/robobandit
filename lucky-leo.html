@@ -94,7 +94,7 @@
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> to walk, <kbd>Space</kbd> (or <kbd>Z</kbd>) to jump. Hold <kbd>X</kbd> or <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 Ⓐ jumps, Ⓧ runs. Hold jump to go higher!</li>
       <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>Q</kbd></span> 🎮 <b>LB</b>) to drop it when you need it.</li>
-      <li>🎩 Get the <b>magic hat</b> (Leo's hat turns purple with a gold star) and you can <b>throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Get hit and the magic is gone. Hold <b>up</b> (<span class="key-only"><kbd>↑</kbd></span><span class="touch-only">▲</span>, 🎮 up) to look up and throw it straight up into blocks, or <b>crouch</b> to throw it low at little enemies.</li>
+      <li>🎩 Get the <b>magic hat</b> (Leo's hat turns purple with a gold star) and you can <b>throw your hat</b> (<span class="key-only"><kbd>C</kbd>, </span>🎮 Ⓨ<span class="touch-only">, 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Get hit and the magic is gone. <b>Aim it</b> any way you like: push the stick (🎮) or hold the arrows (<span class="key-only"><kbd>↑</kbd> <kbd>→</kbd> together for a slant</span><span class="touch-only">▲ ▶ together for a slant</span>) to throw it up, sideways, on a slant, or down from the air; straight up bumps blocks, and <b>crouching</b> throws it low at little enemies.</li>
       <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs and snapping plants, trot right over spikes, press run and he opens wide and gulps down the enemy in front of him (after three… watch your step!). Grab a <b>rainbow prism</b> (from a ☘️ block while riding) and run fires a rainbow laser from his eyes instead. If you get hit you just fall off: catch him again! ↓ + jump hops off.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">▼</span> (🎮 <b>LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump). 🧱 <b>Wall kick:</b> jump into a wall and hold towards it to slide down, then press jump to kick off it. Kick back and forth between two walls to climb up!</li>
       <li>👑 <b>King Grumbles</b> can be stomped, or hit with a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power.</li>
@@ -3821,8 +3821,11 @@ function updatePlayer(dt) {
   }
   // throw the hat like a boomerang
   if (pressed.hat && !p.hatless && p.form === 3 && phase === 'play') {   // only with the magic hat
-    if (inp.up) ents.push(mk('cap', p.x + p.w / 2 - 6, p.y - 6, { vx: p.vx * 0.3, vy: -330, w: 12, h: 9, st: 'out', dir: p.face }));                  // looking up: straight up
-    else if (p.crouch) ents.push(mk('cap', p.x + p.w / 2 - 6 + p.face * 6, p.y + p.h - 9, { vx: p.face * 280, w: 12, h: 9, st: 'out', dir: p.face, low: true }));  // crouching: low along the ground
+    const a = hatAim(inp);   // aimed with the stick (any angle) or the arrows (eight ways); otherwise straight ahead
+    if (a && a.x) p.face = Math.sign(a.x);
+    if (a && a.y < -0.92) ents.push(mk('cap', p.x + p.w / 2 - 6, p.y - 6, { vx: p.vx * 0.3, vy: -330, w: 12, h: 9, st: 'out', dir: p.face }));                  // straight up
+    else if (p.crouch || (a && a.y > 0.38 && p.ground)) ents.push(mk('cap', p.x + p.w / 2 - 6 + p.face * 6, p.y + p.h - 9, { vx: p.face * 280, w: 12, h: 9, st: 'out', dir: p.face, low: true }));  // down while standing: low along the ground
+    else if (a && Math.abs(a.y) > 0.2) ents.push(mk('cap', p.x + p.w / 2 - 6 + a.x * 6, p.y + (p.form ? 9 : 0) + a.y * 6, { vx: a.x * 300 + p.vx * 0.3, vy: a.y * 300, w: 12, h: 9, st: 'out', dir: p.face }));   // on a slant, up or (in the air) down
     else ents.push(mk('cap', p.x + p.w / 2 - 6 + p.face * 6, p.y + (p.form ? 9 : 0), { vx: p.face * 270 + p.vx * 0.4, w: 12, h: 9, st: 'out', dir: p.face }));
     p.hatless = true; sfx.throwHat();
   }
@@ -4124,6 +4127,20 @@ function updateEnts(dt) {
 }
 
 // Leo's hat: flies out, hovers a moment (you can bounce on it!), then comes back to his head
+// which way to throw the hat: the left stick's own angle when it's pushed, or the arrows / buttons held (diagonals too)
+function hatAim(inp) {
+  try {
+    const gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected);
+    if (gp) {
+      const inv = k => !!(RB.pad && RB.pad.inv && RB.pad.inv(k));
+      let lx = gp.axes[0] || 0, ly = gp.axes[1] || 0; if (inv('invLX')) lx = -lx; if (inv('invLY')) ly = -ly;
+      const m = Math.hypot(lx, ly); if (m > 0.45) return { x: lx / m, y: ly / m };
+    }
+  } catch (e) { /* no controller */ }
+  const dx = (inp.right ? 1 : 0) - (inp.left ? 1 : 0), dy = (keys.down || touchState.down ? 1 : 0) - (inp.up ? 1 : 0);
+  if (!dx && !dy) return null;
+  const m = Math.hypot(dx, dy); return { x: dx / m, y: dy / m };
+}
 function updateCap(e, dt) {
   const p = player;
   e.spin = (e.spin || 0) + dt * 18;
@@ -4131,10 +4148,14 @@ function updateCap(e, dt) {
   if (e.st === 'out') {
     e.vx *= Math.exp(-dt * 4.5); e.vy = (e.vy || 0) * Math.exp(-dt * 4.5);
     moveX(e, e.vx * dt);
-    if (e.vy) {   // thrown up: it bumps the block above, like a jump would
+    if (e.vy < 0) {   // thrown upwards: it bumps the block above, like a jump would
       e.y += e.vy * dt;
       const tx = Math.floor((e.x + e.w / 2) / TS), ty = Math.floor(e.y / TS), t = tileAt(tx, ty);
       if (SOLID.has(t) && ty >= 0) { e.y = (ty + 1) * TS; e.vy = 0; e.st = 'hover'; e.hoverT = 0; if (t === T.BRICK || QBLOCKS.has(t) || t === T.MULTI || t === T.HIDDEN) hitBlock(tx, ty, t); }
+    } else if (e.vy > 0) {   // thrown downwards from the air: it stops on the ground
+      e.y += e.vy * dt;
+      const tx = Math.floor((e.x + e.w / 2) / TS), ty = Math.floor((e.y + e.h) / TS);
+      if (SOLID.has(tileAt(tx, ty))) { e.y = ty * TS - e.h; e.vy = 0; e.st = 'hover'; e.hoverT = 0; }
     }
     if (e.wall || Math.hypot(e.vx, e.vy || 0) < 40) { e.st = 'hover'; e.hoverT = 0; }
   } else if (e.st === 'hover') {

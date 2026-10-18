@@ -1610,6 +1610,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       keys.up = true; pressed.hat = true; run(1); const capU = ents.find(e => e.k === 'cap'); out.capUp = !!capU && capU.vy < -200; keys.up = false; run(120);
       setForm(3); run(5); keys.down = true; downFrom = 'KeyS'; run(3); pressed.hat = true; run(1); const capL = ents.find(e => e.k === 'cap');
       out.capLow = !!capL && capL.low && capL.y > player.y + player.h - 12; keys.down = false; run(120);
+      // aiming: the arrows held together throw it on a slant, and the stick throws it at its own angle (down too, from the air)
+      const throwCap = (setup, undo) => { ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; setForm(3); setup(); pressed.hat = true; run(1); const c = ents.find(e => e.k === 'cap'); undo(); const v = c ? { vx: Math.round(c.vx), vy: Math.round(c.vy || 0) } : null; run(150); return v; };
+      out.slantKeys = throwCap(() => { keys.up = true; keys.left = true; }, () => { keys.up = false; keys.left = false; });
+      const realPads = navigator.getGamepads, pad = (x, y) => () => { navigator.getGamepads = () => [{ connected: true, axes: [x, y, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })) }]; };
+      out.stickUp = throwCap(pad(0.5, -0.87), () => { navigator.getGamepads = realPads; });   // up and to the right, steeply
+      player.y -= 60; player.vy = -200; player.ground = false;
+      out.stickDown = throwCap(pad(-0.7, 0.7), () => { navigator.getGamepads = realPads; });   // down and to the left, from the air
       paused = false; return out;
     });
     check(r.carried && r.thrown, 'pick up a shell by holding run, throw it by letting go: ' + JSON.stringify(r));
@@ -1619,6 +1626,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.smashed, 'with the lucky horseshoe Leo should smash the crush-stone: ' + JSON.stringify(r));
     check(r.room === 'hillsTree' && r.back, 'down the hollow tree into the room and back out further on: ' + JSON.stringify(r));
     check(r.capUp && r.capLow, 'the hat should go up when looking up and low when crouching: ' + JSON.stringify(r));
+    check(r.slantKeys && r.slantKeys.vx < -150 && r.slantKeys.vy < -150 && r.stickUp && r.stickUp.vx > 80 && r.stickUp.vy < -200 && r.stickDown && r.stickDown.vx < -100 && r.stickDown.vy > 100, 'the hat can be aimed: on a slant with the arrows, and at the stick\'s own angle, down too from the air: ' + JSON.stringify({ slantKeys: r.slantKeys, stickUp: r.stickUp, stickDown: r.stickDown }));
     // running right with the stick a little down, holding Ⓧ and pressing Ⓐ: a jump, never a ground pound (or a crouch)
     await p.evaluate(() => { startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 6 * 16; });
     await p.waitForTimeout(200);
