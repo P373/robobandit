@@ -325,6 +325,46 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'hamglider-features.png');
   });
 
+  await test('Hamglider helpers: the camera looks down the ramp (never under it), a shadow under Pip, the target arrow (and the edge arrow off screen), wings that pop open before a splash, a short title', async () => {
+    const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
+    check(await p.evaluate(() => { const r = $('btnPlay').getBoundingClientRect(); return r.bottom <= innerHeight; }), "LET'S FLY is on the screen without scrolling");
+    const r = await p.evaluate(() => {
+      const out = {};
+      startGame(0); action();
+      // down the steep top (once it has swept in from the round card): the camera stays above the slope behind Pip
+      let under = 0;
+      for (let i = 0; i < 90; i++) { update(1 / 60); updateVisuals(1 / 60); if (i >= 30 && camPos.z > pos.z && camPos.y < pos.y + (camPos.z - pos.z) * -rampSlope(d)) under++; }
+      out.under = under;
+      out.arrowOnRamp = targetArrow.visible;
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      for (let i = 0; i < 30; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      out.blob = { on: blob.visible, below: blob.position.y < pos.y - 5, x: Math.abs(blob.position.x - pos.x) < 0.01 };
+      // swing the camera right round: the dartboard is off the screen, so the edge arrow shows
+      updateHUD(); out.edgeAhead = !$('tgtEdge').classList.contains('hidden');
+      camera.position.set(pos.x, pos.y, pos.z - 10); camera.lookAt(pos.x, pos.y, pos.z + 50); camera.updateMatrixWorld();
+      updateHUD(); out.edgeBehind = !$('tgtEdge').classList.contains('hidden');
+      // never opened the wings and dropping toward the sea: they pop open by themselves
+      pos.set(targetPos.x + 70, 30, targetPos.z); vel.set(0, -12, -5); wings = false; wingsUsed = false; stateT = 2;
+      for (let i = 0; i < 60 * 3 && !wings && state === 'air'; i++) update(1 / 60);
+      out.auto = { wings, y: +pos.y.toFixed(1), msg: (updateHUD(), $('prompt').textContent) };
+      // but a deliberate drop onto the dartboard (wings closed on purpose) is left alone
+      startGame(0); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      action(); action();   // open, then close
+      pos.set(targetPos.x, 12, targetPos.z); vel.set(0, -10, 0); curve = 0; stateT = 3;
+      for (let i = 0; i < 60 * 3 && state === 'air'; i++) update(1 / 60);
+      out.drop = { state, wings };
+      return out;
+    });
+    check(r.under === 0, `the camera dipped under the slope ${r.under} times on the steep top of the ramp`);
+    check(r.arrowOnRamp, 'the arrow over the dartboard shows from the ramp');
+    check(r.blob.on && r.blob.below && r.blob.x, "Pip's shadow sits right under the ball: " + JSON.stringify(r.blob));
+    check(!r.edgeAhead && r.edgeBehind, `edge arrow: ahead ${r.edgeAhead}, looking back ${r.edgeBehind}`);
+    check(r.auto.wings && r.auto.y > 2 && /WINGS OUT/.test(r.auto.msg), 'the wings pop open before a splash: ' + JSON.stringify(r.auto));
+    check(r.drop.state !== 'air' && !r.drop.wings, 'a deliberate drop onto the target is not stopped: ' + JSON.stringify(r.drop));
+    await done(p, 'hamglider-helpers.png');
+  });
+
   await test('Hamglider: worlds unlock in order, and "Unlock all" opens every world and ball', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
     await p.click('#btnPlay');

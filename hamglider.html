@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Hamglider | RoboBandit</title>
-<meta name="description" content="Roll Pip the hamster down a ramp, curve your takeoff, pop open your wings and glide onto the bullseye over the ocean, a lava lake and a stormy sea in Hamglider, a free RoboBandit game.">
+<meta name="description" content="Roll Pip the hamster down a ramp, curve your takeoff, pop open your wings and glide onto the bullseye over the ocean, a lava lake, a stormy sea and down the Cape Cod Canal in Hamglider, a free RoboBandit game.">
 <link rel="canonical" href="https://robobandit.com/hamglider.html">
 <meta name="theme-color" content="#5ec8ff">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/hamglider.html">
 <meta property="og:title" content="Hamglider | RoboBandit">
-<meta property="og:description" content="Roll down the ramp, pop open your wings and glide onto the bullseye! Three worlds: ocean, lava and storm.">
+<meta property="og:description" content="Roll down the ramp, pop open your wings and glide onto the bullseye! Four worlds: ocean, lava, storm and the Cape Cod Canal.">
 <meta property="og:image" content="https://robobandit.com/previews/hamglider.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -58,10 +58,12 @@
   }
   @keyframes pulse { to { transform: scale(1.08); } }
   #banner {
-    position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 52px/1.1 'Bungee', system-ui, sans-serif;
+    position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: clamp(34px, 8vw, 52px)/1.1 'Bungee', system-ui, sans-serif;
     color: #ffe14a; text-shadow: 4px 4px 0 #0b2a5c; padding: 0 12px;
   }
-  #banner small { display: block; font-size: 22px; color: #fff; margin-top: 8px; }
+  #banner small { display: block; font-size: clamp(15px, 3.8vw, 22px); color: #fff; margin-top: 8px; text-shadow: 2px 2px 0 #0b2a5c; }
+  #tgtEdge { position: absolute; left: 0; top: 0; width: 48px; height: 48px; margin: -24px 0 0 -24px; display: grid; place-items: center;
+    font-size: 36px; color: #ffe14a; text-shadow: 2px 2px 0 #0b2a5c; animation: pulse .5s ease-in-out infinite alternate; }
   #flash { position: fixed; inset: 0; z-index: 1; background: #fff; opacity: 0; pointer-events: none; }
   #wingBtn {
     position: fixed; z-index: 3; right: max(18px, env(safe-area-inset-right)); bottom: max(80px, calc(env(safe-area-inset-bottom) + 70px));
@@ -96,6 +98,13 @@
   }
   kbd { display: inline-block; min-width: 1.5em; padding: 0 5px; font: bold 14px system-ui, sans-serif; text-align: center;
     background: #fff; border: 2px solid #0b2a5c; border-radius: 4px; box-shadow: 0 2px 0 #0b2a5c; }
+  .panel .steps li { font-size: 17px; }
+  .panel .steps li b:first-child { color: #ff8a1f; font-family: 'Bungee', system-ui, sans-serif; font-weight: normal; }
+  .more { text-align: left; margin: 4px 0 2px; font-size: 15px; line-height: 1.45; }
+  .more summary { cursor: pointer; font: 14px 'Bungee', system-ui, sans-serif; color: #3a6fd8; text-align: center; padding: 4px; }
+  .more ul { margin: 6px 0 0; padding-left: 20px; }
+  .more li { margin: 3px 0; padding: 0; font-size: 15px; counter-increment: none; }
+  .more li::before { display: none; }
   .rings { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; font: 13px 'Bungee', system-ui, sans-serif; }
   .rings span { padding: 4px 9px; border-radius: 12px; border: 2px solid #0b2a5c; }
   .big-btn {
@@ -150,6 +159,7 @@
     <div class="boost hidden" id="gBoostBox">🚀 BOOST<i id="gBoost"></i></div>
   </div>
   <div id="prompt" class="hidden"></div>
+  <div id="tgtEdge" class="hidden" aria-hidden="true">➤</div>
   <div id="banner" class="hidden"></div>
 </div>
 <button id="wingBtn" class="hidden rb-touch">WINGS</button>
@@ -159,19 +169,22 @@
   <div class="panel">
     <h1>HAMGLIDER</h1>
     <div class="sub">🐹 Pip the hamster takes to the skies!</div>
-    <ol>
-      <li><b>Roll down the ramp.</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> (or the 🎮 left stick) lean the ball</span><span class="touch-only">Drag left or right to lean the ball</span>
-        and it <b>spins</b>, so you take off on a <b>curve</b>!</li>
-      <li><b>Fly off the end</b>, then press <span class="key-only"><kbd>Space</kbd> (or 🎮 <b data-pad="A">A</b>)</span><span class="touch-only">the yellow <b>WINGS</b> button</span>:
-        your ball pops open and each half becomes a <b>wing</b>!</li>
-      <li><b>Glide to the target.</b>
-        <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> turn. <kbd>W</kbd> float. <kbd>S</kbd> dive. (🎮 left stick)</span>
-        <span class="touch-only">Drag to steer: left/right to turn, up to float, down to dive.</span></li>
-      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>: the camera swings all the way round Pip. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b> or click the right stick<span class="key-only"> (or <kbd>R</kbd>)</span> swings it back behind.</li>
-      <li><b>Drop onto the dartboard.</b> Close your wings to fall straight down<span class="key-only"> (<kbd>Space</kbd> again, or <kbd>Ctrl</kbd>, or 🎮 <b data-pad="LT">LT</b> / <b data-pad="B">B</b>)</span>. Overshot it? Land safely on one of the <b>big islands</b> out past the target!</li>
-      <li><b>Cape Cod Canal:</b> roll off the top of the Bourne Bridge, past the railroad bridge, all the way to Cleveland Ledge Light! Hold <span class="key-only"><kbd>Shift</kbd> (🎮 <b data-pad="RT">RT</b> or <b data-pad="X">X</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
-      <li>Grab 🌻 seeds, beat <b>4 worlds</b>, unlock new <b>hamster balls</b>… and look for a <b>secret</b> hidden in each world. 🤫</li>
+    <ol class="steps">
+      <li><b>Roll!</b> <span class="key-only"><kbd>Space</kbd> starts you down the ramp. <kbd>A</kbd> <kbd>D</kbd> lean the ball to take off on a curve.</span><span class="touch-only">Tap to roll down the ramp. Drag left or right to take off on a curve.</span></li>
+      <li><b>Fly!</b> <span class="key-only">Off the end, press <kbd>Space</kbd> (🎮 <b data-pad="A">A</b>): your ball pops open into wings. <kbd>A</kbd> <kbd>D</kbd> turn, <kbd>W</kbd> float, <kbd>S</kbd> dive.</span><span class="touch-only">Off the end, tap the yellow <b>WINGS</b> button. Drag to steer: up floats, down dives.</span></li>
+      <li><b>Drop!</b> Over the dartboard, close your wings <span class="key-only">(<kbd>Space</kbd> again)</span><span class="touch-only">(tap <b>CLOSE</b>)</span> and fall onto the middle. Watch your shadow!</li>
     </ol>
+    <details class="more">
+      <summary>More tips</summary>
+      <ul>
+        <li>Follow the <b>yellow arrow</b>: it bounces over the dartboard, and points the way when it's off the screen.</li>
+        <li>Overshot it? Land on one of the <b>big islands</b> out past the target for 15 points.</li>
+        <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b><span class="key-only"> or <kbd>R</kbd></span> swings it back behind Pip.</li>
+        <li><span class="key-only"><kbd>Ctrl</kbd> or 🎮 <b data-pad="LT">LT</b> / <b data-pad="B">B</b> also close the wings.</span> Forgot your wings? They pop open by themselves before a splash.</li>
+        <li><b>Cape Cod Canal:</b> roll off the Bourne Bridge all the way to Cleveland Ledge Light. Hold <span class="key-only"><kbd>Shift</kbd> (🎮 <b data-pad="RT">RT</b> or <b data-pad="X">X</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
+        <li>Grab 🌻 seeds, beat <b>4 worlds</b>, unlock new <b>hamster balls</b>… and look for the <b>secret</b> hidden in each world. 🤫</li>
+      </ul>
+    </details>
     <div class="rings">
       <span style="background:#ff4d4d;color:#fff">100</span><span style="background:#ffe14a">50</span><span style="background:#fff">30</span>
       <span style="background:#5bd0ff">20</span><span style="background:#3a6fd8;color:#fff">10</span><span style="background:#ffe7a3">ISLAND 15</span>
@@ -216,7 +229,7 @@ const ISLAND_PTS = 15, SECRET_PTS = 50;
 const GLIDE_DRAG = 0.0028;           // tuned so a level glide settles near 20 m/s
 const STALL = 8;
 
-// ---------- The three worlds ----------
+// ---------- The four worlds ----------
 // Each world is three rounds. Rounds: how far the target is, how far to the side, and the wind speed.
 // secret: where that world's hidden treasure sits (it needs a curved takeoff or a long glide to reach).
 const WORLDS = [
@@ -473,11 +486,22 @@ function updateOcean(t, cx, cz) {
     pole.position.set(RAMP_HALF_W + 0.1, rampY(d) + 1.8, -d);
     scene.add(flag, pole);
   }
+  // the start deck under the top of the ramp (on stilts like the rest), so the camera never sees under the lip
+  const deckTop = rampY(0) - 0.03, deckD = 12;
+  const startDeck = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 1.4, 5, deckD), mat('#ffe3f0'));
+  startDeck.position.set(0, deckTop - 2.5, deckD / 2); startDeck.castShadow = startDeck.receiveShadow = true;
+  const deckBand = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 1.6, 1.2, deckD + 0.2), mat('#ff7eb6'));
+  deckBand.position.set(0, deckTop - 1.1, deckD / 2);
+  scene.add(startDeck, deckBand);
+  for (const sx of [-1, 1]) for (const sz of [1.2, deckD - 1.2]) {
+    const h = deckTop + 4, leg = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, h, 10), legMat);
+    leg.position.set(sx * (RAMP_HALF_W - 0.4), deckTop - h / 2, sz); leg.castShadow = true; scene.add(leg);
+  }
   // start gate behind the ball
   const gateMat = mat('#ffe14a');
   for (const side of [-1, 1]) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 7, 10), gateMat);
-    post.position.set(side * (RAMP_HALF_W + 0.5), rampY(0) + 3.5, 1.5);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 15, 10), gateMat);
+    post.position.set(side * (RAMP_HALF_W + 0.5), rampY(0) + 7.5, 1.5);
     scene.add(post);
   }
   const sign = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 2, 1.6, 0.4), new THREE.MeshStandardMaterial({
@@ -487,7 +511,7 @@ function updateOcean(t, cx, cz) {
       g.fillText('★ HAMGLIDER ★', w / 2, h / 2 + 2);
     }),
   }));
-  sign.position.set(0, rampY(0) + 7, 1.5);
+  sign.position.set(0, rampY(0) + 14.5, 1.5);   // high, so it stays above the chase camera looking down the ramp
   sign.rotation.y = Math.PI;   // readable from the ramp side
   scene.add(sign);
 }
@@ -1088,6 +1112,17 @@ function stepRain(dt) {
 // practice mode: a ring showing where you'd land if you closed your wings right now
 const dropMarker = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.35, 8, 32), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.85 }));
 dropMarker.rotation.x = Math.PI / 2; dropMarker.visible = false; scene.add(dropMarker);
+// a soft round shadow right under Pip (on the sea, the dartboard or an island), to judge when to drop
+const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({
+  map: canvasTex(64, 64, (g, w, h) => {
+    const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    gr.addColorStop(0, 'rgba(0,0,0,.7)'); gr.addColorStop(0.55, 'rgba(0,0,0,.4)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.clearRect(0, 0, w, h); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  }), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4 }));
+blob.rotation.x = -Math.PI / 2; blob.renderOrder = 2; blob.visible = false; scene.add(blob);
+// a big bouncing arrow over the dartboard, so you can always spot it from the ramp
+const targetArrow = new THREE.Mesh(new THREE.ConeGeometry(3.6, 6.5, 4), new THREE.MeshBasicMaterial({ color: '#ffe14a', fog: false }));
+targetArrow.rotation.x = Math.PI; targetArrow.visible = false; scene.add(targetArrow);
 
 // ---------- Sound ----------
 // Wind and rolling noise run through filters that follow your speed; music plays a loop for each world.
@@ -1343,6 +1378,7 @@ const PLAYING = ['intro', 'ramp', 'air', 'roll', 'falloff', 'splash', 'burn', 'r
 let state = 'title', world = null, worldI = 0, round = 0, total = 0, roundScores = [];
 let d = 0, rampV = 0, sideV = 0, lean = 0, curve = 0;   // ramp: distance, speed, sideways speed, lean; air: spin curve
 const pos = new THREE.Vector3(), vel = new THREE.Vector3(), wind = new THREE.Vector3(), baseWind = new THREE.Vector3();
+let wingsUsed = false, autoWingsT = 0;   // wings helper: they pop open by themselves if you forget, just before a splash
 let wings = false, wingOpen = 0, yaw = 0, gamma = 0, bank = 0, roll = 0, stateT = 0, bonusPts = 0, secretThisRound = false;
 let resultText = '', clock = 0, surf = null, whooshCD = 0, flashT = 0, nextBolt = 5;
 let practice = save.practice;
@@ -1422,13 +1458,13 @@ function setupRound(i) {
   d = 0; rampV = 2; sideV = 0; lean = 0; curve = 0;
   pos.set(0, rampY(0) + R, 0);
   vel.set(0, 0, 0);
-  wings = false; wingOpen = 0; bonusPts = 0; roll = 0; bank = 0; surf = null; secretThisRound = false; fuel = 1; boosting = false;
+  wings = false; wingsUsed = false; autoWingsT = 0; wingOpen = 0; bonusPts = 0; roll = 0; bank = 0; surf = null; secretThisRound = false; fuel = 1; boosting = false;
   rec.length = 0; replayPending = false;
   state = 'intro'; stateT = 0;
   cam.reset();
   setFace('happy');
   const windTxt = practice ? 'practice: no wind' : `wind ${r.wind ? r.wind.toFixed(1) + ' m/s' : 'calm'}${world.gusts ? ', gusty!' : ''}`;
-  showBanner(`ROUND ${i + 1}`, `Target ${r.dist} m away · ${windTxt}<br>${RB.pad && RB.pad.connected ? RB.padText('Press {A}') : matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
+  showBanner(`ROUND ${i + 1}`, `Target ${r.dist} m · ${windTxt}<br>${RB.pad && RB.pad.connected ? RB.padText('Press {A}') : matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
 }
 
 function action() {
@@ -1436,7 +1472,7 @@ function action() {
   if (state === 'intro') { hideBanner(); state = 'ramp'; stateT = 0; sfx.go(); music.play(world.id); }
   else if (state === 'replay') endReplay();
   else if (state === 'air') {
-    wings = !wings;
+    wings = !wings; wingsUsed = true;
     if (wings) {
       sfx.open();
       const hs = Math.hypot(vel.x, vel.z);
@@ -1555,6 +1591,9 @@ function update(dt) {
       state = 'air'; stateT = 0;
     }
   } else if (state === 'air') {
+    // never opened the wings and heading for a splash? they pop open by themselves
+    autoWingsT = Math.max(0, autoWingsT - dt);
+    if (!wings && !wingsUsed && stateT > 1.5 && vel.y < -8 && pos.y - R < 14 && !surfaceUnder(pos.x, pos.z)) { action(); autoWingsT = 2; }
     if (wings) {
       const V = vel.length();
       let targetGamma = -0.13 + (pitch > 0 ? pitch * 0.4 : pitch * 0.55);
@@ -1753,6 +1792,8 @@ function updateVisuals(dt) {
     want = pos.clone().addScaledVector(camRay, 12);
     const rd = -want.z;   // keep it above the ramp (and the start platform behind it), however it swings round
     if (rd < RAMP_LEN && Math.abs(want.x) < RAMP_HALF_W + 3) want.y = Math.max(want.y, rampY(Math.max(0, rd)) + 3.5);
+    // on the steep top of the ramp, rise above the slope behind Pip so you look down the drop, not over the lip
+    if (state === 'ramp' && want.z > pos.z) want.y = Math.max(want.y, Math.min(pos.y + 13, pos.y + (want.z - pos.z) * -rampSlope(d) + 1.5));
     // from behind, look ahead past Pip toward the target; swung round, look right at Pip
     const ahead = cam.ahead();
     look = pos.clone().addScaledVector(fwd, 14 * ahead);
@@ -1791,6 +1832,17 @@ function updateVisuals(dt) {
   stepFlame(dt, boosting);
   stepRain(dt);
   document.getElementById('flash').style.opacity = flashT > 0 ? (flashT > 0.25 || (flashT > 0.1 && flashT < 0.17) ? 0.5 : 0) : 0;
+  // Pip's shadow straight down, smaller and fainter the higher you are
+  blob.visible = state === 'air' || state === 'falloff';
+  if (blob.visible) {
+    const sf = surfaceUnder(pos.x, pos.z), gy = sf ? sf.top + 0.08 : Math.max(0.05, waveH(pos.x, pos.z, clock) + 0.25), h = Math.max(0, pos.y - R - gy);
+    blob.position.set(pos.x, gy, pos.z);
+    blob.scale.setScalar(Math.max(2.2, 4.2 - h * 0.03));
+    blob.material.opacity = Math.max(0.25, 1 - h / 60);
+  }
+  const hDist = Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z);
+  targetArrow.visible = ['intro', 'ramp', 'air'].includes(state) && hDist > 35;
+  if (targetArrow.visible) { targetArrow.position.set(targetPos.x, TOP + 18 + Math.sin(clock * 3) * 2, targetPos.z); targetArrow.rotation.y += dt * 1.5; }
   // practice helper: where would Pip land if the wings closed right now?
   dropMarker.visible = practice && state === 'air';
   if (dropMarker.visible) {
@@ -1802,7 +1854,7 @@ function updateVisuals(dt) {
 
 // ---------- HUD ----------
 const $ = id => document.getElementById(id);
-const hud = $('hud'), prompt = $('prompt'), banner = $('banner');
+const hud = $('hud'), prompt = $('prompt'), banner = $('banner'), edgeV = new THREE.Vector3();
 function showBanner(t, sub) { banner.innerHTML = `${t}${sub ? `<small>${sub}</small>` : ''}`; banner.classList.remove('hidden'); }
 function hideBanner() { banner.classList.add('hidden'); }
 function updateHUD() {
@@ -1828,11 +1880,27 @@ function updateHUD() {
   const windYaw = Math.atan2(wind.x, -wind.z);
   $('windArrow').style.transform = `rotate(${(windYaw - camYaw) * 180 / Math.PI - 90}deg)`;
   $('windSpeed').textContent = wind.length() < 0.1 ? 'CALM' : wind.length().toFixed(1);
+  // the dartboard off the screen (looking round, or curving away)? an arrow at the edge points to it
+  const edge = $('tgtEdge'), wantEdge = state === 'ramp' || state === 'air';
+  let onScreen = true;
+  if (wantEdge) {
+    const v = edgeV.set(targetPos.x, TOP + 2, targetPos.z).project(camera), behind = v.z > 1;
+    onScreen = !behind && Math.abs(v.x) < 0.92 && Math.abs(v.y) < 0.88;
+    if (!onScreen) {
+      let x = behind ? -v.x : v.x, y = behind ? -v.y : v.y;
+      if (Math.hypot(x, y) < 1e-3) y = -1;
+      const k = 1 / Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72);
+      x *= k; y *= k;
+      edge.style.transform = `translate(${(x + 1) / 2 * innerWidth}px, ${(1 - y) / 2 * innerHeight}px) rotate(${Math.atan2(-y, x)}rad)`;
+    }
+  }
+  edge.classList.toggle('hidden', !wantEdge || onScreen);
   let msg = '';
   const pad = !!(RB.pad && RB.pad.connected);
   const touch = !pad && matchMedia('(pointer: coarse)').matches;
   if (state === 'ramp' && d < 45 && round === 0) msg = pad ? 'LEFT STICK TO CURVE!' : touch ? 'DRAG TO CURVE!' : 'A / D TO CURVE!';
   else if (state === 'ramp' && d > 60) msg = 'GET READY…';
+  else if (autoWingsT > 0) msg = 'WINGS OUT! 🪽';
   else if (state === 'air' && !wings && stateT < 4 && vel.y > -25) msg = pad ? RB.padText('{A} TO OPEN WINGS!') : touch ? 'TAP WINGS TO FLY!' : 'SPACE TO OPEN WINGS!';
   else if (state === 'air' && wings && vel.length() < STALL + 1 && !boosting) msg = 'TOO SLOW! NOSE DOWN';
   else if (world.boost && (state === 'air' || state === 'ramp') && round === 0 && stateT < 5 && fuel > 0.9) msg = pad ? RB.padText('HOLD {RT} TO BOOST!') : touch ? 'HOLD 🚀 TO BOOST!' : 'HOLD SHIFT TO BOOST!';
