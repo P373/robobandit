@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Moto Mania | RoboBandit</title>
-<meta name="description" content="Item-box motorcycle racing for up to four friends: three courses, four bikes and a balloon battle, in Moto Mania, a free RoboBandit game.">
+<meta name="description" content="Item-box motorcycle racing for up to four friends: six courses, four bikes and a balloon battle, in Moto Mania, a free RoboBandit game.">
 <link rel="canonical" href="https://robobandit.com/moto-mania.html">
 <meta name="theme-color" content="#0b1020">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/moto-mania.html">
 <meta property="og:title" content="Moto Mania | RoboBandit">
-<meta property="og:description" content="Items, four bikes, three courses and a balloon battle: race your friends!">
+<meta property="og:description" content="Items, four bikes, six courses and a balloon battle: race your friends!">
 <meta property="og:image" content="https://robobandit.com/previews/moto-mania.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -195,7 +195,7 @@
 
 <div id="title" class="screen">
   <div class="panel">
-    <div class="eyebrow">Item boxes · 4 bikes · 3 courses · up to 4 players</div>
+    <div class="eyebrow">Item boxes · 4 bikes · 6 courses · up to 4 players</div>
     <h1>Moto Mania</h1>
     <div class="courses" id="courses"></div>
     <div class="sub" id="courseSub"></div>
@@ -265,14 +265,20 @@ const rnd = (a = 0, b = 1) => { seed = (seed * 16807) % 2147483647; return a + (
 const COURSES = {
   fields: { name: 'Figure 8 Fields', emoji: '🌾', sub: 'Over the bridge, under the bridge, through the barn… mind the cows!' },
   docks: { name: 'Liberty Docks', emoji: '🌃', sub: 'Night in the city: leap the canal, cut through the warehouse, dodge the forklifts!', night: true },
-  arena: { name: 'Hay Bale Arena', emoji: '🎈', sub: 'Balloon battle! Pop everyone else\'s balloons with items and kicks. Last one flying wins!', battle: true },
+  city: { name: 'Downtown', emoji: '🌆', sub: 'Rain at dusk in Liberty City: dodge the taxis and buses, dive under the subway, cut through the parking garage!' },
+  beach: { name: 'Cape Cod Boardwalk', emoji: '🏖️', sub: 'Sunset by the sea: fly off the end of the pier, round the lighthouse, and cross the beach before the tide comes in!' },
+  quarry: { name: 'Quarry Pass', emoji: '⛰️', sub: 'Up the switchbacks, through the tunnel, and a long fast run down past the cliff edge. There\'s no fence there!' },
+  arena:{ name: 'Hay Bale Arena', emoji: '🎈', sub: 'Balloon battle! Pop everyone else\'s balloons with items and kicks. Last one flying wins!', battle: true },
 };
 const COURSE = (() => {
   const q = new URLSearchParams(location.search).get('course'), saved = RB.store.get('mm_course');
   return COURSES[q] ? q : COURSES[saved] ? saved : 'fields';
 })();
 const BATTLE = !!COURSES[COURSE].battle, NIGHT = !!COURSES[COURSE].night;
-const FENCE = HW + (COURSE === 'docks' ? 7 : 12.5);   // the fences (the field's, or the docks' concrete barriers) either side of the road
+const CITY = COURSE === 'city', BEACH = COURSE === 'beach', QUARRY = COURSE === 'quarry', FARM = COURSE === 'fields' || BATTLE;
+// the fences either side of the road: the field's, the docks' and downtown's concrete barriers (at the kerb), the
+// beach's dune fences, the quarry's crash barriers (some places have their own: the pier's rails, the tunnel's walls)
+const FENCE = HW + ({ docks: 7, city: 5, beach: 9, quarry: 4 }[COURSE] || 12.5);
 
 // ---------- The track ----------
 // The centre line is worked out once for every metre: where it is, which way it goes, and s, the distance along it
@@ -280,11 +286,40 @@ const FENCE = HW + (COURSE === 'docks' ? 7 : 12.5);   // the fences (the field's
 //   Figure 8 Fields: a lemniscate (the ∞ curve), stretched a little across so the hairpins are round. The first time
 //     you cross the middle you go OVER the bridge; the second time, underneath it.
 //   Liberty Docks: a smooth loop through the port (a closed spline through a few corners).
+//   Downtown: round the blocks of a street grid (100 m apart), square corners rounded off.
+//   Cape Cod Boardwalk: along the boardwalk, out along the pier, round the lighthouse, back along the breakwater and
+//     the beach.
+//   Quarry Pass: two switchbacks up the quarry's side, a tunnel through the top, and the long way down.
 //   Hay Bale Arena: just a ring round the arena (battles don't follow a track; the radar and the riders use it).
 const TX = [], TZ = [], TDX = [], TDZ = [];
 let TRACK_LEN = 0;
 const DOCK_PTS = [[-250, 130], [-80, 140], [120, 130], [250, 105], [300, 20], [262, -70], [160, -96], [96, -48], [30, -96], [-64, -138],
   [-200, -128], [-292, -62], [-305, 38]];
+const CITY_PTS = [[-200, -200], [300, -200], [300, 0], [100, 0], [100, 200], [-200, 200]];
+const BEACH_PTS = [[-250, 60], [-80, 60], [100, 60], [222, 54], [282, 18], [300, -50], [300, -140], [300, -230], [298, -300], [278, -352], [228, -370],
+  [184, -340], [140, -270], [96, -180], [56, -110], [0, -62], [-100, -48], [-220, -44], [-305, -30], [-338, 14], [-318, 52]];
+const QUARRY_PTS = [[-250, 200], [-60, 205], [120, 195], [230, 175], [265, 140], [220, 108], [60, 100], [-110, 95], [-205, 70], [-195, 25], [-60, 10],
+  [110, 0], [215, -30], [255, -110], [220, -190], [120, -240], [-10, -250], [-150, -235], [-270, -180], [-335, -80], [-345, 40], [-315, 150]];
+// (the quarry is drawn here a size up: it's built at 0.8 of this, and every place on it named below is scaled the same)
+const QS = QUARRY ? 0.8 : 1;
+// where the start line is, on the courses that say
+const START_AT = { city: [-50, -200], beach: [-100, 60], quarry: [-100 * QS, 204 * QS] }[COURSE];
+// a closed loop of straight lines, each corner rounded off (r metres either side of it)
+function roundedPoly(P, r) {
+  const pts = [], n = P.length;
+  for (let i = 0; i < n; i++) {
+    const a = P[(i - 1 + n) % n], b = P[i], c = P[(i + 1) % n];
+    const la = Math.hypot(b[0] - a[0], b[1] - a[1]), lc = Math.hypot(c[0] - b[0], c[1] - b[1]);
+    const p0 = [b[0] + (a[0] - b[0]) * r / la, b[1] + (a[1] - b[1]) * r / la], p2 = [b[0] + (c[0] - b[0]) * r / lc, b[1] + (c[1] - b[1]) * r / lc];
+    for (let k = 0; k < 24; k++) { const u = k / 24, v = 1 - u; pts.push([v * v * p0[0] + 2 * v * u * b[0] + u * u * p2[0], v * v * p0[1] + 2 * v * u * b[1] + u * u * p2[1]]); }
+    const q = [c[0] + (b[0] - c[0]) * r / lc, c[1] + (b[1] - c[1]) * r / lc], m = Math.ceil(Math.hypot(q[0] - p2[0], q[1] - p2[1]) / 2);
+    for (let k = 0; k < m; k++) pts.push([p2[0] + (q[0] - p2[0]) * k / m, p2[1] + (q[1] - p2[1]) * k / m]);
+  }
+  return t => {
+    const f = ((t / TAU) % 1 + 1) % 1 * pts.length, i = Math.floor(f), u = f - i, p = pts[i], q = pts[(i + 1) % pts.length];
+    return [p[0] + (q[0] - p[0]) * u, p[1] + (q[1] - p[1]) * u];
+  };
+}
 function closedSpline(P) {
   const n = P.length;
   return t => {
@@ -297,13 +332,16 @@ function closedSpline(P) {
 {
   const LEM_A = 270, LEM_Z = 1.25;
   const curve = COURSE === 'fields' ? t => { const s = Math.sin(t), c = Math.cos(t), k = 1 + s * s; return [LEM_A * c / k, LEM_Z * LEM_A * s * c / k]; }
-    : COURSE === 'docks' ? closedSpline(DOCK_PTS) : t => [Math.cos(t) * 40, Math.sin(t) * 40];
+    : COURSE === 'docks' ? closedSpline(DOCK_PTS) : CITY ? roundedPoly(CITY_PTS, 26) : BEACH ? closedSpline(BEACH_PTS) : QUARRY ? closedSpline(QUARRY_PTS.map(([x, z]) => [x * QS, z * QS]))
+    : t => [Math.cos(t) * 40, Math.sin(t) * 40];
   const M = 60000, pts = [], cum = [0];
   let L = 0, prev = curve(0); pts.push(prev);
   for (let i = 1; i <= M; i++) { const p = curve(i / M * TAU); L += Math.hypot(p[0] - prev[0], p[1] - prev[1]); prev = p; pts.push(p); cum.push(L); }
   const N = Math.round(L);
-  // where s = 0 (the start line) is: on the fields 230 m before the bridge (the middle is t = π/2 along the curve)
-  const s0 = COURSE === 'fields' ? cum[M / 4] - 230 : 0;
+  // where s = 0 (the start line) is: on the fields 230 m before the bridge (the middle is t = π/2 along the curve);
+  // elsewhere the point nearest START_AT, or where the curve begins
+  let s0 = COURSE === 'fields' ? cum[M / 4] - 230 : 0;
+  if (START_AT) { let bd = Infinity; for (let i = 0; i < M; i += 5) { const d = (pts[i][0] - START_AT[0]) ** 2 + (pts[i][1] - START_AT[1]) ** 2; if (d < bd) { bd = d; s0 = cum[i]; } } }
   let j = 0;
   for (let i = 0; i < N; i++) {
     const s = ((i * L / N) + s0 + L) % L;
@@ -352,21 +390,52 @@ function hairpinNear(from, to) {
   return best;
 }
 
+// the s of the point on the centre line nearest (x, z) (on the quarry, (x, z) as drawn: scaled by QS)
+function sNear(x, z) {
+  x *= QS; z *= QS;
+  let bi = 0, bd = Infinity;
+  for (let i = 0; i < N_T; i++) { const d = (TX[i] - x) ** 2 + (TZ[i] - z) ** 2; if (d < bd) { bd = d; bi = i; } }
+  return bi;
+}
+const smooth = k => k * k * (3 - 2 * k);
+
 // Figure 8 Fields' bridge: the road climbs a ramp onto a flat deck over the other road and back down. The top of the
 // ramp is a sharp crest, so a fast bike takes off there (and a boosting one flies most of the way across).
 const BR_H = 7.5, DECK = 15, RAMP = 60;
 const SA = COURSE === 'fields' ? 230 : -1e6, SB = SA + Math.round(N_T / 2);   // over the bridge, then under it
-// Liberty Docks' canal: a drawbridge left raised as a ramp, a gap over the water, and a landing ramp on the far side.
-// Fast enough (a dash pad helps) and you fly it; too slow and it's a splash.
-const CANAL = COURSE === 'docks' ? { s: 300, up: 32, h: 2.7, gap: 16, land: 2.1, down: 30 } : null;
+// A gap to jump: Liberty Docks' canal (a drawbridge left raised as a ramp, the water, a landing ramp on the far side),
+// or the end of the boardwalk's pier (a ramp off the end, the sea, and the lighthouse's rock beyond). Fast enough (a
+// dash pad helps) and you fly it; too slow and it's a splash.
+const CANAL = COURSE === 'docks' ? { s: 300, up: 32, h: 2.7, gap: 16, land: 2.1, down: 30 }
+  : BEACH ? { s: sNear(300, -236), up: 34, h: 2.9, gap: 17, land: 2.1, down: 30 } : null;
+// Downtown's subway: the road dives down under the cross street and the station, and climbs back out
+const TRENCH = CITY ? { s: sNear(-200, 0), flat: 30, ramp: 52, depth: 6.5 } : null;
+// Quarry Pass climbs and falls: heights at a few places round the lap, eased from one to the next. It's level round
+// the second hairpin (where the old mine's shortcut cuts across) and through the tunnel at the top.
+const HILLS = QUARRY ? [[sNear(-60, 205), 0], [sNear(150, 190), 4], [sNear(265, 140), 12], [sNear(-10, 98), 30], [sNear(-60, 10), 30], [sNear(215, -30), 50],
+  [sNear(240, -150), 62], [sNear(80, -245), 62], [sNear(-335, -80), 22], [sNear(-315, 150), 0]] : null;
+const TUNNEL = QUARRY ? { s0: sNear(240, -150) + 18, s1: sNear(80, -245) - 18 } : null;
 function profile(s) {
   if (CANAL) {
     const u = dS(s - CANAL.s);   // (0 = the lip of the ramp)
     if (u > -CANAL.up && u <= 0) { const k = 1 + u / CANAL.up; return CANAL.h * (k < 0.3 ? k * k / 0.6 : k - 0.15) / 0.85; }
-    if (u > 0 && u < CANAL.gap) return -5;   // (the canal)
+    if (u > 0 && u < CANAL.gap) return -5;   // (the water)
     if (u >= CANAL.gap && u < CANAL.gap + CANAL.down) return CANAL.land * (1 - (u - CANAL.gap) / CANAL.down);
     return 0;
   }
+  if (TRENCH) {
+    const a = Math.abs(dS(s - TRENCH.s));
+    return a <= TRENCH.flat ? -TRENCH.depth : a >= TRENCH.flat + TRENCH.ramp ? 0 : -TRENCH.depth * (1 - smooth((a - TRENCH.flat) / TRENCH.ramp));
+  }
+  if (HILLS) {
+    const f = modS(s);
+    for (let i = 0; i < HILLS.length; i++) {
+      const [a, ya] = HILLS[i], [b, yb] = HILLS[(i + 1) % HILLS.length], len = modS(b - a), u = modS(f - a);
+      if (u <= len) return ya + (yb - ya) * smooth(u / len);
+    }
+    return 0;
+  }
+  if (COURSE !== 'fields') return 0;
   const a = Math.abs(dS(s - SA));
   if (a <= DECK) return BR_H;
   if (a >= DECK + RAMP) return 0;
@@ -375,19 +444,41 @@ function profile(s) {
 }
 const onBridge = s => COURSE === 'fields' && Math.abs(dS(s - SA)) < DECK + RAMP;
 const inCanal = s => !!CANAL && dS(s - CANAL.s) > 0 && dS(s - CANAL.s) < CANAL.gap;
+const inTunnel = s => !!TUNNEL && dS(s - TUNNEL.s0) >= 0 && dS(s - TUNNEL.s1) <= 0;
+// the slope of the road at s (rise over run: + uphill)
+const gradeAt = s => (profile(s + 4) - profile(s - 4)) / 8;
 
 // Where each course's features go: the hairpins, jump ramps (on half the road), gold arrow dash pads, the rows of item
-// boxes, the shortcut, and the things that cross the road
-const TIP_L = COURSE === 'fields' ? SA + Math.round(N_T / 4) : hairpinNear(N_T * 0.55, N_T * 0.95);
-const TIP_R = COURSE === 'fields' ? (SB + Math.round(N_T / 4)) % N_T : hairpinNear(N_T * 0.2, N_T * 0.45);
-const KICKERS = COURSE === 'fields' ? [{ s: SB + 85, len: 9, h: 1.8 }, { s: SA - 175, len: 9, h: 1.8 }]
-  : COURSE === 'docks' ? [{ s: TIP_R + 150, len: 9, h: 1.8 }, { s: N_T - 160, len: 9, h: 1.8 }] : [];
-const PADS = COURSE === 'fields' ? [{ s: 45, d: 0 }, { s: SA - 105, d: -3.5 }, { s: SA - 105, d: 3.5 }, { s: SB + 32, d: 0 }, { s: TIP_L + 95, d: 0 }, { s: TIP_R + 135, d: 0 }]
-  : COURSE === 'docks' ? [{ s: 45, d: 0 }, { s: CANAL.s - 60, d: -3.5 }, { s: CANAL.s - 60, d: 3.5 }, { s: TIP_L + 90, d: 0 }, { s: TIP_R + 110, d: -3 }] : [];
-const BOX_ROWS = COURSE === 'fields' ? [120, SB - 60, TIP_L - 150] : COURSE === 'docks' ? [150, TIP_R - 120, TIP_L - 130, N_T - 90] : [];
-// The shortcut: a dirt track straight across a hairpin, through the red barn (the fields) or the warehouse (the docks)
-const CUT = BATTLE ? { s0: 0, s1: 1, ax: 1e5, az: 1e5, bx: 1e5, bz: 1e5, len: 1, ux: 1, uz: 0, mid: 0.5, pads: [] }
-  : { s0: modS(TIP_R - 100), s1: modS(TIP_R + 100) };
+// boxes, the shortcut (across TIP_R), and the things that cross the road
+const TIP_L = COURSE === 'fields' ? SA + Math.round(N_T / 4) : CITY ? sNear(300, -200) : BEACH ? sNear(266, -362) : QUARRY ? sNear(262, 142) : hairpinNear(N_T * 0.55, N_T * 0.95);
+const TIP_R = COURSE === 'fields' ? (SB + Math.round(N_T / 4)) % N_T : CITY ? sNear(-200, 200) : BEACH ? sNear(-336, 14) : QUARRY ? sNear(-205, 47) : hairpinNear(N_T * 0.2, N_T * 0.45);
+const KICKERS = {
+  fields: [{ s: SB + 85, len: 9, h: 1.8 }, { s: SA - 175, len: 9, h: 1.8 }],
+  docks: [{ s: TIP_R + 150, len: 9, h: 1.8 }, { s: N_T - 160, len: 9, h: 1.8 }],
+  city: [{ s: sNear(300, -110), len: 9, h: 1.8 }, { s: sNear(100, 110), len: 9, h: 1.8 }],
+  beach: [{ s: sNear(150, 60), len: 9, h: 1.8 }, { s: sNear(118, -226), len: 9, h: 1.8 }],
+  quarry: [{ s: sNear(0, 99), len: 9, h: 1.8 }, { s: sNear(-215, -210), len: 9, h: 2.0 }],
+}[COURSE] || [];
+const PADS = {
+  fields: [{ s: 45, d: 0 }, { s: SA - 105, d: -3.5 }, { s: SA - 105, d: 3.5 }, { s: SB + 32, d: 0 }, { s: TIP_L + 95, d: 0 }, { s: TIP_R + 135, d: 0 }],
+  docks: CANAL && [{ s: 45, d: 0 }, { s: CANAL.s - 60, d: -3.5 }, { s: CANAL.s - 60, d: 3.5 }, { s: TIP_L + 90, d: 0 }, { s: TIP_R + 110, d: -3 }],
+  city: TRENCH && [{ s: 45, d: 0 }, { s: TRENCH.s - TRENCH.flat - TRENCH.ramp - 40, d: -3.5 }, { s: TRENCH.s - TRENCH.flat - TRENCH.ramp - 40, d: 3.5 }, { s: sNear(220, 0), d: 0 }, { s: TIP_L + 70, d: 0 }],
+  beach: CANAL && [{ s: 45, d: 0 }, { s: CANAL.s - 70, d: -3.5 }, { s: CANAL.s - 70, d: 3.5 }, { s: TIP_L + 85, d: 0 }, { s: sNear(-160, -46), d: 0 }],
+  quarry: [{ s: 45, d: 0 }, { s: TIP_L + 80, d: 0 }, { s: sNear(200, -60), d: -3.5 }, { s: sNear(200, -60), d: 3.5 }, { s: sNear(-120, -240), d: 0 }],
+}[COURSE] || [];
+const BOX_ROWS = {
+  fields: [120, SB - 60, TIP_L - 150], docks: [150, TIP_R - 120, TIP_L - 130, N_T - 90],
+  city: [sNear(230, -200), sNear(300, -60), sNear(100, 60), sNear(-140, 200), sNear(-200, -130)],
+  beach: [sNear(20, 60), sNear(300, -110), sNear(150, -290), sNear(-60, -50)],
+  quarry: [sNear(150, 190), sNear(0, 98), sNear(140, -8), sNear(-60, -248), sNear(-345, 10)],
+}[COURSE] || [];
+// (where it leaves and rejoins the road, before and after the hairpin: on the beach and in the quarry the road either
+// side of the hairpin runs side by side, so the shortcut leaves early and cuts across at a slant)
+const CUT_SPAN = { beach: [70, 150], quarry: [175, 60] }[COURSE] || [];
+// The shortcut: a straight dirt track across a hairpin, through the red barn (the fields), the warehouse (the docks),
+// the parking garage (downtown), the old mine (the quarry), or over the tidal flat (the beach, till the tide comes in)
+const CUT = BATTLE ? { s0: 0, s1: 1, ax: 1e5, az: 1e5, bx: 1e5, bz: 1e5, len: 1, ux: 1, uz: 0, mid: 0.5, pads: [], y: 0 }
+  : { s0: modS(TIP_R - (CUT_SPAN[0] || 100)), s1: modS(TIP_R + (CUT_SPAN[1] || 100)), y: profile(TIP_R) };
 if (!BATTLE) {
   const a = trackPoint(CUT.s0), b = trackPoint(CUT.s1);
   Object.assign(CUT, { ax: a.x, az: a.z, bx: b.x, bz: b.z, len: Math.hypot(b.x - a.x, b.z - a.z) });
@@ -398,7 +489,45 @@ if (!BATTLE) {
 function cutUV(x, z) { const dx = x - CUT.ax, dz = z - CUT.az; return { u: dx * CUT.ux + dz * CUT.uz, v: -dx * CUT.uz + dz * CUT.ux }; }
 const BARN = { hu: 14, hv: 8, door: 4.6 };
 const COW_S = TIP_R - 2;           // the cows wander across the road at the far end of the right hairpin… (the shortcut misses them)
-const TRACTOR_S = COURSE === 'fields' ? TIP_L + 40 : COURSE === 'docks' ? TIP_L + 60 : 0;   // …and a tractor (a forklift at the docks) crosses on its lane
+// …and something crosses on its lane, back and forth: a tractor (the fields), a forklift (the docks), the lifeguards'
+// beach buggy, a dump truck (the quarry). Downtown has traffic instead: taxis and buses across the junctions.
+const TRACTOR_S = { fields: TIP_L + 40, docks: TIP_L + 60, beach: sNear(-50, -50), quarry: sNear(60, 203) }[COURSE] || 0;
+const JUNCTIONS = [];   // downtown: where the course crosses a street (the fences stop there), and the ones with traffic
+if (CITY) {
+  const corners = new Set(CITY_PTS.map(String));
+  for (let x = -200; x <= 300; x += 100) for (let z = -200; z <= 200; z += 100) {
+    if (corners.has(String([x, z]))) continue;
+    const s = sNear(x, z), p = trackAt(s, {});
+    if (Math.hypot(p.x - x, p.z - z) > 2 || Math.abs(dS(s - TRENCH.s)) < TRENCH.flat + TRENCH.ramp + 10) continue;
+    JUNCTIONS.push({ s, x, z, traffic: (x === 100 && z === -200) || (x === 0 && z === 200) || (x === 200 && z === 0) });
+  }
+}
+// the hairpins with kerbs on (and bales or tyres round the inside)
+const BENDS = CITY ? [] : QUARRY ? [TIP_L, TIP_R] : BEACH ? [TIP_L] : BATTLE ? [] : [TIP_L, TIP_R];
+// The quarry's cliff: on the way down, the outside of the road drops away, with no fence. Off the edge and you're
+// gone (back on the road a moment later).
+const CLIFF = QUARRY ? { s0: sNear(-215, -212), s1: sNear(-343, -10) } : null;
+if (CLIFF) { const p = trackPoint((CLIFF.s0 + CLIFF.s1) / 2, 30, {}); CLIFF.side = Math.hypot(p.x, p.z) > Math.hypot(trackAt((CLIFF.s0 + CLIFF.s1) / 2, {}).x, trackAt((CLIFF.s0 + CLIFF.s1) / 2, {}).z) ? 1 : -1; }
+const onCliff = s => !!CLIFF && dS(s - CLIFF.s0) >= 0 && dS(s - CLIFF.s1) <= 0;
+// The beach's surfaces: boards (the boardwalk and the pier), the road on the breakwater, and hard sand along the beach
+// (a dirt bike doesn't mind it; the road bikes slow down)
+const SAND = BEACH ? { s0: sNear(30, -80), s1: sNear(-336, 22) } : null;
+const onSand = s => !!SAND && dS(s - SAND.s0) >= 0 && dS(s - SAND.s1) <= 0;
+const BOARDS = BEACH ? { s0: SAND.s1, s1: CANAL.s + CANAL.gap } : null;
+const onBoards = s => !!BOARDS && dS(s - BOARDS.s0) >= 0 && dS(s - BOARDS.s1) <= 0;
+// how far out the fence is at s (the pier's rails and the tunnel's walls are close in; the breakwater has boulders)
+function fenceAt(s) {
+  if (BEACH && dS(s - sNear(300, -55)) >= 0 && dS(s - (CANAL.s + CANAL.gap + CANAL.down)) <= 0) return HW + 1.2;
+  if (BEACH && dS(s - (CANAL.s + CANAL.gap + CANAL.down)) > 0 && dS(s - SAND.s0) < 0) return HW + 3;
+  if (TUNNEL) {   // (the tunnel's walls, and the fences narrowing in to them either end)
+    if (inTunnel(s)) return HW + 0.9;
+    const a = dS(s - TUNNEL.s0), b = dS(s - TUNNEL.s1);
+    if (a > -25 && a < 0) return HW + 0.9 + (FENCE - HW - 0.9) * -a / 25;
+    if (b > 0 && b < 25) return HW + 0.9 + (FENCE - HW - 0.9) * b / 25;
+  }
+  if (TRENCH && profile(s) < -0.5) return HW + 0.4;
+  return FENCE;
+}
 for (const k of KICKERS) { const b = bendAt(k.s) || 1; k.d0 = b > 0 ? 0.5 : -7.5; k.d1 = k.d0 + 7; k.s = modS(k.s); }   // (on the inside: you land in the middle of the road)
 for (const p of PADS) p.s = modS(p.s);
 
@@ -418,7 +547,10 @@ function arenaGround(x, z) {
 // the height of the ground under a rider at (s, d)
 function groundY(s, d) {
   if (inCanal(s)) return -5;
-  if (Math.abs(d) > HW + 0.6) return 0;   // (beside the ramps: the field, or the quay)
+  if (Math.abs(d) > HW + 0.6) {   // (off the road: the field or the quay (beside the ramps), the street, the quarry's verge; or over the edge)
+    if (!QUARRY) return 0;
+    return onCliff(s) && d * CLIFF.side > HW + 3 ? profile(s) - 40 : profile(s);
+  }
   let y = profile(s);
   for (const k of KICKERS) {
     const u = dS(s - k.s);
@@ -427,23 +559,33 @@ function groundY(s, d) {
   return y;
 }
 // the ground under a rider, wherever they are
-const groundOf = r => (BATTLE ? arenaGround(r.x, r.z) : r.onCut ? 0 : groundY(r.s, r.d));
+const groundOf = r => (BATTLE ? arenaGround(r.x, r.z) : r.onCut ? CUT.y : groundY(r.s, r.d));
 
 // ---------- Three.js setup ----------
 const canvas = document.getElementById('game');
 const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
 renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
 const scene = new THREE.Scene();
-// the fields: a warm, hazy late afternoon (Liberty City smog over the farm fields); the docks: night in the city
-const FOG = NIGHT ? '#141c36' : '#d8c49c', FOG_FAR = NIGHT ? 560 : 700;
-scene.fog = new THREE.Fog(FOG, NIGHT ? 50 : 90, FOG_FAR);
+// the fields: a warm, hazy late afternoon (Liberty City smog over the farm fields); the docks: night in the city;
+// downtown: dusk in the rain; the boardwalk: sunset over the sea; the quarry: a clear, bright mountain day
+const LOOK = {
+  night: { fog: '#141c36', near: 50, far: 1, sky: ['#6a7ab0', '#0c0e18', 0.62], sun: ['#9fb4ff', 0.5] },
+  city: { fog: '#4a3e5c', near: 30, far: 0.8, sky: ['#9a88b8', '#241a2e', 0.72], sun: ['#ff9a70', 0.55] },
+  beach: { fog: '#e8a07a', near: 90, far: 1, sky: ['#ffd0b0', '#6a4a50', 0.8], sun: ['#ffb070', 1.0] },
+  quarry: { fog: '#b8cce0', near: 120, far: 1.1, sky: ['#e8f2ff', '#5a5448', 0.85], sun: ['#fff4dc', 1.1] },
+  day: { fog: '#d8c49c', near: 90, far: 1, sky: ['#fff0d0', '#5a5034', 0.85], sun: ['#ffd8a0', 1.05] },
+}[NIGHT ? 'night' : CITY ? 'city' : BEACH ? 'beach' : QUARRY ? 'quarry' : 'day'];
+const FOG = LOOK.fog;
+scene.fog = new THREE.Fog(FOG, LOOK.near, 700);
 scene.background = new THREE.Color(FOG);
-scene.add(NIGHT ? new THREE.HemisphereLight('#6a7ab0', '#0c0e18', 0.62) : new THREE.HemisphereLight('#fff0d0', '#5a5034', 0.85));
-const sun = new THREE.DirectionalLight(NIGHT ? '#9fb4ff' : '#ffd8a0', NIGHT ? 0.5 : 1.05);
+scene.add(new THREE.HemisphereLight(...LOOK.sky));
+const sun = new THREE.DirectionalLight(...LOOK.sun);
 sun.position.set(-300, 220, 160);
 scene.add(sun);
 
 const mat = (color, extra = {}) => new THREE.MeshLambertMaterial({ color, ...extra });
+// one shared plain material for each colour (for scenery merged into big meshes: one per colour, not one per thing)
+const matOf = (() => { const m = new Map(); return c => m.get(c) || m.set(c, mat(c)).get(c); })();
 const textTexs = [];   // signs with writing on them: drawn again once the Bungee font has loaded
 function canvasTex(w, h, draw, repeat, text) {
   const c = document.createElement('canvas'); c.width = w; c.height = h;
@@ -566,7 +708,10 @@ if (NIGHT) {
 } else {
   const tex = canvasTex(4, 256, (g, w, h) => {
     const gr = g.createLinearGradient(0, 0, 0, h);
-    gr.addColorStop(0, '#5f8fc4'); gr.addColorStop(0.32, '#9ab8d2'); gr.addColorStop(0.47, '#e2cfa6'); gr.addColorStop(0.52, FOG); gr.addColorStop(1, FOG);
+    const stops = CITY ? [[0, '#141432'], [0.26, '#36285a'], [0.4, '#8a4470'], [0.47, '#d0705c']] : BEACH ? [[0, '#2a3070'], [0.24, '#7a5a9a'], [0.38, '#e88a8a'], [0.46, '#ffc27a']]
+      : QUARRY ? [[0, '#2a64bc'], [0.3, '#6a9ad8'], [0.46, '#cfe0f0']] : [[0, '#5f8fc4'], [0.32, '#9ab8d2'], [0.47, '#e2cfa6']];
+    for (const [k, c] of stops) gr.addColorStop(k, c);
+    gr.addColorStop(0.52, FOG); gr.addColorStop(1, FOG);
     g.fillStyle = gr; g.fillRect(0, 0, w, h);
   });
   sky.add(new THREE.Mesh(new THREE.SphereGeometry(1200, 32, 16), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, depthWrite: false })));
@@ -576,9 +721,10 @@ if (NIGHT) {
     gr.addColorStop(0, 'rgba(255,250,225,1)'); gr.addColorStop(0.12, 'rgba(255,236,170,.95)'); gr.addColorStop(0.35, 'rgba(255,200,120,.35)'); gr.addColorStop(1, 'rgba(255,190,110,0)');
     g.fillStyle = gr; g.fillRect(0, 0, w, h);
   });
-  const sunSprite = new THREE.Mesh(new THREE.PlaneGeometry(420, 420), new THREE.MeshBasicMaterial({ map: sunTex, transparent: true, fog: false, depthWrite: false }));
-  sunSprite.position.set(-900, 230, 480); sunSprite.lookAt(0, 0, 0);
-  sky.add(sunSprite);
+  // (the beach: a big orange sun going down into the sea; the quarry: high up; downtown: hidden in the rain clouds)
+  const sunSprite = new THREE.Mesh(new THREE.PlaneGeometry(BEACH ? 560 : 420, BEACH ? 560 : 420), new THREE.MeshBasicMaterial({ map: sunTex, transparent: true, fog: false, depthWrite: false, color: BEACH ? '#ffb070' : '#ffffff' }));
+  sunSprite.position.set(...(BEACH ? [-420, 70, -1000] : QUARRY ? [-600, 640, 500] : [-900, 230, 480])); sunSprite.lookAt(0, 0, 0);
+  if (!CITY) sky.add(sunSprite);
   // soft clouds
   const cloudTex = canvasTex(256, 128, (g, w, h) => {
     for (let i = 0; i < 14; i++) {
@@ -587,10 +733,12 @@ if (NIGHT) {
       g.fillStyle = gr; g.fillRect(0, 0, w, h);
     }
   });
-  const cloudMat = new THREE.MeshBasicMaterial({ map: cloudTex, transparent: true, fog: false, depthWrite: false, opacity: 0.85 });
-  for (let i = 0; i < 9; i++) {
-    const a = i / 9 * TAU + 0.3, r = 950, m = new THREE.Mesh(new THREE.PlaneGeometry(380, 150), cloudMat);
-    m.position.set(Math.cos(a) * r, 300 + (i % 3) * 70, Math.sin(a) * r); m.lookAt(0, m.position.y * 0.6, 0);
+  const cloudMat = new THREE.MeshBasicMaterial({ map: cloudTex, transparent: true, fog: false, depthWrite: false, opacity: CITY ? 0.95 : 0.85,
+    color: CITY ? '#5a4a6a' : BEACH ? '#ffb0a0' : '#ffffff' });
+  const nCloud = CITY ? 22 : 9;   // (downtown: low, heavy rain clouds)
+  for (let i = 0; i < nCloud; i++) {
+    const a = i / nCloud * TAU + 0.3, r = 950, m = new THREE.Mesh(new THREE.PlaneGeometry(CITY ? 520 : 380, CITY ? 200 : 150), cloudMat);
+    m.position.set(Math.cos(a) * r, (CITY ? 220 : BEACH ? 200 : 300) + (i % 3) * 70, Math.sin(a) * r); m.lookAt(0, m.position.y * 0.6, 0);
     sky.add(m);
   }
   // the horizon: blue hills, the city's towers and its suspension bridge in the haze, wind turbines on the ridge
@@ -603,6 +751,46 @@ if (NIGHT) {
       }
       g.lineTo(w, h); g.fill();
     };
+    if (QUARRY) {   // mountains all round: far blue peaks with snow on top, nearer ones darker
+      const peaks = (col, snow, hmax, base, k) => {
+        g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
+        const top = [];
+        for (let x = 0; x <= w; x += 6) {
+          const n = Math.abs(Math.sin(x * 0.006 + k)) * 0.6 + Math.abs(Math.sin(x * 0.017 + k * 3)) * 0.3 + Math.sin(x * 0.05 + k) * 0.06;
+          const y = h - base - n * hmax; top.push([x, y]); g.lineTo(x, y);
+        }
+        g.lineTo(w, h); g.fill();
+        if (!snow) return;
+        g.fillStyle = snow;
+        for (const [x, y] of top) if (y < h - base - hmax * 0.62) g.fillRect(x - 3, y, 7, (h - base - hmax * 0.62 - y) * 0.7 + 2);
+      };
+      peaks('#8aa0bc', '#f4f8ff', 170, 30, 1);
+      peaks('#6a7f90', '#e8eef6', 110, 20, 4);
+      peaks('#5a6a52', null, 50, 0, 9);
+      return;
+    }
+    if (BEACH) {   // the sea one way (just the horizon); dunes, a little town and its church the other
+      g.fillStyle = '#c89a8a'; g.beginPath(); g.moveTo(1024, h);
+      for (let x = 1024; x <= w; x += 8) g.lineTo(x, h - 26 - Math.abs(Math.sin(x * 0.02)) * 14 - Math.sin(x * 0.006) * 8);
+      g.lineTo(w, h); g.fill();
+      for (let x = 1300; x < 1700; x += 16 + (x * 7) % 11) { g.fillStyle = ['#a87a7a', '#b88a80', '#987070'][x % 3]; const bh = 10 + (x * 13) % 14; g.fillRect(x, h - 34 - bh, 12, bh + 10); g.beginPath(); g.moveTo(x - 2, h - 34 - bh); g.lineTo(x + 6, h - 42 - bh); g.lineTo(x + 14, h - 34 - bh); g.fill(); }
+      g.fillStyle = '#e8d8d0'; g.fillRect(1500, h - 96, 8, 60); g.beginPath(); g.moveTo(1498, h - 96); g.lineTo(1504, h - 128); g.lineTo(1510, h - 96); g.fill();
+      g.fillStyle = 'rgba(255,230,180,.9)'; for (let i = 0; i < 30; i++) g.fillRect(1300 + (i * 97) % 400, h - 40 - (i * 7) % 10, 2, 2);
+      return;
+    }
+    if (CITY) {   // Liberty City's towers all the way round, windows lit for the evening, and the neon's glow
+      for (const [col, top, lit] of [['#2a2440', 150, 0.3], ['#1c1830', 100, 0.55]]) {
+        g.fillStyle = col;
+        for (let x = 0; x < w; ) {
+          const bw = 14 + (x * 13) % 30, bh = 40 + ((x * 37) % top) + (Math.sin(x * 0.01) > 0.5 ? 70 : 0);
+          g.fillRect(x, h - 20 - bh, bw, bh + 20);
+          for (let y = h - 16 - bh; y < h - 22; y += 7) for (let wx = x + 2; wx < x + bw - 3; wx += 5) if (Math.random() < lit) { g.fillStyle = ['rgba(255,214,140,.9)', 'rgba(170,210,255,.8)', 'rgba(255,240,200,.9)'][(wx + y) % 3]; g.fillRect(wx, y, 2, 3); g.fillStyle = col; }
+          x += bw + 2;
+        }
+      }
+      for (const [cx, col] of [[300, '255,90,200'], [1100, '90,200,255'], [1700, '255,160,60']]) { const gl = g.createRadialGradient(cx, h, 10, cx, h, 240); gl.addColorStop(0, `rgba(${col},.28)`); gl.addColorStop(1, `rgba(${col},0)`); g.fillStyle = gl; g.fillRect(0, 0, w, h); }
+      return;
+    }
     ridge('#a9a6a0', 70, 1, 40);
     // the city (a quarter of the way round): towers of every height, a few lights, and the bridge
     g.fillStyle = '#8f9196';
@@ -632,7 +820,7 @@ scene.add(sky);
 // ---------- The fields ----------
 // A patchwork of crops (wheat, corn, ploughed earth, pasture), with the grass mown in stripes all round the track
 // (the arena sits in the same fields, on a square of trodden earth).
-if (!NIGHT) {
+if (FARM) {
   const SIZE = 1700, R = 2048;
   const toPx = v => (v / SIZE + 0.5) * R;
   const tex = canvasTex(R, R, (g, w, h) => {
@@ -728,8 +916,25 @@ const roadTex = canvasTex(256, 512, (g, w, h) => {
   g.fillStyle = '#f2f0e8'; g.fillRect(6, 0, 8, h); g.fillRect(w - 14, 0, 8, h);
   g.fillStyle = '#f2c230'; for (let y = 0; y < h; y += 128) g.fillRect(w / 2 - 4, y, 8, 70);
 }, true);
-const roadMat = mat('#ffffff', { map: roadTex });
-if (!BATTLE) strip(CANAL ? CANAL.s + CANAL.gap : 0, CANAL ? CANAL.s + N_T : N_T, -HW, HW, roadMat, 0.06, 2, 1 / 24);   // (not across the canal)
+// (downtown the road's wet: darker, with a shine)
+const roadMat = CITY ? new THREE.MeshPhongMaterial({ color: '#8a8a9a', map: roadTex, shininess: 120, specular: '#1c1820' }) : mat('#ffffff', { map: roadTex });
+// a stretch of track from a to b, the short way forward
+const span = (a, b) => [a, a + modS(b - a)];
+if (BEACH) {   // boards on the boardwalk and the pier, the road on the breakwater, sand along the beach
+  const boardTex = canvasTex(256, 256, (g, w, h) => {
+    for (let y = 0; y < h; y += 16) { g.fillStyle = ['#b88a5a', '#a87a4e', '#c09468', '#9a7048'][(y / 16) % 4]; g.fillRect(0, y, w, 15); g.fillStyle = '#5a3e26'; g.fillRect(0, y + 15, w, 1); }
+    g.fillStyle = 'rgba(60,40,20,.5)'; for (let y = 0; y < h; y += 16) for (const x of [30, 128, 226]) g.fillRect(x + ((y / 16) % 2) * 20, y + 6, 3, 3);
+    g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(6, 0, 6, h); g.fillRect(w - 12, 0, 6, h);
+  }, true);
+  const sandTex = canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#d8bc88'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 3000; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '255,240,200' : '150,120,80'},.35)`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+    g.fillStyle = 'rgba(140,110,70,.3)'; g.fillRect(w * 0.3, 0, 10, h); g.fillRect(w * 0.65, 0, 10, h);   // tyre tracks
+  }, true);
+  strip(...span(BOARDS.s0, CANAL.s), -HW, HW, mat('#ffffff', { map: boardTex }), 0.06, 2, 1 / 16);
+  strip(...span(CANAL.s + CANAL.gap, SAND.s0), -HW, HW, roadMat, 0.06, 2, 1 / 24);
+  strip(...span(SAND.s0, SAND.s1), -HW, HW, mat('#ffffff', { map: sandTex }), 0.06, 2, 1 / 20);
+} else if (!BATTLE) strip(CANAL ? CANAL.s + CANAL.gap : 0, CANAL ? CANAL.s + N_T : N_T, -HW, HW, roadMat, 0.06, 2, 1 / 24);   // (not across the canal)
 // the dirt shoulders (not on the bridge)
 const shoulderMat = mat('#9a865e');
 if (COURSE === 'fields') for (const side of [-1, 1]) {
@@ -738,7 +943,7 @@ if (COURSE === 'fields') for (const side of [-1, 1]) {
 // red and white kerbs on the inside of the hairpins
 const kerbTex = canvasTex(8, 64, (g, w, h) => { g.fillStyle = '#e8e4dc'; g.fillRect(0, 0, w, h); g.fillStyle = '#c8281e'; g.fillRect(0, 0, w, h / 2); }, true);
 const kerbMat = mat('#ffffff', { map: kerbTex });
-if (!BATTLE) for (const tip of [TIP_L, TIP_R]) {
+for (const tip of BENDS) {
   const b = bendAt(tip) || 1;
   strip(tip - 110, tip + 110, b > 0 ? HW - 0.2 : -HW - 1.4, b > 0 ? HW + 1.4 : -HW + 0.2, kerbMat, 0.075, 2, 1 / 4);
   strip(tip - 110, tip + 110, b > 0 ? -HW - 1.4 : HW - 0.2, b > 0 ? -HW + 0.2 : HW + 1.4, kerbMat, 0.075, 2, 1 / 4);
@@ -839,29 +1044,54 @@ const fenceMat = mat('#ece6d8'), railMat = mat('#ece6d8', { side: THREE.DoubleSi
 const RAIL = new THREE.PlaneGeometry(1, 1);
 function fenceGap(s, side) {
   if (BATTLE) return true;
-  if (CANAL && dS(s - CANAL.s) > -CANAL.up - 4 && dS(s - CANAL.s) < CANAL.gap + CANAL.down + 4) return true;   // (the canal and its ramps)
+  if (CANAL) {   // the canal and its ramps (the pier keeps its rails up the ramp: they stop over the sea)
+    const u = dS(s - CANAL.s);
+    if (BEACH ? u > -1 && u < CANAL.gap + 1 : u > -CANAL.up - 4 && u < CANAL.gap + CANAL.down + 4) return true;
+  }
   if (COURSE === 'fields' && (Math.abs(dS(s - SA)) < DECK + RAMP + 6 || Math.abs(dS(s - SB)) < 46)) return true;
   const b = bendAt(TIP_R) || 1;
   if (side === b && (Math.abs(dS(s - CUT.s0)) < 16 || Math.abs(dS(s - CUT.s1)) < 16)) return true;   // the way into the shortcut
-  if (Math.abs(dS(s - TRACTOR_S)) < 5) return true;   // the farm lane
+  if (TRACTOR_S && Math.abs(dS(s - TRACTOR_S)) < 5) return true;   // the farm lane (the forklift's, the buggy's, the truck's)
+  if (CITY && JUNCTIONS.some(j => Math.abs(dS(s - j.s)) < HW + 2)) return true;   // the streets across
+  if (onCliff(s) && side === CLIFF.side) return true;   // the cliff edge
   return false;
 }
+// (the subway's and the tunnel's walls are their fences: drawn with them)
+const fenceHidden = s => inTunnel(s) || (TRENCH && profile(s) < -0.3);
 {
-  const p = {}, q = {};
+  const p = {}, q = {}, steel = mat('#9aa0a8'), steelDark = mat('#5a6068'), rock = mat('#8a8680'), post = mat('#7a5a3a');
+  const slatTex = canvasTex(64, 32, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = '#9a7a58'; for (let x = 0; x < w; x += 8) g.fillRect(x, 0, 5, h); g.fillStyle = '#5a4a3a'; g.fillRect(0, 6, w, 2); g.fillRect(0, h - 8, w, 2); }, true);
+  const slatMat = new THREE.MeshLambertMaterial({ map: slatTex, transparent: true, alphaTest: 0.5, side: THREE.DoubleSide });
+  const ROCK = new THREE.IcosahedronGeometry(1, 0);
   for (const side of [-1, 1]) {
     for (let s = 0; s < N_T; s += 6) {
-      if (fenceGap(s, side)) continue;
-      trackPoint(s, side * FENCE, p);
-      if (NIGHT) {   // the docks: concrete barriers, every other one painted red and white
-        addStatic(BOX, (s / 6) % 2 ? barrierMat : barrierRed, p.x, 0.45, p.z, p.h, 0, 0, 0.6, 0.9, 5.9);
+      if (fenceGap(s, side) || fenceHidden(s)) continue;
+      const fd = fenceAt(s), y0 = profile(s);
+      trackPoint(s, side * fd, p);
+      const next = !fenceGap(s + 6, side) && !fenceHidden(s + 6) && fenceAt(s + 6) === fd;
+      if (next) trackPoint(s + 6, side * fd, q);
+      const len = next ? Math.hypot(q.x - p.x, q.z - p.z) : 0, ang = next ? Math.atan2(-(q.x - p.x), -(q.z - p.z)) + Math.PI / 2 : 0, y1 = next ? profile(s + 6) : y0;
+      if (NIGHT || CITY) {   // the docks and downtown: concrete barriers, every other one painted red and white
+        addStatic(BOX, (s / 6) % 2 ? barrierMat : barrierRed, p.x, y0 + 0.45, p.z, p.h, 0, 0, 0.6, 0.9, 5.9);
         continue;
       }
-      addStatic(BOX, fenceMat, p.x, 0.6, p.z, p.h, 0, 0, 0.16, 1.2, 0.16);
-      if (!fenceGap(s + 6, side)) {   // two rails (flat boards) to the next post
-        trackPoint(s + 6, side * FENCE, q);
-        const len = Math.hypot(q.x - p.x, q.z - p.z), ang = Math.atan2(-(q.x - p.x), -(q.z - p.z)) + Math.PI / 2;
-        for (const y of [0.5, 1.0]) addStatic(RAIL, railMat, (p.x + q.x) / 2, y, (p.z + q.z) / 2, ang, 0, 0, len, 0.14, 1);
+      if (QUARRY) {   // a steel crash barrier on posts
+        addStatic(BOX, steelDark, p.x, y0 + 0.4, p.z, p.h, 0, 0, 0.14, 0.8, 0.14);
+        if (next) addStatic(BOX, steel, (p.x + q.x) / 2, (y0 + y1) / 2 + 0.6, (p.z + q.z) / 2, ang, Math.atan2(y1 - y0, len), 0, len + 0.1, 0.32, 0.08);
+        continue;
       }
+      if (BEACH && fd === HW + 3) {   // the breakwater: big granite blocks
+        addStatic(ROCK, rock, p.x, y0 + 0.2, p.z, s, s * 0.7, 0, 1.8, 1.3, 1.6);
+        if (s % 12 === 0) addStatic(ROCK, rock, p.x + rand(-1, 1), y0 - 0.2, p.z + rand(-1, 1), s * 1.3, 0, s, 2.2, 1.4, 2);
+        continue;
+      }
+      if (BEACH && fd === HW + 9 && onSand(s)) {   // the beach: a dune fence of wooden slats
+        addStatic(BOX, post, p.x, y0 + 0.6, p.z, p.h, 0, 0, 0.14, 1.2, 0.14);
+        if (next) addStatic(RAIL, slatMat, (p.x + q.x) / 2, y0 + 0.55, (p.z + q.z) / 2, ang, 0, 0, len, 1.1, 1);
+        continue;
+      }
+      addStatic(BOX, fenceMat, p.x, y0 + 0.6, p.z, p.h, 0, 0, 0.16, 1.2, 0.16);
+      if (next) for (const y of [0.5, 1.0]) addStatic(RAIL, railMat, (p.x + q.x) / 2, (y0 + y1) / 2 + y, (p.z + q.z) / 2, ang, Math.atan2(y1 - y0, len), 0, len, 0.14, 1);   // two rails (flat boards) to the next post
     }
   }
 }
@@ -873,13 +1103,14 @@ function bale(x, z, ang, solid = true) {
   if (solid) colliders.push({ x, z, r: 1.0, top: 1.7, kind: 'bale' });
 }
 const tyreMat = mat('#1c1d22'), TYRE_STACK = new THREE.TorusGeometry(0.5, 0.22, 6, 12); TYRE_STACK.rotateX(Math.PI / 2);
-if (!BATTLE) for (const tip of [TIP_L, TIP_R]) {
+if (!BEACH) for (const tip of BENDS) {
   const b = bendAt(tip) || 1, p = {};
   for (let s = tip - 70; s <= tip + 70; s += 2.6) {
     trackPoint(s, b * (HW + 3.2), p);
-    if (!NIGHT) { bale(p.x, p.z, p.h); continue; }
-    for (let k = 0; k < 3; k++) addStatic(TYRE_STACK, tyreMat, p.x, 0.22 + k * 0.42, p.z);   // (the docks: stacks of old tyres)
-    colliders.push({ x: p.x, z: p.z, r: 0.8, top: 1.3, kind: 'bale' });
+    if (FARM) { bale(p.x, p.z, p.h); continue; }
+    const y0 = profile(s);   // (the docks and the quarry: stacks of old tyres)
+    for (let k = 0; k < 3; k++) addStatic(TYRE_STACK, tyreMat, p.x, y0 + 0.22 + k * 0.42, p.z);
+    colliders.push({ x: p.x, z: p.z, r: 0.8, top: y0 + 1.3, kind: 'bale' });
   }
 }
 
@@ -961,48 +1192,55 @@ function house(x, z, ang, w, d, h, wallMat, roof) {
   colliders.push({ x, z, r: Math.max(w, d) / 2, top: h + 3, kind: 'house' });
 }
 // The barn (at the docks a warehouse), astride the shortcut: big doors open at both ends, hay (or crates) inside
-const SHED = NIGHT ? { wall: mat('#5a6a7c'), roof: mat('#2a303c'), trim: mat('#ffc93a'), stuff: mat('#a8743a'), dirt: '#4a4a50', word: 'WAREHOUSE' }
-  : { wall: barnRed, roof: roofMat, trim: white, stuff: baleMat, dirt: '#9a7c52', word: 'BARN' };
+const SHED = NIGHT ? { wall: mat('#5a6a7c'), roof: mat('#2a303c'), trim: mat('#ffc93a'), stuff: mat('#a8743a'), dirt: '#4a4a50', msg: '📦 THROUGH THE WAREHOUSE!' }
+  : CITY ? { wall: mat('#8a8a92'), roof: mat('#4a4a54'), trim: mat('#ffc93a'), stuff: mat('#c8382e'), dirt: '#3a3a42', msg: '🅿️ THROUGH THE PARKING GARAGE!' }
+  : QUARRY ? { wall: mat('#6a4e32'), roof: mat('#8a4a2a'), trim: mat('#ffc93a'), stuff: mat('#5a5048'), dirt: '#8a7a64', msg: '⛏️ THROUGH THE OLD MINE!' }
+  : BEACH ? { none: true, dirt: '#b89a6a', msg: '🌊 ACROSS THE TIDAL FLAT!' }
+  : { wall: barnRed, roof: roofMat, trim: white, stuff: baleMat, dirt: '#9a7c52', msg: '🐴 THROUGH THE BARN!' };
 if (!BATTLE) {
   const ang = Math.atan2(CUT.uz, CUT.ux);   // u runs along the barn
   const cx = CUT.ax + CUT.ux * CUT.mid, cz = CUT.az + CUT.uz * CUT.mid;
   BARN.x = cx; BARN.z = cz;
   const along = (u, v) => [cx + CUT.ux * u - CUT.uz * v, cz + CUT.uz * u + CUT.ux * v];
   const ry = -ang + Math.PI / 2;   // (a box's z runs along the barn)
-  const H = 7.5;
-  for (const sv of [-1, 1]) {
+  const H = 7.5, Y = CUT.y;
+  if (!SHED.none) for (const sv of [-1, 1]) {
     const [x, z] = along(0, sv * BARN.hv);
-    addStatic(BOX, SHED.wall, x, H / 2, z, ry, 0, 0, 0.6, H, BARN.hu * 2);
-    wallBox(x, z, ang, BARN.hu, 0.4, H);
+    addStatic(BOX, SHED.wall, x, Y + H / 2, z, ry, 0, 0, 0.6, H, BARN.hu * 2);
+    wallBox(x, z, ang, BARN.hu, 0.4, Y + H);
     for (const su of [-1, 1]) {   // the end walls beside the doors
       const [ex, ez] = along(su * BARN.hu, sv * (BARN.door + BARN.hv) / 2);
-      addStatic(BOX, SHED.wall, ex, H / 2, ez, ry, 0, 0, BARN.hv - BARN.door, H, 0.6);
-      wallBox(ex, ez, ang, 0.35, (BARN.hv - BARN.door) / 2, H);
+      addStatic(BOX, SHED.wall, ex, Y + H / 2, ez, ry, 0, 0, BARN.hv - BARN.door, H, 0.6);
+      wallBox(ex, ez, ang, 0.35, (BARN.hv - BARN.door) / 2, Y + H);
       const [tx, tz] = along(su * BARN.hu, sv * BARN.door);   // white door frames
-      addStatic(BOX, SHED.trim, tx, H * 0.4, tz, ry, 0, 0, 0.5, H * 0.8, 0.7);
+      addStatic(BOX, SHED.trim, tx, Y + H * 0.4, tz, ry, 0, 0, 0.5, H * 0.8, 0.7);
       // the doors, swung wide open against the outside
       const [dx, dz] = along(su * (BARN.hu + BARN.door / 2 + 0.3), sv * (BARN.door + 0.4));
-      addStatic(BOX, SHED.wall, dx, H * 0.38, dz, ry, 0, 0, 0.2, H * 0.76, BARN.door);
-      wallBox(dx, dz, ang, BARN.door / 2, 0.15, H);
+      addStatic(BOX, SHED.wall, dx, Y + H * 0.38, dz, ry, 0, 0, 0.2, H * 0.76, BARN.door);
+      wallBox(dx, dz, ang, BARN.door / 2, 0.15, Y + H);
     }
   }
   // the gable ends over the doors, and the roof: two slopes
-  for (const su of [-1, 1]) { const [ex, ez] = along(su * BARN.hu, 0); addStatic(ROOF_GEO, SHED.wall, ex, H, ez, ry, 0, 0, BARN.hv * 2 + 0.6, 4.4, 0.6); }
-  for (const sv of [-1, 1]) {
+  if (CITY) {   // the garage: a flat deck on top, a big blue P
+    const [x, z] = along(0, 0); addStatic(BOX, SHED.roof, x, Y + H + 0.2, z, ry, 0, 0, BARN.hv * 2 + 1.2, 0.5, BARN.hu * 2 + 1.2);
+    const pTex = canvasTex(64, 64, (g, w, h) => { g.fillStyle = '#1d5fc8'; g.fillRect(0, 0, w, h); g.fillStyle = '#fff'; g.font = '52px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('P', w / 2, h / 2 + 3); }, false, true);
+    for (const su of [-1, 1]) { const [px, pz] = along(su * (BARN.hu + 0.5), 0); const pm = new THREE.Mesh(new THREE.PlaneGeometry(2.4, 2.4), new THREE.MeshBasicMaterial({ map: pTex })); pm.position.set(px, Y + H - 0.6, pz); pm.rotation.y = ry + (su > 0 ? 0 : Math.PI); scene.add(pm); }
+  } else if (!SHED.none) for (const su of [-1, 1]) { const [ex, ez] = along(su * BARN.hu, 0); addStatic(ROOF_GEO, SHED.wall, ex, Y + H, ez, ry, 0, 0, BARN.hv * 2 + 0.6, 4.4, 0.6); }
+  if (!SHED.none && !CITY) for (const sv of [-1, 1]) {
     const [x, z] = along(0, sv * BARN.hv / 2);
     const roofG = new THREE.BoxGeometry(BARN.hv + 1.4, 0.35, BARN.hu * 2 + 1.5);
     roofG.rotateZ(sv * 0.48);
-    addStatic(roofG, SHED.roof, x, H + 2.3, z, ry);
+    addStatic(roofG, SHED.roof, x, Y + H + 2.3, z, ry);
   }
-  // hay stacked along the sides inside
-  for (let u = -BARN.hu + 2; u < BARN.hu - 1; u += 2.4) for (const sv of [-1, 1]) {
+  // hay stacked along the sides inside (crates in the warehouse, cars in the garage, ore in the mine)
+  if (!SHED.none) for (let u = -BARN.hu + 2; u < BARN.hu - 1; u += 2.4) for (const sv of [-1, 1]) {
     const [x, z] = along(u, sv * (BARN.hv - 1.6));
-    addStatic(BOX, SHED.stuff, x, 0.6, z, ry, 0, 0, 1.6, 1.2, 2.2);
+    addStatic(BOX, SHED.stuff, x, Y + 0.6, z, ry, 0, 0, 1.6, 1.2, 2.2);
   }
   // the dirt track
   const pos = [], uv = [];
   for (const [u, v, tu, tv] of [[-6, -5, 0, 0], [CUT.len + 6, -5, 0, 1], [CUT.len + 6, 5, 1, 1], [-6, -5, 0, 0], [CUT.len + 6, 5, 1, 1], [-6, 5, 1, 0]]) {
-    const [x, z] = along(u - CUT.mid, v); pos.push(x, 0.035, z); uv.push(tu, tv * CUT.len / 12);
+    const [x, z] = along(u - CUT.mid, v); pos.push(x, Y + 0.035, z); uv.push(tu, tv * CUT.len / 12);
   }
   const dirtTex = canvasTex(64, 128, (g, w, h) => {
     g.fillStyle = SHED.dirt; g.fillRect(0, 0, w, h);
@@ -1016,7 +1254,7 @@ if (!BATTLE) {
   for (const u of CUT.pads) {
     const [px, pz] = along(u - CUT.mid, 0);
     const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 6), padMat);
-    pm.rotation.order = 'YXZ'; pm.rotation.set(-Math.PI / 2, Math.atan2(-CUT.ux, -CUT.uz), 0); pm.position.set(px, 0.08, pz);
+    pm.rotation.order = 'YXZ'; pm.rotation.set(-Math.PI / 2, Math.atan2(-CUT.ux, -CUT.uz), 0); pm.position.set(px, Y + 0.08, pz);
     scene.add(pm);
   }
   const cutSign = canvasTex(256, 96, (g2, w, h) => {
@@ -1029,12 +1267,13 @@ if (!BATTLE) {
   {   // beside the road just before the way in, facing the riders coming up to it
     const bIn = bendAt(TIP_R) || 1, q = trackPoint(CUT.s0 - 18, bIn * (HW + 4), {}), f = trackPoint(CUT.s0 - 70, 0, {});
     const sgn = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.9), signMat);
-    sgn.position.set(q.x, 2.8, q.z); sgn.rotation.y = Math.atan2(f.x - q.x, f.z - q.z); scene.add(sgn);
-    addStatic(BOX, wood, q.x, 1.3, q.z, sgn.rotation.y, 0, 0, 0.15, 2.6, 0.15);
+    const sy = profile(CUT.s0 - 18);
+    sgn.position.set(q.x, sy + 2.8, q.z); sgn.rotation.y = Math.atan2(f.x - q.x, f.z - q.z); scene.add(sgn);
+    addStatic(BOX, wood, q.x, sy + 1.3, q.z, sgn.rotation.y, 0, 0, 0.15, 2.6, 0.15);
   }
   placed.push({ x: cx, z: cz, r: 22 });
-  // a silo beside the barn (not at the docks)
-  if (NIGHT) placed.push({ x: cx, z: cz, r: 22 });
+  // a silo beside the barn (only in the fields)
+  if (COURSE !== 'fields') placed.push({ x: cx, z: cz, r: 22 });
   else {
   let sx = cx - CUT.uz * 28, sz = cz + CUT.ux * 28;
   if (!clearSpot(sx, sz, 4)) { sx = cx + CUT.uz * 28; sz = cz - CUT.ux * 28; }
@@ -1046,7 +1285,7 @@ if (!BATTLE) {
 }
 // a windmill in the left loop by the pond, and big wind turbines out in the fields
 const windmills = [];
-if (!NIGHT && !BATTLE) {
+if (COURSE === 'fields') {
   const x = -205, z = -30;
   for (const sgn of [-1, 1]) for (const sgn2 of [-1, 1]) addStatic(BOX, mat('#8a8e98'), x + sgn * 1.4, 6, z + sgn2 * 1.4, 0, sgn2 * 0.12, -sgn * 0.12, 0.25, 12, 0.25);
   const head = new THREE.Group(); head.position.set(x, 12.5, z); scene.add(head);
@@ -1057,7 +1296,7 @@ if (!NIGHT && !BATTLE) {
   animated.push((t, dt) => { fan.rotation.z -= dt * 3; });
   placed.push({ x, z, r: 6 });
 }
-if (!NIGHT) for (const [x, z] of [[520, -360], [600, -220], [-560, 330], [-640, 190], [420, 420]]) {
+if (FARM) for (const [x, z] of [[520, -360], [600, -220], [-560, 330], [-640, 190], [420, 420]]) {
   addStatic(new THREE.CylinderGeometry(0.9, 1.6, 60, 10), mat('#ecebe6'), x, 30, z);
   const hub = new THREE.Group(); hub.position.set(x, 60, z); hub.lookAt(0, 60, 0); scene.add(hub);
   const rotor = new THREE.Group(); rotor.position.z = 1.5; hub.add(rotor);
@@ -1067,7 +1306,7 @@ if (!NIGHT) for (const [x, z] of [[520, -360], [600, -220], [-560, 330], [-640, 
   windmills.push(hub);
 }
 // the farmhouse, a red barn and sheds round the outside, a water tower
-if (!NIGHT) {
+if (FARM) {
   const spots = [[260, 210, 0.3, 'farm'], [-300, -210, -0.4, 'farm'], [80, -230, 0.1, 'shed'], [-90, 240, 1.2, 'shed'], [330, -160, 0.6, 'barn'], [-350, 170, -0.9, 'barn']];
   for (const [x, z, a, kind] of spots) {
     if (!clearSpot(x, z, 14)) continue;
@@ -1114,7 +1353,7 @@ if (COURSE === 'fields') {
   });
 }
 // trees: low-poly round ones and poplars, mostly in clumps and along the lanes
-if (!NIGHT) {
+if (FARM) {
   const trunk = mat('#6a4a2e'), leafA = mat('#4f7a34'), leafB = mat('#668f3e'), leafC = mat('#3f6a30');
   const blob = new THREE.IcosahedronGeometry(1, 0), cone = new THREE.ConeGeometry(1, 1, 7), cyl = new THREE.CylinderGeometry(0.25, 0.35, 1, 5, 1, true);
   let n = 0;
@@ -1144,6 +1383,47 @@ if (!NIGHT) {
     if (!clearSpot(x, z, 1)) continue;
     addStatic(BOX, pole, x, 5, z, 0, 0, 0, 0.3, 10, 0.3);
     addStatic(BOX, pole, x, 9.2, z, 0, 0, 0, 0.2, 0.2, 2.2);
+  }
+}
+
+// ---------- Street lamps and neon signs (the docks and downtown) ----------
+// a lamp every so often, on alternate sides: a pole, an arm, a warm lamp and the pool of light it throws on the road
+const poolTex = canvasTex(64, 64, (g, w, h) => { const gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, 'rgba(255,200,120,.55)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+const poolMat = new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2, fog: !CITY });   // (downtown's fog is light: added in, it would glow pink)
+const POOL = new THREE.PlaneGeometry(16, 16); POOL.rotateX(-Math.PI / 2);
+const poleMat = mat('#2a2c34'), lampMat = new THREE.MeshBasicMaterial({ color: '#ffd28a' });
+function lampRow(every, skip = () => false) {
+  for (let s2 = 10, i = 0; s2 < N_T; s2 += every, i++) {
+    if (fenceGap(s2, 1) || skip(s2)) continue;
+    const sd = i % 2 ? 1 : -1, y = profile(s2), q = trackPoint(s2, sd * (HW + 2.6), {}), a = trackPoint(s2, sd * (HW - 1.5), {});
+    addStatic(BOX, poleMat, q.x, y + 4.5, q.z, 0, 0, 0, 0.25, 9, 0.25);
+    addStatic(BOX, poleMat, (q.x + a.x) / 2, y + 9, (q.z + a.z) / 2, q.h + Math.PI / 2, 0, 0, Math.hypot(a.x - q.x, a.z - q.z), 0.2, 0.2);
+    addStatic(BOX, lampMat, a.x, y + 8.8, a.z, q.h, 0, 0, 0.9, 0.25, 0.5);
+    const pl = trackPoint(s2, sd * 2, {});
+    addStatic(POOL, poolMat, pl.x, y + 0.12, pl.z);
+    colliders.push({ x: q.x, z: q.z, r: 0.3, top: y + 9, kind: 'post' });
+  }
+}
+// a neon billboard beside the road on side sd, facing the riders coming up to it (downtown: and its reflection in the
+// wet road)
+function neonBoard(title, col, sub, sAt, sd, wet) {
+  const p = trackPoint(sAt, sd * (FENCE + 6), {}), f = trackPoint(sAt - 50, 0, {});
+  const tex = canvasTex(512, 256, (g, w, h) => {
+    g.fillStyle = '#0a0a14'; g.fillRect(0, 0, w, h); g.shadowColor = col; g.shadowBlur = 24; g.strokeStyle = col; g.lineWidth = 8; g.strokeRect(14, 14, w - 28, h - 28);
+    g.font = '50px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = col; g.fillText(title, w / 2, h * 0.42, w - 50);
+    g.shadowBlur = 0; g.font = '800 28px Inter, sans-serif'; g.fillStyle = '#ffffff'; g.fillText(sub, w / 2, h * 0.72, w - 50);
+  }, false, true);
+  const board = new THREE.Mesh(new THREE.PlaneGeometry(14, 7), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
+  board.position.set(p.x, 8, p.z); board.rotation.y = Math.atan2(f.x - p.x, f.z - p.z);
+  scene.add(board);
+  for (const o of [-4, 4]) addStatic(BOX, poleMat, p.x + Math.cos(board.rotation.y) * o, 2.3, p.z - Math.sin(board.rotation.y) * o, board.rotation.y, 0, 0, 0.4, 4.6, 0.4);
+  placed.push({ x: p.x, z: p.z, r: 9 });
+  if (wet) {   // a smear of its colour on the road in front of it
+    const glowTex = canvasTex(64, 128, (g, w, h) => {   // (streaks, brightest in the middle)
+      for (let x = 4; x < w; x += 9) { const gr = g.createLinearGradient(0, 0, 0, h), a = 0.05 + 0.06 * Math.sin(x / w * Math.PI); gr.addColorStop(0, 'rgba(255,255,255,0)'); gr.addColorStop(0.5, `rgba(255,255,255,${a})`); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(x, 0, 3, h); }
+    });
+    const m = new THREE.MeshBasicMaterial({ map: glowTex, color: col, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2 });
+    strip(sAt - 14, sAt + 2, sd * 1, sd * (HW - 0.5), m, 0.1, 2, 1 / 16);
   }
 }
 
@@ -1250,37 +1530,9 @@ if (COURSE === 'docks') {
     if (!clearSpot(x, z, 16)) continue;
     house(x, z, a, 26, 16, 10, shedMat, mat('#2a303c')); placed.push({ x, z, r: 18 });
   }
-  // street lamps: a pole, an arm, a warm lamp and the pool of light it throws on the road
-  const poolTex = canvasTex(64, 64, (g, w, h) => { const gr = g.createRadialGradient(32, 32, 2, 32, 32, 32); gr.addColorStop(0, 'rgba(255,200,120,.55)'); gr.addColorStop(1, 'rgba(255,200,120,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
-  const poolMat = new THREE.MeshBasicMaterial({ map: poolTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, polygonOffset: true, polygonOffsetFactor: -2 });
-  const POOL = new THREE.PlaneGeometry(16, 16); POOL.rotateX(-Math.PI / 2);
-  const poleMat = mat('#2a2c34'), lampMat = glow('#ffd28a');
-  for (let s2 = 10, i = 0; s2 < N_T; s2 += 38, i++) {
-    if (fenceGap(s2, 1)) continue;
-    const sd = i % 2 ? 1 : -1, q = trackPoint(s2, sd * (HW + 2.6), {}), a = trackPoint(s2, sd * (HW - 1.5), {});
-    addStatic(BOX, poleMat, q.x, 4.5, q.z, 0, 0, 0, 0.25, 9, 0.25);
-    addStatic(BOX, poleMat, (q.x + a.x) / 2, 9, (q.z + a.z) / 2, q.h + Math.PI / 2, 0, 0, Math.hypot(a.x - q.x, a.z - q.z), 0.2, 0.2);
-    addStatic(BOX, lampMat, a.x, 8.8, a.z, q.h, 0, 0, 0.9, 0.25, 0.5);
-    const pl = trackPoint(s2, sd * 2, {});
-    addStatic(POOL, poolMat, pl.x, profile(s2) + 0.12, pl.z);
-    colliders.push({ x: q.x, z: q.z, r: 0.3, top: 9, kind: 'post' });
-  }
-  // neon billboards
+  lampRow(38);
   const ads = [['ROBOBANDIT COLA', '#ff3a6a', '🥤 Ice cold!'], ['LIBERTY DOCKS', '#3af0ff', '⚓ Night Grand Prix'], ["LUCKY LEO'S", '#7aff6a', '☘️ Open all night'], ['WITCH WAY OUT', '#ffb347', '🧹 Moonlight Grand Prix']];
-  ads.forEach(([title, col, sub], i) => {
-    const sAt = [N_T * 0.12, N_T * 0.42, N_T * 0.62, N_T * 0.86][i], sd = bendAt(sAt) ? -bendAt(sAt) : 1;
-    const p = trackPoint(sAt, sd * (FENCE + 6), {}), f = trackPoint(sAt - 50, 0, {});
-    const tex = canvasTex(512, 256, (g, w, h) => {
-      g.fillStyle = '#0a0a14'; g.fillRect(0, 0, w, h); g.shadowColor = col; g.shadowBlur = 24; g.strokeStyle = col; g.lineWidth = 8; g.strokeRect(14, 14, w - 28, h - 28);
-      g.font = '50px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = col; g.fillText(title, w / 2, h * 0.42, w - 50);
-      g.shadowBlur = 0; g.font = '800 28px Inter, sans-serif'; g.fillStyle = '#ffffff'; g.fillText(sub, w / 2, h * 0.72, w - 50);
-    }, false, true);
-    const board = new THREE.Mesh(new THREE.PlaneGeometry(14, 7), new THREE.MeshBasicMaterial({ map: tex, side: THREE.DoubleSide }));
-    board.position.set(p.x, 8, p.z); board.rotation.y = Math.atan2(f.x - p.x, f.z - p.z);
-    scene.add(board);
-    for (const o of [-4, 4]) addStatic(BOX, poleMat, p.x + Math.cos(board.rotation.y) * o, 2.3, p.z - Math.sin(board.rotation.y) * o, board.rotation.y, 0, 0, 0.4, 4.6, 0.4);
-    placed.push({ x: p.x, z: p.z, r: 9 });
-  });
+  ads.forEach(([title, col, sub], i) => { const sAt = [N_T * 0.12, N_T * 0.42, N_T * 0.62, N_T * 0.86][i]; neonBoard(title, col, sub, sAt, bendAt(sAt) ? -bendAt(sAt) : 1); });
   // a lighthouse at the end of the pier, its beam sweeping round
   {
     const lx = QW - 18, lz = -QD + 18;
@@ -1303,6 +1555,464 @@ if (COURSE === 'docks') {
     for (let i = 0; i < 9; i++) addStatic(BOX, contCols[i % contCols.length], sx - 60 + i * 12, 10.3, sz, 0, 0, 0, 11, 2.6, 22);
     for (let i = 0; i < 6; i++) addStatic(BOX, lampMat, sx + 54 + (i % 3) * 5, 14 + Math.floor(i / 3) * 4, sz - 10.1, 0, 0, 0, 2, 1, 0.2);
   }
+}
+
+// ---------- Downtown ----------
+// Liberty City at dusk, in the rain: wet streets on a grid, blocks of towers with their windows lit, street lamps,
+// neon, traffic across the junctions, and the subway: the road dives under the cross street through a station.
+const followCam = [];   // (things kept round each camera as its view is drawn: the rain, the sun's glitter on the sea)
+if (CITY) {
+  // the streets: wet asphalt (a hole where the subway goes down), the blocks' pavements, a few left as little parks
+  const streetTex = canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#3a3a42'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 3000; i++) { const v = 50 + Math.floor(Math.random() * 30); g.fillStyle = `rgba(${v},${v},${v + 8},.5)`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+    g.fillStyle = 'rgba(120,120,150,.18)'; for (let i = 0; i < 8; i++) { g.beginPath(); g.ellipse(Math.random() * w, Math.random() * h, 10 + Math.random() * 20, 5 + Math.random() * 8, Math.random() * 3, 0, TAU); g.fill(); }   // puddles
+  }, true);
+  streetTex.repeat.set(40, 40);
+  const streetMat = new THREE.MeshPhongMaterial({ map: streetTex, shininess: 120, specular: '#1c1820' });
+  const hx0 = -200 - HW - 0.4, hx1 = -200 + HW + 0.4, hz0 = TRENCH ? trackAt(TRENCH.s - TRENCH.flat - TRENCH.ramp, {}).z : 0, hz1 = TRENCH ? trackAt(TRENCH.s + TRENCH.flat + TRENCH.ramp, {}).z : 0;
+  const Z0 = Math.min(hz0, hz1), Z1 = Math.max(hz0, hz1), E = 800;
+  for (const [x0, x1, z0, z1] of [[-E, hx0, -E, E], [hx1, E, -E, E], [hx0, hx1, -E, Z0], [hx0, hx1, Z1, E]]) {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(x1 - x0, z1 - z0), streetMat);
+    m.rotation.x = -Math.PI / 2; m.position.set((x0 + x1) / 2, -0.02, (z0 + z1) / 2);
+    const uv = m.geometry.attributes.uv; for (let i = 0; i < uv.count; i++) uv.setXY(i, uv.getX(i) * (x1 - x0) / (2 * E), uv.getY(i) * (z1 - z0) / (2 * E));
+    scene.add(m);
+  }
+  const paveTex = canvasTex(128, 128, (g, w, h) => { g.fillStyle = '#6a6870'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(30,28,36,.5)'; g.lineWidth = 2; for (let k = 0; k <= w; k += 32) { g.beginPath(); g.moveTo(k, 0); g.lineTo(k, h); g.stroke(); g.beginPath(); g.moveTo(0, k); g.lineTo(w, k); g.stroke(); } }, true);
+  paveTex.repeat.set(20, 20);
+  const paveMat = new THREE.MeshPhongMaterial({ map: paveTex, shininess: 100, specular: '#16141a' }), SLAB = new THREE.PlaneGeometry(100 - 2 * HW, 100 - 2 * HW);
+  SLAB.rotateX(-Math.PI / 2);
+  // the towers: brick, concrete, glass and sandstone, windows lit (a texture of 8 × 8 windows, 4 m apart)
+  const winTex = (lit) => canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = lit ? '#000000' : '#ffffff'; g.fillRect(0, 0, w, h);
+    for (let y = 0; y < 8; y++) for (let x = 0; x < 8; x++) {
+      if (lit) { if (Math.random() < 0.42) { g.fillStyle = ['#ffd890', '#ffe8c0', '#a8c8ff', '#ffc070'][(x + y * 3) % 4]; g.fillRect(x * 32 + 8, y * 32 + 8, 16, 18); } }
+      else { g.fillStyle = '#5a5a66'; g.fillRect(x * 32 + 8, y * 32 + 8, 16, 18); }
+    }
+  }, true);
+  const facade = winTex(false), lights = winTex(true);
+  const towerMats = ['#9a5a48', '#8a8a90', '#5a7a9a', '#b8a080'].map(c => new THREE.MeshLambertMaterial({ color: c, map: facade, emissive: '#ffffff', emissiveMap: lights, emissiveIntensity: 0.9 }));
+  const roofDark = mat('#2a2830'), TANK = new THREE.CylinderGeometry(2, 2, 3.4, 10), TANK_TOP = new THREE.ConeGeometry(2.3, 1.6, 10);
+  function tower(x, z, w, d, h, m) {
+    const geo = new THREE.BoxGeometry(w, h, d), uv = geo.attributes.uv;
+    for (let f = 0; f < 6; f++) for (let k = 0; k < 4; k++) {
+      const i = f * 4 + k, across = f < 2 ? d : w;
+      if (f === 2 || f === 3) uv.setXY(i, 0.02, 0.02);   // (the roof: the texture's dark corner)
+      else uv.setXY(i, uv.getX(i) * across / 32, uv.getY(i) * h / 32);
+    }
+    addStatic(geo, m, x, h / 2, z);
+    addStatic(BOX, roofDark, x, h + 0.4, z, 0, 0, 0, w - 1, 0.8, d - 1);
+    if (h > 24 && rnd() < 0.35) {   // a water tower on the roof
+      addStatic(TANK, matOf('#6a4a36'), x + w * 0.2, h + 4.6, z - d * 0.2);
+      addStatic(TANK_TOP, matOf('#4a3426'), x + w * 0.2, h + 7.1, z - d * 0.2);
+      for (const [ox, oz] of [[-1.2, -1.2], [1.2, -1.2], [-1.2, 1.2], [1.2, 1.2]]) addStatic(BOX, matOf('#3a3030'), x + w * 0.2 + ox, h + 1.6, z - d * 0.2 + oz, 0, 0, 0, 0.2, 2.6, 0.2);
+    } else if (rnd() < 0.5) addStatic(BOX, matOf('#7a7a82'), x - w * 0.15, h + 1.4, z + d * 0.1, 0, 0, 0, 4, 2, 3);   // (air conditioning)
+    colliders.push({ x, z, r: Math.min(w, d) / 2, top: h, kind: 'house' });
+  }
+  // neon on the street, its colour in the wet road
+  [['LIBERTY CITY', '#ff4ad0', '🌆 Downtown Grand Prix'], ['ROBOBANDIT COLA', '#ff3a6a', '🥤 Ice cold!'], ['PUMPKIN PALS', '#ff9a2a', '🎃 Now playing!'], ['SPACE WARS', '#3af0ff', '🚀 Arcade · open late']]
+    .forEach(([t, c, sub], i) => { const sAt = sNear(...[[150, -200], [300, -40], [-60, 200], [-200, 150]][i]); neonBoard(t, c, sub, sAt, (bendAt(sAt) ? -bendAt(sAt) : 1) * (i % 2 ? -1 : 1), true); });
+  const leaf = mat('#3a5a32'), trunk = mat('#4a3a2e'), blob = new THREE.IcosahedronGeometry(1, 0);
+  const near = (x, z, r) => placed.some(p => Math.hypot(p.x - x, p.z - z) < p.r + r);
+  const onCut = (x, z, r) => { const c = cutUV(x, z); return c.u > -20 && c.u < CUT.len + 20 && Math.abs(c.v) < 12 + r; };
+  for (let bx = -600; bx < 700; bx += 100) for (let bz = -600; bz < 600; bz += 100) {
+    const cx = bx + 50, cz = bz + 50;
+    addStatic(SLAB, paveMat, cx, 0.02, cz);
+    const centre = Math.hypot(cx - 50, cz) < 420;   // (the tallest towers downtown, round the course)
+    for (const [ox, oz] of [[-21, -21], [21, -21], [-21, 21], [21, 21]]) {
+      const x = cx + ox, z = cz + oz;
+      let w = 30 + rnd(-4, 4), d = 30 + rnd(-4, 4);
+      if (trackDist(x, z) < Math.hypot(w, d) / 2 + FENCE + 1) { w = 20; d = 20; }
+      if (trackDist(x, z) < Math.hypot(w, d) / 2 + FENCE + 1) continue;
+      if (onCut(x, z, w / 2) || near(x, z, w / 2)) {   // (by the grandstand and the shortcut: a little park)
+        if (onCut(x, z, 4)) continue;
+        for (let k = 0; k < 3; k++) { const tx = x + rnd(-10, 10), tz = z + rnd(-10, 10); if (trackDist(tx, tz) < FENCE + 3 || near(tx, tz, 2)) continue; addStatic(BOX, trunk, tx, 1.5, tz, 0, 0, 0, 0.4, 3, 0.4); addStatic(blob, leaf, tx, 4.2, tz, rnd(0, 3), 0, 0, 2.6, 2.4, 2.6); }
+        continue;
+      }
+      const h = centre ? rnd(16, 70) * (rnd() < 0.15 ? 1.6 : 1) : rnd(14, 50);
+      tower(x, z, w, d, h, towerMats[Math.floor(rnd() * 4)]);
+    }
+  }
+  lampRow(34, s2 => JUNCTIONS.some(j => Math.abs(dS(s2 - j.s)) < HW + 4) || profile(s2) < -0.3);
+  // the subway: tiled walls down to the road, the station's roof (the cross street runs over it) with lights under
+  // it, and a SUBWAY sign over each mouth
+  {
+    const tileTex = canvasTex(128, 64, (g, w, h) => {
+      g.fillStyle = '#d8d4c8'; g.fillRect(0, 0, w, h); g.strokeStyle = 'rgba(80,80,80,.45)'; g.lineWidth = 1;
+      for (let y = 0; y <= h; y += 8) { g.beginPath(); g.moveTo(0, y); g.lineTo(w, y); g.stroke(); }
+      for (let y = 0; y < h; y += 8) for (let x = (y / 8) % 2 * 8; x <= w; x += 16) { g.beginPath(); g.moveTo(x, y); g.lineTo(x, y + 8); g.stroke(); }
+      g.fillStyle = '#2a7a4a'; g.fillRect(0, h * 0.62, w, 6);
+    }, true);
+    const tileMat = new THREE.MeshLambertMaterial({ map: tileTex, side: THREE.DoubleSide });
+    const s0 = TRENCH.s - TRENCH.flat - TRENCH.ramp, s1 = TRENCH.s + TRENCH.flat + TRENCH.ramp;
+    for (const d of [-HW - 0.4, HW + 0.4]) wallStrip(s0, s1, d, s2 => profile(s2) - 0.1, () => 0.25, tileMat, 1.5);
+    const deckMat = new THREE.MeshLambertMaterial({ color: '#4a4850', side: THREE.DoubleSide });
+    strip(TRENCH.s - TRENCH.flat, TRENCH.s + TRENCH.flat, -HW - 0.5, HW + 0.5, mat('#3c3c44'), 0, 2, 1 / 24, () => -0.01);
+    strip(TRENCH.s - TRENCH.flat, TRENCH.s + TRENCH.flat, -HW - 0.5, HW + 0.5, deckMat, 0, 2, 1 / 24, () => -0.7);
+    for (const u of [-TRENCH.flat, TRENCH.flat]) {   // the faces over each mouth
+      const pos = [], p = {};
+      for (const [d, y] of [[-HW - 0.5, -0.7], [HW + 0.5, -0.7], [HW + 0.5, 0], [-HW - 0.5, -0.7], [HW + 0.5, 0], [-HW - 0.5, 0]]) { trackPoint(TRENCH.s + u, d, p); pos.push(p.x, y, p.z); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+      scene.add(new THREE.Mesh(g, deckMat));
+    }
+    const tubeLamp = new THREE.MeshBasicMaterial({ color: '#fff0c8' });
+    for (let u = -TRENCH.flat + 3; u < TRENCH.flat; u += 6) for (const d of [-4, 4]) { const p = trackPoint(TRENCH.s + u, d, {}); addStatic(BOX, tubeLamp, p.x, -0.8, p.z, p.h, 0, 0, 0.5, 0.1, 3); }
+    // railings along the open parts, up at street level
+    const rail = mat('#3a3c44');
+    for (let s2 = s0; s2 <= s1; s2 += 3) {
+      if (Math.abs(dS(s2 - TRENCH.s)) < TRENCH.flat) continue;
+      for (const d of [-HW - 0.6, HW + 0.6]) { const p = trackPoint(s2, d, {}); addStatic(BOX, rail, p.x, 0.6, p.z, p.h, 0, 0, 0.1, 1.2, 0.1); }
+    }
+    for (const d of [-HW - 0.6, HW + 0.6]) {
+      const a = trackPoint(s0, d, {}), b = trackPoint(s1, d, {});
+      addStatic(BOX, rail, (a.x + b.x) / 2, 1.15, (a.z + b.z) / 2, a.h, 0, 0, 0.12, 0.1, Math.hypot(b.x - a.x, b.z - a.z));
+    }
+    const subTex = canvasTex(512, 96, (g, w, h) => {
+      g.fillStyle = '#1a2a22'; g.fillRect(0, 0, w, h); g.fillStyle = '#3ddc84'; g.fillRect(0, 0, w, 6); g.fillRect(0, h - 6, w, 6);
+      g.font = '50px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffffff'; g.fillText('🚇 SUBWAY', w / 2, h / 2 + 3);
+    }, false, true);
+    for (const u of [-TRENCH.flat, TRENCH.flat]) {
+      const p = trackPoint(TRENCH.s + u, 0, {});
+      const m = new THREE.Mesh(new THREE.PlaneGeometry(2 * HW, 2), new THREE.MeshBasicMaterial({ map: subTex, side: THREE.DoubleSide }));
+      m.position.set(p.x, 0.7, p.z); m.rotation.y = p.h + (u < 0 ? 0 : Math.PI); scene.add(m);
+      for (const sd of [-1, 1]) { const q = trackPoint(TRENCH.s + u, sd * (HW + 1), {}); addStatic(BOX, rail, q.x, 0.9, q.z, 0, 0, 0, 0.2, 1.8, 0.2); addStatic(new THREE.SphereGeometry(0.4, 10, 8), new THREE.MeshBasicMaterial({ color: '#3ddc84' }), q.x, 2.0, q.z); }
+    }
+    placed.push({ x: -200, z: 0, r: 20 });
+  }
+  // the rain: streaks falling round each camera (moved to it before each view is drawn)
+  const N = 1400, pos = new Float32Array(N * 6), seeds = [];
+  for (let i = 0; i < N; i++) seeds.push([rand(-40, 40), rand(-6, 30), rand(-40, 40), rand(16, 22)]);
+  const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+  const drops = new THREE.LineSegments(geo, new THREE.LineBasicMaterial({ color: '#b8c4e0', transparent: true, opacity: 0.4, fog: false }));
+  drops.frustumCulled = false; scene.add(drops); followCam.push(cam => drops.position.copy(cam.position));
+  animated.push((t, dt) => {
+    for (let i = 0; i < N; i++) {
+      const q = seeds[i]; q[1] -= q[3] * dt; if (q[1] < -10) q[1] += 40;
+      pos.set([q[0], q[1], q[2], q[0] + 0.15, q[1] + 1.1, q[2] + 0.1], i * 6);
+    }
+    geo.attributes.position.needsUpdate = true;
+  });
+}
+
+// ---------- Cape Cod Boardwalk ----------
+// Sunset by the sea: the boardwalk with its shops and a Ferris wheel, the beach, the pier out over the water with a
+// ramp off the end, the lighthouse on its rock, the breakwater back to the beach, and the tidal flat (the shortcut)
+// that floods as the race goes on.
+let tidePlane = null;
+if (BEACH) {
+  const SHORE = -70, glowM = c => new THREE.MeshBasicMaterial({ color: c });
+  // the sand, wet sand and surf along the shore, and the sea, glowing with the sunset
+  const sandTex = canvasTex(128, 128, (g, w, h) => { g.fillStyle = '#dcc08c'; g.fillRect(0, 0, w, h); for (let i = 0; i < 1500; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '255,240,210' : '170,140,100'},.3)`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } }, true);
+  sandTex.repeat.set(60, 26);
+  const sand = new THREE.Mesh(new THREE.PlaneGeometry(1800, 780), mat('#ffffff', { map: sandTex }));
+  sand.rotation.x = -Math.PI / 2; sand.position.set(0, -0.04, SHORE + 390); scene.add(sand);
+  const wet = new THREE.Mesh(new THREE.PlaneGeometry(1800, 26), mat('#a88a64'));
+  wet.rotation.x = -Math.PI / 2; wet.position.set(0, -0.03, SHORE + 10); scene.add(wet);
+  const foamTex = canvasTex(256, 32, (g, w, h) => { g.clearRect(0, 0, w, h); g.fillStyle = 'rgba(255,255,255,.85)'; for (let x = 0; x < w; x += 2) { const y = h / 2 + Math.sin(x * 0.08) * 5 + Math.sin(x * 0.21) * 2; g.fillRect(x, y, 2, 4); } }, true);
+  foamTex.repeat.set(40, 1);
+  const foam = new THREE.Mesh(new THREE.PlaneGeometry(1800, 6), new THREE.MeshBasicMaterial({ map: foamTex, transparent: true, depthWrite: false }));
+  foam.rotation.x = -Math.PI / 2; foam.position.set(0, 0.0, SHORE - 2); scene.add(foam);
+  animated.push(t => { foam.position.z = SHORE - 2 + Math.sin(t * 0.8) * 3; foamTex.offset.x = t * 0.01; });
+  const seaTex = canvasTex(256, 256, (g, w, h) => {
+    g.fillStyle = '#2a3a6a'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 300; i++) { g.fillStyle = ['rgba(255,170,120,.35)', 'rgba(255,120,160,.25)', 'rgba(140,170,255,.3)'][i % 3]; g.fillRect(Math.random() * w, Math.random() * h, 6 + Math.random() * 16, 1.5); }
+  }, true);
+  seaTex.repeat.set(30, 30);
+  const sea = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.MeshBasicMaterial({ map: seaTex }));
+  sea.rotation.x = -Math.PI / 2; sea.position.y = -1.6; scene.add(sea);
+  animated.push(t => { seaTex.offset.set(t * 0.003, t * 0.004); });
+  // the sun's glitter on the water, a path from wherever you are toward the setting sun
+  {
+    const tex = canvasTex(64, 256, (g, w, h) => {
+      for (let i = 0; i < 500; i++) { const y = Math.random() * h, k = y / h; g.fillStyle = `rgba(255,${190 + Math.floor(Math.random() * 60)},120,${0.15 + 0.6 * k})`; g.fillRect(w / 2 + (Math.random() - 0.5) * w * (0.2 + 0.8 * k), y, 4 + Math.random() * 6, 1.5); }
+    });
+    const glint = new THREE.Mesh(new THREE.PlaneGeometry(90, 1000), new THREE.MeshBasicMaterial({ map: tex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, fog: false }));
+    glint.rotation.order = 'YXZ'; glint.rotation.set(-Math.PI / 2, Math.atan2(420, 1000), 0);
+    scene.add(glint);
+    followCam.push(cam => glint.position.set(cam.position.x - 420 * 0.5, -1.5, Math.min(SHORE - 40, cam.position.z - 1000 * 0.5)));
+  }
+  // the pier: posts down into the sea, its edges, old lamps along the rails; the ramp off the end; the rock beyond
+  const woodM = mat('#8a6a48'), woodDark = mat('#5a4430'), postGeo = new THREE.CylinderGeometry(0.35, 0.4, 1, 8);
+  const sShore = sNear(300, SHORE), sLand = CANAL.s + CANAL.gap;
+  for (let s2 = sShore; s2 <= CANAL.s; s2 += 8) for (const d of [-HW - 0.9, HW + 0.9]) {
+    const p = trackPoint(s2, d, {}), top = profile(s2) - 0.1;
+    addStatic(postGeo, woodDark, p.x, (top - 3) / 2, p.z, 0, 0, 0, 1, top + 3, 1);
+  }
+  for (const d of [-HW - 1.3, HW + 1.3]) wallStrip(sShore, CANAL.s, d, s2 => profile(s2) - 0.6, s2 => profile(s2) + 0.05, new THREE.MeshLambertMaterial({ color: '#7a5a3a', side: THREE.DoubleSide }), 2);
+  for (const d of [-HW - 0.2, HW + 0.2]) {
+    wallStrip(CANAL.s - CANAL.up, CANAL.s, d, () => -1.6, s2 => profile(s2) + 0.5, new THREE.MeshLambertMaterial({ color: '#6a4e34', side: THREE.DoubleSide }), 1);
+    wallStrip(sLand, sLand + CANAL.down, d, () => -1.6, s2 => profile(s2) + 0.3, new THREE.MeshLambertMaterial({ color: '#7a7670', side: THREE.DoubleSide }), 1);
+  }
+  {   // the face of the ramp over the water, and the rock's face where you land
+    for (const [u, top] of [[0, CANAL.h], [CANAL.gap, CANAL.land]]) {
+      const pos = [], p = {};
+      for (const [d, y] of [[-HW - 0.2, -2], [HW + 0.2, -2], [HW + 0.2, top], [-HW - 0.2, -2], [HW + 0.2, top], [-HW - 0.2, top]]) { trackPoint(CANAL.s + u, d, p); pos.push(p.x, y, p.z); }
+      const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+      scene.add(new THREE.Mesh(g, new THREE.MeshLambertMaterial({ color: u ? '#7a7670' : '#5a4430', side: THREE.DoubleSide })));
+    }
+  }
+  const lampGlobe = glowM('#ffe2a8'), SPH = new THREE.SphereGeometry(0.35, 10, 8);
+  for (let s2 = sShore + 12, i = 0; s2 < CANAL.s - CANAL.up; s2 += 24, i++) {
+    const p = trackPoint(s2, (i % 2 ? 1 : -1) * (HW + 1.3), {});
+    addStatic(BOX, matOf('#1a2a3a'), p.x, 2, p.z, 0, 0, 0, 0.16, 4, 0.16); addStatic(SPH, lampGlobe, p.x, 4.2, p.z);
+    colliders.push({ x: p.x, z: p.z, r: 0.3, top: 4, kind: 'post' });
+  }
+  // the breakwater: a causeway of rock (the granite blocks along its edges are its fence), the lighthouse's rock
+  const rockMat = mat('#7a7670'), rockFace = new THREE.MeshLambertMaterial({ color: '#6a6660', side: THREE.DoubleSide });
+  strip(sLand, sLand + modS(SAND.s0 - sLand), -HW - 4.5, HW + 4.5, mat('#8a8478'), -0.04, 2, 1 / 24, () => 0);
+  for (const d of [-HW - 4.5, HW + 4.5]) wallStrip(sLand, sLand + modS(SAND.s0 - sLand), d, () => -1.8, () => 0, rockFace, 2);
+  const inside = bendAt(TIP_L) || 1, lh = trackPoint(TIP_L, inside * (HW + 16), {});
+  addStatic(new THREE.CylinderGeometry(40, 44, 3, 24), rockMat, lh.x, -1.62, lh.z);
+  addStatic(new THREE.CylinderGeometry(9, 10, 0.4, 16), mat('#6a7a4a'), lh.x, 0.1, lh.z);
+  addStatic(new THREE.CylinderGeometry(2.4, 3.4, 24, 14), mat('#f2eee6'), lh.x, 12, lh.z);
+  addStatic(new THREE.CylinderGeometry(2.45, 2.45, 4, 14), mat('#c8281e'), lh.x, 20, lh.z);
+  addStatic(new THREE.CylinderGeometry(1.8, 1.8, 2.6, 10), mat('#1a1a1e'), lh.x, 25.3, lh.z);
+  addStatic(new THREE.SphereGeometry(1.4, 12, 8), glowM('#fff2b0'), lh.x, 25.3, lh.z);
+  addStatic(new THREE.ConeGeometry(2.3, 2, 10), mat('#1a1a1e'), lh.x, 27.6, lh.z);
+  house(lh.x + 7, lh.z + 5, 0.4, 6, 8, 3.5, mat('#f2eee6'), mat('#3a4a5a'));
+  colliders.push({ x: lh.x, z: lh.z, r: 3.4, top: 30, kind: 'house' });
+  {
+    const beamTex = canvasTex(256, 32, (g, w, h) => { const gr = g.createLinearGradient(0, 0, w, 0); gr.addColorStop(0, 'rgba(255,240,180,.5)'); gr.addColorStop(1, 'rgba(255,240,180,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+    const beam = new THREE.Mesh(new THREE.PlaneGeometry(160, 9), new THREE.MeshBasicMaterial({ map: beamTex, transparent: true, depthWrite: false, blending: THREE.AdditiveBlending, side: THREE.DoubleSide, fog: false }));
+    beam.geometry.translate(80, 0, 0);
+    const pivot = new THREE.Group(); pivot.position.set(lh.x, 25.3, lh.z); pivot.add(beam); scene.add(pivot);
+    animated.push(t => { pivot.rotation.y = t * 0.7; });
+  }
+  placed.push({ x: lh.x, z: lh.z, r: 14 });
+  // the boardwalk: wide boards either side of the road
+  const boardTex2 = canvasTex(128, 128, (g, w, h) => { for (let y = 0; y < h; y += 16) { g.fillStyle = ['#b08458', '#a07450', '#b8906a', '#987048'][(y / 16) % 4]; g.fillRect(0, y, w, 15); g.fillStyle = '#5a3e26'; g.fillRect(0, y + 15, w, 1); } }, true);
+  for (const [d0, d1] of [[-HW - 6, -HW], [HW, HW + 12]]) strip(SAND.s1, SAND.s1 + modS(sShore - SAND.s1), d0, d1, mat('#ffffff', { map: boardTex2 }), 0.03, 3, 1 / 8);
+  // shops along the land side: clapboard in seaside colours, striped awnings, a sign on each
+  const shops = [['ICE CREAM', '#f2a0c0'], ['FRIED CLAMS', '#f2e0a0'], ['ARCADE', '#8ad0f0'], ['SALT WATER TAFFY', '#c0e8b0'], ['SURF SHOP', '#f0c080'], ['LOBSTER ROLLS', '#f0a890'], ['FUDGE', '#e0c0f0'], ['T-SHIRTS', '#a8e0e0']];
+  const awnMats = ['#d8302a', '#2a6ac8', '#2a9a5a'].map(c => mat('#ffffff', { map: canvasTex(64, 32, (g, w, h) => { for (let x = 0; x < w; x += 8) { g.fillStyle = (x / 8) % 2 ? '#ffffff' : c; g.fillRect(x, 0, 8, h); } }) }));
+  let si = 0;
+  for (let s2 = SAND.s1 + 30; dS(s2 - (sShore - 30)) < 0; s2 += 17) {
+    const side = 1, p = trackPoint(s2, side * (FENCE + 9), {});
+    if (placed.some(q => Math.hypot(q.x - p.x, q.z - p.z) < q.r + 8) || bendAt(s2)) continue;
+    const [name, col] = shops[si++ % shops.length];
+    house(p.x, p.z, p.h, 10, 13, 5.5, matOf(col), matOf('#5a5a66'));
+    const f = trackPoint(s2, side * (FENCE + 3.4), {});
+    addStatic(BOX, awnMats[si % 3], f.x, 3.4, f.z, p.h, 0, -0.35 * side, 2.6, 0.12, 12);
+    const sign = canvasTex(256, 64, (g, w, h) => { g.fillStyle = '#1a2a4a'; g.fillRect(0, 0, w, h); g.strokeStyle = '#ffe08a'; g.lineWidth = 4; g.strokeRect(3, 3, w - 6, h - 6); g.font = '28px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffe08a'; g.fillText(name, w / 2, h / 2 + 2, w - 16); }, false, true);
+    const sg = new THREE.Mesh(new THREE.PlaneGeometry(9, 2.2), new THREE.MeshBasicMaterial({ map: sign }));
+    const sp = trackPoint(s2, side * (FENCE + 2.4), {});
+    sg.position.set(sp.x, 5.6, sp.z); sg.rotation.y = p.h - side * Math.PI / 2; scene.add(sg);
+    placed.push({ x: p.x, z: p.z, r: 9 });
+  }
+  // the Ferris wheel, turning slowly behind the shops
+  {
+    const fx = -200, fz = 150, R = 22, H = R + 6;
+    const steel = mat('#e8e4dc'), cars = ['#d8302a', '#2a6ac8', '#f2c21a', '#2a9a5a'].map(c => mat(c));
+    for (const sz of [-3, 3]) for (const sx of [-1, 1]) addStatic(BOX, steel, fx + sx * 7, H / 2, fz + sz, 0, 0, sx * 0.25, 0.6, H + 2, 0.6);
+    const wheel = new THREE.Group(); wheel.position.set(fx, H, fz); scene.add(wheel);
+    const parts = new THREE.Group();
+    for (const sz of [-2.2, 2.2]) { const rim = new THREE.Mesh(new THREE.TorusGeometry(R, 0.3, 6, 48), steel); rim.position.z = sz; parts.add(rim); }
+    for (let i = 0; i < 16; i++) { const sp = new THREE.Mesh(BOX, steel); sp.scale.set(0.18, R, 0.18); sp.position.set(Math.cos(i / 16 * TAU) * R / 2, Math.sin(i / 16 * TAU) * R / 2, 0); sp.rotation.z = i / 16 * TAU - Math.PI / 2; parts.add(sp); }
+    for (let i = 0; i < 16; i++) { const b = new THREE.Mesh(new THREE.SphereGeometry(0.3, 6, 4), glowM(['#ff5a8a', '#ffe08a', '#7ad0ff'][i % 3])); b.position.set(Math.cos(i / 16 * TAU) * R, Math.sin(i / 16 * TAU) * R, 2.5); parts.add(b); }
+    wheel.add(bake(parts));
+    const gondolas = [];
+    for (let i = 0; i < 12; i++) { const c = new THREE.Mesh(BOX, cars[i % 4]); c.scale.set(2, 1.8, 3); scene.add(c); gondolas.push(c); }
+    animated.push(t => {
+      wheel.rotation.z = t * 0.12;
+      gondolas.forEach((c, i) => { const a = t * 0.12 + i / 12 * TAU; c.position.set(fx + Math.cos(a) * R, H + Math.sin(a) * R - 1.4, fz); });
+    });
+    placed.push({ x: fx, z: fz, r: 26 });
+  }
+  // the beach: umbrellas, towels, a lifeguard's chair, dune grass by the fences, boats out on the sea, gulls
+  const poleM = mat('#e8e4dc'), umb = ['#d8302a', '#2a6ac8', '#f2c21a', '#2a9a5a', '#ff7aa8'].map(c => mat(c)), towel = ['#ff9a5a', '#5ad0f0', '#f0f07a', '#c07af0'].map(c => mat(c));
+  const cone = new THREE.ConeGeometry(1.8, 0.8, 10);
+  for (let i = 0, made = 0; i < 600 && made < 50; i++) {
+    const x = rnd(-420, 330), z = rnd(SHORE + 8, 160);
+    if (!clearSpot(x, z, 3) || placed.some(q => Math.hypot(q.x - x, q.z - z) < q.r + 3) || trackDist(x, z) < FENCE + 3) continue;
+    addStatic(BOX, poleM, x, 1.2, z, 0, 0.1, 0, 0.08, 2.4, 0.08); addStatic(cone, umb[made % 5], x, 2.5, z, 0, 0.1, 0);
+    addStatic(BOX, towel[made % 4], x + 1.6, 0.03, z + 0.6, rnd(0, 3), 0, 0, 1.0, 0.04, 2);
+    placed.push({ x, z, r: 3 }); made++;
+  }
+  {
+    const lg = trackPoint(sNear(-120, -46), -(FENCE + 5), {});
+    for (const [ox, oz] of [[-1, -1], [1, -1], [-1, 1], [1, 1]]) addStatic(BOX, matOf('#f2eee6'), lg.x + ox, 1.6, lg.z + oz, 0, 0, 0, 0.2, 3.2, 0.2);
+    addStatic(BOX, matOf('#d8302a'), lg.x, 3.6, lg.z, 0, 0, 0, 2.6, 0.9, 2.6); addStatic(BOX, matOf('#f2eee6'), lg.x, 4.6, lg.z, 0, 0, 0, 2.6, 0.2, 2.6);
+    placed.push({ x: lg.x, z: lg.z, r: 4 });
+  }
+  const grass = mat('#a8a060'), tuft = new THREE.ConeGeometry(0.5, 1.2, 5);
+  for (let s2 = SAND.s0; dS(s2 - SAND.s1) < 0; s2 += 3) for (const sd of [-1, 1]) { const p = trackPoint(s2, sd * (FENCE + rnd(0.5, 3)), {}); addStatic(tuft, grass, p.x, 0.5, p.z, 0, rnd(-0.2, 0.2), rnd(-0.2, 0.2)); }
+  const boats = [];
+  for (const [x, z] of [[-300, -420], [60, -600], [-560, -300], [500, -520]]) {
+    const g = new THREE.Group(), hull = new THREE.Mesh(BOX, mat('#f2eee6')); hull.scale.set(2.2, 1, 7); hull.position.y = 0.3; g.add(hull);
+    const mast = new THREE.Mesh(BOX, mat('#5a4430')); mast.scale.set(0.15, 9, 0.15); mast.position.y = 5; g.add(mast);
+    const sh = new THREE.Shape(); sh.moveTo(0, 0); sh.lineTo(0, 8); sh.lineTo(3.6, 0); sh.lineTo(0, 0);
+    const sail = new THREE.Mesh(new THREE.ShapeGeometry(sh), new THREE.MeshLambertMaterial({ color: '#fff4ea', side: THREE.DoubleSide })); sail.rotation.y = Math.PI / 2; sail.position.set(0, 1.2, 0.2); g.add(sail);
+    const b = bake(g); b.position.set(x, -1.6, z); b.rotation.y = rnd(0, TAU); scene.add(b); boats.push(b);
+  }
+  animated.push(t => boats.forEach((b, i) => { b.position.y = -1.6 + Math.sin(t * 1.2 + i) * 0.2; b.rotation.z = Math.sin(t * 0.9 + i) * 0.06; }));
+  const gulls = [], gullM = new THREE.MeshBasicMaterial({ color: '#f4f0ea', side: THREE.DoubleSide });
+  for (let i = 0; i < 8; i++) {
+    const g = new THREE.Group();
+    for (const sx of [-1, 1]) { const w = new THREE.Mesh(new THREE.PlaneGeometry(1.2, 0.35), gullM); w.position.x = sx * 0.55; w.rotation.z = sx * 0.3; g.add(w); }
+    scene.add(g); gulls.push({ g, cx: rnd(-200, 300), cz: rnd(-250, 20), r: rnd(20, 50), y: rnd(14, 30), k: rnd(0.15, 0.3) * (i % 2 ? 1 : -1) });
+  }
+  animated.push(t => gulls.forEach((q, i) => { const a = t * q.k + i; q.g.position.set(q.cx + Math.cos(a) * q.r, q.y + Math.sin(t * 2 + i) * 0.6, q.cz + Math.sin(a) * q.r); q.g.rotation.y = -a; q.g.children.forEach((w, k) => { w.rotation.z = (k ? 1 : -1) * (0.3 + Math.sin(t * 8 + i) * 0.35); }); }));
+  // the tidal flat: the shortcut's sand, and the water that creeps over it lap by lap
+  {
+    const ang = Math.atan2(CUT.uz, CUT.ux), cx = CUT.ax + CUT.ux * CUT.mid, cz = CUT.az + CUT.uz * CUT.mid;
+    const flatM = mat('#a8906a'), flat = new THREE.Mesh(new THREE.PlaneGeometry(CUT.len + 30, 34), flatM);
+    flat.rotation.order = 'YXZ'; flat.rotation.set(-Math.PI / 2, -ang, 0); flat.position.set(cx, -0.01, cz); scene.add(flat);
+    tidePlane = new THREE.Mesh(new THREE.PlaneGeometry(CUT.len + 34, 38), new THREE.MeshLambertMaterial({ color: '#4a7aa8', transparent: true, opacity: 0.82 }));
+    tidePlane.rotation.order = 'YXZ'; tidePlane.rotation.set(-Math.PI / 2, -ang, 0); tidePlane.position.set(cx, -0.3, cz); tidePlane.visible = false; scene.add(tidePlane);
+    placed.push({ x: cx, z: cz, r: CUT.len / 2 + 10 });
+    const warn = canvasTex(256, 96, (g, w, h) => { g.fillStyle = '#f2eee6'; g.fillRect(0, 0, w, h); g.strokeStyle = '#d8302a'; g.lineWidth = 8; g.strokeRect(4, 4, w - 8, h - 8); g.font = '26px Bungee, Impact, sans-serif'; g.fillStyle = '#d8302a'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('MIND THE TIDE', w / 2, h / 2 + 2); }, false, true);
+    const q = trackPoint(CUT.s0 - 40, (bendAt(TIP_R) || 1) * (HW + 4), {}), f = trackPoint(CUT.s0 - 90, 0, {});
+    const wm = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 1.7), new THREE.MeshLambertMaterial({ map: warn, side: THREE.DoubleSide }));
+    wm.position.set(q.x, 2.6, q.z); wm.rotation.y = Math.atan2(f.x - q.x, f.z - q.z); scene.add(wm);
+    addStatic(BOX, woodDark, q.x, 1.2, q.z, 0, 0, 0, 0.15, 2.4, 0.15);
+  }
+}
+// the tide: out for the first lap, coming in on the second, in for the last (how far round the leader is)
+function updateTide(dt) {
+  const lead = state === 'race' ? Math.max(...racers.map(r => r.dist)) / N_T : 0;
+  const want = clamp((lead - 0.8) / 1.2, 0, 1);
+  tide += (want - tide) * Math.min(1, dt * 0.5);
+  if (state !== 'race') tide = want;
+  if (tidePlane) { tidePlane.position.y = -0.35 + tide * 0.6; tidePlane.visible = tide > 0.08; }
+}
+
+// ---------- Quarry Pass ----------
+// A mountain: the road cut into its side up two switchbacks, through a tunnel under the top and the long way down past
+// the cliff. The ground is worked out from the mountain's shape and the road: level beside the road, rising or falling
+// away to the mountain further off (between two legs of the road, a slope from one to the other).
+let terrainH = () => 0;
+if (QUARRY) {
+  const mountain = (x0, z0) => { const x = x0 / QS, z = z0 / QS; return 120 * Math.exp(-((x - 60) ** 2 + (z + 180) ** 2) / (2 * 230 * 230)) + 16 * Math.sin(x * 0.011 + 1) * Math.cos(z * 0.013)
+    + 6 * Math.sin(x * 0.037 + z * 0.029) - 18 - 22 * smooth(clamp((-x - 360) / 120, 0, 1)); };
+  // the road's points in 30 m squares, to find the road near anywhere quickly
+  const CELL = 30, grid = new Map();
+  for (let i = 0; i < N_T; i += 2) { const k = Math.floor(TX[i] / CELL) + ',' + Math.floor(TZ[i] / CELL); if (!grid.has(k)) grid.set(k, []); grid.get(k).push(i); }
+  const nearRoad = (x, z) => {
+    const cx = Math.floor(x / CELL), cz = Math.floor(z / CELL), cand = [];
+    for (let a = -3; a <= 3; a++) for (let b = -3; b <= 3; b++) { const l = grid.get((cx + a) + ',' + (cz + b)); if (l) cand.push(...l); }
+    let b1 = 1e9, i1 = -1, b2 = 1e9, i2 = -1;
+    for (const i of cand) { const d = (TX[i] - x) ** 2 + (TZ[i] - z) ** 2; if (d < b1) { b1 = d; i1 = i; } }
+    if (i1 < 0) return null;
+    for (const i of cand) { if (Math.abs(dS(i - i1)) < 80) continue; const d = (TX[i] - x) ** 2 + (TZ[i] - z) ** 2; if (d < b2) { b2 = d; i2 = i; } }
+    return { d1: Math.sqrt(b1), s1: i1, side: Math.sign(-(x - TX[i1]) * TDZ[i1] + (z - TZ[i1]) * TDX[i1]) || 1, d2: Math.sqrt(b2), s2: i2 };
+  };
+  terrainH = (x, z) => {
+    const M = mountain(x, z), n = nearRoad(x, z);
+    let H = M;
+    if (n && n.d1 < 90) {
+      const y1 = profile(n.s1) - 0.3;
+      if (n.d1 < HW + 5) H = y1;
+      else {
+        let R = y1;
+        if (n.s2 >= 0 && n.d2 < 90) { const w1 = 1 / (n.d1 - HW) ** 3, w2 = 1 / Math.max(1, n.d2 - HW) ** 3; R = (y1 * w1 + (profile(n.s2) - 0.3) * w2) / (w1 + w2); }
+        H = R + (M - R) * smooth(clamp((n.d1 - HW - 5) / 50, 0, 1));
+        if (onCliff(n.s1) && n.side === CLIFF.side) H = y1 - (y1 - Math.min(M, y1 - 32)) * smooth(clamp((n.d1 - HW - 3) / 6, 0, 1));
+        if (Math.abs(dS(n.s1)) < 110) H = y1 + (H - y1) * smooth(clamp((n.d1 - 48) / 22, 0, 1));   // (the quarry floor round the start)
+      }
+      // (over the tunnel: rock right over the top, but kept clear of its walls, even where the ground's triangles
+      // slant between its points)
+      if (inTunnel(n.s1)) H = n.d1 < HW + 14 ? y1 : Math.max(H, y1 + 10);
+      // the quarry's pit round the start: its walls cut in benches
+      const pit = Math.hypot(x / QS + 40, z / QS - 250);
+      if (pit < 260 && n.d1 > HW + 8 && H > y1 + 1) { const t = H / 6, k = clamp((260 - pit) / 60, 0, 1), b = 6 * (Math.floor(t) + smooth(clamp((t - Math.floor(t) - 0.7) * 3.3, 0, 1))); H += (b - H) * k; }
+    }
+    const c = cutUV(x, z);   // (the old mine's level ground through the hairpin)
+    if (c.u > -14 && c.u < CUT.len + 14) { const v = Math.abs(c.v); if (v < 30) H = CUT.y - 0.3 + (H - CUT.y + 0.3) * smooth(clamp((v - 10) / 20, 0, 1)); }
+    return H;
+  };
+  // the ground: grass on the gentle slopes, bare rock on the steep ones, gravel by the road, snow on the very top
+  {
+    const SIZE = 1800, SEG = 200, geo = new THREE.PlaneGeometry(SIZE, SIZE, SEG, SEG);
+    geo.rotateX(-Math.PI / 2);
+    const pos = geo.attributes.position, n = pos.count, hs = new Float32Array(n);
+    for (let i = 0; i < n; i++) { hs[i] = terrainH(pos.getX(i), pos.getZ(i)); pos.setY(i, hs[i]); }
+    geo.computeVertexNormals();
+    const col = new Float32Array(n * 3), nor = geo.attributes.normal;
+    const grassC = new THREE.Color('#6a8a48'), grass2 = new THREE.Color('#7a9450'), rockC = new THREE.Color('#8a8276'), gravelC = new THREE.Color('#a89a84'), snowC = new THREE.Color('#f2f4f8'), pitA = new THREE.Color('#c8b898'), pitB = new THREE.Color('#b0a284');
+    for (let i = 0; i < n; i++) {
+      const up = nor.getY(i), x = pos.getX(i), z = pos.getZ(i), d = trackDistFast(x, z);
+      if (hs[i] > 92) _c.copy(snowC);
+      else if (d < HW + 8) _c.copy(gravelC);
+      else if (Math.hypot(x / QS + 40, z / QS - 250) < 250 && hs[i] < 40) _c.copy(Math.floor(hs[i] / 6) % 2 ? pitA : pitB).lerp(grassC, up > 0.97 && hs[i] > 8 ? 0.35 : 0);
+      else if (up < 0.8) _c.copy(rockC);
+      else _c.copy((Math.floor(x / 23) + Math.floor(z / 31)) % 2 ? grassC : grass2).lerp(rockC, clamp((0.92 - up) * 6, 0, 1));
+      col[i * 3] = _c.r; col[i * 3 + 1] = _c.g; col[i * 3 + 2] = _c.b;
+    }
+    geo.setAttribute('color', new THREE.BufferAttribute(col, 3));
+    scene.add(new THREE.Mesh(geo, new THREE.MeshLambertMaterial({ vertexColors: true })));
+    const lake = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), mat('#3a6a8a'));
+    lake.rotation.x = -Math.PI / 2; lake.position.y = -26; scene.add(lake);
+  }
+  // gravel shoulders beside the road
+  const gravelTex = canvasTex(64, 64, (g, w, h) => { g.fillStyle = '#a89a84'; g.fillRect(0, 0, w, h); for (let i = 0; i < 400; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '60,50,40' : '220,210,190'},.4)`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); } }, true);
+  const gravelMat = mat('#ffffff', { map: gravelTex });
+  for (const [d0, d1] of [[-HW - 3, -HW], [HW, HW + 3]]) strip(0, N_T, d0, d1, gravelMat, 0.035, 2, 1 / 6);
+  // the cliff's face, down from the road's edge
+  const rockTex = canvasTex(128, 128, (g, w, h) => { g.fillStyle = '#7a7268'; g.fillRect(0, 0, w, h); for (let i = 0; i < 60; i++) { g.fillStyle = `rgba(${Math.random() < 0.5 ? '40,36,30' : '170,160,145'},.35)`; g.fillRect(Math.random() * w, Math.random() * h, 4 + Math.random() * 30, 2 + Math.random() * 6); } }, true);
+  const rockMat = new THREE.MeshLambertMaterial({ map: rockTex, side: THREE.DoubleSide });
+  wallStrip(CLIFF.s0, CLIFF.s0 + modS(CLIFF.s1 - CLIFF.s0), CLIFF.side * (HW + 3.1), s2 => profile(s2) - 34, s2 => profile(s2) - 0.25, rockMat, 3);
+  // the tunnel: rock walls and roof (the mountain on top), lamps along it, a dark road, and a portal at each end
+  {
+    const T0 = TUNNEL.s0, T1 = TUNNEL.s0 + modS(TUNNEL.s1 - TUNNEL.s0), dark = new THREE.MeshLambertMaterial({ color: '#4a4640', map: rockTex, side: THREE.DoubleSide });
+    for (const d of [-HW - 1, HW + 1]) wallStrip(T0, T1, d, s2 => profile(s2) - 0.2, s2 => profile(s2) + 8.5, dark, 2);
+    strip(T0, T1, -HW - 1, HW + 1, dark, 8.5, 2, 1 / 12);
+    strip(T0, T1, -HW - 17, HW + 17, rockMat, 9.8, 3, 1 / 12);
+    strip(T0, T1, -HW, HW, new THREE.MeshBasicMaterial({ color: '#000000', transparent: true, opacity: 0.4, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -2 }), 0.09, 2, 1);
+    const lampM = new THREE.MeshBasicMaterial({ color: '#ffb050' });
+    for (let s2 = T0 + 5; s2 < T1; s2 += 10) for (const d of [-HW - 0.9, HW + 0.9]) { const p = trackPoint(s2, d, {}); addStatic(BOX, lampM, p.x, profile(s2) + 6.2, p.z, p.h, 0, 0, 0.2, 0.3, 1.6); }
+    const stone = mat('#8a8070'), signTex = canvasTex(512, 80, (g, w, h) => { g.fillStyle = '#2a4a2a'; g.fillRect(0, 0, w, h); g.strokeStyle = '#f2eee6'; g.lineWidth = 5; g.strokeRect(4, 4, w - 8, h - 8); g.font = '40px Bungee, Impact, sans-serif'; g.fillStyle = '#f2eee6'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('QUARRY PASS TUNNEL', w / 2, h / 2 + 3); }, false, true);
+    for (const [sp, face] of [[T0, 0], [T1, Math.PI]]) {
+      const p = trackPoint(sp, 0, {}), y0 = profile(sp);
+      for (const sd of [-1, 1]) { const q = trackPoint(sp, sd * (HW + 9.5), {}); addStatic(BOX, stone, q.x, y0 + 6, q.z, p.h, 0, 0, 17, 16, 3); }
+      addStatic(BOX, stone, p.x, y0 + 11.5, p.z, p.h, 0, 0, 2 * HW + 2, 6, 3);
+      const sg = new THREE.Mesh(new THREE.PlaneGeometry(2 * HW, 2.4), new THREE.MeshBasicMaterial({ map: signTex }));
+      const f = trackPoint(sp + (face ? 1.6 : -1.6), 0, {}); sg.position.set(f.x, y0 + 11, f.z); sg.rotation.y = p.h + face; scene.add(sg);
+    }
+  }
+  // pines, boulders, gravel heaps on the quarry floor, a crusher and its conveyor, and road signs
+  const trunk = mat('#5a4030'), pine = [mat('#2f5a34'), mat('#3a6a3a'), mat('#284e2e')], cone = new THREE.ConeGeometry(1, 1, 7), cyl = new THREE.CylinderGeometry(0.25, 0.35, 1, 5, 1, true);
+  const rock = new THREE.IcosahedronGeometry(1, 0), rockC = [mat('#8a8276'), mat('#7a746a'), mat('#9a9286')];
+  for (let tries = 0, made = 0; tries < 3000 && made < 340; tries++) {
+    const x = rnd(-800, 800), z = rnd(-800, 800), y = terrainH(x, z);
+    if (y > 88 || y < -24 || !clearSpot(x, z, 3) || Math.abs(terrainH(x + 4, z) - y) > 3 || Math.abs(terrainH(x, z + 4) - y) > 3) continue;
+    const sc = rnd(0.8, 1.5);
+    if (rnd() < 0.8) { addStatic(cyl, trunk, x, y + 1.2 * sc, z, 0, 0, 0, sc, 2.4 * sc, sc); addStatic(cone, pine[made % 3], x, y + 6 * sc, z, rnd(0, 3), 0, 0, 2.6 * sc, 9 * sc, 2.6 * sc); }
+    else addStatic(rock, rockC[made % 3], x, y + 0.6 * sc, z, rnd(0, 3), rnd(0, 3), 0, 2.2 * sc, 1.6 * sc, 2 * sc);
+    placed.push({ x, z, r: 3 }); made++;
+  }
+  const heap = new THREE.ConeGeometry(1, 1, 12), heapM = [mat('#b8a888'), mat('#9a8c74'), mat('#c8b898')];
+  for (const [x, z, r, h] of [[-160, 250, 14, 9], [-120, 262, 10, 6], [40, 250, 12, 8], [-210, 140, 11, 7], [200, 245, 16, 10]].map(([x, z, r, h]) => [x * QS, z * QS, r, h])) {
+    if (!clearSpot(x, z, r)) continue;
+    addStatic(heap, heapM[Math.floor(x) & 1 ? 0 : 1], x, terrainH(x, z) + h / 2, z, 0, 0, 0, r, h, r); placed.push({ x, z, r });
+  }
+  {   // the crusher: a tall shed, a hopper and a conveyor up to it
+    const cx = 120 * QS, cz = 255 * QS;
+    if (clearSpot(cx, cz, 12)) {
+      const y = terrainH(cx, cz);
+      house(cx, cz, 0.2, 12, 10, 12, mat('#c8a040'), mat('#5a5a62'));
+      addStatic(BOX, mat('#5a5e66'), cx - 22, y + 7, cz - 4, 0.2, 0, 0.42, 2, 0.6, 30);
+      for (let k = 0; k < 4; k++) addStatic(BOX, matOf('#3a3e46'), cx - 34 + k * 7, y + (k + 1) * 1.8 / 2, cz - 4 - k * 1.4, 0, 0, 0, 0.3, (k + 1) * 1.8, 0.3);
+      placed.push({ x: cx - 12, z: cz, r: 26 });
+    }
+  }
+  const sign = (text, sAt, sd) => {
+    const tex = canvasTex(256, 128, (g, w, h) => { g.fillStyle = '#f2c21a'; g.beginPath(); g.moveTo(w / 2, 4); g.lineTo(w - 4, h / 2); g.lineTo(w / 2, h - 4); g.lineTo(4, h / 2); g.fill(); g.fillStyle = '#1a1a1a'; g.font = '22px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; text.split('\n').forEach((l, i, a) => g.fillText(l, w / 2, h / 2 + (i - (a.length - 1) / 2) * 24, w * 0.6)); }, false, true);
+    const p = trackPoint(sAt, sd * (HW + 3.6), {}), f = trackPoint(sAt - 50, 0, {}), y = profile(sAt);
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(4, 2), new THREE.MeshLambertMaterial({ map: tex, transparent: true, side: THREE.DoubleSide }));
+    m.position.set(p.x, y + 2.8, p.z); m.rotation.y = Math.atan2(f.x - p.x, f.z - p.z); scene.add(m);
+    addStatic(BOX, matOf('#5a5e66'), p.x, y + 1.2, p.z, 0, 0, 0, 0.12, 2.4, 0.12);
+  };
+  sign('STEEP\nDESCENT', modS(TUNNEL.s1 + 50), 1);
+  sign('NO FENCE!\nCLIFF EDGE', modS(CLIFF.s0 - 40), -CLIFF.side);
+  sign('FALLING\nROCKS', sNear(60, 100), 1);
+  sign('TUNNEL\nAHEAD', modS(TUNNEL.s0 - 120), 1);
+}
+// how far (x, z) is from the road, quickly (a coarse look first)
+function trackDistFast(x, z) {
+  let b = Infinity, bi = 0;
+  for (let i = 0; i < N_T; i += 12) { const d = (x - TX[i]) ** 2 + (z - TZ[i]) ** 2; if (d < b) { b = d; bi = i; } }
+  for (let i = bi - 12; i <= bi + 12; i++) { const k = (i + N_T) % N_T, d = (x - TX[k]) ** 2 + (z - TZ[k]) ** 2; if (d < b) b = d; }
+  return Math.sqrt(b);
 }
 
 // ---------- The Hay Bale Arena ----------
@@ -1401,30 +2111,118 @@ function makeCow() {
   return cow;
 }
 const COWS = COURSE !== 'fields' ? [] : [0, 1, 2].map(i => ({ mesh: makeCow(), d: -17, dir: 1, wait: i * 1.6, s: COW_S + (i - 1) * 4, speed: 2.4 + i * 0.2, x: 0, z: 0, moo: 0 }));
-const TRACTOR = BATTLE ? null : { u: -40, dir: 1, wait: 2, mesh: null, x: 0, z: 0, s: TRACTOR_S, name: NIGHT ? 'forklift' : 'tractor' };
-if (NIGHT) {   // the docks' forklift: yellow, with its mast and forks out front
-  const g = new THREE.Group(), yel = mat('#f2b81a'), blk = mat('#1a1a1a'), steel = mat('#5a5e66');
-  const body = new THREE.Mesh(BOX, yel); body.scale.set(1.6, 1.3, 2.6); body.position.set(0, 1.0, 0.3); g.add(body);
-  const cage = new THREE.Mesh(BOX, blk); cage.scale.set(1.5, 0.12, 1.4); cage.position.set(0, 3.0, 0.4); g.add(cage);
-  for (const [x, z] of [[-0.7, -0.2], [0.7, -0.2], [-0.7, 1.0], [0.7, 1.0]]) { const p = new THREE.Mesh(BOX, blk); p.scale.set(0.1, 1.4, 0.1); p.position.set(x, 2.3, z); g.add(p); }
-  for (const x of [-0.5, 0.5]) { const m = new THREE.Mesh(BOX, steel); m.scale.set(0.15, 3.2, 0.15); m.position.set(x, 1.6, -1.15); g.add(m); const f = new THREE.Mesh(BOX, steel); f.scale.set(0.15, 0.08, 1.4); f.position.set(x, 0.5, -1.9); g.add(f); }
-  const crate = new THREE.Mesh(BOX, mat('#a8743a')); crate.scale.set(1.4, 1.1, 1.3); crate.position.set(0, 1.1, -1.9); g.add(crate);
-  for (const [x, z, r] of [[-0.85, -0.5, 0.45], [0.85, -0.5, 0.45], [-0.8, 1.2, 0.38], [0.8, 1.2, 0.38]]) { const w = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.35, 12), blk); w.rotation.z = Math.PI / 2; w.position.set(x, r, z); g.add(w); }
-  const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshBasicMaterial({ color: '#ff8a1a' })); beacon.position.set(0, 3.2, 0.4); g.add(beacon);
-  TRACTOR.mesh = bake(g);
-  scene.add(TRACTOR.mesh);
-} else if (TRACTOR) {
-  const g = new THREE.Group(), green = mat('#2f7a3a'), yel = mat('#ffc93a'), blk = mat('#1a1a1a');
-  const body = new THREE.Mesh(BOX, green); body.scale.set(1.8, 1.2, 3.4); body.position.y = 1.5; g.add(body);
-  const cab = new THREE.Mesh(BOX, green); cab.scale.set(1.7, 1.6, 1.6); cab.position.set(0, 2.9, 0.7); g.add(cab);
-  const roof = new THREE.Mesh(BOX, yel); roof.scale.set(1.9, 0.15, 1.8); roof.position.set(0, 3.75, 0.7); g.add(roof);
-  for (const [x, z, r] of [[-1.05, 0.9, 1.0], [1.05, 0.9, 1.0], [-0.95, -1.2, 0.6], [0.95, -1.2, 0.6]]) {
-    const w = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.5, 14), blk); w.rotation.z = Math.PI / 2; w.position.set(x, r, z); g.add(w);
-    const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.52, 10), yel); hub.rotation.z = Math.PI / 2; hub.position.set(x, r, z); g.add(hub);
+// ---------- The things that cross the road ----------
+// Each course has its own: a tractor (the fields), a forklift (the docks), the lifeguards' beach buggy, a dump truck
+// (the quarry): back and forth on a lane across the road, stopping at each end for a while. Downtown has traffic
+// across three of its junctions (and over the subway's roof): taxis and buses, a few at a time, with a traffic light
+// over the road (red while they're coming). Each model faces −z.
+function vehicleModel(kind) {
+  const g = new THREE.Group(), blk = mat('#1a1a1a');
+  const box = (m, sx, sy, sz, x, y, z) => { const b = new THREE.Mesh(BOX, m); b.scale.set(sx, sy, sz); b.position.set(x, y, z); g.add(b); return b; };
+  const wheel = (x, z, r, w = 0.4, hubM) => {
+    const t = new THREE.Mesh(new THREE.CylinderGeometry(r, r, w, 12), blk); t.rotation.z = Math.PI / 2; t.position.set(x, r, z); g.add(t);
+    if (hubM) { const h = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.5, r * 0.5, w + 0.02, 10), hubM); h.rotation.z = Math.PI / 2; h.position.set(x, r, z); g.add(h); }
+  };
+  const glass = mat('#1c2838'), lamp = new THREE.MeshBasicMaterial({ color: '#fff4d0' }), tail = new THREE.MeshBasicMaterial({ color: '#ff3020' });
+  if (kind === 'forklift') {
+    const yel = mat('#f2b81a'), steel = mat('#5a5e66');
+    box(yel, 1.6, 1.3, 2.6, 0, 1.0, 0.3); box(blk, 1.5, 0.12, 1.4, 0, 3.0, 0.4);
+    for (const [x, z] of [[-0.7, -0.2], [0.7, -0.2], [-0.7, 1.0], [0.7, 1.0]]) box(blk, 0.1, 1.4, 0.1, x, 2.3, z);
+    for (const x of [-0.5, 0.5]) { box(steel, 0.15, 3.2, 0.15, x, 1.6, -1.15); box(steel, 0.15, 0.08, 1.4, x, 0.5, -1.9); }
+    box(mat('#a8743a'), 1.4, 1.1, 1.3, 0, 1.1, -1.9);
+    for (const [x, z, r] of [[-0.85, -0.5, 0.45], [0.85, -0.5, 0.45], [-0.8, 1.2, 0.38], [0.8, 1.2, 0.38]]) wheel(x, z, r, 0.35);
+    const beacon = new THREE.Mesh(new THREE.SphereGeometry(0.18, 8, 6), new THREE.MeshBasicMaterial({ color: '#ff8a1a' })); beacon.position.set(0, 3.2, 0.4); g.add(beacon);
+  } else if (kind === 'tractor') {
+    const green = mat('#2f7a3a'), yel = mat('#ffc93a');
+    box(green, 1.8, 1.2, 3.4, 0, 1.5, 0); box(green, 1.7, 1.6, 1.6, 0, 2.9, 0.7); box(yel, 1.9, 0.15, 1.8, 0, 3.75, 0.7);
+    for (const [x, z, r] of [[-1.05, 0.9, 1.0], [1.05, 0.9, 1.0], [-0.95, -1.2, 0.6], [0.95, -1.2, 0.6]]) wheel(x, z, r, 0.5, yel);
+    const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.2, 6), blk); stack.position.set(0.5, 2.6, -1.2); g.add(stack);
+  } else if (kind === 'buggy') {   // the lifeguards' beach buggy: red, a roll cage, fat tyres, a light bar
+    const red = mat('#d8302a'), white = mat('#f2f0ea'), tube = mat('#e8e4dc');
+    box(red, 1.7, 0.5, 3.0, 0, 0.9, 0); box(white, 1.5, 0.4, 0.9, 0, 1.3, -0.9); box(mat('#2a2a30'), 1.2, 0.5, 0.8, 0, 1.35, 0.4);
+    for (const sx of [-0.75, 0.75]) { box(tube, 0.1, 1.2, 0.1, sx, 1.7, -0.3); box(tube, 0.1, 1.2, 0.1, sx, 1.7, 1.0); box(tube, 0.1, 0.1, 1.4, sx, 2.3, 0.35); }
+    box(tube, 1.6, 0.1, 0.1, 0, 2.3, -0.3); box(new THREE.MeshBasicMaterial({ color: '#ff3a3a' }), 1.0, 0.18, 0.25, 0, 2.42, -0.3);
+    for (const [x, z] of [[-0.95, -1.05], [0.95, -1.05], [-0.95, 1.05], [0.95, 1.05]]) wheel(x, z, 0.55, 0.5, white);
+  } else if (kind === 'truck') {   // the quarry's dump truck: big and yellow, with a bed of rock
+    const yel = mat('#f0b020'), grey = mat('#6a6458');
+    box(yel, 2.8, 1.8, 2.4, 0, 2.2, -3.0); box(glass, 2.6, 0.9, 0.1, 0, 2.6, -4.22); box(yel, 2.9, 0.4, 7.2, 0, 1.5, 0);
+    box(yel, 3.0, 1.6, 4.4, 0, 2.6, 1.3); box(grey, 2.6, 0.5, 4.0, 0, 3.5, 1.3);
+    for (const [x, z] of [[-1.35, -3.0], [1.35, -3.0], [-1.35, 0.6], [1.35, 0.6], [-1.35, 2.4], [1.35, 2.4]]) wheel(x, z, 1.0, 0.7, grey);
+    box(lamp, 0.5, 0.25, 0.1, -1.0, 1.8, -4.25); box(lamp, 0.5, 0.25, 0.1, 1.0, 1.8, -4.25);
+  } else if (kind === 'taxi') {   // a yellow cab
+    const yel = mat('#f2c21a'), chk = mat('#202020');
+    box(yel, 1.9, 0.75, 4.4, 0, 0.75, 0); box(yel, 1.75, 0.65, 2.3, 0, 1.45, 0.2); box(glass, 1.8, 0.5, 2.0, 0, 1.47, 0.2);
+    box(chk, 1.92, 0.15, 4.2, 0, 0.95, 0); box(new THREE.MeshBasicMaterial({ color: '#fff2a0' }), 0.7, 0.25, 0.3, 0, 1.92, 0.2);
+    box(lamp, 0.4, 0.2, 0.05, -0.65, 0.85, -2.21); box(lamp, 0.4, 0.2, 0.05, 0.65, 0.85, -2.21); box(tail, 0.4, 0.2, 0.05, -0.65, 0.85, 2.21); box(tail, 0.4, 0.2, 0.05, 0.65, 0.85, 2.21);
+    for (const [x, z] of [[-0.9, -1.4], [0.9, -1.4], [-0.9, 1.4], [0.9, 1.4]]) wheel(x, z, 0.38, 0.3);
+  } else {   // a city bus
+    const blue = mat('#2a6ac8'), white = mat('#eceae4');
+    box(blue, 2.5, 2.4, 10.5, 0, 1.75, 0); box(white, 2.52, 0.5, 10.52, 0, 0.9, 0); box(glass, 2.54, 0.9, 9.6, 0, 2.3, 0.3); box(glass, 2.3, 1.2, 0.1, 0, 2.2, -5.26);
+    box(new THREE.MeshBasicMaterial({ color: '#ffb020' }), 1.8, 0.35, 0.08, 0, 2.95, -5.27);
+    box(lamp, 0.4, 0.25, 0.05, -0.9, 0.95, -5.27); box(lamp, 0.4, 0.25, 0.05, 0.9, 0.95, -5.27); box(tail, 0.4, 0.3, 0.05, -1.0, 1.0, 5.27); box(tail, 0.4, 0.3, 0.05, 1.0, 1.0, 5.27);
+    for (const [x, z] of [[-1.15, -3.4], [1.15, -3.4], [-1.15, 3.2], [1.15, 3.2]]) wheel(x, z, 0.55, 0.4);
   }
-  const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.2, 6), blk); stack.position.set(0.5, 2.6, -1.2); g.add(stack);
-  TRACTOR.mesh = bake(g);
-  scene.add(TRACTOR.mesh);
+  const m = bake(g); scene.add(m);
+  return m;
+}
+// how big each one is (half its length and width), how high to hop it, how fast it goes, what it says when you hit it
+const VKIND = {
+  tractor: { hu: 2.6, hv: 1.6, top: 3.6, speed: 4.2, msg: '🚜 Smack into the tractor!' },
+  forklift: { hu: 2.6, hv: 1.6, top: 3.6, speed: 4.2, msg: '🏗️ Smack into the forklift!' },
+  buggy: { hu: 2.0, hv: 1.2, top: 2.2, speed: 6.5, msg: '🛟 Smack into the lifeguards\' buggy!' },
+  truck: { hu: 4.6, hv: 1.8, top: 4.2, speed: 5, msg: '🚚 Smack into the dump truck!' },
+  taxi: { hu: 2.4, hv: 1.1, top: 1.7, speed: 14, msg: '🚕 TAXI! You hit a cab!' },
+  bus: { hu: 5.4, hv: 1.4, top: 3.2, speed: 11, msg: '🚌 Flattened by a bus!' },
+};
+const VEHICLES = [];
+const TRACTOR_KIND = { fields: 'tractor', docks: 'forklift', beach: 'buggy', quarry: 'truck' }[COURSE];
+const TRACTOR = TRACTOR_KIND ? { kind: TRACTOR_KIND, ...VKIND[TRACTOR_KIND], u: -40, dir: 1, wait: 2, x: 0, z: 0, h: 0, y: 0, s: TRACTOR_S, shuttle: true, active: true, mesh: vehicleModel(TRACTOR_KIND), name: TRACTOR_KIND } : null;
+if (TRACTOR) VEHICLES.push(TRACTOR);
+// downtown's junctions with traffic: a pool of cars each, which come in a burst every so often (the subway's bridge too)
+const CROSSINGS = !CITY ? [] : [...JUNCTIONS.filter(j => j.traffic), { s: TRENCH.s, deck: true }].map((j, k) => ({ s: j.s, deck: !!j.deck, t: k * 5, next: 0, lane: 0, light: null, cars: [] }));
+for (const c of CROSSINGS) for (let i = 0; i < 4; i++) {
+  const kind = i === 1 ? 'bus' : 'taxi', v = { kind, ...VKIND[kind], u: 0, dir: 1, x: 1e5, z: 1e5, h: 0, y: 0, s: c.s, lane: 0, active: false, mesh: vehicleModel(kind), honk: 0 };
+  v.mesh.visible = false; c.cars.push(v); VEHICLES.push(v);
+}
+// a traffic light hung over the road before each junction with traffic (red while cars are coming across)
+const SIGNAL_RED = new THREE.MeshBasicMaterial({ color: '#ff2a1a' }), SIGNAL_GREEN = new THREE.MeshBasicMaterial({ color: '#3ddc84' }), SIGNAL_OFF = new THREE.MeshBasicMaterial({ color: '#202428' });
+for (const c of CROSSINGS) {
+  if (c.deck) continue;
+  const pole = mat('#2a2c34'), q = trackPoint(c.s - HW - 4, HW + 2.5, {}), a = trackPoint(c.s - HW - 4, 0, {});
+  addStatic(BOX, pole, q.x, 3.6, q.z, 0, 0, 0, 0.3, 7.2, 0.3);
+  addStatic(BOX, pole, (q.x + a.x) / 2, 7, (q.z + a.z) / 2, q.h + Math.PI / 2, 0, 0, Math.hypot(a.x - q.x, a.z - q.z), 0.2, 0.2);
+  addStatic(BOX, pole, a.x, 6.2, a.z, q.h, 0, 0, 0.7, 1.7, 0.5);
+  colliders.push({ x: q.x, z: q.z, r: 0.3, top: 7, kind: 'post' });
+  const lights = [0, 1].map(k => { const l = new THREE.Mesh(new THREE.SphereGeometry(0.24, 10, 8), SIGNAL_OFF); const f = trackPoint(c.s - HW - 4.3, 0, {}); l.position.set(f.x, 6.6 - k * 0.75, f.z); scene.add(l); return l; });
+  c.light = { red: lights[0], green: lights[1] };
+}
+const SPAWN_U = 58;   // (where the traffic comes from and goes to, either side of the road)
+function updateTraffic(dt) {
+  for (const c of CROSSINGS) {
+    // a burst of cars for 5 s every 16 s, one lane then the other
+    c.t = (c.t + dt) % 16;
+    c.next -= dt;
+    if (c.t < 5 && c.next <= 0) {
+      const v = c.cars.find(q => !q.active);
+      if (v) {
+        c.lane = 1 - c.lane; const dir = c.lane ? 1 : -1;
+        Object.assign(v, { active: true, dir, u: -dir * SPAWN_U, lane: dir * 3.2 });
+        v.mesh.visible = true;
+      }
+      c.next = rand(1.2, 2.2);
+    }
+    let coming = false;
+    for (const v of c.cars) {
+      if (!v.active) continue;
+      v.u += v.dir * v.speed * dt;
+      if (v.u * v.dir > SPAWN_U) { v.active = false; v.mesh.visible = false; v.x = v.z = 1e5; continue; }
+      if (v.u * v.dir < HW + 2) coming = true;   // (still to cross, or crossing)
+      const p = trackPoint(c.s + v.lane, v.u, {});
+      v.x = p.x; v.z = p.z; v.h = p.h + (v.dir > 0 ? -Math.PI / 2 : Math.PI / 2); v.y = 0;
+      v.mesh.position.set(p.x, 0, p.z); v.mesh.rotation.y = v.h;
+    }
+    if (c.light) { c.light.red.material = coming || c.t < 5 ? SIGNAL_RED : SIGNAL_OFF; c.light.green.material = coming || c.t < 5 ? SIGNAL_OFF : SIGNAL_GREEN; }
+  }
 }
 function updateFarm(dt) {
   const p = {};
@@ -1442,17 +2240,18 @@ function updateFarm(dt) {
     m.userData.legs.forEach((l, i) => { l.rotation.x = walking ? Math.sin(clock * 6 + i * Math.PI / 2) * 0.4 : 0; });
     c.moo = Math.max(0, c.moo - dt);
   }
-  // the tractor (or the forklift): along its lane across the road, then back
+  updateTraffic(dt);
+  // the tractor (or the forklift, the buggy, the truck): along its lane across the road, then back
   const T = TRACTOR;
   if (!T) return;
   if (T.wait > 0) T.wait -= dt;
   else {
-    T.u += T.dir * 4.2 * dt;
+    T.u += T.dir * T.speed * dt;
     if (Math.abs(T.u) > 60) { T.u = Math.sign(T.u) * 60; T.dir *= -1; T.wait = rand(4, 8); }
   }
   trackPoint(T.s, T.u, p);
-  T.x = p.x; T.z = p.z; T.h = p.h + (T.dir > 0 ? -Math.PI / 2 : Math.PI / 2);
-  T.mesh.position.set(p.x, 0, p.z); T.mesh.rotation.y = T.h;
+  T.x = p.x; T.z = p.z; T.h = p.h + (T.dir > 0 ? -Math.PI / 2 : Math.PI / 2); T.y = QUARRY ? profile(T.s) : 0;
+  T.mesh.position.set(p.x, T.y, p.z); T.mesh.rotation.y = T.h;
 }
 
 // ---------- The motorcycles ----------
@@ -1733,6 +2532,8 @@ const sfx = {
   pop: () => { RB.beep(1400, 300, 0.12, 'square', 0.1); RB.noise(0.12, 0.2); },
   skid: () => { RB.noise(0.6, 0.15); RB.beep(700, 300, 0.6, 'sawtooth', 0.04); },
   boom: () => { RB.beep(120, 40, 0.6, 'sawtooth', 0.15); RB.noise(0.7, 0.4); },
+  horn: big => { const f = big ? 220 : 392; RB.beep(f, f, 0.35, 'square', 0.05); RB.beep(f * 1.26, f * 1.26, 0.35, 'square', 0.04); },
+  fall: () => RB.beep(900, 120, 1.0, 'triangle', 0.08),
 };
 // Each player's engine: an inline four that revs to 13,000 through six gears, the revs dropping at each change (the
 // sound EBITDA Hero's sport bike makes, made here from two oscillators through a filter).
@@ -1973,7 +2774,7 @@ function resetRider(r, s, d) {
     draft: 0, lap: 0, lapStart: 0, lapTimes: [], bestLapT: 0, finishT: 0, place: 1, onCut: false, cuts: 0, chargeAt: null, rocket: false, stallT: 0,
     feedT: 0, bannerT: 0, shakeT: 0, slipX: 0, slipZ: 0, tricks: 0, kicks: 0, wipes: 0, airBest: 0, cutCounted: false,
     lane: d, laneT: 2, cutPlan: false, nitroT: 0, wheelieT: 99, kickWant: 0,
-    item: null, rolled: null, rollT: 0, itemAt: 0, itemsUsed: 0, shieldT: 0, magnetT: 0, spinT: 0, balloons: 3, out: false, outT: 0, hits: 0, sinking: false, sinkT: 0 });
+    item: null, rolled: null, rollT: 0, itemAt: 0, itemsUsed: 0, shieldT: 0, magnetT: 0, spinT: 0, balloons: 3, out: false, outT: 0, hits: 0, sinking: false, sinkT: 0, fell: false });
   if (r.isPlayer) r.cam.reset();
 }
 
@@ -2107,21 +2908,23 @@ function drive(r, inp, dt) {
   // terrain: the road, the dirt shoulder, the shortcut's dirt, or the grass
   const cut = cutUV(r.x, r.z);
   r.onCut = cut.u > 8 && cut.u < CUT.len - 8 && Math.abs(cut.v) < 6;
-  const ad = Math.abs(r.d), grass = !r.onCut && ad > HW + 2.4 && !inCutZone(r);
-  const B = r.bk, terrain = BATTLE ? 1 : r.onCut ? 0.95 : grass ? B.grass : ad > HW ? 0.9 : 1;
+  const ad = Math.abs(r.d), grass = !r.onCut && ad > HW + 2.4 && !inCutZone(r) && !CITY && !QUARRY;   // (downtown it's the pavement; the quarry's verge is gravel)
+  const B = r.bk, sand = !r.onCut && !grass && onSand(r.s) ? Math.min(1, B.grass + 0.3) : 1;   // (the beach: the road bikes slow on the sand)
+  const terrain = BATTLE ? 1 : r.onCut ? (BEACH ? tideDrag() * Math.min(1, B.grass + 0.3) : 0.95) : grass ? B.grass : (ad > HW ? 0.9 : 1) * sand;
   // nitro
   const wasBoost = r.boosting;
   r.boosting = inp.boost && r.nitro > 0.02 && r.speed > 3 && countT <= 0 && (r.boosting || r.nitro > 0.1);
   if (r.boosting) { r.nitro = Math.max(0, r.nitro - NITRO_DRAIN * dt); if (!wasBoost && r.isPlayer) { sfx.nitro(); rumble(r, 200, 0.4); } }
   else r.nitro = Math.min(1, r.nitro + 0.015 * dt);
   r.dash = Math.max(0, r.dash - 6 * dt); r.dashT = Math.max(0, r.dashT - dt);
-  const top = B.max * terrain * (r.boosting ? NITRO_MULT : 1) + r.dash;
+  const top = B.max * terrain * hillK(r) * (r.boosting ? NITRO_MULT : 1) + r.dash;
   let gas = r.stallT > 0 ? 0 : inp.gas;
   // throttle and brake
   if (gas > 0.05 && r.speed < top) r.speed += B.accel * gas * (r.boosting ? 1.7 : 1) * (r.speed < 0 ? 2 : 1.15 - 0.55 * clamp(r.speed / B.max, 0, 1)) * dt;
   if (inp.brake > 0.05) r.speed -= (r.speed > 0.5 ? BRAKE : REVERSE * 0.8) * inp.brake * dt;
   r.speed -= r.speed * (gas > 0.05 ? 0.02 : 0.12) * dt;
   if (grass && onGround && !BATTLE) r.speed -= r.speed * 0.6 * (1 - B.grass) * 2.2 * dt;
+  if (BEACH && r.onCut && onGround && tide >= 0.35) r.speed -= r.speed * (tide >= 0.7 ? 1.4 : 0.5) * dt;   // (wading through the tide)
   if (r.speed > top) r.speed -= Math.min(r.speed - top, (grass ? 20 : 9) * dt);   // ease back down after a boost (fast on the grass)
   r.speed = Math.max(-REVERSE, r.speed);
   if (Math.abs(r.speed) < 0.05 && gas < 0.05 && inp.brake < 0.05) r.speed = 0;
@@ -2182,22 +2985,25 @@ function drive(r, inp, dt) {
   } else if (r.onCut) {
     const c = cutUV(r.x, r.z), sNew = modS(CUT.s0 + clamp(c.u / CUT.len, 0, 1) * (CUT.s1 - CUT.s0 + (CUT.s1 < CUT.s0 ? N_T : 0)));
     r.dist += dS(sNew - r.s); r.s = sNew; r.d = 0;
-    if (!r.cutCounted) { r.cutCounted = true; r.cuts++; if (r.isPlayer) feed(r, NIGHT ? '📦 THROUGH THE WAREHOUSE!' : '🐴 THROUGH THE BARN!'); }
+    if (!r.cutCounted) { r.cutCounted = true; r.cuts++; if (r.isPlayer) feed(r, BEACH && tide >= 0.35 ? '🌊 The tide\'s coming in! Slow going on the flat' : SHED.msg); }
+    if (BEACH && tide >= 0.35 && r.speed > 6 && Math.random() < 0.7) emit(r.x, CUT.y + 0.2, r.z, rand(-2, 2), rand(1, 3), rand(-2, 2), '#d8f0ff', 0.5);
   } else { locate(r); r.cutCounted = r.cutCounted && inCutZone(r); }
   // walls: the bridge (the road's walls up there) and the field fences
-  const prof = BATTLE ? 0 : profile(r.s);
-  if (!r.onCut && !CANAL && prof > 0.6 && Math.abs(r.d) < HW + 1.0 && r.y < prof * 0.5) {   // beside the ramps, down on the grass: their walls
+  const prof = BATTLE ? 0 : profile(r.s), BRIDGE = COURSE === 'fields';
+  if (BRIDGE && !r.onCut && prof > 0.6 && Math.abs(r.d) < HW + 1.0 && r.y < prof * 0.5) {   // beside the ramps, down on the grass: their walls
     r.d = Math.sign(r.d) * (HW + 1.0); setFromTrack(r);
     r.speed *= 0.9; if (r.isPlayer && Math.random() < 0.2) sfx.scrape();
-  } else if (!r.onCut && !CANAL && prof > 0.6 && Math.abs(r.d) > HW - 0.6 && r.y >= prof * 0.5) {   // up on the bridge: its walls
+  } else if (BRIDGE && !r.onCut && prof > 0.6 && Math.abs(r.d) > HW - 0.6 && r.y >= prof * 0.5) {   // up on the bridge: its walls
     r.d = Math.sign(r.d) * (HW - 0.6); setFromTrack(r);
     const th = trackPoint(r.s, 0, {}).h;
     r.h += wrapA(th - r.h) * 0.25; r.speed *= 0.985;
     if (r.isPlayer && Math.random() < 0.2) sfx.scrape();
     for (let i = 0; i < 2; i++) emit(r.x, r.y + 0.6, r.z, rand(-2, 2), rand(1, 3), rand(-2, 2), '#ffd27a', 0.3);
   }
-  if (!BATTLE && !r.onCut && Math.abs(r.d) > FENCE - 0.6 && !fenceGap(r.s, Math.sign(r.d)) && !inCutZone(r)) {
-    r.d = Math.sign(r.d) * (FENCE - 0.6); setFromTrack(r);
+  // the fences (and the subway's and the tunnel's walls: down in the subway, you're kept in)
+  const fd = BATTLE ? 0 : TRENCH && prof < -0.5 && r.y < -0.5 ? HW + 0.4 : fenceAt(r.s);
+  if (!BATTLE && !r.onCut && Math.abs(r.d) > fd - 0.6 && (!fenceGap(r.s, Math.sign(r.d)) || fd < FENCE) && !inCutZone(r)) {
+    r.d = Math.sign(r.d) * (fd - 0.6); setFromTrack(r);
     const th = trackPoint(r.s, 0, {}).h; r.h += wrapA(th - r.h) * 0.3; r.speed *= 0.97;
   }
   hitThings(r, dt);
@@ -2214,6 +3020,8 @@ function drive(r, inp, dt) {
   } else { r.air += dt; if (r.air > 0.3) r.nitro = Math.min(1, r.nitro + 0.2 * dt); r.airBest = Math.max(r.airBest, r.air); }
   // the canal: fall in and it's a splash (and back on the road before the jump); hit the far bank and the same
   if (CANAL && !r.onCut && !r.sinking && (r.y < -1.2 || (dS(r.s - CANAL.s) > CANAL.gap - 1 && dS(r.s - CANAL.s) < CANAL.gap + 2 && r.y < CANAL.land - 1))) splash(r);
+  // the quarry's cliff: over the edge, and down you go
+  if (CLIFF && !r.sinking && !r.onCut && r.y < profile(r.s) - 4) overEdge(r);
   // tricks spin round in the air
   if (r.trick > 0) { r.trick = Math.min(1, r.trick + dt / 0.55); if (r.trick >= 1) { r.trick = 0; r.trickDone = true; } }
   // dash pads
@@ -2225,9 +3033,9 @@ function drive(r, inp, dt) {
   }
   // off the road for long, or riding the wrong way
   if (BATTLE) return effects(r, fx, fz, false);
-  const away = !r.onCut && !inCutZone(r) && Math.abs(r.d) > FENCE + 3;
+  const away = !r.onCut && !inCutZone(r) && Math.abs(r.d) > FENCE + 3 && !r.sinking;
   r.offT = away ? r.offT + dt : Math.max(0, r.offT - dt);
-  if (r.offT > 2.5 || Math.abs(r.d) > FENCE + 30) respawn(r, false);
+  if (r.offT > 2.5 || (Math.abs(r.d) > FENCE + 30 && !r.sinking)) respawn(r, false);
   const tdir = trackAt(r.s, {});
   r.wrongT = (fx * tdir.dx + fz * tdir.dz) < -0.35 && r.speed > 3 && !r.onCut ? r.wrongT + dt : 0;
   effects(r, fx, fz, grass);
@@ -2238,7 +3046,7 @@ function effects(r, fx, fz, grass) {
     const col = r.driftCharge > 1.8 ? '#ff8a2a' : r.driftCharge > 0.9 ? '#4aa8ff' : '#ffe9b0';
     emit(r.x - fx * 0.8, r.y + 0.1, r.z - fz * 0.8, rand(-1.5, 1.5) - fx * 2, rand(1, 3), rand(-1.5, 1.5) - fz * 2, col, 0.35);
   }
-  if ((grass || r.onCut) && r.air <= 0 && r.speed > 8 && Math.random() < 0.6) emit(r.x - fx, r.y + 0.2, r.z - fz, rand(-1, 1), rand(1, 2.5), rand(-1, 1), r.onCut ? '#8a6a44' : '#5a7a34', 0.6);
+  if ((grass || r.onCut || onSand(r.s)) && r.air <= 0 && r.speed > 8 && Math.random() < 0.6) emit(r.x - fx, r.y + 0.2, r.z - fz, rand(-1, 1), rand(1, 2.5), rand(-1, 1), BEACH ? '#d8bc88' : r.onCut ? '#8a6a44' : '#5a7a34', 0.6);
   if (r.boosting || r.dashT > 0) emit(r.x - fx * 1.0, r.y + 0.6, r.z - fz * 1.0, -fx * 3 + rand(-0.5, 0.5), rand(0, 1), -fz * 3 + rand(-0.5, 0.5), r.boosting ? '#7ad0ff' : '#ffc93a', 0.25);
 }
 function dashBoost(r, amount, text) {
@@ -2335,13 +3143,15 @@ function hitThings(r, dt) {
     const ahead = dS(c.s - r.s);
     if (r.isPlayer && ahead > 30 && ahead < 120 && Math.abs(c.d) < HW + 1 && clock - (r.cowTold || -99) > 8) { r.cowTold = clock; feed(r, '🐄 COWS ON THE ROAD! Go round, or hop over them!'); }
   }
-  if (TRACTOR) {
-    const T = TRACTOR, ux = -Math.sin(T.h), uz = -Math.cos(T.h), dx = r.x - T.x, dz = r.z - T.z;
+  for (const T of VEHICLES) {   // (hop high enough and you clear a taxi)
+    if (!T.active || Math.abs(r.x - T.x) > 7 || Math.abs(r.z - T.z) > 7 || r.y < T.y - 2 || r.y - T.y > T.top) continue;
+    const ux = -Math.sin(T.h), uz = -Math.cos(T.h), dx = r.x - T.x, dz = r.z - T.z;
     const lu = dx * ux + dz * uz, lv = -dx * uz + dz * ux;
-    if (Math.abs(lu) < 2.6 && Math.abs(lv) < 1.6 && clear < 3.6) {
-      if (fast > 8) { wipeout(r, NIGHT ? '🏗️ Smack into the forklift!' : '🚜 Smack into the tractor!'); return; }
+    if (Math.abs(lu) < T.hu && Math.abs(lv) < T.hv) {
+      if (fast > 8) { wipeout(r, T.msg); return; }
       r.x += -uz * Math.sign(lv) * 0.5; r.z += ux * Math.sign(lv) * 0.5; r.speed *= 0.5;
     }
+    if (r.isPlayer && !T.shuttle && (T.honk -= 1 / 60) < 0 && dx * dx + dz * dz < 200) { T.honk = 3; sfx.horn(T.kind === 'bus'); }
   }
 }
 // into the canal: a splash, and back on the road before the ramp with a run-up
@@ -2354,8 +3164,26 @@ function splash(r) {
 }
 function unsink(r) {
   r.sinking = false;
+  if (r.fell) {   // (off the cliff: back on the road where you went over)
+    r.fell = false; r.d = 0; respawn(r, false); r.speed = 14;
+    return;
+  }
   r.dist += dS(CANAL.s - CANAL.up - 45 - r.s); r.s = modS(CANAL.s - CANAL.up - 45); r.d = 0;
   respawn(r, false); r.speed = r.bk.max * 0.85;
+}
+// over the quarry's cliff edge: a long fall, and back on the road a moment later
+function overEdge(r) {
+  r.sinking = true; r.fell = true; r.wipes++; r.sinkT = 1.3; r.drifting = false; r.boosting = false;
+  if (r.isPlayer) { sfx.fall(); showBanner(r, 'OVER THE EDGE!', 'There\'s no fence on the cliff: keep to the inside', 1.6, 'red'); rumble(r, 500, 0.9); }
+}
+// the beach's tide: out at the start, coming in on the second lap, in on the last (how fast you go on the tidal flat)
+let tide = 0;
+const tideDrag = () => (tide < 0.35 ? 1 : tide < 0.7 ? 0.75 : 0.35);
+// the hills: quicker downhill, slower up (the heavy bikes most)
+function hillK(r) {
+  if (!QUARRY || r.air > 0) return 1;
+  const fx = -Math.sin(r.h), fz = -Math.cos(r.h), t = trackAt(r.s, {}), g = gradeAt(r.s) * Math.sign(fx * t.dx + fz * t.dz || 1);
+  return g < 0 ? 1 + Math.min(0.25, -g * 2.4) : 1 - g * (0.5 + 0.5 * r.bk.weight);
 }
 // GTA's "wasted": down you go, sliding on your side, and back on the road a moment later
 function wipeout(r, why) {
@@ -2414,13 +3242,24 @@ function aiInput(c, dt, calm) {
     if (a > -2 && a < 45 && Math.abs(cw.d) < HW + 1.5 && Math.abs(cw.d - lane) < 3.4) lane = cw.d > 0 ? cw.d - 4.5 : cw.d + 4.5;
   }
   // the tractor: wait for it, or go round behind it
-  if (TRACTOR) { const a = dS(TRACTOR_S - c.s); if (a > 0 && a < 40 && Math.abs(TRACTOR.u) < HW + 3) { lane = TRACTOR.u > 0 ? TRACTOR.u - 5 : TRACTOR.u + 5; if (Math.abs(TRACTOR.u) < 4) inp.brake = a < 20 ? 1 : 0; } }
+  // the tractor (and the rest): wait for it, or go round behind it; downtown's traffic: slow down and go round
+  let wait = false;
+  for (const T of VEHICLES) {
+    if (!T.active || Math.abs(T.y - profile(T.s)) > 2) continue;   // (not the traffic on the bridge over the subway)
+    const a = dS(T.s - c.s);
+    if (a <= 0 || a > 45) continue;
+    const toward = T.u * T.dir < 0;
+    if (T.shuttle ? Math.abs(T.u) < HW + 3 : Math.abs(T.u) < HW + 4 || (toward && Math.abs(T.u) < HW + 16)) {
+      lane = T.u > 0 ? Math.min(lane, T.u - T.hu - 3) : Math.max(lane, T.u + T.hu + 3);
+      if (Math.abs(T.u) < (T.shuttle ? 4 : HW + 6) && a < 24) wait = true;
+    }
+  }
   // someone right in front: pull out
   for (const o of racers) { if (o === c) continue; const g = o.dist - c.dist; if (g > 0 && g < 10 && Math.abs(o.d - lane) < 1.6) lane += lane > 0 ? -3 : 3; }
   lane = clamp(lane, -HW + 1.2, HW - 1.2);
   const look = 8 + Math.max(0, c.speed) * 0.35;
   let tx, tz;
-  if (!calm && Math.abs(dS(CUT.s0 - 160 - c.s)) < 1.5) c.cutPlan = Math.random() < 0.45;
+  if (!calm && Math.abs(dS(CUT.s0 - 160 - c.s)) < 1.5) c.cutPlan = Math.random() < 0.45 && tide < 0.35;   // (not across the flat with the tide coming in)
   const toCut = c.cutPlan && dS(CUT.s0 - c.s) > -2 && dS(CUT.s0 - c.s) < 40;
   if ((toCut || c.onCut) && !c.finishT) {
     const cu = cutUV(c.x, c.z), u = clamp(cu.u + look, 0, CUT.len + 20);
@@ -2437,10 +3276,11 @@ function aiInput(c, dt, calm) {
   let rubber = gap > 70 ? 0.9 : gap > 30 ? 0.96 : gap < -110 ? 1.12 : gap < -50 ? 1.05 : 1;
   if (c.lap >= LAPS - 1 && rubber < 1) rubber = 1;   // (the last lap is a real race to the line)
   if (players.every(p => p.finishT)) rubber = 1;
-  let target = c.bk.max * c.skill * rubber + c.dash;
+  let target = c.bk.max * c.skill * rubber * hillK(c) + c.dash;
   if (toCut && dS(CUT.s0 - c.s) < 45) target = Math.min(target, 22);   // (slow for the sharp turn onto the dirt)
   inp.gas = c.speed < target ? 1 : 0;
   if (c.speed > target + 4) inp.brake = 0.4;
+  if (wait) { inp.gas = 0; inp.brake = c.speed > 5 ? 1 : 0; }
   // nitro on the straights, a wheelie now and then for the crowd
   c.nitroT -= dt;
   if (c.nitro > 0.55 && c.nitroT <= 0 && Math.abs(bendAt(c.s + 30)) === 0 && Math.random() < dt * 0.6) c.nitroT = 1.6;
@@ -2489,7 +3329,10 @@ function aiArena(c, dt) {
   return inp;
 }
 // after the line: ride on at an easy pace
-function cruiseInput(r) { const inp = aiInput(r, 0, true); inp.gas = r.speed < 22 ? 1 : 0; inp.boost = false; inp.back = false; return inp; }
+function cruiseInput(r) {
+  const inp = aiInput(r, 0, true), leap = CANAL && dS(CANAL.s - r.s) > -2 && dS(CANAL.s - r.s) < 140;   // (flat out for the jump over the water)
+  inp.gas = r.speed < (leap ? r.bk.max : 22) ? 1 : 0; inp.boost = false; inp.back = false; return inp;
+}
 
 // riders bump off each other
 function contacts() {
@@ -2745,6 +3588,7 @@ function update(dt) {
   for (const f of animated) f(clock, dt);
   updateFarm(dt);
   updateParts(dt);
+  if (BEACH) updateTide(dt);
   if (state !== 'race') return;
   if (countT > 0) {
     const before = countT;
@@ -2844,7 +3688,7 @@ function riderVisuals(r, dt) {
   // lean into the turn (more in a drift), lie down in a wipeout
   const leanWant = r.wipeT > 0 ? r.wipeSide * 1.35 : -(r.steer * 0.62 + (r.drifting ? r.driftDir * 0.3 : 0)) * clamp(r.speed / 22, 0, 1) * (r.air > 0 ? 0.5 : 1);
   r.lean += (leanWant - r.lean) * Math.min(1, dt * (r.wipeT > 0 ? 6 : 8));
-  const ahead = trackAt(r.s + 2, {}), onRoad = Math.abs(r.d) <= HW + 0.6 && !r.onCut, fx = -Math.sin(r.h), fz = -Math.cos(r.h);
+  const ahead = trackAt(r.s + 2, {}), onRoad = (Math.abs(r.d) <= HW + 0.6 || QUARRY) && !r.onCut, fx = -Math.sin(r.h), fz = -Math.cos(r.h);
   const slope = r.air > 0 ? Math.atan2(r.vy, Math.max(8, Math.abs(r.speed))) * 0.6
     : BATTLE ? Math.atan2(arenaGround(r.x + fx * 1.5, r.z + fz * 1.5) - arenaGround(r.x - fx * 1.5, r.z - fz * 1.5), 3)
     : onRoad ? Math.atan2(profile(r.s + 1.5) - profile(r.s - 1.5), 3) * (Math.cos(r.h - Math.atan2(-ahead.dx, -ahead.dz)) > 0 ? 1 : -1) : 0;
@@ -2882,7 +3726,7 @@ function playerCamera(p, dt) {
   const want = CAM_DIST * (1 + 0.16 * cam.speedK) * (countT > 0 ? 1.1 : 1);
   cam.dist += (want - cam.dist) * Math.min(1, dt * 3);
   const pos = tmp.copy(camOrigin).addScaledVector(camRay, cam.dist);
-  pos.y = Math.max(pos.y, 0.7, p.y - 1.2);
+  pos.y = Math.max(pos.y, groundOf(p) + 0.7, p.y - 1.2);
   p.camPos.lerp(pos, Math.min(1, dt * 10));
   const ahead = cam.ahead();
   p.camLook.lerp(tmp.set(p.x - Math.sin(p.h) * 7 * ahead, p.y + 1.2, p.z - Math.cos(p.h) * 7 * ahead), Math.min(1, dt * 10));
@@ -2914,7 +3758,7 @@ function updateSpecCam(dt) {
   if (BATTLE) { specCam.position.set(Math.cos(clock * 0.15) * 70, 48, Math.sin(clock * 0.15) * 70); specCam.lookAt(0, 0, 0); return; }
   const lead = racers.reduce((a, b) => (b.dist > a.dist ? b : a), racers[0]);
   const back = trackAt(lead.s - 25, {});
-  specPos.lerp(tmp.set(back.x + 18, 38, back.z + 18), Math.min(1, dt * 1.5));
+  specPos.lerp(tmp.set(back.x + 18, lead.y + 38, back.z + 18), Math.min(1, dt * 1.5));
   specLook.lerp(tmp.set(lead.x, lead.y, lead.z), Math.min(1, dt * 3));
   specCam.position.copy(specPos); specCam.lookAt(specLook);
 }
@@ -2924,8 +3768,8 @@ for (let k = 0; k < 4; k++) titleCam.layers.enable(10 + k);
 function titleCamera() {
   if (BATTLE) { titleCam.position.set(Math.cos(clock * 0.12) * 85, 34 + Math.sin(clock * 0.3) * 4, Math.sin(clock * 0.12) * 85); titleCam.lookAt(0, 2, 0); return; }
   const s = clock * 14 + 40, p = trackPoint(s, 0, {}), q = trackPoint(s + 60, 0, {});
-  titleCam.position.set(p.x - q.dz * 30 + Math.sin(clock * 0.2) * 10, 22 + Math.sin(clock * 0.3) * 6, p.z + q.dx * 30);
-  titleCam.lookAt(q.x, 2, q.z);
+  titleCam.position.set(p.x - q.dz * 30 + Math.sin(clock * 0.2) * 10, Math.max(0, profile(s)) + 22 + Math.sin(clock * 0.3) * 6, p.z + q.dx * 30);
+  titleCam.lookAt(q.x, profile(s + 60) + 2, q.z);
 }
 // the CPUs ride round on the title screen too
 function titleRide(dt) {
@@ -2947,7 +3791,7 @@ function render() {
   document.body.classList.toggle('split', n === 2);
   document.body.classList.toggle('quad', n > 2);
   renderer.setScissorTest(split);
-  scene.fog.far = n > 2 ? 520 : n > 1 ? 620 : 700;
+  scene.fog.far = (n > 2 ? 520 : n > 1 ? 620 : 700) * LOOK.far;
   views.forEach((cam, i) => {
     const [x, y, vw, vh] = rects[i];
     renderer.setViewport(x, y, vw, vh); renderer.setScissor(x, y, vw, vh);
@@ -2960,6 +3804,7 @@ function render() {
       cam.fov = cam.userData.fov0; cam.updateProjectionMatrix();
     }
     sky.position.set(cam.position.x, 0, cam.position.z);
+    for (const f of followCam) f(cam);
     for (const p of players) if (p.marker.visible || p.markerHid) { p.markerHid = twoP && p.marker.position.distanceToSquared(cam.position) < 64; p.marker.visible = twoP && !p.markerHid; }   // (never right in front of a camera)
     renderer.render(scene, cam);
   });

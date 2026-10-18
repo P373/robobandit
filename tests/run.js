@@ -1595,7 +1595,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
   window.arenaPilot = r => { const t = racers.filter(o => o !== r && !o.out)[0] || { x: 0, z: 0 }; const df = wrapA(Math.atan2(-(t.x - r.x), -(t.z - r.z)) - r.h); r.keys = { u: true, l: df > 0.05, r: df < -0.05 }; };
   window.go = (n = 1, sel) => { if (sel) garage.sel = sel; openGarage(n); for (let i = 0; i < n; i++) garageReady(i, true); for (let i = 0; i < 30 && state !== 'race'; i++) updateGarage(1 / 30); countT = 0; };`;
 
-  await test('Moto Mania courses and bikes: three courses (each its own page), the garage picks one of four bikes for each player, the bikes really differ, the docks canal is cleared at speed and is a splash when slow, the warehouse shortcut counts', async () => {
+  await test('Moto Mania courses and bikes: six courses (each its own page), the garage picks one of four bikes for each player, the bikes really differ, the docks canal is cleared at speed and is a splash when slow, the warehouse shortcut counts', async () => {
     const p = await open(browser, 'moto-mania.html?course=fields', { viewport: { width: 960, height: 540 } });
     await p.addScriptTag({ content: MANIA_PILOT });
     const title = await p.evaluate(() => ({ cards: [...document.querySelectorAll('#courses button')].map(b => b.dataset.c + (b.classList.contains('on') ? '*' : '')).join(','), course: COURSE }));
@@ -1640,7 +1640,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return out;
     });
     await done(d, 'moto-mania-docks.png');
-    check(title.cards === 'fields*,docks,arena' && title.course === 'fields', 'the title offers the three courses: ' + JSON.stringify(title));
+    check(title.cards === 'fields*,docks,city,beach,quarry,arena' && title.course === 'fields', 'the title offers the six courses: ' + JSON.stringify(title));
     check(g0.state === 'garage' && g0.cols === 1 && g0.buttons === 0, 'Race! opens the garage (no menu buttons in it, so each controller picks for itself): ' + JSON.stringify(g0));
     check(picked !== g0.bike && raced.state === 'race' && raced.bike === picked && raced.saved === picked, 'D picks another bike, Space is ready, the race starts on it: ' + JSON.stringify({ g0, picked, raced }));
     check(bikes.scooter.to25 < bikes.sport.to25 && bikes.sport.to25 < bikes.chopper.to25, 'the scooter pulls away first, the chopper last: ' + JSON.stringify(bikes));
@@ -1649,6 +1649,116 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(docks.night && !docks.fast.splashed && docks.fast.past, 'at the docks, flat out clears the canal: ' + JSON.stringify(docks.fast));
     check(docks.slow.splashed && /SPLASH/.test(docks.slow.banner), 'too slow: a splash: ' + JSON.stringify(docks.slow));
     check(docks.cut.cuts === 1 && docks.cut.wipes === 0, 'the warehouse shortcut is counted: ' + JSON.stringify(docks.cut));
+  });
+
+  await test('Moto Mania new courses: Downtown (the subway\'s walls, taxis and buses across the junctions under a traffic light), the Cape Cod Boardwalk (the pier jump, sand that slows the road bikes, the tide that floods the shortcut), Quarry Pass (quicker downhill, the tunnel\'s walls, the cliff with no fence); the CPUs get round each', async () => {
+    const VP = { viewport: { width: 960, height: 540 } };
+    const HW_ = 8;   // (the road's half width)
+    // a lap's worth of racing for the CPUs: how far each gets in 75 s
+    const lap = () => {
+      go(1, ['sport']); resetRider(P1, -30, 0); P1.dist = -30;
+      const t0 = cpus.map(c => c.dist);
+      for (let i = 0; i < 60 * 75; i++) { P1.keys = {}; update(1 / 60); }
+      return cpus.map((c, i) => Math.round(c.dist - t0[i]));
+    };
+    // Downtown
+    const c = await open(browser, 'moto-mania.html?course=city', VP);
+    await c.addScriptTag({ content: MANIA_PILOT });
+    const city = await c.evaluate(() => {
+      const out = { junctions: JUNCTIONS.length, crossings: CROSSINGS.length, depth: profile(TRENCH.s) };
+      go(1, ['sport']); cpus.forEach((q, i) => resetRider(q, TRENCH.s + 300 + i * 30, 0));
+      // down in the subway, steering hard for the wall: it keeps you in
+      resetRider(P1, TRENCH.s - 45, 0); P1.dist = TRENCH.s - 45; P1.speed = 25;
+      let maxD = 0; for (let i = 0; i < 150; i++) { P1.keys = { u: true, r: true }; update(1 / 60); if (P1.y < -1) maxD = Math.max(maxD, Math.abs(P1.d)); }
+      out.sub = { y: +P1.y.toFixed(1), maxD: +maxD.toFixed(2) };
+      // a taxi stopped across the road: ride into it and you're down
+      const cr = CROSSINGS.find(x => !x.deck), v = cr.cars[0];
+      cr.t = 6; for (const q of cr.cars) { q.active = false; q.mesh.visible = false; }
+      Object.assign(v, { active: true, u: 0, dir: 1, lane: 0, speed: 0 }); v.mesh.visible = true;
+      resetRider(P1, cr.s - 40, 0); P1.dist = cr.s - 40; P1.speed = 30;
+      for (let i = 0; i < 120 && !P1.wipeT; i++) { follow(P1); update(1 / 60); }
+      out.taxi = { wipe: P1.wipeT > 0, banner: P1.ui.banner.textContent, red: cr.light.red.material === SIGNAL_RED };
+      v.speed = 14; cr.t = 6; for (let i = 0; i < 60 * 8; i++) update(1 / 60);
+      out.clear = { red: cr.light.red.material === SIGNAL_RED, green: cr.light.green.material === SIGNAL_GREEN };
+      return out;
+    }).catch(e => ({ error: e.message }));
+    const cityLap = await c.evaluate(lap);
+    await done(c, 'moto-mania-city.png');
+    // the Cape Cod Boardwalk
+    const b = await open(browser, 'moto-mania.html?course=beach', VP);
+    await b.addScriptTag({ content: MANIA_PILOT });
+    const beach = await b.evaluate(() => {
+      const out = {};
+      const jump = (v, gas) => { go(1, ['sport']); cpus.forEach((q, i) => resetRider(q, CANAL.s + 300 + i * 30, 0)); resetRider(P1, CANAL.s - 50, 0); P1.dist = CANAL.s - 50; P1.speed = v;
+        let splashed = false; for (let i = 0; i < 360; i++) { follow(P1); if (!gas) P1.keys.u = P1.speed < v; update(1 / 60); if (P1.sinking) splashed = true; }
+        return { splashed, past: dS(P1.s - CANAL.s) > CANAL.gap + 5, banner: P1.ui.banner.textContent };
+      };
+      out.fast = jump(40, true); out.slow = jump(16, false);
+      // the sand: flat out along the beach, the sport bike against the dirt bike
+      const sand = k => { go(1, [k]); cpus.forEach((q, i) => resetRider(q, SAND.s0 - 400 + i * 30, 0)); resetRider(P1, SAND.s0 + 20, 0); P1.dist = SAND.s0 + 20; P1.speed = 20;
+        for (let i = 0; i < 60 * 5; i++) { follow(P1); update(1 / 60); } return +P1.speed.toFixed(1); };
+      out.sand = { sport: sand('sport'), dirt: sand('dirt') };
+      // the tide: out at the start, in for the last lap; the CPUs keep off the flat once it's coming in
+      go(1, ['sport']); out.tide0 = +tide.toFixed(2);
+      for (const q of racers) q.dist = 2.3 * N_T;
+      for (let i = 0; i < 60 * 12; i++) { P1.keys = {}; update(1 / 60); }
+      out.tide = +tide.toFixed(2); out.water = tidePlane.visible && tidePlane.position.y > 0;
+      const q = cpus[0]; resetRider(q, CUT.s0 - 160 - 20, 0); let planned = 0;
+      for (let i = 0; i < 30; i++) { aiInput(q, 1 / 60); q.s += 1; if (q.cutPlan) planned++; }
+      out.cpuCut = planned;
+      // on the flat with the tide in: slow going
+      resetRider(P1, CUT.s0, 0); P1.dist = CUT.s0;
+      P1.x = CUT.ax + CUT.ux * 20; P1.z = CUT.az + CUT.uz * 20; P1.h = Math.atan2(-CUT.ux, -CUT.uz); P1.speed = 30;
+      for (let i = 0; i < 60; i++) { P1.keys = { u: true }; update(1 / 60); }
+      out.flat = { onCut: P1.onCut, speed: +P1.speed.toFixed(1) };
+      return out;
+    });
+    const beachLap = await b.evaluate(lap);
+    await done(b, 'moto-mania-beach.png');
+    // Quarry Pass
+    const q = await open(browser, 'moto-mania.html?course=quarry', VP);
+    await q.addScriptTag({ content: MANIA_PILOT });
+    const quarry = await q.evaluate(() => {
+      const out = { summit: +profile((TUNNEL.s0 + TUNNEL.s1) / 2).toFixed(1) };
+      const ride = (s, k = 'chopper') => { go(1, [k]); cpus.forEach((c, i) => resetRider(c, s + 400 + i * 30, 0)); resetRider(P1, s, 0); P1.dist = s; P1.speed = 30;
+        for (let i = 0; i < 60 * 5; i++) { follow(P1); update(1 / 60); } return +P1.speed.toFixed(1); };
+      out.down = ride(modS(TUNNEL.s1 + 30)); out.up = ride(sNear(40, 4)); out.flat = BIKES.chopper.max;
+      out.grades = [+gradeAt(modS(TUNNEL.s1 + 80)).toFixed(3), +gradeAt(sNear(110, 0)).toFixed(3)];
+      // the tunnel's walls
+      go(1, ['sport']); resetRider(P1, TUNNEL.s0 + 10, 0); P1.dist = TUNNEL.s0 + 10; P1.speed = 25;
+      let maxD = 0; for (let i = 0; i < 120; i++) { P1.keys = { u: true, l: true }; update(1 / 60); if (inTunnel(P1.s)) maxD = Math.max(maxD, Math.abs(P1.d)); }
+      out.tunnel = +maxD.toFixed(2);
+      // the cliff: steer off the edge and down you go, then back on the road
+      resetRider(P1, modS(CLIFF.s0 + 60), CLIFF.side * 4); P1.dist = CLIFF.s0 + 60; P1.speed = 20; P1.h -= CLIFF.side * 0.7;
+      let fell = false, minY = 99, banner = '';
+      for (let i = 0; i < 60 * 4; i++) { P1.keys = { u: true }; update(1 / 60); if (P1.sinking) { fell = true; banner = banner || P1.ui.banner.textContent; } minY = Math.min(minY, P1.y - profile(P1.s)); }
+      out.cliff = { fell, banner, minY: +minY.toFixed(1), back: !P1.sinking && Math.abs(P1.d) < HW && Math.abs(P1.y - profile(P1.s)) < 1 };
+      // the other side has its barrier
+      resetRider(P1, modS(CLIFF.s0 + 60), -CLIFF.side * 4); P1.dist = CLIFF.s0 + 60; P1.speed = 20; P1.h += CLIFF.side * 0.7;
+      let fell2 = false; for (let i = 0; i < 60 * 3; i++) { P1.keys = { u: true }; update(1 / 60); if (P1.sinking) fell2 = true; }
+      out.wall = { fell: fell2, d: +Math.abs(P1.d).toFixed(1) };
+      return out;
+    });
+    const quarryLap = await q.evaluate(lap);
+    const N = await q.evaluate(() => N_T);
+    await done(q, 'moto-mania-quarry.png');
+    check(!city.error && city.junctions >= 8 && city.crossings === 4 && city.depth < -6, 'downtown: a street grid of junctions, three with traffic (and more over the subway), the subway sunk under the road: ' + JSON.stringify(city));
+    check(city.sub.y < -5 && city.sub.maxD < HW_ + 0.5, "the subway's walls keep you in: " + JSON.stringify(city.sub));
+    check(city.taxi.wipe && /TAXI/.test(city.taxi.banner) && city.taxi.red, 'a taxi across the road: ride into it and you\'re down, and the light\'s red: ' + JSON.stringify(city.taxi));
+    check(city.clear.green && !city.clear.red, 'the traffic gone, the light goes green: ' + JSON.stringify(city.clear));
+    check(cityLap.every(d => d > 1200), 'downtown: every CPU gets most of the way round in 75 s: ' + JSON.stringify(cityLap));
+    check(!beach.fast.splashed && beach.fast.past, 'flat out clears the gap off the end of the pier: ' + JSON.stringify(beach.fast));
+    check(beach.slow.splashed && /SPLASH/.test(beach.slow.banner), 'too slow: a splash: ' + JSON.stringify(beach.slow));
+    check(beach.sand.dirt > beach.sand.sport + 3, 'on the sand the dirt bike is quicker than the sport bike: ' + JSON.stringify(beach.sand));
+    check(beach.tide0 === 0 && beach.tide > 0.9 && beach.water && beach.cpuCut === 0, 'the tide is out at the start and in for the last lap, and the CPUs keep off the flat: ' + JSON.stringify(beach));
+    check(beach.flat.speed < 20, 'with the tide in, the flat is slow going: ' + JSON.stringify(beach.flat));
+    check(beachLap.every(d => d > 1200), 'the boardwalk: every CPU gets most of the way round in 75 s: ' + JSON.stringify(beachLap));
+    check(quarry.summit > 40 && quarry.grades[0] < -0.05 && quarry.grades[1] > 0.04, 'Quarry Pass climbs to the tunnel and drops away after it: ' + JSON.stringify(quarry));
+    check(quarry.down > quarry.flat + 3 && quarry.up < quarry.flat - 2, 'quicker than flat out downhill, slower up: ' + JSON.stringify(quarry));
+    check(quarry.tunnel < HW_ + 0.5, "the tunnel's walls keep you in: " + JSON.stringify(quarry));
+    check(quarry.cliff.fell && /EDGE/.test(quarry.cliff.banner) && quarry.cliff.minY < -4 && quarry.cliff.back, 'off the cliff edge (no fence): down you go, then back on the road: ' + JSON.stringify(quarry.cliff));
+    check(!quarry.wall.fell && quarry.wall.d < HW_ + 4, 'the other side has a barrier: ' + JSON.stringify(quarry.wall));
+    check(quarryLap.every(d => d > 0.6 * N), 'the quarry: every CPU gets well round in 75 s: ' + JSON.stringify({ quarryLap, N }));
   });
 
   await test('Moto Mania items: a box rolls an item (the roulette, then the HUD shows it), the back of the pack gets the good stuff, and oil, hay bales, cows, rockets, shields, magnets and mega nitro all work; Ⓨ uses an item and LB kicks', async () => {
