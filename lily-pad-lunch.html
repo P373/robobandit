@@ -74,24 +74,24 @@
     background: radial-gradient(circle at 40% 35%, #5ac8ff, #1a6a9c); box-shadow: 0 5px 0 #0e3a5a; touch-action: none; }
   #diveBtn .ico { display: block; font-size: 26px; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261016-1843">
+<link rel="stylesheet" href="common.css?v=20261017-1936">
 </head>
 <body>
 <canvas id="game"></canvas>
 <div id="topbar"></div>
-<button type="button" id="diveBtn" class="hidden"><span class="ico">🫧</span>DIVE</button>
+<button type="button" id="diveBtn" class="hidden rb-touch"><span class="ico">🫧</span>DIVE</button>
 
 <div id="title" class="screen">
   <div class="panel">
     <h1>Lily Pad Lunch</h1>
     <p>🐸 Flick your sticky tongue, snap up the bugs and fill your jar before the sun goes down!</p>
     <ul class="how">
-      <li><span class="e">👅</span><span><b>Snap:</b> <span class="key-only">aim with the mouse and click, or <kbd>←</kbd> <kbd>→</kbd> to aim and <kbd>Space</kbd> to snap.</span><span class="touch-only">tap a bug (or anywhere in the sky).</span> 🎮 aim with the stick, <b>Ⓐ</b> snaps.</span></li>
-      <li><span class="e">🍃</span><span><b>Hop</b> to another lily pad: <span class="key-only"><kbd>↑</kbd> hops the way you're aiming, or click a pad.</span><span class="touch-only">tap a lily pad.</span> 🎮 <b>Ⓑ</b> (or LB / RB).</span></li>
+      <li><span class="e">👅</span><span><b>Snap:</b> <span class="key-only">aim with the mouse and click, or <kbd>A</kbd> <kbd>D</kbd> to aim and <kbd>J</kbd> to snap.</span><span class="touch-only">tap a bug (or anywhere in the sky).</span> 🎮 aim with the stick, <b data-pad="RT">RT</b> snaps.</span></li>
+      <li><span class="e">🍃</span><span><b>Hop</b> to another lily pad: <span class="key-only"><kbd>Space</kbd> (or <kbd>W</kbd>) hops the way you're aiming, or click a pad.</span><span class="touch-only">tap a lily pad.</span> 🎮 <b data-pad="A">A</b> (or <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b>).</span></li>
       <li><span class="e">🐝</span><span><b>Don't snap the bees!</b> A sting makes your tongue too puffy to snap for a moment.</span></li>
-      <li><span class="e">🫧</span><span>Later on a hungry <b>heron</b> comes wading in. When it aims at you, <b>dive</b>! <span class="key-only"><kbd>↓</kbd></span><span class="touch-only">the DIVE button</span> 🎮 <b>Ⓨ</b> or LT.</span></li>
+      <li><span class="e">🫧</span><span>Later on a hungry <b>heron</b> comes wading in. When it aims at you, <b>dive</b>! <span class="key-only"><kbd>S</kbd> or <kbd>Ctrl</kbd></span><span class="touch-only">the DIVE button</span> 🎮 <b data-pad="B">B</b> or <b data-pad="LT">LT</b>.</span></li>
       <li><span class="e">🐸</span><span>Every bug helps you <b>grow</b>: a bigger frog has a longer tongue, and the golden frog's tongue grabs every bug in its path!</span></li>
-      <li><span class="e">👥</span><span><b>Two players</b> share the pond: a 🎮 controller each, or share the keyboard (<span class="key-only">Player 1 <kbd>A</kbd> <kbd>D</kbd> aim, <kbd>Space</kbd> snap, <kbd>W</kbd> hop, <kbd>S</kbd> dive · Player 2 <kbd>←</kbd> <kbd>→</kbd> aim, <kbd>Enter</kbd> snap, <kbd>↑</kbd> hop, <kbd>↓</kbd> dive</span>). Fill one jar together, or race for the most bugs!</span></li>
+      <li><span class="e">👥</span><span><b>Two players</b> share the pond: a 🎮 controller each, or share the keyboard (<span class="key-only">Player 1 <kbd>A</kbd> <kbd>D</kbd> aim, <kbd>F</kbd> snap, <kbd>W</kbd> or <kbd>Space</kbd> hop, <kbd>S</kbd> dive · Player 2 <kbd>J</kbd> <kbd>L</kbd> aim, <kbd>Enter</kbd> snap, <kbd>I</kbd> hop, <kbd>K</kbd> dive</span>). Fill one jar together, or race for the most bugs!</span></li>
     </ul>
     <div class="levels" id="levels"></div>
     <div class="modes">
@@ -126,7 +126,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261016-1843"></script>
+<script src="common.js?v=20261017-1936"></script>
 <script>
 'use strict';
 
@@ -641,31 +641,26 @@ function updateHeron(dt) {
 }
 
 // ---------- Input ----------
-// One player: arrows / A D aim, Space snap, ↑ / W hop, ↓ / S dive, the mouse (or a finger) aims and snaps.
-// Two players: Player 1 A D aim, Space snap, W hop, S dive; Player 2 ← → aim, Enter snap, ↑ hop, ↓ dive.
-const KEYS1 = { ArrowLeft: 'l', KeyA: 'l', ArrowRight: 'r', KeyD: 'r' }, KEYS_P1 = { KeyA: 'l', KeyD: 'r' }, KEYS_P2 = { ArrowLeft: 'l', ArrowRight: 'r' };
+// One player: A / D aim, J or a left click snaps, Space / W hop the way you aim, S or Ctrl dives; the mouse (or a finger) aims and snaps.
+// Two players: Player 1 A / D aim, F snap, W or Space hop, S dive; Player 2 J / L aim, Enter snap, I hop, K dive.
+// (N sound, M menu, F1 guide and Esc pause are shared; P never pauses.)
+const KEYS1 = { KeyA: 'l', KeyD: 'r' }, KEYS_P1 = { KeyA: 'l', KeyD: 'r' }, KEYS_P2 = { KeyJ: 'l', KeyL: 'r' };
+const ACT1 = { KeyJ: 'snap', Space: 'hop', KeyW: 'hop', KeyS: 'dive', ControlLeft: 'dive', ControlRight: 'dive' };
+const ACT_P1 = { KeyF: 'snap', KeyW: 'hop', Space: 'hop', KeyS: 'dive' }, ACT_P2 = { Enter: 'snap', KeyI: 'hop', KeyK: 'dive' };
+const doAct = (f, a) => { if (!f) return; if (a === 'snap') snap(f); else if (a === 'hop') hop(f); else if (a === 'dive') dive(f); };
+RB.guardLeave(() => state === 'play');   // Ctrl dives, so Ctrl + W mustn't close the tab by accident
 addEventListener('keydown', e => {
   const P1 = frogs[0], P2 = frogs[1];
   if (state === 'play' && !paused) {
     const map = twoP ? (KEYS_P1[e.code] ? [P1, KEYS_P1[e.code]] : KEYS_P2[e.code] ? [P2, KEYS_P2[e.code]] : null) : KEYS1[e.code] ? [P1, KEYS1[e.code]] : null;
     if (map && map[0]) { map[0].keys[map[1]] = true; e.preventDefault(); }
   }
-  if (e.repeat) return;
-  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
+  if (paused) { if (e.code === 'Escape' && !e.repeat) { e.preventDefault(); resume(); } return; }
   if (state === 'play') {
-    if (e.code === 'Space') { e.preventDefault(); snap(P1); }
-    if (twoP) {
-      if (e.code === 'KeyW') hop(P1); if (e.code === 'KeyS') dive(P1);
-      if (e.code === 'Enter') { e.preventDefault(); snap(P2); }
-      if (e.code === 'ArrowUp') { e.preventDefault(); hop(P2); } if (e.code === 'ArrowDown') { e.preventDefault(); dive(P2); }
-    } else {
-      if (e.code === 'ArrowUp' || e.code === 'KeyW') { e.preventDefault(); hop(P1); }
-      if (e.code === 'ArrowDown' || e.code === 'KeyS') { e.preventDefault(); dive(P1); }
-      if (e.code === 'Enter') snap(P1);
-    }
-    if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  } else if (state === 'title' && (e.code === 'Enter' || e.code === 'Space') && document.activeElement === document.body) { e.preventDefault(); play(); }
-  if (e.code === 'KeyM') RB.toggleMute();
+    const act = twoP ? (ACT_P1[e.code] ? [P1, ACT_P1[e.code]] : ACT_P2[e.code] ? [P2, ACT_P2[e.code]] : null) : ACT1[e.code] ? [P1, ACT1[e.code]] : null;
+    if (act) { e.preventDefault(); if (!e.repeat) doAct(act[0], act[1]); }
+    if (e.code === 'Escape' && !e.repeat) pause();
+  } else if (state === 'title' && !e.repeat && (e.code === 'Enter' || e.code === 'Space') && document.activeElement === document.body) { e.preventDefault(); play(); }
 });
 addEventListener('keyup', e => {
   for (const f of frogs) { const k = twoP ? (f.idx ? KEYS_P2 : KEYS_P1)[e.code] : !f.idx && KEYS1[e.code]; if (k) f.keys[k] = false; }
@@ -691,10 +686,18 @@ canvas.addEventListener('pointerdown', e => {
 const diveBtn = document.getElementById('diveBtn');
 diveBtn.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (frogs[0]) dive(frogs[0]); });
 
-// 🎮 Each controller is read on its own while you play (the first is Player 1, the second Player 2):
-// stick aims, Ⓐ / Ⓧ / RT snap, Ⓑ hops the way you aim, LB / RB hop left / right, Ⓨ / LT dive
-const PAD_LEGEND = '<b>Lily Pad Lunch:</b> stick 👅 aim · Ⓐ / Ⓧ / RT snap · Ⓑ hop the way you aim · LB / RB hop left / right · Ⓨ / LT 🫧 dive<br>👥 Two players: the first controller is Player 1, the second is Player 2';
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({}, PAD_LEGEND);
+// 🎮 Each controller is read on its own while you play, in one player and two (the first is Player 1, the second Player 2):
+// left stick / D-pad left-right aim, RT snaps, A hops the way you aim, LB / RB hop left / right, B or LT dives
+RB.setControls({
+  name: 'Lily Pad Lunch', camera: false,
+  rows: [
+    { act: 'Aim the tongue', keys: 'A / D or the mouse', pad: '{LS} or {DPAD} left / right', touch: 'Tap where to snap' },
+    { act: 'Snap', keys: 'J or left click', pad: '{RT}', touch: 'Tap a bug' },
+    { act: 'Hop', keys: 'Space or W (the way you aim), or click a pad', pad: '{A} (the way you aim), or {LB} / {RB}', touch: 'Tap a lily pad' },
+    { act: 'Dive', keys: 'S or Ctrl', pad: '{B} or {LT}', touch: 'DIVE button' },
+  ],
+  note: 'Two players: a controller each (the first is Player 1), or share the keyboard: Player 1 A / D aim, F snap, W or Space hop, S dive. Player 2 J / L aim, Enter snap, I hop, K dive.',
+});
 function pollPads() {
   const on = state === 'play' && !paused;
   if (RB.pad && 'direct' in RB.pad) RB.pad.direct = on;
@@ -704,11 +707,11 @@ function pollPads() {
     const now = []; for (let b = 0; b < 16; b++) now[b] = f.pad0.pressed(b);
     if (f.prevBtn) {
       const edge = b => now[b] && !f.prevBtn[b];
-      if (edge(0) || edge(2) || edge(7)) snap(f);
-      if (edge(1)) hop(f);
-      if (edge(4)) hop(f, f.pad - 1);
+      if (edge(7)) snap(f);                    // RT snaps (attack)
+      if (edge(0)) hop(f);                     // A hops the way you aim (jump)
+      if (edge(4)) hop(f, f.pad - 1);          // LB / RB hop left / right
       if (edge(5)) hop(f, f.pad + 1);
-      if (edge(3) || edge(6)) dive(f);
+      if (edge(1) || edge(6)) dive(f);         // B or LT dives
     }
     f.prevBtn = now;
   });

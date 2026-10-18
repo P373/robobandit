@@ -78,3 +78,6 @@
 .rb-voicebox h3 { margin-top: 14px; }
 .rb-menu-set .on { border-color: #ffd84a; background: #2a3466; }
 .rb-voice-tip { margin: 8px 0 0; font-size: 13px; color: #a9b6d3; }
+
+/* a controller takes over from the on-screen touch buttons */
+body.rb-pad-on .rb-touch { display: none !important; }

@@ -132,7 +132,7 @@
   .ball.locked { cursor: default; opacity: .55; }
   .ball.locked i { filter: grayscale(1); }
 </style>
-<link rel="stylesheet" href="common.css?v=20261016-1843">
+<link rel="stylesheet" href="common.css?v=20261017-1936">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -152,24 +152,24 @@
   <div id="prompt" class="hidden"></div>
   <div id="banner" class="hidden"></div>
 </div>
-<button id="wingBtn" class="hidden">WINGS</button>
-<button id="boostBtn" class="hidden">🚀<br>BOOST</button>
+<button id="wingBtn" class="hidden rb-touch">WINGS</button>
+<button id="boostBtn" class="hidden rb-touch">🚀<br>BOOST</button>
 
 <div id="title" class="screen">
   <div class="panel">
     <h1>HAMGLIDER</h1>
     <div class="sub">🐹 Pip the hamster takes to the skies!</div>
     <ol>
-      <li><b>Roll down the ramp.</b> <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> lean the ball</span><span class="touch-only">Drag left or right to lean the ball</span>
+      <li><b>Roll down the ramp.</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> (or the 🎮 left stick) lean the ball</span><span class="touch-only">Drag left or right to lean the ball</span>
         and it <b>spins</b>, so you take off on a <b>curve</b>!</li>
-      <li><b>Fly off the end</b>, then press <span class="key-only"><kbd>Space</kbd></span><span class="touch-only">the yellow <b>WINGS</b> button</span>:
+      <li><b>Fly off the end</b>, then press <span class="key-only"><kbd>Space</kbd> (or 🎮 <b data-pad="A">A</b>)</span><span class="touch-only">the yellow <b>WINGS</b> button</span>:
         your ball pops open and each half becomes a <b>wing</b>!</li>
       <li><b>Glide to the target.</b>
-        <span class="key-only"><kbd>←</kbd> <kbd>→</kbd> turn. <kbd>↑</kbd> float. <kbd>↓</kbd> dive.</span>
+        <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> turn. <kbd>W</kbd> float. <kbd>S</kbd> dive. (🎮 left stick)</span>
         <span class="touch-only">Drag to steer: left/right to turn, up to float, down to dive.</span></li>
-      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Q</kbd> / <kbd>E</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>: the camera swings all the way round Pip. <b>LB</b> (or click a stick) swings it back behind.</li>
-      <li><b>Drop onto the dartboard.</b> Close your wings to fall straight down. Overshot it? Land safely on one of the <b>big islands</b> out past the target!</li>
-      <li><b>Cape Cod Canal:</b> roll off the top of the Bourne Bridge, past the railroad bridge, all the way to Cleveland Ledge Light! Hold <span class="key-only"><kbd>Shift</kbd> (or 🎮 <b>LT</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
+      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>: the camera swings all the way round Pip. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b> or click the right stick<span class="key-only"> (or <kbd>R</kbd>)</span> swings it back behind.</li>
+      <li><b>Drop onto the dartboard.</b> Close your wings to fall straight down<span class="key-only"> (<kbd>Space</kbd> again, or <kbd>Ctrl</kbd>, or 🎮 <b data-pad="LT">LT</b> / <b data-pad="B">B</b>)</span>. Overshot it? Land safely on one of the <b>big islands</b> out past the target!</li>
+      <li><b>Cape Cod Canal:</b> roll off the top of the Bourne Bridge, past the railroad bridge, all the way to Cleveland Ledge Light! Hold <span class="key-only"><kbd>Shift</kbd> (🎮 <b data-pad="RT">RT</b> or <b data-pad="X">X</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
       <li>Grab 🌻 seeds, beat <b>4 worlds</b>, unlock new <b>hamster balls</b>… and look for a <b>secret</b> hidden in each world. 🤫</li>
     </ol>
     <div class="rings">
@@ -198,9 +198,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261016-1843"></script>
-<script src="orbit-cam.js?v=20261016-1843"></script>
-<script src="touch-stick.js?v=20261016-1843"></script>
+<script src="common.js?v=20261017-1936"></script>
+<script src="orbit-cam.js?v=20261017-1936"></script>
+<script src="touch-stick.js?v=20261017-1936"></script>
 <script>
 'use strict';
 
@@ -1262,20 +1262,33 @@ const music = (() => {
 
 // ---------- Input ----------
 const keys = {};
-const KEYMAP = { ArrowLeft: 'left', KeyA: 'left', ArrowRight: 'right', KeyD: 'right', ArrowUp: 'up', KeyW: 'up', ArrowDown: 'down', KeyS: 'down', KeyZ: 'boost', ShiftLeft: 'boost', ShiftRight: 'boost' };
-// 🎮 LT or RB boosts (in the Cape Cod Canal world)
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 5: 'KeyZ', 6: 'KeyZ' },
-  '<b>Hamglider:</b> Ⓐ roll / open and close the wings · <b>LT</b> or <b>RB</b> 🚀 boost (Cape Cod Canal) · right stick: look around · <b>LB</b> or click a stick: camera behind');
+// keyboard: A / D lean & turn, W float, S dive, Space roll / open & close wings, Ctrl close wings (drop),
+// hold Shift boost (Cape Cod Canal). Camera Z / X / R comes from orbit-cam.js.
+const KEYMAP = { KeyA: 'left', KeyD: 'right', KeyW: 'up', KeyS: 'down', ShiftLeft: 'boost', ShiftRight: 'boost' };
+// 🎮 A action · RT or X boost · LT or B close the wings · LB / RB / right-stick click recenter the camera (orbit-cam.js)
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'ControlLeft', 2: 'ShiftLeft', 3: null, 4: null, 5: null, 6: 'ControlLeft', 7: 'ShiftLeft', 10: null });
+RB.setControls({
+  name: 'Hamglider',
+  camera: true,
+  rows: [
+    { act: 'Lean / turn', keys: 'A / D', pad: 'Left stick', touch: 'Drag left / right' },
+    { act: 'Float / dive', keys: 'W / S', pad: 'Left stick up / down', touch: 'Drag up / down' },
+    { act: 'Roll · open & close wings', keys: 'Space', pad: '{A}', touch: 'Tap · WINGS button' },
+    { act: 'Drop (close wings)', keys: 'Ctrl', pad: '{LT} or {B}', touch: 'CLOSE button' },
+    { act: 'Boost (Canal world)', keys: 'Hold Shift', pad: 'Hold {RT} or {X}', touch: 'Hold 🚀' },
+  ],
+});
+RB.guardLeave(() => PLAYING.includes(state) && !paused);
 addEventListener('keydown', e => {
-  if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
-  if (e.repeat) return;
   if (paused) {
-    if (e.code === 'Space' || e.code === 'Enter' || e.code === 'KeyP' || e.code === 'Escape') { e.preventDefault(); resume(); }
+    if (e.code === 'Escape' && !e.repeat) { e.preventDefault(); resume(); }
     return;
   }
-  if (e.code === 'Space' || e.code === 'Enter') { e.preventDefault(); action(); }
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (KEYMAP[e.code]) { keys[KEYMAP[e.code]] = true; e.preventDefault(); }
+  if (e.repeat) return;
+  if (e.code === 'Space') { e.preventDefault(); action(); }
+  if (e.code === 'ControlLeft' || e.code === 'ControlRight') { e.preventDefault(); if (state === 'air' && wings) action(); }   // Ctrl only closes the wings
+  if (e.code === 'Escape') pause();
 });
 addEventListener('keyup', e => { if (KEYMAP[e.code]) keys[KEYMAP[e.code]] = false; });
 addEventListener('blur', () => { for (const k in keys) keys[k] = false; });
@@ -1287,8 +1300,8 @@ canvas.addEventListener('pointerdown', e => {
   audio();
   if (state === 'intro' || state === 'replay' || (e.pointerType === 'mouse' && e.button === 0)) action();
 });
-// the 360° orbit camera (orbit-cam.js) while you roll, fly and land: right stick, Q / E, a right-click drag
-// or a second finger; LB, a stick click or R swings it back behind Pip
+// the 360° orbit camera (orbit-cam.js) while you roll, fly and land: right stick, Z / X, a right-click drag
+// or a second finger; LB / RB, a right-stick click or R swings it back behind Pip
 const CHASE = ['ramp', 'air', 'roll'];
 const cam = createOrbitCam({ canvas, stick, enabled: () => CHASE.includes(state) && !paused, el0: 0.42, minEl: -0.1, maxEl: 1.1, mouseButtons: [2] });
 const wingBtn = document.getElementById('wingBtn');
@@ -1415,7 +1428,7 @@ function setupRound(i) {
   cam.reset();
   setFace('happy');
   const windTxt = practice ? 'practice: no wind' : `wind ${r.wind ? r.wind.toFixed(1) + ' m/s' : 'calm'}${world.gusts ? ', gusty!' : ''}`;
-  showBanner(`ROUND ${i + 1}`, `Target ${r.dist} m away · ${windTxt}<br>${matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
+  showBanner(`ROUND ${i + 1}`, `Target ${r.dist} m away · ${windTxt}<br>${RB.pad && RB.pad.connected ? RB.padText('Press {A}') : matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
 }
 
 function action() {
@@ -1508,7 +1521,7 @@ function update(dt) {
   const rawSteer = Math.max(-1, Math.min(1, steerInput()));
   const steer = CHASE.includes(state) ? rawSteer * cam.steer(rawSteer) : rawSteer;   // left/right follow the screen
   const pitch = Math.max(-1, Math.min(1, pitchInput()));
-  // 🚀 boost (Cape Cod Canal): hold Shift / Z / LT / RB while rolling or flying
+  // 🚀 boost (Cape Cod Canal): hold Shift / RT / X while rolling or flying
   const wasBoosting = boosting;
   boosting = !!(world && world.boost && keys.boost && fuel > 0 && (state === 'ramp' || state === 'air'));
   if (boosting) { fuel = Math.max(0, fuel - BOOST_DRAIN * dt); if (!wasBoosting) sfx.boost(); }
@@ -1816,14 +1829,15 @@ function updateHUD() {
   $('windArrow').style.transform = `rotate(${(windYaw - camYaw) * 180 / Math.PI - 90}deg)`;
   $('windSpeed').textContent = wind.length() < 0.1 ? 'CALM' : wind.length().toFixed(1);
   let msg = '';
-  const touch = matchMedia('(pointer: coarse)').matches;
-  if (state === 'ramp' && d < 45 && round === 0) msg = touch ? 'DRAG TO CURVE!' : '← → TO CURVE!';
+  const pad = !!(RB.pad && RB.pad.connected);
+  const touch = !pad && matchMedia('(pointer: coarse)').matches;
+  if (state === 'ramp' && d < 45 && round === 0) msg = pad ? 'LEFT STICK TO CURVE!' : touch ? 'DRAG TO CURVE!' : 'A / D TO CURVE!';
   else if (state === 'ramp' && d > 60) msg = 'GET READY…';
-  else if (state === 'air' && !wings && stateT < 4 && vel.y > -25) msg = touch ? 'TAP WINGS TO FLY!' : 'SPACE TO OPEN WINGS!';
+  else if (state === 'air' && !wings && stateT < 4 && vel.y > -25) msg = pad ? RB.padText('{A} TO OPEN WINGS!') : touch ? 'TAP WINGS TO FLY!' : 'SPACE TO OPEN WINGS!';
   else if (state === 'air' && wings && vel.length() < STALL + 1 && !boosting) msg = 'TOO SLOW! NOSE DOWN';
-  else if (world.boost && (state === 'air' || state === 'ramp') && round === 0 && stateT < 5 && fuel > 0.9) msg = touch ? 'HOLD 🚀 TO BOOST!' : 'HOLD SHIFT TO BOOST!';
+  else if (world.boost && (state === 'air' || state === 'ramp') && round === 0 && stateT < 5 && fuel > 0.9) msg = pad ? RB.padText('HOLD {RT} TO BOOST!') : touch ? 'HOLD 🚀 TO BOOST!' : 'HOLD SHIFT TO BOOST!';
   else if (state === 'air' && wings && thermals.some(t => Math.hypot(pos.x - t.x, pos.z - t.z) < t.r)) msg = 'HOT AIR! GOING UP!';
-  else if (state === 'air' && wings && pos.y < 14 && Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z) < TARGET_R) msg = touch ? 'CLOSE TO DROP!' : 'SPACE TO DROP!';
+  else if (state === 'air' && wings && pos.y < 14 && Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z) < TARGET_R) msg = pad ? RB.padText('{A} OR {LT} TO DROP!') : touch ? 'CLOSE TO DROP!' : 'SPACE TO DROP!';
   else if (state === 'replay') msg = '⏪ SLOW-MO REPLAY';
   prompt.textContent = msg;
   prompt.classList.toggle('hidden', !msg);

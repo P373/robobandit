@@ -79,13 +79,13 @@ const FSBOT = {
     if (r.stage < 2 && r.launch <= 0 && r.burn > 0 && r.empty > 0.2 && r.stage < 3) r.tap();
   },
   space(r) {
-    if (r.state !== 'fly') { keys.ArrowUp = keys.ArrowLeft = keys.ArrowRight = false; return; }
+    if (r.state !== 'fly') { keys.KeyW = keys.KeyA = keys.KeyD = false; return; }
     const s = r.spots.find(q => !q.rocks), pc = (s.x1 + s.x2) / 2, dx = pc - r.x, want = clamp(dx * 0.4, -40, 40);
-    keys.ArrowRight = r.vx < want - 4; keys.ArrowLeft = r.vx > want + 4;
+    keys.KeyD = r.vx < want - 4; keys.KeyA = r.vx > want + 4;
     const lo = Math.min(r.x, s.x1) - 40, hi = Math.max(r.x, s.x2) + 40;
     const peak = Math.min(...r.pts.filter(q => q.x > lo && q.x < hi && (q.x < s.x1 || q.x > s.x2)).map(q => q.y), s.y);
     const h = Math.abs(dx) > 25 ? peak - 70 - r.y : s.y - r.y;
-    keys.ArrowUp = r.vy > Math.min(60, 12 + h * 0.12) || (Math.abs(dx) > 40 && h < 120 && r.vy > 0);
+    keys.KeyW = r.vy > Math.min(60, 12 + h * 0.12) || (Math.abs(dx) > 40 && h < 120 && r.vy > 0);
   },
   drone(r) {
     const { BASE, HOUSES, TREES, AIRPORT } = r.k;
@@ -101,8 +101,8 @@ const FSBOT = {
     setStick((vx - r.vx) / 120, (vy - r.vy) / 120);
   },
   planet(r) {
-    keys.ArrowRight = false; keys.Space = false;
-    if (r.phase === 'wait') { if (Math.abs(r.align) < 0.05) r.tap(); else keys.ArrowRight = r.align > 0.15 || r.align < 0; return; }
+    keys.KeyD = false; keys.Space = false;
+    if (r.phase === 'wait') { if (Math.abs(r.align) < 0.05) r.tap(); else keys.KeyD = r.align > 0.15 || r.align < 0; return; }
     if (r.phase === 'cruise') { stick.active = false; return; }
     if (!r.chute) { if (r.spd < 1700 && r.spd > 1250) r.tap(); return; }
     keys.Space = r.crane && r.vy > 22;

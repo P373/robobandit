@@ -23,7 +23,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Ride the winds to the landing field and land gently on the big X.',
-      keys: 'Hold <b>Space</b> (or ↑) to fire the burner. Let go to cool down and sink.',
+      keys: 'Hold <b>Space</b> (or <b>W</b>) to fire the burner. Let go to cool down and sink.',
       touch: 'Hold your finger on the screen to fire the burner. Let go to cool down and sink.',
       tip: 'Each layer of wind blows a different way. Watch the flags! Go too far? Find a wind that blows back.',
       toddler: 'Hold to go up, let go to come down!',
@@ -61,7 +61,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Glide as far as you can and land on the field. Ride the shimmering thermals to climb!',
-      keys: 'Hold <b>Space</b> (or ↑) to lift the nose. Let go to dive and speed up.',
+      keys: 'Hold <b>Space</b> (or <b>W</b>) to lift the nose. Let go to dive and speed up.',
       touch: 'Hold your finger on the screen to lift the nose. Let go to dive and speed up.',
       tip: 'Watch the arrows: green is lift, red is weight, orange is drag. Nose up too long and you\'ll STALL.',
       toddler: 'Hold to go up, let go to zoom down!',
@@ -100,7 +100,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Fly the zeppelin over the mountains and stop gently at the mooring mast. Stay away from lightning: hydrogen burns!',
-      keys: 'Press <b>↑</b> to drop water ballast (go up). Press <b>↓</b> to let out gas (go down).',
+      keys: 'Press <b>W</b> to drop water ballast (go up). Press <b>S</b> to let out gas (go down).',
       touch: 'Drag your thumb <b>up</b> to drop ballast (go up) and <b>down</b> to let out gas (go down).',
       tip: 'Airships are slow to react, so plan ahead! You only have so much ballast and gas.',
       toddler: 'Drag up to go up, drag down to go down!',
@@ -135,7 +135,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Fly the Wright Flyer as far as you can. Beat Orville\'s 120 feet, then try for Wilbur\'s 852 feet! You get 3 flights.',
-      keys: 'Use <b>↑</b> and <b>↓</b> to tip the nose up and down. Keep it steady!',
+      keys: 'Use <b>W</b> and <b>S</b> to tip the nose up and down. Keep it steady!',
       touch: 'Drag your thumb up and down to tip the nose. Keep it steady!',
       tip: 'The Flyer wobbles on its own. Make small, gentle corrections, and don\'t climb too steeply or you\'ll slow down.',
       toddler: 'Drag up and down to keep the plane flying!',
@@ -171,7 +171,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Fly Lindbergh\'s route from New York to Paris! Pass over each checkpoint, dodge storms and don\'t fall asleep.',
-      keys: 'Steer with <b>←</b> and <b>→</b>. When your eyes get droopy, press <b>Space</b> to wake up!',
+      keys: 'Steer with <b>A</b> and <b>D</b>. When your eyes get droopy, press <b>Space</b> to wake up!',
       touch: 'Drag left and right to steer. When your eyes get droopy, tap <b>WAKE UP</b>!',
       tip: 'The wind pushes you sideways, so aim a little into it. The dotted line shows the way to the next checkpoint.',
       toddler: 'Drag to steer to the next flag!',
@@ -209,7 +209,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Rescue the hikers! Hover low over each one until they\'re winched up, then fly them back to the hospital helipad.',
-      keys: '<b>↑</b> / <b>↓</b> to climb and sink. <b>←</b> / <b>→</b> to tilt and fly sideways.',
+      keys: '<b>W</b> / <b>S</b> to climb and sink. <b>A</b> / <b>D</b> to tilt and fly sideways.',
       touch: 'Drag your thumb: up and down to climb and sink, left and right to tilt and fly.',
       tip: 'Helicopters keep sliding after you tilt, so tilt the other way to stop. Keep the rotor away from the cliffs!',
       toddler: 'Drag to fly to the hikers and bring them home!',
@@ -247,7 +247,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Fly Concorde: climb high, go supersonic once you\'re over the ocean, and reach Mach 2!',
-      keys: '<b>↑</b> / <b>↓</b> to climb and dive. Hold <b>Space</b> for the afterburners.',
+      keys: '<b>W</b> / <b>S</b> to climb and dive. Hold <b>Space</b> for the afterburners.',
       touch: 'Drag up and down to climb and dive. Hold <b>BURNER</b> for the afterburners.',
       tip: 'Thin air high up means less drag. Afterburners gulp fuel! And no booms over towns: wait for the ocean.',
       toddler: 'Hold BURNER to go super fast!',
@@ -288,7 +288,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Fly into orbit! Go up, then slowly tip over to follow the green guide arrow. Reach 7.8 km/s sideways speed.',
-      keys: 'Tip the rocket with <b>←</b> <b>→</b>. When a stage runs out of fuel, press <b>Space</b> to STAGE.',
+      keys: 'Tip the rocket with <b>A</b> <b>D</b>. When a stage runs out of fuel, press <b>Space</b> to STAGE.',
       touch: 'Drag left and right to tip the rocket. When a stage runs out of fuel, tap <b>STAGE</b>.',
       tip: 'Tip over too early and you\'ll crash back into the thick air. Too late and you\'ll just go up and fall back down.',
       toddler: 'Tap STAGE when the fuel runs out!',
@@ -326,7 +326,8 @@ const LEVELS = [
     ],
     how: {
       goal: 'Land the Eagle gently on a flat landing spot. Stay away from the boulders, and watch your fuel!',
-      keys: 'Hold <b>↑</b> or <b>Space</b> to fire the engine. Use <b>←</b> <b>→</b> to slide sideways.',
+      keys: 'Hold <b>W</b> or <b>Space</b> to fire the engine. Use <b>A</b> <b>D</b> to slide sideways.',
+      pad: 'Hold <b>{A}</b> or <b>{RT}</b> (or push <b>{LS}</b> up) to fire the engine. <b>{LS}</b> left and right to slide sideways.',
       touch: 'Drag your thumb: up fires the engine, left and right slide. Or hold <b>THRUST</b>.',
       tip: 'The speed numbers turn green when it\'s safe to land. You get 3 tries.',
       toddler: 'Hold THRUST to slow down and land softly!',
@@ -365,7 +366,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Deliver the packages! Hover over the warehouse to pick one up, then hover over the glowing house pad to drop it off.',
-      keys: 'Fly with the <b>arrow keys</b>.',
+      keys: 'Fly with <b>W A S D</b>.',
       touch: 'Drag your thumb in any direction to fly.',
       tip: 'Keep an eye on your battery, and recharge at the warehouse. Stay out of the red no-fly zone around the airport!',
       toddler: 'Drag to fly the package to the house!',
@@ -403,7 +404,8 @@ const LEVELS = [
     ],
     how: {
       goal: 'Launch to Mars at the right moment, steer to meet the planet, then land your rover safely!',
-      keys: 'Press <b>Space</b> to launch (hold <b>→</b> to fast-forward time). In flight, <b>←</b> <b>→</b> nudge your speed. Then <b>Space</b> for the parachute and to fire the sky crane.',
+      keys: 'Press <b>Space</b> to launch (hold <b>D</b> to fast-forward time). In flight, <b>A</b> <b>D</b> nudge your speed. Then <b>Space</b> for the parachute and to fire the sky crane.',
+      pad: '<b>{A}</b> or <b>{RT}</b> to launch (push <b>{LS}</b> right to fast-forward time). In flight, <b>{LS}</b> left and right nudge your speed. Then <b>{A}</b> for the parachute and the sky crane.',
       touch: 'Tap <b>LAUNCH</b> when the path meets Mars (drag right to fast-forward). Then tap for the parachute and hold to fire the sky crane.',
       tip: 'The dotted line shows where you\'ll go. Launch when it meets the ghost of Mars!',
       toddler: 'Tap the button when the line touches Mars!',
@@ -441,7 +443,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Spin up the rotors, then fly Ingenuity to photograph the 3 targets for the rover. Land on a smooth, rock-free spot before your battery runs out.',
-      keys: 'Press <b>Space</b> to spin up. Then <b>↑</b> / <b>↓</b> to climb and sink, <b>←</b> <b>→</b> to tilt.',
+      keys: 'Press <b>Space</b> to spin up. Then <b>W</b> / <b>S</b> to climb and sink, <b>A</b> <b>D</b> to tilt.',
       touch: 'Tap <b>SPIN UP</b>, then drag your thumb to fly.',
       tip: 'Hover inside a camera circle to snap a photo. Dust devils push you around!',
       toddler: 'Tap SPIN UP, then drag to fly to the circles!',
@@ -482,7 +484,8 @@ const LEVELS = [
     ],
     how: {
       goal: 'Fly to the star Proxima Centauri, 4.2 light-years away, and back! Get as close to light speed as you can. Watch your clock and Earth\'s clock.',
-      keys: '<b>↑</b> / <b>↓</b> to dodge space dust. Press <b>Space</b> to BOOST with an energy cell.',
+      keys: '<b>W</b> / <b>S</b> to dodge space dust. Press <b>Space</b> to BOOST with an energy cell.',
+      pad: '<b>{LS}</b> up and down to dodge space dust. <b>{A}</b>, <b>{RT}</b> or <b>{X}</b> to BOOST with an energy cell.',
       touch: 'Drag up and down to dodge space dust. Tap <b>BOOST</b> to use an energy cell.',
       tip: 'Each boost gets you closer to light speed, but never all the way. Grab ⚡ cells to boost more!',
       toddler: 'Tap BOOST to go fast!',
@@ -521,7 +524,7 @@ const LEVELS = [
     ],
     how: {
       goal: 'Be a radio astronomer! Scan the sky to find 5 signals, then use your detective skills to decide what each one really is.',
-      keys: 'Move the telescope with the <b>arrow keys</b>. Follow the signal meter: it beeps faster when you\'re close!',
+      keys: 'Move the telescope with <b>W A S D</b>. Follow the signal meter: it beeps faster when you\'re close!',
       touch: 'Drag your thumb to move the telescope. Follow the signal meter: it beeps faster when you\'re close!',
       tip: 'Ask: Does it repeat? Does it stay in one spot in the sky? Could it be something made by people?',
       toddler: 'Drag the circle to find the beeping signals!',

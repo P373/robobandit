@@ -106,7 +106,7 @@ const RB = (() => {
     const add = (tag, id, icon, title, onClick) => {
       const el = document.createElement(tag);
       el.id = id; el.textContent = icon; el.title = title;
-      if (tag === 'a') el.href = home;
+      if (tag === 'a') { el.href = home; el.addEventListener('click', () => dispatchEvent(new Event('rb-leave'))); }
       else el.type = 'button';
       if (onClick) el.addEventListener('click', e => { e.stopPropagation(); el.blur(); onClick(); });
       el.addEventListener('pointerdown', e => e.stopPropagation());
@@ -115,8 +115,8 @@ const RB = (() => {
     };
     menuButton(bar);
     add('a', 'btnHome', '🏠', homeTitle);
-    if (onPause) add('button', 'btnPause', '⏸\uFE0F', 'Pause (P)', onPause);
-    add('button', 'btnMute', muted ? '🔇' : '🔊', 'Sound on/off (M)', () => { audio(); setMuted(!muted); });
+    if (onPause) add('button', 'btnPause', '⏸\uFE0F', 'Pause (Esc)', onPause);
+    add('button', 'btnMute', muted ? '🔇' : '🔊', 'Sound on/off (N)', () => { audio(); setMuted(!muted); });
     if (shareInfo) add('button', 'btnShare', '🔗', 'Share this game', () => share(shareInfo));
     menuShare = shareInfo || null;
     return bar;
@@ -275,7 +275,7 @@ const RB = (() => {
   // Closing it with ✕ / Esc / 🎮 Ⓑ goes back to how things were: if opening the menu paused the game, the game
   // carries on. "Back to the game" always carries on.
   let menuResume = false;
-  function openMenu({ resume, focusHome = false } = {}) {
+  function openMenu({ resume, focusHome = false, focusMap = false } = {}) {
     if (menuEl) return;
     // pause the game: every game already pauses when the window loses focus
     const wasPaused = !!pauseEl;
@@ -297,7 +297,7 @@ const RB = (() => {
     menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="RoboBandit menu">
       <div class="rb-menu-head"><a href="${SITE_HOME}" class="rb-menu-logo" data-pad-home><img src="${SITE_ROOT}favicon.svg" alt="">ROBOBANDIT</a>
         <button type="button" class="rb-menu-x" title="Close (Esc)">✕</button></div>
-      <h3>⭐ This game</h3><div class="rb-menu-set rb-menu-this"><button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button>${items.map((x, i) => `<button type="button" data-g="${i}">${x.label}</button>`).join('')}</div>
+      <h3>⭐ This game</h3><div class="rb-menu-set rb-menu-this"><button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button>${items.map((x, i) => `<button type="button" data-g="${i}"${x.map ? ' data-map' : ''}>${x.label}</button>`).join('')}${controls ? '<button type="button" data-m="guide">🕹️ Controls (F1)</button>' : ''}</div>
       <h3>🎮 Games</h3><div class="rb-menu-games">${GAMES.map(g => link(g, 'rb-menu-game')).join('')}</div>
       <h3>📚 School folders</h3><div class="rb-menu-games">${FOLDERS.map(g => link(g, 'rb-menu-game')).join('')}</div>
       <h3>⚙️ Settings</h3><div class="rb-menu-set">
@@ -316,6 +316,7 @@ const RB = (() => {
       const m = b.dataset.m;
       if (m === 'sound') { audio(); setMuted(!muted); b.textContent = muted ? '🔇 Sound: off' : '🔊 Sound: on'; }
       else if (m === 'pad') { const r = menuResume; closeMenu(false); controllerScreen({ onClose: () => openMenu({ resume: r }) }); }
+      else if (m === 'guide') { const r = menuResume; closeMenu(false); controlsGuide({ onClose: () => openMenu({ resume: r }) }); }
       else if (m === 'voice') { let v = menuEl.querySelector('.rb-voicebox'); if (!v) { v = document.createElement('div'); v.className = 'rb-voicebox'; b.closest('.rb-menu-set').after(v); } voiceMenu(v); }
       else if (m === 'fs') { closeMenu(false); if (document.fullscreenElement) document.exitFullscreen(); else document.documentElement.requestFullscreen().catch(() => {}); }
       else if (m === 'share') { closeMenu(false); share(menuShare); }
@@ -324,6 +325,10 @@ const RB = (() => {
     document.body.appendChild(menuEl);
     addEventListener('keydown', menuKeys, true);
     if (focusHome) pad.focusHome();
+    if (focusMap) {   // M / ⧉ View: the map. The game's own map if it has one (Back to the map, Choose a level), else every game
+      const el = menuEl.querySelector('[data-map]') || menuEl.querySelector('.rb-home-all');
+      pad.focusOn(el); try { el.focus({ preventScroll: true }); } catch (e) { /* fine */ }
+    }
   }
   // resume: true carries on with the game, false stays paused, left out goes back to how it was before the menu
   function closeMenu(resume) {
@@ -335,11 +340,11 @@ const RB = (() => {
     removeEventListener('keydown', menuKeys, true);
     if (resume && pauseEl) pauseEl.querySelector('button').click();   // ▶ KEEP PLAYING
   }
-  // while the menu is open, Esc (or 🎮 Ⓑ) closes it and nothing else reaches the game
+  // while the menu is open, Esc (or 🎮 Ⓑ) closes it and no key reaches the game. Tab / Shift + Tab move between
+  // the buttons, Enter (or Space) presses the one in focus: stopping the key here doesn't stop the browser doing that.
   function menuKeys(e) {
     if (e.code === 'Escape') { e.preventDefault(); closeMenu(); }   // (back to how things were)
-    // (stopping it here doesn't stop Space / Enter from pressing the highlighted menu button)
-    if (['Space', 'Enter', 'Escape', 'KeyP', 'KeyM', 'KeyX', 'KeyZ', 'KeyC', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code)) e.stopImmediatePropagation();
+    if (e.code !== 'Tab') e.stopImmediatePropagation();
   }
   // a page with its own corner buttons (Space Wars) still gets the menu
   const addMenuToBars = () => document.querySelectorAll('.rb-topbar').forEach(menuButton);
@@ -359,13 +364,15 @@ const RB = (() => {
     pauseEl = document.createElement('div');
     pauseEl.className = 'rb-pause';
     pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>
-      <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}<a href="${homeHref()}" class="rb-home">🏠 All games</a>
-      <div class="rb-hint">${pad.connected ? '🎮 Ⓐ to pick · ☰ Menu for everything else · ⧉ View twice for all games' : touch ? 'Tap the button to carry on' : 'Press P or Space to carry on'}</div></div>`;
+      <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}${controls && !extra.some(x => /controls/i.test(x.label)) ? '<button type="button" class="rb-guide-btn">🕹️ CONTROLS</button>' : ''}<a href="${homeHref()}" class="rb-home">🏠 All games</a>
+      <div class="rb-hint">${pad.connected ? padText('🎮 {A} to pick · {MENU} to carry on · {VIEW} for the menu') : touch ? 'Tap the button to carry on' : 'Press Esc to carry on · F1 for the controls'}</div></div>`;
     pauseEl.querySelector('.rb-home').addEventListener('click', () => dispatchEvent(new Event('rb-leave')));
     pauseEl.addEventListener('pointerdown', e => e.stopPropagation());
     pauseEl.querySelector('button').addEventListener('click', () => { hidePause(); onResume(); });
     pauseEl.querySelectorAll('.rb-extra').forEach(b => b.addEventListener('click', () => extra[+b.dataset.x].onClick()));
+    const g = pauseEl.querySelector('.rb-guide-btn'); if (g) g.addEventListener('click', () => controlsGuide());
     document.body.appendChild(pauseEl);
+    try { pauseEl.querySelector('button').focus({ preventScroll: true }); } catch (e) { /* fine */ }   // Enter or Space carries on
     if (ac && ac.state === 'running') ac.suspend();   // music, wind and sound effects all stop while paused
   }
   function hidePause() {
@@ -380,16 +387,120 @@ const RB = (() => {
   }
 
 
+  // ---------- 🕹️ Controls: button names, the controls guide and the shared keys ----------
+  // Button names follow the controller that's plugged in: Xbox (Ⓐ Ⓑ Ⓧ Ⓨ, LT / RT), PlayStation (✕ ◯ ▢ △, L2 / R2)
+  // or Nintendo (B A Y X, ZL / ZR: the same buttons by position). Write {A}, {RT}, {MENU}… in any text and
+  // padText() swaps in the right names; an element with data-pad="A" gets the name as its text (applyPadLabels).
+  const LABELS = {
+    xbox: { A: 'Ⓐ', B: 'Ⓑ', X: 'Ⓧ', Y: 'Ⓨ', LB: 'LB', RB: 'RB', LT: 'LT', RT: 'RT', LS: 'left stick', RS: 'right stick', L3: 'left-stick click', R3: 'right-stick click', VIEW: '⧉ View', MENU: '☰ Menu', DPAD: 'D-pad' },
+    ps: { A: '✕', B: '◯', X: '▢', Y: '△', LB: 'L1', RB: 'R1', LT: 'L2', RT: 'R2', LS: 'left stick', RS: 'right stick', L3: 'L3', R3: 'R3', VIEW: 'Create', MENU: 'Options', DPAD: 'D-pad' },
+    nin: { A: 'B', B: 'A', X: 'Y', Y: 'X', LB: 'L', RB: 'R', LT: 'ZL', RT: 'ZR', LS: 'left stick', RS: 'right stick', L3: 'left-stick click', R3: 'right-stick click', VIEW: '−', MENU: '+', DPAD: '+Control Pad' },
+  };
+  function padStyle() {
+    const g = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected);
+    const id = g ? g.id : '';
+    return /054c|playstation|dualshock|dualsense|ps[345]/i.test(id) ? 'ps' : /057e|nintendo|switch|joy-?con|pro controller/i.test(id) ? 'nin' : 'xbox';
+  }
+  const btn = k => (LABELS[padStyle()] || LABELS.xbox)[k] || k;
+  const padText = text => String(text).replace(/\{(A|B|X|Y|LB|RB|LT|RT|LS|RS|L3|R3|VIEW|MENU|DPAD)\}/g, (m, k) => btn(k));
+  function applyPadLabels(root = document) { root.querySelectorAll('[data-pad]').forEach(el => { el.textContent = btn(el.dataset.pad); }); }
+
+  // Each game lists its controls once (setControls) and they show up in the controls guide (F1, / or ?), the pause
+  // screen, the ☰ menu and the controller screen:
+  //   setControls({ name: 'Lucky Leo', camera: false, rows: [{ act: 'Jump', keys: 'Space', pad: '{A}', touch: 'A button' }, …] })
+  let controls = null, guideEl = null;
+  const COMMON_ROWS = cam => [
+    ...(cam ? [{ act: 'Look around', keys: 'Mouse drag', pad: '{RS}', touch: 'Drag with a second finger' },
+      { act: 'Turn the camera left / right', keys: 'Z / X', pad: '{RS}' },
+      { act: 'Camera back behind you', keys: 'R', pad: '{R3}, {LB} or {RB}' }] : []),
+    { act: 'Pause / carry on', keys: 'Esc', pad: '{MENU}', touch: '⏸ button' },
+    { act: 'Map and menu', keys: 'M', pad: '{VIEW} (twice: all games)', touch: '☰ button' },
+    { act: 'Sound on / off', keys: 'N', touch: '🔊 button' },
+    { act: 'This controls guide', keys: 'F1, / or ?' },
+    { act: 'Move around menus', keys: 'Tab / Shift + Tab, Enter', pad: '{DPAD} or {LS}, {A} pick, {B} back', touch: 'Tap' },
+  ];
+  function setControls(spec) {
+    controls = spec;
+    pad.legend = spec ? `<b>${spec.name}:</b> ` + spec.rows.filter(r => r.pad).map(r => `${r.pad} ${r.act.toLowerCase()}`).join(' · ') : '';
+  }
+  function controlsGuide({ onClose } = {}) {
+    if (guideEl || !controls) return;
+    style2();
+    if (!pauseEl) dispatchEvent(new Event('blur'));   // the game pauses while you read
+    const hiddenPause = pauseEl; if (hiddenPause) hiddenPause.style.display = 'none';
+    const rows = [...controls.rows, ...COMMON_ROWS(controls.camera)];
+    const cell = v => v ? esc(padText(v)).replace(/\{(\w+)\}/g, '$1') : '<span class="dim">—</span>';
+    const el = document.createElement('div');
+    el.className = 'rb-guide';
+    el.innerHTML = `<div class="rb-panel rb-guidepanel" role="dialog" aria-label="Controls">
+      <h2>🕹️ ${esc(controls.name)} controls</h2>
+      <p class="rb-guide-note">${pad.connected ? `🎮 Showing your ${padStyle() === 'ps' ? 'PlayStation' : padStyle() === 'nin' ? 'Nintendo' : 'Xbox'} controller's buttons.` : '🎮 Plug in a controller and its own button names show here.'}</p>
+      <div class="rb-guide-wrap"><table><thead><tr><th></th><th>⌨️ Keyboard &amp; mouse</th><th>🎮 Controller</th><th>📱 Touch</th></tr></thead>
+      <tbody>${rows.map(r => `<tr${COMMON_ROWS(true).some(c => c.act === r.act) ? ' class="common"' : ''}><th>${esc(r.act)}</th><td>${cell(r.keys)}</td><td>${cell(r.pad)}</td><td>${cell(r.touch)}</td></tr>`).join('')}</tbody></table></div>
+      ${controls.note ? `<p class="rb-guide-note">${esc(padText(controls.note))}</p>` : ''}
+      <button type="button" data-pad-default class="rb-guide-done">✓ Got it</button></div>`;
+    el.addEventListener('pointerdown', e => { e.stopPropagation(); if (e.target === el) close(); });
+    const keyGuard = e => { if (e.code === 'Escape' || e.code === 'F1' || e.key === '?' || e.key === '/') { e.preventDefault(); close(); } if (e.code !== 'Tab') e.stopImmediatePropagation(); };
+    const close = () => {
+      removeEventListener('keydown', keyGuard, true);
+      el.remove(); guideEl = null;
+      if (hiddenPause) hiddenPause.style.display = '';
+      if (onClose) onClose();
+    };
+    el.close = close;
+    el.querySelector('.rb-guide-done').addEventListener('click', close);
+    document.body.appendChild(el);
+    guideEl = el;
+    addEventListener('keydown', keyGuard, true);
+    try { el.querySelector('.rb-guide-done').focus({ preventScroll: true }); } catch (e) { /* fine */ }
+  }
+
+  // A game that uses Ctrl (descend / brake) guards the page while you play, so Ctrl + W can't close the tab
+  // by accident: guardLeave(() => playing). Leaving on purpose (🏠, the menu, View twice) fires rb-leave first.
+  let leaveGuard = null, leaving = false;
+  const guardLeave = fn => { leaveGuard = fn; };
+  addEventListener('rb-leave', () => { leaving = true; });
+  addEventListener('beforeunload', e => { if (!leaving && leaveGuard && leaveGuard()) { e.preventDefault(); e.returnValue = ''; } });
+
+  // Keys that work the same in every game (EBITDA Hero's layout): N sound, M map / menu, F1 / ? / / controls guide.
+  // P never pauses (Esc does, in each game), and no game key fires while you're typing in a box.
+  addEventListener('keydown', e => {
+    const t = e.target;
+    if (t && (t.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(t.tagName)) && !/^(range|checkbox|radio|button)$/.test(t.type || '')) {
+      if (e.code !== 'Escape' && e.code !== 'Tab') e.stopImmediatePropagation();
+      return;
+    }
+    if (e.metaKey || e.altKey) return;
+    if (e.code === 'F1' || e.key === '?' || e.key === '/') {
+      if (!controls) return;
+      e.preventDefault(); e.stopImmediatePropagation();
+      if (!guideEl && !padScreen) controlsGuide();
+      return;
+    }
+    if (e.code === 'KeyN') { e.preventDefault(); e.stopImmediatePropagation(); if (!e.repeat) { audio(); setMuted(!muted); } return; }
+    if (e.code === 'KeyM') {
+      e.stopImmediatePropagation();
+      if (!e.repeat && !guideEl && !padScreen) { if (menuEl) closeMenu(); else openMenu({ focusMap: true }); }
+      return;
+    }
+    if (e.code === 'KeyP') e.stopImmediatePropagation();
+  }, true);
+
   // ---------- Game controllers (Xbox and other standard gamepads) ----------
-  // During play the controller presses the game's own keys, so every game works without changes:
-  //   left stick / D-pad → arrow keys, Ⓐ or RT → Space, Ⓑ or LT → X, Ⓧ → Space, Ⓨ → H (a game can change these: setButtons),
-  //   ☰ Menu opens the RoboBandit menu (and closes it again), ⧉ View: the menu with 🏠 highlighted, twice goes home.
+  // Every RoboBandit game uses the same layout (see CONTROLS.md, matched to EBITDA Hero):
+  //   left stick move / steer · right stick camera · Ⓐ jump / main action · Ⓧ run / boost · Ⓨ get on or off, use
+  //   RT go / attack · LT brake / secondary · right-stick click, LB or RB recenter the camera · left-stick click horn
+  //   ☰ Menu pauses (and carries on), ⧉ View is the map: the menu with the game's map (or 🏠 every game), twice goes home.
+  // During play the controller presses the game's own keys, so the keyboard and the controller always do the same:
+  //   left stick / D-pad → W A S D, Ⓐ → Space, Ⓧ → Shift, Ⓨ → F, RT → J, LT → K, left-stick click → H (setButtons changes them).
   // Games with a touch joystick (touch-stick.js) also get the left stick as a smooth analog stick.
   // When a menu, pop-up or page of buttons is showing, the D-pad / stick moves a yellow highlight
   // between buttons, Ⓐ presses the highlighted one and Ⓑ is Escape (back).
   const pad = (() => {
-    const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', KeyP: 'p', KeyM: 'm', KeyX: 'x', KeyH: 'h', KeyZ: 'z', KeyC: 'c', ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
-    const BUTTONS = { 0: 'Space', 1: 'KeyX', 2: 'Space', 3: 'KeyH', 6: 'KeyX', 7: 'Space', 12: 'ArrowUp', 13: 'ArrowDown', 14: 'ArrowLeft', 15: 'ArrowRight' };
+    const KEYNAME = { Space: ' ', Enter: 'Enter', Escape: 'Escape', ShiftLeft: 'Shift', ShiftRight: 'Shift', ControlLeft: 'Control', ControlRight: 'Control',
+      ArrowUp: 'ArrowUp', ArrowDown: 'ArrowDown', ArrowLeft: 'ArrowLeft', ArrowRight: 'ArrowRight' };
+    for (const c of 'ABCDEFGHIJKLMNOPQRSTUVWXYZ') KEYNAME['Key' + c] = c.toLowerCase();
+    const BUTTONS = { 0: 'Space', 2: 'ShiftLeft', 3: 'KeyF', 6: 'KeyK', 7: 'KeyJ', 10: 'KeyH', 12: 'KeyW', 13: 'KeyS', 14: 'KeyA', 15: 'KeyD' };
     let map = BUTTONS, legend = '';   // a game can give the buttons its own jobs (setButtons)
     const sticks = [];
     // Controller settings (saved as rb_pad): camera speed, how big the stick dead zone is and vibration are shared
@@ -461,7 +572,7 @@ const RB = (() => {
         }
         return false;
       };
-      const modal = document.querySelector('.rb-padscreen, .rb-menu');   // the controller screen and the menu cover everything else
+      const modal = document.querySelector('.rb-padscreen, .rb-guide, .rb-menu');   // the controller screen, controls guide and menu cover everything else
       cache = { t: now, list: modal ? all.filter(el => modal.contains(el)) : game ? all.filter(inPanel) : all };
       return cache.list;
     }
@@ -530,7 +641,9 @@ const RB = (() => {
     // ---- ⧉ View: back to all the games (press twice, so nobody leaves by accident) ----
     // The Xbox button itself belongs to the console, so web pages never see it.
     let leaveAt = -1e9, wantHome = 0;
-    const focusHome = () => { wantHome = performance.now() + 1500; cache.t = 0; };   // highlight 🏠 as soon as the menu is up
+    let wantEl = null;
+    const focusHome = () => { wantHome = performance.now() + 1500; wantEl = null; cache.t = 0; };   // highlight 🏠 as soon as the menu is up
+    const focusOn = el => { wantEl = el; wantHome = performance.now() + 1500; cache.t = 0; };   // ...or this button
     function leaveRequest(now) {
       const href = homeHref();
       if (href.split('#')[0] === location.href.split('#')[0]) return;   // already home
@@ -541,8 +654,8 @@ const RB = (() => {
       }
       leaveAt = now;
       if (padScreen) padScreen.close();
-      if (!menuEl) openMenu();   // the menu pauses the game while you decide
-      focusHome();
+      if (!menuEl) openMenu({ focusMap: true });   // the menu (the map) pauses the game while you decide
+      else focusHome();
       toast(href === SITE_HOME ? '🏠 Press ⧉ View again to go back to all the games' : '🏠 Press ⧉ View again to go back to the folder');
     }
 
@@ -578,7 +691,9 @@ const RB = (() => {
       if (edge(8)) leaveRequest(now);
       if (edge(9)) {   // ☰: the RoboBandit menu, from anywhere (and ☰ again closes it)
         if (padScreen) padScreen.close();
+        else if (guideEl) guideEl.close();
         else if (menuEl) closeMenu();
+        else if (pauseEl && pauseEl.style.display !== 'none') pauseEl.querySelector('button').click();   // ☰ pauses and carries on
         else openMenu();
         cache.t = 0;
       }
@@ -586,7 +701,7 @@ const RB = (() => {
         const opts = choices();
         if (focusEl && !opts.includes(focusEl)) setFocus(null);
         if (now < wantHome) {   // just pressed View: highlight the way home in the pause menu
-          const home = opts.find(el => el.matches('.rb-home-all, .rb-home')) || opts.find(el => el.matches('[data-pad-home]') || (el.tagName === 'A' && el.href === homeHref()));
+          const home = (wantEl && opts.includes(wantEl) && wantEl) || opts.find(el => el.matches('.rb-home-all, .rb-home')) || opts.find(el => el.matches('[data-pad-home]') || (el.tagName === 'A' && el.href === homeHref()));
           if (home) { setFocus(home); wantHome = 0; }
         }
         if (!focusEl) setFocus(pickDefault(opts));
@@ -594,7 +709,7 @@ const RB = (() => {
         if (dir && (dir !== last.dir || now >= last.next)) { move(dir, opts); last.next = now + (dir === last.dir ? 130 : 380); }
         last.dir = dir;
         if (edge(0) || edge(2) || edge(7)) activate();
-        if (edge(1)) { if (padScreen) padScreen.close(); else if (menuEl) closeMenu(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
+        if (edge(1)) { if (padScreen) padScreen.close(); else if (guideEl) guideEl.close(); else if (menuEl) closeMenu(); else { key('keydown', 'Escape'); key('keyup', 'Escape'); } }
       } else if (direct) {   // the game reads each controller on its own: nothing pressed for it here
         releaseAll();
         for (const s of sticks) if (s.driving) { s.driving = false; s.stick.x = s.stick.y = 0; s.stick.active = false; }
@@ -608,12 +723,12 @@ const RB = (() => {
         }
         const want = {};
         for (const i in map) if (map[i] && btn[i] && !ignore[i]) want[map[i]] = true;
-        if (!st) {
+        if (!st) {   // the left stick is W A S D, like the keyboard
           const on = (v, was) => was ? v > 0.3 : v > 0.5;   // a little stickiness so it doesn't flicker
-          if (on(-ly, held.ArrowUp)) want.ArrowUp = true;
-          if (on(ly, held.ArrowDown)) want.ArrowDown = true;
-          if (on(-lx, held.ArrowLeft)) want.ArrowLeft = true;
-          if (on(lx, held.ArrowRight)) want.ArrowRight = true;
+          if (on(-ly, held.KeyW)) want.KeyW = true;
+          if (on(ly, held.KeyS)) want.KeyS = true;
+          if (on(-lx, held.KeyA)) want.KeyA = true;
+          if (on(lx, held.KeyD)) want.KeyD = true;
         }
         for (const c of new Set([...Object.keys(held), ...Object.keys(want)])) press(c, !!want[c]);
       }
@@ -625,16 +740,20 @@ const RB = (() => {
       if (audio) audio();
       requestAnimationFrame(frame);
     }
-    addEventListener('gamepadconnected', () => { start(); style(); toast('🎮 Controller ready! Ⓐ to play · ☰ for the menu'); });
-    addEventListener('gamepaddisconnected', () => { if (!pads().length) { releaseAll(); setFocus(null); } });
+    // a controller takes over from the touch buttons (anything marked .rb-touch hides), and the button names follow it
+    const padOn = on => { if (document.body) document.body.classList.toggle('rb-pad-on', on); applyPadLabels(); };
+    addEventListener('gamepadconnected', () => { start(); style(); padOn(true); toast(padText('🎮 Controller ready! {A} to play · {MENU} pauses · F1 for the controls')); });
+    addEventListener('gamepaddisconnected', () => { if (!pads().length) { releaseAll(); setFocus(null); padOn(false); } });
+    const firstLabels = () => { applyPadLabels(); if (pads().length && document.body) document.body.classList.add('rb-pad-on'); };
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', firstLabels); else firstLabels();
     if (pads().length) start();
     return {
       // touch-stick.js registers each joystick so the left stick can drive it smoothly
       addStick(stick, enabled) { sticks.push({ stick, enabled, driving: false }); },
       // e.g. setButtons({ 2: 'KeyX', 6: 'KeyZ' }, 'Ⓧ throw · LT boost'): those buttons press these keys in this game
       // (null leaves a button doing nothing); the legend is shown on the controller screen
-      setButtons(m, text = '') { map = { ...BUTTONS, ...m }; legend = text; },
-      get legend() { return legend; },
+      setButtons(m, text) { map = { ...BUTTONS, ...m }; if (text != null) legend = text; },
+      get legend() { return padText(legend); }, set legend(v) { legend = v; },
       rumble(ms, strength = 0.6, index = null) {   // index: just that controller (a two-player game)
         if (!cfg.rumble) return;
         for (const g of index == null ? pads() : pads().slice(index, index + 1)) {
@@ -646,7 +765,7 @@ const RB = (() => {
       look,   // { x, y } from the right stick, -1 to 1 (y is +1 pulled down)
       pressed: i => !!pressedNow[i],   // is button i held right now (10 / 11 are the stick clicks)
       get menuMode() { return menuMode; },
-      config: cfg, DEFAULTS, DEADZONES, game, inv, GAME_KEY, focusHome,
+      config: cfg, DEFAULTS, DEADZONES, game, inv, GAME_KEY, focusHome, focusOn,
       // a game names the sticks it lets you invert, e.g. useInvert({ LY: 'Flying: up/down' }) (orbit-cam.js adds the camera's)
       useInvert(axes) { Object.assign(invertable, axes); },
       get invertable() { return { ...invertable }; },
@@ -827,12 +946,25 @@ const RB = (() => {
       .pad-settings .row { margin: 8px 0; font-size: 15px; }
       .pad-settings button { font: 700 15px system-ui, sans-serif; padding: 8px 12px; margin: 3px; border-radius: 12px; border: 3px solid #0b2a5c; background: #fff; color: #0b2a5c; cursor: pointer; }
       .pad-settings button.on { background: #ffe7a0; }
-      .pad-settings #padDone { background: #ffd84a; box-shadow: 0 4px 0 #0b2a5c; }`;
+      .pad-settings #padDone { background: #ffd84a; box-shadow: 0 4px 0 #0b2a5c; }
+      .rb-guide { position: fixed; inset: 0; z-index: 12; display: flex; overflow-y: auto; padding: 16px; background: rgba(8,16,40,.86); font-family: system-ui, -apple-system, 'Segoe UI', sans-serif; }
+      .rb-guidepanel { margin: auto; width: 100%; max-width: 860px; box-sizing: border-box; color: #0b2a5c; background: #fffdf2; border: 4px solid #0b2a5c; border-radius: 22px; box-shadow: 0 8px 0 #0b2a5c; padding: 16px 18px 18px; text-align: center; }
+      .rb-guidepanel h2 { margin: 0 0 4px; font: 26px 'Bungee', system-ui, sans-serif; }
+      .rb-guide-note { margin: 4px 0 8px; font-size: 14px; color: #3a4a6a; }
+      .rb-guide-wrap { overflow-x: auto; }
+      .rb-guidepanel table { width: 100%; border-collapse: collapse; font-size: 15px; text-align: left; }
+      .rb-guidepanel th, .rb-guidepanel td { padding: 6px 8px; border-bottom: 1px solid #e0e6f0; vertical-align: top; }
+      .rb-guidepanel thead th { background: #0b2a5c; color: #fff; position: sticky; top: 0; }
+      .rb-guidepanel tbody th { font-weight: 700; white-space: nowrap; }
+      .rb-guidepanel tr.common th, .rb-guidepanel tr.common td { background: #f2f5fb; color: #3a4a6a; }
+      .rb-guidepanel .dim { color: #b0b8c8; }
+      .rb-guide-done { margin-top: 12px; font: 700 18px system-ui, sans-serif; padding: 10px 22px; border-radius: 14px; border: 3px solid #0b2a5c; background: #ffd84a; color: #0b2a5c; box-shadow: 0 4px 0 #0b2a5c; cursor: pointer; }`;
     document.head.appendChild(css);
   }
 
   return {
     touch, store, audio, pad, beep, noise, ambient, setMuted, setMenuItems,
+    setControls, controlsGuide, padText, btn, applyPadLabels, padStyle, guardLeave, get guideOpen() { return !!guideEl; },
     get muted() { return muted; },
     toggleMute: () => { audio(); setMuted(!muted); },
     onMute: f => muteHooks.push(f),

@@ -124,14 +124,14 @@ function onFact(s) { if (settings.autoRead && settings.mode === 'toddler') speak
 // ---------- Input ----------
 addEventListener('keydown', e => {
   if (e.target && e.target.tagName === 'INPUT') return;
-  if (['Space', 'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.code) && mode === 'play') e.preventDefault();
+  // While paused, leave keys alone so Space/Enter can press the focused KEEP PLAYING button; only Esc resumes here.
+  if (paused) { if (e.code === 'Escape' && !e.repeat) resume(); return; }
+  if (e.code === 'Space' && mode === 'play') e.preventDefault();
   keys[e.code] = true;
   if (e.repeat) return;
-  if (paused) { if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) resume(); return; }
-  if (e.code === 'KeyM') RB.toggleMute();
   if (mode === 'play') {
-    if (e.code === 'KeyP' || e.code === 'Escape') pause();
-    else if ((e.code === 'Space' || e.code === 'Enter') && round && round.tap && !round.asking) round.tap();
+    if (e.code === 'Escape') pause();
+    else if (e.code === 'Space' && round && round.tap && !round.asking) round.tap();
   }
 });
 addEventListener('keyup', e => { keys[e.code] = false; });
@@ -155,6 +155,18 @@ const actUp = () => { btnHeld = false; act.classList.remove('on'); };
 act.addEventListener('pointerup', actUp);
 act.addEventListener('pointercancel', actUp);
 act.addEventListener('pointerleave', actUp);
+// Controller: the left stick flies (W A S D in the hold levels, where W counts as holding the burner);
+// A, RT and X all press the action / burner / thrust (Space).
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 7: 'Space', 2: 'Space', 3: null, 6: null, 10: null });
+if (RB.setControls) RB.setControls({
+  name: 'Flight School', camera: false,
+  rows: [
+    { act: 'Fly / steer', keys: 'W A S D', pad: '{LS}', touch: 'drag' },
+    { act: 'Burner / lift (balloon & glider)', keys: 'hold Space or W', pad: 'hold {A} or {RT}', touch: 'hold the screen' },
+    { act: 'Action button', keys: 'Space', pad: '{A}, {RT} or {X}', touch: 'the big button' },
+  ],
+  note: 'Each level\'s ready screen shows its own controls.',
+});
 function clearInput() { for (const k in keys) keys[k] = false; ptrHeld = false; mouse = null; actUp(); stick.reset(); }
 addEventListener('blur', clearInput);
 
@@ -319,6 +331,15 @@ function drawDiagram(dt) {
   try { DIAGRAMS[LEVELS[cur].slides[slide].d](diaT, diaV); } finally { ctx.restore(); ctx = gameCtx; }
 }
 
+// Controller line for the ready screen: from the level's own how.pad, or made from its input style.
+function padHow(L) {
+  if (L.how.pad) return L.how.pad;
+  const b = L.button && L.button.lbl;
+  if (L.input === 'hold') return 'Hold <b>{A}</b> or <b>{RT}</b>' + (L.id === 'wing' ? ' to lift the nose' : ' to fire the burner') + ' (or push <b>{LS}</b> up). Let go to sink.';
+  if (L.input === 'stickbtn') return '<b>{LS}</b> to fly. <b>{A}</b> or <b>{RT}</b> for <b>' + b + '</b>.';
+  return '<b>{LS}</b> to fly.';
+}
+
 function readyScreen() {
   mode = 'ready'; hush();
   const L = LEVELS[cur], h = L.how, tod = settings.mode === 'toddler';
@@ -328,6 +349,7 @@ function readyScreen() {
       ${tod ? `<li><span class="e">🕹️</span><span class="big-p">${h.toddler}</span></li>` : `
       <li><span class="e">🎯</span><span>${h.goal}</span></li>
       <li><span class="e">🕹️</span><span><span class="key-only">${h.keys}</span><span class="touch-only">${h.touch}</span></span></li>
+      ${RB.pad && RB.pad.connected ? `<li><span class="e">🎮</span><span>${RB.padText(padHow(L))}</span></li>` : ''}
       <li><span class="e">💡</span><span>${h.tip}</span></li>`}
     </ul>
     <button class="btn alt" id="back">◀ Lesson</button>

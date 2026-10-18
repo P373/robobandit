@@ -62,8 +62,10 @@
   .stats b { color: #ff6a1f; font-weight: normal; }
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+  .pad-only { display: none; }
+  body.rb-pad-on .pad-only { display: inline; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261016-1843">
+<link rel="stylesheet" href="common.css?v=20261017-1936">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -74,7 +76,8 @@
     <h1>WEB HERO</h1>
     <div class="sub">🕸️ Swing across the city and stop the Bandit Bots!</div>
     <ol>
-      <li><b>Hold</b> <span class="key-only"><kbd>Space</kbd> or the mouse</span><span class="touch-only">your finger anywhere on the screen</span>
+      <li><b>Hold</b> <span class="key-only"><kbd>Space</kbd> or the mouse</span><span class="touch-only">your finger anywhere on the screen</span><span class="pad-only">
+        (or <b data-pad="A">A</b> or <b data-pad="RT">RT</b> on a controller)</span>
         to shoot a web and <b>swing</b>.</li>
       <li><b>Let go</b> to fly through the air!</li>
       <li><b>Crash into Bandit Bots</b> to bonk them. Bonk lots in a row without landing for a big <b>combo</b>.</li>
@@ -94,7 +97,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261016-1843"></script>
+<script src="common.js?v=20261017-1936"></script>
 <script>
 'use strict';
 
@@ -239,7 +242,16 @@ function findAnchor() {
 }
 
 // ---------- Input ----------
-// One button: hold to swing, let go to fly. Space, mouse or a finger anywhere.
+// One button: hold to swing, let go to fly. Space, mouse or a finger anywhere,
+// or a controller's A or RT (go), which press Space. Esc pauses.
+RB.pad.setButtons({ 0: 'Space', 7: 'Space', 2: null, 3: null, 6: null, 10: null });
+RB.setControls({
+  name: 'Web Hero', camera: false,
+  rows: [
+    { act: 'Swing (hold)', keys: 'Hold Space or the mouse', pad: 'Hold {A} or {RT}', touch: 'Hold anywhere' },
+    { act: 'Let go to fly', keys: 'Let go of Space', pad: 'Let go of {A} / {RT}', touch: 'Lift your finger' },
+  ],
+});
 function press() {
   RB.audio();
   if (paused) return;
@@ -265,18 +277,17 @@ function tryWeb() {
 addEventListener('keydown', e => {
   if (e.repeat) return;
   if (paused) {
-    if (['Space', 'Enter', 'KeyP', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); }
+    // only Esc resumes here; Space / Enter press the focused KEEP PLAYING button
+    if (e.code === 'Escape') { e.preventDefault(); resume(); }
     return;
   }
-  if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') {
+  if (e.code === 'Space') {
     e.preventDefault();
     if (mode === 'title' || mode === 'over') startGame(); else press();
   }
-  if (e.code === 'Enter' && mode !== 'play') startGame();
-  if (e.code === 'KeyP' || e.code === 'Escape') pause();
-  if (e.code === 'KeyM') RB.toggleMute();
+  if (e.code === 'Escape') pause();
 });
-addEventListener('keyup', e => { if (e.code === 'Space' || e.code === 'ArrowUp' || e.code === 'KeyW') release(); });
+addEventListener('keyup', e => { if (e.code === 'Space') release(); });
 canvas.addEventListener('pointerdown', e => { e.preventDefault(); canvas.setPointerCapture(e.pointerId); press(); });
 for (const ev of ['pointerup', 'pointercancel']) canvas.addEventListener(ev, release);
 
@@ -873,7 +884,7 @@ function draw() {
       ctx.fillStyle = '#ffe14a'; rrect(16, 78, Math.max(10, 150 * f), 10, 5); ctx.fill();
     }
     if (combo > 1) text(`COMBO x${combo}`, W / 2, sy + 40, 20, '#ffe14a');
-    if (mode === 'play' && dist() < 6) text(RB.touch ? 'HOLD TO SWING · LET GO TO FLY' : 'HOLD SPACE TO SWING · LET GO TO FLY', W / 2, VH * 0.2, 16, '#fff');
+    if (mode === 'play' && dist() < 6) text(RB.pad.connected ? RB.padText('HOLD {A} TO SWING · LET GO TO FLY') : RB.touch ? 'HOLD TO SWING · LET GO TO FLY' : 'HOLD SPACE TO SWING · LET GO TO FLY', W / 2, VH * 0.2, 16, '#fff');
     if (mode === 'fall') text(hearts > 0 ? 'OOPS! WATCH THE STREET!' : 'OH NO!', W / 2, VH * 0.35, 28, '#ff4d6d');
     if (banner) {
       const a = Math.min(1, banner.t * 5, (banner.time - banner.t) * 3), sc = 0.7 + 0.3 * Math.min(1, banner.t * 6);

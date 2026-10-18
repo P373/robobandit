@@ -527,7 +527,7 @@ ROUNDS.prop = () => {
     if (r.drowsy > 60) {   // eyelids closing
       const k = clamp((r.drowsy - 60) / 40, 0, 1) * (0.6 + 0.4 * Math.sin(r.t * 2));
       ctx.fillStyle = `rgba(0,0,0,${0.85 * k})`; ctx.fillRect(0, -OFFY, W, VH * 0.42 * k); ctx.fillRect(0, H + OFFY - VH * 0.42 * k, W, VH * 0.42 * k);
-      outlined(RB.touch ? '😴 Tap WAKE UP!' : '😴 Press SPACE to wake up!', W / 2, H * 0.72, 22, '#ffd84a');
+      outlined(say3('😴 Tap WAKE UP!', '😴 Press SPACE to wake up!', '😴 Press {A} to wake up!'), W / 2, H * 0.72, 22, '#ffd84a');
     }
     offscreenArrow(w.x - cx, w.y - cy, w.n);
     drawFx();

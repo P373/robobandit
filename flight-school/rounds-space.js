@@ -38,7 +38,7 @@ ROUNDS.rocket = () => {
       const [B, a0, a1] = STAGES[r.stage];
       a = (a0 + (a1 - a0) * r.burn / B) / 1000 * MUL;
       r.burn = Math.min(B, r.burn + sdt);
-      if (fuelLeft() <= 0) { r.empty = 0; if (r.stage < 2) showBanner('STAGE EMPTY!', RB.touch ? 'Tap STAGE!' : 'Press SPACE to stage!', 1.6, '#ff8a7a'); }
+      if (fuelLeft() <= 0) { r.empty = 0; if (r.stage < 2) showBanner('STAGE EMPTY!', say3('Tap STAGE!', 'Press SPACE to stage!', 'Press {A} to stage!'), 1.6, '#ff8a7a'); }
     } else { r.empty += dt; if (r.stage < 2 && r.empty > 3.5) doStage(true); }
     const grav = 0.0098 * Math.max(0, 1 - (r.vh / 7.9) ** 2);
     r.vh += a * Math.sin(r.th) * sdt; r.vv += (a * Math.cos(r.th) - grav) * sdt;
@@ -84,7 +84,7 @@ ROUNDS.rocket = () => {
     ctx.save(); ctx.translate(cx, cy); ctx.rotate(r.th);
     drawRocket(0, 30, 1.5, 3 - r.stage, fuelLeft() > 0 && r.launch <= 0.6 ? 1 : 0, r.t);
     ctx.restore(); ctx.globalAlpha = 1;
-    if (fuelLeft() <= 0 && r.stage < 2 && Math.sin(r.t * 8) > 0) outlined(RB.touch ? 'TAP STAGE!' : 'PRESS SPACE TO STAGE!', cx, cy + 80, 18, '#ffd84a');
+    if (fuelLeft() <= 0 && r.stage < 2 && Math.sin(r.t * 8) > 0) outlined(say3('TAP STAGE!', 'PRESS SPACE TO STAGE!', 'PRESS {A} TO STAGE!'), cx, cy + 80, 18, '#ffd84a');
     if (r.launch > 0) outlined(Math.ceil(r.launch / 0.5) + '…', cx, H * 0.3, 56, '#fff', 'center', 'Bungee');
     // inset map: the curved Earth and your path over it
     const mw = 150, mh = 90, mx = 12, my = -OFFY + 128;
@@ -373,7 +373,7 @@ ROUNDS.planet = () => {
     r.t += dt; r.inv -= dt;
     const g = geo();
     if (r.phase === 'wait' || r.phase === 'cruise') {
-      const warp = r.phase === 'wait' && (axisX() > 0.4 || keys.ArrowRight) ? 4 : 1;
+      const warp = r.phase === 'wait' && (axisX() > 0.4 || keys.KeyD) ? 4 : 1;
       const sdt = dt * warp;
       r.simT += sdt; r.eA += TAU / PE * sdt; r.mA += TAU / PM * sdt;
       if (r.phase === 'wait') {
@@ -455,13 +455,13 @@ ROUNDS.planet = () => {
         ctx.strokeStyle = Math.abs(r.align) < 0.1 ? '#7dff9a' : 'rgba(224,102,58,.7)'; ctx.lineWidth = 2; ctx.setLineDash([3, 3]); ctx.beginPath(); ctx.arc(gx, gy, 9, 0, TAU); ctx.stroke(); ctx.setLineDash([]);
         txt('ghost Mars', gx, gy - 18, 12, 'rgba(255,200,180,.9)');
         const ok = Math.abs(r.align) < 0.1;
-        outlined(ok ? '✅ LAUNCH NOW!' : r.align > 0 ? '⏳ Wait… (hold → to fast-forward)' : '⏳ Window passed: wait for the next one', W / 2, -OFFY + (W < 700 ? 150 : 80), 20, ok ? '#7dff9a' : '#fff');
+        outlined(ok ? '✅ LAUNCH NOW!' : r.align > 0 ? say3('⏳ Wait… (drag right to fast-forward)', '⏳ Wait… (hold D to fast-forward)', '⏳ Wait… (push {LS} right to fast-forward)') : '⏳ Window passed: wait for the next one', W / 2, -OFFY + (W < 700 ? 150 : 80), 20, ok ? '#7dff9a' : '#fff');
       } else {
         const p = predict(g);
         ctx.strokeStyle = 'rgba(159,232,255,.7)'; ctx.setLineDash([4, 6]); ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(r.ship.x, r.ship.y); for (const [x, y] of p.pts) ctx.lineTo(x, y); ctx.stroke(); ctx.setLineDash([]);
         if (p.bestP) { ctx.strokeStyle = p.best < g.RE * 0.13 ? '#7dff9a' : '#ffd84a'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(p.bestP[0], p.bestP[1]); ctx.lineTo(p.bestP[2], p.bestP[3]); ctx.stroke(); }
         ctx.fillStyle = '#fff'; circle(r.ship.x, r.ship.y, 3.5);
-        outlined(p.best < g.RE * 0.13 ? '🎯 On course for Mars!' : '◀ ▶ nudge your speed to aim', W / 2, -OFFY + (W < 700 ? 150 : 80), 19, p.best < g.RE * 0.13 ? '#7dff9a' : '#ffd84a');
+        outlined(p.best < g.RE * 0.13 ? '🎯 On course for Mars!' : say3('Drag left / right to nudge your speed', 'A / D nudge your speed to aim', '{LS} left / right nudges your speed'), W / 2, -OFFY + (W < 700 ? 150 : 80), 19, p.best < g.RE * 0.13 ? '#7dff9a' : '#ffd84a');
       }
       drawEarth(ex, ey, 9, r.t); txt('Earth', ex, ey + 20, 12, '#9fe8ff');
       ctx.fillStyle = '#e0663a'; circle(mx, my, 7); txt('Mars', mx, my + 18, 12, '#ffb08a');
@@ -593,7 +593,7 @@ ROUNDS.mars = () => {
     blink(r); drawIngenuity(r.x - cx, r.y, 1.4, r.t, r.rpm); ctx.globalAlpha = 1;
     if (!r.landed) { ctx.fillStyle = 'rgba(0,0,0,.2)'; ctx.beginPath(); ctx.ellipse(r.x - cx, gAt(r.x) - 2, 16, 3, 0, 0, TAU); ctx.fill(); }
     if (r.flash > 0 && !reduced()) { ctx.fillStyle = `rgba(255,255,255,${r.flash})`; ctx.fillRect(0, -OFFY, W, VH); }
-    if (!r.spinning) outlined(RB.touch ? 'Tap SPIN UP!' : 'Press SPACE to spin up!', r.x - cx, r.y - 60, 18, '#ffd84a');
+    if (!r.spinning) outlined(say3('Tap SPIN UP!', 'Press SPACE to spin up!', 'Press {A} to spin up!'), r.x - cx, r.y - 60, 18, '#ffd84a');
     drawFx();
     hud(r.score, r.lives, [`📸 Photos ${r.photos} of ${TARGETS.length}`, `🌀 ${Math.round(r.rpm * 2400)} rpm`]);
     if (!D.safe) { const [x, y] = gaugeAt(160); meter(x, y, 160, '🔋', r.battery / 100, r.battery > 25 ? '#6be06b' : '#ff5a4a'); }

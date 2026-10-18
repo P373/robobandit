@@ -721,6 +721,76 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('🕹️ the shared controls: F1 / ? guide, controller button names (Xbox, PlayStation, Nintendo), N sound, M map, no P pause, no keys while typing, stick → W A S D', async () => {
+    const mkCtx = async id => {
+      const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+      await ctx.addInitScript(id => {
+        const gp = { id, index: 0, connected: true, mapping: 'standard', axes: [0, 0, 0, 0], buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } };
+        window.__pad = gp; navigator.getGamepads = () => (window.__noPad ? [] : [gp]);
+      }, id);
+      return ctx;
+    };
+    const ctx = await mkCtx('Xbox Wireless Controller (STANDARD GAMEPAD Vendor: 045e Product: 0b13)');
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('floppy-bird.html')); await p.waitForTimeout(500);
+    // F1, then ?: the guide lists this game's controls and the shared ones, with the controller's names
+    await p.keyboard.press('F1'); await p.waitForTimeout(150);
+    const g1 = await p.evaluate(() => ({ open: !!document.querySelector('.rb-guide'), text: document.querySelector('.rb-guide')?.textContent || '' }));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    const closed = await p.evaluate(() => !document.querySelector('.rb-guide'));
+    await p.keyboard.press('Shift+Slash'); await p.waitForTimeout(150);
+    const g2 = await p.evaluate(() => !!document.querySelector('.rb-guide'));
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
+    // N toggles the sound, P does nothing, M opens the menu (the map) and closes it again
+    const m0 = await p.evaluate(() => RB.muted);
+    await p.keyboard.press('KeyN'); const m1 = await p.evaluate(() => RB.muted);
+    await p.keyboard.press('KeyN'); const m2 = await p.evaluate(() => RB.muted);
+    await p.evaluate(() => { mode = 'play'; }); await p.keyboard.press('KeyP'); await p.waitForTimeout(100);
+    const pNoPause = await p.evaluate(() => !paused && !document.querySelector('.rb-pause'));
+    await p.keyboard.press('KeyM'); await p.waitForTimeout(150);
+    const mMenu = await p.evaluate(() => !!document.querySelector('.rb-menu'));
+    await p.keyboard.press('KeyM'); await p.waitForTimeout(150);
+    const mClosed = await p.evaluate(() => !document.querySelector('.rb-menu'));
+    // typing in a box: no game keys
+    await p.evaluate(() => { const i = document.createElement('input'); i.id = 'typeHere'; document.body.appendChild(i); i.focus(); });
+    const t0 = await p.evaluate(() => RB.muted); await p.keyboard.type('nmp'); const t1 = await p.evaluate(() => ({ muted: RB.muted, menu: !!document.querySelector('.rb-menu'), val: document.getElementById('typeHere').value }));
+    await p.evaluate(() => document.getElementById('typeHere').remove());
+    // the pause screen has a controls button, and its hint names Esc / the controller
+    await p.keyboard.press('Escape'); await p.waitForTimeout(150);
+    const pz = await p.evaluate(() => ({ paused, btn: !!document.querySelector('.rb-pause .rb-guide-btn'), focused: document.activeElement && document.activeElement.textContent.includes('KEEP PLAYING'), hint: document.querySelector('.rb-pause .rb-hint')?.textContent || '' }));
+    // ☰ on the controller carries on from the pause screen
+    await padTap(p, 'MENU'); await p.waitForTimeout(150);
+    const menuResumes = await p.evaluate(() => !paused && !document.querySelector('.rb-pause'));
+    // the left stick presses W A S D (not the arrows) in a game without a touch joystick
+    const codes = await p.evaluate(async () => { const seen = []; addEventListener('keydown', e => seen.push(e.code), true); mode = 'play'; __pad.axes[1] = -0.9; await new Promise(r => setTimeout(r, 200)); __pad.axes[1] = 0; __pad.axes[0] = 0.9; await new Promise(r => setTimeout(r, 200)); __pad.axes[0] = 0; await new Promise(r => setTimeout(r, 100)); return seen; });
+    const xbox = await p.evaluate(() => [RB.padText('{A} {RT} {LT} {MENU}'), RB.padStyle()]);
+    await ctx.close();
+    // PlayStation and Nintendo controllers get their own names, in text and in the guide
+    const names = {};
+    for (const [k, id] of [['ps', 'DualSense Wireless Controller (STANDARD GAMEPAD Vendor: 054c Product: 0ce6)'], ['nin', 'Pro Controller (STANDARD GAMEPAD Vendor: 057e Product: 2009)']]) {
+      const c = await mkCtx(id), q = await c.newPage();
+      await q.goto(url('lucky-leo.html')); await q.waitForTimeout(500);
+      names[k] = await q.evaluate(() => { const s = document.createElement('b'); s.dataset.pad = 'A'; document.body.appendChild(s); RB.applyPadLabels(); return { text: RB.padText('{A} {X} {LT} {RT} {MENU}'), el: s.textContent, style: RB.padStyle() }; });
+      await q.keyboard.press('F1'); await q.waitForTimeout(150);
+      names[k].guide = await q.evaluate(() => document.querySelector('.rb-guide')?.textContent || '');
+      await c.close();
+    }
+    check(g1.open && /Flap/i.test(g1.text) && /Esc/.test(g1.text) && /F1/.test(g1.text) && g1.text.includes('Ⓐ'), 'F1 opens the controls guide with this game, the shared keys and Xbox names: ' + g1.text.slice(0, 200));
+    check(closed && g2, 'Esc closes the guide and ? opens it');
+    check(m1 === !m0 && m2 === m0, 'N toggles the sound');
+    check(pNoPause, 'P no longer pauses');
+    check(mMenu && mClosed, 'M opens the map / menu and closes it again');
+    check(t1.muted === t0 && !t1.menu && t1.val === 'nmp', 'typing in a box fires no game keys: ' + JSON.stringify(t1));
+    check(pz.paused && pz.btn && pz.focused && /Ⓐ|Esc/.test(pz.hint), 'the pause screen has a controls button and focuses Keep Playing: ' + JSON.stringify(pz));
+    check(menuResumes, '☰ on the controller carries on from the pause screen');
+    check(codes.includes('KeyW') && codes.includes('KeyD') && !codes.some(c => c.startsWith('Arrow')), 'the left stick presses W A S D, not arrows: ' + codes.join(','));
+    check(xbox[0] === 'Ⓐ RT LT ☰ Menu' && xbox[1] === 'xbox', 'Xbox names: ' + xbox);
+    check(names.ps.style === 'ps' && names.ps.text === '✕ ▢ L2 R2 Options' && names.ps.el === '✕' && names.ps.guide.includes('R2'), 'PlayStation names: ' + JSON.stringify(names.ps).slice(0, 200));
+    check(names.nin.style === 'nin' && names.nin.text === 'B Y ZL ZR +' && names.nin.el === 'B' && names.nin.guide.includes('ZR'), 'Nintendo names: ' + JSON.stringify(names.nin).slice(0, 200));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+  });
+
   await test('pausing silences all sound; the controller View button (twice) goes home; pages load matching shared files', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
     await ctx.addInitScript(fakePad);
@@ -789,13 +859,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { __pad.axes[1] = 0; __pad.axes[3] = 0; window.__rumbles = 0; RB.noise(0.3, 0.5); });
     check(await p.evaluate(() => !window.__rumbles), 'vibration off should stop the rumble');
     // the pause screen has the controller screen too, and closing it returns to the pause screen
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
     check(await p.evaluate(() => !!document.querySelector('.rb-padscreen')), 'the pause screen should open the controller screen');
     await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display === ''), 'closing it should go back to the pause screen, still paused');
     // and from the ☰ menu: closing the controller screen goes back to the menu, ☰ again carries on
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     await padTap(p, 'MENU'); await p.click('.rb-menu [data-m="pad"]'); await p.waitForTimeout(150);
     await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     check(await p.evaluate(() => !!document.querySelector('.rb-menu') && paused), 'closing the controller screen goes back to the menu');
@@ -914,7 +984,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lily Pad Lunch 🎮 two controllers and 📱 touch: each controller aims and snaps its own frog, race mode, tap to snap and hop', async () => {
+  await test('Lily Pad Lunch 🎮 two controllers and 📱 touch: each controller aims and snaps (RT) its own frog, race mode, tap to snap and hop', async () => {
     const ctx = await browser.newContext({ viewport: { width: 1000, height: 600 } });
     await ctx.addInitScript(() => {
       const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
@@ -937,9 +1007,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { __pads[1].axes[0] = -0.7; __pads[1].axes[1] = -0.7; }); await p.waitForTimeout(400);
     await p.evaluate(() => { __pads[1].axes[0] = 0; __pads[1].axes[1] = 0; });
     const a1 = await p.evaluate(() => [frogs[0].aim, frogs[1].aim]);
-    await btn(1, 0, true); await p.waitForTimeout(150);
+    await btn(1, 7, true); await p.waitForTimeout(150);   // RT snaps (A hops)
     const tongues = await p.evaluate(() => frogs.map(f => !!f.tongue));
-    await btn(1, 0, false); await p.waitForTimeout(400);
+    await btn(1, 7, false); await p.waitForTimeout(400);
     // controller 1's LB hops Player 1 a pad to the left
     const pad0 = await p.evaluate(() => frogs[0].pad);
     await tap(0, 4); await p.waitForTimeout(700);
@@ -952,7 +1022,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const menu = await p.evaluate(() => ({ menu: !!document.querySelector('.rb-menu'), paused }));
     check(started.state === 'play' && started.frogs === 2 && started.direct, 'Ⓐ on the title starts a two-player game: ' + JSON.stringify(started));
     check(Math.abs(a1[0] - a0[0]) < 0.01 && a1[1] < -2.0, "controller 2's stick aims only Player 2: " + JSON.stringify({ a0, a1 }));
-    check(!tongues[0] && tongues[1], "controller 2's Ⓐ snaps only Player 2's tongue: " + JSON.stringify(tongues));
+    check(!tongues[0] && tongues[1], "controller 2's RT snaps only Player 2's tongue: " + JSON.stringify(tongues));
     check(pad1 === pad0 - 1, 'LB hops Player 1 to the pad on the left: ' + JSON.stringify({ pad0, pad1 }));
     check(race.state === 'end' && /Player 2.*wins/.test(race.text), 'race mode: a full jar wins for that player: ' + JSON.stringify(race));
     check(menu.menu && menu.paused, "the second controller's ☰ opens the menu: " + JSON.stringify(menu));
@@ -995,16 +1065,17 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       divider: !document.getElementById('divider').classList.contains('hidden'), direct: RB.pad.direct, p2: P2.mesh.visible, racers: players.length }));
     // controller 2 steers and boosts Player 2 only
     const y1 = await p.evaluate(() => [P1.yaw, P2.yaw]);
-    await p.evaluate(() => { __pads[1].axes[0] = 1; }); await btn(1, 6, true); await p.waitForTimeout(500);
+    await p.evaluate(() => { __pads[1].axes[0] = 1; }); await btn(1, 7, true); await p.waitForTimeout(500);
     const steer = await p.evaluate(() => ({ p1: P1.yaw, p2: P2.yaw, b1: P1.boosting, b2: P2.boosting, keys: Object.values(P1.keys).some(Boolean) }));
-    await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 6, false);
-    // Ⓧ on controller 1 throws Player 1's hat, not Player 2's
-    await tap(0, 2);
-    const hats = await p.evaluate(() => projectiles.filter(h => h.kind === 'hat').map(h => h.by.idx));
+    await p.evaluate(() => { __pads[1].axes[0] = 0; }); await btn(1, 7, false);
+    // Ⓑ on controller 1 throws Player 1's hat, not Player 2's
+    await p.evaluate(() => { window.__hats = []; const t0 = performance.now(); (function watch() { for (const h of projectiles) if (h.kind === 'hat' && !__hats.includes(h.by.idx)) __hats.push(h.by.idx); if (performance.now() - t0 < 2000) requestAnimationFrame(watch); })(); });
+    await tap(0, 1);
+    const hats = await p.evaluate(() => __hats);   // (every hat thrown while the button was tapped)
     // the keyboard is shared: W A S D for Player 1, the arrows for Player 2
-    await p.keyboard.down('ArrowLeft'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
+    await p.keyboard.down('KeyJ'); await p.keyboard.down('KeyD'); await p.waitForTimeout(100);
     const kb = await p.evaluate(() => ({ p1: { ...P1.keys }, p2: { ...P2.keys } }));
-    await p.keyboard.up('ArrowLeft'); await p.keyboard.up('KeyD');
+    await p.keyboard.up('KeyJ'); await p.keyboard.up('KeyD');
     // Player 2's hat can bonk Player 1
     const bonk = await p.evaluate(() => {
       clearProjectiles();   // (one evaluate runs start to end: the page's own loop waits)
@@ -1047,8 +1118,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(title.two && /Two controllers/.test(title.pads), 'the title offers 2 players and sees both controllers: ' + JSON.stringify(title));
     check(split.split && split.huds === 2 && split.divider && split.direct && split.p2 && split.racers === 2, 'two players split the screen: ' + JSON.stringify(split));
     check(steer.p2 < y1[1] - 0.05 && Math.abs(steer.p1 - y1[0]) < 0.02 && steer.b2 && !steer.b1 && !steer.keys, 'controller 2 flies only Player 2: ' + JSON.stringify({ y1, steer }));
-    check(hats.length === 1 && hats[0] === 0, "controller 1's Ⓧ throws Player 1's hat: " + JSON.stringify(hats));
-    check(kb.p1.r && !kb.p1.l && kb.p2.l && !kb.p2.r, 'W A S D fly Player 1 and the arrows Player 2: ' + JSON.stringify(kb));
+    check(hats.length === 1 && hats[0] === 0, "controller 1's Ⓑ throws Player 1's hat: " + JSON.stringify(hats));
+    check(kb.p1.r && !kb.p1.l && kb.p2.l && !kb.p2.r, 'W A S D fly Player 1 and I J K L Player 2: ' + JSON.stringify(kb));
     check(bonk.locked && bonk.hit && bonk.hits === 1 && bonk.layers, "Player 2's hat locks on and bonks Player 1: " + JSON.stringify(bonk));
     check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 7) && race.places[0] !== race.places[1] && race.podium === 2 && race.all === 7 && /P1/.test(race.stats) && /P2/.test(race.stats) && /1 Player/.test(race.swap),
       'both reach the moon and the results list both: ' + JSON.stringify(race));
@@ -1058,7 +1129,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
-  await test('Witch Way Out race: hat bonks a witch and comes back, LT boosts with dust, boxes give power-ups, a racer using them wins', async () => {
+  await test('Witch Way Out race: hat bonks a witch and comes back, RT boosts with dust, boxes give power-ups, a racer using them wins', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
@@ -1067,12 +1138,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     // the countdown holds everyone on the line
     const c = await p.evaluate(() => { startGame(); const z = pos.z, fz = friends[0].z; for (let i = 0; i < 60; i++) update(1 / 60); return { moved: pos.z !== z || friends[0].z !== fz, countT }; });
     check(!c.moved && c.countT > 1, 'nobody should move before GO: ' + JSON.stringify(c));
-    // Ⓧ throws the hat at a witch in range: she falls off, and the hat comes back
+    // Ⓑ throws the hat at a witch in range: she falls off, and the hat comes back
     await p.evaluate(() => { countT = 0; introT = 0; for (let i = 0; i < 10; i++) { update(1 / 60); updateVisuals(1 / 60); }
       const f = friends[0]; f.z = pos.z - 18; f.off = pos.x - lineX(f.z); f.offY = pos.y - lineY(f.z); f.ph = -clock * 0.35; f.knockT = 0; f.nextThrow = 99;
       friends.slice(1).forEach(o => { o.z = pos.z - 300; }); update(1 / 60); updateVisuals(1 / 60); });
     check(await p.evaluate(() => lockMesh.visible), 'a witch just ahead should be marked as in range');
-    await padTap(p, 'X');
+    await padTap(p, 'B');
     const h = await p.evaluate(() => {
       const out = { thrown: projectiles.some(x => x.kind === 'hat') && !me.userData.hat.visible };
       for (let i = 0; i < 60 * 4 && !(out.hit && me.userData.hat.visible); i++) { update(1 / 60); updateVisuals(1 / 60); if (friends[0].knockT > 0) out.hit = true; }
@@ -1080,13 +1151,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return out;
     });
     check(h.thrown && h.hit && h.back, 'the hat should fly, bonk the witch and come back: ' + JSON.stringify(h));
-    // LT boosts: faster, the meter drains, magic dust behind
+    // RT boosts: faster, the meter drains, magic dust behind
     await p.evaluate(() => { magic = 1; });
-    await padHold(p, 'LT', true); await p.waitForTimeout(500);
+    await padHold(p, 'RT', true); await p.waitForTimeout(500);
     const b = await p.evaluate(() => { for (let i = 0; i < 40; i++) { update(1 / 60); updateVisuals(1 / 60); } let lit = 0; for (let i = 0; i < DUST_N; i++) if (dustAge[i] < DUST_LIFE) lit++; return { boosting, magic, speed, lit }; });
-    await padHold(p, 'LT', false);
+    await padHold(p, 'RT', false);
     check(b.boosting && b.magic < 0.95 && b.speed > 36 && b.lit > 20, 'LT should boost with a dust trail: ' + JSON.stringify(b));
-    // a magic box rolls a power-up; Ⓑ uses it (the bats chase the leader)
+    // a magic box rolls a power-up; Ⓨ uses it (the bats chase the leader)
     const it = await p.evaluate(() => {
       const box = boxes.find(x => x.z < pos.z - 30); pos.set(box.x, box.mesh.position.y, box.z + 0.5); friends.forEach(f => { f.knockT = 0; });
       update(1 / 60);
@@ -1096,10 +1167,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return { got, lead: lead.name };
     });
     check(it.got && ['rocket', 'bats', 'potion', 'cloak', 'triple', 'web'].includes(it.got), 'a box should give a power-up: ' + JSON.stringify(it));
-    await padTap(p, 'B');
+    await padTap(p, 'Y');
     const bats = await p.evaluate(lead => { const f = friends.find(x => x.name === lead); let hit = false;
       for (let i = 0; i < 60 * 6 && !hit; i++) { update(1 / 60); if (f.knockT > 0) hit = true; } return { used: item === null, hit }; }, it.lead);
-    check(bats.used && bats.hit, 'Ⓑ should send the bats after the leader: ' + JSON.stringify(bats));
+    check(bats.used && bats.hit, 'Ⓨ should send the bats after the leader: ' + JSON.stringify(bats));
     await p.screenshot({ path: path.join(OUT, 'witch-race.png') });
     // a racer who boosts, throws hats and uses power-ups beats everyone
     const race = await p.evaluate(() => {
@@ -1119,6 +1190,155 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return { state, place, hits: hatsHit, podium: document.querySelectorAll('.podium li').length };
     });
     check(race.state === 'over' && race.place <= 2 && race.hits > 0 && race.podium === 6, 'a racer using everything should finish 1st or 2nd: ' + JSON.stringify(race));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await ctx.close();
+  });
+
+  await test('Witch Way Out Grand Prix: seven areas, four shortcuts that are really faster, dash panels, the updraft, solid walls, the moving dangers, a rocket start and slipstreams', async () => {
+    const p = await open(browser, 'witch-way-out.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {};
+      // fly from z0 to z1 along a path (the racing line, or a shortcut's), steering like a player would
+      const flyPath = (z0, z1, path, opts = {}) => {
+        startGame(false); countT = 0; introT = 0; friends.forEach(f => { f.z = 300; f.nextThrow = 99; }); pumpkinZ = 9999;
+        pos.set(path(z0).x, path(z0).y, z0); yaw = 0; pitch = 0; speed = SPEED;
+        let t = 0, bumps = 0, was = false, maxY = 0;
+        while (pos.z > z1 && t < 60) {
+          keys.l = keys.r = keys.u = keys.d = false;
+          const w = path(pos.z - 22), wantYaw = Math.atan2(-(w.x - pos.x), 22), wp = Math.atan2(w.y - pos.y, 22);
+          if (wantYaw - yaw < -0.04) keys.r = true; else if (wantYaw - yaw > 0.04) keys.l = true;
+          if (wp - pitch > 0.04) keys.u = true; else if (wp - pitch < -0.04) keys.d = true;
+          if (strike && strike.t < 0.6) castShield();
+          if (opts.noHaz) P1.slowT = 0;
+          update(1 / 60); t += 1 / 60; maxY = Math.max(maxY, pos.y);
+          if (slowT > 0 && !was) bumps++; was = slowT > 0;
+        }
+        return { t, bumps, maxY, cuts: P1.cuts };
+      };
+      const line = z => ({ x: lineX(z), y: lineY(z) });
+      out.sections = SECTIONS.map(s => s.id);
+      out.cuts = CUTS.map((c, i) => {
+        const cp = {}, via = z => (z <= c.z0 + 30 ? cutPos(c, z, cp) : line(z)) && { x: cp.x !== undefined && z <= c.z0 + 30 ? cp.x : lineX(z), y: cp.y !== undefined && z <= c.z0 + 30 ? cp.y : lineY(z) };
+        const a = flyPath(c.z0 + 30, c.z1 - 10, line), b = flyPath(c.z0 + 30, c.z1 - 10, z => { if (z > c.z0) return line(z); cutPos(c, z, cp); return { x: cp.x, y: cp.y }; });
+        return { id: c.id, line: +a.t.toFixed(2), cut: +b.t.toFixed(2), counted: b.cuts === 1, bumps: b.bumps, high: Math.round(b.maxY) };
+      });
+      // a dash panel: a burst of speed
+      startGame(false); countT = 0; introT = 0; friends.forEach(f => { f.z = 300; });
+      const d = dashes[0]; pos.set(d.x, d.y, d.z + 3); yaw = 0; pitch = 0; for (let i = 0; i < 20; i++) update(1 / 60);
+      out.dash = { dashT: +P1.dashT.toFixed(2), speed: Math.round(speed) };
+      // solid walls: even with the candy rocket, flying straight at the mansion's wall never gets you inside it
+      startGame(false); countT = 0; introT = 0; pumpkinZ = 9999;
+      const mx = CUT_MID[3].x - 18; pos.set(mx, 14, -2870); yaw = 0; pitch = 0; P1.rocketT = 3; let inside = 0;
+      for (let i = 0; i < 60 * 3; i++) { keys.l = keys.r = keys.u = keys.d = false; update(1 / 60); if (pos.z < -2908 && pos.z > -2992 && Math.abs(pos.x - CUT_MID[3].x) < 23 && pos.y < 30 && Math.abs(pos.x - CUT_MID[3].x) > 9) inside++; }
+      out.wall = { inside, z: Math.round(pos.z) };
+      // the edges of the track turn you back in
+      startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; pos.set(lineX(-700) + 30, 20, -700); yaw = -0.9;
+      let maxOff = 0; for (let i = 0; i < 120; i++) { update(1 / 60); maxOff = Math.max(maxOff, Math.abs(pos.x - lineX(pos.z)) - halfW(pos.z)); }
+      out.edge = +maxOff.toFixed(2);
+      // the moving dangers each get you (a windmill sail, a stomping tombstone, a twister, a chandelier, a shut pumpkin gate), and an open gate is a boost
+      out.haz = {};
+      for (const h of hazards) {
+        if (out.haz[h.kind]) continue;
+        startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; friends.forEach(f => { f.z = 300; f.nextThrow = 99; });
+        let got = false, boost = false;
+        for (let k = 0; k < 400 && !(got && (boost || !h.through)); k++) {   // (a gate: until it's both bitten and been open)
+          const t = k * 0.05; h.update(t);
+          const q = h.kind === 'windmill' ? { x: h.x + Math.cos(h.ang + Math.PI / 2) * 12, y: h.y + Math.sin(h.ang + Math.PI / 2) * 12, z: h.z }
+            : h.kind === 'stomper' ? { x: h.x, y: Math.max(1.5, h.y + 4), z: h.z } : h.kind === 'twister' ? { x: h.x, y: 30, z: h.z }
+            : h.kind === 'chandelier' ? { x: h.cx, y: h.cy, z: h.z } : { x: h.x, y: h.y + 9, z: h.z };   // (a gate: on its rim)
+          if (h.hit(q)) got = true;
+          if (h.through && h.through({ x: h.x, y: h.y, z: h.z })) boost = true;
+        }
+        out.haz[h.kind] = { got, boost: h.through ? boost : null };
+      }
+      startGame(false); countT = 0; introT = 0; const st = hazards.find(h => h.kind === 'stomper'); st.update(1.3 - ((0) % 3.4)); pumpkinZ = 9999;
+      const ch = hazards.find(h => h.kind === 'chomper');
+      for (let i = 0; i < 600; i++) { pos.set(ch.x + 40, ch.y, ch.z + 40); slowT = 0; update(1 / 60); if (ch.open > 0.99) break; }   // wait for the gate to open
+      pos.set(ch.x, ch.y, ch.z + 1); slowT = 0; update(1 / 60);
+      out.chompBoost = P1.dashT > 1;
+      // a rocket start: hold boost as the 2 shows
+      startGame(false); for (let i = 0; i < 70; i++) update(1 / 60); keys.boost = true; while (countT > 0) update(1 / 60); keys.boost = false;
+      out.rocketStart = +P1.dashT.toFixed(2);
+      startGame(false); keys.boost = true; while (countT > 0) update(1 / 60); keys.boost = false;   // held from the 3: too early
+      out.tooEarly = { dash: P1.dashT, slow: slowT > 0 };
+      // a slipstream: tuck in right behind a witch
+      startGame(false); countT = 0; introT = 0; runT = 10; pumpkinZ = 9999;
+      const f = friends[0]; friends.slice(1).forEach(o => { o.z = 400; });
+      let slip = false;
+      for (let i = 0; i < 120 && !slip; i++) { f.knockT = 0; f.z = pos.z - 8; f.off = pos.x - lineX(f.z); f.offY = pos.y - lineY(f.z) - 0.3; f.ph = -clock * 0.35; f.base = 31; update(1 / 60); if (P1.dashT > 0) slip = true; }
+      out.slip = slip;
+      // the other witches take the shortcuts now and then
+      startGame(false); countT = 0; introT = 0; pumpkinZ = 9999; pos.z = -50; let rivalCut = 0;
+      for (let i = 0; i < 60 * 150 && rivalCut < 1; i++) { pos.z = Math.min(...friends.map(q => q.z)) + 30; update(1 / 60); if (friends.some(q => q.cut && q.cutK > 0.9)) rivalCut++; }
+      out.rivalCut = rivalCut;
+      return out;
+    });
+    check(r.sections.length === 7 && r.sections[0] === 'castle' && r.sections[6] === 'lake', 'seven areas, from the castle to the lake: ' + JSON.stringify(r.sections));
+    for (const c of r.cuts) check(c.cut < c.line - 0.3 && c.counted && c.bumps <= 1, `the ${c.id} shortcut should be open (nothing in the way but its own swinging chandeliers) and faster than the racing line: ` + JSON.stringify(c));
+    check(r.cuts.find(c => c.id === 'highway').high > 75, 'the updraft lifts you up to the ring highway: ' + JSON.stringify(r.cuts));
+    check(r.dash.dashT > 0.8 && r.dash.speed > 40, 'a dash panel gives a burst of speed: ' + JSON.stringify(r.dash));
+    check(r.wall.inside === 0, 'walls are solid, even with the rocket: ' + JSON.stringify(r.wall));
+    check(r.edge < 0.5, 'the edges of the track keep you in: ' + r.edge);
+    for (const k of ['windmill', 'stomper', 'twister', 'chandelier', 'chomper']) check(r.haz[k] && r.haz[k].got, `the ${k} should be able to get you: ` + JSON.stringify(r.haz));
+    check(r.haz.chomper.boost && r.chompBoost, 'flying through an open pumpkin gate is a boost: ' + JSON.stringify(r));
+    check(r.rocketStart > 1 && !r.tooEarly.dash && r.tooEarly.slow, 'holding boost at the 2 gives a rocket start, too early a wobble: ' + JSON.stringify(r));
+    check(r.slip, 'tucking in behind a witch gives a slipstream boost');
+    check(r.rivalCut > 0, 'the other witches take shortcuts too');
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
+  await test('Witch Way Out 👥 three and four players: a corner each (three: the fourth is the pumpkin cam), each controller flies its own witch, everyone finishes', async () => {
+    const ctx = await browser.newContext({ viewport: { width: 1000, height: 640 } });
+    await ctx.addInitScript(() => {   // four pretend controllers
+      const mk = i => ({ id: 'Xbox Wireless Controller (STANDARD GAMEPAD)', index: i, connected: true, mapping: 'standard', axes: [0, 0, 0, 0],
+        buttons: Array.from({ length: 17 }, () => ({ pressed: false, value: 0 })), vibrationActuator: { playEffect: () => Promise.resolve() } });
+      window.__pads = [mk(0), mk(1), mk(2), mk(3)]; window.__pad = window.__pads[0];
+      navigator.getGamepads = () => window.__pads;
+    });
+    const p = await ctx.newPage();
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('witch-way-out.html')); await p.waitForTimeout(1000);
+    const title = await p.evaluate(() => ({ b3: !!document.getElementById('btnPlay3'), b4: !!document.getElementById('btnPlay4'), pads: document.getElementById('padCount').textContent }));
+    await p.click('#btnPlay3'); await p.waitForTimeout(300);
+    await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(400);
+    const three = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      spec: !document.getElementById('specTag').classList.contains('hidden'), racers: players.length, p4: P4.mesh.visible }));
+    await p.screenshot({ path: path.join(OUT, 'witch-3p.png') });
+    await p.evaluate(() => startGame(4)); await p.waitForTimeout(200);
+    await p.evaluate(() => { countT = 0; introT = 0; }); await p.waitForTimeout(300);
+    // controller 4 steers Player 4 only; controller 3's Ⓑ throws Player 3's hat
+    const y0 = await p.evaluate(() => players.map(q => q.yaw));
+    await p.evaluate(() => { __pads[3].axes[0] = 1; }); await p.waitForTimeout(500);
+    const steer = await p.evaluate(() => players.map(q => q.yaw));
+    await p.evaluate(() => { __pads[3].axes[0] = 0; __pads[2].buttons[1] = { pressed: true, value: 1 }; window.__hats = []; const t0 = performance.now(); (function watch() { for (const h of projectiles) if (h.kind === 'hat' && !__hats.includes(h.by.idx)) __hats.push(h.by.idx); if (performance.now() - t0 < 2000) requestAnimationFrame(watch); })(); }); await p.waitForTimeout(300);
+    await p.evaluate(() => { __pads[2].buttons[1] = { pressed: false, value: 0 }; }); await p.waitForTimeout(200);
+    const hats = await p.evaluate(() => __hats);
+    const four = await p.evaluate(() => ({ quad: document.body.classList.contains('quad'), huds: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).length,
+      spec: !document.getElementById('specTag').classList.contains('hidden'), racers: players.length, corners: [...document.querySelectorAll('.hud')].filter(h => !h.classList.contains('hidden')).map(h => { const b = h.getBoundingClientRect(); return [Math.round(b.left), Math.round(b.top)]; }) }));
+    await p.screenshot({ path: path.join(OUT, 'witch-4p.png') });
+    // all four fly the line to the moon
+    const race = await p.evaluate(() => {
+      for (let i = 0; i < 60 * 320 && state === 'fly'; i++) {
+        for (const q of players) {
+          const k = q.keys; k.l = k.r = k.u = k.d = false;
+          const z = q.pos.z - 35, wantYaw = Math.atan2(-(lineX(z) + (q.idx - 1.5) * 3 - q.pos.x), -(z - q.pos.z));
+          if (wantYaw - q.yaw < -0.05) k.r = true; else if (wantYaw - q.yaw > 0.05) k.l = true;
+          const wp = Math.atan2(lineY(z) - q.pos.y, 35);
+          if (wp - q.pitch > 0.05) k.u = true; else if (wp - q.pitch < -0.05) k.d = true;
+          if (q.strike && q.strike.t < 0.6) castShield(q);
+        }
+        update(1 / 60); if (i % 6 === 0) updateVisuals(1 / 60);
+      }
+      return { state, places: players.map(q => q.finishPlace), podium: document.querySelectorAll('.podium li').length, mine: document.querySelectorAll('.podium li.you').length, stats: document.getElementById('overStats').textContent };
+    });
+    check(title.b3 && title.b4 && /Four controllers/.test(title.pads), 'the title offers 3 and 4 players and sees four controllers: ' + JSON.stringify(title));
+    check(three.quad && three.huds === 3 && three.spec && three.racers === 3 && !three.p4, 'three players: three corners and the pumpkin cam: ' + JSON.stringify(three));
+    check(four.quad && four.huds === 4 && !four.spec && four.racers === 4 && new Set(four.corners.map(String)).size === 4, 'four players: a corner each: ' + JSON.stringify(four));
+    check(steer[3] < y0[3] - 0.05 && [0, 1, 2].every(i => Math.abs(steer[i] - y0[i]) < 0.03), 'controller 4 flies only Player 4: ' + JSON.stringify({ y0, steer }));
+    check(hats.length === 1 && hats[0] === 2, "controller 3's Ⓑ throws Player 3's hat: " + JSON.stringify(hats));
+    check(race.state === 'over' && race.places.every(x => x >= 1 && x <= 9) && new Set(race.places).size === 4 && race.podium === 9 && race.mine === 4 && /P4/.test(race.stats), 'all four reach the moon and the results list them: ' + JSON.stringify(race));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
   });
@@ -1270,7 +1490,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'pumpkin-pals.png');
   });
 
-  await test('Pumpkin Pals 🎮 controller and 📱 phone: Ⓐ starts and jumps, the stick walks, Ⓑ throws a pumpling; touch buttons do the same', async () => {
+  await test('Pumpkin Pals 🎮 controller and 📱 phone: Ⓐ starts and jumps, the stick walks, RT throws a pumpling; touch buttons do the same', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
@@ -1282,12 +1502,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const s2 = await p.evaluate(() => ({ state, id: lvl && lvl.id, x: player && player.x }));
     await padStick(p, 0.9, 0); await p.waitForTimeout(700); await padStick(p, 0, 0);
     const x2 = await p.evaluate(() => player.x);
-    await padTap(p, 'B'); await p.waitForTimeout(60);
+    await padTap(p, 'RT'); await p.waitForTimeout(60);
     const thrown = await p.evaluate(() => pals.some(q => q.st === 'thrown' || q.st === 'back'));
     await padTap(p, 'A'); await p.waitForTimeout(100);
     const jumped = await p.evaluate(() => !player.ground || player.vy < 0);
     check(s1 === 'map' && s2.state === 'level' && s2.id === 'patch', 'Ⓐ starts the game, then the first level: ' + JSON.stringify({ s1, s2 }));
-    check(x2 > s2.x + 30 && thrown && jumped, 'the stick walks, Ⓑ throws, Ⓐ jumps: ' + JSON.stringify({ x0: s2.x, x2, thrown, jumped }));
+    check(x2 > s2.x + 30 && thrown && jumped, 'the stick walks, RT throws, Ⓐ jumps: ' + JSON.stringify({ x0: s2.x, x2, thrown, jumped }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
     const ph = await open(browser, 'pumpkin-pals.html', PHONE);
@@ -1394,12 +1614,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
     check(m.games === 15 && m.cur.includes('Witch Way Out'), 'the menu should list 12 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('KeyJ'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
     await padTap(p, 'B'); await p.waitForTimeout(100);
     check(await p.evaluate(() => !document.querySelector('.rb-menu') && !paused && !document.querySelector('.rb-pause')), 'Ⓑ should close the menu and carry on (the menu paused it)');
     // over the game's own pause screen the menu goes back to it, and "Back to the game" carries on
-    await p.keyboard.press('p'); await p.waitForTimeout(100);
+    await p.keyboard.press('Escape'); await p.waitForTimeout(100);
     await p.click('#btnMenu'); await p.waitForTimeout(100);
     await padTap(p, 'B'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && document.querySelector('.rb-pause').style.display === ''), 'Ⓑ over the pause screen goes back to it');
@@ -1968,7 +2188,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo on the map shows his power-up and Shamrock when he has them; ↓ + jump hops off Shamrock', async () => {
+  await test('Lucky Leo on the map shows his power-up and Shamrock when he has them; S + jump (or F) hops off Shamrock', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
