@@ -101,7 +101,8 @@
   .tbtn.cool { filter: grayscale(.8) brightness(.7); }
   #boostBtn { background: radial-gradient(circle at 40% 35%, #ffe07a, #c47a00); color: #1a1200; }
   #driftBtn { background: radial-gradient(circle at 40% 35%, #7ad0ff, #1a5a9c); }
-  body.touch .speedo { right: auto; left: 50%; transform: translateX(-50%); width: 170px; text-align: center; }
+  body.touch .speedo { width: 150px; } body.touch .mph { font-size: 40px; }   /* (under the touch buttons, clear of the radar) */
+  body.touch .radar { width: 116px; height: 116px; }
 
   /* ---------- screens: navy and gold ---------- */
   .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px; box-sizing: border-box;
@@ -167,7 +168,7 @@
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
   @media (max-width: 520px) { .panel ul { font-size: 13px; } .big-btn { font-size: 18px; padding: 9px 14px; } }
 </style>
-<link rel="stylesheet" href="common.css?v=20261018-0153">
+<link rel="stylesheet" href="common.css?v=20261018-0528">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -235,9 +236,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261018-0153"></script>
-<script src="orbit-cam.js?v=20261018-0153"></script>
-<script src="touch-stick.js?v=20261018-0153"></script>
+<script src="common.js?v=20261018-0528"></script>
+<script src="orbit-cam.js?v=20261018-0528"></script>
+<script src="touch-stick.js?v=20261018-0528"></script>
 <script>
 'use strict';
 
@@ -1764,24 +1765,26 @@ function makeEngine() {
 
 // ---------- Input ----------
 // The RoboBandit controls (CONTROLS.md, after EBITDA Hero): W gas, S brake (W and S together: a wheelie), A / D steer,
-// Shift nitro, Ctrl drift (the handbrake), Space hop, K / J / F kick. Two players on one keyboard: Player 1 W A S D,
-// left Shift, left Ctrl, Space, F; Player 2 I J K L, right Shift, right Ctrl, Enter, U.
-// Controllers are always read one by one while racing: RT gas, LT brake, Ⓧ nitro, Ⓑ drift, Ⓐ hop, Ⓨ kick.
+// Shift nitro, Ctrl drift (the handbrake), Space hop, F use your item, K / J kick. Two players on one keyboard: Player 1
+// W A S D, left Shift, left Ctrl, Space, F item, G kick; Player 2 I J K L, right Shift, right Ctrl, Enter, U item, O kick.
+// Controllers are always read one by one while racing: RT gas, LT brake, Ⓧ nitro, Ⓑ drift, Ⓐ hop, Ⓨ item, LB / RB kick.
 const KEYMAP = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', ShiftRight: 'boost', ControlLeft: 'drift', ControlRight: 'drift' };
 const KEYS_P1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', ControlLeft: 'drift' };
 const KEYS_P2 = { KeyJ: 'l', KeyL: 'r', KeyI: 'u', KeyK: 'd', ShiftRight: 'boost', ControlRight: 'drift' };
 RB.setControls({
-  name: 'Moto Rush', camera: true,
+  name: 'Moto Mania', camera: true,
   rows: [
     { act: 'Gas / brake, then reverse', keys: 'W / S', pad: '{RT} / {LT}', touch: 'it goes by itself' },
     { act: 'Steer', keys: 'A D', pad: 'left stick', touch: 'drag your thumb' },
-    { act: 'Wheelie (fills the nitro)', keys: 'W + S', pad: 'pull the stick back', touch: 'drag down' },
+    { act: 'Use your item', keys: 'F', pad: '{Y}', touch: '❔ button' },
+    { act: 'Kick the rider beside you', keys: 'K (or J)', pad: '{LB} or {RB}', touch: '🦵 button' },
     { act: 'Nitro (hold)', keys: 'Shift', pad: '{X}', touch: '🔥 button' },
     { act: 'Drift (hold, let go for a mini-turbo)', keys: 'Ctrl', pad: '{B}', touch: '🌀 button' },
     { act: 'Hop · in the air: a trick', keys: 'Space', pad: '{A}', touch: '⤴️ button' },
-    { act: 'Kick the rider beside you', keys: 'K (or J, F)', pad: '{Y}', touch: '🦵 button' },
+    { act: 'Wheelie (fills the nitro)', keys: 'W + S', pad: 'pull the stick back', touch: 'drag down' },
+    { act: 'Pick your bike', keys: 'A / D, then Space', pad: 'left / right, then {A}', touch: '◀ ▶, then READY' },
   ],
-  note: '👥 2 players on one keyboard: Player 1 W A S D, left Shift nitro, left Ctrl drift, Space hop, F kick · Player 2 I J K L, right Shift nitro, right Ctrl drift, Enter hop, U kick. With controllers, each one uses the buttons above.',
+  note: '👥 2 players on one keyboard: Player 1 W A S D, left Shift nitro, left Ctrl drift, Space hop, F item, G kick · Player 2 I J K L, right Shift nitro, right Ctrl drift, Enter hop, U item, O kick. With controllers, each one uses the buttons above. (The camera comes back behind you with a right-stick click: LB and RB kick in this game.)',
 });
 let state = 'title', paused = false, twoP = false;
 RB.guardLeave(() => state === 'race' && !paused);   // (Ctrl drifts, so Ctrl + W mustn't close the tab by accident)
@@ -1828,13 +1831,13 @@ function makePlayer(idx) {
   p.ui.tag.textContent = `P${idx + 1}`; p.ui.tag.style.background = r.color;
   p.radarCtx = p.ui.radar.getContext('2d');
   p.cam = Object.assign(createOrbitCam({ canvas: idx ? null : canvas, stick: idx ? null : stick, enabled: () => state === 'race' && !paused,
-    el0: 0.26, source: () => (twoP ? camSource(p) : null) }), { dist: CAM_DIST, speedK: 0 });
+    el0: 0.26, recenter: [11], source: () => (twoP ? camSource(p) : null) }), { dist: CAM_DIST, speedK: 0 });
   Object.defineProperty(p, 'name', { get: () => (twoP ? `Player ${idx + 1}` : 'You') });
   return p;
 }
 function camSource(p) {
   const g = p.pad;
-  return { x: g ? g.rx : 0, y: g ? g.ry : 0, recenter: !!g && [4, 5, 11].some(b => g.pressed(b)), keys: p.idx === 0 };
+  return { x: g ? g.rx : 0, y: g ? g.ry : 0, recenter: !!g && g.pressed(11), keys: p.idx === 0 };
 }
 const ALL = [0, 1, 2, 3].map(makePlayer);
 const [P1, P2, P3, P4] = ALL;
@@ -1850,11 +1853,21 @@ addEventListener('keydown', e => {
   if (paused) { if (['Space', 'Enter', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
   if (state === 'race') {
     if (e.code === 'Space') { e.preventDefault(); hop(P1); }
-    if (e.code === 'KeyF' || (!twoP && (e.code === 'KeyK' || e.code === 'KeyJ'))) kick(P1);
+    if (e.code === 'KeyF') useItem(P1);
+    if (twoP ? e.code === 'KeyG' : e.code === 'KeyK' || e.code === 'KeyJ') kick(P1);
     if (twoP) {
       if (e.code === 'Enter') { e.preventDefault(); hop(P2); }
-      if (e.code === 'KeyU') kick(P2);
+      if (e.code === 'KeyU') useItem(P2);
+      if (e.code === 'KeyO') kick(P2);
     }
+  } else if (state === 'garage') {
+    e.preventDefault();
+    const k2 = twoP && ['KeyJ', 'KeyL', 'Enter'].includes(e.code) ? 1 : 0;
+    if (e.code === 'KeyA' || e.code === 'KeyJ' || (!twoP && e.code === 'ArrowLeft')) garageMove(k2, -1);
+    if (e.code === 'KeyD' || e.code === 'KeyL' || (!twoP && e.code === 'ArrowRight')) garageMove(k2, 1);
+    if (e.code === 'Space' || e.code === 'Enter') garageReady(k2, !garage.ready[k2]);
+    if (e.code === 'Escape') { if (garage.ready[0]) garageReady(0, false); else showTitle(); }
+    return;
   } else if (e.code === 'Space' || e.code === 'Enter') { if (document.activeElement && document.activeElement.tagName === 'BUTTON') return; e.preventDefault(); startGame(); }
   if (e.code === 'Escape') pause();
 });
@@ -1870,6 +1883,7 @@ canvas.addEventListener('pointerdown', () => RB.audio());
 const tapBtn = (id, fn) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
 tapBtn('hopBtn', () => hop(P1));
 tapBtn('kickBtn', () => kick(P1));
+tapBtn('itemBtn', () => useItem(P1));
 for (const [id, k] of [['boostBtn', 'boost'], ['driftBtn', 'drift']]) {
   const b = document.getElementById(id);
   b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); P1.keys[k] = true; try { b.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
@@ -1878,7 +1892,7 @@ for (const [id, k] of [['boostBtn', 'boost'], ['driftBtn', 'drift']]) {
 
 // Every controller is read on its own while racing (common.js stops pressing keys for it), so the triggers are analog
 function pollPads() {
-  const on = state === 'race' && !paused;
+  const on = (state === 'race' || state === 'garage') && !paused;
   if (RB.pad && 'direct' in RB.pad) RB.pad.direct = on;
   const raw = RB.pad && RB.pad.pads ? RB.pad.pads() : [];
   for (const p of ALL) {
@@ -1887,11 +1901,21 @@ function pollPads() {
     if (!p.pad) { p.prevBtn = null; continue; }
     const now = [];
     for (let b = 0; b < 16; b++) now[b] = p.pad.pressed(b);
-    if (p.prevBtn && players.includes(p)) {   // (a button already held when the race starts doesn't count)
+    if (p.prevBtn && (players.includes(p) || state === 'garage')) {   // (a button already held when the race starts doesn't count)
       const edge = b => now[b] && !p.prevBtn[b];
-      if (edge(0)) hop(p);
-      if (edge(3)) kick(p);
+      if (state === 'garage') {   // each controller picks its own bike
+        const lx = p.pad.lx, was = p.prevLx || 0;
+        if (edge(14) || (lx < -0.5 && was >= -0.5)) garageMove(p.idx, -1);
+        if (edge(15) || (lx > 0.5 && was <= 0.5)) garageMove(p.idx, 1);
+        if (edge(0)) garageReady(p.idx, true);
+        if (edge(1)) { if (garage.ready[p.idx]) garageReady(p.idx, false); else if (!p.idx) showTitle(); }
+      } else {
+        if (edge(0)) hop(p);
+        if (edge(3)) useItem(p);
+        if (edge(4) || edge(5)) kick(p);
+      }
     }
+    p.prevLx = p.pad.lx;
     p.prevBtn = now;
   }
 }
@@ -1926,14 +1950,16 @@ function pause() {
 function resume() { paused = false; RB.hidePause(); last = performance.now(); for (const p of ALL) p.prevBtn = null; }
 RB.topbar({
   onPause: () => (paused ? resume() : pause()),
-  shareInfo: { title: 'Moto Mania | RoboBandit', text: 'Race motorcycles round the Figure 8 Fields with your friends! 🏍️🏁' },
+  shareInfo: { title: 'Moto Mania | RoboBandit', text: 'Item-box motorcycle racing and a balloon battle with your friends! 🏍️🎈' },
 });
 RB.onHide(pause);
 
 // ---------- Game state ----------
 let clock = 0, runT = 0, countT = 0, endT = 0;
-let finishOrder = [];
-let best = +(RB.store.get('mr_best') || 0), bestLap = +(RB.store.get('mr_lap') || 0), bestPlace = +(RB.store.get('mr_place') || 0);
+let finishOrder = [], outOrder = [];
+// bests, for each course (and battles won)
+const KEY = k => `mm_${k}_${COURSE}`;
+let best = +(RB.store.get(KEY('best')) || 0), bestLap = +(RB.store.get(KEY('lap')) || 0), bestPlace = +(RB.store.get(KEY('place')) || 0), wins = +(RB.store.get('mm_wins') || 0);
 const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
 const fmt = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
 // the starting grid: two by two behind the line, the players at the back (like a kart racer)
@@ -1946,7 +1972,8 @@ function resetRider(r, s, d) {
     trick: 0, trickDone: false, kickT: 0, kickCool: 0, kickSide: 1, wobbleT: 0, wipeT: 0, ghostT: 0, offT: 0, wrongT: 0, padCool: 0,
     draft: 0, lap: 0, lapStart: 0, lapTimes: [], bestLapT: 0, finishT: 0, place: 1, onCut: false, cuts: 0, chargeAt: null, rocket: false, stallT: 0,
     feedT: 0, bannerT: 0, shakeT: 0, slipX: 0, slipZ: 0, tricks: 0, kicks: 0, wipes: 0, airBest: 0, cutCounted: false,
-    lane: d, laneT: 2, cutPlan: false, nitroT: 0, wheelieT: 99, kickWant: 0 });
+    lane: d, laneT: 2, cutPlan: false, nitroT: 0, wheelieT: 99, kickWant: 0,
+    item: null, rolled: null, rollT: 0, itemAt: 0, itemsUsed: 0, shieldT: 0, magnetT: 0, spinT: 0, balloons: 3, out: false, outT: 0, hits: 0, sinking: false, sinkT: 0 });
   if (r.isPlayer) r.cam.reset();
 }
 
@@ -1960,9 +1987,16 @@ function startGame(n) {
   document.getElementById('over').classList.add('hidden');
   document.body.classList.remove('wasted');
   players = ALL.slice(0, nP);
-  racers = [...cpus, ...players];
-  for (const q of ALL) { const on = players.includes(q); q.bike.root.visible = q.bike.shadow.visible = on; q.marker.visible = on && twoP; q.speedLines.visible = on; }
+  for (const p of players) setBike(p, garage.sel[p.idx] || (p.bike && p.bike.type) || BIKE_KEYS[p.idx]);
+  racers = BATTLE ? [...cpus.slice(0, Math.max(2, 6 - nP)), ...players] : [...cpus, ...players];
+  for (const q of [...ALL, ...cpus]) { const on = racers.includes(q); q.bike.root.visible = q.bike.shadow.visible = on; if (q.isPlayer) { q.marker.visible = on && twoP; q.speedLines.visible = on; } }
   racers.forEach((r, i) => { const g = gridSlot(i); resetRider(r, g.s, g.d); });
+  if (BATTLE) racers.forEach((r, i) => {   // a ring round the mound, everyone facing in
+    const a = i / racers.length * TAU + 0.4;
+    r.x = Math.cos(a) * 44; r.z = Math.sin(a) * 44; r.h = Math.atan2(r.x, r.z); r.y = arenaGround(r.x, r.z);
+  });
+  for (const r of racers) r.bike.balloons.forEach(b => { b.visible = BATTLE; });
+  clearItems(); outOrder = [];
   cpus.forEach(c => Object.assign(c, { lane: c.d, laneT: rand(1, 3), cutPlan: Math.random() < 0.45, nitroT: 0, wheelieT: rand(4, 9), kickWant: 0 }));
   for (const p of players) {
     p.cam.dist = CAM_DIST; p.prevBtn = null;
@@ -1971,10 +2005,70 @@ function startGame(n) {
   }
   runT = 0; finishOrder = []; endT = 0;
   state = 'race';
+  $('garage').classList.add('hidden');
   countT = 3.6;
   for (const l of lights) l.material.color.set('#3a1010');
   for (const p of players) showBanner(p, '', '', 0);
   for (const c of COWS) c.wait = rand(0, 3);
+}
+
+// ---------- The garage ----------
+// Each player picks a bike: ◀ ▶ (their controller's stick or D-pad, A / D, or J / L for Player 2 on the keyboard),
+// then READY (Ⓐ, Space, Enter). The race starts when everyone's ready.
+const garage = { sel: [], ready: [], t: 0 };
+function openGarage(n) {
+  nP = clamp(Math.round(n || 1), 1, 4); twoP = nP > 1;
+  RB.audio();
+  state = 'garage';
+  garage.ready = [false, false, false, false]; garage.t = 0;
+  for (let i = 0; i < 4; i++) garage.sel[i] = garage.sel[i] || (ALL[i].bike ? ALL[i].bike.type : BIKE_KEYS[i]);
+  for (const p of ALL) p.prevBtn = null;
+  $('title').classList.add('hidden'); $('over').classList.add('hidden'); $('garage').classList.remove('hidden');
+  $('garageCourse').textContent = `${COURSES[COURSE].emoji} ${COURSES[COURSE].name} · ${nP === 1 ? '1 player' : nP + ' players'}`;
+  $('gcols').style.gridTemplateColumns = `repeat(${nP}, minmax(0, 1fr))`;
+  $('ghint').innerHTML = (RB.pad && RB.pad.connected ? RB.padText('🎮 Stick or D-pad ◀ ▶ to choose, {A} when you\'re ready, {B} to go back') + ' · ' : '') +
+    (twoP ? '⌨️ Player 1 A / D and Space · Player 2 J / L and Enter' : '⌨️ A / D to choose, Space when you\'re ready, Esc to go back');
+  renderGarage();
+}
+function garageMove(i, dir) {
+  if (state !== 'garage' || i >= nP || garage.ready[i]) return;
+  garage.sel[i] = BIKE_KEYS[(BIKE_KEYS.indexOf(garage.sel[i]) + dir + BIKE_KEYS.length) % BIKE_KEYS.length];
+  RB.beep(600 + dir * 80, 700 + dir * 80, 0.06, 'triangle', 0.06);
+  renderGarage();
+}
+function garageReady(i, on) {
+  if (state !== 'garage' || i >= nP) return;
+  garage.ready[i] = on;
+  if (on) { RB.store.set('mm_bike' + i, garage.sel[i]); RB.beep(700, 1100, 0.12, 'triangle', 0.08); }
+  renderGarage();
+}
+function renderGarage() {
+  const cols = $('gcols');
+  cols.innerHTML = ALL.slice(0, nP).map(p => {
+    const B = BIKES[garage.sel[p.idx]], st = ['SPEED', 'PICK-UP', 'HANDLING', 'WEIGHT'];
+    return `<div class="gcol${garage.ready[p.idx] ? ' ready' : ''}" data-i="${p.idx}">
+      <div class="who"><b style="background:${p.color}">P${p.idx + 1}</b><span>${garage.ready[p.idx] ? '✅ Ready!' : ''}</span></div>
+      <div class="gpick"><div class="arr" data-d="-1">◀</div><div class="bk"><div class="e">${B.icon}</div><div class="n">${B.name}</div></div><div class="arr" data-d="1">▶</div></div>
+      <div class="blurb">${B.blurb}</div>
+      ${B.stats.map((v, k) => `<div class="gbar"><span>${st[k]}</span><i><b style="width:${v * 20}%"></b></i></div>`).join('')}
+      <div class="gready">${garage.ready[p.idx] ? 'READY ✓' : 'READY?'}</div>
+    </div>`;
+  }).join('');
+  cols.querySelectorAll('.gcol').forEach(c => {
+    const i = +c.dataset.i;
+    c.querySelectorAll('.arr').forEach(a => a.addEventListener('click', () => garageMove(i, +a.dataset.d)));
+    c.querySelector('.gready').addEventListener('click', () => garageReady(i, !garage.ready[i]));
+  });
+}
+function updateGarage(dt) {
+  if (state !== 'garage') return;
+  if (garage.ready.slice(0, nP).every(Boolean)) { garage.t += dt; if (garage.t > 0.5) startGame(nP); }
+  else garage.t = 0;
+}
+function showTitle() {
+  state = 'title';
+  for (const p of ALL) if (p.engine) p.engine.quiet();
+  $('garage').classList.add('hidden'); $('over').classList.add('hidden'); $('title').classList.remove('hidden');
 }
 
 // ---------- Riding ----------
@@ -2750,11 +2844,12 @@ function riderVisuals(r, dt) {
   // lean into the turn (more in a drift), lie down in a wipeout
   const leanWant = r.wipeT > 0 ? r.wipeSide * 1.35 : -(r.steer * 0.62 + (r.drifting ? r.driftDir * 0.3 : 0)) * clamp(r.speed / 22, 0, 1) * (r.air > 0 ? 0.5 : 1);
   r.lean += (leanWant - r.lean) * Math.min(1, dt * (r.wipeT > 0 ? 6 : 8));
-  const ahead = trackAt(r.s + 2, {}), onRoad = Math.abs(r.d) <= HW + 0.6 && !r.onCut;
+  const ahead = trackAt(r.s + 2, {}), onRoad = Math.abs(r.d) <= HW + 0.6 && !r.onCut, fx = -Math.sin(r.h), fz = -Math.cos(r.h);
   const slope = r.air > 0 ? Math.atan2(r.vy, Math.max(8, Math.abs(r.speed))) * 0.6
+    : BATTLE ? Math.atan2(arenaGround(r.x + fx * 1.5, r.z + fz * 1.5) - arenaGround(r.x - fx * 1.5, r.z - fz * 1.5), 3)
     : onRoad ? Math.atan2(profile(r.s + 1.5) - profile(r.s - 1.5), 3) * (Math.cos(r.h - Math.atan2(-ahead.dx, -ahead.dz)) > 0 ? 1 : -1) : 0;
-  // a trick: a flat 360 spin in the air, the rider standing up off the seat
-  root.rotation.set(slope, r.h + r.driftYaw + (r.trick > 0 ? r.trick * TAU : 0), r.lean, 'YXZ');
+  // a trick: a flat 360 spin in the air, the rider standing up off the seat (and oil spins you round on the road)
+  root.rotation.set(slope, r.h + r.driftYaw + (r.trick > 0 ? r.trick * TAU : 0) + r.spinT * TAU * 1.3, r.lean, 'YXZ');
   // a wheelie turns about the back axle, a stoppie about the front one
   const front = r.stoppie > r.wheelie;
   b.wheelie.position.z = front ? b.S.zf : b.S.zr; b.body.position.z = -b.wheelie.position.z;
@@ -2765,9 +2860,12 @@ function riderVisuals(r, dt) {
   if (r.kickT > 0) { const k = Math.sin((1 - r.kickT / 0.4) * Math.PI); b.leg.rotation.set(0, 0, 0); b.leg.scale.x = r.kickSide; b.leg.rotation.z = -0.4 * r.kickSide * (1 - k); }
   b.flame.visible = r.boosting || r.dashT > 0;
   if (b.flame.visible) { b.flame.scale.set(1, 1, 0.8 + Math.random() * 0.7); b.flame.material.color.set(r.boosting ? '#7ad0ff' : '#ffb020'); }
-  // blink while you're back on after a wipeout
-  root.visible = !(r.ghostT > 0 && Math.sin(clock * 30) > 0.3) && (!r.isPlayer || players.includes(r));
-  b.shadow.position.set(r.x, (r.onCut ? 0 : groundY(r.s, r.d)) + 0.04, r.z);
+  // blink while you're back on after a wipeout (out of a battle: a slow, ghostly flicker)
+  root.visible = (r.out ? Math.sin(clock * 5) > -0.3 : !(r.ghostT > 0 && Math.sin(clock * 30) > 0.3)) && (!r.isPlayer || players.includes(r));
+  b.shield.visible = r.shieldT > 0;
+  if (b.shield.visible) b.shield.scale.setScalar(1 + Math.sin(clock * 8) * 0.04);
+  b.balloons.forEach((g, i) => { g.visible = BATTLE && i < r.balloons && state !== 'title'; g.rotation.z = Math.sin(clock * 2 + i) * 0.15 - r.lean * 0.6; });
+  b.shadow.position.set(r.x, groundOf(r) + 0.04, r.z);
   b.shadow.rotation.y = r.h;
   b.shadow.scale.setScalar(clamp(1 - (r.y - b.shadow.position.y) * 0.08, 0.4, 1));
   if (r.isPlayer) { r.marker.position.set(r.x, r.y + 2.6 + Math.sin(clock * 4) * 0.15, r.z); r.marker.rotation.y = clock * 2; }
@@ -2813,6 +2911,7 @@ function playerCamera(p, dt) {
 const specCam = new THREE.PerspectiveCamera(55, 1, 0.5, 1500), specPos = new THREE.Vector3(0, 80, 80), specLook = new THREE.Vector3();
 for (let k = 0; k < 4; k++) specCam.layers.enable(10 + k);
 function updateSpecCam(dt) {
+  if (BATTLE) { specCam.position.set(Math.cos(clock * 0.15) * 70, 48, Math.sin(clock * 0.15) * 70); specCam.lookAt(0, 0, 0); return; }
   const lead = racers.reduce((a, b) => (b.dist > a.dist ? b : a), racers[0]);
   const back = trackAt(lead.s - 25, {});
   specPos.lerp(tmp.set(back.x + 18, 38, back.z + 18), Math.min(1, dt * 1.5));
@@ -2823,14 +2922,15 @@ function updateSpecCam(dt) {
 const titleCam = new THREE.PerspectiveCamera(55, 1, 0.5, 1500);
 for (let k = 0; k < 4; k++) titleCam.layers.enable(10 + k);
 function titleCamera() {
+  if (BATTLE) { titleCam.position.set(Math.cos(clock * 0.12) * 85, 34 + Math.sin(clock * 0.3) * 4, Math.sin(clock * 0.12) * 85); titleCam.lookAt(0, 2, 0); return; }
   const s = clock * 14 + 40, p = trackPoint(s, 0, {}), q = trackPoint(s + 60, 0, {});
   titleCam.position.set(p.x - q.dz * 30 + Math.sin(clock * 0.2) * 10, 22 + Math.sin(clock * 0.3) * 6, p.z + q.dx * 30);
   titleCam.lookAt(q.x, 2, q.z);
 }
 // the CPUs ride round on the title screen too
 function titleRide(dt) {
-  if (state !== 'title') return;
-  for (const c of cpus) { const inp = aiInput(c, dt); inp.boost = false; drive(c, inp, dt); }
+  if (state !== 'title' && state !== 'garage') return;
+  for (const c of cpus) { const inp = BATTLE ? aiArena(c, dt) : aiInput(c, dt); inp.boost = false; drive(c, inp, dt); }
   contacts();
 }
 
@@ -2890,15 +2990,30 @@ function updateHUD(dt) {
 }
 function playerHUD(p, dt) {
   const ui = p.ui;
-  ui.place.innerHTML = `${p.place}<small>${ORD[p.place - 1].slice(-2)}</small>`;
-  ui.lap.innerHTML = `LAP <b>${clamp(p.lap + 1, 1, LAPS)}</b>/${LAPS}`;
-  ui.time.textContent = `⏱ ${fmt(p.finishT || runT)}${p.bestLapT ? ` · best lap ${fmt(p.bestLapT)}` : ''}`;
+  if (BATTLE) {   // your balloons, the time left and how many are still flying
+    ui.place.className = 'place balloons';
+    ui.place.textContent = p.out ? '👻' : '🎈'.repeat(p.balloons);
+    ui.lap.innerHTML = `<b>${racers.filter(r => !r.out).length}</b> LEFT`;
+    ui.time.textContent = `⏱ ${fmt(Math.max(0, BATTLE_TIME - runT))} left`;
+  } else {
+    ui.place.innerHTML = `${p.place}<small>${ORD[p.place - 1].slice(-2)}</small>`;
+    ui.lap.innerHTML = `LAP <b>${clamp(p.lap + 1, 1, LAPS)}</b>/${LAPS}`;
+    ui.time.textContent = `⏱ ${fmt(p.finishT || runT)}${p.bestLapT ? ` · best lap ${fmt(p.bestLapT)}` : ''}`;
+  }
+  // the item slot: a roulette while it rolls, then your item
+  const show = p.rolled ? ITEMS[ITEM_KEYS[Math.floor(clock * 12) % ITEM_KEYS.length]].icon : p.item ? ITEMS[p.item].icon : '';
+  if (p.rolled && Math.floor(clock * 12) !== p.rollTick) { p.rollTick = Math.floor(clock * 12); if (!p.idx || twoP) sfx.roll(); }
+  if (ui.slot.textContent !== (show || 'ITEM')) ui.slot.textContent = show || 'ITEM';
+  ui.slot.className = 'itemSlot' + (p.rolled ? ' rolling' : p.item ? '' : ' empty');
+  if (!p.idx) { $('itemIco').textContent = show || '❔'; $('itemBtn').classList.toggle('cool', !p.item); }
   ui.mph.textContent = Math.round(Math.abs(p.speed) * 2.237);
   ui.nitro.style.width = `${Math.round(p.nitro * 100)}%`;
   ui.speedo.classList.toggle('on', p.boosting);
-  ui.stat.textContent = p.wipeT > 0 ? 'OUCH!' : p.boosting ? '🔥 NITRO!' : p.drifting ? (p.driftCharge > 1.8 ? '🌀 DRIFT ★★' : p.driftCharge > 0.9 ? '🌀 DRIFT ★' : '🌀 DRIFT') :
+  ui.stat.textContent = p.wipeT > 0 ? 'OUCH!' : p.spinT > 0 ? '🛢️ SPIN OUT!' : p.magnetT > 0 ? '🧲 MAGNET!' : p.shieldT > 0 ? '🛡️ SHIELD' : p.boosting ? '🔥 NITRO!' : p.drifting ? (p.driftCharge > 1.8 ? '🌀 DRIFT ★★' : p.driftCharge > 0.9 ? '🌀 DRIFT ★' : '🌀 DRIFT') :
     p.dashT > 0 ? '⚡ DASH!' : p.trick > 0 ? '🤸 TRICK!' : p.air > 0.4 ? '✈️ AIR!' : p.wheelie > 0.3 ? '🏍️ WHEELIE!' : p.draft > 0.8 ? '💨 SLIPSTREAM' : p.nitro > 0.15 ? 'NITRO READY' : 'NITRO';
-  ui.warn.classList.toggle('hidden', !(p.wrongT > 1.2 && !p.finishT));
+  const rocketIn = shots.some(q => q.kind === 'rocket' && q.target === p);
+  ui.warn.textContent = rocketIn ? '🚀 ROCKET! 🚀' : 'WRONG WAY!';
+  ui.warn.classList.toggle('hidden', !((p.wrongT > 1.2 && !p.finishT && !BATTLE) || rocketIn));
   p.feedT = Math.max(0, (p.feedT || 0) - dt);
   if (p.feedT <= 0) ui.feed.style.opacity = 0;
   if (p.bannerT > 0 && p.bannerT < 90) { p.bannerT -= dt; if (p.bannerT <= 0) ui.banner.classList.add('hidden'); }
@@ -2911,21 +3026,30 @@ function drawRadar(p) {
   g.clearRect(0, 0, S, S);
   g.save(); g.beginPath(); g.arc(S / 2, S / 2, R, 0, TAU); g.clip();
   g.fillStyle = 'rgba(40,58,40,.55)'; g.fillRect(0, 0, S, S);
-  g.translate(S / 2, S / 2); g.rotate(p.h); g.scale(scale, scale); g.translate(-p.x, -p.z);
+  g.translate(S / 2, S / 2); g.rotate(p.h); g.scale(BATTLE ? 0.9 : scale, BATTLE ? 0.9 : scale); g.translate(-p.x, -p.z);
   g.lineJoin = 'round';
+  if (BATTLE) {   // the arena: the floor, the mound, the ramps and the ❔ boxes
+    const H = ARENA.half;
+    g.fillStyle = 'rgba(168,134,90,.85)'; g.fillRect(-H, -H, 2 * H, 2 * H); g.strokeStyle = '#d9b85a'; g.lineWidth = 4; g.strokeRect(-H, -H, 2 * H, 2 * H);
+    g.fillStyle = '#c8a24e'; g.beginPath(); g.arc(0, 0, ARENA.mound, 0, TAU); g.fill();
+    g.fillStyle = '#ffc93a'; for (const b of boxes) if (b.gone <= 0) g.fillRect(b.x - 2, b.z - 2, 4, 4);
+  } else {
   g.beginPath();
   for (let i = 0; i <= N_T; i += 8) { const k = i % N_T; i ? g.lineTo(TX[k], TZ[k]) : g.moveTo(TX[k], TZ[k]); }
   g.strokeStyle = 'rgba(11,16,32,.9)'; g.lineWidth = 2 * HW + 8; g.stroke();
   g.strokeStyle = '#c8d4f0'; g.lineWidth = 2 * HW; g.stroke();
   // the bridge, drawn on top, and the shortcut
-  g.beginPath();
-  for (let s = SA - 30; s <= SA + 30; s += 4) { const q = trackAt(s, {}); s === SA - 30 ? g.moveTo(q.x, q.z) : g.lineTo(q.x, q.z); }
-  g.strokeStyle = '#ffffff'; g.lineWidth = 2 * HW + 4; g.stroke();
+  if (COURSE === 'fields') {
+    g.beginPath();
+    for (let s = SA - 30; s <= SA + 30; s += 4) { const q = trackAt(s, {}); s === SA - 30 ? g.moveTo(q.x, q.z) : g.lineTo(q.x, q.z); }
+    g.strokeStyle = '#ffffff'; g.lineWidth = 2 * HW + 4; g.stroke();
+  }
   g.beginPath(); g.moveTo(CUT.ax, CUT.az); g.lineTo(CUT.bx, CUT.bz); g.strokeStyle = 'rgba(160,120,70,.9)'; g.lineWidth = 9; g.stroke();
   const fin = trackPoint(0, 0, {});
   g.fillStyle = '#ffc93a'; g.fillRect(fin.x - 6, fin.z - 6, 12, 12);
+  }
   for (const r of racers) {
-    if (r === p) continue;
+    if (r === p || (r.out && BATTLE)) continue;
     g.save(); g.translate(r.x, r.z);
     if (r.isPlayer) { g.rotate(-r.h); g.fillStyle = r.color; g.beginPath(); g.moveTo(0, -13); g.lineTo(9, 9); g.lineTo(-9, 9); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 3; g.stroke(); }
     else { g.fillStyle = r.color; g.beginPath(); g.arc(0, 0, 8, 0, TAU); g.fill(); g.strokeStyle = '#0b1020'; g.lineWidth = 3; g.stroke(); }
@@ -2944,40 +3068,58 @@ function showResults() {
   state = 'over';
   for (const p of players) if (p.engine) p.engine.quiet();
   document.body.classList.remove('wasted');
-  // everyone still riding goes in by how far round they got
-  const rest = racers.filter(r => !r.finishT).sort((a, b) => b.dist - a.dist);
-  const order = [...finishOrder, ...rest];
-  const me = P1, myPlace = order.indexOf(me) + 1;
-  if (!twoP) {
-    if (me.finishT && (!best || me.finishT < best)) { best = me.finishT; RB.store.set('mr_best', best.toFixed(2)); }
-    if (!bestPlace || myPlace < bestPlace) { bestPlace = myPlace; RB.store.set('mr_place', String(bestPlace)); }
+  // everyone still riding goes in by how far round they got (a battle: by balloons, then the last ones out)
+  const order = BATTLE ? battleOrder() : [...finishOrder, ...racers.filter(r => !r.finishT).sort((a, b) => b.dist - a.dist)];
+  const me = P1, myPlace = order.indexOf(me) + 1, winner = order[0];
+  if (!twoP && !BATTLE) {
+    if (me.finishT && (!best || me.finishT < best)) { best = me.finishT; RB.store.set(KEY('best'), best.toFixed(2)); }
+    if (!bestPlace || myPlace < bestPlace) { bestPlace = myPlace; RB.store.set(KEY('place'), String(bestPlace)); }
   }
-  for (const p of players) if (p.bestLapT && (!bestLap || p.bestLapT < bestLap)) { bestLap = p.bestLapT; RB.store.set('mr_lap', bestLap.toFixed(2)); }
-  const winner = order[0];
-  $('overTitle').textContent = twoP ? (winner.isPlayer ? `${winner.name} Wins!` : `${winner.name} Wins!`) : myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
-  const s = me;
-  $('overStats').innerHTML = twoP ? players.map(p => `<span style="color:${p.color}">●</span> ${p.name}: <b>${ORD[order.indexOf(p)]}</b>${p.bestLapT ? ` · best lap ${fmt(p.bestLapT)}` : ''}`).join('<br>')
-    : `⏱ <b>${me.finishT ? fmt(me.finishT) : '—'}</b> · best lap <b>${me.bestLapT ? fmt(me.bestLapT) : '—'}</b><br>🤸 ${s.tricks} trick${s.tricks === 1 ? '' : 's'} · 🦵 ${s.kicks} kick${s.kicks === 1 ? '' : 's'} · 🐴 ${s.cuts} barn shortcut${s.cuts === 1 ? '' : 's'} · 💥 ${s.wipes} wipeout${s.wipes === 1 ? '' : 's'}`;
-  $('podium').innerHTML = order.map((r, i) => `<li class="${r.isPlayer ? 'you' : ''}"><span class="n">${ORD[i]}</span><span style="color:${r.color}">●</span> ${r.name}<span class="t">${r.finishT ? fmt(r.finishT) : 'riding…'}</span></li>`).join('');
-  $('btnSwap').textContent = twoP ? '🏍️ 1 Player' : '👥 2 Players';
+  if (BATTLE && winner.isPlayer) { wins++; RB.store.set('mm_wins', String(wins)); }
+  for (const p of players) if (p.bestLapT && (!bestLap || p.bestLapT < bestLap)) { bestLap = p.bestLapT; RB.store.set(KEY('lap'), bestLap.toFixed(2)); }
+  $('overCourse').textContent = `${COURSES[COURSE].emoji} ${COURSES[COURSE].name} · Results`;
+  $('overTitle').textContent = twoP || (BATTLE && !winner.isPlayer) ? `${winner.name} Win${winner.isPlayer && !twoP ? '' : 's'}!` : myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
+  const st = q => `🎯 ${q.hits || 0} hit${q.hits === 1 ? '' : 's'} · ❔ ${q.itemsUsed || 0} item${q.itemsUsed === 1 ? '' : 's'} · 🦵 ${q.kicks} kick${q.kicks === 1 ? '' : 's'}`;
+  $('overStats').innerHTML = twoP ? players.map(q => `<span style="color:${q.color}">●</span> ${q.name}: <b>${ORD[order.indexOf(q)]}</b> · ${st(q)}`).join('<br>')
+    : BATTLE ? `${me.out ? '👻 Popped out' : `🎈 ${me.balloons} balloon${me.balloons === 1 ? '' : 's'} left`} · ${st(me)}`
+    : `⏱ <b>${me.finishT ? fmt(me.finishT) : '—'}</b> · best lap <b>${me.bestLapT ? fmt(me.bestLapT) : '—'}</b><br>${st(me)} · 🤸 ${me.tricks} trick${me.tricks === 1 ? '' : 's'} · 💥 ${me.wipes} wipeout${me.wipes === 1 ? '' : 's'}`;
+  $('podium').innerHTML = order.map((r, i) => `<li class="${r.isPlayer ? 'you' : ''}"><span class="n">${ORD[i]}</span><span style="color:${r.color}">●</span> ${r.bk.icon} ${r.name}<span class="t">${
+    BATTLE ? (r.out ? '👻 out' : '🎈'.repeat(r.balloons)) : r.finishT ? fmt(r.finishT) : 'riding…'}</span></li>`).join('');
+  $('btnAgain').textContent = BATTLE ? '🎈 Battle Again' : '🏁 Race Again';
   $('over').classList.remove('hidden');
   if (myPlace === 1 || (twoP && winner.isPlayer)) sfx.win();
   // the CPUs carry on round behind the results
   for (const c of cpus) if (!c.finishT) c.finishT = -1;
   showBestOnTitle();
 }
-$('btnPlay').addEventListener('click', () => startGame(false));
-$('btnPlay2').addEventListener('click', () => startGame(true));
-$('btnPlay3').addEventListener('click', () => startGame(3));
-$('btnPlay4').addEventListener('click', () => startGame(4));
+// the title: pick a course (that page loads), then how many players
+{
+  const box = $('courses');
+  box.innerHTML = Object.entries(COURSES).map(([k, c]) => `<button type="button" data-c="${k}" class="${k === COURSE ? 'on' : ''}"><span class="e">${c.emoji}</span>${c.name}</button>`).join('');
+  box.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.c;
+    RB.store.set('mm_course', k);
+    if (k !== COURSE) { dispatchEvent(new Event('rb-leave')); location.search = '?course=' + k; }
+  }));
+  $('courseSub').textContent = COURSES[COURSE].sub;
+  $('btnPlay').textContent = BATTLE ? '🎈 Battle!' : '🏁 Race!';
+}
+$('btnPlay').addEventListener('click', () => openGarage(1));
+$('btnPlay2').addEventListener('click', () => openGarage(2));
+$('btnPlay3').addEventListener('click', () => openGarage(3));
+$('btnPlay4').addEventListener('click', () => openGarage(4));
 $('btnPad').addEventListener('click', () => RB.controllerScreen());
-$('btnAgain').addEventListener('click', () => startGame());
-$('btnSwap').addEventListener('click', () => startGame(!twoP));
+$('btnAgain').addEventListener('click', () => startGame(nP));
+$('btnGarage').addEventListener('click', () => openGarage(nP));
+$('btnTitle').addEventListener('click', () => showTitle());
 function showBestOnTitle() {
   const bits = [];
-  if (bestPlace) bits.push(`🏆 Best place <b>${ORD[bestPlace - 1]}</b>`);
-  if (best) bits.push(`⏱ Best race <b>${fmt(best)}</b>`);
-  if (bestLap) bits.push(`⚡ Best lap <b>${fmt(bestLap)}</b>`);
+  if (BATTLE) { if (wins) bits.push(`🏆 Battles won <b>${wins}</b>`); }
+  else {
+    if (bestPlace) bits.push(`🏆 Best place <b>${ORD[bestPlace - 1]}</b>`);
+    if (best) bits.push(`⏱ Best race <b>${fmt(best)}</b>`);
+    if (bestLap) bits.push(`⚡ Best lap <b>${fmt(bestLap)}</b>`);
+  }
   $('titleBest').innerHTML = bits.join(' · ');
 }
 showBestOnTitle();
@@ -3002,8 +3144,9 @@ function frame(now) {
     pollPads();
     if (!paused) {
       update(dt);
+      updateGarage(dt);
       titleRide(dt);
-      if (state === 'over') for (const c of cpus) { const inp = cruiseInput(c); drive(c, inp, dt); }
+      if (state === 'over') for (const c of cpus) { if (!racers.includes(c)) continue; const inp = BATTLE ? aiArena(c, dt) : cruiseInput(c); drive(c, inp, dt); }
       updateVisuals(dt);
     }
     updateHUD(dt);

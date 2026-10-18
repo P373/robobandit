@@ -235,6 +235,12 @@ const GAMES = [
     thumb: 'thumbs/moto-rush.jpg',
     blurb: 'Race motorcycles round the figure 8 in the fields with up to 4 friends! Fly off the bridge, drift for a mini-turbo, pull wheelies, cut through the red barn and hop over the cows. 🏍️🐄🏁',
   },
+  {
+    title: 'Moto Mania',
+    url: 'moto-mania.html',
+    thumb: 'thumbs/moto-mania.jpg',
+    blurb: 'Item boxes, four bikes and three courses! Race the Figure 8 Fields or Liberty Docks at night with rockets, oil slicks, hay bales and cows, or pop balloons in the Hay Bale Arena battle. Up to 4 players. 🚀🎈🏍️',
+  },
 ];
 
 const grid = document.getElementById('games');
@@ -261,6 +267,6 @@ const render = () => grid.innerHTML = GAMES.map((g, i) => `
 render();
 addEventListener('pageshow', e => { if (e.persisted) render(); });
 </script>
-<script src="common.js?v=20261018-0153"></script>
+<script src="common.js?v=20261018-0528"></script>
 </body>
 </html>
