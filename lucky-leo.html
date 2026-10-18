@@ -2677,8 +2677,9 @@ function onewayTile(theme, L, Rt, alt) {
     rrect(L ? 0.5 : -0.5, 0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 7, [L ? 3.5 : 0, Rt ? 3.5 : 0, Rt ? 3.5 : 0, L ? 3.5 : 0]); paint(vgrad(0, 7, '#8a6a48', '#5a4430'), 1, '#3a2a1a');
     g.fillStyle = '#5a8a42'; g.fillRect(L ? 2 : 0, 0, 16 - (L ? 2 : 0) - (Rt ? 2 : 0), 1.6);
     g.strokeStyle = 'rgba(200,206,186,.9)'; g.lineWidth = 0.8; for (const mx of alt ? [4, 11] : [7, 13]) { g.beginPath(); g.moveTo(mx, 7); g.lineTo(mx + 0.5, 12 + (mx % 3)); g.stroke(); }
-  } else if (theme === 'quarter') {   // a wrought-iron balcony
-    rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 3, 0.6); paint('#2a2a32');
+  } else if (theme === 'quarter') {   // a wrought-iron balcony with a warm wooden floor (so it never looks like the painted ones behind)
+    rrect(L ? 0.5 : -0.5, -0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 4, [L ? 1.5 : 0, Rt ? 1.5 : 0, 0, 0]); paint(vgrad(-0.5, 3.5, '#dcae70', '#9a6a3a'), 1, '#3a2614');
+    g.fillStyle = 'rgba(255,255,255,.35)'; g.fillRect(L ? 2 : 0, 0.1, 12, 0.8);
     g.strokeStyle = '#2a2a32'; g.lineWidth = 0.7; for (let k = 1; k < 16; k += 3) { g.beginPath(); g.moveTo(k, 3); g.lineTo(k, 8); g.stroke(); }
     g.beginPath(); g.moveTo(-0.5, 8); g.lineTo(16.5, 8); g.stroke(); g.beginPath(); g.arc(8, 5.5, 1.6, 0, TAU); g.stroke();
     if (alt) { ell(8, 9.5, 3, 1.6); g.fillStyle = '#3a8a3a'; g.fill(); }   // a hanging fern
@@ -2730,15 +2731,33 @@ function spikeTile() {
 const BG_W = 480;
 const bgCache = new Map();
 let bgScaleWas = 0;
-function bgLayer(theme, i, draw) {
+// The scenery is kept quiet so Leo, the enemies and the ground stand out, the way Mario's backgrounds do, in three
+// steps of depth behind the foreground: the far layer is faint, pale and a little blurred, the middle one is softer
+// than the near one, and the near one is only lightly touched. Each is hazed towards the sky (the farther, the more),
+// and nothing back there has the dark outlines that everything Leo can touch has.
+const BG_DEPTH = sp => sp < 0.08 ? { haze: 0.58, filter: 'saturate(50%) contrast(72%) blur(0.9px)' }   // far away
+  : sp < 0.3 ? { haze: 0.34, filter: 'saturate(68%) contrast(84%) blur(0.25px)' }                     // the middle distance
+  : { haze: 0.12, filter: 'saturate(88%) contrast(94%)' };                                             // just behind the action
+const BG_PARALLAX = 0.75;                                        // all the layers drift a little slower than they're painted to, so they don't swim
+function bgLayer(theme, i, L) {
   const bs = scale;   // painted at the screen's own resolution, so drawing it is a straight copy
   if (bgScaleWas !== bs) { bgCache.clear(); bgScaleWas = bs; }
   const key = theme + i;
   let c = bgCache.get(key);
   if (!c) {
     c = document.createElement('canvas'); c.width = Math.ceil(BG_W * bs); c.height = Math.ceil(LH * bs);
-    const tc = c.getContext('2d'), old = g; tc.scale(bs, bs); g = tc;
-    try { draw(); } finally { g = old; }
+    const raw = document.createElement('canvas'); raw.width = c.width; raw.height = c.height;
+    const rc = raw.getContext('2d'), old = g; rc.scale(bs, bs); g = rc;
+    try { L.draw(); } finally { g = old; }
+    const tc = c.getContext('2d');
+    const depth = BG_DEPTH(L.sp);
+    if ('filter' in tc) tc.filter = depth.filter;
+    tc.drawImage(raw, 0, 0); tc.filter = 'none';
+    const sky = SKIES[theme] || ['#ffffff', '#ffffff'];
+    tc.globalCompositeOperation = 'source-atop';   // the haze only lands on what's painted, never on the empty sky between
+    const hz = tc.createLinearGradient(0, 0, 0, c.height); hz.addColorStop(0, sky[0]); hz.addColorStop(1, sky[1]);
+    tc.globalAlpha = depth.haze; tc.fillStyle = hz; tc.fillRect(0, 0, c.width, c.height);
+    tc.globalAlpha = 1; tc.globalCompositeOperation = 'source-over';
     bgCache.set(key, c);
   }
   return c;
@@ -3424,7 +3443,7 @@ function drawBackground(camX, t) {
   g.save(); g.setTransform(1, 0, 0, 1, 0, offY);
   g.drawImage(skyPic, 0, 0);
   (SCENERY[th] || []).forEach((L, i) => {
-    const c = bgLayer(th, i, L.draw), W = c.width, off = -((Math.round(camX * L.sp * scale) % W) + W) % W;
+    const c = bgLayer(th, i, L), W = c.width, off = -((Math.round(camX * L.sp * BG_PARALLAX * scale) % W) + W) % W;
     for (let x = off; x < canvas.width; x += W) g.drawImage(c, x, 0);
   });
   g.restore();
