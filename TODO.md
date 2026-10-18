@@ -6,6 +6,7 @@
 - Mirror mode (each course the other way round) and ghost replays of your best lap.
 - Downtown: a rooftop jump between two parking garages (the shortcut is a drive-through garage for now).
 - The radar could show the tunnel, the subway and the pier's gap.
+- Moto Rush still has the old buzzing engine: give it Moto Mania's engine loops if they go down well.
 - On a phone held sideways (844 × 390) the touch buttons sit over the place and lap in the top right (on every course).
 
 ## Space Wars: rebuild in 3D (three.js) and make it our own

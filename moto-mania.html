@@ -2535,33 +2535,90 @@ const sfx = {
   horn: big => { const f = big ? 220 : 392; RB.beep(f, f, 0.35, 'square', 0.05); RB.beep(f * 1.26, f * 1.26, 0.35, 'square', 0.04); },
   fall: () => RB.beep(900, 120, 1.0, 'triangle', 0.08),
 };
-// Each player's engine: an inline four that revs to 13,000 through six gears, the revs dropping at each change (the
-// sound EBITDA Hero's sport bike makes, made here from two oscillators through a filter).
-const GEARS = [0, 9, 15, 21, 27, 34, 46];
+// Each bike's engine, the way a kart racer does it: a short loop of a real-sounding engine, played faster the faster
+// you go (about an octave and a half from idle to flat out, a soft dip at each gear), brighter and louder on the gas,
+// mixed low under the music. The loops are made here when first needed, from what makes an engine's sound: each
+// cylinder firing is a thump that rings the exhaust pipe (a few fading tones) with a puff of noise; the firings come
+// in each engine's own rhythm, a little uneven, and the loop repeats seamlessly.
+//   sport: an inline four, a smooth fast hum   chopper: a V-twin, the slow, lopsided "potato-potato"
+//   scooter: a two-stroke single, a high buzz   dirt: a four-stroke single, a raspy thump
+const ENGINE_NOTES = {
+  sport: { cycle: 40, fire: [0, 0.25, 0.5, 0.75], ring: [[170, 0.014, 1], [410, 0.007, 0.6], [930, 0.003, 0.35]], puff: 0.25, jitter: 0.06, bright: 4200, range: [0.42, 1.5] },
+  chopper: { cycle: 13, fire: [0, 0.4375], ring: [[62, 0.06, 1], [128, 0.035, 0.7], [300, 0.012, 0.3]], puff: 0.18, jitter: 0.14, bright: 1800, range: [0.55, 1.4] },
+  scooter: { cycle: 95, fire: [0], ring: [[620, 0.006, 1], [1450, 0.003, 0.7], [2600, 0.0018, 0.4]], puff: 0.35, jitter: 0.08, bright: 6000, range: [0.5, 1.45] },
+  dirt: { cycle: 50, fire: [0], ring: [[105, 0.024, 1], [250, 0.012, 0.8], [640, 0.005, 0.6]], puff: 0.5, jitter: 0.1, bright: 5200, range: [0.5, 1.55] },
+};
+const engineLoops = {};
+function engineLoop(ac, type) {
+  if (engineLoops[type]) return engineLoops[type];
+  const N = ENGINE_NOTES[type] || ENGINE_NOTES.sport, SR = ac.sampleRate;
+  const cycles = Math.max(4, Math.round(N.cycle * 1.2)), L = Math.round(SR * cycles / N.cycle), x = new Float32Array(L);
+  let sd = 11; const r = () => { sd = (sd * 16807) % 2147483647; return sd / 2147483647; };
+  const len = Math.round(SR * Math.max(...N.ring.map(q => q[1])) * 5);
+  for (let c = 0; c < cycles; c++) for (const ph of N.fire) {
+    const at = Math.round((c + ph + (r() - 0.5) * N.jitter * 0.1) * L / cycles), amp = 1 + (r() - 0.5) * 2 * N.jitter;
+    for (let i = 0; i < len; i++) {
+      const t = i / SR;
+      let v = (r() * 2 - 1) * N.puff * Math.exp(-t / 0.004);
+      for (const [f, d, a] of N.ring) v += a * Math.exp(-t / d) * Math.sin(2 * Math.PI * f * t);
+      x[(at + i) % L] += v * amp;
+    }
+  }
+  // round the loop twice through a soft low-pass (so it joins up), take out any offset, and scale it
+  let y = 0; const k = 1 - Math.exp(-2 * Math.PI * N.bright / SR);
+  for (let pass = 0; pass < 2; pass++) for (let i = 0; i < L; i++) { y += (x[i] - y) * k; if (pass) x[i] = y; }
+  let mean = 0; for (let i = 0; i < L; i++) mean += x[i] / L;
+  let peak = 1e-6; for (let i = 0; i < L; i++) { x[i] -= mean; peak = Math.max(peak, Math.abs(x[i])); }
+  const buf = ac.createBuffer(1, L, SR), ch = buf.getChannelData(0);
+  for (let i = 0; i < L; i++) ch[i] = x[i] / peak * 0.9;
+  return (engineLoops[type] = buf);
+}
 let engineBus = null;
 function makeEngine() {
   const ac = RB.audio();
   if (!ac) return null;
   if (!engineBus) { engineBus = ac.createGain(); engineBus.gain.value = RB.muted ? 0 : 1; engineBus.connect(ac.destination); RB.onMute(m => { engineBus.gain.value = m ? 0 : 1; }); }
-  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 3;
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 0.7;
   const out = ac.createGain(); out.gain.value = 0;
-  const o1 = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
-  o1.type = 'sawtooth'; o2.type = 'square'; g2.gain.value = 0.3;
-  o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(out).connect(engineBus);
-  o1.start(); o2.start();
+  const pan = ac.createStereoPanner ? ac.createStereoPanner() : null;
+  lp.connect(out); if (pan) out.connect(pan).connect(engineBus); else out.connect(engineBus);
+  let src = null, type = null;
   return {
-    set(speed, load, vol) {
-      const v = Math.abs(speed);
-      let gi = 1; while (gi < GEARS.length - 1 && v > GEARS[gi]) gi++;
-      const lo = GEARS[gi - 1], hi = GEARS[gi], k = clamp((v - lo) / (hi - lo), 0, 1.1);
-      const rpm = (v < 1 ? 1500 : 4200 + k * 8800) + load * 600 + (k > 1 ? Math.sin(performance.now() * 0.05) * 300 : 0);
-      const f = rpm / 30, t = ac.currentTime;
-      o1.frequency.setTargetAtTime(f, t, 0.03); o2.frequency.setTargetAtTime(f / 2, t, 0.03);
-      lp.frequency.setTargetAtTime(500 + load * 1400 + rpm * 0.12, t, 0.05);
-      out.gain.setTargetAtTime(vol * (0.35 + 0.65 * load), t, 0.05);
+    // speed (m/s), load (the gas, 0..1), vol, and the bike: its type and top speed; boost: nitro or a dash; side: −1..1
+    set(speed, load, vol, bk = BIKES.sport, boost = false, side = 0) {
+      const t = ac.currentTime, kind = BIKE_KEYS.find(k => BIKES[k] === bk) || 'sport', N = ENGINE_NOTES[kind];
+      if (kind !== type) {   // (a new bike: its own engine)
+        if (src) { try { src.stop(); } catch (e) { /* already stopped */ } }
+        src = ac.createBufferSource(); src.buffer = engineLoop(ac, kind); src.loop = true; src.connect(lp); src.start(); type = kind;
+      }
+      const v = Math.abs(speed), s = clamp(v / bk.max, 0, 1.35), gear = Math.min(3, Math.floor(s * 4)), u = clamp(s * 4 - gear, 0, 1);
+      const [lo, hi] = N.range;
+      let rate = v < 0.5 ? lo * (0.92 + 0.08 * load) : lo + (hi - lo) * (0.8 * s / 1.35 + 0.2 * u);
+      if (boost) rate *= 1.07;
+      src.playbackRate.setTargetAtTime(rate, t, 0.09);
+      lp.frequency.setTargetAtTime(N.bright * (0.25 + 0.45 * load + 0.3 * s / 1.35) * (boost ? 1.3 : 1), t, 0.06);
+      out.gain.setTargetAtTime(vol * 0.42 * (0.5 + 0.5 * load) * (boost ? 1.2 : 1), t, 0.06);
+      if (pan) pan.pan.setTargetAtTime(clamp(side, -1, 1) * 0.8, t, 0.05);
     },
     quiet() { out.gain.setTargetAtTime(0, ac.currentTime, 0.1); },
   };
+}
+// The rivals: the two nearest you get a voice each, faint, louder as they come past (on your side, in single player)
+const rivalEngines = [];
+function rivalSounds() {
+  if (state !== 'race' || countT > 0 || paused) { for (const e of rivalEngines) e.quiet(); return; }
+  if (!rivalEngines.length) { for (let i = 0; i < 2; i++) { const e = makeEngine(); if (e) rivalEngines.push(e); } }
+  const near = cpus.filter(c => racers.includes(c)).map(c => {
+    let best = Infinity, by = null;
+    for (const p of players) { const d = Math.hypot(c.x - p.x, c.z - p.z, c.y - p.y); if (d < best) { best = d; by = p; } }
+    return { c, d: best, by };
+  }).filter(q => q.d < 45).sort((a, b) => a.d - b.d);
+  rivalEngines.forEach((e, i) => {
+    const q = near[i];
+    if (!q) { e.quiet(); return; }
+    const p = q.by, side = nP === 1 ? ((q.c.x - p.x) * Math.cos(p.h) - (q.c.z - p.z) * Math.sin(p.h)) / Math.max(4, q.d) : 0;
+    e.set(q.c.speed, q.c.boosting ? 1 : 0.8, 0.5 * (1 - q.d / 45) ** 2 / Math.sqrt(nP), q.c.bk, q.c.boosting || q.c.dashT > 0, side);
+  });
 }
 
 // ---------- Input ----------
@@ -2868,7 +2925,7 @@ function updateGarage(dt) {
 }
 function showTitle() {
   state = 'title';
-  for (const p of ALL) if (p.engine) p.engine.quiet();
+  for (const p of ALL) if (p.engine) p.engine.quiet(); for (const e of rivalEngines) e.quiet();
   $('garage').classList.add('hidden'); $('over').classList.add('hidden'); $('title').classList.remove('hidden');
 }
 
@@ -3603,7 +3660,7 @@ function update(dt) {
       if (g && p.chargeAt === null) p.chargeAt = countT;
       if (!g) p.chargeAt = null;
       if (g) { p.revs = (p.revs || 0) + dt; if (Math.random() < 0.5) emit(p.x + Math.sin(p.h) * 0.9, 0.2, p.z + Math.cos(p.h) * 0.9, rand(-1, 1), rand(0.5, 1.5), rand(-1, 1), '#d8d0c0', 0.6); }
-      if (p.engine) p.engine.set(g ? 20 + Math.sin(clock * 30) * 2 : 0, g ? 1 : 0, 0.5 / Math.sqrt(nP));
+      if (p.engine) p.engine.set(g ? p.bk.max * 0.55 + Math.sin(clock * 30) * 1.5 : 0, g ? 1 : 0.3, 0.5 / Math.sqrt(nP), p.bk);   // (revving on the line)
     }
     if (countT <= 0) {
       sfx.go();
@@ -3644,7 +3701,8 @@ function update(dt) {
   const order = BATTLE ? battleOrder() : [...finishOrder, ...racers.filter(r => !r.finishT).sort((a, b) => b.dist - a.dist)];
   order.forEach((r, i) => { r.place = i + 1; });
   // engines
-  for (const p of players) if (p.engine) p.engine.set(p.speed, p.lastInp ? Math.max(p.lastInp.gas, p.boosting ? 1 : 0) : 0, (p.finishT ? 0.25 : 0.5) / Math.sqrt(nP));
+  for (const p of players) if (p.engine) p.engine.set(p.speed, p.lastInp ? Math.max(p.lastInp.gas, p.boosting ? 1 : 0) : 0, (p.finishT ? 0.25 : 0.5) / Math.sqrt(nP), p.bk, p.boosting || p.dashT > 0);
+  rivalSounds();
   // the end: everyone home (or the players home and a few seconds on); a battle: one rider left, or the time's up
   if (BATTLE) {
     const alive = racers.filter(r => !r.out);
@@ -3911,7 +3969,7 @@ function drawRadar(p) {
 function showResults() {
   if (state !== 'race') return;
   state = 'over';
-  for (const p of players) if (p.engine) p.engine.quiet();
+  for (const p of players) if (p.engine) p.engine.quiet(); for (const e of rivalEngines) e.quiet();
   document.body.classList.remove('wasted');
   // everyone still riding goes in by how far round they got (a battle: by balloons, then the last ones out)
   const order = BATTLE ? battleOrder() : [...finishOrder, ...racers.filter(r => !r.finishT).sort((a, b) => b.dist - a.dist)];
