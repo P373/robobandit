@@ -1,0 +1,2216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<title>Moto Rush | RoboBandit</title>
+<meta name="description" content="Race motorcycles round a figure 8 in the fields with up to four friends in Moto Rush, a free RoboBandit game.">
+<link rel="canonical" href="https://robobandit.com/moto-rush.html">
+<meta name="theme-color" content="#0b1020">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="/favicon-32.png" type="image/png" sizes="32x32">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="RoboBandit">
+<meta property="og:url" content="https://robobandit.com/moto-rush.html">
+<meta property="og:title" content="Moto Rush | RoboBandit">
+<meta property="og:description" content="Race your friends on motorcycles round the Figure 8 Fields!">
+<meta property="og:image" content="https://robobandit.com/previews/moto-rush.jpg">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Moto Rush | RoboBandit">
+<meta name="twitter:image" content="https://robobandit.com/previews/moto-rush.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bungee&family=Inter:wght@500;700;800&display=swap" rel="stylesheet">
+<style>
+  :root { --gold: #ffc93a; --blue: #4aa8ff; --ink: #e8eefc; --panel: rgba(12,18,36,.94); --line: rgba(120,160,255,.25); --navy: #0b1020; }
+  html, body {
+    margin: 0; height: 100%; overflow: hidden; background: var(--navy); color: var(--ink);
+    font-family: 'Inter', system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    user-select: none; -webkit-user-select: none; touch-action: none;
+    overscroll-behavior: none; -webkit-touch-callout: none; -webkit-tap-highlight-color: transparent;
+  }
+  canvas#game { position: fixed; inset: 0; display: block; width: 100%; height: 100%; transition: filter .6s; }
+  body.wasted canvas#game { filter: grayscale(.85) contrast(1.15) brightness(.85); }
+  .hidden { display: none !important; }
+  .bungee { font-family: 'Bungee', system-ui, sans-serif; }
+
+  /* ---------- HUD: GTA style, a corner each ---------- */
+  .hud { position: fixed; inset: 0; pointer-events: none; z-index: 2; }
+  .hudTR { position: absolute; right: max(14px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 54px); text-align: right; }
+  .place { font: 58px/1 'Bungee', system-ui, sans-serif; color: var(--gold); -webkit-text-stroke: 2px #2a1400; text-shadow: 0 4px 0 #0b1020; }
+  .place small { font-size: 26px; }
+  .lap, .time { font: 800 18px 'Inter', system-ui, sans-serif; color: #fff; text-shadow: 0 2px 0 #000, 0 0 6px #000; letter-spacing: .04em; }
+  .lap b { font-family: 'Bungee', system-ui, sans-serif; font-weight: 400; color: var(--blue); }
+  .time { font-size: 15px; color: #c8d4f0; }
+  .ptag { display: none; margin-left: 6px; padding: 0 8px; border-radius: 8px; color: #0b1020; font: 800 15px 'Inter', sans-serif; text-shadow: none; vertical-align: middle; }
+  .split .ptag, .quad .ptag { display: inline-block; }
+  .speedo { position: absolute; right: max(16px, env(safe-area-inset-right)); bottom: max(16px, env(safe-area-inset-bottom)); width: 190px; text-align: right; }
+  .mph { font: 50px/1 'Bungee', system-ui, sans-serif; color: #fff; -webkit-text-stroke: 2px #0b1020; text-shadow: 0 4px 0 rgba(0,0,0,.5); }
+  .mph small { font-size: 16px; margin-left: 4px; color: var(--gold); -webkit-text-stroke: 0; }
+  .nitro { height: 12px; margin-top: 6px; border-radius: 6px; background: rgba(12,18,36,.75); border: 2px solid rgba(255,255,255,.35); overflow: hidden; }
+  .nitro .fill { height: 100%; width: 50%; background: linear-gradient(90deg, var(--blue), #7af0ff, var(--gold)); }
+  .speedo.on .nitro { box-shadow: 0 0 14px var(--gold); border-color: var(--gold); }
+  .stat { margin-top: 4px; font: 800 14px 'Inter', sans-serif; letter-spacing: .12em; color: var(--gold); text-shadow: 0 2px 0 #000; }
+  .radar { position: absolute; left: max(14px, env(safe-area-inset-left)); bottom: max(14px, env(safe-area-inset-bottom)); width: 150px; height: 150px; border-radius: 50%;
+    border: 3px solid var(--gold); box-shadow: 0 4px 0 rgba(0,0,0,.4); background: rgba(12,18,36,.6); }
+  .banner { position: absolute; left: 0; right: 0; top: 24%; text-align: center; font: clamp(44px, 9vw, 110px)/1 'Bungee', system-ui, sans-serif; color: var(--gold);
+    -webkit-text-stroke: 3px #2a1400; text-shadow: 0 6px 0 #0b1020, 0 0 30px rgba(255,201,58,.5); padding: 0 12px; }
+  .banner small { display: block; font: 800 20px 'Inter', system-ui, sans-serif; color: #fff; -webkit-text-stroke: 0; margin-top: 10px; text-shadow: 0 2px 0 #000; }
+  .banner.go { animation: slam .9s ease-out; }
+  .banner.red { color: #ff4a3a; }
+  @keyframes slam { 0% { opacity: 0; transform: scale(2.2); } 14% { opacity: 1; transform: scale(1); } 100% { opacity: 1; transform: scale(1.04); } }
+  .feed { position: absolute; left: 0; right: 0; top: 58%; text-align: center; font: 800 22px 'Inter', system-ui, sans-serif; color: #fff;
+    text-shadow: 0 2px 0 #000, 0 0 10px rgba(0,0,0,.7); padding: 0 12px; transition: opacity .3s; }
+  .warn { position: absolute; left: 0; right: 0; top: 40%; text-align: center; font: 34px 'Bungee', system-ui, sans-serif; color: #ff4a3a;
+    -webkit-text-stroke: 2px #2a0400; animation: blink .4s steps(2) infinite; }
+  @keyframes blink { 50% { opacity: .3; } }
+  /* two players: top and bottom */
+  .split .hud.p0 { bottom: 50%; } .split .hud.p1 { top: 50%; }
+  .split .hud.p1 .hudTR { top: 10px; }
+  .split .hud .place { font-size: 40px; } .split .hud .place small { font-size: 18px; }
+  .split .hud .lap { font-size: 15px; } .split .hud .time { font-size: 13px; }
+  .split .hud .speedo { bottom: 10px; width: 150px; } .split .hud .mph { font-size: 34px; }
+  .split .hud .radar { width: 104px; height: 104px; bottom: 10px; }
+  .split .hud .banner { top: 18%; font-size: 52px; } .split .hud .banner small { font-size: 15px; margin-top: 4px; }
+  .split .hud .warn { font-size: 24px; } .split .hud .feed { font-size: 17px; }
+  /* three or four players: a corner each */
+  .quad .hud.p0 { right: 50%; bottom: 50%; } .quad .hud.p1 { left: 50%; bottom: 50%; } .quad .hud.p2 { right: 50%; top: 50%; } .quad .hud.p3 { left: 50%; top: 50%; }
+  .quad .hud .hudTR { top: 8px; right: 10px; } .quad .hud.p1 .hudTR { top: 58px; }
+  .quad .hud .place { font-size: 30px; -webkit-text-stroke: 1px #2a1400; } .quad .hud .place small { font-size: 14px; }
+  .quad .hud .lap { font-size: 12px; } .quad .hud .time { display: none; }
+  .quad .hud .speedo { bottom: 8px; right: 10px; width: 104px; } .quad .hud .mph { font-size: 24px; -webkit-text-stroke: 1px #0b1020; } .quad .hud .mph small { font-size: 10px; }
+  .quad .hud .nitro { height: 8px; margin-top: 3px; } .quad .hud .stat { font-size: 10px; }
+  .quad .hud .radar { width: 76px; height: 76px; bottom: 8px; left: 8px; border-width: 2px; }
+  .quad .hud .banner { top: 16%; font-size: 34px; -webkit-text-stroke: 2px #2a1400; } .quad .hud .banner small { font-size: 12px; margin-top: 3px; }
+  .quad .hud .warn { font-size: 16px; } .quad .hud .feed { font-size: 13px; }
+  #divider { position: fixed; left: 0; right: 0; top: 50%; height: 4px; margin-top: -2px; z-index: 2; pointer-events: none; background: linear-gradient(90deg, var(--blue), var(--gold)); }
+  #divider2 { position: fixed; top: 0; bottom: 0; left: 50%; width: 4px; margin-left: -2px; z-index: 2; pointer-events: none; background: linear-gradient(var(--blue), var(--gold)); }
+  #specTag { position: fixed; z-index: 2; left: 50%; top: 50%; margin: 12px 0 0 14px; font: 18px 'Bungee', system-ui, sans-serif; color: var(--gold); pointer-events: none;
+    -webkit-text-stroke: 1px #2a1400; text-shadow: 0 3px 0 #0b1020; }
+  /* touch buttons */
+  #tbtns { position: fixed; z-index: 3; right: max(14px, env(safe-area-inset-right)); bottom: max(118px, calc(env(safe-area-inset-bottom) + 108px));
+    display: grid; grid-template-columns: 76px 76px; gap: 10px; }
+  .tbtn { width: 76px; height: 76px; padding: 0; border-radius: 50%; border: 3px solid rgba(255,255,255,.8); cursor: pointer; touch-action: none;
+    font: 800 11px 'Inter', system-ui, sans-serif; color: #fff; letter-spacing: .06em; background: radial-gradient(circle at 40% 35%, #3a5a9a, #142446); box-shadow: 0 4px 0 rgba(0,0,0,.4); }
+  .tbtn .ico { display: block; font-size: 26px; line-height: 1.1; }
+  .tbtn.cool { filter: grayscale(.8) brightness(.7); }
+  #boostBtn { background: radial-gradient(circle at 40% 35%, #ffe07a, #c47a00); color: #1a1200; }
+  #driftBtn { background: radial-gradient(circle at 40% 35%, #7ad0ff, #1a5a9c); }
+  body.touch .speedo { right: auto; left: 50%; transform: translateX(-50%); width: 170px; text-align: center; }
+
+  /* ---------- screens: navy and gold ---------- */
+  .screen { position: fixed; inset: 0; z-index: 5; display: flex; overflow-y: auto; padding: 16px; box-sizing: border-box;
+    background: linear-gradient(180deg, rgba(5,8,18,0) 30%, rgba(5,8,18,.8) 80%); touch-action: pan-y; }
+  .panel { margin: auto auto 0; width: 100%; max-width: 640px; box-sizing: border-box; text-align: center; color: var(--ink); background: rgba(10,16,34,.86);
+    border: 2px solid rgba(255,201,58,.6); border-radius: 22px; box-shadow: 0 10px 40px rgba(0,0,0,.6); padding: 18px 20px 20px; backdrop-filter: blur(6px); }
+  .eyebrow { color: var(--gold); font-size: 11px; font-weight: 800; letter-spacing: .18em; text-transform: uppercase; }
+  .panel h1 { margin: 6px 0 8px; font: clamp(40px, 9vw, 72px)/1 'Bungee', system-ui, sans-serif; color: #fff; -webkit-text-stroke: 2px #0b1020;
+    text-shadow: 0 5px 0 #c47a00, 0 0 24px rgba(255,201,58,.35); }
+  .panel .sub { margin: 4px 0 10px; font-weight: 700; color: #c8d4f0; }
+  .panel ul { text-align: left; margin: 8px 0 0; padding: 0; list-style: none; font-size: 15px; line-height: 1.45; }
+  .panel ul li { padding: 4px 0 4px 30px; position: relative; }
+  .panel ul li .i { position: absolute; left: 0; top: 4px; }
+  kbd { display: inline-block; padding: 0 6px; font: 700 13px 'Inter', system-ui, sans-serif; color: var(--navy); background: var(--ink); border-radius: 4px; }
+  .big-btn { margin-top: 14px; font: 22px 'Bungee', system-ui, sans-serif; padding: 10px 22px; border-radius: 14px; border: 0; cursor: pointer; color: #1a1200;
+    background: linear-gradient(#ffe07a, #ffb020); box-shadow: 0 5px 0 #8a5a00; }
+  .big-btn:active { transform: translateY(3px); box-shadow: 0 2px 0 #8a5a00; }
+  .big-btn.two { background: linear-gradient(#9fd4ff, #4aa8ff); box-shadow: 0 5px 0 #1a4a8a; color: #0b1020; }
+  .big-btn.n { padding: 10px 16px; margin-left: 4px; }
+  .sub-btns { margin-top: 12px; }
+  .sub-btns button { font: 600 15px 'Inter', system-ui, sans-serif; padding: 8px 14px; border-radius: 12px; border: 2px solid var(--line); background: rgba(30,44,80,.8); color: var(--ink); cursor: pointer; }
+  .stats { font-size: 17px; line-height: 1.6; margin: 10px 0 0; }
+  .stats b { color: var(--gold); }
+  .padcount { margin-top: 8px; font-size: 14px; color: #a9bfe0; min-height: 18px; }
+  .podium { list-style: none; padding: 0; margin: 10px auto 0; max-width: 360px; text-align: left; font-size: 17px; }
+  .podium li { display: flex; gap: 10px; padding: 5px 10px; border-radius: 10px; }
+  .podium li .n { width: 34px; font-family: 'Bungee', sans-serif; color: var(--gold); }
+  .podium li .t { margin-left: auto; color: #a9bfe0; font-variant-numeric: tabular-nums; }
+  .podium li.you { background: rgba(255,201,58,.18); font-weight: 800; }
+  .touch-only { display: none; }
+  @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
+  @media (max-width: 520px) { .panel ul { font-size: 13px; } .big-btn { font-size: 18px; padding: 9px 14px; } }
+</style>
+<link rel="stylesheet" href="common.css?v=20261018-0153">
+</head>
+<body>
+<canvas id="game"></canvas>
+<div id="topbar"></div>
+
+<div id="hud0" class="hud hidden">
+  <div class="hudTR"><div class="place" data-u="place">1<small>st</small></div><div class="lap"><span data-u="lap">LAP <b>1</b>/3</span><span class="ptag" data-u="tag"></span></div><div class="time" data-u="time">0:00.0</div></div>
+  <canvas class="radar" data-u="radar" width="160" height="160"></canvas>
+  <div class="speedo" data-u="speedo"><div class="mph"><span data-u="mph">0</span><small>MPH</small></div><div class="nitro"><div class="fill" data-u="nitro"></div></div><div class="stat" data-u="stat">NITRO</div></div>
+  <div class="feed" data-u="feed"></div>
+  <div class="banner hidden" data-u="banner"></div>
+  <div class="warn hidden" data-u="warn">WRONG WAY!</div>
+</div>
+<div id="divider" class="hidden"></div>
+<div id="divider2" class="hidden"></div>
+<div id="specTag" class="hidden">📺 Blimp Cam</div>
+<div id="tbtns" class="hidden rb-touch">
+  <button type="button" id="hopBtn" class="tbtn"><span class="ico">⤴️</span>HOP</button>
+  <button type="button" id="boostBtn" class="tbtn"><span class="ico">🔥</span>NITRO</button>
+  <button type="button" id="kickBtn" class="tbtn"><span class="ico">🦵</span>KICK</button>
+  <button type="button" id="driftBtn" class="tbtn"><span class="ico">🌀</span>DRIFT</button>
+</div>
+
+<div id="title" class="screen">
+  <div class="panel">
+    <div class="eyebrow">Figure 8 Fields · Race your friends · Up to 4 players</div>
+    <h1>Moto Rush</h1>
+    <div class="sub">🏍️ Three laps round the figure 8: over the bridge, under the bridge, through the barn… watch out for the cows! 🐄</div>
+    <ul>
+      <li><span class="i">🏍️</span><b>Ride</b>: 🎮 <b data-pad="RT">RT</b> gas, <b data-pad="LT">LT</b> brake, left stick steers<span class="key-only"> · ⌨️ <kbd>W</kbd> gas, <kbd>S</kbd> brake, <kbd>A</kbd> <kbd>D</kbd> steer</span><span class="touch-only"> · 👆 drag to steer, the bike goes by itself</span>. Right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a mouse drag</span> looks all around.</li>
+      <li><span class="i">🌀</span><b>Drift</b> round the hairpins: hold <b data-pad="B">B</b><span class="key-only"> or <kbd>Ctrl</kbd></span> while you turn, and let go for a blue, then orange, <b>mini-turbo</b>.</li>
+      <li><span class="i">🔥</span><b>Nitro</b> (hold <b data-pad="X">X</b><span class="key-only"> or <kbd>Shift</kbd></span>). Fill it with wheelies (pull the stick back<span class="key-only">, or hold <kbd>W</kbd> + <kbd>S</kbd></span>), big air, drifting and tucking in behind a rider (<b>slipstream</b>).</li>
+      <li><span class="i">⤴️</span><b>Hop</b> (<b data-pad="A">A</b><span class="key-only"> or <kbd>Space</kbd></span>) over the cows, and press it again in mid-air off the ramps and the bridge for a <b>trick</b>: land it for a boost!</li>
+      <li><span class="i">🦵</span><b>Kick</b> the rider beside you (<b data-pad="Y">Y</b><span class="key-only"> or <kbd>K</kbd></span>)! Ride over the gold arrows, find the <b>shortcut through the red barn</b>, and press gas as the <b>2</b> shows for a 🚀 <b>rocket start</b>.</li>
+      <li><span class="i">👥</span><b>2, 3 or 4 players</b>: a controller each. Players 1 and 2 can share the keyboard: P1 <kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd>, left <kbd>Shift</kbd> nitro, left <kbd>Ctrl</kbd> drift, <kbd>Space</kbd> hop, <kbd>F</kbd> kick · P2 <kbd>I</kbd><kbd>J</kbd><kbd>K</kbd><kbd>L</kbd>, right <kbd>Shift</kbd>, right <kbd>Ctrl</kbd>, <kbd>Enter</kbd> hop, <kbd>U</kbd> kick.</li>
+    </ul>
+    <div class="stats" id="titleBest"></div>
+    <button class="big-btn" id="btnPlay">🏁 Race!</button>
+    <button class="big-btn two" id="btnPlay2">👥 2 Players</button><button class="big-btn two n" id="btnPlay3">3</button><button class="big-btn two n" id="btnPlay4">4</button>
+    <div class="sub-btns"><button type="button" id="btnPad">🎮 Controller &amp; camera settings</button></div>
+    <div class="padcount" id="padCount"></div>
+  </div>
+</div>
+
+<div id="over" class="screen hidden">
+  <div class="panel">
+    <div class="eyebrow">Figure 8 Fields · Results</div>
+    <h1 id="overTitle">You Won!</h1>
+    <div class="stats" id="overStats"></div>
+    <ol class="podium" id="podium"></ol>
+    <button class="big-btn" id="btnAgain">🏁 Race Again</button>
+    <button class="big-btn two" id="btnSwap">👥 2 Players</button>
+  </div>
+</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="common.js?v=20261018-0153"></script>
+<script src="orbit-cam.js?v=20261018-0153"></script>
+<script src="touch-stick.js?v=20261018-0153"></script>
+<script>
+'use strict';
+
+// Moto Rush: motorcycles round a figure 8 in the fields. The riding (throttle and brake on the triggers, wheelies
+// with the stick pulled back, bunny hops, nitro, a powerslide on Ⓑ) follows the motorcycle in EBITDA Hero; the race
+// (split screen for up to four, rivals, laps, the 360° camera) follows Witch Way Out.
+// The map is our own, built here from a few numbers, so it loads in a moment.
+
+// ---------- Tuning (metres, seconds) ----------
+const LAPS = 3;
+const MAX = 40;              // top speed on the road (about 90 mph)
+const ACCEL = 17, BRAKE = 32, REVERSE = 6, TURN = 2.15, GRAV = 15;
+const NITRO_MULT = 1.3, NITRO_DRAIN = 0.34;
+const HW = 8;                // half the road's width
+const FENCE = HW + 12.5;     // the field fences, either side of the road
+const TAU = Math.PI * 2;
+const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
+const rand = (a, b) => a + Math.random() * (b - a);
+const wrapA = a => Math.atan2(Math.sin(a), Math.cos(a));
+let seed = 7;   // the scenery is the same every time (a seeded random)
+const rnd = (a = 0, b = 1) => { seed = (seed * 16807) % 2147483647; return a + (seed / 2147483647) * (b - a); };
+
+// ---------- The track: a figure 8 ----------
+// A lemniscate (the ∞ curve), stretched a little across so the hairpins are round. It's worked out once for every
+// metre: the centre line, its direction, and s, the distance along it from the start line. The first time you
+// cross the middle you go OVER the bridge; the second time, underneath it.
+const LEM_A = 270, LEM_Z = 1.25;
+const TX = [], TZ = [], TDX = [], TDZ = [];
+let TRACK_LEN = 0;
+{
+  const lem = t => { const s = Math.sin(t), c = Math.cos(t), k = 1 + s * s; return [LEM_A * c / k, LEM_Z * LEM_A * s * c / k]; };
+  const M = 60000, pts = [], cum = [0];
+  let L = 0, prev = lem(0); pts.push(prev);
+  for (let i = 1; i <= M; i++) { const p = lem(i / M * TAU); L += Math.hypot(p[0] - prev[0], p[1] - prev[1]); prev = p; pts.push(p); cum.push(L); }
+  const N = Math.round(L);
+  // s = 0 is the start line, 230 m before the bridge (the middle is t = π/2 along the curve)
+  const sMid = cum[M / 4];
+  let j = 0;
+  for (let i = 0; i < N; i++) {
+    const s = ((i * L / N) + sMid - 230 + L) % L;
+    j = s < cum[j] ? 0 : j;
+    while (cum[j + 1] < s) j++;
+    const u = (s - cum[j]) / (cum[j + 1] - cum[j] || 1);
+    TX.push(pts[j][0] + (pts[j + 1][0] - pts[j][0]) * u); TZ.push(pts[j][1] + (pts[j + 1][1] - pts[j][1]) * u);
+  }
+  TRACK_LEN = N;
+  for (let i = 0; i < N; i++) {
+    const a = (i + N - 1) % N, b = (i + 1) % N, dx = TX[b] - TX[a], dz = TZ[b] - TZ[a], n = Math.hypot(dx, dz);
+    TDX.push(dx / n); TDZ.push(dz / n);
+  }
+}
+const N_T = TRACK_LEN;
+const SA = 230, SB = SA + Math.round(N_T / 2);                    // over the bridge, then under it
+const TIP_L = SA + Math.round(N_T / 4), TIP_R = (SB + Math.round(N_T / 4)) % N_T;   // the two hairpins
+const modS = s => ((s % N_T) + N_T) % N_T;
+const dS = s => { const d = modS(s); return d > N_T / 2 ? d - N_T : d; };   // a distance along the track, the short way round (−L/2..L/2)
+// the centre line at s (s in metres, any value), and the direction
+function trackAt(s, out = {}) {
+  const f = modS(s), i = Math.floor(f), u = f - i, k = (i + 1) % N_T;
+  out.x = TX[i] + (TX[k] - TX[i]) * u; out.z = TZ[i] + (TZ[k] - TZ[i]) * u;
+  out.dx = TDX[i] + (TDX[k] - TDX[i]) * u; out.dz = TDZ[i] + (TDZ[k] - TDZ[i]) * u;
+  const n = Math.hypot(out.dx, out.dz); out.dx /= n; out.dz /= n;
+  return out;
+}
+// a point beside the centre line: d metres to the right (negative: left)
+function trackPoint(s, d = 0, out = {}) {
+  trackAt(s, out);
+  out.x += -out.dz * d; out.z += out.dx * d;
+  out.h = Math.atan2(-out.dx, -out.dz);   // the heading of a rider going the right way here
+  return out;
+}
+// which way the road bends at s: +1 right, −1 left (the inside of a bend is that side)
+function bendAt(s) {
+  const a = trackAt(s - 12, {}), b = trackAt(s + 12, {});
+  const cross = a.dx * b.dz - a.dz * b.dx;
+  return Math.abs(cross) < 0.02 ? 0 : Math.sign(cross);
+}
+
+// The bridge: the road climbs a ramp onto a flat deck over the other road and back down. The top of the ramp is a
+// sharp crest, so a fast bike takes off there (and a boosting one flies most of the way across).
+const BR_H = 7.5, DECK = 15, RAMP = 60;
+function profile(s) {
+  const a = Math.abs(dS(s - SA));
+  if (a <= DECK) return BR_H;
+  if (a >= DECK + RAMP) return 0;
+  const k = (DECK + RAMP - a) / RAMP, q = 0.3;   // a soft toe at the bottom, a straight climb, the crest at the top
+  return BR_H * (k < q ? k * k / (2 * q) : k - q / 2) / (1 - q / 2);
+}
+const onBridge = s => Math.abs(dS(s - SA)) < DECK + RAMP;
+
+// Jump ramps (on half the road), gold arrow dash pads, and where the other features go
+const KICKERS = [
+  { s: SB + 85, len: 9, h: 1.8, side: 0 },
+  { s: SA - 175, len: 9, h: 1.8, side: 0 },
+];
+const PADS = [
+  { s: 45, d: 0 }, { s: SA - 105, d: -3.5 }, { s: SA - 105, d: 3.5 }, { s: SB + 32, d: 0 },
+  { s: TIP_L + 95, d: 0 }, { s: TIP_R + 135, d: 0 },
+];
+// The shortcut: a dirt track straight across the right-hand hairpin, through the red barn
+const CUT = { s0: modS(TIP_R - 100), s1: modS(TIP_R + 100) };
+{
+  const a = trackPoint(CUT.s0), b = trackPoint(CUT.s1);
+  Object.assign(CUT, { ax: a.x, az: a.z, bx: b.x, bz: b.z, len: Math.hypot(b.x - a.x, b.z - a.z) });
+  CUT.ux = (b.x - a.x) / CUT.len; CUT.uz = (b.z - a.z) / CUT.len;
+  CUT.mid = CUT.len / 2;
+}
+// where p is along the shortcut (u, from its start) and across it (v)
+function cutUV(x, z) { const dx = x - CUT.ax, dz = z - CUT.az; return { u: dx * CUT.ux + dz * CUT.uz, v: -dx * CUT.uz + dz * CUT.ux }; }
+const BARN = { hu: 14, hv: 8, door: 4.6 };
+const COW_S = TIP_R - 2;           // the cows wander across the road at the far end of the right hairpin… (the shortcut misses them)
+const TRACTOR_S = TIP_L + 40;      // …and a tractor crosses on its farm lane at the left one
+for (const k of KICKERS) { const b = bendAt(k.s) || 1; k.d0 = b > 0 ? 0.5 : -7.5; k.d1 = k.d0 + 7; k.s = modS(k.s); }   // (on the inside: you land in the middle of the road)
+for (const p of PADS) p.s = modS(p.s);
+
+// the height of the ground under a rider at (s, d)
+function groundY(s, d) {
+  if (Math.abs(d) > HW + 0.6) return 0;   // (beside the bridge's ramps: the field)
+  let y = profile(s);
+  for (const k of KICKERS) {
+    const u = dS(s - k.s);
+    if (u >= 0 && u <= k.len && d >= k.d0 && d <= k.d1) y += k.h * u / k.len;
+  }
+  return y;
+}
+
+// ---------- Three.js setup ----------
+const canvas = document.getElementById('game');
+const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+renderer.setPixelRatio(Math.min(devicePixelRatio || 1, 2));
+const scene = new THREE.Scene();
+const FOG = '#d8c49c';   // a warm, hazy late afternoon (Liberty City smog over the farm fields)
+scene.fog = new THREE.Fog(FOG, 90, 700);
+scene.background = new THREE.Color(FOG);
+scene.add(new THREE.HemisphereLight('#fff0d0', '#5a5034', 0.85));
+const sun = new THREE.DirectionalLight('#ffd8a0', 1.05);
+sun.position.set(-300, 220, 160);
+scene.add(sun);
+
+const mat = (color, extra = {}) => new THREE.MeshLambertMaterial({ color, ...extra });
+const textTexs = [];   // signs with writing on them: drawn again once the Bungee font has loaded
+function canvasTex(w, h, draw, repeat, text) {
+  const c = document.createElement('canvas'); c.width = w; c.height = h;
+  draw(c.getContext('2d'), w, h);
+  const t = new THREE.CanvasTexture(c);
+  t.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+  if (repeat) { t.wrapS = t.wrapT = THREE.RepeatWrapping; }
+  if (text) textTexs.push(() => { const g = c.getContext('2d'); g.clearRect(0, 0, w, h); draw(g, w, h); t.needsUpdate = true; });
+  return t;
+}
+if (document.fonts && document.fonts.load) document.fonts.load('40px Bungee').then(() => { for (const f of textTexs) f(); }).catch(() => {});
+const animated = [];   // things that turn or wave: fn(t, dt)
+
+// Scenery that never moves is merged into one mesh per material for each 500 m square: only a few draw calls, even
+// with four players' views.
+const statics = new Map();
+const _m4 = new THREE.Matrix4(), _q = new THREE.Quaternion(), _e = new THREE.Euler(), _v = new THREE.Vector3(), _s = new THREE.Vector3(), _c = new THREE.Color();
+function addStatic(geo, material, x, y, z, ry = 0, rx = 0, rz = 0, sx = 1, sy = 1, sz = 1) {
+  const g = geo.index ? geo.toNonIndexed() : geo.clone();
+  g.applyMatrix4(_m4.compose(_v.set(x, y, z), _q.setFromEuler(_e.set(rx, ry, rz, 'YXZ')), _s.set(sx, sy, sz)));
+  const key = material.uuid + '|' + Math.floor(x / 500) + ',' + Math.floor(z / 500);
+  if (!statics.has(key)) statics.set(key, { material, list: [] });
+  statics.get(key).list.push(g);
+}
+function mergeList(list) {
+  const n = list.reduce((a, g) => a + g.attributes.position.count, 0), uv = list.every(g => g.attributes.uv);
+  const pos = new Float32Array(n * 3), nor = new Float32Array(n * 3), uvs = uv ? new Float32Array(n * 2) : null;
+  let o = 0;
+  for (const g of list) {
+    pos.set(g.attributes.position.array, o * 3);
+    if (g.attributes.normal) nor.set(g.attributes.normal.array, o * 3);
+    if (uv) uvs.set(g.attributes.uv.array, o * 2);
+    o += g.attributes.position.count;
+  }
+  const geo = new THREE.BufferGeometry();
+  geo.setAttribute('position', new THREE.BufferAttribute(pos, 3)); geo.setAttribute('normal', new THREE.BufferAttribute(nor, 3));
+  if (uv) geo.setAttribute('uv', new THREE.BufferAttribute(uvs, 2));
+  geo.computeBoundingSphere();
+  return geo;
+}
+function flushStatics() {
+  for (const { material, list } of statics.values()) { scene.add(new THREE.Mesh(mergeList(list), material)); for (const g of list) g.dispose(); }
+  statics.clear();
+}
+const BOX = new THREE.BoxGeometry(1, 1, 1);
+// A model made of many little meshes, merged into one mesh per material (fewer draw calls: the cows, the tractor…)
+function bake(group) {
+  group.updateMatrixWorld(true);
+  const inv = new THREE.Matrix4().copy(group.matrixWorld).invert(), by = new Map();
+  group.traverse(o => {
+    if (!o.isMesh) return;
+    const g = o.geometry.index ? o.geometry.toNonIndexed() : o.geometry.clone();
+    g.applyMatrix4(new THREE.Matrix4().multiplyMatrices(inv, o.matrixWorld));
+    if (!by.has(o.material)) by.set(o.material, []);
+    by.get(o.material).push(g);
+  });
+  const out = new THREE.Group();
+  for (const [m, list] of by) out.add(new THREE.Mesh(mergeList(list), m));
+  return out;
+}
+// solid things a bike can hit: circles { x, z, r, top, kind } and boxes turned to any angle { x, z, ux, uz, hu, hv, top }
+const colliders = [], walls = [];
+function wallBox(x, z, ang, hu, hv, top) { walls.push({ x, z, ux: Math.cos(ang), uz: Math.sin(ang), hu, hv, top }); }
+
+// distance from (x, z) to the centre line (for placing scenery), roughly
+function trackDist(x, z) {
+  let b = Infinity;
+  for (let i = 0; i < N_T; i += 3) { const dx = x - TX[i], dz = z - TZ[i], d = dx * dx + dz * dz; if (d < b) b = d; }
+  return Math.sqrt(b);
+}
+function clearSpot(x, z, r) {
+  if (trackDist(x, z) < FENCE + 2 + r) return false;
+  const c = cutUV(x, z);
+  if (c.u > -20 && c.u < CUT.len + 20 && Math.abs(c.v) < 10 + r) return false;
+  if (Math.abs(x) > 1200 || Math.abs(z) > 1200) return false;
+  return !placed.some(p => Math.hypot(p.x - x, p.z - z) < p.r + r);
+}
+const placed = [];
+
+// ---------- The sky: warm haze, a low sun, and the city and the hills far away ----------
+const sky = new THREE.Group();
+{
+  const tex = canvasTex(4, 256, (g, w, h) => {
+    const gr = g.createLinearGradient(0, 0, 0, h);
+    gr.addColorStop(0, '#5f8fc4'); gr.addColorStop(0.32, '#9ab8d2'); gr.addColorStop(0.47, '#e2cfa6'); gr.addColorStop(0.52, FOG); gr.addColorStop(1, FOG);
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+  sky.add(new THREE.Mesh(new THREE.SphereGeometry(1200, 32, 16), new THREE.MeshBasicMaterial({ map: tex, side: THREE.BackSide, fog: false, depthWrite: false })));
+  // the sun, low in the west, and its glow
+  const sunTex = canvasTex(128, 128, (g, w, h) => {
+    const gr = g.createRadialGradient(64, 64, 4, 64, 64, 64);
+    gr.addColorStop(0, 'rgba(255,250,225,1)'); gr.addColorStop(0.12, 'rgba(255,236,170,.95)'); gr.addColorStop(0.35, 'rgba(255,200,120,.35)'); gr.addColorStop(1, 'rgba(255,190,110,0)');
+    g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  });
+  const sunSprite = new THREE.Mesh(new THREE.PlaneGeometry(420, 420), new THREE.MeshBasicMaterial({ map: sunTex, transparent: true, fog: false, depthWrite: false }));
+  sunSprite.position.set(-900, 230, 480); sunSprite.lookAt(0, 0, 0);
+  sky.add(sunSprite);
+  // soft clouds
+  const cloudTex = canvasTex(256, 128, (g, w, h) => {
+    for (let i = 0; i < 14; i++) {
+      const x = 40 + i * 13 + Math.sin(i * 2.1) * 20, y = 70 + Math.sin(i * 1.3) * 16, r = 26 + (i % 4) * 8;
+      const gr = g.createRadialGradient(x, y, 2, x, y, r); gr.addColorStop(0, 'rgba(255,248,236,.8)'); gr.addColorStop(1, 'rgba(255,248,236,0)');
+      g.fillStyle = gr; g.fillRect(0, 0, w, h);
+    }
+  });
+  const cloudMat = new THREE.MeshBasicMaterial({ map: cloudTex, transparent: true, fog: false, depthWrite: false, opacity: 0.85 });
+  for (let i = 0; i < 9; i++) {
+    const a = i / 9 * TAU + 0.3, r = 950, m = new THREE.Mesh(new THREE.PlaneGeometry(380, 150), cloudMat);
+    m.position.set(Math.cos(a) * r, 300 + (i % 3) * 70, Math.sin(a) * r); m.lookAt(0, m.position.y * 0.6, 0);
+    sky.add(m);
+  }
+  // the horizon: blue hills, the city's towers and its suspension bridge in the haze, wind turbines on the ridge
+  const mt = canvasTex(2048, 256, (g, w, h) => {
+    const ridge = (col, hmax, seedK, base) => {
+      g.fillStyle = col; g.beginPath(); g.moveTo(0, h);
+      for (let x = 0; x <= w; x += 8) {
+        const n = Math.sin(x * 0.004 + seedK) * 0.5 + Math.sin(x * 0.011 + seedK * 2) * 0.3 + Math.sin(x * 0.033 + seedK) * 0.12;
+        g.lineTo(x, h - base - (0.5 + 0.5 * n) * hmax);
+      }
+      g.lineTo(w, h); g.fill();
+    };
+    ridge('#a9a6a0', 70, 1, 40);
+    // the city (a quarter of the way round): towers of every height, a few lights, and the bridge
+    g.fillStyle = '#8f9196';
+    for (let x = 300; x < 760; x += 9 + (x * 7) % 13) { const th = 30 + ((x * 37) % 90) + (x > 480 && x < 560 ? 60 : 0); g.fillRect(x, h - 60 - th, 8 + (x % 5) * 2, th + 60); }
+    g.fillStyle = 'rgba(255,230,160,.8)';
+    for (let i = 0; i < 70; i++) g.fillRect(300 + (i * 131) % 460, h - 70 - (i * 53) % 90, 2, 2);
+    g.strokeStyle = '#8a8c90'; g.lineWidth = 3;
+    g.beginPath(); g.moveTo(770, h - 58); g.lineTo(1010, h - 58); g.stroke();
+    for (const tx of [820, 960]) { g.fillStyle = '#8a8c90'; g.fillRect(tx - 3, h - 140, 6, 84); }
+    g.lineWidth = 1.5; g.beginPath(); g.moveTo(770, h - 70); g.quadraticCurveTo(820, h - 150, 890, h - 70); g.quadraticCurveTo(960, h - 150, 1010, h - 70); g.stroke();
+    ridge('#93988a', 46, 4, 18);
+    // turbines
+    g.strokeStyle = '#d8d6d0'; g.lineWidth = 2;
+    for (const tx of [1300, 1360, 1420, 1700, 1760]) {
+      const base = h - 60;
+      g.beginPath(); g.moveTo(tx, base); g.lineTo(tx, base - 60); g.stroke();
+      for (let k = 0; k < 3; k++) { const a = k * TAU / 3 + tx; g.beginPath(); g.moveTo(tx, base - 60); g.lineTo(tx + Math.cos(a) * 24, base - 60 + Math.sin(a) * 24); g.stroke(); }
+    }
+    ridge('#7f8a64', 28, 9, 0);
+  });
+  const m = new THREE.Mesh(new THREE.CylinderGeometry(1000, 1000, 300, 64, 1, true), new THREE.MeshBasicMaterial({ map: mt, transparent: true, side: THREE.BackSide, fog: false, depthWrite: false }));
+  m.position.y = 110;
+  sky.add(m);
+}
+scene.add(sky);
+
+// ---------- The fields ----------
+// A patchwork of crops (wheat, corn, ploughed earth, pasture), with the grass mown in stripes all round the track.
+{
+  const SIZE = 1700, R = 2048;
+  const toPx = v => (v / SIZE + 0.5) * R;
+  const tex = canvasTex(R, R, (g, w, h) => {
+    g.fillStyle = '#7a9a48'; g.fillRect(0, 0, w, h);
+    const crops = ['#c9a94e', '#b8983e', '#6f9440', '#5c8237', '#8c6c46', '#9a7a50', '#a8b45a', '#d4b860'];
+    for (let y = 0; y < h; y += 0) {
+      const rh = 60 + rnd() * 140;
+      for (let x = 0; x < w; x += 0) {
+        const rw = 80 + rnd() * 220, col = crops[Math.floor(rnd() * crops.length)];
+        g.fillStyle = col; g.fillRect(x, y, rw - 3, rh - 3);
+        g.strokeStyle = 'rgba(0,0,0,.08)'; g.lineWidth = 2;   // the rows
+        for (let k = 4; k < rh - 3; k += 6) { g.beginPath(); g.moveTo(x, y + k); g.lineTo(x + rw - 3, y + k); g.stroke(); }
+        x += rw;
+      }
+      y += rh;
+    }
+    // grass along the track, mown in stripes
+    const path = () => { g.beginPath(); for (let i = 0; i <= N_T; i += 4) { const k = i % N_T; i ? g.lineTo(toPx(TX[k]), toPx(TZ[k])) : g.moveTo(toPx(TX[k]), toPx(TZ[k])); } };
+    g.lineJoin = 'round'; g.lineCap = 'round';
+    path(); g.strokeStyle = '#6f9a45'; g.lineWidth = (FENCE + 14) * 2 / SIZE * R; g.stroke();
+    path(); g.strokeStyle = '#7aa64c'; g.lineWidth = (FENCE + 4) * 2 / SIZE * R; g.stroke();
+    path(); g.strokeStyle = '#69933f'; g.lineWidth = (HW + 6) * 2 / SIZE * R; g.stroke();
+    // the farm lanes: dirt
+    g.strokeStyle = '#a08a62'; g.lineWidth = 6 / SIZE * R;
+    const tl = trackPoint(TRACTOR_S, 0, {});
+    g.beginPath(); g.moveTo(toPx(tl.x - tl.dz * 90), toPx(tl.z + tl.dx * 90)); g.lineTo(toPx(tl.x + tl.dz * 90), toPx(tl.z - tl.dx * 90)); g.stroke();
+    // the pond in the left loop
+    g.fillStyle = '#4f7f8f'; g.beginPath(); g.ellipse(toPx(-180), toPx(10), 26 / SIZE * R, 17 / SIZE * R, 0.3, 0, TAU); g.fill();
+    g.strokeStyle = '#8fa860'; g.lineWidth = 3; g.stroke();
+  });
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(SIZE, SIZE), mat('#ffffff', { map: tex }));
+  ground.rotation.x = -Math.PI / 2;
+  scene.add(ground);
+  const fill = new THREE.Mesh(new THREE.PlaneGeometry(SIZE * 1.42, SIZE * 1.42), mat('#a89a5a'));
+  fill.rotation.x = -Math.PI / 2; fill.position.y = -0.1;
+  scene.add(fill);
+  placed.push({ x: -180, z: 10, r: 30 });
+}
+
+// ---------- The road ----------
+// A strip along the centre line from d0 to d1 (metres right of centre), y = the road's height + lift; v runs along it.
+function strip(s0, s1, d0, d1, material, lift = 0.05, step = 2, vScale = 1 / 24, yFn = profile) {
+  const pos = [], uv = [], idx = [], p = {};
+  let i = 0;
+  for (let s = s0; ; s += step) {
+    const last = s >= s1; if (last) s = s1;
+    const y = yFn(s) + lift;
+    trackPoint(s, d0, p); pos.push(p.x, y, p.z); uv.push(0, (s - s0) * vScale);
+    trackPoint(s, d1, p); pos.push(p.x, y, p.z); uv.push(1, (s - s0) * vScale);
+    if (i) idx.push(i * 2 - 2, i * 2 - 1, i * 2, i * 2 - 1, i * 2 + 1, i * 2);
+    i++;
+    if (last) break;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  // (faces up, whichever way it was wound)
+  const n = g.attributes.normal; if (n.getY(0) < 0) for (let k = 0; k < n.count; k++) n.setXYZ(k, -n.getX(k), -n.getY(k), -n.getZ(k));
+  const m = new THREE.Mesh(g, material);
+  scene.add(m);
+  return m;
+}
+// a vertical wall along the track at d, from yBot(s) to yTop(s)
+function wallStrip(s0, s1, d, yBot, yTop, material, step = 2) {
+  const pos = [], uv = [], idx = [], p = {};
+  let i = 0;
+  for (let s = s0; ; s += step) {
+    const last = s >= s1; if (last) s = s1;
+    trackPoint(s, d, p);
+    pos.push(p.x, yBot(s), p.z, p.x, yTop(s), p.z); uv.push((s - s0) / 8, 0, (s - s0) / 8, 1);
+    if (i) idx.push(i * 2 - 2, i * 2, i * 2 - 1, i * 2 - 1, i * 2, i * 2 + 1);
+    i++;
+    if (last) break;
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex(idx); g.computeVertexNormals();
+  scene.add(new THREE.Mesh(g, material));
+}
+const roadTex = canvasTex(256, 512, (g, w, h) => {
+  g.fillStyle = '#56575b'; g.fillRect(0, 0, w, h);
+  for (let i = 0; i < 5000; i++) { const v = 70 + Math.floor(Math.random() * 40); g.fillStyle = `rgba(${v},${v},${v + 4},.5)`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+  g.fillStyle = 'rgba(30,30,32,.25)'; g.fillRect(w * 0.28, 0, w * 0.1, h); g.fillRect(w * 0.62, 0, w * 0.1, h);   // the dark lines where the tyres go
+  g.fillStyle = '#f2f0e8'; g.fillRect(6, 0, 8, h); g.fillRect(w - 14, 0, 8, h);
+  g.fillStyle = '#f2c230'; for (let y = 0; y < h; y += 128) g.fillRect(w / 2 - 4, y, 8, 70);
+}, true);
+const roadMat = mat('#ffffff', { map: roadTex });
+strip(0, N_T, -HW, HW, roadMat, 0.06, 2, 1 / 24);
+// the dirt shoulders (not on the bridge)
+const shoulderMat = mat('#9a865e');
+for (const side of [-1, 1]) {
+  strip(SA + DECK + RAMP, SA + N_T - DECK - RAMP, side > 0 ? HW : -HW - 2.4, side > 0 ? HW + 2.4 : -HW, shoulderMat, 0.04);
+}
+// red and white kerbs on the inside of the hairpins
+const kerbTex = canvasTex(8, 64, (g, w, h) => { g.fillStyle = '#e8e4dc'; g.fillRect(0, 0, w, h); g.fillStyle = '#c8281e'; g.fillRect(0, 0, w, h / 2); }, true);
+const kerbMat = mat('#ffffff', { map: kerbTex });
+for (const tip of [TIP_L, TIP_R]) {
+  const b = bendAt(tip) || 1;
+  strip(tip - 110, tip + 110, b > 0 ? HW - 0.2 : -HW - 1.4, b > 0 ? HW + 1.4 : -HW + 0.2, kerbMat, 0.075, 2, 1 / 4);
+  strip(tip - 110, tip + 110, b > 0 ? -HW - 1.4 : HW - 0.2, b > 0 ? -HW + 0.2 : HW + 1.4, kerbMat, 0.075, 2, 1 / 4);
+}
+// the chequered start line and the gold dash pads
+const checkTex = canvasTex(128, 16, (g, w, h) => { for (let x = 0; x < 16; x++) for (let y = 0; y < 2; y++) { g.fillStyle = (x + y) % 2 ? '#111' : '#fff'; g.fillRect(x * 8, y * 8, 8, 8); } });
+strip(-1.2, 1.2, -HW, HW, mat('#ffffff', { map: checkTex }), 0.08, 2.4, 1 / 2.4);
+const padTex = canvasTex(64, 128, (g, w, h) => {
+  g.fillStyle = '#3a2a00'; g.fillRect(0, 0, w, h);
+  for (let k = 0; k < 3; k++) {
+    const y = 18 + k * 38;
+    g.fillStyle = k === 0 ? '#ffe07a' : k === 1 ? '#ffc93a' : '#ffb020';
+    g.beginPath(); g.moveTo(8, y + 28); g.lineTo(w / 2, y); g.lineTo(w - 8, y + 28); g.lineTo(w - 20, y + 30); g.lineTo(w / 2, y + 14); g.lineTo(20, y + 30); g.fill();
+  }
+});
+const padMat = new THREE.MeshBasicMaterial({ map: padTex });
+for (const pd of PADS) {
+  // (the arrows point the way you ride: v runs back along the track)
+  const pts = [], uv = [], p = {};
+  for (const [s, v] of [[pd.s - 3, 0], [pd.s + 3, 1]]) {
+    const y = groundY(s, pd.d) + 0.09;
+    trackPoint(s, pd.d - 2.2, p); pts.push(p.x, y, p.z); uv.push(0, v);
+    trackPoint(s, pd.d + 2.2, p); pts.push(p.x, y, p.z); uv.push(1, v);
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute('position', new THREE.Float32BufferAttribute(pts, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2));
+  g.setIndex([0, 1, 2, 1, 3, 2]); g.computeVertexNormals();
+  pd.mesh = new THREE.Mesh(g, padMat);
+  scene.add(pd.mesh);
+}
+animated.push(t => { padTex.offset.y = -(t * 1.6) % 1; });
+padTex.wrapT = THREE.RepeatWrapping;
+
+// the jump ramps: wooden wedges painted with chevrons
+const rampMat = mat('#b8823a'), rampSide = mat('#7a5226');
+for (const k of KICKERS) {
+  const pos = [], p = {};
+  const corner = (u, d, up) => { trackPoint(k.s + u, d, p); pos.push(p.x, profile(k.s + u) + (up ? k.h * u / k.len : 0) + 0.06, p.z); };
+  // top, two sides, the back face
+  const quads = [
+    [[0, k.d0, 1], [0, k.d1, 1], [k.len, k.d1, 1], [k.len, k.d0, 1]],
+    [[0, k.d0, 0], [k.len, k.d0, 0], [k.len, k.d0, 1], [0, k.d0, 1]],
+    [[0, k.d1, 0], [0, k.d1, 1], [k.len, k.d1, 1], [k.len, k.d1, 0]],
+    [[k.len, k.d0, 0], [k.len, k.d1, 0], [k.len, k.d1, 1], [k.len, k.d0, 1]],
+  ];
+  const top = [], side = [];
+  quads.forEach((q, qi) => {
+    pos.length = 0;
+    for (const c of q) corner(...c);
+    const a = qi === 0 ? top : side;
+    a.push(...pos.slice(0, 9), ...pos.slice(0, 3), ...pos.slice(6, 12));
+  });
+  for (const [arr, m] of [[top, mat('#ffffff', { map: padTex, side: THREE.DoubleSide })], [side, new THREE.MeshLambertMaterial({ color: '#7a5226', side: THREE.DoubleSide })]]) {
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(arr, 3));
+    if (arr === top) g.setAttribute('uv', new THREE.Float32BufferAttribute([0, 0, 1, 0, 1, 1, 0, 0, 1, 1, 0, 1], 2));
+    g.computeVertexNormals(); scene.add(new THREE.Mesh(g, m));
+  }
+}
+
+// The bridge: concrete walls along the ramps and the deck, the deck's underside, and the abutments either end
+{
+  const conc = canvasTex(64, 64, (g, w, h) => {
+    g.fillStyle = '#b9b2a4'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 300; i++) { g.fillStyle = `rgba(0,0,0,${Math.random() * 0.06})`; g.fillRect(Math.random() * w, Math.random() * h, 2, 2); }
+    g.fillStyle = '#9d9688'; g.fillRect(0, 0, w, 3); g.fillRect(0, 0, 2, h);
+  }, true);
+  const concMat = mat('#ffffff', { map: conc, side: THREE.DoubleSide });
+  const s0 = SA - DECK - RAMP, s1 = SA + DECK + RAMP;
+  const deckBottom = s => (Math.abs(dS(s - SA)) <= DECK + 0.01 ? BR_H - 1.1 : 0);
+  for (const d of [-HW - 0.3, HW + 0.3]) wallStrip(s0, s1, d, deckBottom, s => profile(s) + 1.1, concMat, 1.5);
+  // a red and white stripe along the top of the walls
+  const stripe = canvasTex(64, 8, (g, w, h) => { for (let i = 0; i < 8; i++) { g.fillStyle = i % 2 ? '#e8e4dc' : '#c8281e'; g.fillRect(i * 8, 0, 8, h); } }, true);
+  const stripeMat = new THREE.MeshLambertMaterial({ map: stripe, side: THREE.DoubleSide });
+  for (const d of [-HW - 0.32, HW + 0.32]) wallStrip(s0, s1, d, s => profile(s) + 0.75, s => profile(s) + 1.12, stripeMat, 1.5);
+  strip(SA - DECK, SA + DECK, -HW - 0.3, HW + 0.3, concMat, -1.1, 1);   // the underside (drawn both ways)
+  for (const u of [-DECK, DECK]) {
+    const p = {}, pos = [];
+    for (const [d, y] of [[-HW - 0.3, 0], [HW + 0.3, 0], [HW + 0.3, BR_H - 1.1], [-HW - 0.3, 0], [HW + 0.3, BR_H - 1.1], [-HW - 0.3, BR_H - 1.1]]) { trackPoint(SA + u, d, p); pos.push(p.x, y, p.z); }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.computeVertexNormals();
+    scene.add(new THREE.Mesh(g, concMat));
+  }
+  // a big sign across the deck
+  const signTex = canvasTex(512, 64, (g, w, h) => {
+    g.fillStyle = '#0b1020'; g.fillRect(0, 0, w, h); g.fillStyle = '#ffc93a'; g.fillRect(0, 0, w, 5); g.fillRect(0, h - 5, w, 5);
+    g.font = '36px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#fff'; g.fillText('FIGURE 8 FIELDS', w / 2, h / 2 + 2);
+  }, false, true);
+  const signMat = new THREE.MeshBasicMaterial({ map: signTex });
+  for (const side of [-1, 1]) {   // on each side of the bridge, facing out over the road underneath
+    const p = trackPoint(SA, side * (HW + 0.36), {});
+    const sign = new THREE.Mesh(new THREE.PlaneGeometry(18, 2.2), signMat);
+    sign.position.set(p.x, BR_H - 0.3, p.z); sign.rotation.y = p.h + side * Math.PI / 2;
+    scene.add(sign);
+  }
+}
+
+// ---------- Fences, bales, the start ----------
+const fenceMat = mat('#ece6d8'), railMat = mat('#ece6d8', { side: THREE.DoubleSide });
+const RAIL = new THREE.PlaneGeometry(1, 1);
+function fenceGap(s, side) {
+  if (Math.abs(dS(s - SA)) < DECK + RAMP + 6 || Math.abs(dS(s - SB)) < 46) return true;
+  const b = bendAt(TIP_R) || 1;
+  if (side === b && (Math.abs(dS(s - CUT.s0)) < 16 || Math.abs(dS(s - CUT.s1)) < 16)) return true;   // the way into the shortcut
+  if (Math.abs(dS(s - TRACTOR_S)) < 5) return true;   // the farm lane
+  return false;
+}
+{
+  const p = {}, q = {};
+  for (const side of [-1, 1]) {
+    for (let s = 0; s < N_T; s += 6) {
+      if (fenceGap(s, side)) continue;
+      trackPoint(s, side * FENCE, p);
+      addStatic(BOX, fenceMat, p.x, 0.6, p.z, p.h, 0, 0, 0.16, 1.2, 0.16);
+      if (!fenceGap(s + 6, side)) {   // two rails (flat boards) to the next post
+        trackPoint(s + 6, side * FENCE, q);
+        const len = Math.hypot(q.x - p.x, q.z - p.z), ang = Math.atan2(-(q.x - p.x), -(q.z - p.z)) + Math.PI / 2;
+        for (const y of [0.5, 1.0]) addStatic(RAIL, railMat, (p.x + q.x) / 2, y, (p.z + q.z) / 2, ang, 0, 0, len, 0.14, 1);
+      }
+    }
+  }
+}
+// hay bales round the inside of the hairpins, as at a real race in a field
+const baleGeo = new THREE.CylinderGeometry(0.85, 0.85, 1.3, 9);
+const baleMat = mat('#d9b85a'), baleEnd = mat('#c4a04a');
+function bale(x, z, ang, solid = true) {
+  addStatic(baleGeo, baleMat, x, 0.85, z, ang, 0, Math.PI / 2);
+  if (solid) colliders.push({ x, z, r: 1.0, top: 1.7, kind: 'bale' });
+}
+for (const tip of [TIP_L, TIP_R]) {
+  const b = bendAt(tip) || 1, p = {};
+  for (let s = tip - 70; s <= tip + 70; s += 2.6) { trackPoint(s, b * (HW + 3.2), p); bale(p.x, p.z, p.h); }
+}
+
+// The start: a gantry with the start lights, the grandstand full of fans, and the pit garages
+const lights = [];
+{
+  const p = trackPoint(0, 0, {}), h = p.h;
+  const steel = mat('#2a3550'), gold = mat('#ffc93a');
+  for (const side of [-1, 1]) {
+    const q = trackPoint(0, side * (HW + 1.4), {});
+    addStatic(BOX, steel, q.x, 4, q.z, h, 0, 0, 0.9, 8, 0.9);
+    colliders.push({ x: q.x, z: q.z, r: 0.7, top: 8, kind: 'post' });
+  }
+  const bannerTex = canvasTex(1024, 128, (g, w, hh) => {
+    g.fillStyle = '#0b1020'; g.fillRect(0, 0, w, hh);
+    for (let x = 0; x < w; x += 32) for (let y = 0; y < 2; y++) { g.fillStyle = (x / 32 + y) % 2 ? '#111' : '#fff'; g.fillRect(x, y * 12, 32, 12); g.fillRect(x, hh - 24 + y * 12, 32, 12); }
+    g.font = '64px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+    g.fillStyle = '#c47a00'; g.fillText('MOTO RUSH', w / 2 + 3, hh / 2 + 5); g.fillStyle = '#ffc93a'; g.fillText('MOTO RUSH', w / 2, hh / 2 + 2);
+  }, false, true);
+  const banner = new THREE.Mesh(new THREE.BoxGeometry(2 * HW + 3.6, 1.8, 0.5), [steel, steel, gold, steel, new THREE.MeshBasicMaterial({ map: bannerTex }), new THREE.MeshBasicMaterial({ map: bannerTex })]);
+  banner.position.set(p.x, 8.2, p.z); banner.rotation.y = h;
+  scene.add(banner);
+  for (let i = 0; i < 5; i++) {
+    const q = trackPoint(0, (i - 2) * 1.6, {});
+    const l = new THREE.Mesh(new THREE.SphereGeometry(0.42, 14, 10), new THREE.MeshBasicMaterial({ color: '#3a1010' }));
+    l.position.set(q.x, 6.7, q.z); scene.add(l); lights.push(l);
+    addStatic(BOX, steel, q.x, 6.7, q.z, h, 0, 0, 0.9, 1.1, 0.4);
+  }
+  // the grandstand (on the left, behind the fence): stepped seats with a painted crowd, a roof on posts
+  const crowdTex = canvasTex(512, 64, (g, w, hh) => {
+    g.fillStyle = '#3a4a6a'; g.fillRect(0, 0, w, hh);
+    const cols = ['#ffc93a', '#4aa8ff', '#e8eefc', '#c8281e', '#3ddc84', '#ff7a2a', '#f2a0c0', '#1d3f73'];
+    for (let i = 0; i < 700; i++) { g.fillStyle = cols[i % cols.length]; const x = Math.random() * w, y = 8 + Math.random() * (hh - 14); g.beginPath(); g.arc(x, y, 3, 0, TAU); g.fill(); g.fillStyle = '#e0b090'; g.fillRect(x - 2, y - 7, 4, 4); }
+  }, true);
+  const crowdMat = new THREE.MeshLambertMaterial({ map: crowdTex });
+  crowdTex.repeat.set(3, 1);
+  const seatMat = mat('#c9c2b4');
+  for (let row = 0; row < 6; row++) {
+    const d = -(FENCE + 6 + row * 2.2), y = 0.6 + row * 1.1;
+    const a = trackPoint(-48, d, {}), b = trackPoint(48, d, {});
+    const len = Math.hypot(b.x - a.x, b.z - a.z), ang = Math.atan2(-(b.x - a.x), -(b.z - a.z));
+    addStatic(BOX, seatMat, (a.x + b.x) / 2, y / 2, (a.z + b.z) / 2, ang, 0, 0, 2.2, y, len);
+    const crowd = new THREE.Mesh(new THREE.PlaneGeometry(len, 1.3), crowdMat);
+    crowd.position.set((a.x + b.x) / 2, y + 0.65, (a.z + b.z) / 2); crowd.rotation.y = ang + Math.PI / 2;
+    const n = trackPoint(0, 0, {});
+    crowd.rotation.y = Math.atan2(n.x - crowd.position.x, n.z - crowd.position.z);
+    scene.add(crowd);
+    if (row === 0) animated.push(t => { crowd.position.y = y + 0.65 + Math.abs(Math.sin(t * 6)) * 0.08; });
+  }
+  {
+    const a = trackPoint(-50, -(FENCE + 11.5), {}), b = trackPoint(50, -(FENCE + 11.5), {});
+    const len = Math.hypot(b.x - a.x, b.z - a.z), ang = Math.atan2(-(b.x - a.x), -(b.z - a.z));
+    addStatic(BOX, mat('#1d3f73'), (a.x + b.x) / 2, 10.2, (a.z + b.z) / 2, ang, 0, 0, 16, 0.4, len + 4);
+    for (let s = -48; s <= 48; s += 16) { const q = trackPoint(s, -(FENCE + 18), {}); addStatic(BOX, steel, q.x, 5, q.z, ang, 0, 0, 0.4, 10, 0.4); }
+  }
+  placed.push({ x: trackPoint(0, -(FENCE + 12)).x, z: trackPoint(0, -(FENCE + 12)).z, r: 60 });
+  // pit garages on the right
+  const garTex = canvasTex(128, 64, (g, w, hh) => {
+    g.fillStyle = '#d8d2c4'; g.fillRect(0, 0, w, hh); g.fillStyle = '#8a8e98';
+    for (let y = 18; y < hh; y += 6) g.fillRect(14, y, w - 28, 3);
+    g.fillStyle = '#c8281e'; g.fillRect(0, 0, w, 12);
+  });
+  const garMat = mat('#ffffff', { map: garTex });
+  for (let i = 0; i < 6; i++) {
+    const q = trackPoint(-70 + i * 11, FENCE + 9, {});
+    addStatic(BOX, garMat, q.x, 2.6, q.z, q.h + Math.PI / 2, 0, 0, 10, 5.2, 9);
+  }
+  placed.push({ x: trackPoint(-40, FENCE + 9).x, z: trackPoint(-40, FENCE + 9).z, r: 40 });
+}
+
+// ---------- The farm ----------
+const barnRed = mat('#a8322a'), white = mat('#efe9dc'), roofMat = mat('#5a4f4a'), wood = mat('#7a5a3a');
+// a triangular prism, 1 wide, 1 high and 1 long (along z), standing on y = 0: roofs and gable ends
+const ROOF_GEO = (() => { const sh = new THREE.Shape(); sh.moveTo(-0.5, 0); sh.lineTo(0.5, 0); sh.lineTo(0, 1); sh.lineTo(-0.5, 0); const g = new THREE.ExtrudeGeometry(sh, { depth: 1, bevelEnabled: false }); g.translate(0, 0, -0.5); return g; })();
+function house(x, z, ang, w, d, h, wallMat, roof) {
+  addStatic(BOX, wallMat, x, h / 2, z, ang, 0, 0, w, h, d);
+  // a pitched roof: a triangular prism along the house's length
+  addStatic(ROOF_GEO, roof, x, h, z, ang, 0, 0, w + 0.8, w * 0.42, d + 0.8);
+  colliders.push({ x, z, r: Math.max(w, d) / 2, top: h + 3, kind: 'house' });
+}
+// The barn, astride the shortcut: big doors open at both ends, hay inside
+{
+  const ang = Math.atan2(CUT.uz, CUT.ux);   // u runs along the barn
+  const cx = CUT.ax + CUT.ux * CUT.mid, cz = CUT.az + CUT.uz * CUT.mid;
+  BARN.x = cx; BARN.z = cz;
+  const along = (u, v) => [cx + CUT.ux * u - CUT.uz * v, cz + CUT.uz * u + CUT.ux * v];
+  const ry = -ang + Math.PI / 2;   // (a box's z runs along the barn)
+  const H = 7.5;
+  for (const sv of [-1, 1]) {
+    const [x, z] = along(0, sv * BARN.hv);
+    addStatic(BOX, barnRed, x, H / 2, z, ry, 0, 0, 0.6, H, BARN.hu * 2);
+    wallBox(x, z, ang, BARN.hu, 0.4, H);
+    for (const su of [-1, 1]) {   // the end walls beside the doors
+      const [ex, ez] = along(su * BARN.hu, sv * (BARN.door + BARN.hv) / 2);
+      addStatic(BOX, barnRed, ex, H / 2, ez, ry, 0, 0, BARN.hv - BARN.door, H, 0.6);
+      wallBox(ex, ez, ang, 0.35, (BARN.hv - BARN.door) / 2, H);
+      const [tx, tz] = along(su * BARN.hu, sv * BARN.door);   // white door frames
+      addStatic(BOX, white, tx, H * 0.4, tz, ry, 0, 0, 0.5, H * 0.8, 0.7);
+      // the doors, swung wide open against the outside
+      const [dx, dz] = along(su * (BARN.hu + BARN.door / 2 + 0.3), sv * (BARN.door + 0.4));
+      addStatic(BOX, barnRed, dx, H * 0.38, dz, ry, 0, 0, 0.2, H * 0.76, BARN.door);
+      wallBox(dx, dz, ang, BARN.door / 2, 0.15, H);
+    }
+  }
+  // the gable ends over the doors, and the roof: two slopes
+  for (const su of [-1, 1]) { const [ex, ez] = along(su * BARN.hu, 0); addStatic(ROOF_GEO, barnRed, ex, H, ez, ry, 0, 0, BARN.hv * 2 + 0.6, 4.4, 0.6); }
+  for (const sv of [-1, 1]) {
+    const [x, z] = along(0, sv * BARN.hv / 2);
+    const roofG = new THREE.BoxGeometry(BARN.hv + 1.4, 0.35, BARN.hu * 2 + 1.5);
+    roofG.rotateZ(sv * 0.48);
+    addStatic(roofG, roofMat, x, H + 2.3, z, ry);
+  }
+  // hay stacked along the sides inside
+  for (let u = -BARN.hu + 2; u < BARN.hu - 1; u += 2.4) for (const sv of [-1, 1]) {
+    const [x, z] = along(u, sv * (BARN.hv - 1.6));
+    addStatic(BOX, baleMat, x, 0.6, z, ry, 0, 0, 1.6, 1.2, 2.2);
+  }
+  // the dirt track
+  const pos = [], uv = [];
+  for (const [u, v, tu, tv] of [[-6, -5, 0, 0], [CUT.len + 6, -5, 0, 1], [CUT.len + 6, 5, 1, 1], [-6, -5, 0, 0], [CUT.len + 6, 5, 1, 1], [-6, 5, 1, 0]]) {
+    const [x, z] = along(u - CUT.mid, v); pos.push(x, 0.035, z); uv.push(tu, tv * CUT.len / 12);
+  }
+  const dirtTex = canvasTex(64, 128, (g, w, h) => {
+    g.fillStyle = '#9a7c52'; g.fillRect(0, 0, w, h);
+    for (let i = 0; i < 400; i++) { g.fillStyle = `rgba(60,40,20,${Math.random() * 0.25})`; g.fillRect(Math.random() * w, Math.random() * h, 3, 2); }
+    g.fillStyle = 'rgba(60,40,20,.3)'; g.fillRect(w * 0.3, 0, 6, h); g.fillRect(w * 0.65, 0, 6, h);
+  }, true);
+  const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(pos, 3)); g.setAttribute('uv', new THREE.Float32BufferAttribute(uv, 2)); g.computeVertexNormals();
+  scene.add(new THREE.Mesh(g, mat('#ffffff', { map: dirtTex, side: THREE.DoubleSide })));
+  // a dash pad on the way out of the barn, and SHORTCUT signs
+  CUT.pads = [CUT.mid - BARN.hu - 14, CUT.mid + BARN.hu + 10];
+  for (const u of CUT.pads) {
+    const [px, pz] = along(u - CUT.mid, 0);
+    const pm = new THREE.Mesh(new THREE.PlaneGeometry(4.4, 6), padMat);
+    pm.rotation.order = 'YXZ'; pm.rotation.set(-Math.PI / 2, Math.atan2(-CUT.ux, -CUT.uz), 0); pm.position.set(px, 0.08, pz);
+    scene.add(pm);
+  }
+  const cutSign = canvasTex(256, 96, (g2, w, h) => {
+    g2.fillStyle = '#ffc93a'; g2.fillRect(0, 0, w, h); g2.strokeStyle = '#0b1020'; g2.lineWidth = 8; g2.strokeRect(4, 4, w - 8, h - 8);
+    g2.font = '34px Bungee, Impact, sans-serif'; g2.fillStyle = '#0b1020'; g2.textAlign = 'center'; g2.textBaseline = 'middle';
+    const right = (bendAt(TIP_R) || 1) > 0;
+    g2.fillText(right ? 'SHORTCUT ➜' : '⬅ SHORTCUT', w / 2, h / 2 + 2);
+  }, false, true);
+  const signMat = new THREE.MeshLambertMaterial({ map: cutSign, side: THREE.DoubleSide });
+  {   // beside the road just before the way in, facing the riders coming up to it
+    const bIn = bendAt(TIP_R) || 1, q = trackPoint(CUT.s0 - 18, bIn * (HW + 4), {}), f = trackPoint(CUT.s0 - 70, 0, {});
+    const sgn = new THREE.Mesh(new THREE.PlaneGeometry(5, 1.9), signMat);
+    sgn.position.set(q.x, 2.8, q.z); sgn.rotation.y = Math.atan2(f.x - q.x, f.z - q.z); scene.add(sgn);
+    addStatic(BOX, wood, q.x, 1.3, q.z, sgn.rotation.y, 0, 0, 0.15, 2.6, 0.15);
+  }
+  placed.push({ x: cx, z: cz, r: 22 });
+  // a silo and the farmhouse beside the barn
+  let sx = cx - CUT.uz * 28, sz = cz + CUT.ux * 28;
+  if (!clearSpot(sx, sz, 4)) { sx = cx + CUT.uz * 28; sz = cz - CUT.ux * 28; }
+  addStatic(new THREE.CylinderGeometry(3, 3, 16, 16), white, sx, 8, sz);
+  addStatic(new THREE.SphereGeometry(3, 16, 8, 0, TAU, 0, Math.PI / 2), mat('#9aa2ac'), sx, 16, sz);
+  colliders.push({ x: sx, z: sz, r: 3.4, top: 19, kind: 'house' });
+  placed.push({ x: sx, z: sz, r: 6 });
+}
+// a windmill in the left loop by the pond, and big wind turbines out in the fields
+const windmills = [];
+{
+  const x = -205, z = -30;
+  for (const sgn of [-1, 1]) for (const sgn2 of [-1, 1]) addStatic(BOX, mat('#8a8e98'), x + sgn * 1.4, 6, z + sgn2 * 1.4, 0, sgn2 * 0.12, -sgn * 0.12, 0.25, 12, 0.25);
+  const head = new THREE.Group(); head.position.set(x, 12.5, z); scene.add(head);
+  const fan = new THREE.Group(); head.add(fan); fan.position.z = 1;
+  { const sails = new THREE.Group(), sm = mat('#e8e2d4'); for (let i = 0; i < 12; i++) { const b = new THREE.Mesh(BOX, sm); b.scale.set(0.5, 2.6, 0.05); b.position.y = 1.6; const arm = new THREE.Group(); arm.rotation.z = i / 12 * TAU; arm.add(b); sails.add(arm); } fan.add(bake(sails)); }
+  const tail = new THREE.Mesh(BOX, mat('#c8281e')); tail.scale.set(0.1, 1.4, 2.6); tail.position.z = -2; head.add(tail);
+  head.rotation.y = 0.8;
+  animated.push((t, dt) => { fan.rotation.z -= dt * 3; });
+  placed.push({ x, z, r: 6 });
+}
+for (const [x, z] of [[520, -360], [600, -220], [-560, 330], [-640, 190], [420, 420]]) {
+  addStatic(new THREE.CylinderGeometry(0.9, 1.6, 60, 10), mat('#ecebe6'), x, 30, z);
+  const hub = new THREE.Group(); hub.position.set(x, 60, z); hub.lookAt(0, 60, 0); scene.add(hub);
+  const rotor = new THREE.Group(); rotor.position.z = 1.5; hub.add(rotor);
+  { const blades = new THREE.Group(), bm = mat('#f4f3ee'); for (let i = 0; i < 3; i++) { const b = new THREE.Mesh(BOX, bm); b.scale.set(1.6, 24, 0.3); b.position.y = 12; const arm = new THREE.Group(); arm.rotation.z = i / 3 * TAU; arm.add(b); blades.add(arm); } rotor.add(bake(blades)); }
+  const sp = 0.6 + Math.random() * 0.4;
+  animated.push((t, dt) => { rotor.rotation.z += dt * sp; });
+  windmills.push(hub);
+}
+// the farmhouse, a red barn and sheds round the outside, a water tower
+{
+  const spots = [[260, 210, 0.3, 'farm'], [-300, -210, -0.4, 'farm'], [80, -230, 0.1, 'shed'], [-90, 240, 1.2, 'shed'], [330, -160, 0.6, 'barn'], [-350, 170, -0.9, 'barn']];
+  for (const [x, z, a, kind] of spots) {
+    if (!clearSpot(x, z, 14)) continue;
+    if (kind === 'farm') { house(x, z, a, 12, 9, 6, white, mat('#3a4a6a')); addStatic(BOX, wood, x + 7, 1.1, z, a, 0, 0, 3, 0.3, 9); }
+    else if (kind === 'barn') house(x, z, a, 14, 20, 8, barnRed, roofMat);
+    else house(x, z, a, 8, 10, 4, mat('#9aa2ac'), mat('#6a7280'));
+    placed.push({ x, z, r: 14 });
+  }
+  // the water tower with the race's name on it
+  const wx = 150, wz = 210;
+  if (clearSpot(wx, wz, 8)) {
+    for (const [ox, oz] of [[-2.5, -2.5], [2.5, -2.5], [-2.5, 2.5], [2.5, 2.5]]) addStatic(BOX, mat('#5a6070'), wx + ox, 9, wz + oz, 0, 0, 0, 0.4, 18, 0.4);
+    const tankTex = canvasTex(512, 128, (g, w, h) => {
+      g.fillStyle = '#d8d6d0'; g.fillRect(0, 0, w, h); g.font = '58px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+      g.fillStyle = '#1d3f73'; g.fillText('MOTO RUSH', w / 4, h / 2); g.fillText('MOTO RUSH', w * 3 / 4, h / 2);
+    }, false, true);
+    const tank = new THREE.Mesh(new THREE.CylinderGeometry(6, 6, 7, 24), mat('#ffffff', { map: tankTex })); tank.position.set(wx, 21.5, wz); scene.add(tank);
+    const cap = new THREE.Mesh(new THREE.ConeGeometry(6.4, 3, 24), mat('#8a8e98')); cap.position.set(wx, 26.5, wz); scene.add(cap);
+    placed.push({ x: wx, z: wz, r: 8 });
+  }
+}
+// billboards beside the track
+{
+  const ads = [
+    ['ROBOBANDIT COLA', '#c8281e', '#fff', '🥤 Ice cold!'], ["LUCKY LEO'S DINER", '#2f7a3a', '#ffe07a', '☘️ Pancakes all day'],
+    ['PUMPKIN PALS', '#ff7a1a', '#2a0a3a', '🎃 Now playing!'], ['WITCH WAY OUT', '#2a1a4a', '#ffb347', '🧹 Moonlight Grand Prix'],
+  ];
+  const at = [[SA - 260, 1], [TIP_L + 170, -1], [SB - 120, 1], [TIP_R + 210, -1]];
+  ads.forEach(([title, bg, fg, sub], i) => {
+    const [s, side0] = at[i], side = side0 * (bendAt(s) ? -bendAt(s) : 1);
+    const p = trackPoint(s, side * (FENCE + 7), {});
+    const tex = canvasTex(512, 256, (g, w, h) => {
+      g.fillStyle = bg; g.fillRect(0, 0, w, h); g.strokeStyle = fg; g.lineWidth = 10; g.strokeRect(10, 10, w - 20, h - 20);
+      g.font = '48px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = fg; g.fillText(title, w / 2, h * 0.42, w - 40);
+      g.font = '800 28px Inter, sans-serif'; g.fillText(sub, w / 2, h * 0.72, w - 40);
+    }, false, true);
+    const board = new THREE.Mesh(new THREE.PlaneGeometry(14, 7), new THREE.MeshLambertMaterial({ map: tex, side: THREE.DoubleSide }));
+    board.position.set(p.x, 7, p.z);
+    const back = trackPoint(s, 0, {}), tp = trackPoint(s - 50, 0, {});   // (facing the riders coming up to it)
+    board.rotation.y = Math.atan2((back.x + tp.x) / 2 - p.x, (back.z + tp.z) / 2 - p.z);
+    scene.add(board);
+    for (const o of [-4, 4]) addStatic(BOX, wood, p.x + Math.cos(board.rotation.y) * o, 2, p.z - Math.sin(board.rotation.y) * o, board.rotation.y, 0, 0, 0.4, 4, 0.4);
+    placed.push({ x: p.x, z: p.z, r: 9 });
+  });
+}
+// trees: low-poly round ones and poplars, mostly in clumps and along the lanes
+{
+  const trunk = mat('#6a4a2e'), leafA = mat('#4f7a34'), leafB = mat('#668f3e'), leafC = mat('#3f6a30');
+  const blob = new THREE.IcosahedronGeometry(1, 0), cone = new THREE.ConeGeometry(1, 1, 7), cyl = new THREE.CylinderGeometry(0.25, 0.35, 1, 5, 1, true);
+  let n = 0;
+  for (let tries = 0; tries < 2400 && n < 260; tries++) {
+    const a = rnd(0, TAU), r = rnd(30, 650), x = Math.cos(a) * r * 1.2, z = Math.sin(a) * r * 0.9;
+    if (!clearSpot(x, z, 3)) continue;
+    const k = rnd(), sc = rnd(0.8, 1.4);
+    addStatic(cyl, trunk, x, 1.4 * sc, z, 0, 0, 0, sc, 2.8 * sc, sc);
+    if (k < 0.3) addStatic(cone, leafC, x, 6 * sc, z, rnd(0, TAU), 0, 0, 1.8 * sc, 9 * sc, 1.8 * sc);
+    else {
+      addStatic(blob, k < 0.65 ? leafA : leafB, x, 4.4 * sc, z, rnd(0, TAU), 0, 0, 3 * sc, 2.6 * sc, 3 * sc);
+      addStatic(blob, k < 0.65 ? leafB : leafA, x + 0.8 * sc, 5.6 * sc, z - 0.5 * sc, rnd(0, TAU), 0, 0, 2 * sc, 1.8 * sc, 2 * sc);
+    }
+    placed.push({ x, z, r: 3 });
+    n++;
+  }
+  // hay bales and cows dotted about the fields (just for looking at)
+  for (let i = 0, made = 0; i < 400 && made < 40; i++) {
+    const x = rnd(-500, 500), z = rnd(-380, 380);
+    if (!clearSpot(x, z, 2)) continue;
+    bale(x, z, rnd(0, TAU), false); placed.push({ x, z, r: 2 }); made++;
+  }
+  // telephone poles along the country road to the city
+  const pole = mat('#5a4430');
+  for (let x = -900; x < 900; x += 40) {
+    const z = 330 + Math.sin(x * 0.004) * 30;
+    if (!clearSpot(x, z, 1)) continue;
+    addStatic(BOX, pole, x, 5, z, 0, 0, 0, 0.3, 10, 0.3);
+    addStatic(BOX, pole, x, 9.2, z, 0, 0, 0, 0.2, 0.2, 2.2);
+  }
+}
+
+// ---------- The cows and the tractor ----------
+// The cows wander across the road at the far hairpin and back (hop over them!). Hit one and you're down.
+const COW_W = mat('#f4f1ea'), COW_B = mat('#2a2622'), COW_P = mat('#e8a0a0'), COW_H = mat('#e8dcc0');
+function makeCow() {
+  const g = new THREE.Group(), w = COW_W, b = COW_B, pink = COW_P;
+  const body = new THREE.Mesh(BOX, w); body.scale.set(0.9, 0.85, 1.9); body.position.y = 1.15; g.add(body);
+  for (const [y, z, h, l] of [[1.25, 0.35, 0.7, 0.55], [1.2, -0.45, 0.5, 0.4], [1.0, 0.85, 0.4, 0.2]]) { const s = new THREE.Mesh(BOX, b); s.scale.set(0.94, h, l); s.position.set(0, y, z); g.add(s); }   // the black patches
+  const udder = new THREE.Mesh(BOX, pink); udder.scale.set(0.35, 0.2, 0.4); udder.position.set(0, 0.68, 0.45); g.add(udder);
+  const tail = new THREE.Mesh(BOX, b); tail.scale.set(0.08, 0.7, 0.08); tail.position.set(0, 1.15, 0.98); tail.rotation.x = 0.25; g.add(tail);
+  const head = new THREE.Mesh(BOX, b); head.scale.set(0.55, 0.55, 0.6); head.position.set(0, 1.45, -1.15); g.add(head);
+  const blaze = new THREE.Mesh(BOX, w); blaze.scale.set(0.2, 0.4, 0.04); blaze.position.set(0, 1.5, -1.45); g.add(blaze);
+  const nose = new THREE.Mesh(BOX, pink); nose.scale.set(0.5, 0.3, 0.2); nose.position.set(0, 1.3, -1.48); g.add(nose);
+  for (const sx of [-1, 1]) { const ear = new THREE.Mesh(BOX, b); ear.scale.set(0.25, 0.1, 0.12); ear.position.set(sx * 0.38, 1.6, -1.05); g.add(ear); }
+  for (const sx of [-1, 1]) { const horn = new THREE.Mesh(BOX, COW_H); horn.scale.set(0.1, 0.22, 0.1); horn.position.set(sx * 0.22, 1.82, -1.1); g.add(horn); }
+  const cow = bake(g), legs = [];
+  for (const [x, z] of [[-0.3, -0.7], [0.3, -0.7], [-0.3, 0.7], [0.3, 0.7]]) { const l = new THREE.Mesh(BOX, w); l.scale.set(0.2, 0.75, 0.2); l.position.set(x, 0.38, z); cow.add(l); legs.push(l); }
+  cow.userData.legs = legs;
+  scene.add(cow);
+  return cow;
+}
+const COWS = [0, 1, 2].map(i => ({ mesh: makeCow(), d: -17, dir: 1, wait: i * 1.6, s: COW_S + (i - 1) * 4, speed: 2.4 + i * 0.2, x: 0, z: 0, moo: 0 }));
+const TRACTOR = { u: -40, dir: 1, wait: 2, mesh: null, x: 0, z: 0, s: TRACTOR_S };
+{
+  const g = new THREE.Group(), green = mat('#2f7a3a'), yel = mat('#ffc93a'), blk = mat('#1a1a1a');
+  const body = new THREE.Mesh(BOX, green); body.scale.set(1.8, 1.2, 3.4); body.position.y = 1.5; g.add(body);
+  const cab = new THREE.Mesh(BOX, green); cab.scale.set(1.7, 1.6, 1.6); cab.position.set(0, 2.9, 0.7); g.add(cab);
+  const roof = new THREE.Mesh(BOX, yel); roof.scale.set(1.9, 0.15, 1.8); roof.position.set(0, 3.75, 0.7); g.add(roof);
+  for (const [x, z, r] of [[-1.05, 0.9, 1.0], [1.05, 0.9, 1.0], [-0.95, -1.2, 0.6], [0.95, -1.2, 0.6]]) {
+    const w = new THREE.Mesh(new THREE.CylinderGeometry(r, r, 0.5, 14), blk); w.rotation.z = Math.PI / 2; w.position.set(x, r, z); g.add(w);
+    const hub = new THREE.Mesh(new THREE.CylinderGeometry(r * 0.5, r * 0.5, 0.52, 10), yel); hub.rotation.z = Math.PI / 2; hub.position.set(x, r, z); g.add(hub);
+  }
+  const stack = new THREE.Mesh(new THREE.CylinderGeometry(0.1, 0.1, 1.2, 6), blk); stack.position.set(0.5, 2.6, -1.2); g.add(stack);
+  TRACTOR.mesh = bake(g);
+  scene.add(TRACTOR.mesh);
+}
+function updateFarm(dt) {
+  const p = {};
+  for (const c of COWS) {
+    if (c.wait > 0) { c.wait -= dt; }
+    else {
+      c.d += c.dir * c.speed * dt;
+      if (Math.abs(c.d) > 17) { c.d = Math.sign(c.d) * 17; c.dir *= -1; c.wait = rand(6, 12); }
+    }
+    trackPoint(c.s, c.d, p);
+    c.x = p.x; c.z = p.z;
+    const m = c.mesh, walking = c.wait <= 0;
+    m.position.set(p.x, 0, p.z);
+    m.rotation.y = p.h + (walking ? (c.dir > 0 ? -Math.PI / 2 : Math.PI / 2) : 0.4);
+    m.userData.legs.forEach((l, i) => { l.rotation.x = walking ? Math.sin(clock * 6 + i * Math.PI / 2) * 0.4 : 0; });
+    c.moo = Math.max(0, c.moo - dt);
+  }
+  // the tractor: along its farm lane across the road, then back
+  const T = TRACTOR;
+  if (T.wait > 0) T.wait -= dt;
+  else {
+    T.u += T.dir * 4.2 * dt;
+    if (Math.abs(T.u) > 60) { T.u = Math.sign(T.u) * 60; T.dir *= -1; T.wait = rand(4, 8); }
+  }
+  trackPoint(T.s, T.u, p);
+  T.x = p.x; T.z = p.z; T.h = p.h + (T.dir > 0 ? -Math.PI / 2 : Math.PI / 2);
+  T.mesh.position.set(p.x, 0, p.z); T.mesh.rotation.y = T.h;
+}
+
+// ---------- The motorcycles ----------
+// A sport bike in the EBITDA Hero style: a pointed fairing with a screen, a tank, a tail, an inline four, chrome pipes,
+// and its rider tucked in. Each part is merged into one shape per material, built once and shared by every bike.
+function partsGeo(list, colors) {
+  const out = [], col = [];
+  list.forEach(([geo, x, y, z, rx = 0, ry = 0, rz = 0, sx = 1, sy = 1, sz = 1], i) => {
+    const g = geo.index ? geo.toNonIndexed() : geo.clone();
+    g.applyMatrix4(_m4.compose(_v.set(x, y, z), _q.setFromEuler(_e.set(rx, ry, rz)), _s.set(sx, sy, sz)));
+    if (g.attributes.uv) g.deleteAttribute('uv');
+    if (colors) { _c.set(colors[i]); for (let k = 0; k < g.attributes.position.count; k++) col.push(_c.r, _c.g, _c.b); }
+    out.push(g);
+  });
+  const merged = mergeList(out);
+  if (colors) merged.setAttribute('color', new THREE.Float32BufferAttribute(col, 3));   // (each part its own colour: the head and tail lights)
+  return merged;
+}
+const SPH = new THREE.SphereGeometry(1, 10, 7), CYL = new THREE.CylinderGeometry(1, 1, 1, 8), WEDGE = new THREE.CylinderGeometry(0.6, 1, 1, 4, 1);
+const BIKE_GEO = {
+  paint: partsGeo([
+    [SPH, 0, 0.84, -0.6, -0.3, 0, 0, 0.22, 0.24, 0.42],     // the nose of the fairing
+    [BOX, 0, 0.66, -0.36, -0.15, 0, 0, 0.46, 0.4, 0.52],    // its sides, down over the engine
+    [SPH, 0, 0.96, -0.2, 0, 0, 0, 0.21, 0.16, 0.3],          // the tank
+    [BOX, 0, 0.98, 0.5, 0.18, 0, 0, 0.26, 0.14, 0.56],       // the tail
+    [BOX, 0, 0.42, -0.02, 0, 0, 0, 0.36, 0.14, 0.62],        // the belly pan
+  ]),
+  dark: partsGeo([
+    [BOX, 0, 0.5, 0.0, 0, 0, 0, 0.32, 0.3, 0.4],             // the engine
+    [BOX, 0, 1.02, 0.2, 0.08, 0, 0, 0.28, 0.07, 0.42],       // the seat
+    [BOX, 0.13, 0.4, 0.42, -0.18, 0, 0, 0.06, 0.08, 0.68], [BOX, -0.13, 0.4, 0.42, -0.18, 0, 0, 0.06, 0.08, 0.68],   // the swingarm
+    [CYL, 0, 1.06, -0.48, 0, 0, Math.PI / 2, 0.025, 0.62, 0.025],   // the bars
+    [BOX, 0, 1.02, -0.62, -0.5, 0, 0, 0.12, 0.08, 0.1],     // the clocks
+  ]),
+  chrome: partsGeo([
+    [CYL, 0.09, 0.62, -0.66, -0.42, 0, 0, 0.035, 0.72, 0.035], [CYL, -0.09, 0.62, -0.66, -0.42, 0, 0, 0.035, 0.72, 0.035],   // the forks
+    [CYL, 0.18, 0.62, 0.52, 1.25, 0, 0, 0.07, 0.62, 0.07],   // the exhaust can
+    [CYL, 0.12, 0.36, 0.06, 1.45, 0, 0.3, 0.035, 0.6, 0.035],
+  ]),
+  glass: partsGeo([[BOX, 0, 1.12, -0.72, -0.85, 0, 0, 0.34, 0.3, 0.02]]),
+  lights: partsGeo([[SPH, 0, 0.86, -1.0, 0, 0, 0, 0.1, 0.08, 0.04], [SPH, 0.1, 0.84, -0.98, 0, 0, 0, 0.06, 0.05, 0.03], [SPH, -0.1, 0.84, -0.98, 0, 0, 0, 0.06, 0.05, 0.03], [BOX, 0, 1.0, 0.79, 0, 0, 0, 0.16, 0.06, 0.03]],
+    ['#fff6d8', '#fff6d8', '#fff6d8', '#ff2a1a']),
+  // the rider, tucked in behind the screen
+  jacket: partsGeo([
+    [BOX, 0, 1.32, -0.02, -0.95, 0, 0, 0.42, 0.56, 0.3],     // the back, low over the tank
+    [BOX, 0.24, 1.22, -0.34, -1.25, 0, 0.12, 0.13, 0.5, 0.13], [BOX, -0.24, 1.22, -0.34, -1.25, 0, -0.12, 0.13, 0.5, 0.13],   // the arms, out to the bars
+  ]),
+  pants: partsGeo([
+    [BOX, 0.18, 1.0, 0.0, -1.35, 0, 0, 0.16, 0.46, 0.17], [BOX, -0.18, 1.0, 0.0, -1.35, 0, 0, 0.16, 0.46, 0.17],   // thighs
+    [BOX, 0.2, 0.72, 0.12, 0.55, 0, 0, 0.14, 0.42, 0.14], [BOX, -0.2, 0.72, 0.12, 0.55, 0, 0, 0.14, 0.42, 0.14],    // shins, back to the pegs
+    [BOX, 0.2, 0.5, 0.26, 0, 0, 0, 0.12, 0.12, 0.26], [BOX, -0.2, 0.5, 0.26, 0, 0, 0, 0.12, 0.12, 0.26],            // boots
+    [SPH, 0.24, 1.07, -0.5, 0, 0, 0, 0.07, 0.07, 0.08], [SPH, -0.24, 1.07, -0.5, 0, 0, 0, 0.07, 0.07, 0.08],        // gloves
+    [SPH, 0, 1.6, -0.47, 0.25, 0, 0, 0.15, 0.08, 0.12],                                                             // the visor
+  ]),
+  helmet: partsGeo([[SPH, 0, 1.6, -0.36, 0, 0, 0, 0.19, 0.18, 0.21]]),
+};
+const TYRE_GEO = new THREE.TorusGeometry(0.28, 0.075, 6, 16); TYRE_GEO.rotateY(Math.PI / 2);
+const RIM_GEO = partsGeo([[new THREE.CylinderGeometry(1, 1, 1, 14), 0, 0, 0, 0, 0, Math.PI / 2, 0.21, 0.08, 0.21],
+  ...[0, 1, 2].map(i => [BOX, 0, 0, 0, i * Math.PI / 3, 0, 0, 0.1, 0.42, 0.045])]);   // the rim and its spokes
+const SHADOW_TEX = canvasTex(64, 64, (g, w, h) => { const gr = g.createRadialGradient(32, 32, 4, 32, 32, 32); gr.addColorStop(0, 'rgba(0,0,0,.55)'); gr.addColorStop(1, 'rgba(0,0,0,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+const SHADOW_GEO = new THREE.PlaneGeometry(1.4, 2.6); SHADOW_GEO.rotateX(-Math.PI / 2);
+const SHADOW_MAT = new THREE.MeshBasicMaterial({ map: SHADOW_TEX, transparent: true, depthWrite: false });
+const SHARED_MATS = {
+  dark: mat('#1c1e24'), chrome: new THREE.MeshPhongMaterial({ color: '#d8dde4', shininess: 90, specular: '#ffffff' }),
+  glass: new THREE.MeshPhongMaterial({ color: '#3a4a5c', transparent: true, opacity: 0.55, shininess: 100 }),
+  lights: new THREE.MeshBasicMaterial({ vertexColors: true }),
+  pants: new THREE.MeshPhongMaterial({ color: '#202329', shininess: 30, specular: '#334466' }),
+  tyre: mat('#111214'), rim: new THREE.MeshPhongMaterial({ color: '#b8bcc4', shininess: 60 }),
+};
+const FLAME_MAT = new THREE.MeshBasicMaterial({ color: '#7ad0ff', transparent: true, opacity: 0.85, blending: THREE.AdditiveBlending, depthWrite: false });
+const FLAME_GEO = new THREE.ConeGeometry(0.09, 0.7, 8); FLAME_GEO.rotateX(Math.PI / 2); FLAME_GEO.translate(0, 0, 0.35);
+const MARK_GEO = new THREE.ConeGeometry(0.45, 0.8, 4); MARK_GEO.rotateX(Math.PI);
+function makeBike(paint, jacket, helmet) {
+  const root = new THREE.Group();                  // on the ground: turns with the heading, leans and pitches
+  const wheelie = new THREE.Group(); wheelie.position.z = 0.72; root.add(wheelie);    // up on the back wheel: turns about the rear axle
+  const body = new THREE.Group(); body.position.z = -0.72; wheelie.add(body);
+  const pm = new THREE.MeshPhongMaterial({ color: paint, shininess: 70, specular: '#555555' });
+  const mats = { paint: pm, jacket: mat(jacket), helmet: new THREE.MeshPhongMaterial({ color: helmet, shininess: 80, specular: '#666666' }), ...SHARED_MATS };
+  const rider = new THREE.Group(); body.add(rider);
+  for (const k of ['paint', 'dark', 'chrome', 'glass', 'lights']) body.add(new THREE.Mesh(BIKE_GEO[k], mats[k]));
+  for (const k of ['jacket', 'pants', 'helmet']) rider.add(new THREE.Mesh(BIKE_GEO[k], mats[k]));
+  const wheels = [];
+  for (const z of [-0.72, 0.72]) {
+    const w = new THREE.Group(); w.position.set(0, 0.35, z); body.add(w);
+    w.add(new THREE.Mesh(TYRE_GEO, mats.tyre)); w.add(new THREE.Mesh(RIM_GEO, mats.rim));
+    wheels.push(w);
+  }
+  // a kicking leg (it swings out to the side you kick)
+  const leg = new THREE.Group(); leg.position.set(0, 1.0, 0.1); leg.visible = false; rider.add(leg);
+  const lm = new THREE.Mesh(BOX, mats.pants); lm.scale.set(0.17, 0.17, 0.9); lm.position.set(0, 0, 0); lm.rotation.y = Math.PI / 2; lm.position.x = 0.55; leg.add(lm);
+  const boot = new THREE.Mesh(BOX, SHARED_MATS.dark); boot.scale.set(0.22, 0.26, 0.22); boot.position.x = 1.0; leg.add(boot);
+  const flame = new THREE.Mesh(FLAME_GEO, FLAME_MAT.clone()); flame.position.set(0.18, 0.66, 0.85); flame.visible = false; body.add(flame);
+  const shadow = new THREE.Mesh(SHADOW_GEO, SHADOW_MAT); scene.add(shadow);
+  scene.add(root);
+  return { root, wheelie, body, rider, wheels, leg, flame, shadow, paintMat: pm };
+}
+
+// ---------- Particles: drift sparks, dust, smoke, nitro ----------
+const PART_N = 600;
+const partGeo = new THREE.BufferGeometry();
+const partPos = new Float32Array(PART_N * 3), partCol = new Float32Array(PART_N * 3);
+partGeo.setAttribute('position', new THREE.BufferAttribute(partPos, 3));
+partGeo.setAttribute('color', new THREE.BufferAttribute(partCol, 3));
+const dotTex = canvasTex(32, 32, (g, w, h) => { const gr = g.createRadialGradient(16, 16, 1, 16, 16, 16); gr.addColorStop(0, 'rgba(255,255,255,1)'); gr.addColorStop(1, 'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0, 0, w, h); });
+const parts = new THREE.Points(partGeo, new THREE.PointsMaterial({ size: 0.5, map: dotTex, vertexColors: true, transparent: true, depthWrite: false }));
+parts.frustumCulled = false;
+scene.add(parts);
+const partV = Array.from({ length: PART_N }, () => ({ vx: 0, vy: 0, vz: 0, life: 0, max: 1, r: 1, g: 1, b: 1 }));
+let partI = 0;
+function emit(x, y, z, vx, vy, vz, color, life = 0.5) {
+  const i = partI; partI = (partI + 1) % PART_N;
+  const q = partV[i];
+  partPos[i * 3] = x; partPos[i * 3 + 1] = y; partPos[i * 3 + 2] = z;
+  _c.set(color); q.r = _c.r; q.g = _c.g; q.b = _c.b;
+  Object.assign(q, { vx, vy, vz, life, max: life });
+}
+function updateParts(dt) {
+  for (let i = 0; i < PART_N; i++) {
+    const q = partV[i];
+    if (q.life <= 0) { partPos[i * 3 + 1] = -100; continue; }
+    q.life -= dt; q.vy -= 4 * dt;
+    partPos[i * 3] += q.vx * dt; partPos[i * 3 + 1] += q.vy * dt; partPos[i * 3 + 2] += q.vz * dt;
+    const k = Math.max(0, q.life / q.max);
+    partCol[i * 3] = q.r * k; partCol[i * 3 + 1] = q.g * k; partCol[i * 3 + 2] = q.b * k;
+  }
+  partGeo.attributes.position.needsUpdate = true; partGeo.attributes.color.needsUpdate = true;
+}
+parts.material.blending = THREE.AdditiveBlending;
+
+// the TV blimp, circling the track
+const blimp = new THREE.Group();
+{
+  const btex = canvasTex(512, 128, (g, w, h) => { g.fillStyle = '#e8eefc'; g.fillRect(0, 0, w, h); g.fillStyle = '#1d3f73'; g.fillRect(0, h * 0.35, w, h * 0.3); g.font = '40px Bungee, Impact, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#ffc93a'; g.fillText('MOTO RUSH TV', w / 2, h / 2 + 2); }, false, true);
+  const hull = new THREE.Mesh(new THREE.SphereGeometry(1, 24, 14), mat('#ffffff', { map: btex })); hull.scale.set(7, 7, 22); hull.rotation.y = Math.PI / 2; blimp.add(hull);
+  const fin = new THREE.Mesh(BOX, mat('#1d3f73')); fin.scale.set(0.4, 7, 5); fin.position.set(-20, 0, 0); blimp.add(fin);
+  const fin2 = new THREE.Mesh(BOX, mat('#1d3f73')); fin2.scale.set(0.4, 5, 7); fin2.rotation.x = Math.PI / 2; fin2.position.set(-20, 0, 0); blimp.add(fin2);
+  const gondola = new THREE.Mesh(BOX, mat('#2a3550')); gondola.scale.set(5, 1.6, 2); gondola.position.y = -7.2; blimp.add(gondola);
+  const baked = bake(blimp); blimp.clear(); blimp.add(baked);
+  scene.add(blimp);
+  animated.push(t => { const a = t * 0.03; blimp.position.set(Math.cos(a) * 320, 95, Math.sin(a) * 200); blimp.rotation.y = -a - Math.PI / 2 * 0 + Math.PI; blimp.lookAt(Math.cos(a + 0.05) * 320, 95, Math.sin(a + 0.05) * 200); blimp.rotateY(-Math.PI / 2); });
+}
+
+flushStatics();
+
+// ---------- Music: a driving rock tune on Moto FM ----------
+const music = (() => {
+  let ac = null, out = null, timer = null, step = 0, beat = 240, noiseBuf = null;
+  const BASS = [82.4, 82.4, 65.4, 98, 73.4];   // E, E, C, G, D
+  const PROG = [[164.8, 196, 246.9], [130.8, 164.8, 196], [196, 246.9, 293.7], [146.8, 185, 220]];   // Em C G D
+  function tone(f, t, dur, type, vol, dest = out) {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.type = type; o.frequency.setValueAtTime(f, t);
+    g.gain.setValueAtTime(0.0001, t); g.gain.exponentialRampToValueAtTime(vol, t + 0.01); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    o.connect(g).connect(dest); o.start(t); o.stop(t + dur + 0.05);
+  }
+  function hit(t, dur, vol, type, freq) {
+    const s = ac.createBufferSource(), f = ac.createBiquadFilter(), g = ac.createGain();
+    s.buffer = noiseBuf; f.type = type; f.frequency.value = freq;
+    g.gain.setValueAtTime(vol, t); g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    s.connect(f).connect(g).connect(out); s.start(t); s.stop(t + dur + 0.02);
+  }
+  function kick(t) {
+    const o = ac.createOscillator(), g = ac.createGain();
+    o.frequency.setValueAtTime(140, t); o.frequency.exponentialRampToValueAtTime(45, t + 0.12);
+    g.gain.setValueAtTime(0.35, t); g.gain.exponentialRampToValueAtTime(0.0001, t + 0.18);
+    o.connect(g).connect(out); o.start(t); o.stop(t + 0.2);
+  }
+  function start() {
+    ac = RB.audio();
+    if (!ac || out) return;
+    out = ac.createGain(); out.gain.value = RB.muted ? 0 : 0.32; out.connect(ac.destination);
+    RB.onMute(m => { out.gain.value = m ? 0 : 0.32; });
+    noiseBuf = ac.createBuffer(1, ac.sampleRate * 0.5, ac.sampleRate);
+    const d = noiseBuf.getChannelData(0); for (let i = 0; i < d.length; i++) d[i] = Math.random() * 2 - 1;
+    timer = setInterval(tick, beat);
+  }
+  function tick() {
+    if (!ac || paused || state !== 'race') return;
+    const t = ac.currentTime + 0.05, bar = Math.floor(step / 8) % 4, i = step % 8, ch = PROG[bar];
+    tone(ch[0] / 2, t, 0.2, 'sawtooth', 0.07);                        // the bass, chugging eighths
+    if (i % 4 === 0) kick(t);
+    if (i % 4 === 2) hit(t, 0.16, 0.22, 'bandpass', 1800);            // the snare
+    hit(t, 0.04, 0.06, 'highpass', 7000);                             // the hats
+    if (i === 0 || i === 3 || i === 6) for (const f of ch) tone(f * 2, t, 0.18, 'square', 0.022);   // power-chord stabs
+    if (step % 32 >= 24) tone(ch[(i * 2) % 3] * 4, t, 0.12, 'triangle', 0.03);   // a little lead lick at the end of each phrase
+    step++;
+  }
+  const setTempo = ms => { if (ms === beat) return; beat = ms; if (timer) { clearInterval(timer); timer = setInterval(tick, beat); } };
+  return { start, setTempo };
+})();
+const sfx = {
+  count: () => RB.beep(440, 440, 0.25, 'square', 0.08),
+  go: () => { RB.beep(880, 880, 0.5, 'square', 0.09); RB.beep(1320, 1320, 0.5, 'triangle', 0.06); },
+  hop: () => RB.beep(180, 320, 0.1, 'triangle', 0.08),
+  land: v => { RB.beep(120, 60, 0.15, 'sine', 0.06 + 0.1 * v); RB.noise(0.12, 0.05 + 0.1 * v); },
+  dash: () => { RB.beep(500, 1600, 0.28, 'sawtooth', 0.05); RB.noise(0.3, 0.08); },
+  nitro: () => { RB.noise(0.45, 0.12); RB.beep(200, 900, 0.45, 'sawtooth', 0.05); },
+  turbo: lvl => { RB.beep(lvl > 1 ? 700 : 500, lvl > 1 ? 2000 : 1400, 0.3, 'sawtooth', 0.05); RB.noise(0.25, 0.07); },
+  kick: () => { RB.beep(240, 80, 0.2, 'square', 0.1); RB.noise(0.15, 0.2); },
+  bump: () => RB.beep(160, 70, 0.18, 'sine', 0.15),
+  scrape: () => RB.noise(0.12, 0.08),
+  wipe: () => { RB.beep(300, 60, 0.8, 'sawtooth', 0.12); RB.noise(0.7, 0.35); },
+  trick: () => [660, 880, 1100].forEach((f, i) => RB.beep(f, f * 1.2, 0.1, 'triangle', 0.07, i * 0.05)),
+  moo: () => { RB.beep(210, 150, 0.7, 'sawtooth', 0.06); RB.beep(105, 75, 0.7, 'square', 0.03); },
+  lap: () => [784, 988, 1175].forEach((f, i) => RB.beep(f, f, 0.14, 'square', 0.06, i * 0.09)),
+  final: () => [523, 659, 784, 1047, 784, 1047, 1319].forEach((f, i) => RB.beep(f, f, 0.14, 'square', 0.06, i * 0.09)),
+  win: () => [523, 659, 784, 1047, 1319].forEach((f, i) => RB.beep(f, f, 0.25, 'triangle', 0.12, i * 0.12)),
+  slip: () => [0, 0.06, 0.12].forEach(d => RB.beep(700 + d * 4000, 1400 + d * 4000, 0.1, 'sine', 0.05, d)),
+  stall: () => [0, 0.12, 0.24].forEach(d => RB.beep(160, 90, 0.1, 'square', 0.08, d)),
+};
+// Each player's engine: an inline four that revs to 13,000 through six gears, the revs dropping at each change (the
+// sound EBITDA Hero's sport bike makes, made here from two oscillators through a filter).
+const GEARS = [0, 9, 15, 21, 27, 34, 46];
+let engineBus = null;
+function makeEngine() {
+  const ac = RB.audio();
+  if (!ac) return null;
+  if (!engineBus) { engineBus = ac.createGain(); engineBus.gain.value = RB.muted ? 0 : 1; engineBus.connect(ac.destination); RB.onMute(m => { engineBus.gain.value = m ? 0 : 1; }); }
+  const lp = ac.createBiquadFilter(); lp.type = 'lowpass'; lp.Q.value = 3;
+  const out = ac.createGain(); out.gain.value = 0;
+  const o1 = ac.createOscillator(), o2 = ac.createOscillator(), g2 = ac.createGain();
+  o1.type = 'sawtooth'; o2.type = 'square'; g2.gain.value = 0.3;
+  o1.connect(lp); o2.connect(g2).connect(lp); lp.connect(out).connect(engineBus);
+  o1.start(); o2.start();
+  return {
+    set(speed, load, vol) {
+      const v = Math.abs(speed);
+      let gi = 1; while (gi < GEARS.length - 1 && v > GEARS[gi]) gi++;
+      const lo = GEARS[gi - 1], hi = GEARS[gi], k = clamp((v - lo) / (hi - lo), 0, 1.1);
+      const rpm = (v < 1 ? 1500 : 4200 + k * 8800) + load * 600 + (k > 1 ? Math.sin(performance.now() * 0.05) * 300 : 0);
+      const f = rpm / 30, t = ac.currentTime;
+      o1.frequency.setTargetAtTime(f, t, 0.03); o2.frequency.setTargetAtTime(f / 2, t, 0.03);
+      lp.frequency.setTargetAtTime(500 + load * 1400 + rpm * 0.12, t, 0.05);
+      out.gain.setTargetAtTime(vol * (0.35 + 0.65 * load), t, 0.05);
+    },
+    quiet() { out.gain.setTargetAtTime(0, ac.currentTime, 0.1); },
+  };
+}
+
+// ---------- Input ----------
+// The RoboBandit controls (CONTROLS.md, after EBITDA Hero): W gas, S brake (W and S together: a wheelie), A / D steer,
+// Shift nitro, Ctrl drift (the handbrake), Space hop, K / J / F kick. Two players on one keyboard: Player 1 W A S D,
+// left Shift, left Ctrl, Space, F; Player 2 I J K L, right Shift, right Ctrl, Enter, U.
+// Controllers are always read one by one while racing: RT gas, LT brake, Ⓧ nitro, Ⓑ drift, Ⓐ hop, Ⓨ kick.
+const KEYMAP = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', ShiftRight: 'boost', ControlLeft: 'drift', ControlRight: 'drift' };
+const KEYS_P1 = { KeyA: 'l', KeyD: 'r', KeyW: 'u', KeyS: 'd', ShiftLeft: 'boost', ControlLeft: 'drift' };
+const KEYS_P2 = { KeyJ: 'l', KeyL: 'r', KeyI: 'u', KeyK: 'd', ShiftRight: 'boost', ControlRight: 'drift' };
+RB.setControls({
+  name: 'Moto Rush', camera: true,
+  rows: [
+    { act: 'Gas / brake, then reverse', keys: 'W / S', pad: '{RT} / {LT}', touch: 'it goes by itself' },
+    { act: 'Steer', keys: 'A D', pad: 'left stick', touch: 'drag your thumb' },
+    { act: 'Wheelie (fills the nitro)', keys: 'W + S', pad: 'pull the stick back', touch: 'drag down' },
+    { act: 'Nitro (hold)', keys: 'Shift', pad: '{X}', touch: '🔥 button' },
+    { act: 'Drift (hold, let go for a mini-turbo)', keys: 'Ctrl', pad: '{B}', touch: '🌀 button' },
+    { act: 'Hop · in the air: a trick', keys: 'Space', pad: '{A}', touch: '⤴️ button' },
+    { act: 'Kick the rider beside you', keys: 'K (or J, F)', pad: '{Y}', touch: '🦵 button' },
+  ],
+  note: '👥 2 players on one keyboard: Player 1 W A S D, left Shift nitro, left Ctrl drift, Space hop, F kick · Player 2 I J K L, right Shift nitro, right Ctrl drift, Enter hop, U kick. With controllers, each one uses the buttons above.',
+});
+let state = 'title', paused = false, twoP = false;
+RB.guardLeave(() => state === 'race' && !paused);   // (Ctrl drifts, so Ctrl + W mustn't close the tab by accident)
+const stick = createTouchStick(canvas, { enabled: () => state === 'race' && !paused });
+document.body.classList.toggle('touch', !!RB.touch);
+
+// ---------- Racers ----------
+// Players and the other riders share everything: the same bike, the same riding. A player's own camera, half (or
+// corner) of the screen, HUD, controller and engine sound come on top.
+const PLAYER_LOOKS = [['#c8281e', '#1d3f73', '#ffc93a'], ['#2a7ac8', '#e8eefc', '#2a7ac8'], ['#ffb020', '#1c1e24', '#ffb020'], ['#3ddc84', '#1c1e24', '#e8eefc']];
+const RIVALS = [
+  { name: 'Rex', look: ['#1c1e24', '#c8281e', '#1c1e24'], skill: 1.0 },
+  { name: 'Moxie', look: ['#f2f2ee', '#e86aa8', '#f2a0c0'], skill: 0.985 },
+  { name: 'Turbo Tina', look: ['#7a2a9a', '#f2f2ee', '#b47cff'], skill: 0.97 },
+  { name: 'Diesel', look: ['#b8bcc4', '#3a4a2a', '#5a6a3a'], skill: 0.955 },
+  { name: 'Lulu', look: ['#ff7a2a', '#1d3f73', '#ffe07a'], skill: 0.94 },
+];
+const CAM_DIST = 6.6;
+const SL_N = 40;
+const hudTemplate = document.getElementById('hud0');
+function newRider(look) {
+  return { bike: makeBike(...look), look, color: look[0],
+    x: 0, y: 0, z: 0, h: 0, speed: 0, vy: 0, air: 0, steer: 0, s: 0, d: 0, dist: 0, gyPrev: null };
+}
+function makePlayer(idx) {
+  const r = newRider(PLAYER_LOOKS[idx]);
+  const camera = new THREE.PerspectiveCamera(70, 1, 0.3, 1500);
+  camera.userData.fov0 = 70; camera.layers.enable(idx + 1);
+  for (let k = 0; k < 4; k++) if (k !== idx) camera.layers.enable(10 + k);   // everyone else's arrow marker
+  // speed lines streaming past on a boost (only this player's camera sees them)
+  const slPos = new Float32Array(SL_N * 6), slGeo = new THREE.BufferGeometry();
+  slGeo.setAttribute('position', new THREE.BufferAttribute(slPos, 3));
+  const speedLines = new THREE.LineSegments(slGeo, new THREE.LineBasicMaterial({ color: '#ffffff', transparent: true, opacity: 0, fog: false, depthWrite: false }));
+  speedLines.layers.set(idx + 1); speedLines.frustumCulled = false; scene.add(speedLines);
+  const slSeeds = Array.from({ length: SL_N }, () => ({ a: rand(0, TAU), r: rand(2.2, 6), z: rand(-30, 0), len: rand(2.5, 6) }));
+  // a marker over your head, so your friends can tell which bike is you
+  const marker = new THREE.Mesh(MARK_GEO, new THREE.MeshBasicMaterial({ color: r.color })); marker.layers.set(10 + idx); scene.add(marker);
+  const hud = idx ? hudTemplate.cloneNode(true) : hudTemplate;
+  if (idx) { hud.id = 'hud' + idx; hudTemplate.after(hud); }
+  hud.classList.remove('p0'); hud.classList.add('p' + idx);
+  const p = Object.assign(r, { idx, isPlayer: true, camera, hud, ui: {}, keys: {}, pad: null, raw: null, prevBtn: null, speedLines, slSeeds, marker,
+    camPos: new THREE.Vector3(0, 30, 30), camLook: new THREE.Vector3(), engine: null });
+  hud.querySelectorAll('[data-u]').forEach(el => { p.ui[el.dataset.u] = el; });
+  p.ui.tag.textContent = `P${idx + 1}`; p.ui.tag.style.background = r.color;
+  p.radarCtx = p.ui.radar.getContext('2d');
+  p.cam = Object.assign(createOrbitCam({ canvas: idx ? null : canvas, stick: idx ? null : stick, enabled: () => state === 'race' && !paused,
+    el0: 0.26, source: () => (twoP ? camSource(p) : null) }), { dist: CAM_DIST, speedK: 0 });
+  Object.defineProperty(p, 'name', { get: () => (twoP ? `Player ${idx + 1}` : 'You') });
+  return p;
+}
+function camSource(p) {
+  const g = p.pad;
+  return { x: g ? g.rx : 0, y: g ? g.ry : 0, recenter: !!g && [4, 5, 11].some(b => g.pressed(b)), keys: p.idx === 0 };
+}
+const ALL = [0, 1, 2, 3].map(makePlayer);
+const [P1, P2, P3, P4] = ALL;
+const cpus = RIVALS.map((rv, i) => Object.assign(newRider(rv.look), { name: rv.name, skill: rv.skill, idx: 100 + i, isPlayer: false }));
+let players = [P1], racers = [...cpus], nP = 1;
+for (const q of ALL) { q.bike.root.visible = q.bike.shadow.visible = q.marker.visible = false; }
+function rumble(p, ms, strength) { if (p && p.isPlayer && RB.pad && RB.pad.rumble) RB.pad.rumble(ms, strength, twoP ? p.idx : null); }
+
+addEventListener('keydown', e => {
+  const map = twoP ? (KEYS_P1[e.code] ? [P1, KEYS_P1[e.code]] : KEYS_P2[e.code] ? [P2, KEYS_P2[e.code]] : null) : KEYMAP[e.code] ? [P1, KEYMAP[e.code]] : null;
+  if (map) { map[0].keys[map[1]] = true; e.preventDefault(); }
+  if (e.repeat) return;
+  if (paused) { if (['Space', 'Enter', 'Escape'].includes(e.code)) { e.preventDefault(); resume(); } return; }
+  if (state === 'race') {
+    if (e.code === 'Space') { e.preventDefault(); hop(P1); }
+    if (e.code === 'KeyF' || (!twoP && (e.code === 'KeyK' || e.code === 'KeyJ'))) kick(P1);
+    if (twoP) {
+      if (e.code === 'Enter') { e.preventDefault(); hop(P2); }
+      if (e.code === 'KeyU') kick(P2);
+    }
+  } else if (e.code === 'Space' || e.code === 'Enter') { if (document.activeElement && document.activeElement.tagName === 'BUTTON') return; e.preventDefault(); startGame(); }
+  if (e.code === 'Escape') pause();
+});
+addEventListener('keyup', e => {
+  for (const p of ALL) {
+    const k = twoP ? (p.idx ? KEYS_P2 : KEYS_P1)[e.code] : !p.idx && KEYMAP[e.code];
+    if (k) p.keys[k] = false;
+  }
+});
+const clearKeys = () => { for (const p of ALL) for (const k in p.keys) p.keys[k] = false; };
+addEventListener('blur', clearKeys);
+canvas.addEventListener('pointerdown', () => RB.audio());
+const tapBtn = (id, fn) => document.getElementById(id).addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); fn(); });
+tapBtn('hopBtn', () => hop(P1));
+tapBtn('kickBtn', () => kick(P1));
+for (const [id, k] of [['boostBtn', 'boost'], ['driftBtn', 'drift']]) {
+  const b = document.getElementById(id);
+  b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); P1.keys[k] = true; try { b.setPointerCapture(e.pointerId); } catch (er) { /* fine */ } });
+  for (const ev of ['pointerup', 'pointercancel', 'lostpointercapture']) b.addEventListener(ev, () => { P1.keys[k] = false; });
+}
+
+// Every controller is read on its own while racing (common.js stops pressing keys for it), so the triggers are analog
+function pollPads() {
+  const on = state === 'race' && !paused;
+  if (RB.pad && 'direct' in RB.pad) RB.pad.direct = on;
+  const raw = RB.pad && RB.pad.pads ? RB.pad.pads() : [];
+  for (const p of ALL) {
+    p.pad = on && RB.pad && RB.pad.read ? RB.pad.read(p.idx) : null;
+    p.raw = p.pad ? raw[p.idx] : null;
+    if (!p.pad) { p.prevBtn = null; continue; }
+    const now = [];
+    for (let b = 0; b < 16; b++) now[b] = p.pad.pressed(b);
+    if (p.prevBtn && players.includes(p)) {   // (a button already held when the race starts doesn't count)
+      const edge = b => now[b] && !p.prevBtn[b];
+      if (edge(0)) hop(p);
+      if (edge(3)) kick(p);
+    }
+    p.prevBtn = now;
+  }
+}
+const trig = (p, b) => { const v = p.raw && p.raw.buttons[b] ? p.raw.buttons[b].value || (p.raw.buttons[b].pressed ? 1 : 0) : 0; return clamp((v - 0.08) / 0.92, 0, 1); };
+// what a player is asking for this frame: { steer, gas, brake, back, fwd, boost, drift, look }
+function playerInput(p) {
+  const k = p.keys, g = p.pad;
+  const inp = { steer: 0, gas: 0, brake: 0, back: false, fwd: false, boost: !!k.boost, drift: !!k.drift };
+  inp.steer = (k.r ? 1 : 0) - (k.l ? 1 : 0);
+  if (k.u) inp.gas = 1;
+  if (k.d) { if (k.u) inp.back = true; else inp.brake = 1; }   // (W and S together: a wheelie, like EBITDA Hero)
+  if (g) {
+    if (Math.abs(g.lx) > Math.abs(inp.steer)) inp.steer = g.lx;
+    inp.gas = Math.max(inp.gas, trig(p, 7)); inp.brake = Math.max(inp.brake, trig(p, 6));
+    if (g.ly > 0.5) inp.back = true;
+    if (g.ly < -0.5 && inp.brake > 0.3) inp.fwd = true;
+    if (g.pressed(2)) inp.boost = true;
+    if (g.pressed(1)) inp.drift = true;
+  }
+  if (!p.idx && !g && stick.active) {   // touch: the bike goes by itself, the stick steers, pulled back is a wheelie
+    inp.steer = stick.x; inp.gas = 1;
+    if (stick.y > 0.55) inp.back = true;
+  } else if (!p.idx && RB.touch && !g && !k.d && !k.l && !k.r) inp.gas = Math.max(inp.gas, state === 'race' && countT <= 0 ? 1 : 0);
+  return inp;
+}
+
+function pause() {
+  if (paused || state !== 'race') return;
+  paused = true; stick.reset(); clearKeys();
+  RB.showPause(resume, { extra: [{ label: '🎮 CONTROLLER', onClick: () => RB.controllerScreen() }] });
+}
+function resume() { paused = false; RB.hidePause(); last = performance.now(); for (const p of ALL) p.prevBtn = null; }
+RB.topbar({
+  onPause: () => (paused ? resume() : pause()),
+  shareInfo: { title: 'Moto Rush | RoboBandit', text: 'Race motorcycles round the Figure 8 Fields with your friends! 🏍️🏁' },
+});
+RB.onHide(pause);
+
+// ---------- Game state ----------
+let clock = 0, runT = 0, countT = 0, endT = 0;
+let finishOrder = [];
+let best = +(RB.store.get('mr_best') || 0), bestLap = +(RB.store.get('mr_lap') || 0), bestPlace = +(RB.store.get('mr_place') || 0);
+const ORD = ['1st', '2nd', '3rd', '4th', '5th', '6th', '7th', '8th', '9th'];
+const fmt = t => `${Math.floor(t / 60)}:${(t % 60).toFixed(1).padStart(4, '0')}`;
+// the starting grid: two by two behind the line, the players at the back (like a kart racer)
+function gridSlot(i) { return { s: -7 - Math.floor(i / 2) * 7, d: i % 2 ? 3.6 : -3.6 }; }
+
+function resetRider(r, s, d) {
+  const p = trackPoint(s, d, {});
+  Object.assign(r, { x: p.x, z: p.z, h: p.h, s: modS(s), d, dist: s, y: groundY(s, d), vy: 0, air: 0, gyPrev: null, speed: 0, steer: 0,
+    nitro: 0.35, boosting: false, dash: 0, dashT: 0, lean: 0, wheelie: 0, stoppie: 0, drifting: false, driftDir: 0, driftCharge: 0, driftYaw: 0,
+    trick: 0, trickDone: false, kickT: 0, kickCool: 0, kickSide: 1, wobbleT: 0, wipeT: 0, ghostT: 0, offT: 0, wrongT: 0, padCool: 0,
+    draft: 0, lap: 0, lapStart: 0, lapTimes: [], bestLapT: 0, finishT: 0, place: 1, onCut: false, cuts: 0, chargeAt: null, rocket: false, stallT: 0,
+    feedT: 0, bannerT: 0, shakeT: 0, slipX: 0, slipZ: 0, tricks: 0, kicks: 0, wipes: 0, airBest: 0, cutCounted: false,
+    lane: d, laneT: 2, cutPlan: false, nitroT: 0, wheelieT: 99, kickWant: 0 });
+  if (r.isPlayer) r.cam.reset();
+}
+
+function startGame(n) {
+  if (typeof n === 'boolean') nP = n ? 2 : 1;
+  else if (typeof n === 'number') nP = clamp(Math.round(n), 1, 4);
+  twoP = nP > 1;
+  RB.audio();
+  music.start(); music.setTempo(240);
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('over').classList.add('hidden');
+  document.body.classList.remove('wasted');
+  players = ALL.slice(0, nP);
+  racers = [...cpus, ...players];
+  for (const q of ALL) { const on = players.includes(q); q.bike.root.visible = q.bike.shadow.visible = on; q.marker.visible = on && twoP; q.speedLines.visible = on; }
+  racers.forEach((r, i) => { const g = gridSlot(i); resetRider(r, g.s, g.d); });
+  cpus.forEach(c => Object.assign(c, { lane: c.d, laneT: rand(1, 3), cutPlan: Math.random() < 0.45, nitroT: 0, wheelieT: rand(4, 9), kickWant: 0 }));
+  for (const p of players) {
+    p.cam.dist = CAM_DIST; p.prevBtn = null;
+    if (!p.engine) p.engine = makeEngine();
+    p.camPos.set(p.x + Math.sin(p.h) * 8, p.y + 3, p.z + Math.cos(p.h) * 8);
+  }
+  runT = 0; finishOrder = []; endT = 0;
+  state = 'race';
+  countT = 3.6;
+  for (const l of lights) l.material.color.set('#3a1010');
+  for (const p of players) showBanner(p, '', '', 0);
+  for (const c of COWS) c.wait = rand(0, 3);
+}
+
+// ---------- Riding ----------
+// The physics (after EBITDA Hero's motorcycle): the throttle and brake are smooth, steering bites harder the slower you
+// go, the bike leans into turns, the stick pulled back lifts a wheelie, Ⓐ bunny-hops, and it keeps its upward speed
+// over a crest so it flies off the bridge and the ramps. Riders follow the track by s (how far along) and d (how
+// far to the side), found near where they were last time, so the two roads crossing in the middle never get mixed up.
+function locate(r, wide) {
+  const c = Math.round(r.s), W = wide ? Math.ceil(N_T / 2) : 36;
+  let bi = c, bd = Infinity;
+  for (let k = -W; k <= W; k += 2) {
+    const i = ((c + k) % N_T + N_T) % N_T, dx = r.x - TX[i], dz = r.z - TZ[i], dd = dx * dx + dz * dz;
+    if (dd < bd) { bd = dd; bi = i; }
+  }
+  for (const k of [-1, 1]) {
+    const i = ((bi + k) % N_T + N_T) % N_T, dx = r.x - TX[i], dz = r.z - TZ[i], dd = dx * dx + dz * dz;
+    if (dd < bd) { bd = dd; bi = i; }
+  }
+  const dx = r.x - TX[bi], dz = r.z - TZ[bi];
+  const along = dx * TDX[bi] + dz * TDZ[bi];
+  const sNew = modS(bi + along);
+  r.d = -dx * TDZ[bi] + dz * TDX[bi];
+  if (wide) { r.dist += dS(sNew - r.s); r.s = sNew; return; }
+  r.dist += dS(sNew - r.s);
+  r.s = sNew;
+}
+function setFromTrack(r) { const p = trackPoint(r.s, r.d, {}); r.x = p.x; r.z = p.z; }
+function inCutZone(r) { const c = cutUV(r.x, r.z); return c.u > -12 && c.u < CUT.len + 12 && Math.abs(c.v) < 7.5; }
+
+function drive(r, inp, dt) {
+  r.kickCool = Math.max(0, r.kickCool - dt); r.kickT = Math.max(0, r.kickT - dt); r.ghostT = Math.max(0, r.ghostT - dt);
+  r.padCool = Math.max(0, r.padCool - dt); r.wobbleT = Math.max(0, r.wobbleT - dt); r.stallT = Math.max(0, r.stallT - dt);
+  if (r.wipeT > 0) return wipeSlide(r, dt);
+  const onGround = r.air <= 0;
+  // terrain: the road, the dirt shoulder, the shortcut's dirt, or the grass
+  const cut = cutUV(r.x, r.z);
+  r.onCut = cut.u > 8 && cut.u < CUT.len - 8 && Math.abs(cut.v) < 6;
+  const ad = Math.abs(r.d), grass = !r.onCut && ad > HW + 2.4 && !inCutZone(r);
+  const terrain = r.onCut ? 0.95 : grass ? 0.55 : ad > HW ? 0.9 : 1;
+  // nitro
+  const wasBoost = r.boosting;
+  r.boosting = inp.boost && r.nitro > 0.02 && r.speed > 3 && countT <= 0 && (r.boosting || r.nitro > 0.1);
+  if (r.boosting) { r.nitro = Math.max(0, r.nitro - NITRO_DRAIN * dt); if (!wasBoost && r.isPlayer) { sfx.nitro(); rumble(r, 200, 0.4); } }
+  else r.nitro = Math.min(1, r.nitro + 0.015 * dt);
+  r.dash = Math.max(0, r.dash - 6 * dt); r.dashT = Math.max(0, r.dashT - dt);
+  const top = MAX * terrain * (r.boosting ? NITRO_MULT : 1) + r.dash;
+  let gas = r.stallT > 0 ? 0 : inp.gas;
+  // throttle and brake
+  if (gas > 0.05 && r.speed < top) r.speed += ACCEL * gas * (r.boosting ? 1.7 : 1) * (r.speed < 0 ? 2 : 1.15 - 0.55 * clamp(r.speed / MAX, 0, 1)) * dt;
+  if (inp.brake > 0.05) r.speed -= (r.speed > 0.5 ? BRAKE : REVERSE * 0.8) * inp.brake * dt;
+  r.speed -= r.speed * (gas > 0.05 ? 0.02 : 0.12) * dt;
+  if (grass && onGround) r.speed -= r.speed * 0.6 * dt;
+  if (r.speed > top) r.speed -= Math.min(r.speed - top, (grass ? 20 : 9) * dt);   // ease back down after a boost (fast on the grass)
+  r.speed = Math.max(-REVERSE, r.speed);
+  if (Math.abs(r.speed) < 0.05 && gas < 0.05 && inp.brake < 0.05) r.speed = 0;
+  // wheelies (stick back) and stoppies (brake with the stick forward)
+  const lift = inp.back && r.speed > 5 && onGround && !r.drifting;
+  if (lift) { r.wheelie += (0.5 + Math.sin(clock * 5 + r.idx) * 0.05 - r.wheelie) * Math.min(1, dt * 3); r.nitro = Math.min(1, r.nitro + 0.13 * dt); }
+  else if (r.wheelie > 0) { r.wheelie = Math.max(0, r.wheelie - dt * 1.8); if (!r.wheelie && r.isPlayer) sfx.land(0.2); }
+  const nose = inp.fwd && r.speed > 3 && onGround;
+  if (nose) r.stoppie += (0.35 - r.stoppie) * Math.min(1, dt * 3.5); else r.stoppie = Math.max(0, r.stoppie - dt * 2.2);
+  // steering: tighter the slower you go; a powerslide (Ⓑ / C) swings the back out and charges a mini-turbo
+  r.steer += (inp.steer - r.steer) * Math.min(1, dt * 10);
+  const startDrift = inp.drift && !r.drifting && onGround && r.speed > 14 && Math.abs(inp.steer) > 0.3;
+  if (startDrift) { r.drifting = true; r.driftDir = Math.sign(inp.steer); r.driftCharge = 0; r.vy = Math.max(r.vy, 1.8); r.y += 0.02; }
+  if (r.drifting && (!inp.drift || r.speed < 10)) {
+    const lvl = r.driftCharge > 1.8 ? 2 : r.driftCharge > 0.9 ? 1 : 0;
+    if (lvl && r.speed > 8) { r.dash = Math.max(r.dash, lvl > 1 ? 13 : 8); r.dashT = lvl > 1 ? 1.1 : 0.7; if (r.isPlayer) { sfx.turbo(lvl); feed(r, lvl > 1 ? '🔥 SUPER MINI-TURBO!' : '⚡ MINI-TURBO!'); rumble(r, 160, 0.5); } }
+    r.drifting = false;
+  }
+  const grip = clamp(Math.abs(r.speed) / 5, 0, 1) * (1 - 0.36 * clamp(Math.abs(r.speed) / MAX, 0, 1.3));
+  let turn = r.steer * TURN * grip * Math.sign(r.speed);
+  if (r.drifting) {
+    turn = (r.driftDir * 0.26 + r.steer * 0.42) * TURN * clamp(r.speed / 14, 0, 1);
+    r.driftCharge += dt * (0.7 + 0.6 * Math.abs(r.steer));
+    r.speed -= r.speed * 0.06 * dt;
+    r.nitro = Math.min(1, r.nitro + 0.05 * dt);
+  }
+  if (r.wheelie > 0.2) turn *= 0.6;
+  if (!onGround) turn *= 0.3;
+  if (r.wobbleT > 0) turn += Math.sin(clock * 22) * 0.9 * r.wobbleT;
+  r.h -= turn * dt;
+  r.driftYaw += ((r.drifting ? r.driftDir * 0.42 : 0) - r.driftYaw) * Math.min(1, dt * 7);
+  // slipstream: tucked in close behind another rider
+  let behind = false;
+  for (const o of racers) {
+    if (o === r || o.wipeT > 0) continue;
+    const gap = o.dist - r.dist;
+    if (gap > 3 && gap < 20 && Math.abs(o.d - r.d) < 2.2 && Math.abs(o.y - r.y) < 1.5) { behind = true; break; }
+  }
+  if (behind && r.speed > 20) {
+    r.draft += dt;
+    if (r.draft > 0.8) { r.nitro = Math.min(1, r.nitro + 0.22 * dt); r.dash = Math.max(r.dash, 5); if (r.isPlayer && !r.slipTold) { r.slipTold = true; sfx.slip(); feed(r, '💨 SLIPSTREAM!'); } }
+  } else { r.draft = Math.max(0, r.draft - dt * 2); if (r.draft <= 0) r.slipTold = false; }
+  // move
+  const fx = -Math.sin(r.h), fz = -Math.cos(r.h);
+  r.x += (fx * r.speed + r.slipX) * dt; r.z += (fz * r.speed + r.slipZ) * dt;
+  const sl = Math.hypot(r.slipX, r.slipZ); if (sl > 0) { const k = Math.max(0, sl - 10 * dt) / sl; r.slipX *= k; r.slipZ *= k; }
+  // where that is on the track
+  if (r.onCut) {
+    const c = cutUV(r.x, r.z), sNew = modS(CUT.s0 + clamp(c.u / CUT.len, 0, 1) * (CUT.s1 - CUT.s0 + (CUT.s1 < CUT.s0 ? N_T : 0)));
+    r.dist += dS(sNew - r.s); r.s = sNew; r.d = 0;
+    if (!r.cutCounted) { r.cutCounted = true; r.cuts++; if (r.isPlayer) feed(r, '🐴 THROUGH THE BARN!'); }
+  } else { locate(r); r.cutCounted = r.cutCounted && inCutZone(r); }
+  // walls: the bridge (the road's walls up there) and the field fences
+  const prof = profile(r.s);
+  if (!r.onCut && prof > 0.6 && Math.abs(r.d) < HW + 1.0 && r.y < prof * 0.5) {   // beside the ramps, down on the grass: their walls
+    r.d = Math.sign(r.d) * (HW + 1.0); setFromTrack(r);
+    r.speed *= 0.9; if (r.isPlayer && Math.random() < 0.2) sfx.scrape();
+  } else if (!r.onCut && prof > 0.6 && Math.abs(r.d) > HW - 0.6 && r.y >= prof * 0.5) {   // up on the bridge: its walls
+    r.d = Math.sign(r.d) * (HW - 0.6); setFromTrack(r);
+    const th = trackPoint(r.s, 0, {}).h;
+    r.h += wrapA(th - r.h) * 0.25; r.speed *= 0.985;
+    if (r.isPlayer && Math.random() < 0.2) sfx.scrape();
+    for (let i = 0; i < 2; i++) emit(r.x, r.y + 0.6, r.z, rand(-2, 2), rand(1, 3), rand(-2, 2), '#ffd27a', 0.3);
+  }
+  if (!r.onCut && Math.abs(r.d) > FENCE - 0.6 && !fenceGap(r.s, Math.sign(r.d)) && !inCutZone(r)) {
+    r.d = Math.sign(r.d) * (FENCE - 0.6); setFromTrack(r);
+    const th = trackPoint(r.s, 0, {}).h; r.h += wrapA(th - r.h) * 0.3; r.speed *= 0.97;
+  }
+  hitThings(r, dt);
+  // up and down: follow the road, and fly off crests and ramps
+  const gy = r.onCut ? 0 : groundY(r.s, r.d);
+  const gvMax = Math.abs(r.speed) * 0.6 + 1;
+  const gv = r.gyPrev != null && Math.abs(gy - r.gyPrev) < 1.5 ? clamp((gy - r.gyPrev) / Math.max(dt, 1e-3), -gvMax, gvMax) : 0;
+  r.gyPrev = gy;
+  if (r.y < gy - 2.5) { r.y = gy; r.vy = 0; }   // (under the bridge, or just put back on the road)
+  r.vy -= GRAV * dt; r.y += r.vy * dt;
+  if (r.y <= gy) {
+    if (r.air > 0.25) land(r, -r.vy);
+    r.y = gy; r.vy = gv; r.air = 0;
+  } else { r.air += dt; if (r.air > 0.3) r.nitro = Math.min(1, r.nitro + 0.2 * dt); r.airBest = Math.max(r.airBest, r.air); }
+  // tricks spin round in the air
+  if (r.trick > 0) { r.trick = Math.min(1, r.trick + dt / 0.55); if (r.trick >= 1) { r.trick = 0; r.trickDone = true; } }
+  // dash pads
+  if (r.air <= 0 && r.padCool <= 0) {
+    for (const pd of PADS) {
+      if (Math.abs(dS(r.s - pd.s)) < 3 && Math.abs(r.d - pd.d) < 2.4) { dashBoost(r, 12, '⚡ DASH!'); break; }
+    }
+    if (r.onCut && CUT.pads.some(u => Math.abs(cut.u - u) < 3) && Math.abs(cut.v) < 2.4) dashBoost(r, 12, '⚡ DASH!');
+  }
+  // off the road for long, or riding the wrong way
+  const away = !r.onCut && !inCutZone(r) && Math.abs(r.d) > FENCE + 3;
+  r.offT = away ? r.offT + dt : Math.max(0, r.offT - dt);
+  if (r.offT > 2.5 || Math.abs(r.d) > FENCE + 30) respawn(r, false);
+  const tdir = trackAt(r.s, {});
+  r.wrongT = (fx * tdir.dx + fz * tdir.dz) < -0.35 && r.speed > 3 && !r.onCut ? r.wrongT + dt : 0;
+  // effects: drift sparks, grass and dirt, nitro flames
+  if (r.drifting && r.air <= 0 && Math.random() < 0.8) {
+    const col = r.driftCharge > 1.8 ? '#ff8a2a' : r.driftCharge > 0.9 ? '#4aa8ff' : '#ffe9b0';
+    emit(r.x - fx * 0.8, r.y + 0.1, r.z - fz * 0.8, rand(-1.5, 1.5) - fx * 2, rand(1, 3), rand(-1.5, 1.5) - fz * 2, col, 0.35);
+  }
+  if ((grass || r.onCut) && r.air <= 0 && r.speed > 8 && Math.random() < 0.6) emit(r.x - fx, r.y + 0.2, r.z - fz, rand(-1, 1), rand(1, 2.5), rand(-1, 1), r.onCut ? '#8a6a44' : '#5a7a34', 0.6);
+  if (r.boosting || r.dashT > 0) emit(r.x - fx * 1.0, r.y + 0.6, r.z - fz * 1.0, -fx * 3 + rand(-0.5, 0.5), rand(0, 1), -fz * 3 + rand(-0.5, 0.5), r.boosting ? '#7ad0ff' : '#ffc93a', 0.25);
+}
+function dashBoost(r, amount, text) {
+  r.dash = Math.max(r.dash, amount); r.dashT = 1.0; r.padCool = 0.6;
+  if (r.speed < MAX * 0.8) r.speed = Math.max(r.speed, MAX * 0.8);
+  if (r.isPlayer) { sfx.dash(); feed(r, text); rumble(r, 140, 0.4); }
+}
+function land(r, hard) {
+  if (r.trickDone) { r.trickDone = false; r.tricks++; dashBoost(r, 11, '🤸 TRICK! BOOST!'); if (r.isPlayer) sfx.trick(); }
+  else if (r.trick > 0) { r.trick = 0; r.speed *= 0.7; r.wobbleT = 0.8; if (r.isPlayer) feed(r, '😵 Too late! Land the trick before you touch down'); }
+  if (r.isPlayer) { sfx.land(clamp(hard / 12, 0, 1)); rumble(r, 120, clamp(hard / 14, 0.2, 0.9)); r.shakeT = Math.min(0.4, hard / 30); }
+  for (let i = 0; i < 6; i++) emit(r.x + rand(-0.5, 0.5), r.y + 0.1, r.z + rand(-0.5, 0.5), rand(-3, 3), rand(0.5, 2), rand(-3, 3), '#cfc4a8', 0.5);
+}
+function hop(r) {
+  if (state !== 'race' || paused || countT > 0 || !r || r.wipeT > 0) return;
+  if (r.air <= 0) { r.vy = 5.8; r.y += 0.05; r.air = 0.01; if (r.isPlayer) sfx.hop(); return; }
+  if (!r.trick && !r.trickDone && r.air > 0.1 && r.y - groundY(r.s, r.d) > 0.5) { r.trick = 0.01; if (r.isPlayer) RB.beep(500, 900, 0.12, 'triangle', 0.06); }
+}
+// Ⓨ: kick the rider beside you (Road Rash style): they wobble and slow right down
+function kick(r) {
+  if (state !== 'race' || paused || countT > 0 || !r || r.wipeT > 0 || r.kickCool > 0) return;
+  r.kickCool = 1.1; r.kickT = 0.4;
+  let best = null, bd = 9;
+  const fx = -Math.sin(r.h), fz = -Math.cos(r.h);
+  for (const o of racers) {
+    if (o === r || o.wipeT > 0 || o.ghostT > 0 || o.finishT) continue;
+    const dx = o.x - r.x, dz = o.z - r.z, along = dx * fx + dz * fz, side = -dx * fz + dz * fx;
+    if (Math.abs(along) < 2.6 && Math.abs(side) < 3.4 && Math.abs(o.y - r.y) < 1.4) { const d = Math.hypot(dx, dz); if (d < bd) { bd = d; best = o; r.kickSide = Math.sign(side) || 1; } }
+  }
+  if (r.isPlayer) RB.beep(300, 180, 0.12, 'triangle', 0.05);
+  if (!best) return;
+  best.speed *= 0.72; best.wobbleT = 1.0; best.kicked = (best.kicked || 0) + 1;
+  best.slipX += -fz * r.kickSide * 4; best.slipZ += fx * r.kickSide * 4;
+  r.kicks++;
+  sfx.kick();
+  if (r.isPlayer) { feed(r, `🦵 You kicked ${best.name}!`); rumble(r, 120, 0.5); }
+  if (best.isPlayer) { feed(best, `😵 ${r.name} kicked you!`); rumble(best, 260, 0.8); best.shakeT = 0.3; }
+}
+// solid things: bales, posts and buildings bounce you off; a cow or the tractor knocks you down
+function hitThings(r, dt) {
+  if (r.ghostT > 0) return;
+  const fast = Math.abs(r.speed);
+  const lowEnough = r.y - (r.onCut ? 0 : profile(r.s)) < 1.6;
+  if (lowEnough) {
+    for (const c of colliders) {
+      const dx = r.x - c.x, dz = r.z - c.z, rr = c.r + 0.6;
+      if (Math.abs(dx) > rr || Math.abs(dz) > rr) continue;
+      const d = Math.hypot(dx, dz);
+      if (d >= rr || r.y > c.top) continue;
+      const nx = dx / (d || 1), nz = dz / (d || 1);
+      r.x = c.x + nx * rr; r.z = c.z + nz * rr;
+      if (c.kind === 'bale' && fast > 30) { wipeout(r, '💥 Into the hay!'); return; }
+      const vIn = (-Math.sin(r.h) * nx - Math.cos(r.h) * nz);
+      if (vIn < -0.2) { r.speed *= 0.45; r.slipX += nx * 3; r.slipZ += nz * 3; if (r.isPlayer) { sfx.bump(); rumble(r, 120, 0.5); } }
+    }
+    for (const w of walls) {
+      if (r.y > w.top) continue;
+      const dx = r.x - w.x, dz = r.z - w.z, lu = dx * w.ux + dz * w.uz, lv = -dx * w.uz + dz * w.ux, rr = 0.6;
+      if (Math.abs(lu) >= w.hu + rr || Math.abs(lv) >= w.hv + rr) continue;
+      const pu = w.hu + rr - Math.abs(lu), pv = w.hv + rr - Math.abs(lv);
+      let nu = 0, nv = 0;
+      if (pu < pv) nu = Math.sign(lu) * pu; else nv = Math.sign(lv) * pv;
+      r.x += nu * w.ux - nv * w.uz; r.z += nu * w.uz + nv * w.ux;
+      r.speed *= 0.93;
+      if (r.isPlayer && Math.random() < 0.3) sfx.scrape();
+    }
+  }
+  // the bridge's earth ramps, from the road underneath (or the grass beside them)
+  if (Math.abs(dS(r.s - SA)) > DECK + RAMP + 4 && Math.hypot(r.x, r.z) < 100) {
+    const q = { x: r.x, z: r.z, s: SA, d: 0, dist: 0 };
+    let bd = Infinity, bs = SA;
+    for (let s = SA - DECK - RAMP; s <= SA + DECK + RAMP; s += 2) { const p = trackAt(s, {}); const dd = (p.x - q.x) ** 2 + (p.z - q.z) ** 2; if (dd < bd) { bd = dd; bs = s; } }
+    const p = trackAt(bs, {}), dd = -(q.x - p.x) * p.dz + (q.z - p.z) * p.dx, along = (q.x - p.x) * p.dx + (q.z - p.z) * p.dz;
+    if (Math.abs(along) < 1.5 && Math.abs(dd) < HW + 1.0 && Math.abs(dS(bs - SA)) > DECK - 0.5 && profile(bs) > r.y + 0.7) {
+      const sgn = Math.sign(dd) || 1, push = (HW + 1.0) - Math.abs(dd);
+      r.x += -p.dz * sgn * push; r.z += p.dx * sgn * push;
+      // an abutment wall end-on: back out the way you came
+      if (Math.abs(Math.abs(dS(bs - SA)) - DECK) < 1.5) { r.x -= -Math.sin(r.h) * 0.5; r.z -= -Math.cos(r.h) * 0.5; }
+      r.speed *= 0.6; if (r.isPlayer) sfx.bump();
+    }
+  }
+  // the cows (hop over them!) and the tractor
+  const clear = r.y - groundY(r.s, r.d);
+  for (const c of COWS) {
+    const dx = r.x - c.x, dz = r.z - c.z;
+    if (dx * dx + dz * dz < 2.0 * 2.0 && clear < 0.6) {   // (hopped high enough, you sail over its back)
+      if (fast > 14) { wipeout(r, '🐄 MOO! You hit a cow!'); c.moo = 2; sfx.moo(); return; }
+      const d = Math.hypot(dx, dz) || 1; r.x = c.x + dx / d * 2; r.z = c.z + dz / d * 2; r.speed *= 0.6;
+    }
+    if (r.isPlayer && c.moo <= 0 && dx * dx + dz * dz < 30 * 30 && Math.random() < dt * 0.5) { c.moo = 6; sfx.moo(); }
+    const ahead = dS(c.s - r.s);
+    if (r.isPlayer && ahead > 30 && ahead < 120 && Math.abs(c.d) < HW + 1 && clock - (r.cowTold || -99) > 8) { r.cowTold = clock; feed(r, '🐄 COWS ON THE ROAD! Go round, or hop over them!'); }
+  }
+  {
+    const T = TRACTOR, ux = -Math.sin(T.h), uz = -Math.cos(T.h), dx = r.x - T.x, dz = r.z - T.z;
+    const lu = dx * ux + dz * uz, lv = -dx * uz + dz * ux;
+    if (Math.abs(lu) < 2.6 && Math.abs(lv) < 1.6 && clear < 3.6) {
+      if (fast > 8) { wipeout(r, '🚜 Smack into the tractor!'); return; }
+      r.x += -uz * Math.sign(lv) * 0.5; r.z += ux * Math.sign(lv) * 0.5; r.speed *= 0.5;
+    }
+  }
+}
+// GTA's "wasted": down you go, sliding on your side, and back on the road a moment later
+function wipeout(r, why) {
+  if (r.wipeT > 0 || r.ghostT > 0) return;
+  r.wipeT = 1.8; r.wipes++; r.drifting = false; r.boosting = false; r.trick = 0; r.trickDone = false;
+  r.wipeSide = Math.sign(r.steer) || (Math.random() < 0.5 ? -1 : 1);
+  sfx.wipe();
+  if (r.isPlayer) {
+    showBanner(r, 'WIPED OUT', why, 1.6, 'red');
+    rumble(r, 500, 1); r.shakeT = 0.6;
+    if (!twoP) document.body.classList.add('wasted');
+  }
+  for (let i = 0; i < 20; i++) emit(r.x, r.y + 0.5, r.z, rand(-4, 4), rand(1, 5), rand(-4, 4), i % 2 ? '#cfc4a8' : '#ffd27a', 0.8);
+}
+function wipeSlide(r, dt) {
+  r.wipeT -= dt;
+  r.speed *= Math.exp(-2.4 * dt);
+  r.x += -Math.sin(r.h) * r.speed * dt; r.z += -Math.cos(r.h) * r.speed * dt;
+  locate(r);
+  r.vy -= GRAV * dt; r.y = Math.max(groundY(r.s, r.d), r.y + r.vy * dt);
+  if (r.y <= groundY(r.s, r.d)) r.vy = 0;
+  if (Math.random() < 0.5 && r.speed > 2) emit(r.x, r.y + 0.2, r.z, rand(-1, 1), rand(0.5, 2), rand(-1, 1), '#ffd27a', 0.3);
+  if (r.wipeT <= 0) { respawn(r, true); if (r.isPlayer) document.body.classList.remove('wasted'); }
+}
+// back on the road where you left it, facing the right way
+function respawn(r, wasWipe) {
+  if (r.onCut || inCutZone(r)) { r.onCut = false; }
+  r.d = clamp(r.d, -HW + 2, HW - 2);
+  if (onBridge(r.s)) r.d = clamp(r.d, -HW + 2, HW - 2);
+  setFromTrack(r);
+  r.h = trackPoint(r.s, 0, {}).h; r.y = groundY(r.s, r.d); r.vy = 0; r.air = 0; r.gyPrev = null;
+  r.speed = wasWipe ? 6 : 12; r.wipeT = 0; r.ghostT = 1.6; r.offT = 0; r.wheelie = r.stoppie = 0; r.slipX = r.slipZ = 0; r.drifting = false;
+  if (r.isPlayer && !wasWipe) feed(r, '🔄 Back on the track!');
+}
+
+// ---------- The other riders ----------
+// They follow the road in a lane of their own, change lanes now and then, aim for the dash pads, take the barn
+// shortcut sometimes, steer round the cows, pull wheelies on the straights, use their nitro and kick when you're
+// alongside. A little slower when they're well ahead of the players, a little quicker when well behind (except on
+// the last lap: then everyone goes flat out).
+function aiInput(c, dt, calm) {
+  const inp = { steer: 0, gas: 1, brake: 0, back: false, fwd: false, boost: false, drift: false };
+  c.laneT -= dt;
+  if (c.laneT <= 0) { c.lane = rand(-HW + 2, HW - 2); c.laneT = rand(2, 5); }
+  let lane = c.lane;
+  // dash pads ahead: go for them
+  for (const pd of PADS) { const a = dS(pd.s - c.s); if (a > 0 && a < 70) { lane = pd.d; break; } }
+  // cows on the road ahead: go round
+  for (const cw of COWS) {
+    const a = dS(cw.s - c.s);
+    if (a > -2 && a < 45 && Math.abs(cw.d) < HW + 1.5 && Math.abs(cw.d - lane) < 3.4) lane = cw.d > 0 ? cw.d - 4.5 : cw.d + 4.5;
+  }
+  // the tractor: wait for it, or go round behind it
+  { const a = dS(TRACTOR_S - c.s); if (a > 0 && a < 40 && Math.abs(TRACTOR.u) < HW + 3) { lane = TRACTOR.u > 0 ? TRACTOR.u - 5 : TRACTOR.u + 5; if (Math.abs(TRACTOR.u) < 4) inp.brake = a < 20 ? 1 : 0; } }
+  // someone right in front: pull out
+  for (const o of racers) { if (o === c) continue; const g = o.dist - c.dist; if (g > 0 && g < 10 && Math.abs(o.d - lane) < 1.6) lane += lane > 0 ? -3 : 3; }
+  lane = clamp(lane, -HW + 1.2, HW - 1.2);
+  const look = 8 + Math.max(0, c.speed) * 0.35;
+  let tx, tz;
+  if (!calm && Math.abs(dS(CUT.s0 - 160 - c.s)) < 1.5) c.cutPlan = Math.random() < 0.45;
+  const toCut = c.cutPlan && dS(CUT.s0 - c.s) > -2 && dS(CUT.s0 - c.s) < 40;
+  if ((toCut || c.onCut) && !c.finishT) {
+    const cu = cutUV(c.x, c.z), u = clamp(cu.u + look, 0, CUT.len + 20);
+    tx = CUT.ax + CUT.ux * u; tz = CUT.az + CUT.uz * u;
+    if (cu.u > CUT.len - 6) { const p = trackPoint(CUT.s1 + look, 0, {}); tx = p.x; tz = p.z; }
+  } else {
+    const p = trackPoint(c.s + look, lane, {}); tx = p.x; tz = p.z;
+  }
+  const want = Math.atan2(-(tx - c.x), -(tz - c.z));
+  inp.steer = clamp(-wrapA(want - c.h) * 2.4, -1, 1);
+  // how fast: their skill, eased against the leading player (never on the last lap)
+  const lead = Math.max(...players.map(p => p.dist));
+  const gap = c.dist - lead;
+  let rubber = gap > 70 ? 0.9 : gap > 30 ? 0.96 : gap < -110 ? 1.12 : gap < -50 ? 1.05 : 1;
+  if (c.lap >= LAPS - 1 && rubber < 1) rubber = 1;   // (the last lap is a real race to the line)
+  if (players.every(p => p.finishT)) rubber = 1;
+  let target = MAX * c.skill * rubber + c.dash;
+  if (toCut && dS(CUT.s0 - c.s) < 45) target = Math.min(target, 22);   // (slow for the sharp turn onto the dirt)
+  inp.gas = c.speed < target ? 1 : 0;
+  if (c.speed > target + 4) inp.brake = 0.4;
+  // nitro on the straights, a wheelie now and then for the crowd
+  c.nitroT -= dt;
+  if (c.nitro > 0.55 && c.nitroT <= 0 && Math.abs(bendAt(c.s + 30)) === 0 && Math.random() < dt * 0.6) c.nitroT = 1.6;
+  inp.boost = c.nitroT > 0 && rubber >= 1;
+  if (calm) return inp;
+  c.wheelieT -= dt;
+  if (c.wheelieT < 0) { inp.back = true; if (c.wheelieT < -1.4) c.wheelieT = rand(6, 14); }
+  // tricks off the jumps (they get most of them right)
+  if (c.air > 0.15 && !c.trick && !c.trickDone && Math.random() < dt * 4 && c.y - groundY(c.s, c.d) > 0.7) hop(c);
+  // a kick at a player riding alongside, now and then
+  for (const p of players) {
+    const dx = p.x - c.x, dz = p.z - c.z;
+    if (dx * dx + dz * dz < 9 && Math.abs(p.y - c.y) < 1.2) { c.kickWant += dt; if (c.kickWant > 0.9 && Math.random() < dt * 1.2) { kick(c); c.kickWant = 0; } }
+  }
+  return inp;
+}
+// after the line: ride on at an easy pace
+function cruiseInput(r) { const inp = aiInput(r, 0, true); inp.gas = r.speed < 22 ? 1 : 0; inp.boost = false; inp.back = false; return inp; }
+
+// riders bump off each other
+function contacts() {
+  for (let i = 0; i < racers.length; i++) for (let j = i + 1; j < racers.length; j++) {
+    const a = racers[i], b = racers[j];
+    if (a.ghostT > 0 || b.ghostT > 0 || a.wipeT > 0 || b.wipeT > 0) continue;
+    const dx = b.x - a.x, dz = b.z - a.z;
+    if (Math.abs(dx) > 1.6 || Math.abs(dz) > 1.6 || Math.abs(a.y - b.y) > 1.2) continue;
+    const d = Math.hypot(dx, dz);
+    if (d >= 1.5 || d < 1e-4) continue;
+    const nx = dx / d, nz = dz / d, push = (1.5 - d) / 2;
+    a.x -= nx * push; a.z -= nz * push; b.x += nx * push; b.z += nz * push;
+    a.slipX -= nx * 2; a.slipZ -= nz * 2; b.slipX += nx * 2; b.slipZ += nz * 2;
+    const va = a.speed, vb = b.speed;
+    if (Math.abs(va - vb) > 6) { a.speed = vb * 0.6 + va * 0.4; b.speed = va * 0.6 + vb * 0.4; }
+    for (const r of [a, b]) if (r.isPlayer) { if (!r.bumpT || clock - r.bumpT > 0.4) { sfx.bump(); rumble(r, 100, 0.4); r.bumpT = clock; } }
+  }
+}
+
+// ---------- The race ----------
+function update(dt) {
+  clock += dt;
+  for (const f of animated) f(clock, dt);
+  updateFarm(dt);
+  updateParts(dt);
+  if (state !== 'race') return;
+  if (countT > 0) {
+    const before = countT;
+    countT -= dt;
+    // the start lights: two red, four red, all five red… green!
+    const lit = countT > 3 ? 0 : countT > 2 ? 2 : countT > 1 ? 4 : 5;
+    lights.forEach((l, i) => l.material.color.set(countT <= 0 ? '#3ddc84' : i < lit ? '#ff2a1a' : '#3a1010'));
+    for (const [at, txt] of [[3, '3'], [2, '2'], [1, '1']]) if (before > at && countT <= at) { sfx.count(); for (const p of players) showBanner(p, txt, at === 3 ? 'Press gas as the 2 shows for a ROCKET START!' : '', 0.9); }
+    // rocket start: hold the gas from when the 2 shows (too early and the back wheel just spins)
+    for (const p of players) {
+      const g = playerInput(p).gas > 0.5;
+      if (g && p.chargeAt === null) p.chargeAt = countT;
+      if (!g) p.chargeAt = null;
+      if (g) { p.revs = (p.revs || 0) + dt; if (Math.random() < 0.5) emit(p.x + Math.sin(p.h) * 0.9, 0.2, p.z + Math.cos(p.h) * 0.9, rand(-1, 1), rand(0.5, 1.5), rand(-1, 1), '#d8d0c0', 0.6); }
+      if (p.engine) p.engine.set(g ? 20 + Math.sin(clock * 30) * 2 : 0, g ? 1 : 0, 0.5 / Math.sqrt(nP));
+    }
+    if (countT <= 0) {
+      sfx.go();
+      for (const p of players) {
+        showBanner(p, 'GO!', '', 0.9);
+        if (p.chargeAt !== null && p.chargeAt <= 2.05 && p.chargeAt > 0) { p.speed = 16; dashBoost(p, 14, '🚀 ROCKET START!'); sfx.nitro(); }
+        else if (p.chargeAt !== null && p.chargeAt > 2.05) { p.stallT = 0.9; feed(p, '💨 Too early! Wheelspin…'); sfx.stall(); }
+      }
+      for (const c of cpus) if (Math.random() < 0.5) { c.speed = 12; c.dash = 8; }
+    }
+    for (const r of racers) { r.wheelie = 0; r.y = groundY(r.s, r.d); }
+    return;
+  }
+  runT += dt;
+  for (const r of racers) {
+    const inp = r.finishT ? cruiseInput(r) : r.isPlayer ? playerInput(r) : aiInput(r, dt);
+    if (r.isPlayer && !r.finishT) inp.steer *= r.cam.steer(inp.steer);
+    r.lastInp = inp;
+    drive(r, inp, dt);
+    // laps
+    const lap = Math.floor(r.dist / N_T);
+    if (lap > r.lap && !r.finishT) {
+      r.lap = lap;
+      const lt = runT - r.lapStart; r.lapStart = runT; r.lapTimes.push(lt);
+      if (!r.bestLapT || lt < r.bestLapT) r.bestLapT = lt;
+      if (lap >= LAPS) finish(r);
+      else if (r.isPlayer) {
+        if (lap === LAPS - 1) { sfx.final(); showBanner(r, 'FINAL LAP!', `Lap ${fmt(lt)}`, 1.6); music.setTempo(205); }
+        else { sfx.lap(); showBanner(r, `LAP ${lap + 1}/${LAPS}`, `Lap ${fmt(lt)}`, 1.4); }
+      }
+    }
+  }
+  contacts();
+  // places: finished riders in the order they crossed the line, then everyone else by how far round they are
+  const order = [...finishOrder, ...racers.filter(r => !r.finishT).sort((a, b) => b.dist - a.dist)];
+  order.forEach((r, i) => { r.place = i + 1; });
+  // engines
+  for (const p of players) if (p.engine) p.engine.set(p.speed, p.lastInp ? Math.max(p.lastInp.gas, p.boosting ? 1 : 0) : 0, (p.finishT ? 0.25 : 0.5) / Math.sqrt(nP));
+  // the end: everyone home (or the players home and a few seconds on)
+  if (players.every(p => p.finishT)) { endT += dt; if (endT > 3) showResults(); }
+}
+function finish(r) {
+  r.finishT = runT;
+  finishOrder.push(r);
+  r.place = finishOrder.length;
+  if (!r.isPlayer) return;
+  const pl = r.place;
+  if (pl === 1) sfx.win(); else sfx.lap();
+  showBanner(r, pl === 1 ? '🏆 1ST!' : `${ORD[pl - 1]}!`, twoP ? 'Cheer on your friends!' : `Time ${fmt(r.finishT)}`, 99);
+  rumble(r, 400, 0.6);
+}
+
+// ---------- Camera, visuals, HUD ----------
+// The 360° orbit camera (orbit-cam.js, shared with Witch Way Out and Hamglider): the right stick (or Z / X, or a drag)
+// swings it all the way round, LB / RB or a right-stick click bring it back behind you, it springs back by itself, and
+// it pulls back and widens a touch as you speed up.
+const tmp = new THREE.Vector3(), camRay = new THREE.Vector3(), camOrigin = new THREE.Vector3();
+const REDUCED = matchMedia('(prefers-reduced-motion: reduce)').matches;
+function updateVisuals(dt) {
+  for (const r of racers) riderVisuals(r, dt);
+  for (const p of players) playerCamera(p, dt);
+  if (nP === 3) updateSpecCam(dt);
+  if (state !== 'race') titleCamera(dt);
+}
+function riderVisuals(r, dt) {
+  const b = r.bike, root = b.root;
+  root.position.set(r.x, r.y, r.z);
+  // lean into the turn (more in a drift), lie down in a wipeout
+  const leanWant = r.wipeT > 0 ? r.wipeSide * 1.35 : -(r.steer * 0.62 + (r.drifting ? r.driftDir * 0.3 : 0)) * clamp(r.speed / 22, 0, 1) * (r.air > 0 ? 0.5 : 1);
+  r.lean += (leanWant - r.lean) * Math.min(1, dt * (r.wipeT > 0 ? 6 : 8));
+  const ahead = trackAt(r.s + 2, {}), onRoad = Math.abs(r.d) <= HW + 0.6 && !r.onCut;
+  const slope = r.air > 0 ? Math.atan2(r.vy, Math.max(8, Math.abs(r.speed))) * 0.6
+    : onRoad ? Math.atan2(profile(r.s + 1.5) - profile(r.s - 1.5), 3) * (Math.cos(r.h - Math.atan2(-ahead.dx, -ahead.dz)) > 0 ? 1 : -1) : 0;
+  // a trick: a flat 360 spin in the air, the rider standing up off the seat
+  root.rotation.set(slope, r.h + r.driftYaw + (r.trick > 0 ? r.trick * TAU : 0), r.lean, 'YXZ');
+  // a wheelie turns about the back axle, a stoppie about the front one
+  const front = r.stoppie > r.wheelie;
+  b.wheelie.position.z = front ? -0.72 : 0.72; b.body.position.z = -b.wheelie.position.z;
+  b.wheelie.rotation.x = front ? -r.stoppie : r.wheelie;
+  b.rider.position.y = r.trick > 0 ? Math.sin(r.trick * Math.PI) * 0.45 : 0;
+  for (const w of b.wheels) w.rotation.x -= r.speed * dt / 0.35;
+  b.leg.visible = r.kickT > 0;
+  if (r.kickT > 0) { const k = Math.sin((1 - r.kickT / 0.4) * Math.PI); b.leg.rotation.set(0, 0, 0); b.leg.scale.x = r.kickSide; b.leg.rotation.z = -0.4 * r.kickSide * (1 - k); }
+  b.flame.visible = r.boosting || r.dashT > 0;
+  if (b.flame.visible) { b.flame.scale.set(1, 1, 0.8 + Math.random() * 0.7); b.flame.material.color.set(r.boosting ? '#7ad0ff' : '#ffb020'); }
+  // blink while you're back on after a wipeout
+  root.visible = !(r.ghostT > 0 && Math.sin(clock * 30) > 0.3) && (!r.isPlayer || players.includes(r));
+  b.shadow.position.set(r.x, (r.onCut ? 0 : groundY(r.s, r.d)) + 0.04, r.z);
+  b.shadow.rotation.y = r.h;
+  b.shadow.scale.setScalar(clamp(1 - (r.y - b.shadow.position.y) * 0.08, 0.4, 1));
+  if (r.isPlayer) { r.marker.position.set(r.x, r.y + 2.6 + Math.sin(clock * 4) * 0.15, r.z); r.marker.rotation.y = clock * 2; }
+}
+function playerCamera(p, dt) {
+  const cam = p.cam, camera = p.camera;
+  if (state !== 'race') return;
+  const inp = p.lastInp || { steer: 0 };
+  cam.input(dt, p.finishT ? 0 : inp.steer);
+  const fast = clamp((p.speed - 10) / (MAX - 10), 0, 1.4);
+  cam.speedK += (fast - cam.speedK) * Math.min(1, dt * 2);
+  camOrigin.set(p.x, p.y + 1.35, p.z);
+  cam.ray(p.h, 0, camRay);
+  const want = CAM_DIST * (1 + 0.16 * cam.speedK) * (countT > 0 ? 1.1 : 1);
+  cam.dist += (want - cam.dist) * Math.min(1, dt * 3);
+  const pos = tmp.copy(camOrigin).addScaledVector(camRay, cam.dist);
+  pos.y = Math.max(pos.y, 0.7, p.y - 1.2);
+  p.camPos.lerp(pos, Math.min(1, dt * 10));
+  const ahead = cam.ahead();
+  p.camLook.lerp(tmp.set(p.x - Math.sin(p.h) * 7 * ahead, p.y + 1.2, p.z - Math.cos(p.h) * 7 * ahead), Math.min(1, dt * 10));
+  camera.position.copy(p.camPos);
+  camera.lookAt(p.camLook);
+  p.shakeT = Math.max(0, p.shakeT - dt);
+  if (p.shakeT > 0 && !REDUCED) { camera.position.x += (Math.random() - 0.5) * p.shakeT; camera.position.y += (Math.random() - 0.5) * p.shakeT; }
+  const boostK = clamp((p.speed - MAX + 2) / 14, 0, 1);
+  const fov = camera.userData.fov0 + 9 * Math.min(1, cam.speedK) + 7 * boostK;
+  if (Math.abs(camera.fov - fov) > 0.05) { camera.fov = fov; camera.updateProjectionMatrix(); }
+  const sl = p.speedLines, a = sl.geometry.attributes.position.array;
+  sl.material.opacity = REDUCED ? 0 : boostK * 0.5;
+  sl.visible = sl.material.opacity > 0.01;
+  if (sl.visible) {
+    sl.position.copy(camera.position); sl.quaternion.copy(camera.quaternion);
+    p.slSeeds.forEach((q, i) => {
+      q.z += p.speed * dt * 1.4;
+      if (q.z > 0) { q.z -= 30; q.a = rand(0, TAU); q.r = rand(2.2, 6); }
+      const cx = Math.cos(q.a) * q.r, cy = Math.sin(q.a) * q.r * 0.7;
+      a.set([cx, cy, q.z, cx, cy, q.z - q.len], i * 6);
+    });
+    sl.geometry.attributes.position.needsUpdate = true;
+  }
+}
+// the blimp cam (three players: the fourth corner): the TV view from above the leader
+const specCam = new THREE.PerspectiveCamera(55, 1, 0.5, 1500), specPos = new THREE.Vector3(0, 80, 80), specLook = new THREE.Vector3();
+for (let k = 0; k < 4; k++) specCam.layers.enable(10 + k);
+function updateSpecCam(dt) {
+  const lead = racers.reduce((a, b) => (b.dist > a.dist ? b : a), racers[0]);
+  const back = trackAt(lead.s - 25, {});
+  specPos.lerp(tmp.set(back.x + 18, 38, back.z + 18), Math.min(1, dt * 1.5));
+  specLook.lerp(tmp.set(lead.x, lead.y, lead.z), Math.min(1, dt * 3));
+  specCam.position.copy(specPos); specCam.lookAt(specLook);
+}
+// the title screen: a slow flight round the figure 8
+const titleCam = new THREE.PerspectiveCamera(55, 1, 0.5, 1500);
+for (let k = 0; k < 4; k++) titleCam.layers.enable(10 + k);
+function titleCamera() {
+  const s = clock * 14 + 40, p = trackPoint(s, 0, {}), q = trackPoint(s + 60, 0, {});
+  titleCam.position.set(p.x - q.dz * 30 + Math.sin(clock * 0.2) * 10, 22 + Math.sin(clock * 0.3) * 6, p.z + q.dx * 30);
+  titleCam.lookAt(q.x, 2, q.z);
+}
+// the CPUs ride round on the title screen too
+function titleRide(dt) {
+  if (state !== 'title') return;
+  for (const c of cpus) { const inp = aiInput(c, dt); inp.boost = false; drive(c, inp, dt); }
+  contacts();
+}
+
+let resWas = 0;
+function applyRes() {
+  const r = state === 'race' ? Math.min(devicePixelRatio || 1, nP > 2 ? 1 : nP > 1 ? 1.5 : 2) : Math.min(devicePixelRatio || 1, 1);
+  if (r !== resWas) { resWas = r; renderer.setPixelRatio(r); resize(); }
+}
+function render() {
+  applyRes();
+  const W = innerWidth, H = innerHeight, n = state !== 'race' ? 1 : players.length, split = n > 1;
+  const rects = n === 1 ? [[0, 0, W, H]] : n === 2 ? [[0, H / 2, W, H / 2], [0, 0, W, H / 2]] : [[0, H / 2, W / 2, H / 2], [W / 2, H / 2, W / 2, H / 2], [0, 0, W / 2, H / 2], [W / 2, 0, W / 2, H / 2]];
+  const views = state !== 'race' ? [titleCam] : n === 1 ? [P1.camera] : n === 3 ? [...players.map(p => p.camera), specCam] : players.map(p => p.camera);
+  document.body.classList.toggle('split', n === 2);
+  document.body.classList.toggle('quad', n > 2);
+  renderer.setScissorTest(split);
+  scene.fog.far = n > 2 ? 520 : n > 1 ? 620 : 700;
+  views.forEach((cam, i) => {
+    const [x, y, vw, vh] = rects[i];
+    renderer.setViewport(x, y, vw, vh); renderer.setScissor(x, y, vw, vh);
+    const aspect = vw / vh, far = scene.fog.far + 60;
+    if (cam.far !== far) { cam.far = far; cam.updateProjectionMatrix(); }
+    sky.scale.setScalar((far - 20) / 1200);
+    if (Math.abs(cam.aspect - aspect) > 1e-3) {
+      cam.aspect = aspect;
+      cam.userData.fov0 = aspect < 0.8 ? 84 : aspect > 2.6 ? 56 : 70;
+      cam.fov = cam.userData.fov0; cam.updateProjectionMatrix();
+    }
+    sky.position.set(cam.position.x, 0, cam.position.z);
+    for (const p of players) if (p.marker.visible || p.markerHid) { p.markerHid = twoP && p.marker.position.distanceToSquared(cam.position) < 64; p.marker.visible = twoP && !p.markerHid; }   // (never right in front of a camera)
+    renderer.render(scene, cam);
+  });
+}
+function resize() { renderer.setSize(innerWidth, innerHeight, false); }
+addEventListener('resize', resize);
+resize();
+
+const $ = id => document.getElementById(id);
+function showBanner(p, text, small, t, cls = '') {
+  const b = p.ui.banner;
+  if (!text) { b.classList.add('hidden'); p.bannerT = 0; return; }
+  b.innerHTML = `${text}${small ? `<small>${small}</small>` : ''}`;
+  b.className = 'banner go ' + cls;
+  void b.offsetWidth;
+  p.bannerT = t;
+}
+function feed(p, text) { if (!p.isPlayer) return; p.ui.feed.textContent = text; p.ui.feed.style.opacity = 1; p.feedT = 1.8; }
+function updateHUD(dt) {
+  const race = state === 'race';
+  for (const p of ALL) p.hud.classList.toggle('hidden', !race || !players.includes(p));
+  $('tbtns').classList.toggle('hidden', !(race && RB.touch && !twoP));
+  $('divider').classList.toggle('hidden', !(race && twoP));
+  $('divider2').classList.toggle('hidden', !(race && nP > 2));
+  $('specTag').classList.toggle('hidden', !(race && nP === 3));
+  if (!race) return;
+  for (const p of players) playerHUD(p, dt);
+}
+function playerHUD(p, dt) {
+  const ui = p.ui;
+  ui.place.innerHTML = `${p.place}<small>${ORD[p.place - 1].slice(-2)}</small>`;
+  ui.lap.innerHTML = `LAP <b>${clamp(p.lap + 1, 1, LAPS)}</b>/${LAPS}`;
+  ui.time.textContent = `⏱ ${fmt(p.finishT || runT)}${p.bestLapT ? ` · best lap ${fmt(p.bestLapT)}` : ''}`;
+  ui.mph.textContent = Math.round(Math.abs(p.speed) * 2.237);
+  ui.nitro.style.width = `${Math.round(p.nitro * 100)}%`;
+  ui.speedo.classList.toggle('on', p.boosting);
+  ui.stat.textContent = p.wipeT > 0 ? 'OUCH!' : p.boosting ? '🔥 NITRO!' : p.drifting ? (p.driftCharge > 1.8 ? '🌀 DRIFT ★★' : p.driftCharge > 0.9 ? '🌀 DRIFT ★' : '🌀 DRIFT') :
+    p.dashT > 0 ? '⚡ DASH!' : p.trick > 0 ? '🤸 TRICK!' : p.air > 0.4 ? '✈️ AIR!' : p.wheelie > 0.3 ? '🏍️ WHEELIE!' : p.draft > 0.8 ? '💨 SLIPSTREAM' : p.nitro > 0.15 ? 'NITRO READY' : 'NITRO';
+  ui.warn.classList.toggle('hidden', !(p.wrongT > 1.2 && !p.finishT));
+  p.feedT = Math.max(0, (p.feedT || 0) - dt);
+  if (p.feedT <= 0) ui.feed.style.opacity = 0;
+  if (p.bannerT > 0 && p.bannerT < 90) { p.bannerT -= dt; if (p.bannerT <= 0) ui.banner.classList.add('hidden'); }
+  if (!p.idx) { $('boostBtn').classList.toggle('cool', p.nitro < 0.1); $('kickBtn').classList.toggle('cool', p.kickCool > 0); }
+  drawRadar(p);
+}
+// the GTA radar: the track turning round you, everyone on it as a dot, your friends as arrows
+function drawRadar(p) {
+  const g = p.radarCtx, S = 160, R = 78, scale = 0.42;
+  g.clearRect(0, 0, S, S);
+  g.save(); g.beginPath(); g.arc(S / 2, S / 2, R, 0, TAU); g.clip();
+  g.fillStyle = 'rgba(40,58,40,.55)'; g.fillRect(0, 0, S, S);
+  g.translate(S / 2, S / 2); g.rotate(p.h); g.scale(scale, scale); g.translate(-p.x, -p.z);
+  g.lineJoin = 'round';
+  g.beginPath();
+  for (let i = 0; i <= N_T; i += 8) { const k = i % N_T; i ? g.lineTo(TX[k], TZ[k]) : g.moveTo(TX[k], TZ[k]); }
+  g.strokeStyle = 'rgba(11,16,32,.9)'; g.lineWidth = 2 * HW + 8; g.stroke();
+  g.strokeStyle = '#c8d4f0'; g.lineWidth = 2 * HW; g.stroke();
+  // the bridge, drawn on top, and the shortcut
+  g.beginPath();
+  for (let s = SA - 30; s <= SA + 30; s += 4) { const q = trackAt(s, {}); s === SA - 30 ? g.moveTo(q.x, q.z) : g.lineTo(q.x, q.z); }
+  g.strokeStyle = '#ffffff'; g.lineWidth = 2 * HW + 4; g.stroke();
+  g.beginPath(); g.moveTo(CUT.ax, CUT.az); g.lineTo(CUT.bx, CUT.bz); g.strokeStyle = 'rgba(160,120,70,.9)'; g.lineWidth = 9; g.stroke();
+  const fin = trackPoint(0, 0, {});
+  g.fillStyle = '#ffc93a'; g.fillRect(fin.x - 6, fin.z - 6, 12, 12);
+  for (const r of racers) {
+    if (r === p) continue;
+    g.save(); g.translate(r.x, r.z);
+    if (r.isPlayer) { g.rotate(-r.h); g.fillStyle = r.color; g.beginPath(); g.moveTo(0, -13); g.lineTo(9, 9); g.lineTo(-9, 9); g.fill(); g.strokeStyle = '#fff'; g.lineWidth = 3; g.stroke(); }
+    else { g.fillStyle = r.color; g.beginPath(); g.arc(0, 0, 8, 0, TAU); g.fill(); g.strokeStyle = '#0b1020'; g.lineWidth = 3; g.stroke(); }
+    g.restore();
+  }
+  g.restore();
+  // you: an arrow in the middle, always pointing up
+  g.fillStyle = '#fff'; g.strokeStyle = p.color; g.lineWidth = 3;
+  g.beginPath(); g.moveTo(S / 2, S / 2 - 9); g.lineTo(S / 2 + 7, S / 2 + 7); g.lineTo(S / 2, S / 2 + 3); g.lineTo(S / 2 - 7, S / 2 + 7); g.closePath(); g.fill(); g.stroke();
+  g.fillStyle = '#ffc93a'; g.font = 'bold 12px Inter, sans-serif'; g.textAlign = 'center'; g.fillText('N', S / 2 + Math.sin(p.h) * -66, S / 2 - Math.cos(p.h) * 66 + 4);
+}
+
+// ---------- Screens ----------
+function showResults() {
+  if (state !== 'race') return;
+  state = 'over';
+  for (const p of players) if (p.engine) p.engine.quiet();
+  document.body.classList.remove('wasted');
+  // everyone still riding goes in by how far round they got
+  const rest = racers.filter(r => !r.finishT).sort((a, b) => b.dist - a.dist);
+  const order = [...finishOrder, ...rest];
+  const me = P1, myPlace = order.indexOf(me) + 1;
+  if (!twoP) {
+    if (me.finishT && (!best || me.finishT < best)) { best = me.finishT; RB.store.set('mr_best', best.toFixed(2)); }
+    if (!bestPlace || myPlace < bestPlace) { bestPlace = myPlace; RB.store.set('mr_place', String(bestPlace)); }
+  }
+  for (const p of players) if (p.bestLapT && (!bestLap || p.bestLapT < bestLap)) { bestLap = p.bestLapT; RB.store.set('mr_lap', bestLap.toFixed(2)); }
+  const winner = order[0];
+  $('overTitle').textContent = twoP ? (winner.isPlayer ? `${winner.name} Wins!` : `${winner.name} Wins!`) : myPlace === 1 ? 'You Won!' : `${ORD[myPlace - 1]} Place!`;
+  const s = me;
+  $('overStats').innerHTML = twoP ? players.map(p => `<span style="color:${p.color}">●</span> ${p.name}: <b>${ORD[order.indexOf(p)]}</b>${p.bestLapT ? ` · best lap ${fmt(p.bestLapT)}` : ''}`).join('<br>')
+    : `⏱ <b>${me.finishT ? fmt(me.finishT) : '—'}</b> · best lap <b>${me.bestLapT ? fmt(me.bestLapT) : '—'}</b><br>🤸 ${s.tricks} trick${s.tricks === 1 ? '' : 's'} · 🦵 ${s.kicks} kick${s.kicks === 1 ? '' : 's'} · 🐴 ${s.cuts} barn shortcut${s.cuts === 1 ? '' : 's'} · 💥 ${s.wipes} wipeout${s.wipes === 1 ? '' : 's'}`;
+  $('podium').innerHTML = order.map((r, i) => `<li class="${r.isPlayer ? 'you' : ''}"><span class="n">${ORD[i]}</span><span style="color:${r.color}">●</span> ${r.name}<span class="t">${r.finishT ? fmt(r.finishT) : 'riding…'}</span></li>`).join('');
+  $('btnSwap').textContent = twoP ? '🏍️ 1 Player' : '👥 2 Players';
+  $('over').classList.remove('hidden');
+  if (myPlace === 1 || (twoP && winner.isPlayer)) sfx.win();
+  // the CPUs carry on round behind the results
+  for (const c of cpus) if (!c.finishT) c.finishT = -1;
+  showBestOnTitle();
+}
+$('btnPlay').addEventListener('click', () => startGame(false));
+$('btnPlay2').addEventListener('click', () => startGame(true));
+$('btnPlay3').addEventListener('click', () => startGame(3));
+$('btnPlay4').addEventListener('click', () => startGame(4));
+$('btnPad').addEventListener('click', () => RB.controllerScreen());
+$('btnAgain').addEventListener('click', () => startGame());
+$('btnSwap').addEventListener('click', () => startGame(!twoP));
+function showBestOnTitle() {
+  const bits = [];
+  if (bestPlace) bits.push(`🏆 Best place <b>${ORD[bestPlace - 1]}</b>`);
+  if (best) bits.push(`⏱ Best race <b>${fmt(best)}</b>`);
+  if (bestLap) bits.push(`⚡ Best lap <b>${fmt(bestLap)}</b>`);
+  $('titleBest').innerHTML = bits.join(' · ');
+}
+showBestOnTitle();
+function showPads() {
+  const n = RB.pad && RB.pad.pads ? RB.pad.pads().length : 0;
+  $('padCount').textContent = n >= 4 ? '🎮🎮🎮🎮 Four controllers ready: a four-player race!' : n === 3 ? '🎮🎮🎮 Three controllers ready: up to four players (the fourth can use I J K L)' : n === 2 ? '🎮🎮 Two controllers ready: one each!' : n === 1 ? '🎮 One controller ready. Plug in more for Players 2, 3 and 4 (or Player 2 uses I J K L)' : '';
+}
+addEventListener('gamepadconnected', showPads);
+addEventListener('gamepaddisconnected', showPads);
+setInterval(showPads, 2000);
+showPads();
+// riders on the grid behind the title, so the flyover has bikes going round
+cpus.forEach((c, i) => { resetRider(c, 300 + i * 40, (i % 3 - 1) * 4); Object.assign(c, { lane: c.d, laneT: 2, cutPlan: i % 2 === 0, nitroT: 0, wheelieT: rand(2, 8), kickWant: 0 }); });
+
+// ---------- Loop ----------
+let last = performance.now();
+function frame(now) {
+  const dt = Math.min(0.033, (now - last) / 1000);
+  last = now;
+  requestAnimationFrame(frame);   // ask for the next frame first, so one error can never freeze the game
+  try {
+    pollPads();
+    if (!paused) {
+      update(dt);
+      titleRide(dt);
+      if (state === 'over') for (const c of cpus) { const inp = cruiseInput(c); drive(c, inp, dt); }
+      updateVisuals(dt);
+    }
+    updateHUD(dt);
+    render();
+  } catch (e) {
+    if (!frame.warned) { frame.warned = true; console.error(e); }
+  }
+}
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>

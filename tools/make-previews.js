@@ -18,6 +18,7 @@ const GAMES = [
   { file: 'lucky-leo', title: 'LUCKY LEO', tag: 'Run, jump and stomp for the gold!', color: '#4ad05a' },
   { file: 'lily-pad-lunch', title: 'LILY PAD LUNCH', tag: 'Snap the bugs with your sticky tongue!', color: '#7ae07a' },
   { file: 'pumpkin-pals', title: 'PUMPKIN PALS', tag: 'Rescue the pumplings on Halloween night!', color: '#ffa63a' },
+  { file: 'moto-rush', title: 'MOTO RUSH', tag: 'Race your friends round the figure 8!', color: '#ffc93a' },
   { file: 'abc-train', title: 'ABC TRAIN', tag: 'Drive the train and learn your letters!', color: '#ffe14a' },
 ];
 

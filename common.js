@@ -254,7 +254,8 @@ const RB = (() => {
     ['space-wars.html', '🚀', 'Space Wars'], ['floppy-bird.html', '🐦', 'Floppy Bird'], ['surfs-up.html', '🏄', "Surf's Up"],
     ['hamglider.html', '🐹', 'Hamglider'], ['web-hero.html', '🕸️', 'Web Hero'], ['sparkle-meadow.html', '🦄', 'Sparkle Meadow'],
     ['witch-way-out.html', '🧙', 'Witch Way Out'], ['flight-school.html', '✈️', 'Flight School'], ['lucky-leo.html', '☘️', 'Lucky Leo'],
-    ['lily-pad-lunch.html', '🐸', 'Lily Pad Lunch'], ['pumpkin-pals.html', '🎃', 'Pumpkin Pals'], ['preschool/abc-train.html', '🚂', 'ABC Train'],
+    ['lily-pad-lunch.html', '🐸', 'Lily Pad Lunch'], ['pumpkin-pals.html', '🎃', 'Pumpkin Pals'], ['moto-rush.html', '🏍️', 'Moto Rush'],
+    ['preschool/abc-train.html', '🚂', 'ABC Train'],
   ];
   const FOLDERS = [['preschool/index.html', '🧸', 'Preschool'], ['2nd-grade/index.html', '✏️', '2nd Grade'], ['5th-grade/index.html', '🎒', '5th Grade']];
   let menuEl = null, menuShare = null, gameItems = null;
