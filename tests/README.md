@@ -3,7 +3,7 @@
 `tests/run.js` opens every page in a headless browser and checks that it works:
 
 - the game list shows a card (and thumbnail) for every game but today's (that's the big one at the top), with best scores
-- the home page: today's game (the newest) up top with a big Play button, and not repeated in the list below; the school folders under the games; Keep playing shows what was played last with its best (times as m:ss); four filters (All, Little kids, Play together, Learning) show only matching games; each card is a picture, a name and one quiet line (players, ages, Classic), with the pitch sliding up on hover; the cards and the JSON-LD game list written into index.html are up to date; on a phone, two pictures a row, a short page and no sideways scroll
+- the home page: today's game (the newest) up top with a big Play button, and not repeated in the list below; the school folders under the games; Keep playing shows what was played last with its best (times as m:ss); four filters (All, Little kids, Play together, Learning) show only matching games; each card is a picture with its name on it and one quiet line under it (players, ages, Classic), with the pitch fading in on hover; the cards and the JSON-LD game list written into index.html are up to date; on a phone, two pictures a row, a short page and no sideways scroll
 - every page's link-preview picture exists, and nothing still says "Starfighter Run"
 - **Floppy Bird**: an autopilot scores 9+ points, crashes use up the 3 lives, pause freezes time
 - **Surf's Up**: an autopilot launches aerials and the five judges score the ride; the touch joystick carves

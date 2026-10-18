@@ -121,14 +121,20 @@
   .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: var(--r); overflow: hidden; background: var(--surface);
     border: 1px solid var(--line); transition: transform .18s, box-shadow .18s, border-color .18s; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .card h3, .folder h3 { margin: 10px 2px 2px; font-size: 16px; font-weight: 650; }
-  .card .meta, .folder .meta { margin: 0 2px; font-size: 13px; color: var(--muted); }
+  .folder h3 { margin: 10px 2px 2px; font-size: 16px; font-weight: 650; }
+  .card .meta { margin: 8px 2px 0; font-size: 13px; color: var(--muted); }
+  .folder .meta { margin: 0 2px; font-size: 13px; color: var(--muted); }
+  /* the name sits on the picture, over a soft shade that fades up from the bottom */
+  .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 12px 10px; pointer-events: none;
+    background: linear-gradient(to top, rgba(0,0,0,.74), rgba(0,0,0,.32) 50%, transparent); }
+  .cap h3 { margin: 0; font-size: 18px; font-weight: 750; letter-spacing: -.1px; color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.6); }
   .card .best { color: var(--text); font-weight: 600; }
-  /* the pitch slides up over the picture on hover, focus or the controller highlight */
-  .more { position: absolute; left: 0; right: 0; bottom: 0; padding: 28px 12px 10px; font-size: 13.5px; line-height: 1.35; color: #f2f5fc;
-    background: linear-gradient(transparent, rgba(5,8,18,.9)); opacity: 0; transform: translateY(6px); transition: opacity .18s, transform .18s; }
+  /* on hover, focus or the controller highlight the name rises and the pitch fades in under it */
+  .more { margin: 0; max-height: 0; overflow: hidden; opacity: 0; font-size: 13.5px; line-height: 1.35; color: #eef2fb;
+    text-shadow: 0 1px 2px rgba(0,0,0,.6); transition: max-height .2s, opacity .2s, margin .2s; }
+  .card:hover .cap, .card:focus-visible .cap, .card.rb-pad-focus .cap { background: linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.45) 60%, transparent); }
   .card:hover .thumb, .folder:hover .thumb { transform: translateY(-3px); border-color: var(--line-hi); box-shadow: 0 16px 34px rgba(0,0,0,.45); }
-  .card:hover .more, .card:focus-visible .more, .card.rb-pad-focus .more { opacity: 1; transform: none; }
+  .card:hover .more, .card:focus-visible .more, .card.rb-pad-focus .more { max-height: 60px; opacity: 1; margin-top: 4px; }
   .card:active .thumb, .folder:active .thumb { transform: scale(.97); box-shadow: none; }
   /* a clear ring for the keyboard and the controller (on the picture, not the whole card) */
   .card.rb-pad-focus, .folder.rb-pad-focus { outline: none !important; box-shadow: none !important; }
@@ -158,7 +164,10 @@
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
     .folders { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .thumb { border-radius: 12px; }
-    .card h3, .folder h3 { font-size: 14.5px; margin-top: 7px; }
+    .folder h3 { font-size: 14.5px; margin-top: 7px; }
+    .cap { padding: 30px 9px 7px; }
+    .cap h3 { font-size: 15px; }
+    .card .meta { margin-top: 6px; }
     .card .meta { font-size: 12px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
     .filters { flex-wrap: nowrap; gap: 6px; overflow-x: auto; scrollbar-width: none; }
     .filters::-webkit-scrollbar { display: none; }
@@ -210,56 +219,56 @@
   <div class="filters" id="filters" role="group" aria-label="Show games"></div>
   <!-- games:start -->
   <div class="grid" id="games"><a class="card" href="moto-mania.html" data-tags="multi racing">
-    <div class="thumb"><img src="thumbs/moto-mania.jpg" alt="" loading="lazy"><div class="more">Item boxes, four bikes, six courses and a balloon battle arena!</div></div>
-    <h3>Moto Mania</h3>
+    <div class="thumb"><img src="thumbs/moto-mania.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Moto Mania</h3><p class="more">Item boxes, four bikes, six courses and a balloon battle arena!</p></div></div>
     <div class="meta">1–4 players · Ages 6+</div>
   </a><a class="card" href="moto-rush.html" data-tags="multi racing">
-    <div class="thumb"><img src="thumbs/moto-rush.jpg" alt="" loading="lazy"><div class="more">The original figure 8 motorcycle race: jumps, drifts, wheelies and cows.</div></div>
-    <h3>Moto Rush</h3>
+    <div class="thumb"><img src="thumbs/moto-rush.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Moto Rush</h3><p class="more">The original figure 8 motorcycle race: jumps, drifts, wheelies and cows.</p></div></div>
     <div class="meta">Classic · 1–4 players · Ages 6+</div>
   </a><a class="card" href="pumpkin-pals.html" data-tags="jump">
-    <div class="thumb"><img src="thumbs/pumpkin-pals.jpg" alt="" loading="lazy"><div class="more">Rescue the pumplings and bring everyone home before the scarecrow gets you!</div></div>
-    <h3>Pumpkin Pals</h3>
+    <div class="thumb"><img src="thumbs/pumpkin-pals.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Pumpkin Pals</h3><p class="more">Rescue the pumplings and bring everyone home before the scarecrow gets you!</p></div></div>
     <div class="meta">1 player · Ages 5+</div>
   </a><a class="card" href="lily-pad-lunch.html" data-tags="little multi learning">
-    <div class="thumb"><img src="thumbs/lily-pad-lunch.jpg" alt="" loading="lazy"><div class="more">Flick your sticky tongue and snap up the bugs, from morning to firefly night!</div></div>
-    <h3>Lily Pad Lunch</h3>
+    <div class="thumb"><img src="thumbs/lily-pad-lunch.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Lily Pad Lunch</h3><p class="more">Flick your sticky tongue and snap up the bugs, from morning to firefly night!</p></div></div>
     <div class="meta">1–2 players · Ages 4+</div>
   </a><a class="card" href="lucky-leo.html" data-tags="jump">
-    <div class="thumb"><img src="thumbs/lucky-leo.jpg" alt="" loading="lazy"><div class="more">Run, jump and stomp from Cape Cod to New Orleans for the pot of gold!</div></div>
-    <h3>Lucky Leo</h3>
+    <div class="thumb"><img src="thumbs/lucky-leo.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Lucky Leo</h3><p class="more">Run, jump and stomp from Cape Cod to New Orleans for the pot of gold!</p></div></div>
     <div class="meta">1 player · Ages 6+</div>
   </a><a class="card" href="flight-school.html" data-tags="flying learning">
-    <div class="thumb"><img src="thumbs/flight-school.jpg" alt="" loading="lazy"><div class="more">Learn how flying works, then fly it: balloons and jets to Mars and aliens!</div></div>
-    <h3>Flight School</h3>
+    <div class="thumb"><img src="thumbs/flight-school.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Flight School</h3><p class="more">Learn how flying works, then fly it: balloons and jets to Mars and aliens!</p></div></div>
     <div class="meta">1 player · Ages 6+</div>
   </a><a class="card" href="witch-way-out.html" data-tags="multi racing flying">
-    <div class="thumb"><img src="thumbs/witch-way-out.jpg" alt="" loading="lazy"><div class="more">Race broomsticks from a castle to the moon, with shortcuts and dash panels!</div></div>
-    <h3>Witch Way Out</h3>
+    <div class="thumb"><img src="thumbs/witch-way-out.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Witch Way Out</h3><p class="more">Race broomsticks from a castle to the moon, with shortcuts and dash panels!</p></div></div>
     <div class="meta">1–4 players · Ages 7+</div>
   </a><a class="card" href="sparkle-meadow.html" data-tags="little">
-    <div class="thumb"><img src="thumbs/sparkle-meadow.jpg" alt="" loading="lazy"><div class="more">Ride your pony, help the animals and make six new friends.</div></div>
-    <h3>Sparkle Meadow</h3>
+    <div class="thumb"><img src="thumbs/sparkle-meadow.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Sparkle Meadow</h3><p class="more">Ride your pony, help the animals and make six new friends.</p></div></div>
     <div class="meta">1 player · Ages 4+</div>
   </a><a class="card" href="web-hero.html" data-tags="jump">
-    <div class="thumb"><img src="thumbs/web-hero.jpg" alt="" loading="lazy"><div class="more">Swing across the city, bonk the Bandit Bots and catch the Big Bandit!</div></div>
-    <h3>Web Hero</h3>
+    <div class="thumb"><img src="thumbs/web-hero.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Web Hero</h3><p class="more">Swing across the city, bonk the Bandit Bots and catch the Big Bandit!</p></div></div>
     <div class="meta">1 player · Ages 5+</div>
   </a><a class="card" href="hamglider.html" data-tags="flying">
-    <div class="thumb"><img src="thumbs/hamglider.jpg" alt="" loading="lazy"><div class="more">Roll Pip off a ramp and glide onto the bullseye, all the way down the Cape Cod Canal!</div></div>
-    <h3>Hamglider</h3>
+    <div class="thumb"><img src="thumbs/hamglider.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Hamglider</h3><p class="more">Roll Pip off a ramp and glide onto the bullseye, all the way down the Cape Cod Canal!</p></div></div>
     <div class="meta">1 player · Ages 6+</div>
   </a><a class="card" href="surfs-up.html" data-tags="">
-    <div class="thumb"><img src="thumbs/surfs-up.jpg" alt="" loading="lazy"><div class="more">Ride the curl, launch off the lip and spin for the judges!</div></div>
-    <h3>Surf&#39;s Up</h3>
+    <div class="thumb"><img src="thumbs/surfs-up.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Surf&#39;s Up</h3><p class="more">Ride the curl, launch off the lip and spin for the judges!</p></div></div>
     <div class="meta">1 player · Ages 6+</div>
   </a><a class="card" href="floppy-bird.html" data-tags="flying">
-    <div class="thumb"><img src="thumbs/floppy-bird.jpg" alt="" loading="lazy"><div class="more">Flap through 8 wild worlds: rain, snow, volcanoes, jungle and space!</div></div>
-    <h3>Floppy Bird</h3>
+    <div class="thumb"><img src="thumbs/floppy-bird.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Floppy Bird</h3><p class="more">Flap through 8 wild worlds: rain, snow, volcanoes, jungle and space!</p></div></div>
     <div class="meta">1 player · Ages 5+</div>
   </a><a class="card" href="space-wars.html" data-tags="flying learning">
-    <div class="thumb"><img src="thumbs/space-wars.jpg" alt="" loading="lazy"><div class="more">Fly six space missions and answer science questions to launch!</div></div>
-    <h3>Space Wars</h3>
+    <div class="thumb"><img src="thumbs/space-wars.jpg" alt="" loading="lazy">
+      <div class="cap"><h3>Space Wars</h3><p class="more">Fly six space missions and answer science questions to launch!</p></div></div>
     <div class="meta">1 player · Ages 7+</div>
   </a></div>
   <!-- games:end -->
@@ -371,13 +380,13 @@ function bestText(g) {
 const playersText = p => p === '1' ? '1 player' : `${p} players`;
 const metaText = g => [g.folder || (g.classic ? 'Classic' : ''), playersText(g.players), `Ages ${g.age}+`].filter(Boolean).join(' · ');
 
-// one card: the picture, the name, one quiet line (the pitch slides up over the picture on hover).
+// one card: the picture with its name on it, then one quiet line (the pitch fades in over the picture on hover).
 // The same markup is written into the page by tools/build-index.js, without the best scores.
 function card(g, { withBest = true } = {}) {
   const best = withBest ? bestText(g) : '';
   return `<a class="card" href="${esc(g.url)}" data-tags="${esc(g.tags.join(' '))}">
-    <div class="thumb"><img src="${esc(g.thumb)}" alt="" loading="lazy"><div class="more">${esc(g.blurb)}</div></div>
-    <h3>${esc(g.title)}</h3>
+    <div class="thumb"><img src="${esc(g.thumb)}" alt="" loading="lazy">
+      <div class="cap"><h3>${esc(g.title)}</h3><p class="more">${esc(g.blurb)}</p></div></div>
     <div class="meta">${best ? `<span class="best">${esc(best)}</span> · ` : ''}${esc(metaText(g))}</div>
   </a>`;
 }
