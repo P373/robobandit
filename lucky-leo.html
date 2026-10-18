@@ -1187,7 +1187,8 @@ const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('ll_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6 };
+  return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6,
+    at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
 })();
 function persist() {
   RB.store.set('ll_save', JSON.stringify(save));
@@ -5145,16 +5146,19 @@ const nodeOpen = n => n.id === START || !!save.cleared[n.id] || (n.secret ? save
 const pathOpen = pth => pathReady(pth) && nodeOpen(node(pth[0])) && nodeOpen(node(pth[1]));
 const mapLeo = { at: START, x: node(START).x, y: node(START).y, to: null, path: [] };
 let mapCam = 0;
-function goMap(from) {
+// Leo always starts where he left off: the level he was standing at on the map, with his power-up (and Shamrock)
+function rememberSpot() { save.at = mapLeo.at; save.keep = keep; persist(); }
+function goMap(from, quiet = false) {
   state = 'map'; phase = 'play';
   lvl = null;
   document.getElementById('title').classList.add('hidden');
   document.getElementById('ending').classList.add('hidden');
   if (from) { const n = node(from); mapLeo.at = from; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.to = null; mapLeo.u = 0; }
+  rememberSpot();
   music.play('map');
   showTouch();
   // after clearing a level, point Leo at the next one
-  if (from && save.cleared[from]) {
+  if (from && save.cleared[from] && !quiet) {
     const next = PATHS.find(([a, b, sec]) => a === from && !sec && !node(b).secret && nodeOpen(node(b)) && !save.cleared[b]);
     if (next) RB.toast(`☘️ ${node(next[1]).name} is open!`, 2200);
     if (from === 'caves' && save.secrets.caves) setTimeout(() => RB.toast('🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Gillette Castle', 3200), 600);
@@ -5209,7 +5213,7 @@ function updateMap(dt) {
     const c = pth ? pathCtrl(pth) : { x: (from.x + n.x) / 2, y: (from.y + n.y) / 2 }, len = Math.hypot(n.x - from.x, n.y - from.y) * 1.06 || 1;
     mapLeo.u = (mapLeo.u || 0) + (cross ? dt / 2.6 : 110 * dt / len);   // (the flight between the maps takes a couple of seconds)
     if (mapLeo.u >= 1) {
-      mapLeo.u = 0; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.at = n.id; mapLeo.to = null; mapLeo.flying = false;
+      mapLeo.u = 0; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.at = n.id; mapLeo.to = null; mapLeo.flying = false; rememberSpot();
       if (mapLeo.path.length) mapLeo.to = mapLeo.path.shift();
       else if (mapLeo.autoEnter) { mapLeo.autoEnter = false; }
     } else if (cross) {   // off the edge of one map on the first half of the flight, and in over the other on the second
@@ -5474,7 +5478,12 @@ function showBest() {
   document.getElementById('titleBest').innerHTML = bits.join(' · ');
 }
 showBest();
-function startGame() { RB.audio(); score = 0; coins = 0; lives = 5; reserve = null; keep = { form: 0, mount: false }; goMap(); }
+function startGame() {
+  RB.audio(); score = 0; coins = 0; lives = 5; reserve = null;
+  const at = save.at && node(save.at) && nodeOpen(node(save.at)) ? save.at : START;   // back where Leo left off
+  keep = save.keep && save.keep.form != null ? { form: save.keep.form | 0, mount: !!save.keep.mount, laser: !!save.keep.laser } : { form: 0, mount: false };
+  goMap(at, true);
+}
 document.getElementById('btnPlay').addEventListener('click', startGame);
 document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === LAST_BOSS) score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); if (endFrom === 'canaveral') setTimeout(() => RB.toast('🚀 3… 2… 1… Blast off to Outer Space!', 3000), 3800); });
 

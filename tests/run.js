@@ -1932,6 +1932,22 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Lucky Leo starts where you left off: the same spot on the map, with the same power-up, after the page is closed and opened again', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const fresh = await p.evaluate(() => { localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k]; save.at = null; save.keep = null; startGame(); return mapLeo.at; });
+    await p.evaluate(() => { for (const id of ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'shore']) save.cleared[id] = true; keep = { form: 2, mount: false, laser: false }; goMap('night'); });
+    await p.reload(); await p.waitForTimeout(500);
+    const back = await p.evaluate(() => { startGame(); return { at: mapLeo.at, form: keep.form, state }; });
+    // a spot that isn't open (an old save, say) falls back to the start
+    await p.evaluate(() => { save.at = 'sabine'; persist(); });
+    await p.reload(); await p.waitForTimeout(500);
+    const locked = await p.evaluate(() => { startGame(); return mapLeo.at; });
+    check(fresh === 'canal', 'a brand-new game starts at the Bourne Bridge: ' + fresh);
+    check(back.at === 'night' && back.form === 2 && back.state === 'map', 'after closing and opening the page, Leo is back at Moonlit Meadow with his rainbow flower: ' + JSON.stringify(back));
+    check(locked === 'canal', 'a saved spot that is not open falls back to the start: ' + locked);
+    await done(p);
+  });
+
   await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, on along the Gulf Coast, and the Sabine River at the Texas line is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
