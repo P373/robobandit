@@ -121,9 +121,7 @@
   .thumb { position: relative; aspect-ratio: 16 / 9; border-radius: var(--r); overflow: hidden; background: var(--surface);
     border: 1px solid var(--line); transition: transform .18s, box-shadow .18s, border-color .18s; }
   .thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-  .folder h3 { margin: 10px 2px 2px; font-size: 16px; font-weight: 650; }
-  .card .meta { margin: 8px 2px 0; font-size: 13px; color: var(--muted); }
-  .folder .meta { margin: 0 2px; font-size: 13px; color: var(--muted); }
+  .card .meta, .folder .meta { margin: 8px 2px 0; font-size: 13px; color: var(--muted); }
   /* the name sits on the picture, over a soft shade that fades up from the bottom */
   .cap { position: absolute; left: 0; right: 0; bottom: 0; padding: 44px 12px 10px; pointer-events: none;
     background: linear-gradient(to top, rgba(0,0,0,.74), rgba(0,0,0,.32) 50%, transparent); }
@@ -141,7 +139,8 @@
   .card:focus-visible .thumb, .card.rb-pad-focus .thumb, .folder:focus-visible .thumb, .folder.rb-pad-focus .thumb {
     outline: 3px solid #fff; outline-offset: 3px; transform: translateY(-3px); }
   .empty { grid-column: 1 / -1; padding: 30px; text-align: center; color: var(--muted); }
-  .folder .thumb { display: grid; place-items: center; font-size: 52px; background: var(--tint); }
+  .folder .thumb { display: grid; place-items: center; background: var(--tint); }
+  .folder .ic { font-size: 52px; line-height: 1; margin-bottom: 18%; }   /* nudged up, clear of the name */
 
   /* for grown-ups: one sentence, details on request */
   .grown { margin-top: 52px; padding-top: 22px; border-top: 1px solid var(--line); color: var(--soft); font-size: 15px; line-height: 1.55; text-align: center; }
@@ -164,7 +163,6 @@
     .grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 18px 12px; }
     .folders { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
     .thumb { border-radius: 12px; }
-    .folder h3 { font-size: 14.5px; margin-top: 7px; }
     .cap { padding: 30px 9px 7px; }
     .cap h3 { font-size: 15px; }
     .card .meta { margin-top: 6px; }
@@ -173,7 +171,8 @@
     .filters::-webkit-scrollbar { display: none; }
     .chip { flex: none; padding: 6px 12px; font-size: 13.5px; }
     .folder .meta { display: none; }
-    .folder .thumb { aspect-ratio: 4 / 3; font-size: 40px; }
+    .folder .thumb { aspect-ratio: 4 / 3; }
+    .folder .ic { font-size: 36px; margin-bottom: 22%; }
     .more { display: none; }
     .block { margin-top: 34px; }
     .recent { display: flex; overflow-x: auto; margin-inline: -16px; padding: 0 16px 4px; scrollbar-width: none; margin-bottom: 34px; }
@@ -275,9 +274,9 @@
 
   <h2 class="section block">School</h2>
   <div class="folders">
-    <a class="folder" href="5th-grade/index.html" style="--tint:linear-gradient(160deg,#f7c75a,#e09a2a)"><div class="thumb">🎒</div><h3>5th Grade</h3><div class="meta">4 subjects</div></a>
-    <a class="folder" href="2nd-grade/index.html" style="--tint:linear-gradient(160deg,#7cc6f5,#3f8fd0)"><div class="thumb">✏️</div><h3>2nd Grade</h3><div class="meta">4 subjects</div></a>
-    <a class="folder" href="preschool/index.html" style="--tint:linear-gradient(160deg,#f7a8c8,#d9668f)"><div class="thumb">🧸</div><h3>Preschool</h3><div class="meta">ABC Train</div></a>
+    <a class="folder" href="5th-grade/index.html" style="--tint:linear-gradient(160deg,#f7c75a,#e09a2a)"><div class="thumb"><span class="ic">🎒</span><div class="cap"><h3>5th Grade</h3></div></div><div class="meta">4 subjects</div></a>
+    <a class="folder" href="2nd-grade/index.html" style="--tint:linear-gradient(160deg,#7cc6f5,#3f8fd0)"><div class="thumb"><span class="ic">✏️</span><div class="cap"><h3>2nd Grade</h3></div></div><div class="meta">4 subjects</div></a>
+    <a class="folder" href="preschool/index.html" style="--tint:linear-gradient(160deg,#f7a8c8,#d9668f)"><div class="thumb"><span class="ic">🧸</span><div class="cap"><h3>Preschool</h3></div></div><div class="meta">ABC Train</div></a>
   </div>
 
   <section class="grown" aria-label="For grown-ups">
