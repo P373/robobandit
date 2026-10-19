@@ -908,5 +908,6 @@ const startRefresh = () => refresh().catch((e) => {
   console.error(e);
   if (window.cvError) window.cvError(e && e.message ? `${e.message}${e.stack ? ` · ${String(e.stack).split('\n')[0]}` : ''}` : String(e));
 });
+tickClock();   // the clock, and light colours straight away if it's daytime (no waiting for the forecast)
 startRefresh();
 setInterval(startRefresh, CONFIG.refreshMinutes * 60000);

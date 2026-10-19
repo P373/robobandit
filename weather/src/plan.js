@@ -464,14 +464,16 @@ let fitTimer = 0;
 window.addEventListener('resize', () => { clearTimeout(fitTimer); fitTimer = setTimeout(fitPlan, 120); });
 window.addEventListener('orientationchange', () => setTimeout(fitPlan, 300));
 
+// Light colours only between sunrise and sunset; the page starts dark (see index.html) so a refresh at night never flashes white
 function nightMode() {
   const sun = sunMoon(dateKey(new Date())).sun, now = Date.now();
-  document.documentElement.classList.toggle('dark', now < sun.sunrise.getTime() - 20 * 6e4 || now > sun.sunset.getTime() + 20 * 6e4);
+  document.documentElement.classList.toggle('dark', now < sun.sunrise.getTime() || now >= sun.sunset.getTime());
 }
 
 // ---------- the clock, and the night clock ----------
 
 function tickClock() {
+  nightMode();
   const now = new Date(), c = clock(minutesOfDay(now));
   document.getElementById('clock').innerHTML = `${c.n.indexOf(':') < 0 ? c.n + ':00' : c.n}<small>${c.ap}</small>`;
   nightClock();

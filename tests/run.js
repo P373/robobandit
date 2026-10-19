@@ -3453,6 +3453,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       await p.screenshot({ path: path.join(OUT, 'weather-plan.png') });
       const t = Object.fromEntries(r.tiles.map(x => [x.act, x]));
       check(r.day === 'Today' && r.tiles.length === 4, 'today, four activities: ' + JSON.stringify(r.tiles.map(x => x.act)));
+      check(!r.dark && /<html lang="en" class="dark">/.test(fs.readFileSync(path.join(ROOT, 'weather/index.html'), 'utf8')), 'the page starts dark and turns light in daylight (9:30 AM)');
       check(t.boating.lv === '0' && /best (9|10) AM–(12|1|2) PM/.test(t.boating.say) && /SW .*kt, seas 1–2 ft/.test(t.boating.say), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
       check(r.tiles.every(x => x.icon) && t.boating.bg === 'rgb(223, 238, 226)' && t.swimming.bg === 'rgb(245, 237, 207)', 'each tile is its icon in a muted green / yellow / red box: ' + JSON.stringify(r.tiles.map(x => x.act + ' ' + x.bg)));
       check(!r.detail, 'the tiles start closed');
