@@ -447,6 +447,15 @@ html.dark .cond-card.cond-alert { color: #fff; }
 .plan-head h2 { margin: 0 10px 0 0; font-size: 1.15rem; }
 .plan-date { color: var(--muted); }
 .acts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-gap: 12px; gap: 12px; align-content: start; }
+.acts.n-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); } .acts.n-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.acts.n-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); } .acts.n-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+/* the seas tile: information, not a verdict, so sea blue */
+.act.act-seas { background: var(--sea-soft); border-color: transparent; color: var(--sea); }
+.act-seas .act-name { font-weight: 500; } .act-seas .act-name b { font-weight: 800; color: var(--ink); }
+.act-detail.seas { background: var(--card); border-color: var(--sea-soft); }
+.ad-marine { margin: 2px 0 6px; line-height: 1.4; }
+.ad-seas { font-weight: 700; color: var(--sea); margin-right: 4px; }
+.ad-waves { color: var(--muted); }
 /* each activity: its icon in a muted green, yellow or red box (do it / maybe / not today) */
 .act { display: flex; align-items: center; justify-content: center; font: inherit; color: var(--muted); background: var(--card);
   border: 2px solid var(--line); border-radius: 12px; padding: 7px 10px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
@@ -541,7 +550,8 @@ html.dark .tl-twilight { fill: rgba(240, 160, 70, 0.1); }
 .set-row:not(.on) .set-limits { opacity: 0.5; }
 .set-note { font-size: 0.82rem; color: var(--muted); margin: 10px 0; }
 @media (max-width: 760px) {   /* phones: tiles two by two, the page scrolls */
-  .acts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .acts, .acts.n-3, .acts.n-4, .acts.n-5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .act-seas { grid-column: 1 / -1; }
   .week { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .timeline { height: 320px; }
   .plan-foot { flex-wrap: wrap; white-space: normal; }

@@ -3421,7 +3421,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     };
     const read = p => p.evaluate(() => ({
       day: document.getElementById('plan-day').textContent,
-      tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], say: a.title, icon: !!a.querySelector('svg.act-ic'), bg: getComputedStyle(a).backgroundColor })),
+      tiles: [...document.querySelectorAll('#acts .act:not(.act-seas)')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], say: a.title, icon: !!a.querySelector('svg.act-ic'), bg: getComputedStyle(a).backgroundColor })),
       detail: (document.querySelector('#acts .act-detail') || {}).textContent || '', cells: document.querySelectorAll('#acts .ad-h').length,
       tl: { rain: [...document.querySelectorAll('#timeline .tl-pop')].map(t => t.textContent), wind: [...document.querySelectorAll('#timeline .tl-wspd')].map(t => t.textContent), arrows: document.querySelectorAll('#timeline .tl-warrow').length, graph: !!document.querySelector('#timeline .tl-wind, #timeline .tl-gust'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)), hours: [...document.querySelectorAll('#timeline .tl-hour')].map(t => t.textContent), day: (document.querySelector('#timeline .tl-day') || {}).textContent || '' },
       week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
@@ -3457,6 +3457,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(t.boating.lv === '0' && /best (9|10) AM–(12|1|2) PM/.test(t.boating.say) && /SW .*kt, seas 1–2 ft/.test(t.boating.say), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
       check(r.tiles.every(x => x.icon) && t.boating.bg === 'rgb(223, 238, 226)' && t.swimming.bg === 'rgb(245, 237, 207)', 'each tile is its icon in a muted green / yellow / red box: ' + JSON.stringify(r.tiles.map(x => x.act + ' ' + x.bg)));
       check(!r.detail, 'the tiles start closed');
+      // the seas tile comes first, before Boating; it opens the day's marine forecast
+      const seas = await p.evaluate(() => { const first = document.querySelector('#acts .act'); return { seas: first.classList.contains('act-seas'), text: first.textContent.replace(/\s+/g, ' ').trim(), next: first.nextElementSibling.dataset.act }; });
+      check(seas.seas && seas.text === '1–2 ft seas' && seas.next === 'boating', 'a seas tile (1–2 ft) sits before Boating: ' + JSON.stringify(seas));
+      await p.click('#acts .act-seas'); await p.waitForTimeout(150);
+      const seasOpen = await p.evaluate(() => (document.querySelector('#acts .act-detail.seas') || {}).textContent || '');
+      check(/Today/.test(seasOpen) && /Seas 1–2 ft/.test(seasOpen) && /SW winds 10 to 15 kt/.test(seasOpen), 'tapping it opens the marine forecast for the day: ' + seasOpen.replace(/\s+/g, ' ').slice(0, 160));
+      await p.click('#acts .act-seas'); await p.waitForTimeout(150);
       // tap Boating: it opens under the row with the verdict, the best window, every hour and your limits; still one screen
       await p.click('#acts .act[data-act="boating"]'); await p.waitForTimeout(200);
       const open1 = await read(p);

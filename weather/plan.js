@@ -370,7 +370,8 @@ var planState = null,
   selected = null,
   planKey = null,
   expanded = false,
-  planV = null;
+  planV = null,
+  seasOpen = false;
 var LEVEL = ['Go', 'Caution', 'Not today'];
 function renderPlan(state, info) {
   planState = state;
@@ -395,12 +396,16 @@ function renderPlan(state, info) {
   var whenOf = function whenOf(v) {
     return v.lv === 2 ? '' : v.all ? started ? "now until ".concat(clock(v.to).n, " ").concat(clock(v.to).ap) : 'all day' : "best ".concat(fmtRange(v.from, v.to));
   };
-  document.getElementById('acts').innerHTML = settings.shown.map(function (act) {
+  // the seas first (from the marine forecast), then the activities
+  var actsEl = document.getElementById('acts');
+  actsEl.className = "acts n-".concat(settings.shown.length + 1);
+  var seasTile = "<button type=\"button\" class=\"act act-seas".concat(seasOpen ? ' on' : '', "\" data-seas aria-expanded=\"").concat(seasOpen, "\" title=\"Seas ").concat(esc(cond.seasTxt || 'not in the forecast'), " \xB7 NWS marine forecast, Buzzards Bay\">\n      ").concat(LINE(COND_ICONS.water), "<span class=\"act-name\"><b>").concat(cond.seasTxt ? esc(cond.seasTxt) : '—', "</b> seas</span></button>");
+  actsEl.innerHTML = seasTile + settings.shown.map(function (act) {
     var v = verdicts[act] = verdict(act, judged, cond);
     var A = ACTIVITIES[act];
     var say = v ? "".concat(A.name, ": ").concat(LEVEL[v.lv], " \xB7 ").concat(v.why).concat(whenOf(v) ? " \xB7 ".concat(whenOf(v)) : '') : "".concat(A.name, ": forecast not in yet");
     return "<button type=\"button\" class=\"act".concat(v ? " lv-".concat(v.lv) : '').concat(act === selected ? ' on' : '', "\" data-act=\"").concat(act, "\" aria-pressed=\"").concat(act === selected, "\" aria-expanded=\"").concat(act === selected && expanded, "\" aria-label=\"").concat(esc(say), "\" title=\"").concat(esc(say), "\">\n      ").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span></button>");
-  }).join('') + (expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
+  }).join('') + (seasOpen ? seasDetail(state, planKey) : expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
   planV = verdicts[selected];
   drawTimeline(state, planV);
   renderWeek(state, planKey);
@@ -429,6 +434,18 @@ function actDetail(act, v, whenOf) {
     return "".concat(LIMIT_LABELS[k][0].toLowerCase(), " ").concat(L[k]).concat(LIMIT_LABELS[k][1] === '°' ? '°' : ' ' + LIMIT_LABELS[k][1]);
   }).join(' · ');
   return "<div class=\"act-detail lv-".concat(v.lv, "\">\n    <div class=\"ad-head\"><b class=\"ad-verdict\">").concat(A.name, ": ").concat(LEVEL[v.lv], "</b>").concat(whenOf(v) ? "<span class=\"ad-when\">".concat(esc(whenOf(v)), "</span>") : '', "<span class=\"ad-why\">").concat(esc(v.why), "</span></div>\n    <div class=\"ad-hours\">").concat(cells, "</div><div class=\"ad-marks\">").concat(marks, "</div>\n    <p class=\"ad-lim\">Your limits: ").concat(esc(limits), " <button type=\"button\" class=\"link-btn\" data-settings>Change</button></p>\n  </div>");
+}
+// The seas tile, opened: the day's marine forecast, period by period, with the wave detail
+function seasDetail(state, key) {
+  var mp = marineForDay(state.marine, key);
+  if (!mp.length) return '<div class="act-detail seas"><b>Seas</b>: beyond the marine forecast for now.</div>';
+  return "<div class=\"act-detail seas\">".concat(mp.map(function (p) {
+    var sea = parseSeaState(p.text);
+    var waves = sea.waves.map(function (w) {
+      return "".concat(w.dir, " ").concat(w.ft, " ft at ").concat(w.sec, " seconds");
+    }).join(', ');
+    return "<p class=\"ad-marine\"><b>".concat(esc(titleCase(p.label)), "</b> ").concat(sea.seas ? "<span class=\"ad-seas\">Seas ".concat(esc(sea.seas), "</span>") : '', " ").concat(esc(sea.rest)).concat(waves ? " <span class=\"ad-waves\">Waves: ".concat(esc(waves), "</span>") : '', "</p>");
+  }).join(''), "<p class=\"ad-lim\">NWS marine forecast for Buzzards Bay \xB7 issued ").concat(esc(state.marine.issued), "</p></div>");
 }
 var sunMoonMin = function sunMoonMin(key, which) {
   return minutesOfDay(sunMoon(key).sun[which]);
@@ -892,6 +909,13 @@ document.getElementById('acts').addEventListener('click', function (e) {
     document.getElementById('open-settings').click();
     return;
   }
+  if (e.target.closest('[data-seas]')) {
+    seasOpen = !seasOpen;
+    expanded = false;
+    renderPlan(planState, planInfo);
+    return;
+  }
+  seasOpen = false;
   var b = e.target.closest('.act');
   if (!b || !planState) return;
   var act = b.getAttribute('data-act');

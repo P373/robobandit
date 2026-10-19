@@ -195,7 +195,7 @@ function fmtRange(a, b) {
 
 // ---------- render ----------
 
-let planState = null, planInfo = null, selected = null, planKey = null, expanded = false, planV = null;
+let planState = null, planInfo = null, selected = null, planKey = null, expanded = false, planV = null, seasOpen = false;
 const LEVEL = ['Go', 'Caution', 'Not today'];
 
 function renderPlan(state, info) {
@@ -218,13 +218,18 @@ function renderPlan(state, info) {
   // a small muted green, yellow or red box around each activity's icon: do it, maybe, or not today;
   // tap one to open it (the why, the best window, every hour, your limits)
   const whenOf = (v) => (v.lv === 2 ? '' : v.all ? (started ? `now until ${clock(v.to).n} ${clock(v.to).ap}` : 'all day') : `best ${fmtRange(v.from, v.to)}`);
-  document.getElementById('acts').innerHTML = settings.shown.map((act) => {
+  // the seas first (from the marine forecast), then the activities
+  const actsEl = document.getElementById('acts');
+  actsEl.className = `acts n-${settings.shown.length + 1}`;
+  const seasTile = `<button type="button" class="act act-seas${seasOpen ? ' on' : ''}" data-seas aria-expanded="${seasOpen}" title="Seas ${esc(cond.seasTxt || 'not in the forecast')} · NWS marine forecast, Buzzards Bay">
+      ${LINE(COND_ICONS.water)}<span class="act-name"><b>${cond.seasTxt ? esc(cond.seasTxt) : '—'}</b> seas</span></button>`;
+  actsEl.innerHTML = seasTile + settings.shown.map((act) => {
     const v = verdicts[act] = verdict(act, judged, cond);
     const A = ACTIVITIES[act];
     const say = v ? `${A.name}: ${LEVEL[v.lv]} · ${v.why}${whenOf(v) ? ` · ${whenOf(v)}` : ''}` : `${A.name}: forecast not in yet`;
     return `<button type="button" class="act${v ? ` lv-${v.lv}` : ''}${act === selected ? ' on' : ''}" data-act="${act}" aria-pressed="${act === selected}" aria-expanded="${act === selected && expanded}" aria-label="${esc(say)}" title="${esc(say)}">
       ${A.icon}<span class="act-name">${A.name}</span></button>`;
-  }).join('') + (expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
+  }).join('') + (seasOpen ? seasDetail(state, planKey) : expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
 
   planV = verdicts[selected];
   drawTimeline(state, planV);
@@ -250,6 +255,16 @@ function actDetail(act, v, whenOf) {
     <div class="ad-hours">${cells}</div><div class="ad-marks">${marks}</div>
     <p class="ad-lim">Your limits: ${esc(limits)} <button type="button" class="link-btn" data-settings>Change</button></p>
   </div>`;
+}
+// The seas tile, opened: the day's marine forecast, period by period, with the wave detail
+function seasDetail(state, key) {
+  const mp = marineForDay(state.marine, key);
+  if (!mp.length) return '<div class="act-detail seas"><b>Seas</b>: beyond the marine forecast for now.</div>';
+  return `<div class="act-detail seas">${mp.map((p) => {
+    const sea = parseSeaState(p.text);
+    const waves = sea.waves.map((w) => `${w.dir} ${w.ft} ft at ${w.sec} seconds`).join(', ');
+    return `<p class="ad-marine"><b>${esc(titleCase(p.label))}</b> ${sea.seas ? `<span class="ad-seas">Seas ${esc(sea.seas)}</span>` : ''} ${esc(sea.rest)}${waves ? ` <span class="ad-waves">Waves: ${esc(waves)}</span>` : ''}</p>`;
+  }).join('')}<p class="ad-lim">NWS marine forecast for Buzzards Bay · issued ${esc(state.marine.issued)}</p></div>`;
 }
 const sunMoonMin = (key, which) => minutesOfDay(sunMoon(key).sun[which]);
 
@@ -525,6 +540,8 @@ setInterval(() => {
 
 document.getElementById('acts').addEventListener('click', (e) => {
   if (e.target.closest('[data-settings]')) { document.getElementById('open-settings').click(); return; }
+  if (e.target.closest('[data-seas]')) { seasOpen = !seasOpen; expanded = false; renderPlan(planState, planInfo); return; }
+  seasOpen = false;
   const b = e.target.closest('.act');
   if (!b || !planState) return;
   const act = b.getAttribute('data-act');
