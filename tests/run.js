@@ -3423,7 +3423,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       day: document.getElementById('plan-day').textContent,
       tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], say: a.title, icon: !!a.querySelector('svg.act-ic'), bg: getComputedStyle(a).backgroundColor })),
       detail: (document.querySelector('#acts .act-detail') || {}).textContent || '', cells: document.querySelectorAll('#acts .ad-h').length,
-      tl: { rain: document.querySelectorAll('#timeline .tl-rain').length, wind: !!document.querySelector('#timeline .tl-wind'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)).length },
+      tl: { rain: document.querySelectorAll('#timeline .tl-rain').length, wind: !!document.querySelector('#timeline .tl-wind'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)), hours: [...document.querySelectorAll('#timeline .tl-hour')].map(t => t.textContent), day: (document.querySelector('#timeline .tl-day') || {}).textContent || '' },
       week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
       tileH: Math.max(...[...document.querySelectorAll('#acts .act')].map(a => a.getBoundingClientRect().height)),
       fits: { scroll: document.documentElement.scrollHeight, inner: innerHeight, weekBottom: Math.round(document.getElementById('week').getBoundingClientRect().bottom), footBottom: Math.round(document.querySelector('.plan-foot').getBoundingClientRect().bottom) },
@@ -3467,7 +3467,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.say), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
       check(t.rollerblading.lv === '0' && /best 11 AM/.test(t.rollerblading.say), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
       check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));
-      check(r.tl.rain > 0 && r.tl.wind && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows >= 1, 'the timeline has sky, rain, wind, tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
+      check(r.tl.rain > 0 && r.tl.wind && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows.join() === 'Low 12:30p,High 7p', 'the timeline has sky, rain, wind, tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
+      check(r.tl.hours[0] === '10a' && r.tl.hours[r.tl.hours.length - 1] === '8p' && !r.tl.day, 'at 9:30 AM the timeline runs from just before now to 12 hours ahead (10a … 8p), no midnight: ' + JSON.stringify(r.tl.hours));
       const sun = r.week[0], tue = r.week[2];
       check(r.week.length === 6 && /Not today/.test(sun.v) && /Boating/.test(sun.title), 'the week: six days, and stormy Sunday is not a boating day: ' + JSON.stringify(r.week.slice(0, 3)));
       // tap Running: the timeline and the week follow it
@@ -3492,6 +3493,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       await p.evaluate(() => { window.__T = Date.parse('2026-07-19T01:30:00Z'); renderPlan(window.__state, window.__info); });
       const night = await read(p);
       check(night.dark && night.day === 'Tomorrow', 'after sunset: dark, and planning tomorrow: ' + JSON.stringify({ dark: night.dark, day: night.day }));
+      check(night.tl.hours[0] === '10p' && night.tl.hours[night.tl.hours.length - 1] === '8a' && night.tl.day === 'Sun' && night.tl.lows.some(t => /High 7:30a/.test(t)), 'at 9:30 PM the timeline shows the night and tomorrow morning (10p … 8a), midnight marked Sun, and the morning high tide: ' + JSON.stringify(night.tl));
       await p.screenshot({ path: path.join(OUT, 'weather-plan-night.png') });
       check(errors.length === 0, 'script errors: ' + errors.join(' | '));
       await ctx.close();

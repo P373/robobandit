@@ -195,7 +195,7 @@ function fmtRange(a, b) {
 
 // ---------- render ----------
 
-let planState = null, planInfo = null, selected = null, planKey = null, expanded = false;
+let planState = null, planInfo = null, selected = null, planKey = null, expanded = false, planV = null;
 const LEVEL = ['Go', 'Caution', 'Not today'];
 
 function renderPlan(state, info) {
@@ -226,7 +226,8 @@ function renderPlan(state, info) {
       ${A.icon}<span class="act-name">${A.name}</span></button>`;
   }).join('') + (expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
 
-  drawTimeline(state, planKey, hours, verdicts[selected], isToday);
+  planV = verdicts[selected];
+  drawTimeline(state, planV);
   renderWeek(state, planKey);
 
   const stale = info.stale.length ? ` · showing saved ${info.stale.map((s) => s[0].toLowerCase()).join(', ')}` : '';
@@ -252,90 +253,96 @@ function actDetail(act, v, whenOf) {
 }
 const sunMoonMin = (key, which) => minutesOfDay(sunMoon(key).sun[which]);
 
-// One clock for the day: sky and temperature, rain, wind and tide lined up, night shaded, now marked
-function drawTimeline(state, key, hours, v, isToday) {
+// One rolling clock: from 15 minutes ago to 12 hours ahead (through the night and into tomorrow when it's late),
+// with sky and temperature, rain, wind and tide lined up, night shaded, midnight and now marked, and the tapped
+// activity's best window as a band
+function drawTimeline(state, v) {
   const el = document.getElementById('timeline');
   const W = Math.max(300, el.clientWidth), H = Math.max(200, el.clientHeight);
-  const sun = sunMoon(key).sun, sunrise = minutesOfDay(sun.sunrise), sunset = minutesOfDay(sun.sunset);
-  const m0 = Math.max(0, Math.floor(sunrise / 60) * 60 - 60), m1 = Math.min(1440, Math.ceil(sunset / 60) * 60 + 120);
-  const gut = 58, padR = 10, x = (m) => gut + ((m - m0) / (m1 - m0)) * (W - gut - padR);
+  const todayKey = planInfo ? planInfo.todayKey : dateKey(new Date()), tomorrow = addDays(todayKey, 1);
+  const now = Date.now(), t0 = now - 15 * 6e4, t1 = now + 12 * 36e5;
+  const gut = 58, padR = 10, x = (t) => gut + ((Math.min(t1, Math.max(t0, t)) - t0) / (t1 - t0)) * (W - gut - padR);
   const rows = { sky: [0, 54], rain: [60, 30] };
   const rest = H - 96 - 22, windH = Math.round(rest * 0.5), tideH = rest - windH;
   rows.wind = [96, windH - 8]; rows.tide = [96 + windH, tideH - 6];
   const axisY = H - 18;
-  const inWin = hours.filter((h) => h.min >= m0 && h.min < m1);
+  const hours = dayHours(state, todayKey).concat(dayHours(state, tomorrow)).filter((h) => h.t + 36e5 > t0 && h.t < t1);
+  const s0 = sunMoon(todayKey).sun, s1 = sunMoon(tomorrow).sun;
+  const isDay = (t) => (t >= s0.sunrise && t < s0.sunset) || (t >= s1.sunrise && t < s1.sunset);
   const out = [];
 
-  // night, and the selected activity's best window
-  out.push(`<rect x="${x(m0)}" y="0" width="${x(sunrise) - x(m0)}" height="${axisY}" class="tl-night"/>`,
-    `<rect x="${x(sunset)}" y="0" width="${x(m1) - x(sunset)}" height="${axisY}" class="tl-night"/>`);
-  if (v && v.n) out.push(`<rect x="${x(v.from)}" y="0" width="${x(v.to) - x(v.from)}" height="${axisY}" class="tl-win lv-${v.lv}" rx="6"/>`);
-  // hour grid and labels
-  const step = W < 560 ? 180 : 120;
-  for (let m = m0; m <= m1; m += 60) {
-    out.push(`<line x1="${x(m)}" x2="${x(m)}" y1="${rows.rain[0]}" y2="${axisY}" class="tl-grid${m % step ? '' : ' major'}"/>`);
-    if (m % step === 0 && m < m1) out.push(`<text x="${x(m)}" y="${H - 4}" class="tl-hour">${clock(m).n}${clock(m).ap === 'AM' ? 'a' : 'p'}</text>`);
+  // night, then the tapped activity's best window (for the planned day)
+  for (const [a, b] of [[t0, +s0.sunrise], [+s0.sunset, +s1.sunrise], [+s1.sunset, t1]]) {
+    if (b > t0 && a < t1) out.push(`<rect x="${x(a)}" y="0" width="${x(b) - x(a)}" height="${axisY}" class="tl-night"/>`);
   }
-  // row labels
+  if (v && v.n) {
+    const m0 = localMidnight(planKey).getTime(), a = m0 + v.from * 6e4, b = m0 + v.to * 6e4;
+    if (b > t0 && a < t1) out.push(`<rect x="${x(a)}" y="0" width="${x(b) - x(a)}" height="${axisY}" class="tl-win lv-${v.lv}" rx="6"/>`);
+  }
+  // hours, labels, and midnight
+  const stepH = W < 560 ? 3 : 2;
+  for (let t = Math.ceil(t0 / 36e5) * 36e5; t <= t1; t += 36e5) {
+    const m = minutesOfDay(new Date(t)), hr = Math.round(m / 60) % 24, midnight = m === 0;
+    out.push(`<line x1="${x(t)}" x2="${x(t)}" y1="${midnight ? 0 : rows.rain[0]}" y2="${axisY}" class="tl-grid${hr % stepH ? '' : ' major'}${midnight ? ' tl-midnight' : ''}"/>`);
+    if (midnight) out.push(`<text x="${x(t) + 4}" y="${rows.rain[0] - 4}" class="tl-day">${keyLabel(dateKey(new Date(t)), 2).short}</text>`);
+    if (hr % stepH === 0 && t < t1 - 18e5) out.push(`<text x="${x(t)}" y="${H - 4}" class="tl-hour">${clock(m).n}${clock(m).ap === 'AM' ? 'a' : 'p'}</text>`);
+  }
   out.push(`<text x="4" y="${rows.rain[0] + 17}" class="tl-label">Rain</text>`,
     `<text x="4" y="${rows.wind[0] + 14}" class="tl-label">Wind</text><text x="4" y="${rows.wind[0] + 28}" class="tl-unit">knots</text>`,
     `<text x="4" y="${rows.tide[0] + 14}" class="tl-label">Tide</text><text x="4" y="${rows.tide[0] + 28}" class="tl-unit">feet</text>`);
 
-  // sky and temperature, every two (or three) hours
-  for (const h of inWin) {
-    if ((h.min - m0) % step || h.temp == null) continue;
-    const cx = x(h.min + 30);
-    out.push(wxIcon(h.short, h.min >= sunrise && h.min < sunset, 28).replace('<svg ', `<svg x="${cx - 14}" y="2" `),
+  // sky and temperature on the labelled hours
+  for (const h of hours) {
+    if (Math.round(h.min / 60) % stepH || h.temp == null || h.t < t0) continue;
+    const cx = x(h.t + 18e5);
+    out.push(wxIcon(h.short, isDay(h.t + 18e5), 28).replace('<svg ', `<svg x="${cx - 14}" y="2" `),
       `<text x="${cx}" y="${rows.sky[0] + 46}" class="tl-temp">${h.temp}°</text>`);
   }
   // rain chance bars
   const rTop = rows.rain[0], rH = rows.rain[1];
-  for (const h of inWin) {
+  for (const h of hours) {
     if (!h.pop) continue;
-    const bh = Math.max(2, (h.pop / 100) * rH);
-    out.push(`<rect x="${x(h.min) + 1}" y="${rTop + rH - bh}" width="${Math.max(1, x(h.min + 60) - x(h.min) - 2)}" height="${bh}" class="tl-rain" rx="2"/>`);
+    const bh = Math.max(2, (h.pop / 100) * rH), a = x(h.t), b = x(h.t + 36e5);
+    if (b - a > 2) out.push(`<rect x="${a + 1}" y="${rTop + rH - bh}" width="${b - a - 2}" height="${bh}" class="tl-rain" rx="2"/>`);
   }
-  const wet = Math.max(0, ...inWin.map((h) => h.pop));
+  const wet = Math.max(0, ...hours.map((h) => h.pop));
   out.push(`<text x="4" y="${rTop + 31}" class="tl-unit">${wet >= 20 ? `up to ${wet}%` : 'dry'}</text>`);
 
   // wind and gusts
-  const wpts = inWin.filter((h) => h.spd != null);
+  const wpts = hours.filter((h) => h.spd != null);
   if (wpts.length > 1) {
     const wTop = rows.wind[0] + 4, wH = rows.wind[1] - 4, max = Math.max(20, Math.ceil(Math.max(...wpts.map((h) => h.gst)) / 5) * 5);
     const y = (k) => wTop + wH - (k / max) * wH;
-    const line = (k) => wpts.map((h, i) => `${i ? 'L' : 'M'}${x(h.min + 30).toFixed(1)},${y(h[k]).toFixed(1)}`).join('');
-    out.push(`<path d="${line('gst')}L${x(wpts[wpts.length - 1].min + 30).toFixed(1)},${wTop + wH}L${x(wpts[0].min + 30).toFixed(1)},${wTop + wH}Z" class="tl-gust"/>`,
+    const line = (k) => wpts.map((h, i) => `${i ? 'L' : 'M'}${x(h.t + 18e5).toFixed(1)},${y(h[k]).toFixed(1)}`).join('');
+    out.push(`<path d="${line('gst')}L${x(wpts[wpts.length - 1].t + 18e5).toFixed(1)},${wTop + wH}L${x(wpts[0].t + 18e5).toFixed(1)},${wTop + wH}Z" class="tl-gust"/>`,
       `<path d="${line('spd')}" class="tl-wind"/>`);
     for (const k of [10, 20, 30].filter((k) => k < max)) out.push(`<text x="${gut - 4}" y="${y(k) + 4}" class="tl-tick">${k}</text>`);
-    for (const h of wpts) if ((h.min - m0) % step === 0 && h.dir != null) out.push(`<g transform="translate(${x(h.min + 30)} ${y(h.spd) - 12}) rotate(${h.dir + 180})"><path d="M0,5V-5M-3.5,-1.5L0,-5 3.5,-1.5" class="tl-arrow"/></g>`);
+    for (const h of wpts) if (Math.round(h.min / 60) % stepH === 0 && h.dir != null && h.t >= t0) out.push(`<g transform="translate(${x(h.t + 18e5)} ${y(h.spd) - 12}) rotate(${h.dir + 180})"><path d="M0,5V-5M-3.5,-1.5L0,-5 3.5,-1.5" class="tl-arrow"/></g>`);
     const peak = wpts.reduce((a, b) => (b.gst > a.gst ? b : a));
-    out.push(`<text x="${x(peak.min + 30)}" y="${Math.max(wTop + 10, y(peak.gst) - 4)}" class="tl-val">G${Math.round(peak.gst)}</text>`);
+    out.push(`<text x="${x(peak.t + 18e5)}" y="${Math.max(wTop + 10, y(peak.gst) - 4)}" class="tl-val">G${Math.round(peak.gst)}</text>`);
   }
 
-  // tide
+  // tide (its times are minutes from today's local midnight)
   const T = state.tides;
   if (T) {
-    const di = dayDiff(dateKey(new Date()), key);
-    const pts = T.curve.filter((p) => p.dayIndex === di && p.min >= m0 - 30 && p.min <= m1 + 30);
+    const mid = localMidnight(todayKey).getTime(), at = (p) => mid + p.abs * 6e4;
+    const pts = T.curve.filter((p) => at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5);
     if (pts.length > 1) {
       const vals = T.curve.map((p) => p.v), lo = Math.min(...vals) - 0.3, hi = Math.max(...vals) + 0.3;
       const tTop = rows.tide[0] + 14, tH = rows.tide[1] - 30;
-      const y = (v) => tTop + tH - ((v - lo) / (hi - lo)) * tH;
-      const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(p.min).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
-      out.push(`<path d="${path}L${x(pts[pts.length - 1].min).toFixed(1)},${tTop + tH + 14}L${x(pts[0].min).toFixed(1)},${tTop + tH + 14}Z" class="tl-tide-area"/>`, `<path d="${path}" class="tl-tide"/>`);
-      for (const p of T.hilo.filter((q) => q.dayIndex === di && q.min >= m0 && q.min <= m1)) {
+      const y = (val) => tTop + tH - ((val - lo) / (hi - lo)) * tH;
+      const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(at(p)).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
+      out.push(`<path d="${path}L${x(at(pts[pts.length - 1])).toFixed(1)},${tTop + tH + 14}L${x(at(pts[0])).toFixed(1)},${tTop + tH + 14}Z" class="tl-tide-area"/>`, `<path d="${path}" class="tl-tide"/>`);
+      for (const p of T.hilo.filter((q) => at(q) >= t0 && at(q) <= t1)) {
         const up = p.type === 'H', ty = up ? y(p.v) - 7 : y(p.v) + 15;
-        out.push(`<circle cx="${x(p.min)}" cy="${y(p.v)}" r="3.5" class="tl-dot ${up ? 'hi' : 'lo'}"/>`,
-          `<text x="${x(p.min)}" y="${ty}" class="tl-val">${up ? 'High' : 'Low'} ${clock(p.min).n}${clock(p.min).ap === 'AM' ? 'a' : 'p'}</text>`);
+        out.push(`<circle cx="${x(at(p))}" cy="${y(p.v)}" r="3.5" class="tl-dot ${up ? 'hi' : 'lo'}"/>`,
+          `<text x="${x(at(p))}" y="${ty}" class="tl-val">${up ? 'High' : 'Low'} ${clock(p.min).n}${clock(p.min).ap === 'AM' ? 'a' : 'p'}</text>`);
       }
     }
   }
 
   // now
-  if (isToday) {
-    const nm = minutesOfDay(new Date());
-    if (nm >= m0 && nm <= m1) out.push(`<line x1="${x(nm)}" x2="${x(nm)}" y1="0" y2="${axisY}" class="tl-now"/><text x="${x(nm)}" y="${axisY - 3}" class="tl-now-t">now</text>`);
-  }
+  out.push(`<line x1="${x(now)}" x2="${x(now)}" y1="0" y2="${axisY}" class="tl-now"/><text x="${x(now)}" y="${axisY - 3}" class="tl-now-t">now</text>`);
   el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out.join('')}</svg>`;
 }
 
@@ -375,8 +382,7 @@ function fitPlan() {
   } else tl.style.height = '';
   if (planState && Math.abs((tl._w || 0) - tl.clientWidth) + Math.abs((tl._h || 0) - tl.clientHeight) > 2) {
     tl._w = tl.clientWidth; tl._h = tl.clientHeight;
-    const isToday = planKey === planInfo.todayKey;
-    drawTimeline(planState, planKey, dayHours(planState, planKey), verdict(selected, isToday ? judgedHours(dayHours(planState, planKey), planKey, true) : judgedHours(dayHours(planState, planKey), planKey, false), dayConditions(planState, planKey)), isToday);
+    drawTimeline(planState, planV);
   }
 }
 let fitTimer = 0;

@@ -7,6 +7,10 @@
 // Loaded before app.js; it only uses app.js's helpers once renderPlan() is called.
 
 // ---------- activities: what each needs, with limits you can change (saved on this iPad) ----------
+function _slicedToArray(r, e) { return _arrayWithHoles(r) || _iterableToArrayLimit(r, e) || _unsupportedIterableToArray(r, e) || _nonIterableRest(); }
+function _nonIterableRest() { throw new TypeError("Invalid attempt to destructure non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _iterableToArrayLimit(r, l) { var t = null == r ? null : "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (null != t) { var e, n, i, u, a = [], f = !0, o = !1; try { if (i = (t = t.call(r)).next, 0 === l) { if (Object(t) !== t) return; f = !1; } else for (; !(f = (e = i.call(t)).done) && (a.push(e.value), a.length !== l); f = !0); } catch (r) { o = !0, n = r; } finally { try { if (!f && null != t["return"] && (u = t["return"](), Object(u) !== u)) return; } finally { if (o) throw n; } } return a; } }
+function _arrayWithHoles(r) { if (Array.isArray(r)) return r; }
 function _createForOfIteratorHelper(r, e) { var t = "undefined" != typeof Symbol && r[Symbol.iterator] || r["@@iterator"]; if (!t) { if (Array.isArray(r) || (t = _unsupportedIterableToArray(r)) || e && r && "number" == typeof r.length) { t && (r = t); var _n = 0, F = function F() {}; return { s: F, n: function n() { return _n >= r.length ? { done: !0 } : { done: !1, value: r[_n++] }; }, e: function e(r) { throw r; }, f: F }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); } var o, a = !0, u = !1; return { s: function s() { t = t.call(r); }, n: function n() { var r = t.next(); return a = r.done, r; }, e: function e(r) { u = !0, o = r; }, f: function f() { try { a || null == t["return"] || t["return"](); } finally { if (u) throw o; } } }; }
 function _toConsumableArray(r) { return _arrayWithoutHoles(r) || _iterableToArray(r) || _unsupportedIterableToArray(r) || _nonIterableSpread(); }
 function _nonIterableSpread() { throw new TypeError("Invalid attempt to spread non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
@@ -364,7 +368,8 @@ var planState = null,
   planInfo = null,
   selected = null,
   planKey = null,
-  expanded = false;
+  expanded = false,
+  planV = null;
 var LEVEL = ['Go', 'Caution', 'Not today'];
 function renderPlan(state, info) {
   planState = state;
@@ -395,7 +400,8 @@ function renderPlan(state, info) {
     var say = v ? "".concat(A.name, ": ").concat(LEVEL[v.lv], " \xB7 ").concat(v.why).concat(whenOf(v) ? " \xB7 ".concat(whenOf(v)) : '') : "".concat(A.name, ": forecast not in yet");
     return "<button type=\"button\" class=\"act".concat(v ? " lv-".concat(v.lv) : '').concat(act === selected ? ' on' : '', "\" data-act=\"").concat(act, "\" aria-pressed=\"").concat(act === selected, "\" aria-expanded=\"").concat(act === selected && expanded, "\" aria-label=\"").concat(esc(say), "\" title=\"").concat(esc(say), "\">\n      ").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span></button>");
   }).join('') + (expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
-  drawTimeline(state, planKey, hours, verdicts[selected], isToday);
+  planV = verdicts[selected];
+  drawTimeline(state, planV);
   renderWeek(state, planKey);
   var stale = info.stale.length ? " \xB7 showing saved ".concat(info.stale.map(function (s) {
     return s[0].toLowerCase();
@@ -426,20 +432,22 @@ var sunMoonMin = function sunMoonMin(key, which) {
   return minutesOfDay(sunMoon(key).sun[which]);
 };
 
-// One clock for the day: sky and temperature, rain, wind and tide lined up, night shaded, now marked
-function drawTimeline(state, key, hours, v, isToday) {
+// One rolling clock: from 15 minutes ago to 12 hours ahead (through the night and into tomorrow when it's late),
+// with sky and temperature, rain, wind and tide lined up, night shaded, midnight and now marked, and the tapped
+// activity's best window as a band
+function drawTimeline(state, v) {
   var el = document.getElementById('timeline');
   var W = Math.max(300, el.clientWidth),
     H = Math.max(200, el.clientHeight);
-  var sun = sunMoon(key).sun,
-    sunrise = minutesOfDay(sun.sunrise),
-    sunset = minutesOfDay(sun.sunset);
-  var m0 = Math.max(0, Math.floor(sunrise / 60) * 60 - 60),
-    m1 = Math.min(1440, Math.ceil(sunset / 60) * 60 + 120);
+  var todayKey = planInfo ? planInfo.todayKey : dateKey(new Date()),
+    tomorrow = addDays(todayKey, 1);
+  var now = Date.now(),
+    t0 = now - 15 * 6e4,
+    t1 = now + 12 * 36e5;
   var gut = 58,
     padR = 10,
-    x = function x(m) {
-      return gut + (m - m0) / (m1 - m0) * (W - gut - padR);
+    x = function x(t) {
+      return gut + (Math.min(t1, Math.max(t0, t)) - t0) / (t1 - t0) * (W - gut - padR);
     };
   var rows = {
     sky: [0, 54],
@@ -451,32 +459,50 @@ function drawTimeline(state, key, hours, v, isToday) {
   rows.wind = [96, windH - 8];
   rows.tide = [96 + windH, tideH - 6];
   var axisY = H - 18;
-  var inWin = hours.filter(function (h) {
-    return h.min >= m0 && h.min < m1;
+  var hours = dayHours(state, todayKey).concat(dayHours(state, tomorrow)).filter(function (h) {
+    return h.t + 36e5 > t0 && h.t < t1;
   });
+  var s0 = sunMoon(todayKey).sun,
+    s1 = sunMoon(tomorrow).sun;
+  var isDay = function isDay(t) {
+    return t >= s0.sunrise && t < s0.sunset || t >= s1.sunrise && t < s1.sunset;
+  };
   var out = [];
 
-  // night, and the selected activity's best window
-  out.push("<rect x=\"".concat(x(m0), "\" y=\"0\" width=\"").concat(x(sunrise) - x(m0), "\" height=\"").concat(axisY, "\" class=\"tl-night\"/>"), "<rect x=\"".concat(x(sunset), "\" y=\"0\" width=\"").concat(x(m1) - x(sunset), "\" height=\"").concat(axisY, "\" class=\"tl-night\"/>"));
-  if (v && v.n) out.push("<rect x=\"".concat(x(v.from), "\" y=\"0\" width=\"").concat(x(v.to) - x(v.from), "\" height=\"").concat(axisY, "\" class=\"tl-win lv-").concat(v.lv, "\" rx=\"6\"/>"));
-  // hour grid and labels
-  var step = W < 560 ? 180 : 120;
-  for (var m = m0; m <= m1; m += 60) {
-    out.push("<line x1=\"".concat(x(m), "\" x2=\"").concat(x(m), "\" y1=\"").concat(rows.rain[0], "\" y2=\"").concat(axisY, "\" class=\"tl-grid").concat(m % step ? '' : ' major', "\"/>"));
-    if (m % step === 0 && m < m1) out.push("<text x=\"".concat(x(m), "\" y=\"").concat(H - 4, "\" class=\"tl-hour\">").concat(clock(m).n).concat(clock(m).ap === 'AM' ? 'a' : 'p', "</text>"));
+  // night, then the tapped activity's best window (for the planned day)
+  for (var _i2 = 0, _arr = [[t0, +s0.sunrise], [+s0.sunset, +s1.sunrise], [+s1.sunset, t1]]; _i2 < _arr.length; _i2++) {
+    var _arr$_i = _slicedToArray(_arr[_i2], 2),
+      a = _arr$_i[0],
+      b = _arr$_i[1];
+    if (b > t0 && a < t1) out.push("<rect x=\"".concat(x(a), "\" y=\"0\" width=\"").concat(x(b) - x(a), "\" height=\"").concat(axisY, "\" class=\"tl-night\"/>"));
   }
-  // row labels
+  if (v && v.n) {
+    var m0 = localMidnight(planKey).getTime(),
+      _a = m0 + v.from * 6e4,
+      _b = m0 + v.to * 6e4;
+    if (_b > t0 && _a < t1) out.push("<rect x=\"".concat(x(_a), "\" y=\"0\" width=\"").concat(x(_b) - x(_a), "\" height=\"").concat(axisY, "\" class=\"tl-win lv-").concat(v.lv, "\" rx=\"6\"/>"));
+  }
+  // hours, labels, and midnight
+  var stepH = W < 560 ? 3 : 2;
+  for (var t = Math.ceil(t0 / 36e5) * 36e5; t <= t1; t += 36e5) {
+    var m = minutesOfDay(new Date(t)),
+      hr = Math.round(m / 60) % 24,
+      midnight = m === 0;
+    out.push("<line x1=\"".concat(x(t), "\" x2=\"").concat(x(t), "\" y1=\"").concat(midnight ? 0 : rows.rain[0], "\" y2=\"").concat(axisY, "\" class=\"tl-grid").concat(hr % stepH ? '' : ' major').concat(midnight ? ' tl-midnight' : '', "\"/>"));
+    if (midnight) out.push("<text x=\"".concat(x(t) + 4, "\" y=\"").concat(rows.rain[0] - 4, "\" class=\"tl-day\">").concat(keyLabel(dateKey(new Date(t)), 2)["short"], "</text>"));
+    if (hr % stepH === 0 && t < t1 - 18e5) out.push("<text x=\"".concat(x(t), "\" y=\"").concat(H - 4, "\" class=\"tl-hour\">").concat(clock(m).n).concat(clock(m).ap === 'AM' ? 'a' : 'p', "</text>"));
+  }
   out.push("<text x=\"4\" y=\"".concat(rows.rain[0] + 17, "\" class=\"tl-label\">Rain</text>"), "<text x=\"4\" y=\"".concat(rows.wind[0] + 14, "\" class=\"tl-label\">Wind</text><text x=\"4\" y=\"").concat(rows.wind[0] + 28, "\" class=\"tl-unit\">knots</text>"), "<text x=\"4\" y=\"".concat(rows.tide[0] + 14, "\" class=\"tl-label\">Tide</text><text x=\"4\" y=\"").concat(rows.tide[0] + 28, "\" class=\"tl-unit\">feet</text>"));
 
-  // sky and temperature, every two (or three) hours
-  var _iterator3 = _createForOfIteratorHelper(inWin),
+  // sky and temperature on the labelled hours
+  var _iterator3 = _createForOfIteratorHelper(hours),
     _step3;
   try {
     for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
       var _h = _step3.value;
-      if ((_h.min - m0) % step || _h.temp == null) continue;
-      var cx = x(_h.min + 30);
-      out.push(wxIcon(_h["short"], _h.min >= sunrise && _h.min < sunset, 28).replace('<svg ', "<svg x=\"".concat(cx - 14, "\" y=\"2\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(rows.sky[0] + 46, "\" class=\"tl-temp\">").concat(_h.temp, "\xB0</text>"));
+      if (Math.round(_h.min / 60) % stepH || _h.temp == null || _h.t < t0) continue;
+      var cx = x(_h.t + 18e5);
+      out.push(wxIcon(_h["short"], isDay(_h.t + 18e5), 28).replace('<svg ', "<svg x=\"".concat(cx - 14, "\" y=\"2\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(rows.sky[0] + 46, "\" class=\"tl-temp\">").concat(_h.temp, "\xB0</text>"));
     }
     // rain chance bars
   } catch (err) {
@@ -486,27 +512,29 @@ function drawTimeline(state, key, hours, v, isToday) {
   }
   var rTop = rows.rain[0],
     rH = rows.rain[1];
-  var _iterator4 = _createForOfIteratorHelper(inWin),
+  var _iterator4 = _createForOfIteratorHelper(hours),
     _step4;
   try {
     for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
       var _h2 = _step4.value;
       if (!_h2.pop) continue;
-      var bh = Math.max(2, _h2.pop / 100 * rH);
-      out.push("<rect x=\"".concat(x(_h2.min) + 1, "\" y=\"").concat(rTop + rH - bh, "\" width=\"").concat(Math.max(1, x(_h2.min + 60) - x(_h2.min) - 2), "\" height=\"").concat(bh, "\" class=\"tl-rain\" rx=\"2\"/>"));
+      var bh = Math.max(2, _h2.pop / 100 * rH),
+        _a2 = x(_h2.t),
+        _b2 = x(_h2.t + 36e5);
+      if (_b2 - _a2 > 2) out.push("<rect x=\"".concat(_a2 + 1, "\" y=\"").concat(rTop + rH - bh, "\" width=\"").concat(_b2 - _a2 - 2, "\" height=\"").concat(bh, "\" class=\"tl-rain\" rx=\"2\"/>"));
     }
   } catch (err) {
     _iterator4.e(err);
   } finally {
     _iterator4.f();
   }
-  var wet = Math.max.apply(Math, [0].concat(_toConsumableArray(inWin.map(function (h) {
+  var wet = Math.max.apply(Math, [0].concat(_toConsumableArray(hours.map(function (h) {
     return h.pop;
   }))));
   out.push("<text x=\"4\" y=\"".concat(rTop + 31, "\" class=\"tl-unit\">").concat(wet >= 20 ? "up to ".concat(wet, "%") : 'dry', "</text>"));
 
   // wind and gusts
-  var wpts = inWin.filter(function (h) {
+  var wpts = hours.filter(function (h) {
     return h.spd != null;
   });
   if (wpts.length > 1) {
@@ -520,10 +548,10 @@ function drawTimeline(state, key, hours, v, isToday) {
     };
     var line = function line(k) {
       return wpts.map(function (h, i) {
-        return "".concat(i ? 'L' : 'M').concat(x(h.min + 30).toFixed(1), ",").concat(y(h[k]).toFixed(1));
+        return "".concat(i ? 'L' : 'M').concat(x(h.t + 18e5).toFixed(1), ",").concat(y(h[k]).toFixed(1));
       }).join('');
     };
-    out.push("<path d=\"".concat(line('gst'), "L").concat(x(wpts[wpts.length - 1].min + 30).toFixed(1), ",").concat(wTop + wH, "L").concat(x(wpts[0].min + 30).toFixed(1), ",").concat(wTop + wH, "Z\" class=\"tl-gust\"/>"), "<path d=\"".concat(line('spd'), "\" class=\"tl-wind\"/>"));
+    out.push("<path d=\"".concat(line('gst'), "L").concat(x(wpts[wpts.length - 1].t + 18e5).toFixed(1), ",").concat(wTop + wH, "L").concat(x(wpts[0].t + 18e5).toFixed(1), ",").concat(wTop + wH, "Z\" class=\"tl-gust\"/>"), "<path d=\"".concat(line('spd'), "\" class=\"tl-wind\"/>"));
     var _iterator5 = _createForOfIteratorHelper([10, 20, 30].filter(function (k) {
         return k < max;
       })),
@@ -543,7 +571,7 @@ function drawTimeline(state, key, hours, v, isToday) {
     try {
       for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
         var h = _step6.value;
-        if ((h.min - m0) % step === 0 && h.dir != null) out.push("<g transform=\"translate(".concat(x(h.min + 30), " ").concat(y(h.spd) - 12, ") rotate(").concat(h.dir + 180, ")\"><path d=\"M0,5V-5M-3.5,-1.5L0,-5 3.5,-1.5\" class=\"tl-arrow\"/></g>"));
+        if (Math.round(h.min / 60) % stepH === 0 && h.dir != null && h.t >= t0) out.push("<g transform=\"translate(".concat(x(h.t + 18e5), " ").concat(y(h.spd) - 12, ") rotate(").concat(h.dir + 180, ")\"><path d=\"M0,5V-5M-3.5,-1.5L0,-5 3.5,-1.5\" class=\"tl-arrow\"/></g>"));
       }
     } catch (err) {
       _iterator6.e(err);
@@ -553,15 +581,18 @@ function drawTimeline(state, key, hours, v, isToday) {
     var peak = wpts.reduce(function (a, b) {
       return b.gst > a.gst ? b : a;
     });
-    out.push("<text x=\"".concat(x(peak.min + 30), "\" y=\"").concat(Math.max(wTop + 10, y(peak.gst) - 4), "\" class=\"tl-val\">G").concat(Math.round(peak.gst), "</text>"));
+    out.push("<text x=\"".concat(x(peak.t + 18e5), "\" y=\"").concat(Math.max(wTop + 10, y(peak.gst) - 4), "\" class=\"tl-val\">G").concat(Math.round(peak.gst), "</text>"));
   }
 
-  // tide
+  // tide (its times are minutes from today's local midnight)
   var T = state.tides;
   if (T) {
-    var di = dayDiff(dateKey(new Date()), key);
+    var mid = localMidnight(todayKey).getTime(),
+      at = function at(p) {
+        return mid + p.abs * 6e4;
+      };
     var pts = T.curve.filter(function (p) {
-      return p.dayIndex === di && p.min >= m0 - 30 && p.min <= m1 + 30;
+      return at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5;
     });
     if (pts.length > 1) {
       var vals = T.curve.map(function (p) {
@@ -571,15 +602,15 @@ function drawTimeline(state, key, hours, v, isToday) {
         hi = Math.max.apply(Math, _toConsumableArray(vals)) + 0.3;
       var tTop = rows.tide[0] + 14,
         tH = rows.tide[1] - 30;
-      var _y = function _y(v) {
-        return tTop + tH - (v - lo) / (hi - lo) * tH;
+      var _y = function _y(val) {
+        return tTop + tH - (val - lo) / (hi - lo) * tH;
       };
       var path = pts.map(function (p, i) {
-        return "".concat(i ? 'L' : 'M').concat(x(p.min).toFixed(1), ",").concat(_y(p.v).toFixed(1));
+        return "".concat(i ? 'L' : 'M').concat(x(at(p)).toFixed(1), ",").concat(_y(p.v).toFixed(1));
       }).join('');
-      out.push("<path d=\"".concat(path, "L").concat(x(pts[pts.length - 1].min).toFixed(1), ",").concat(tTop + tH + 14, "L").concat(x(pts[0].min).toFixed(1), ",").concat(tTop + tH + 14, "Z\" class=\"tl-tide-area\"/>"), "<path d=\"".concat(path, "\" class=\"tl-tide\"/>"));
+      out.push("<path d=\"".concat(path, "L").concat(x(at(pts[pts.length - 1])).toFixed(1), ",").concat(tTop + tH + 14, "L").concat(x(at(pts[0])).toFixed(1), ",").concat(tTop + tH + 14, "Z\" class=\"tl-tide-area\"/>"), "<path d=\"".concat(path, "\" class=\"tl-tide\"/>"));
       var _iterator7 = _createForOfIteratorHelper(T.hilo.filter(function (q) {
-          return q.dayIndex === di && q.min >= m0 && q.min <= m1;
+          return at(q) >= t0 && at(q) <= t1;
         })),
         _step7;
       try {
@@ -587,7 +618,7 @@ function drawTimeline(state, key, hours, v, isToday) {
           var p = _step7.value;
           var up = p.type === 'H',
             ty = up ? _y(p.v) - 7 : _y(p.v) + 15;
-          out.push("<circle cx=\"".concat(x(p.min), "\" cy=\"").concat(_y(p.v), "\" r=\"3.5\" class=\"tl-dot ").concat(up ? 'hi' : 'lo', "\"/>"), "<text x=\"".concat(x(p.min), "\" y=\"").concat(ty, "\" class=\"tl-val\">").concat(up ? 'High' : 'Low', " ").concat(clock(p.min).n).concat(clock(p.min).ap === 'AM' ? 'a' : 'p', "</text>"));
+          out.push("<circle cx=\"".concat(x(at(p)), "\" cy=\"").concat(_y(p.v), "\" r=\"3.5\" class=\"tl-dot ").concat(up ? 'hi' : 'lo', "\"/>"), "<text x=\"".concat(x(at(p)), "\" y=\"").concat(ty, "\" class=\"tl-val\">").concat(up ? 'High' : 'Low', " ").concat(clock(p.min).n).concat(clock(p.min).ap === 'AM' ? 'a' : 'p', "</text>"));
         }
       } catch (err) {
         _iterator7.e(err);
@@ -598,10 +629,7 @@ function drawTimeline(state, key, hours, v, isToday) {
   }
 
   // now
-  if (isToday) {
-    var nm = minutesOfDay(new Date());
-    if (nm >= m0 && nm <= m1) out.push("<line x1=\"".concat(x(nm), "\" x2=\"").concat(x(nm), "\" y1=\"0\" y2=\"").concat(axisY, "\" class=\"tl-now\"/><text x=\"").concat(x(nm), "\" y=\"").concat(axisY - 3, "\" class=\"tl-now-t\">now</text>"));
-  }
+  out.push("<line x1=\"".concat(x(now), "\" x2=\"").concat(x(now), "\" y1=\"0\" y2=\"").concat(axisY, "\" class=\"tl-now\"/><text x=\"").concat(x(now), "\" y=\"").concat(axisY - 3, "\" class=\"tl-now-t\">now</text>"));
   el.innerHTML = "<svg width=\"".concat(W, "\" height=\"").concat(H, "\" viewBox=\"0 0 ").concat(W, " ").concat(H, "\">").concat(out.join(''), "</svg>");
 }
 
@@ -642,8 +670,7 @@ function fitPlan() {
   if (planState && Math.abs((tl._w || 0) - tl.clientWidth) + Math.abs((tl._h || 0) - tl.clientHeight) > 2) {
     tl._w = tl.clientWidth;
     tl._h = tl.clientHeight;
-    var isToday = planKey === planInfo.todayKey;
-    drawTimeline(planState, planKey, dayHours(planState, planKey), verdict(selected, isToday ? judgedHours(dayHours(planState, planKey), planKey, true) : judgedHours(dayHours(planState, planKey), planKey, false), dayConditions(planState, planKey)), isToday);
+    drawTimeline(planState, planV);
   }
 }
 var fitTimer = 0;
@@ -741,8 +768,8 @@ document.getElementById('settings').addEventListener('change', function (e) {
 document.getElementById('settings').addEventListener('click', function (e) {
   if (e.target.id === 'reset-settings') {
     settings.shown = DEFAULT_SHOWN.slice();
-    for (var _i2 = 0, _Object$keys2 = Object.keys(ACTIVITIES); _i2 < _Object$keys2.length; _i2++) {
-      var k = _Object$keys2[_i2];
+    for (var _i3 = 0, _Object$keys2 = Object.keys(ACTIVITIES); _i3 < _Object$keys2.length; _i3++) {
+      var k = _Object$keys2[_i3];
       settings.limits[k] = Object.assign({}, ACTIVITIES[k].limits);
     }
     saveSettings();
