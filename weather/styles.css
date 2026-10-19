@@ -453,10 +453,18 @@ html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.
 .dot.lv-0 { background: #6fa77e; } .dot.lv-1 { background: #d2b45a; } .dot.lv-2 { background: #c87b72; }
 .tl-win.lv-0 { fill: rgba(111, 167, 126, 0.14); } .tl-win.lv-1 { fill: rgba(210, 180, 90, 0.16); } .tl-win.lv-2 { fill: rgba(200, 123, 114, 0.1); }
 .timeline { height: 300px; min-height: 190px; margin: 10px 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.timeline { position: relative; cursor: ew-resize; touch-action: none; -webkit-user-select: none; user-select: none; outline: none; }
 .timeline svg { display: block; }
+.tl-scrub { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
+.tl-now-dash { stroke: #c62828; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0.55; }
+.tl-knob { fill: #c62828; stroke: #fff; stroke-width: 2; }
+.tl-pill { fill: var(--card); stroke: var(--line); stroke-width: 1; }
+.tl-pill.time { fill: #c62828; stroke: #c62828; }
+.tl-read { font-size: 12px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.tl-read.time { fill: #fff; font-size: 13px; }
 .tl-night { fill: var(--night); }
 .tl-grid { stroke: var(--line); stroke-width: 1; opacity: 0.6; } .tl-grid.major { opacity: 1; }
-.tl-hour { font-size: 12px; fill: var(--muted); text-anchor: middle; }
+.tl-hour { font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
 .tl-label { font-size: 13px; font-weight: 700; fill: var(--ink); }
 .tl-unit, .tl-tick { font-size: 10px; fill: var(--muted); } .tl-tick { text-anchor: end; }
 .tl-temp { font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
@@ -469,7 +477,7 @@ html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.
 .tl-dot.hi { fill: var(--hi); } .tl-dot.lo { fill: var(--lo); }
 .tl-grid.tl-midnight { stroke: var(--muted); opacity: 0.7; stroke-dasharray: 3 3; }
 .tl-day { font-size: 11px; font-weight: 700; fill: var(--muted); }
-.tl-now { stroke: #c62828; stroke-width: 2; } .tl-now-t { font-size: 10px; font-weight: 700; fill: #c62828; text-anchor: middle; }
+.tl-now { stroke: #c62828; stroke-width: 2; }
 .week { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-gap: 10px; gap: 10px; align-content: start; }
 .wk { display: block; font: inherit; line-height: 1.3; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 5px 6px 6px; text-align: center; cursor: pointer; }
 .wk span { display: block; }

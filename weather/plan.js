@@ -492,7 +492,13 @@ function drawTimeline(state, v) {
     if (midnight) out.push("<text x=\"".concat(x(t) + 4, "\" y=\"").concat(rows.rain[0] - 4, "\" class=\"tl-day\">").concat(keyLabel(dateKey(new Date(t)), 2)["short"], "</text>"));
     if (hr % stepH === 0 && t < t1 - 18e5) out.push("<text x=\"".concat(x(t), "\" y=\"").concat(H - 4, "\" class=\"tl-hour\">").concat(clock(m).n).concat(clock(m).ap === 'AM' ? 'a' : 'p', "</text>"));
   }
-  out.push("<text x=\"4\" y=\"".concat(rows.rain[0] + 17, "\" class=\"tl-label\">Rain</text>"), "<text x=\"4\" y=\"".concat(rows.wind[0] + 14, "\" class=\"tl-label\">Wind</text><text x=\"4\" y=\"").concat(rows.wind[0] + 28, "\" class=\"tl-unit\">knots</text>"), "<text x=\"4\" y=\"".concat(rows.tide[0] + 14, "\" class=\"tl-label\">Tide</text><text x=\"4\" y=\"").concat(rows.tide[0] + 28, "\" class=\"tl-unit\">feet</text>"));
+  // row labels, each centred beside its graph
+  var mid = {
+    rain: rows.rain[0] + rows.rain[1] / 2,
+    wind: rows.wind[0] + rows.wind[1] / 2,
+    tide: rows.tide[0] + rows.tide[1] / 2
+  };
+  out.push("<text x=\"4\" y=\"".concat(mid.rain - 2, "\" class=\"tl-label\">Rain</text>"), "<text x=\"4\" y=\"".concat(mid.wind - 2, "\" class=\"tl-label\">Wind</text><text x=\"4\" y=\"").concat(mid.wind + 11, "\" class=\"tl-unit\">knots</text>"), "<text x=\"4\" y=\"".concat(mid.tide - 2, "\" class=\"tl-label\">Tide</text><text x=\"4\" y=\"").concat(mid.tide + 11, "\" class=\"tl-unit\">feet</text>"));
 
   // sky and temperature on the labelled hours
   var _iterator3 = _createForOfIteratorHelper(hours),
@@ -531,7 +537,7 @@ function drawTimeline(state, v) {
   var wet = Math.max.apply(Math, [0].concat(_toConsumableArray(hours.map(function (h) {
     return h.pop;
   }))));
-  out.push("<text x=\"4\" y=\"".concat(rTop + 31, "\" class=\"tl-unit\">").concat(wet >= 20 ? "up to ".concat(wet, "%") : 'dry', "</text>"));
+  out.push("<text x=\"4\" y=\"".concat(mid.rain + 11, "\" class=\"tl-unit\">").concat(wet >= 20 ? "up to ".concat(wet, "%") : 'dry', "</text>"));
 
   // wind and gusts
   var wpts = hours.filter(function (h) {
@@ -586,13 +592,20 @@ function drawTimeline(state, v) {
 
   // tide (its times are minutes from today's local midnight)
   var T = state.tides;
+  var tidePts = [];
   if (T) {
-    var mid = localMidnight(todayKey).getTime(),
+    var _mid = localMidnight(todayKey).getTime(),
       at = function at(p) {
-        return mid + p.abs * 6e4;
+        return _mid + p.abs * 6e4;
       };
     var pts = T.curve.filter(function (p) {
       return at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5;
+    });
+    tidePts = pts.map(function (p) {
+      return {
+        t: at(p),
+        v: p.v
+      };
     });
     if (pts.length > 1) {
       var vals = T.curve.map(function (p) {
@@ -628,10 +641,139 @@ function drawTimeline(state, v) {
     }
   }
 
-  // now
-  out.push("<line x1=\"".concat(x(now), "\" x2=\"").concat(x(now), "\" y1=\"0\" y2=\"").concat(axisY, "\" class=\"tl-now\"/><text x=\"").concat(x(now), "\" y=\"").concat(axisY - 3, "\" class=\"tl-now-t\">now</text>"));
-  el.innerHTML = "<svg width=\"".concat(W, "\" height=\"").concat(H, "\" viewBox=\"0 0 ").concat(W, " ").concat(H, "\">").concat(out.join(''), "</svg>");
+  // now stays marked faintly; the slider (drawn over the top) starts there
+  out.push("<line x1=\"".concat(x(now), "\" x2=\"").concat(x(now), "\" y1=\"0\" y2=\"").concat(axisY, "\" class=\"tl-now-dash\"/>"));
+  el.innerHTML = "<svg width=\"".concat(W, "\" height=\"").concat(H, "\" viewBox=\"0 0 ").concat(W, " ").concat(H, "\">").concat(out.join(''), "</svg><div class=\"tl-scrub\"></div>");
+  tlModel = {
+    t0: t0,
+    t1: t1,
+    W: W,
+    H: H,
+    gut: gut,
+    padR: padR,
+    x: x,
+    axisY: axisY,
+    mid: mid,
+    hours: hours,
+    wind: wpts.map(function (h) {
+      return {
+        t: h.t + 18e5,
+        spd: h.spd,
+        gst: h.gst,
+        dir: h.dir
+      };
+    }),
+    tide: tidePts
+  };
+  setScrub(scrubAt != null ? scrubAt : now);
 }
+
+// ---------- the slider: drag the red line (or tap) to read the forecast at any time ----------
+
+var tlModel = null,
+  scrubAt = null,
+  scrubBack = 0;
+var lerpAt = function lerpAt(pts, t, k) {
+  if (!pts.length) return null;
+  if (t <= pts[0].t) return pts[0][k];
+  for (var i = 1; i < pts.length; i++) if (t <= pts[i].t) {
+    var a = pts[i - 1],
+      b = pts[i];
+    return a[k] + (b[k] - a[k]) * ((t - a.t) / (b.t - a.t));
+  }
+  return pts[pts.length - 1][k];
+};
+function setScrub(t) {
+  var m = tlModel;
+  if (!m) return;
+  t = Math.min(m.t1, Math.max(m.t0, t));
+  var X = m.x(t),
+    isNow = Math.abs(t - Date.now()) < 3 * 6e4,
+    mm = minutesOfDay(new Date(t));
+  var hour = m.hours.filter(function (h) {
+    return t >= h.t && t < h.t + 36e5;
+  })[0];
+  var near = m.wind.length ? m.wind.reduce(function (a, b) {
+    return Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a;
+  }) : null;
+  var spd = lerpAt(m.wind, t, 'spd'),
+    gst = lerpAt(m.wind, t, 'gst'),
+    tv = lerpAt(m.tide, t, 'v'),
+    tv2 = lerpAt(m.tide, t + 15 * 6e4, 'v');
+  var reads = [[10, "".concat(isNow ? 'Now' : "".concat(clock(Math.round(mm / 5) * 5).n, " ").concat(clock(mm).ap)).concat(hour && hour.temp != null ? " \xB7 ".concat(hour.temp, "\xB0") : '').concat(isNow ? ' ↔' : ''), 'time'], [m.mid.rain, hour ? "".concat(hour.pop, "%") : ''], [m.mid.wind, spd != null ? "".concat(compass(near.dir), " ").concat(Math.round(spd)).concat(gst > spd + 3 ? " G".concat(Math.round(gst)) : '', " kt") : ''], [m.mid.tide, tv != null ? "".concat(tv.toFixed(1), " ft ").concat(tv2 > tv + 0.02 ? '↑' : tv2 < tv - 0.02 ? '↓' : '') : '']].filter(function (r) {
+    return r[1];
+  });
+  var pills = reads.map(function (_ref) {
+    var _ref2 = _slicedToArray(_ref, 3),
+      y = _ref2[0],
+      txt = _ref2[1],
+      cls = _ref2[2];
+    var w = txt.length * (cls ? 7.6 : 7) + 12,
+      left = X + w + 10 > m.W ? X - w - 6 : X + 6;
+    return "<rect x=\"".concat(left, "\" y=\"").concat(y - 10, "\" width=\"").concat(w, "\" height=\"19\" rx=\"5\" class=\"tl-pill").concat(cls ? ' ' + cls : '', "\"/><text x=\"").concat(left + w / 2, "\" y=\"").concat(y + 4, "\" class=\"tl-read").concat(cls ? ' ' + cls : '', "\">").concat(esc(txt), "</text>");
+  }).join('');
+  document.querySelector('#timeline .tl-scrub').innerHTML = "<svg width=\"".concat(m.W, "\" height=\"").concat(m.H, "\" viewBox=\"0 0 ").concat(m.W, " ").concat(m.H, "\">\n    <line x1=\"").concat(X, "\" x2=\"").concat(X, "\" y1=\"0\" y2=\"").concat(m.axisY, "\" class=\"tl-now\"/><circle cx=\"").concat(X, "\" cy=\"").concat(m.axisY - 1, "\" r=\"7\" class=\"tl-knob\"/>").concat(pills, "</svg>");
+}
+(function () {
+  var el = document.getElementById('timeline');
+  var dragging = false;
+  var toT = function toT(cx) {
+    var m = tlModel,
+      r = el.getBoundingClientRect();
+    return m.t0 + (cx - r.left - m.gut) / (m.W - m.gut - m.padR) * (m.t1 - m.t0);
+  };
+  var go = function go(cx) {
+    scrubAt = Math.min(tlModel.t1, Math.max(tlModel.t0, toT(cx)));
+    setScrub(scrubAt);
+  };
+  var start = function start(cx) {
+    if (!tlModel) return;
+    dragging = true;
+    clearTimeout(scrubBack);
+    go(cx);
+  };
+  var move = function move(cx) {
+    if (dragging) go(cx);
+  };
+  var end = function end() {
+    if (!dragging) return;
+    dragging = false;
+    clearTimeout(scrubBack);
+    scrubBack = setTimeout(function () {
+      scrubAt = null;
+      setScrub(Date.now());
+    }, 10000); // back to now after a while
+  };
+  el.addEventListener('touchstart', function (e) {
+    start(e.touches[0].clientX);
+    e.preventDefault();
+  }, false);
+  el.addEventListener('touchmove', function (e) {
+    move(e.touches[0].clientX);
+    e.preventDefault();
+  }, false);
+  el.addEventListener('touchend', end, false);
+  el.addEventListener('touchcancel', end, false);
+  el.addEventListener('mousedown', function (e) {
+    start(e.clientX);
+    e.preventDefault();
+  });
+  window.addEventListener('mousemove', function (e) {
+    return move(e.clientX);
+  });
+  window.addEventListener('mouseup', end);
+  el.addEventListener('keydown', function (e) {
+    if (!tlModel || e.keyCode !== 37 && e.keyCode !== 39) return;
+    e.preventDefault();
+    clearTimeout(scrubBack);
+    scrubAt = Math.min(tlModel.t1, Math.max(tlModel.t0, (scrubAt != null ? scrubAt : Date.now()) + (e.keyCode === 39 ? 15 : -15) * 6e4));
+    setScrub(scrubAt);
+    scrubBack = setTimeout(function () {
+      scrubAt = null;
+      setScrub(Date.now());
+    }, 10000);
+  });
+})();
 
 // The rest of the week: sky, high and low, wind, and a dot for the selected activity
 function renderWeek(state, fromKey) {

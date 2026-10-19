@@ -287,9 +287,11 @@ function drawTimeline(state, v) {
     if (midnight) out.push(`<text x="${x(t) + 4}" y="${rows.rain[0] - 4}" class="tl-day">${keyLabel(dateKey(new Date(t)), 2).short}</text>`);
     if (hr % stepH === 0 && t < t1 - 18e5) out.push(`<text x="${x(t)}" y="${H - 4}" class="tl-hour">${clock(m).n}${clock(m).ap === 'AM' ? 'a' : 'p'}</text>`);
   }
-  out.push(`<text x="4" y="${rows.rain[0] + 17}" class="tl-label">Rain</text>`,
-    `<text x="4" y="${rows.wind[0] + 14}" class="tl-label">Wind</text><text x="4" y="${rows.wind[0] + 28}" class="tl-unit">knots</text>`,
-    `<text x="4" y="${rows.tide[0] + 14}" class="tl-label">Tide</text><text x="4" y="${rows.tide[0] + 28}" class="tl-unit">feet</text>`);
+  // row labels, each centred beside its graph
+  const mid = { rain: rows.rain[0] + rows.rain[1] / 2, wind: rows.wind[0] + rows.wind[1] / 2, tide: rows.tide[0] + rows.tide[1] / 2 };
+  out.push(`<text x="4" y="${mid.rain - 2}" class="tl-label">Rain</text>`,
+    `<text x="4" y="${mid.wind - 2}" class="tl-label">Wind</text><text x="4" y="${mid.wind + 11}" class="tl-unit">knots</text>`,
+    `<text x="4" y="${mid.tide - 2}" class="tl-label">Tide</text><text x="4" y="${mid.tide + 11}" class="tl-unit">feet</text>`);
 
   // sky and temperature on the labelled hours
   for (const h of hours) {
@@ -306,7 +308,7 @@ function drawTimeline(state, v) {
     if (b - a > 2) out.push(`<rect x="${a + 1}" y="${rTop + rH - bh}" width="${b - a - 2}" height="${bh}" class="tl-rain" rx="2"/>`);
   }
   const wet = Math.max(0, ...hours.map((h) => h.pop));
-  out.push(`<text x="4" y="${rTop + 31}" class="tl-unit">${wet >= 20 ? `up to ${wet}%` : 'dry'}</text>`);
+  out.push(`<text x="4" y="${mid.rain + 11}" class="tl-unit">${wet >= 20 ? `up to ${wet}%` : 'dry'}</text>`);
 
   // wind and gusts
   const wpts = hours.filter((h) => h.spd != null);
@@ -324,9 +326,11 @@ function drawTimeline(state, v) {
 
   // tide (its times are minutes from today's local midnight)
   const T = state.tides;
+  let tidePts = [];
   if (T) {
     const mid = localMidnight(todayKey).getTime(), at = (p) => mid + p.abs * 6e4;
     const pts = T.curve.filter((p) => at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5);
+    tidePts = pts.map((p) => ({ t: at(p), v: p.v }));
     if (pts.length > 1) {
       const vals = T.curve.map((p) => p.v), lo = Math.min(...vals) - 0.3, hi = Math.max(...vals) + 0.3;
       const tTop = rows.tide[0] + 14, tH = rows.tide[1] - 30;
@@ -341,10 +345,72 @@ function drawTimeline(state, v) {
     }
   }
 
-  // now
-  out.push(`<line x1="${x(now)}" x2="${x(now)}" y1="0" y2="${axisY}" class="tl-now"/><text x="${x(now)}" y="${axisY - 3}" class="tl-now-t">now</text>`);
-  el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out.join('')}</svg>`;
+  // now stays marked faintly; the slider (drawn over the top) starts there
+  out.push(`<line x1="${x(now)}" x2="${x(now)}" y1="0" y2="${axisY}" class="tl-now-dash"/>`);
+  el.innerHTML = `<svg width="${W}" height="${H}" viewBox="0 0 ${W} ${H}">${out.join('')}</svg><div class="tl-scrub"></div>`;
+  tlModel = { t0, t1, W, H, gut, padR, x, axisY, mid, hours, wind: wpts.map((h) => ({ t: h.t + 18e5, spd: h.spd, gst: h.gst, dir: h.dir })), tide: tidePts };
+  setScrub(scrubAt != null ? scrubAt : now);
 }
+
+// ---------- the slider: drag the red line (or tap) to read the forecast at any time ----------
+
+let tlModel = null, scrubAt = null, scrubBack = 0;
+const lerpAt = (pts, t, k) => {
+  if (!pts.length) return null;
+  if (t <= pts[0].t) return pts[0][k];
+  for (let i = 1; i < pts.length; i++) if (t <= pts[i].t) { const a = pts[i - 1], b = pts[i]; return a[k] + (b[k] - a[k]) * ((t - a.t) / (b.t - a.t)); }
+  return pts[pts.length - 1][k];
+};
+function setScrub(t) {
+  const m = tlModel;
+  if (!m) return;
+  t = Math.min(m.t1, Math.max(m.t0, t));
+  const X = m.x(t), isNow = Math.abs(t - Date.now()) < 3 * 6e4, mm = minutesOfDay(new Date(t));
+  const hour = m.hours.filter((h) => t >= h.t && t < h.t + 36e5)[0];
+  const near = m.wind.length ? m.wind.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a)) : null;
+  const spd = lerpAt(m.wind, t, 'spd'), gst = lerpAt(m.wind, t, 'gst'), tv = lerpAt(m.tide, t, 'v'), tv2 = lerpAt(m.tide, t + 15 * 6e4, 'v');
+  const reads = [
+    [10, `${isNow ? 'Now' : `${clock(Math.round(mm / 5) * 5).n} ${clock(mm).ap}`}${hour && hour.temp != null ? ` · ${hour.temp}°` : ''}${isNow ? ' ↔' : ''}`, 'time'],
+    [m.mid.rain, hour ? `${hour.pop}%` : ''],
+    [m.mid.wind, spd != null ? `${compass(near.dir)} ${Math.round(spd)}${gst > spd + 3 ? ` G${Math.round(gst)}` : ''} kt` : ''],
+    [m.mid.tide, tv != null ? `${tv.toFixed(1)} ft ${tv2 > tv + 0.02 ? '↑' : tv2 < tv - 0.02 ? '↓' : ''}` : ''],
+  ].filter((r) => r[1]);
+  const pills = reads.map(([y, txt, cls]) => {
+    const w = txt.length * (cls ? 7.6 : 7) + 12, left = X + w + 10 > m.W ? X - w - 6 : X + 6;
+    return `<rect x="${left}" y="${y - 10}" width="${w}" height="19" rx="5" class="tl-pill${cls ? ' ' + cls : ''}"/><text x="${left + w / 2}" y="${y + 4}" class="tl-read${cls ? ' ' + cls : ''}">${esc(txt)}</text>`;
+  }).join('');
+  document.querySelector('#timeline .tl-scrub').innerHTML = `<svg width="${m.W}" height="${m.H}" viewBox="0 0 ${m.W} ${m.H}">
+    <line x1="${X}" x2="${X}" y1="0" y2="${m.axisY}" class="tl-now"/><circle cx="${X}" cy="${m.axisY - 1}" r="7" class="tl-knob"/>${pills}</svg>`;
+}
+(function () {
+  const el = document.getElementById('timeline');
+  let dragging = false;
+  const toT = (cx) => { const m = tlModel, r = el.getBoundingClientRect(); return m.t0 + ((cx - r.left - m.gut) / (m.W - m.gut - m.padR)) * (m.t1 - m.t0); };
+  const go = (cx) => { scrubAt = Math.min(tlModel.t1, Math.max(tlModel.t0, toT(cx))); setScrub(scrubAt); };
+  const start = (cx) => { if (!tlModel) return; dragging = true; clearTimeout(scrubBack); go(cx); };
+  const move = (cx) => { if (dragging) go(cx); };
+  const end = () => {
+    if (!dragging) return;
+    dragging = false;
+    clearTimeout(scrubBack);
+    scrubBack = setTimeout(() => { scrubAt = null; setScrub(Date.now()); }, 10000);   // back to now after a while
+  };
+  el.addEventListener('touchstart', (e) => { start(e.touches[0].clientX); e.preventDefault(); }, false);
+  el.addEventListener('touchmove', (e) => { move(e.touches[0].clientX); e.preventDefault(); }, false);
+  el.addEventListener('touchend', end, false);
+  el.addEventListener('touchcancel', end, false);
+  el.addEventListener('mousedown', (e) => { start(e.clientX); e.preventDefault(); });
+  window.addEventListener('mousemove', (e) => move(e.clientX));
+  window.addEventListener('mouseup', end);
+  el.addEventListener('keydown', (e) => {
+    if (!tlModel || (e.keyCode !== 37 && e.keyCode !== 39)) return;
+    e.preventDefault();
+    clearTimeout(scrubBack);
+    scrubAt = Math.min(tlModel.t1, Math.max(tlModel.t0, (scrubAt != null ? scrubAt : Date.now()) + (e.keyCode === 39 ? 15 : -15) * 6e4));
+    setScrub(scrubAt);
+    scrubBack = setTimeout(() => { scrubAt = null; setScrub(Date.now()); }, 10000);
+  });
+})();
 
 // The rest of the week: sky, high and low, wind, and a dot for the selected activity
 function renderWeek(state, fromKey) {

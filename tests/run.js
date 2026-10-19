@@ -3471,6 +3471,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(r.tl.hours[0] === '10a' && r.tl.hours[r.tl.hours.length - 1] === '8p' && !r.tl.day, 'at 9:30 AM the timeline runs from just before now to 12 hours ahead (10a … 8p), no midnight: ' + JSON.stringify(r.tl.hours));
       const sun = r.week[0], tue = r.week[2];
       check(r.week.length === 6 && /Not today/.test(sun.v) && /Boating/.test(sun.title), 'the week: six days, and stormy Sunday is not a boating day: ' + JSON.stringify(r.week.slice(0, 3)));
+      // drag the red line to 3 PM: it reads that time's rain, wind and tide
+      const box = await p.evaluate(() => { const r = document.getElementById('timeline').getBoundingClientRect(); return { x: r.left, y: r.top, h: r.height, at3: tlModel.x(Date.parse('2026-07-18T19:00:00Z')), now: tlModel.x(Date.now()) }; });
+      await p.mouse.move(box.x + box.now, box.y + box.h / 2); await p.mouse.down();
+      await p.mouse.move(box.x + box.at3, box.y + box.h / 2, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(100);
+      const reads = await p.evaluate(() => [...document.querySelectorAll('#timeline .tl-scrub .tl-read')].map(t => t.textContent));
+      check(/^3 PM · 7\d°$/.test(reads[0]) && reads[1] === '5%' && /^SW 1[78] G2[34] kt$/.test(reads[2]) && /^1\.[23] ft ↑$/.test(reads[3]), 'dragging the slider to 3 PM reads its temperature, rain, wind and tide: ' + JSON.stringify(reads));
       // tap Running: the timeline and the week follow it
       await p.click('#acts .act[data-act="running"]'); await p.waitForTimeout(200);
       const r2 = await read(p);
