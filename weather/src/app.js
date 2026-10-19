@@ -482,7 +482,19 @@ const COND_ICONS = {
 };
 const lineIcon = (k, cls) => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${COND_ICONS[k]}</svg>`;
 
-function renderNow({ weather, waterTemp, waterLevel }) {
+// High or Low within 45 minutes of the turn of the tide, otherwise Rising or Falling
+function tideState(tides) {
+  const nowAbs = minutesOfDay(new Date());
+  let prev = null, next = null;
+  for (const p of tides.hilo) { if (p.abs <= nowAbs) prev = p; else if (!next) next = p; }
+  if (!next) return null;
+  const near = (type) => (prev && prev.type === type && nowAbs - prev.abs < 45) || (next.type === type && next.abs - nowAbs < 45);
+  if (near('H')) return { label: 'High', up: true, next };
+  if (near('L')) return { label: 'Low', up: false, next };
+  return next.type === 'H' ? { label: 'Rising', up: true, next } : { label: 'Falling', up: false, next };
+}
+
+function renderNow({ weather, tides, waterTemp, waterLevel }) {
   const card = (icon, value, label, title) =>
     `<div class="cond-card" title="${esc(title)}">${lineIcon(icon, 'cond-ic')}<b>${value}</b><i>${label}</i></div>`;
 
@@ -503,6 +515,10 @@ function renderNow({ weather, waterTemp, waterLevel }) {
     : card('wind', '--', 'Wind', 'Wind this hour · NWS forecast for Megansett');
 
   // the time of the next high or low; the arrow says which way the water is going until then
+  const s = tides && tides.hilo && tideState(tides), nx = s && s.next;
+  const tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? `Next ${nx.type === 'H' ? 'high' : 'low'}` : 'Tide',
+    nx ? `${s.label} now · next ${nx.type === 'H' ? 'high' : 'low'} ${fmtClock(nx.min)}, ${nx.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
+
   // the sun: whichever comes next (sunset in the day, sunrise at night); and tonight's moon
   const today = dateKey(new Date()), smT = sunMoon(today), nowT = Date.now();
   const sunNext = nowT < smT.sun.sunrise ? ['sunrise', smT.sun.sunrise] : nowT < smT.sun.sunset ? ['sunset', smT.sun.sunset] : ['sunrise', sunMoon(addDays(today, 1)).sun.sunrise];
@@ -511,7 +527,7 @@ function renderNow({ weather, waterTemp, waterLevel }) {
   const ph = smT.illum.phase, pct = Math.round(smT.illum.fraction * 100);
   const moonWord = ph < 0.03 || ph > 0.97 ? 'New moon' : ph > 0.47 && ph < 0.53 ? 'Full moon' : ph < 0.5 ? 'Waxing' : 'Waning';
   const moonCard = `<div class="cond-card cond-moon" title="${esc(smT.phaseName)} · ${pct}% lit · rises ${fmt(smT.moon.rise)}, sets ${fmt(smT.moon.set)}">${moonSvg(smT.illum.fraction, ph, 22)}<b>${pct}%</b><i>${moonWord}</i></div>`;
-  document.getElementById('now').innerHTML = `<div class="cond">${sky}${sunCard}${water}${wind}${moonCard}</div>`;
+  document.getElementById('now').innerHTML = `<div class="cond">${sky}${sunCard}${water}${wind}${tide}${moonCard}</div>`;
 }
 
 const fmtWhen = (iso) => {

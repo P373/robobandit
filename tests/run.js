@@ -3358,8 +3358,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([], []);
       return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
     });
-    check(strip.cards.length === 5 && strip.cards[0] === '70° Partly cloudy' && /^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[1]) && strip.cards[2] === '81° Water' && strip.cards[3] === 'SW 12kt Wind' && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[4]),
-      'the strip is just right now: the sky with the temperature, the sun, water, wind and the moon: ' + strip.cards.join(' | '));
+    check(strip.cards.length === 6 && strip.cards[0] === '70° Partly cloudy' && /^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[1]) && strip.cards[2] === '81° Water' && strip.cards[3] === 'SW 12kt Wind' && strip.cards[4] === '10:00AM Next high' && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[5]),
+      'the strip is just right now: the sky with the temperature, the sun, water, wind, the next tide and the moon: ' + strip.cards.join(' | '));
     check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(217, 72, 15)' && strip.before.barHidden,
       'an alert tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory; watches are orange), the panel waits: ' + JSON.stringify(strip.before));
     check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),
