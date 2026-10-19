@@ -1081,7 +1081,7 @@ function renderNow(_ref) {
     pct = Math.round(smT.illum.fraction * 100);
   var moonWord = ph < 0.03 || ph > 0.97 ? 'New moon' : ph > 0.47 && ph < 0.53 ? 'Full moon' : ph < 0.5 ? 'Waxing' : 'Waning';
   var moonCard = "<div class=\"cond-card cond-moon\" title=\"".concat(esc(smT.phaseName), " \xB7 ").concat(pct, "% lit \xB7 rises ").concat(fmt(smT.moon.rise), ", sets ").concat(fmt(smT.moon.set), "\">").concat(moonSvg(smT.illum.fraction, ph, 22), "<b>").concat(pct, "%</b><i>").concat(moonWord, "</i></div>");
-  document.getElementById('now').innerHTML = "<div class=\"cond\">".concat(sky).concat(rain).concat(air).concat(water).concat(wind).concat(tide).concat(sunCard).concat(moonCard, "</div>");
+  document.getElementById('now').innerHTML = "<div class=\"cond\">".concat(sky).concat(sunCard).concat(rain).concat(air).concat(water).concat(wind).concat(tide).concat(moonCard, "</div>");
 }
 var fmtWhen = function fmtWhen(iso) {
   var d = new Date(iso);

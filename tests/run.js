@@ -3358,8 +3358,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([], []);
       return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
     });
-    check(strip.cards.slice(0, 6).join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
-    check(/^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[6]) && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[7]), 'then the next sunrise or sunset, and the moon: ' + strip.cards.slice(6).join(' | '));
+    check([strip.cards[0]].concat(strip.cards.slice(2, 7)).join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, (the sun), chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
+    check(/^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[1]) && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[7]), 'the next sunrise or sunset right after the sky, and the moon last: ' + strip.cards.join(' | '));
     check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(217, 72, 15)' && strip.before.barHidden,
       'an alert tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory; watches are orange), the panel waits: ' + JSON.stringify(strip.before));
     check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),

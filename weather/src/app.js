@@ -548,7 +548,7 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   const ph = smT.illum.phase, pct = Math.round(smT.illum.fraction * 100);
   const moonWord = ph < 0.03 || ph > 0.97 ? 'New moon' : ph > 0.47 && ph < 0.53 ? 'Full moon' : ph < 0.5 ? 'Waxing' : 'Waning';
   const moonCard = `<div class="cond-card cond-moon" title="${esc(smT.phaseName)} · ${pct}% lit · rises ${fmt(smT.moon.rise)}, sets ${fmt(smT.moon.set)}">${moonSvg(smT.illum.fraction, ph, 22)}<b>${pct}%</b><i>${moonWord}</i></div>`;
-  document.getElementById('now').innerHTML = `<div class="cond">${sky}${rain}${air}${water}${wind}${tide}${sunCard}${moonCard}</div>`;
+  document.getElementById('now').innerHTML = `<div class="cond">${sky}${sunCard}${rain}${air}${water}${wind}${tide}${moonCard}</div>`;
 }
 
 const fmtWhen = (iso) => {
