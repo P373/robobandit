@@ -4,6 +4,7 @@
 
 - the game list shows a card (and thumbnail) for every game but today's (that's the big one at the top), with best scores
 - the home page: today's game (the newest) up top with a big Play button, and not repeated in the list below; the school folders under the games; Keep playing shows what was played last with its best (times as m:ss); four filters (All, Little kids, Play together, Learning) show only matching games; each card is a picture with its name on it and one quiet line under it (players, ages, Classic), with the pitch fading in on hover; the cards and the JSON-LD game list written into index.html are up to date; on a phone, two pictures a row, a short page and no sideways scroll
+- the /weather page: its built scripts match `weather/src`, it stays out of search and off the arcade page, and with the newer browser functions taken away (as on an iOS 10 iPad) the stand-ins in `polyfills.js` work, day keys and times come out right in Megansett time, and it starts with no script errors
 - every page's link-preview picture exists, and nothing still says "Starfighter Run"
 - **Floppy Bird**: an autopilot scores 9+ points, crashes use up the 3 lives, pause freezes time
 - **Surf's Up**: an autopilot launches aerials and the five judges score the ride; the touch joystick carves
@@ -69,6 +70,10 @@ When you add a game, add a block for it to `tests/run.js`, then make its link-pr
 `npm run previews` (add the game to the list at the top of `tools/make-previews.js` first). After changing the
 GAMES list in `index.html` (a new game, a blurb, players, ages, filter tags), run `node tools/build-index.js`: it writes
 the cards and the JSON-LD game list into the page itself, so search engines see them (the tests fail until you do).
+
+The unlisted /weather page (a copy of Cape Visual) runs on old iPads (iOS 10.3): edit `weather/src/*.js`, then run
+`node tools/build-weather.js` (needs `npm install` once, for esbuild) to rebuild `weather/app.js`, `map.js` and `icons.js`.
+The tests fail until the built files match the source.
 
 After changing anything that is read aloud (lesson slides, ABC Train's lines), record it with the 🌟 RoboBandit voice:
 `node tools/voice-lines.js` then `python3 tools/make-voice.py` (see the top of `tools/make-voice.py` for what it needs).

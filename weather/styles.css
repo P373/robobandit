@@ -83,7 +83,7 @@ a { color: var(--sea); }
 
 /* day nav */
 .day-nav {
-  position: sticky; top: 0; z-index: 5;
+  position: -webkit-sticky; position: sticky; top: 0; z-index: 5;
   background: var(--card);
   border-bottom: 1px solid var(--line);
 }
@@ -184,7 +184,7 @@ a { color: var(--sea); }
 .now-line { stroke: #d33; stroke-width: 1.5; stroke-dasharray: 3 2; vector-effect: non-scaling-stroke; }
 .tide-list { list-style: none; margin: 10px 0 0; padding: 0; }
 .tide-list li {
-  display: grid; grid-template-columns: 3.2em 1fr auto 5.6em; gap: 6px; align-items: center;
+  display: grid; grid-template-columns: 3.2em 1fr auto 5.6em; grid-gap: 6px; gap: 6px; align-items: center;
   padding: 3px 0; border-bottom: 1px dashed var(--line);
 }
 .tide-list li:last-child { border-bottom: 0; }
@@ -288,7 +288,7 @@ a { color: var(--sea); }
 }
 .pin-dot { flex: none; width: 22px; height: 22px; font-size: 11px; box-shadow: none; border-color: var(--card); }
 .pin-dot.zone { background: repeating-linear-gradient(45deg, rgba(232, 89, 12, 0.55) 0 2px, transparent 2px 6px); border: 2px solid #e8590c; border-radius: 4px; }
-.source-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 10px 18px; font-size: 0.88rem; }
+.source-list { list-style: none; margin: 14px 0 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); grid-gap: 10px 18px; gap: 10px 18px; font-size: 0.88rem; }
 .source-list li { display: flex; gap: 10px; align-items: flex-start; }
 .source-list .muted { font-size: 0.8rem; }
 @media (max-width: 640px) { .source-map { height: 340px; } }
@@ -305,3 +305,18 @@ a { color: var(--sea); }
 .currents-explained tbody th { color: var(--ink); font-weight: 600; }
 .currents-explained p { max-width: 70ch; margin: 6px 0 0; }
 @media (max-width: 640px) { .currents-explained table { display: block; overflow-x: auto; } }
+
+/* Old iPads (before iOS 14.1) can't space flexbox items with gap: polyfills.js adds .no-flexgap and these
+   margins do the same job (rows space their items sideways, columns space them downwards). */
+.no-flexgap .site-header .wrap > * { margin: 8px 16px 8px 0; }
+.no-flexgap .now > * { margin: 0 10px 10px 0; }
+.no-flexgap .day-nav .wrap > * + * { margin-left: 4px; }
+.no-flexgap .days > * + * { margin-top: 18px; }
+.no-flexgap .day-head > * { margin: 5px 10px 5px 0; }
+.no-flexgap .day-chips > * { margin: 3px 6px 3px 0; }
+.no-flexgap .chip > * + *, .no-flexgap .waves li > * + * { margin-left: 5px; }
+.no-flexgap .tide-size > * + *, .no-flexgap .waves > * + * { margin-top: 2px; }
+.no-flexgap .wx-head > * + *, .no-flexgap .source-list li > * + * { margin-left: 10px; }
+.no-flexgap .sm-row > * + * { margin-left: 8px; }
+.no-flexgap .moon-block > * + *, .no-flexgap .sea-state > * + * { margin-left: 12px; }
+.no-flexgap .cur-list > * { margin: 0 4px 4px 0; }

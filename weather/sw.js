@@ -1,8 +1,8 @@
 // Keeps the app shell available offline. Pages and scripts are fetched fresh when
 // online (network first) so updates show up immediately; the cache is the fallback.
 // Forecast data is cached separately by app.js in localStorage.
-const CACHE = 'capevisual-v6';
-const SHELL = ['./', 'index.html', 'styles.css', 'app.js', 'icons.js', 'map.js', 'vendor/suncalc.js', 'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'icons/icon.svg', 'manifest.webmanifest'];
+const CACHE = 'capevisual-v7';
+const SHELL = ['./', 'index.html', 'styles.css', 'polyfills.js', 'app.js', 'icons.js', 'map.js', 'vendor/suncalc.js', 'vendor/leaflet/leaflet.js', 'vendor/leaflet/leaflet.css', 'icons/icon.svg', 'manifest.webmanifest'];
 
 self.addEventListener('install', (e) => {
   e.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

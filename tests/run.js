@@ -3294,6 +3294,39 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('/weather works on an old iPad (iOS 10.3): built scripts up to date, unlisted, polyfills stand in for the newer functions, no script errors', async () => {
+    // the scripts are built from weather/src for Safari 10.1, and the page stays out of search
+    check(require('child_process').spawnSync('node', [path.join(ROOT, 'tools/build-weather.js'), '--check']).status === 0, 'weather scripts are out of date: run node tools/build-weather.js');
+    const html = fs.readFileSync(path.join(ROOT, 'weather/index.html'), 'utf8');
+    check(/name="robots" content="noindex/.test(html) && html.indexOf('polyfills.js') < html.indexOf('app.js'), 'noindex, and polyfills.js loads before app.js');
+    check(!/weather\//.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')), 'the arcade page does not link to /weather');
+    // pretend to be old Safari: take away the newer functions (and flexbox gap) so the stand-ins have to do the work
+    const ctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
+    await ctx.route(/^https?:/, r => r.abort());   // no network: NOAA can't be reached from the tests
+    await ctx.addInitScript(() => {
+      delete Array.prototype.at; delete Object.fromEntries; delete String.prototype.matchAll;
+      delete Navigator.prototype.serviceWorker;   // iOS 10 has none (and file:// pages can't register one)
+      const real = CSSStyleDeclaration.prototype.setProperty;
+      Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', { set(v) { this.setProperty('display', /display:flex/.test(v) ? 'block' : ''); real.call(this, 'position', 'absolute'); }, configurable: true });
+    });
+    const p = await ctx.newPage(); const errors = [];
+    p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('weather/index.html')); await p.waitForTimeout(2500);
+    const r = await p.evaluate(() => ({
+      at: [1, 2, 3].at(-1), from: JSON.stringify(Object.fromEntries([['a', 1], ['b', 2]])),
+      all: Array.from('w 3 ft at 5 s, N 2 ft at 4 s'.matchAll(/(\d) ft at (\d)/g), m => m[1] + m[2]).join(' '),
+      noGap: document.documentElement.classList.contains('no-flexgap'),
+      dateKey: dateKey(new Date('2026-10-19T03:59:00Z')) + ' ' + dateKey(new Date('2026-10-19T04:00:00Z')),
+      minutes: minutesOfDay(new Date('2026-07-01T18:30:00Z')), text: document.body.innerText.slice(0, 400) }));
+    check(errors.length === 0, 'script errors: ' + errors.join(' | '));
+    check(r.at === 3 && r.from === '{"a":1,"b":2}' && r.all === '35 24', 'the stand-ins for at / fromEntries / matchAll work: ' + JSON.stringify(r));
+    check(r.noGap, 'no flexbox gap is noticed, so the margin fallbacks switch on');
+    check(r.dateKey === '2026-10-18 2026-10-19' && r.minutes === 870, 'day keys and minutes come out right in Megansett time: ' + JSON.stringify(r));
+    check(/Megansett Harbor/.test(r.text) && !/Loading forecast/.test(r.text), 'the page started and got past "Loading forecast…": ' + r.text.slice(0, 200));
+    await p.screenshot({ path: path.join(OUT, 'weather-offline.png') });
+    await ctx.close();
+  });
+
   await browser.close();
   let failed = 0;
   for (const [ok, name, ms, err] of results) {
