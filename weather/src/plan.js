@@ -214,18 +214,19 @@ function renderPlan(state, info) {
   // the activity tiles
   const verdicts = {};
   const started = isToday && judged.length > 0 && judged[0].min > sunMoonMin(planKey, 'sunrise') + 30;   // the day is already under way
+  // a muted green, yellow or red box around each activity's icon: do it, maybe, or not today.
+  // The why and when go in the tile's label, and in one line by the date for the activity you've tapped.
+  const whenOf = (v) => (v.lv === 2 ? '' : v.all ? (started ? `now until ${clock(v.to).n} ${clock(v.to).ap}` : 'all day') : `best ${fmtRange(v.from, v.to)}`);
   document.getElementById('acts').innerHTML = settings.shown.map((act) => {
     const v = verdicts[act] = verdict(act, judged, cond);
     const A = ACTIVITIES[act];
-    if (!v) return `<button type="button" class="act" data-act="${act}">${A.icon}<span class="act-name">${A.name}</span><span class="act-verdict">—</span><span class="act-why">Forecast not in yet</span></button>`;
-    const when = v.lv === 2 ? '' : v.all ? (started ? `Now until ${clock(v.to).n} ${clock(v.to).ap}` : 'All day') : `Best ${fmtRange(v.from, v.to)}`;
-    return `<button type="button" class="act lv-${v.lv}${act === selected ? ' on' : ''}" data-act="${act}" aria-pressed="${act === selected}">
-      <span class="act-top">${A.icon}<span class="act-name">${A.name}</span></span>
-      <span class="act-verdict">${LEVEL[v.lv]}</span>
-      <span class="act-why">${esc(v.why)}</span>
-      <span class="act-when">${esc(when)}</span>
-    </button>`;
+    const say = v ? `${A.name}: ${LEVEL[v.lv]} · ${v.why}${whenOf(v) ? ` · ${whenOf(v)}` : ''}` : `${A.name}: forecast not in yet`;
+    return `<button type="button" class="act${v ? ` lv-${v.lv}` : ''}${act === selected ? ' on' : ''}" data-act="${act}" aria-pressed="${act === selected}" aria-label="${esc(say)}" title="${esc(say)}">
+      ${A.icon}<span class="act-name">${A.name}</span></button>`;
   }).join('');
+  const sv = verdicts[selected];
+  document.getElementById('plan-pick').innerHTML = sv
+    ? `<i class="dot lv-${sv.lv}"></i><b>${ACTIVITIES[selected].name}</b> · ${esc(LEVEL[sv.lv].toLowerCase())}${whenOf(sv) ? ` · ${esc(whenOf(sv))}` : ''} · ${esc(sv.why)}` : '';
 
   drawTimeline(state, planKey, hours, verdicts[selected], isToday);
   renderWeek(state, planKey);

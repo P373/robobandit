@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Megansett">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="styles.css?v=20261019-0203">
+  <link rel="stylesheet" href="styles.css?v=20261019-0205">
 </head>
 <body>
   <header class="site-header">
@@ -32,7 +32,7 @@
 
   <!-- the one-screen plan: can I do my thing today, and when? -->
   <main class="plan" id="plan">
-    <div class="plan-head"><h2 id="plan-day">Today</h2><span id="plan-date" class="plan-date"></span></div>
+    <div class="plan-head"><h2 id="plan-day">Today</h2><span id="plan-date" class="plan-date"></span><span id="plan-pick" class="plan-pick"></span></div>
     <div class="acts" id="acts" role="group" aria-label="Activities"><p class="loading">Loading forecast…</p></div>
     <div class="timeline" id="timeline" role="img" aria-label="Today hour by hour: sky, rain, wind and tide"></div>
     <div class="week" id="week" role="group" aria-label="The rest of the week"></div>
@@ -100,13 +100,13 @@
     </div>
   </div>
 
-  <script src="polyfills.js?v=20261019-0203"></script><!-- for old iPads: load first -->
+  <script src="polyfills.js?v=20261019-0205"></script><!-- for old iPads: load first -->
   <script src="vendor/suncalc.js"></script>
-  <script src="icons.js?v=20261019-0203"></script>
+  <script src="icons.js?v=20261019-0205"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
-  <script src="plan.js?v=20261019-0203"></script>
-  <script src="app.js?v=20261019-0203"></script>
-  <script src="map.js?v=20261019-0203"></script>
+  <script src="plan.js?v=20261019-0205"></script>
+  <script src="app.js?v=20261019-0205"></script>
+  <script src="map.js?v=20261019-0205"></script>
   <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   </script>

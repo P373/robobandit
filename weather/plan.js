@@ -376,13 +376,19 @@ function renderPlan(state, info) {
   // the activity tiles
   var verdicts = {};
   var started = isToday && judged.length > 0 && judged[0].min > sunMoonMin(planKey, 'sunrise') + 30; // the day is already under way
+  // a muted green, yellow or red box around each activity's icon: do it, maybe, or not today.
+  // The why and when go in the tile's label, and in one line by the date for the activity you've tapped.
+  var whenOf = function whenOf(v) {
+    return v.lv === 2 ? '' : v.all ? started ? "now until ".concat(clock(v.to).n, " ").concat(clock(v.to).ap) : 'all day' : "best ".concat(fmtRange(v.from, v.to));
+  };
   document.getElementById('acts').innerHTML = settings.shown.map(function (act) {
     var v = verdicts[act] = verdict(act, judged, cond);
     var A = ACTIVITIES[act];
-    if (!v) return "<button type=\"button\" class=\"act\" data-act=\"".concat(act, "\">").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span><span class=\"act-verdict\">\u2014</span><span class=\"act-why\">Forecast not in yet</span></button>");
-    var when = v.lv === 2 ? '' : v.all ? started ? "Now until ".concat(clock(v.to).n, " ").concat(clock(v.to).ap) : 'All day' : "Best ".concat(fmtRange(v.from, v.to));
-    return "<button type=\"button\" class=\"act lv-".concat(v.lv).concat(act === selected ? ' on' : '', "\" data-act=\"").concat(act, "\" aria-pressed=\"").concat(act === selected, "\">\n      <span class=\"act-top\">").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span></span>\n      <span class=\"act-verdict\">").concat(LEVEL[v.lv], "</span>\n      <span class=\"act-why\">").concat(esc(v.why), "</span>\n      <span class=\"act-when\">").concat(esc(when), "</span>\n    </button>");
+    var say = v ? "".concat(A.name, ": ").concat(LEVEL[v.lv], " \xB7 ").concat(v.why).concat(whenOf(v) ? " \xB7 ".concat(whenOf(v)) : '') : "".concat(A.name, ": forecast not in yet");
+    return "<button type=\"button\" class=\"act".concat(v ? " lv-".concat(v.lv) : '').concat(act === selected ? ' on' : '', "\" data-act=\"").concat(act, "\" aria-pressed=\"").concat(act === selected, "\" aria-label=\"").concat(esc(say), "\" title=\"").concat(esc(say), "\">\n      ").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span></button>");
   }).join('');
+  var sv = verdicts[selected];
+  document.getElementById('plan-pick').innerHTML = sv ? "<i class=\"dot lv-".concat(sv.lv, "\"></i><b>").concat(ACTIVITIES[selected].name, "</b> \xB7 ").concat(esc(LEVEL[sv.lv].toLowerCase())).concat(whenOf(sv) ? " \xB7 ".concat(esc(whenOf(sv))) : '', " \xB7 ").concat(esc(sv.why)) : '';
   drawTimeline(state, planKey, hours, verdicts[selected], isToday);
   renderWeek(state, planKey);
   var stale = info.stale.length ? " \xB7 showing saved ".concat(info.stale.map(function (s) {

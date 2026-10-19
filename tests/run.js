@@ -3420,7 +3420,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     };
     const read = p => p.evaluate(() => ({
       day: document.getElementById('plan-day').textContent,
-      tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], verdict: a.querySelector('.act-verdict').textContent, why: (a.querySelector('.act-why') || {}).textContent, when: (a.querySelector('.act-when') || {}).textContent })),
+      tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], say: a.title, icon: !!a.querySelector('svg.act-ic'), bg: getComputedStyle(a).backgroundColor })),
+      pick: document.getElementById('plan-pick').textContent,
       tl: { rain: document.querySelectorAll('#timeline .tl-rain').length, wind: !!document.querySelector('#timeline .tl-wind'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)).length },
       week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
       tileH: Math.max(...[...document.querySelectorAll('#acts .act')].map(a => a.getBoundingClientRect().height)),
@@ -3451,9 +3452,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       await p.screenshot({ path: path.join(OUT, 'weather-plan.png') });
       const t = Object.fromEntries(r.tiles.map(x => [x.act, x]));
       check(r.day === 'Today' && r.tiles.length === 4, 'today, four activities: ' + JSON.stringify(r.tiles.map(x => x.act)));
-      check(t.boating.lv === '0' && /^Best (9|10) AM–(12|1|2) PM$/.test(t.boating.when) && /SW .*kt, seas 1–2 ft/.test(t.boating.why), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
-      check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.why), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
-      check(t.rollerblading.lv === '0' && /^Best 11 AM/.test(t.rollerblading.when), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
+      check(t.boating.lv === '0' && /best (9|10) AM–(12|1|2) PM/.test(t.boating.say) && /SW .*kt, seas 1–2 ft/.test(t.boating.say), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
+      check(r.tiles.every(x => x.icon) && t.boating.bg === 'rgb(223, 238, 226)' && t.swimming.bg === 'rgb(245, 237, 207)', 'each tile is its icon in a muted green / yellow / red box: ' + JSON.stringify(r.tiles.map(x => x.act + ' ' + x.bg)));
+      check(/Boating/.test(r.pick) && /best (9|10) AM/.test(r.pick), 'the line by the date says why for the tapped activity: ' + r.pick);
+      check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.say), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
+      check(t.rollerblading.lv === '0' && /best 11 AM/.test(t.rollerblading.say), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
       check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));
       check(r.tl.rain > 0 && r.tl.wind && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows >= 1, 'the timeline has sky, rain, wind, tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
       const sun = r.week[0], tue = r.week[2];
