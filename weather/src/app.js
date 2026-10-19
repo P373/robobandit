@@ -580,7 +580,7 @@ function renderAlertBar(active, headlines) {
   // a red tile first in the conditions strip (the main screen keeps its height); tap it for the full red panel
   const k = title.match(/^(.*?)\s*\b(Warning|Advisory|Watch|Statement)$/i);
   const strip = document.querySelector('#now .cond');
-  if (strip) strip.insertAdjacentHTML('afterbegin', `<button type="button" class="cond-card cond-alert tier-${alertTier(title)}" aria-expanded="${alertShown}" title="${esc(title)} · ${esc(sub)}">${lineIcon('warn', 'cond-ic')}<b>${esc(k ? k[1] : title)}</b><i>${esc(k ? k[2] : 'Alert')}${list.length > 1 ? ` +${list.length - 1}` : ''}</i></button>`);
+  if (strip) strip.insertAdjacentHTML('beforeend', `<button type="button" class="cond-card cond-alert tier-${alertTier(title)}" aria-expanded="${alertShown}" title="${esc(title)} · ${esc(sub)}">${lineIcon('warn', 'cond-ic')}<b>${esc(k ? k[1] : title)}</b><i>${esc(k ? k[2] : 'Alert')}${list.length > 1 ? ` +${list.length - 1}` : ''}</i></button>`);
   bar.innerHTML = `<button type="button" class="alert-head"><span class="alert-row">${lineIcon('warn', 'alert-ic')}
     <span class="alert-txt"><b>${esc(title)}</b><span>${esc(sub)}</span></span><span class="alert-more">Close ↑</span></span></button>
     <div class="alert-detail"><div class="alert-detail-in">${detail}</div></div>`;

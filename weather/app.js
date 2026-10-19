@@ -1090,7 +1090,7 @@ function renderAlertBar(active, headlines) {
   // a red tile first in the conditions strip (the main screen keeps its height); tap it for the full red panel
   var k = title.match(/^(.*?)\s*\b(Warning|Advisory|Watch|Statement)$/i);
   var strip = document.querySelector('#now .cond');
-  if (strip) strip.insertAdjacentHTML('afterbegin', "<button type=\"button\" class=\"cond-card cond-alert tier-".concat(alertTier(title), "\" aria-expanded=\"").concat(alertShown, "\" title=\"").concat(esc(title), " \xB7 ").concat(esc(sub), "\">").concat(lineIcon('warn', 'cond-ic'), "<b>").concat(esc(k ? k[1] : title), "</b><i>").concat(esc(k ? k[2] : 'Alert')).concat(list.length > 1 ? " +".concat(list.length - 1) : '', "</i></button>"));
+  if (strip) strip.insertAdjacentHTML('beforeend', "<button type=\"button\" class=\"cond-card cond-alert tier-".concat(alertTier(title), "\" aria-expanded=\"").concat(alertShown, "\" title=\"").concat(esc(title), " \xB7 ").concat(esc(sub), "\">").concat(lineIcon('warn', 'cond-ic'), "<b>").concat(esc(k ? k[1] : title), "</b><i>").concat(esc(k ? k[2] : 'Alert')).concat(list.length > 1 ? " +".concat(list.length - 1) : '', "</i></button>"));
   bar.innerHTML = "<button type=\"button\" class=\"alert-head\"><span class=\"alert-row\">".concat(lineIcon('warn', 'alert-ic'), "\n    <span class=\"alert-txt\"><b>").concat(esc(title), "</b><span>").concat(esc(sub), "</span></span><span class=\"alert-more\">Close \u2191</span></span></button>\n    <div class=\"alert-detail\"><div class=\"alert-detail-in\">").concat(detail, "</div></div>");
   bar.className = "alert-bar open tier-".concat(alertTier(title));
   bar.hidden = !alertShown;

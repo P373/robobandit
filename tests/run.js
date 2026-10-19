@@ -3340,7 +3340,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([{ event: 'Small Craft Advisory', ends: later, description: 'Southwest winds 15 to 20 kt with gusts up to 25 kt.', instruction: 'Inexperienced mariners should avoid navigating.' },
         { event: 'Gale Watch', ends: later, description: 'Gales possible.' }], []);
       const bar = document.getElementById('alert-bar'), tile = document.querySelector('#now .cond');
-      const first = tile.firstElementChild;
+      const first = tile.lastElementChild;
       const before = { tile: first.classList.contains('cond-alert') ? first.querySelector('b').textContent + ' ' + first.querySelector('i').textContent : '', red: getComputedStyle(first).backgroundColor, barHidden: bar.hidden };
       first.click();
       const opened = { shown: !bar.hidden, title: bar.querySelector('.alert-txt b').textContent, sub: bar.querySelector('.alert-txt span').textContent, detail: getComputedStyle(bar.querySelector('.alert-detail')).display, text: bar.querySelector('.alert-detail').textContent };
