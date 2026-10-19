@@ -49,6 +49,27 @@
   }
 }
 
+/* after sunset on the stand (plan.js adds .dark): the same night colours */
+html.dark {
+    --bg: #0b1520;
+    --card: #122030;
+    --ink: #e6edf3;
+    --muted: #93a4b5;
+    --line: #22354a;
+    --sea: #5cb0e6;
+    --sea-soft: rgba(92, 176, 230, 0.18);
+    --night: rgba(0, 0, 0, 0.25);
+    --hi: #6cc0f5;
+    --lo: #f0a45c;
+    --alert: #3a2c0c;
+    --alert-ink: #ffd88a;
+    --moon-dark: #0b1520;
+    --icon-cloud: #cdd7e1;
+    --icon-cloud-dark: #8797a8;
+    --wind: #5fd0a8;
+    --gust: rgba(95, 208, 168, 0.18);
+}
+
 * { box-sizing: border-box; }
 
 body {
@@ -66,7 +87,7 @@ a { color: var(--sea); }
 .site-header {
   background: linear-gradient(135deg, var(--navy), var(--navy-2));
   color: #fff;
-  padding: 22px 0 18px;
+  padding: 8px 0 8px;
 }
 .site-header .wrap { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 16px; }
 .brand h1 { margin: 0; font-size: 1.7rem; letter-spacing: -0.01em; }
@@ -343,6 +364,82 @@ a { color: var(--sea); }
 .alert-detail h3 span { font-weight: 400; opacity: 0.85; }
 .alert-detail p { margin: 6px 0 0; }
 @media (prefers-reduced-motion: reduce) { .alert-ic { animation: none; } }
+
+/* ---------- the one-screen plan: activities, one timeline for the day, the week ---------- */
+.plan { display: flex; flex-direction: column; max-width: 1240px; margin: 0 auto; padding: 10px 16px 6px; }
+.plan[hidden], .details[hidden], .sheet[hidden] { display: none; }
+.plan-head { display: flex; align-items: baseline; margin: 0 2px 6px; }
+.plan-head h2 { margin: 0 10px 0 0; font-size: 1.15rem; }
+.plan-date { color: var(--muted); }
+.acts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-gap: 12px; gap: 12px; flex: none; }
+.act { display: block; position: relative; text-align: left; font: inherit; color: var(--ink); background: var(--card);
+  border: 2px solid var(--line); border-radius: var(--radius); padding: 11px 14px 12px; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.act-top { display: flex; align-items: center; color: var(--muted); font-weight: 600; font-size: 0.95rem; }
+.act-ic { width: 22px; height: 22px; margin-right: 8px; flex: none; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.act-verdict { display: block; font-size: 1.8rem; font-weight: 800; line-height: 1.1; margin: 6px 0 3px; letter-spacing: -0.01em; }
+.act-why { display: block; font-size: 0.95rem; line-height: 1.3; min-height: 1.3em; }
+.act-when { display: block; font-size: 0.85rem; font-weight: 600; color: var(--muted); margin-top: 4px; min-height: 1.2em; }
+.act.lv-0 { border-color: #1e9e6a; background: rgba(30, 158, 106, 0.07); } .act.lv-0 .act-verdict { color: #1e9e6a; }
+.act.lv-1 { border-color: #d9a400; background: rgba(217, 164, 0, 0.08); } .act.lv-1 .act-verdict { color: #b88a00; }
+.act.lv-2 { border-color: #c0392b; background: rgba(192, 57, 43, 0.07); } .act.lv-2 .act-verdict { color: #c0392b; }
+.act.on { box-shadow: 0 0 0 3px var(--sea-soft), 0 6px 16px rgba(13, 42, 68, 0.12); }
+.act.on .act-top { color: var(--ink); }
+.timeline { flex: 1 1 auto; min-height: 190px; margin: 10px 0; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); overflow: hidden; }
+.timeline svg { display: block; }
+.tl-night { fill: var(--night); }
+.tl-win.lv-0 { fill: rgba(30, 158, 106, 0.12); } .tl-win.lv-1 { fill: rgba(217, 164, 0, 0.14); } .tl-win.lv-2 { fill: rgba(192, 57, 43, 0.08); }
+.tl-grid { stroke: var(--line); stroke-width: 1; opacity: 0.6; } .tl-grid.major { opacity: 1; }
+.tl-hour { font-size: 12px; fill: var(--muted); text-anchor: middle; }
+.tl-label { font-size: 13px; font-weight: 700; fill: var(--ink); }
+.tl-unit, .tl-tick { font-size: 10px; fill: var(--muted); } .tl-tick { text-anchor: end; }
+.tl-temp { font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.tl-rain { fill: var(--icon-rain); opacity: 0.75; }
+.tl-val { font-size: 11px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.tl-none { font-size: 12px; fill: var(--muted); }
+.tl-gust { fill: var(--gust); } .tl-wind { fill: none; stroke: var(--wind); stroke-width: 2.5; stroke-linejoin: round; }
+.tl-arrow { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
+.tl-tide-area { fill: var(--sea-soft); } .tl-tide { fill: none; stroke: var(--sea); stroke-width: 2.5; }
+.tl-dot.hi { fill: var(--hi); } .tl-dot.lo { fill: var(--lo); }
+.tl-now { stroke: #c62828; stroke-width: 2; } .tl-now-t { font-size: 10px; font-weight: 700; fill: #c62828; text-anchor: middle; }
+.week { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-gap: 10px; gap: 10px; flex: none; }
+.wk { display: block; font: inherit; line-height: 1.3; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 5px 6px 6px; text-align: center; cursor: pointer; }
+.wk span { display: block; }
+.wk-day { font-weight: 700; font-size: 0.9rem; }
+.wk-ic { height: 30px; } .wk-ic .wx-icon { width: 30px; height: 30px; }
+.wk-t b { font-size: 1.05rem; } .wk-t small { color: var(--muted); font-size: 0.9rem; }
+.wk-w, .wk-v { font-size: 0.78rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wk-w { color: var(--muted); } .wk-v { font-weight: 700; margin-top: 2px; }
+.dot { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 4px; }
+.dot.lv-0 { background: #1e9e6a; } .dot.lv-1 { background: #d9a400; } .dot.lv-2 { background: #c0392b; }
+.plan-foot { display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem; color: var(--muted); margin-top: 6px; white-space: nowrap; }
+#plan-updated { overflow: hidden; text-overflow: ellipsis; min-width: 0; margin-right: 8px; }
+.plan-btns { flex: none; }
+.link-btn { font: inherit; font-weight: 600; color: var(--sea); background: none; border: 0; padding: 2px 0 2px 18px; cursor: pointer; }
+.details-bar { padding-top: 8px; padding-bottom: 2px; }
+.back-btn { font: inherit; font-size: 1rem; font-weight: 700; color: var(--sea); background: none; border: 0; padding: 6px 0; cursor: pointer; }
+.sheet { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 20; background: rgba(0, 0, 0, 0.45); overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 28px 16px; }
+.sheet-card { max-width: 640px; margin: 0 auto; background: var(--card); color: var(--ink); border-radius: 16px; padding: 16px 20px 10px; }
+.sheet-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 6px; }
+.sheet-head h2 { margin: 0; font-size: 1.25rem; }
+.done-btn { font: inherit; font-weight: 700; color: #fff; background: var(--sea); border: 0; border-radius: 999px; padding: 7px 20px; cursor: pointer; }
+.set-row { padding: 10px 0; border-top: 1px solid var(--line); }
+.set-show { display: flex; align-items: center; cursor: pointer; }
+.set-show input { width: 18px; height: 18px; margin: 0 8px 0 0; }
+.set-limits { margin: 4px 0 0 30px; font-size: 0.9rem; color: var(--muted); }
+.set-limits label { display: inline-block; margin: 4px 18px 4px 0; }
+.set-limits input { width: 60px; font: inherit; padding: 4px 6px; border: 1px solid var(--line); border-radius: 8px; background: var(--bg); color: var(--ink); }
+.set-row:not(.on) .set-limits { opacity: 0.5; }
+.set-note { font-size: 0.82rem; color: var(--muted); margin: 10px 0; }
+@media (max-width: 760px) {   /* phones: tiles two by two, the page scrolls */
+  .acts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .week { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .timeline { flex: none; height: 320px; }
+  .act-verdict { font-size: 1.5rem; }
+  .plan-foot { flex-wrap: wrap; white-space: normal; }
+}
+html.dark .cond { background: #1c3550; }
+html.dark .cond-card { color: #e2eef8; } html.dark .cond-card + .cond-card { border-left-color: #2e4f70; } html.dark .cond-card i { color: #9fb9cf; }
+html.dark .site-header { background: linear-gradient(135deg, #07182a, #0d2a44); }
 
 /* Old iPads (before iOS 14.1) can't space flexbox items with gap: polyfills.js adds .no-flexgap and these
    margins do the same job (rows space their items sideways, columns space them downwards). */

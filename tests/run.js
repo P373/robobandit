@@ -3354,6 +3354,116 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('/weather plan: activity verdicts with the best window, one timeline for the day, the week, settings, details, night look, and it all fits an iPad screen', async () => {
+    // a made-up July Saturday at 9:30 AM: rain early this morning (only the grid's rain chance remembers it; the hourly forecast
+    // starts now), so the roads are wet until late morning; the wind
+    // building to 18 kt gusting 24 in the afternoon, 64° water; a stormy Sunday and a thundery Tuesday
+    const fakeClock = () => {
+      window.__T = Date.parse('2026-07-18T13:30:00Z');
+      delete Navigator.prototype.serviceWorker;   // file:// pages can't register one
+      const Real = Date;
+      class FakeDate extends Real { constructor(...a) { super(...(a.length ? a : [window.__T])); } static now() { return window.__T; } }
+      window.Date = FakeDate;
+    };
+    const feed = () => {
+      const todayKey = dateKey(new Date()), H = 36e5, start = localMidnight(todayKey).getTime();
+      const hours = [], wind = [], byDay = {};
+      for (let t = start; t < start + 8 * 24 * H; t += H) {
+        const d = Math.floor((t - start) / (24 * H)), m = minutesOfDay(new Date(t)), hr = m / 60;
+        const temp = Math.round(66 + 12 * Math.max(0, Math.sin(Math.PI * (hr - 7) / 14)) + (d === 1 ? -6 : 0));
+        let pop = d === 0 && hr >= 5 && hr < 9 ? 70 : d === 1 ? 80 : 5;
+        const thunder = d === 3 && hr >= 13 && hr < 19;
+        if (thunder) pop = 60;
+        const isDay = hr >= 6 && hr < 20;
+        const short = thunder ? 'Chance Showers And Thunderstorms' : pop >= 50 ? 'Rain Showers' : isDay ? (hr < 12 ? 'Sunny' : 'Partly Sunny') : 'Mostly Clear';
+        hours.push({ t, temp, pop, short, isDay });
+        const bump = Math.max(0, Math.sin(Math.PI * (hr - 11) / 9));
+        const spd = d === 1 ? 22 : 7 + 11 * bump, gst = d === 1 ? 31 : spd + 2 + 4 * bump;
+        wind.push({ t, spd, gst, dir: 225 });
+        const key = addDays(todayKey, d);
+        byDay[key] = byDay[key] || { day: { name: 'Day', temperature: 0, shortForecast: '', isDaytime: true, windDirection: 'SW', windSpeed: '10 mph', detailedForecast: '' }, night: { name: 'Night', temperature: 99, shortForecast: 'Clear', isDaytime: false, windDirection: 'SW', windSpeed: '5 mph', detailedForecast: '' } };
+        if (temp > byDay[key].day.temperature) byDay[key].day.temperature = temp;
+        if (temp < byDay[key].night.temperature) byDay[key].night.temperature = temp;
+        if (hr === 14) byDay[key].day.shortForecast = short;
+      }
+      const curve = [], hilo = [];
+      for (let a = 0; a < 8 * 1440; a += 30) {
+        const v = +(2 + 1.8 * Math.sin(2 * Math.PI * (a - 200) / 745)).toFixed(2);
+        curve.push({ key: addDays(todayKey, Math.floor(a / 1440)), min: a % 1440, v, dayIndex: Math.floor(a / 1440), abs: a });
+      }
+      for (let i = 1; i < curve.length - 1; i++) {
+        const [p, c, n] = [curve[i - 1], curve[i], curve[i + 1]];
+        if ((c.v >= p.v && c.v > n.v) || (c.v <= p.v && c.v < n.v)) hilo.push(Object.assign({}, c, { type: c.v > 2 ? 'H' : 'L' }));
+      }
+      const marine = { issueKey: todayKey, issued: '400 AM EDT SAT JUL 18 2026', headlines: [], synopsis: '', periods: [
+        { label: 'TODAY', text: 'SW winds 10 to 15 kt. Seas 1 to 2 ft.', slots: [0] },
+        { label: 'TONIGHT', text: 'SW winds 10 kt. Seas around 1 ft.', slots: [1] },
+        { label: 'SUN', text: 'SW winds 20 to 25 kt. Seas 4 to 6 ft.', slots: [2] },
+        { label: 'MON', text: 'W winds 10 kt. Seas 1 to 2 ft.', slots: [4] }] };
+      window.__state = { days: Array.from({ length: 7 }, (_, i) => addDays(todayKey, i)), weather: { byDay, now: { temperature: hours[9].temp, shortForecast: hours[9].short, isDaytime: true }, hours: hours.filter((h) => h.t >= Date.now() - H), wind, rainChance: hours.map((h) => ({ t: h.t, pop: h.pop })), cell: null },
+        marine, tides: { curve, hilo, stats: null }, currents: null, waterTemp: 64, waterLevel: null, buoy: { time: new Date().toISOString(), spd: 9, gst: 12, dir: 225 }, alerts: [] };
+      window.__info = { stale: [], missing: [], todayKey };
+      renderNow(window.__state); renderPlan(window.__state, window.__info);
+    };
+    const read = p => p.evaluate(() => ({
+      day: document.getElementById('plan-day').textContent,
+      tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], verdict: a.querySelector('.act-verdict').textContent, why: (a.querySelector('.act-why') || {}).textContent, when: (a.querySelector('.act-when') || {}).textContent })),
+      tl: { rain: document.querySelectorAll('#timeline .tl-rain').length, wind: !!document.querySelector('#timeline .tl-wind'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)).length },
+      week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
+      fits: { scroll: document.documentElement.scrollHeight, inner: innerHeight, weekBottom: Math.round(document.getElementById('week').getBoundingClientRect().bottom), footBottom: Math.round(document.querySelector('.plan-foot').getBoundingClientRect().bottom) },
+      dark: document.documentElement.classList.contains('dark') }));
+
+    for (const [w, h, name] of [[1024, 690, 'landscape'], [768, 946, 'portrait']]) {   // an iPad's Safari window, toolbars taken off
+      const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+      await ctx.route(/^https?:/, r => r.abort());
+      await ctx.addInitScript(fakeClock);
+      const p = await ctx.newPage(); const errors = [];
+      p.on('pageerror', e => errors.push(e.message));
+      await p.goto(url('weather/index.html')); await p.waitForTimeout(1500);
+      await p.evaluate(feed); await p.waitForTimeout(300);
+      const r = await read(p);
+      check(errors.length === 0, name + ': script errors: ' + errors.join(' | '));
+      check(r.fits.footBottom <= r.fits.inner + 1 && r.fits.scroll <= r.fits.inner + 1, `${name}: everything fits one ${w}×${h} screen: ` + JSON.stringify(r.fits));
+      if (name === 'portrait') { await p.screenshot({ path: path.join(OUT, 'weather-plan-portrait.png') }); await ctx.close(); continue; }
+
+      await p.screenshot({ path: path.join(OUT, 'weather-plan.png') });
+      const t = Object.fromEntries(r.tiles.map(x => [x.act, x]));
+      check(r.day === 'Today' && r.tiles.length === 4, 'today, four activities: ' + JSON.stringify(r.tiles.map(x => x.act)));
+      check(t.boating.lv === '0' && /^Best (9|10) AM–(12|1|2) PM$/.test(t.boating.when) && /SW .*kt, seas 1–2 ft/.test(t.boating.why), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
+      check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.why), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
+      check(t.rollerblading.lv === '0' && /^Best 11 AM/.test(t.rollerblading.when), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
+      check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));
+      check(r.tl.rain > 0 && r.tl.wind && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows >= 1, 'the timeline has sky, rain, wind, tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
+      const sun = r.week[0], tue = r.week[2];
+      check(r.week.length === 6 && /Not today/.test(sun.v) && /Boating/.test(sun.title), 'the week: six days, and stormy Sunday is not a boating day: ' + JSON.stringify(r.week.slice(0, 3)));
+      // tap Running: the timeline and the week follow it
+      await p.click('#acts .act[data-act="running"]'); await p.waitForTimeout(200);
+      const r2 = await read(p);
+      check(/Running/.test(r2.week[0].title) && /Not today/.test(r2.week[0].v) && /Go/.test(r2.week[2].v) && /best \d+ AM–1 PM/.test(r2.week[2].title), 'tapping Running: the week shows running (rainy Sunday; Tuesday, go in the morning before the 1 PM thunderstorms): ' + JSON.stringify(r2.week.slice(0, 3)));
+      void tue;
+      // settings: swap rollerblading for kayak & SUP, and swim in colder water
+      await p.click('#open-settings'); await p.waitForTimeout(150);
+      await p.click('input[data-show="rollerblading"]'); await p.click('input[data-show="paddling"]');
+      await p.fill('input[data-act="swimming"][data-limit="water"]', '62'); await p.press('input[data-act="swimming"][data-limit="water"]', 'Tab');
+      await p.click('#close-settings'); await p.waitForTimeout(200);
+      const r3 = await read(p);
+      const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('cv:plan')));
+      check(r3.tiles.map(x => x.act).join() === 'boating,swimming,running,paddling' && r3.tiles[1].lv === '0' && saved.limits.swimming.water === 62, 'settings change the activities and limits, and are saved: ' + JSON.stringify({ tiles: r3.tiles.map(x => x.act + x.lv), saved }));
+      // a day in the week opens the details at that day; back to today
+      await p.click('#week .wk'); await p.waitForTimeout(300);
+      const det = await p.evaluate(() => ({ plan: document.getElementById('plan').hidden, details: document.getElementById('details').hidden, map: !!document.querySelector('#source-map .leaflet-container, #source-map.leaflet-container') }));
+      await p.click('#close-details'); await p.waitForTimeout(200);
+      check(det.plan && !det.details && det.map && !(await p.evaluate(() => document.getElementById('plan').hidden)), 'a week day opens the 7-day details (and the map then); back returns to the plan: ' + JSON.stringify(det));
+      // after sunset: the night look, and the plan turns to tomorrow
+      await p.evaluate(() => { window.__T = Date.parse('2026-07-19T01:30:00Z'); renderPlan(window.__state, window.__info); });
+      const night = await read(p);
+      check(night.dark && night.day === 'Tomorrow', 'after sunset: dark, and planning tomorrow: ' + JSON.stringify({ dark: night.dark, day: night.day }));
+      await p.screenshot({ path: path.join(OUT, 'weather-plan-night.png') });
+      check(errors.length === 0, 'script errors: ' + errors.join(' | '));
+      await ctx.close();
+    }
+  });
+
   await browser.close();
   let failed = 0;
   for (const [ok, name, ms, err] of results) {

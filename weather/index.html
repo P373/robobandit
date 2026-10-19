@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Megansett">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="styles.css?v=20261019-0130">
+  <link rel="stylesheet" href="styles.css?v=20261019-0143">
 </head>
 <body>
   <header class="site-header">
@@ -30,54 +30,83 @@
 
   <div class="alert-bar" id="alert-bar" role="alert" hidden></div>
 
-  <nav class="day-nav" id="day-nav" aria-label="Jump to day"></nav>
-
-  <main class="wrap">
-    <div id="alerts"></div>
-    <details class="synopsis" id="synopsis" hidden>
-      <summary>Marine synopsis · Southern New England waters</summary>
-      <p></p>
-    </details>
-    <div id="days" class="days">
-      <p class="loading">Loading forecast…</p>
+  <!-- the one-screen plan: can I do my thing today, and when? -->
+  <main class="plan" id="plan">
+    <div class="plan-head"><h2 id="plan-day">Today</h2><span id="plan-date" class="plan-date"></span></div>
+    <div class="acts" id="acts" role="group" aria-label="Activities"><p class="loading">Loading forecast…</p></div>
+    <div class="timeline" id="timeline" role="img" aria-label="Today hour by hour: sky, rain, wind and tide"></div>
+    <div class="week" id="week" role="group" aria-label="The rest of the week"></div>
+    <div class="plan-foot">
+      <span id="plan-updated"></span>
+      <span class="plan-btns">
+        <button type="button" class="link-btn" id="open-details">7-day details</button>
+        <button type="button" class="link-btn" id="open-about">About the data</button>
+        <button type="button" class="link-btn" id="open-settings">Settings</button>
+      </span>
     </div>
-
-    <section class="sources" id="map">
-      <h2>Where the data comes from</h2>
-      <div id="source-map" class="source-map" role="region" aria-label="Map of data sources"></div>
-      <ul id="source-list" class="source-list"></ul>
-    </section>
   </main>
 
-  <footer class="wrap site-footer">
-    <p>
-      Weather: <a href="https://www.weather.gov/box/">NWS Boston/Norton</a> ·
-      Marine forecast: <a href="https://www.weather.gov/box/">NWS Boston/Norton</a>, Buzzards Bay (marine zone ANZ234) ·
-      Tides: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8447685">NOAA 8447685 Chappaquoit Point</a> ·
-      Currents: NOAA predictions for the <a href="https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0904_15">Cape Cod Canal</a> and <a href="https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0911_1">Woods Hole</a> ·
-      Water temp &amp; level: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8447930">NOAA Woods Hole</a> ·
-      Live wind: <a href="https://www.ndbc.noaa.gov/station_page.php?station=buzm3">Buzzards Bay tower (BUZM3)</a> ·
-      Sun &amp; moon calculated locally ·
-      <a href="#map">Map of sources</a>
-    </p>
-    <section id="currents-explained" class="currents-explained" hidden>
-      <h3>Reading the currents</h3>
-      <table>
-        <thead><tr><th></th><th>Flood (incoming tide)</th><th>Ebb (outgoing tide)</th></tr></thead>
-        <tbody></tbody>
-      </table>
-      <p>Current is the water flowing sideways; tide is it rising and falling. Slack water rarely lines up with high or low tide, especially in the canal, which runs on the difference between Cape Cod Bay and Buzzards Bay.</p>
-    </section>
-    <p id="updated"></p>
-    <p class="fine">Not for navigation. Always check official NWS forecasts before heading out.</p>
-  </footer>
+  <!-- everything else, one tap away -->
+  <div class="details" id="details" hidden>
+    <div class="details-bar wrap"><button type="button" class="back-btn" id="close-details">‹ Today</button></div>
+    <nav class="day-nav" id="day-nav" aria-label="Jump to day"></nav>
 
-  <script src="polyfills.js?v=20261019-0130"></script><!-- for old iPads: load first -->
+    <div class="wrap">
+      <div id="alerts"></div>
+      <details class="synopsis" id="synopsis" hidden>
+        <summary>Marine synopsis · Southern New England waters</summary>
+        <p></p>
+      </details>
+      <div id="days" class="days">
+        <p class="loading">Loading forecast…</p>
+      </div>
+
+      <section class="sources" id="map">
+        <h2>Where the data comes from</h2>
+        <div id="source-map" class="source-map" role="region" aria-label="Map of data sources"></div>
+        <ul id="source-list" class="source-list"></ul>
+      </section>
+    </div>
+
+    <footer class="wrap site-footer">
+      <p>
+        Weather: <a href="https://www.weather.gov/box/">NWS Boston/Norton</a> ·
+        Marine forecast: <a href="https://www.weather.gov/box/">NWS Boston/Norton</a>, Buzzards Bay (marine zone ANZ234) ·
+        Tides: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8447685">NOAA 8447685 Chappaquoit Point</a> ·
+        Currents: NOAA predictions for the <a href="https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0904_15">Cape Cod Canal</a> and <a href="https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0911_1">Woods Hole</a> ·
+        Water temp &amp; level: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8447930">NOAA Woods Hole</a> ·
+        Live wind: <a href="https://www.ndbc.noaa.gov/station_page.php?station=buzm3">Buzzards Bay tower (BUZM3)</a> ·
+        Sun &amp; moon calculated locally ·
+        <a href="#map">Map of sources</a>
+      </p>
+      <section id="currents-explained" class="currents-explained" hidden>
+        <h3>Reading the currents</h3>
+        <table>
+          <thead><tr><th></th><th>Flood (incoming tide)</th><th>Ebb (outgoing tide)</th></tr></thead>
+          <tbody></tbody>
+        </table>
+        <p>Current is the water flowing sideways; tide is it rising and falling. Slack water rarely lines up with high or low tide, especially in the canal, which runs on the difference between Cape Cod Bay and Buzzards Bay.</p>
+      </section>
+      <p id="updated"></p>
+      <p class="fine">Not for navigation. Always check official NWS forecasts before heading out.</p>
+    </footer>
+  </div>
+
+  <!-- what counts as a good day for you (saved on this iPad) -->
+  <div class="sheet" id="settings" hidden>
+    <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
+      <div class="sheet-head"><h2 id="settings-title">Your activities</h2><button type="button" class="done-btn" id="close-settings">Done</button></div>
+      <div id="settings-body"></div>
+    </div>
+  </div>
+
+  <script src="polyfills.js?v=20261019-0143"></script><!-- for old iPads: load first -->
   <script src="vendor/suncalc.js"></script>
-  <script src="icons.js?v=20261019-0130"></script>
+  <script src="icons.js?v=20261019-0143"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
-  <script src="app.js?v=20261019-0130"></script>
-  <script src="map.js?v=20261019-0130"></script>
+  <script src="plan.js?v=20261019-0143"></script>
+  <script src="app.js?v=20261019-0143"></script>
+  <script src="map.js?v=20261019-0143"></script>
   <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   </script>

@@ -130,7 +130,20 @@ function loadWeather() {
     return {
       byDay,
       now: (hourly == null ? void 0 : hourly.properties.periods[0]) || null,
+      // every hour of the coming week, for the plan's verdicts and timeline
+      hours: ((hourly == null ? void 0 : hourly.properties.periods) || []).map((p) => {
+        var _a;
+        return {
+          t: Date.parse(p.startTime),
+          temp: p.temperature,
+          pop: ((_a = p.probabilityOfPrecipitation) == null ? void 0 : _a.value) || 0,
+          short: p.shortForecast,
+          isDay: p.isDaytime
+        };
+      }),
       wind: grid ? hourlyWind(grid.properties) : null,
+      // rain chance from the forecast grid, which starts earlier in the day than the hourly forecast (for wet roads)
+      rainChance: grid ? [...expandSeries(grid.properties.probabilityOfPrecipitation)].map(([t, pop]) => ({ t, pop })) : null,
       cell: daily.geometry || null
       // the forecast grid square, shown on the map
     };
@@ -744,10 +757,13 @@ function refresh() {
     renderNow(state);
     renderAlerts(state, stale);
     renderDays(state);
-    renderSourceMap((_c = state.weather) == null ? void 0 : _c.cell);
+    sourceCell = (_c = state.weather) == null ? void 0 : _c.cell;
+    if (!document.getElementById("details").hidden) renderSourceMap(sourceCell);
     renderCurrentsKey(state.currents);
     document.getElementById("updated").textContent = "Updated ".concat(fmt(/* @__PURE__ */ new Date())) + (state.marine ? " · Marine forecast issued ".concat(state.marine.issued) : "") + (missing.length ? " · Unavailable: ".concat(missing.join(", ")) : "");
+    renderPlan(state, { stale, missing, todayKey });
   });
 }
+let sourceCell = null;
 refresh();
 setInterval(refresh, CONFIG.refreshMinutes * 6e4);

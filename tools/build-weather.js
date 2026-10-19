@@ -1,7 +1,7 @@
 // Builds the /weather page's scripts so they run on old iPads (iOS 10.3, Safari 10.1, the newest an iPad 4 gets).
 // Edit weather/src/*.js, then run:   node tools/build-weather.js
 // It rewrites the newer syntax (?. ?? ||= object spread, catch without a variable…) into what Safari 10.1 reads,
-// and writes weather/app.js, map.js and icons.js. The few newer built-in functions are added by weather/polyfills.js.
+// and writes weather/app.js, map.js, icons.js and plan.js. The few newer built-in functions are added by weather/polyfills.js.
 // node tools/build-weather.js --check   only reports whether the built files are up to date (the tests use this).
 const fs = require('fs');
 const path = require('path');
@@ -9,7 +9,7 @@ const esbuild = require('esbuild');
 
 const DIR = path.resolve(__dirname, '..', 'weather');
 const TARGET = 'safari10.1';
-const FILES = ['app.js', 'map.js', 'icons.js'];
+const FILES = ['app.js', 'map.js', 'icons.js', 'plan.js'];
 
 let stale = 0;
 for (const f of FILES) {

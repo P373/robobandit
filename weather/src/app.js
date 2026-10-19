@@ -100,7 +100,13 @@ async function loadWeather() {
   return {
     byDay,
     now: hourly?.properties.periods[0] || null,
+    // every hour of the coming week, for the plan's verdicts and timeline
+    hours: (hourly?.properties.periods || []).map((p) => ({
+      t: Date.parse(p.startTime), temp: p.temperature, pop: p.probabilityOfPrecipitation?.value || 0, short: p.shortForecast, isDay: p.isDaytime,
+    })),
     wind: grid ? hourlyWind(grid.properties) : null,
+    // rain chance from the forecast grid, which starts earlier in the day than the hourly forecast (for wet roads)
+    rainChance: grid ? [...expandSeries(grid.properties.probabilityOfPrecipitation)].map(([t, pop]) => ({ t, pop })) : null,
     cell: daily.geometry || null, // the forecast grid square, shown on the map
   };
 }
@@ -869,13 +875,16 @@ async function refresh() {
   renderNow(state);
   renderAlerts(state, stale);
   renderDays(state);
-  renderSourceMap(state.weather?.cell);
+  sourceCell = state.weather?.cell;
+  if (!document.getElementById('details').hidden) renderSourceMap(sourceCell);   // the map waits until Details opens
   renderCurrentsKey(state.currents);
 
   document.getElementById('updated').textContent =
     `Updated ${fmt(new Date())}` + (state.marine ? ` · Marine forecast issued ${state.marine.issued}` : '') +
     (missing.length ? ` · Unavailable: ${missing.join(', ')}` : '');
+  renderPlan(state, { stale, missing, todayKey });
 }
+let sourceCell = null;
 
 refresh();
 setInterval(refresh, CONFIG.refreshMinutes * 60000);
