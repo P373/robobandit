@@ -3324,6 +3324,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.dateKey === '2026-10-18 2026-10-19' && r.minutes === 870, 'day keys and minutes come out right in Megansett time: ' + JSON.stringify(r));
     check(/Megansett Harbor/.test(r.text) && !/Loading forecast/.test(r.text), 'the page started and got past "Loading forecast…": ' + r.text.slice(0, 200));
     await p.screenshot({ path: path.join(OUT, 'weather-offline.png') });
+    // if something breaks on a device, the page says what (file and line) instead of "Loading forecast…" for ever
+    const broken = await ctx.newPage();
+    await broken.addInitScript(() => { const Real = Intl.DateTimeFormat; Intl.DateTimeFormat = function (loc, o) { if (o && o.hour12 === false) throw new Error('no 24-hour clock here'); return new Real(loc, o); }; });
+    await broken.goto(url('weather/index.html')); await broken.waitForTimeout(1200);
+    const errBox = await broken.evaluate(() => (document.querySelector('#acts .plan-error') || {}).textContent || '');
+    check(/couldn.t start/.test(errBox) && /no 24-hour clock here/.test(errBox) && /app\.js line \d+/.test(errBox), 'a script failure shows on the page with the file and line: ' + errBox);
+    await broken.close();
     // the conditions strip (Air · Water · Wind · Tide) and the red Small Craft Advisory bar, fed made-up readings
     const strip = await p.evaluate(() => {
       const nowAbs = minutesOfDay(new Date()), later = new Date(Date.now() + 6 * 36e5).toISOString();

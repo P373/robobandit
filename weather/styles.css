@@ -444,6 +444,8 @@ html.dark .cond { background: #1c3550; }
 html.dark .cond-card { color: #e2eef8; } html.dark .cond-card + .cond-card { border-left-color: #2e4f70; } html.dark .cond-card i { color: #9fb9cf; }
 html.dark .site-header { background: linear-gradient(135deg, #07182a, #0d2a44); }
 
+.plan-error { grid-column: 1 / -1; padding: 14px 16px; border-radius: var(--radius); background: #fbeaea; color: #8a1f17; border: 2px solid #c0392b; font-size: 0.95rem; line-height: 1.45; }
+
 /* Old iPads (before iOS 14.1) can't space flexbox items with gap: polyfills.js adds .no-flexgap and these
    margins do the same job (rows space their items sideways, columns space them downwards). */
 .no-flexgap .site-header .wrap > * { margin: 8px 16px 8px 0; }

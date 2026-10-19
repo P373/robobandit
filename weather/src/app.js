@@ -75,10 +75,14 @@ const fmtDuration = (ms) => {
 
 const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+// give up on a request after 20 seconds, so one slow source can't hold the whole page on "Loading forecast…"
+// (old Safari can't cancel a fetch, so race it against a timer)
+const within = (ms, promise) => Promise.race([promise, new Promise((_, reject) => setTimeout(() => reject(new Error('timed out')), ms))]);
+
 async function getJSON(url) {
-  const res = await fetch(url, { headers: { Accept: 'application/geo+json, application/json' } });
+  const res = await within(20000, fetch(url, { headers: { Accept: 'application/geo+json, application/json' } }));
   if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
-  const data = await res.json();
+  const data = await within(20000, res.json());
   if (data.error) throw new Error(data.error.message || 'Request failed');
   return data;
 }
@@ -897,5 +901,10 @@ async function refresh() {
 }
 let sourceCell = null;
 
-refresh();
-setInterval(refresh, CONFIG.refreshMinutes * 60000);
+// a failure shows on the page (polyfills.js) rather than leaving "Loading forecast…" up for ever
+const startRefresh = () => refresh().catch((e) => {
+  console.error(e);
+  if (window.cvError) window.cvError(e && e.message ? `${e.message}${e.stack ? ` · ${String(e.stack).split('\n')[0]}` : ''}` : String(e));
+});
+startRefresh();
+setInterval(startRefresh, CONFIG.refreshMinutes * 60000);

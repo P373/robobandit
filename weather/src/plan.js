@@ -369,7 +369,7 @@ function nightMode() {
 // keep it current on a stand: move "now", roll the verdicts on, and start a new day after midnight
 setInterval(() => {
   if (!planState) return;
-  if (dateKey(new Date()) !== planInfo.todayKey) refresh();
+  if (dateKey(new Date()) !== planInfo.todayKey) startRefresh();
   else renderPlan(planState, planInfo);
 }, 5 * 60000);
 
