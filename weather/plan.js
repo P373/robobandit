@@ -426,7 +426,7 @@ function actDetail(act, v, whenOf) {
   var limits = Object.keys(L).map(function (k) {
     return "".concat(LIMIT_LABELS[k][0].toLowerCase(), " ").concat(L[k]).concat(LIMIT_LABELS[k][1] === '°' ? '°' : ' ' + LIMIT_LABELS[k][1]);
   }).join(' · ');
-  return "<div class=\"act-detail lv-".concat(v.lv, "\">\n    <div class=\"ad-head\"><b class=\"ad-verdict\">").concat(A.name, ": ").concat(LEVEL[v.lv], "</b>").concat(whenOf(v) ? "<span class=\"ad-when\">".concat(esc(whenOf(v)), "</span>") : '', "</div>\n    <p class=\"ad-why\">").concat(esc(v.why), "</p>\n    <div class=\"ad-hours\">").concat(cells, "</div><div class=\"ad-marks\">").concat(marks, "</div>\n    <p class=\"ad-lim\">Your limits: ").concat(esc(limits), " <button type=\"button\" class=\"link-btn\" data-settings>Change</button></p>\n  </div>");
+  return "<div class=\"act-detail lv-".concat(v.lv, "\">\n    <div class=\"ad-head\"><b class=\"ad-verdict\">").concat(A.name, ": ").concat(LEVEL[v.lv], "</b>").concat(whenOf(v) ? "<span class=\"ad-when\">".concat(esc(whenOf(v)), "</span>") : '', "<span class=\"ad-why\">").concat(esc(v.why), "</span></div>\n    <div class=\"ad-hours\">").concat(cells, "</div><div class=\"ad-marks\">").concat(marks, "</div>\n    <p class=\"ad-lim\">Your limits: ").concat(esc(limits), " <button type=\"button\" class=\"link-btn\" data-settings>Change</button></p>\n  </div>");
 }
 var sunMoonMin = function sunMoonMin(key, which) {
   return minutesOfDay(sunMoon(key).sun[which]);
@@ -449,15 +449,21 @@ function drawTimeline(state, v) {
     x = function x(t) {
       return gut + (Math.min(t1, Math.max(t0, t)) - t0) / (t1 - t0) * (W - gut - padR);
     };
+  // rows: sky and temperature, rain chance, wind (arrow and speed), and the tide gets the rest; all scale with the height
+  var avail = H - 22,
+    fit = function fit(f, lo, hi) {
+      return Math.round(Math.min(hi, Math.max(lo, avail * f)));
+    };
+  var skyH = fit(0.25, 40, 54),
+    rainH = fit(0.12, 20, 26),
+    windH = fit(0.22, 36, 50);
   var rows = {
-    sky: [0, 54],
-    rain: [60, 30]
+    sky: [0, skyH],
+    rain: [skyH + 4, rainH],
+    wind: [skyH + rainH + 8, windH]
   };
-  var rest = H - 96 - 22,
-    windH = Math.round(rest * 0.5),
-    tideH = rest - windH;
-  rows.wind = [96, windH - 8];
-  rows.tide = [96 + windH, tideH - 6];
+  rows.tide = [rows.wind[0] + windH + 4, Math.max(30, avail - (rows.wind[0] + windH + 4) - 2)];
+  var iconS = skyH < 48 ? 22 : 28;
   var axisY = H - 18;
   var hours = dayHours(state, todayKey).concat(dayHours(state, tomorrow)).filter(function (h) {
     return h.t + 36e5 > t0 && h.t < t1;
@@ -505,29 +511,24 @@ function drawTimeline(state, v) {
     _step3;
   try {
     for (_iterator3.s(); !(_step3 = _iterator3.n()).done;) {
-      var _h = _step3.value;
-      if (Math.round(_h.min / 60) % stepH || _h.temp == null || _h.t < t0) continue;
-      var cx = x(_h.t + 18e5);
-      out.push(wxIcon(_h["short"], isDay(_h.t + 18e5), 28).replace('<svg ', "<svg x=\"".concat(cx - 14, "\" y=\"2\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(rows.sky[0] + 46, "\" class=\"tl-temp\">").concat(_h.temp, "\xB0</text>"));
+      var h = _step3.value;
+      if (Math.round(h.min / 60) % stepH || h.temp == null || h.t < t0) continue;
+      var cx = x(h.t + 18e5);
+      out.push(wxIcon(h["short"], isDay(h.t + 18e5), iconS).replace('<svg ', "<svg x=\"".concat(cx - iconS / 2, "\" y=\"2\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(skyH - 6, "\" class=\"tl-temp\">").concat(h.temp, "\xB0</text>"));
     }
-    // rain chance bars
+    // rain: the chance on each labelled hour, blue once it's worth noticing
   } catch (err) {
     _iterator3.e(err);
   } finally {
     _iterator3.f();
   }
-  var rTop = rows.rain[0],
-    rH = rows.rain[1];
   var _iterator4 = _createForOfIteratorHelper(hours),
     _step4;
   try {
     for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-      var _h2 = _step4.value;
-      if (!_h2.pop) continue;
-      var bh = Math.max(2, _h2.pop / 100 * rH),
-        _a2 = x(_h2.t),
-        _b2 = x(_h2.t + 36e5);
-      if (_b2 - _a2 > 2) out.push("<rect x=\"".concat(_a2 + 1, "\" y=\"").concat(rTop + rH - bh, "\" width=\"").concat(_b2 - _a2 - 2, "\" height=\"").concat(bh, "\" class=\"tl-rain\" rx=\"2\"/>"));
+      var _h = _step4.value;
+      if (Math.round(_h.min / 60) % stepH || _h.t < t0) continue;
+      out.push("<text x=\"".concat(x(_h.t + 18e5), "\" y=\"").concat(mid.rain + 5, "\" class=\"tl-pop").concat(_h.pop >= 30 ? ' wet' : '', "\">").concat(_h.pop, "%</text>"));
     }
   } catch (err) {
     _iterator4.e(err);
@@ -539,64 +540,35 @@ function drawTimeline(state, v) {
   }))));
   out.push("<text x=\"4\" y=\"".concat(mid.rain + 11, "\" class=\"tl-unit\">").concat(wet >= 20 ? "up to ".concat(wet, "%") : 'dry', "</text>"));
 
-  // wind and gusts
+  // wind: on each labelled hour, an arrow the way it blows and the speed (and gusts when they're well above it)
   var wpts = hours.filter(function (h) {
     return h.spd != null;
   });
-  if (wpts.length > 1) {
-    var wTop = rows.wind[0] + 4,
-      wH = rows.wind[1] - 4,
-      max = Math.max(20, Math.ceil(Math.max.apply(Math, _toConsumableArray(wpts.map(function (h) {
-        return h.gst;
-      }))) / 5) * 5);
-    var y = function y(k) {
-      return wTop + wH - k / max * wH;
-    };
-    var line = function line(k) {
-      return wpts.map(function (h, i) {
-        return "".concat(i ? 'L' : 'M').concat(x(h.t + 18e5).toFixed(1), ",").concat(y(h[k]).toFixed(1));
-      }).join('');
-    };
-    out.push("<path d=\"".concat(line('gst'), "L").concat(x(wpts[wpts.length - 1].t + 18e5).toFixed(1), ",").concat(wTop + wH, "L").concat(x(wpts[0].t + 18e5).toFixed(1), ",").concat(wTop + wH, "Z\" class=\"tl-gust\"/>"), "<path d=\"".concat(line('spd'), "\" class=\"tl-wind\"/>"));
-    var _iterator5 = _createForOfIteratorHelper([10, 20, 30].filter(function (k) {
-        return k < max;
-      })),
-      _step5;
-    try {
-      for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-        var k = _step5.value;
-        out.push("<text x=\"".concat(gut - 4, "\" y=\"").concat(y(k) + 4, "\" class=\"tl-tick\">").concat(k, "</text>"));
-      }
-    } catch (err) {
-      _iterator5.e(err);
-    } finally {
-      _iterator5.f();
+  var _iterator5 = _createForOfIteratorHelper(wpts),
+    _step5;
+  try {
+    for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+      var _h2 = _step5.value;
+      if (Math.round(_h2.min / 60) % stepH || _h2.t < t0) continue;
+      var _cx = x(_h2.t + 18e5),
+        spd = Math.round(_h2.spd),
+        gst = Math.round(_h2.gst);
+      if (_h2.dir != null) out.push("<g transform=\"translate(".concat(_cx, " ").concat(mid.wind - windH * 0.18, ") rotate(").concat(_h2.dir + 180, ") scale(").concat(windH < 44 ? 0.8 : 1, ")\"><path d=\"M0,8V-8M-5,-3L0,-8 5,-3\" class=\"tl-warrow\"/></g>"));
+      out.push("<text x=\"".concat(_cx, "\" y=\"").concat(mid.wind + windH * 0.36, "\" class=\"tl-wspd\">").concat(spd).concat(gst > spd + 3 ? "<tspan class=\"tl-gst\"> G".concat(gst, "</tspan>") : '', "</text>"));
     }
-    var _iterator6 = _createForOfIteratorHelper(wpts),
-      _step6;
-    try {
-      for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-        var h = _step6.value;
-        if (Math.round(h.min / 60) % stepH === 0 && h.dir != null && h.t >= t0) out.push("<g transform=\"translate(".concat(x(h.t + 18e5), " ").concat(y(h.spd) - 12, ") rotate(").concat(h.dir + 180, ")\"><path d=\"M0,5V-5M-3.5,-1.5L0,-5 3.5,-1.5\" class=\"tl-arrow\"/></g>"));
-      }
-    } catch (err) {
-      _iterator6.e(err);
-    } finally {
-      _iterator6.f();
-    }
-    var peak = wpts.reduce(function (a, b) {
-      return b.gst > a.gst ? b : a;
-    });
-    out.push("<text x=\"".concat(x(peak.t + 18e5), "\" y=\"").concat(Math.max(wTop + 10, y(peak.gst) - 4), "\" class=\"tl-val\">G").concat(Math.round(peak.gst), "</text>"));
-  }
 
-  // tide (its times are minutes from today's local midnight)
+    // tide (its times are minutes from today's local midnight)
+  } catch (err) {
+    _iterator5.e(err);
+  } finally {
+    _iterator5.f();
+  }
   var T = state.tides;
   var tidePts = [];
   if (T) {
-    var _mid = localMidnight(todayKey).getTime(),
+    var midnight0 = localMidnight(todayKey).getTime(),
       at = function at(p) {
-        return _mid + p.abs * 6e4;
+        return midnight0 + p.abs * 6e4;
       };
     var pts = T.curve.filter(function (p) {
       return at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5;
@@ -613,30 +585,30 @@ function drawTimeline(state, v) {
         }),
         lo = Math.min.apply(Math, _toConsumableArray(vals)) - 0.3,
         hi = Math.max.apply(Math, _toConsumableArray(vals)) + 0.3;
-      var tTop = rows.tide[0] + 14,
-        tH = rows.tide[1] - 30;
-      var _y = function _y(val) {
+      var tTop = rows.tide[0] + 12,
+        tH = Math.max(12, rows.tide[1] - 26);
+      var y = function y(val) {
         return tTop + tH - (val - lo) / (hi - lo) * tH;
       };
       var path = pts.map(function (p, i) {
-        return "".concat(i ? 'L' : 'M').concat(x(at(p)).toFixed(1), ",").concat(_y(p.v).toFixed(1));
+        return "".concat(i ? 'L' : 'M').concat(x(at(p)).toFixed(1), ",").concat(y(p.v).toFixed(1));
       }).join('');
       out.push("<path d=\"".concat(path, "L").concat(x(at(pts[pts.length - 1])).toFixed(1), ",").concat(tTop + tH + 14, "L").concat(x(at(pts[0])).toFixed(1), ",").concat(tTop + tH + 14, "Z\" class=\"tl-tide-area\"/>"), "<path d=\"".concat(path, "\" class=\"tl-tide\"/>"));
-      var _iterator7 = _createForOfIteratorHelper(T.hilo.filter(function (q) {
+      var _iterator6 = _createForOfIteratorHelper(T.hilo.filter(function (q) {
           return at(q) >= t0 && at(q) <= t1;
         })),
-        _step7;
+        _step6;
       try {
-        for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-          var p = _step7.value;
+        for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+          var p = _step6.value;
           var up = p.type === 'H',
-            ty = up ? _y(p.v) - 7 : _y(p.v) + 15;
-          out.push("<circle cx=\"".concat(x(at(p)), "\" cy=\"").concat(_y(p.v), "\" r=\"3.5\" class=\"tl-dot ").concat(up ? 'hi' : 'lo', "\"/>"), "<text x=\"".concat(x(at(p)), "\" y=\"").concat(ty, "\" class=\"tl-val\">").concat(up ? 'High' : 'Low', " ").concat(clock(p.min).n).concat(clock(p.min).ap === 'AM' ? 'a' : 'p', "</text>"));
+            ty = up ? y(p.v) - 7 : y(p.v) + 15;
+          out.push("<circle cx=\"".concat(x(at(p)), "\" cy=\"").concat(y(p.v), "\" r=\"3.5\" class=\"tl-dot ").concat(up ? 'hi' : 'lo', "\"/>"), "<text x=\"".concat(x(at(p)), "\" y=\"").concat(ty, "\" class=\"tl-val\">").concat(up ? 'High' : 'Low', " ").concat(clock(p.min).n).concat(clock(p.min).ap === 'AM' ? 'a' : 'p', "</text>"));
         }
       } catch (err) {
-        _iterator7.e(err);
+        _iterator6.e(err);
       } finally {
-        _iterator7.f();
+        _iterator6.f();
       }
     }
   }

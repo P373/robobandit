@@ -419,6 +419,8 @@ html.dark .cond-card.cond-alert { color: #fff; }
 .plan { display: block; max-width: 1240px; margin: 0 auto; padding: 10px 16px 6px; }
 .plan[hidden], .details[hidden], .sheet[hidden] { display: none; }
 .plan-head { display: flex; align-items: baseline; margin: 0 2px 6px; }
+.plan-head-acts { margin-top: 10px; }
+.timeline { margin-top: 4px; }
 .plan-head h2 { margin: 0 10px 0 0; font-size: 1.15rem; }
 .plan-date { color: var(--muted); }
 .acts { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); grid-gap: 12px; gap: 12px; align-content: start; }
@@ -436,14 +438,14 @@ html.dark .act.lv-1 { background: #36301a; border-color: #6e6230; color: #e3cf8a
 html.dark .act.lv-2 { background: #3a2220; border-color: #774440; color: #e6a79f; }
 .act.on .act-name { font-weight: 800; }   /* the one you tapped: no glow, just its name in bold */
 /* the tapped activity, opened under the row */
-.act-detail { grid-column: 1 / -1; border: 2px solid var(--line); border-radius: var(--radius); padding: 10px 14px 8px; background: var(--card); color: var(--ink); }
+.act-detail { grid-column: 1 / -1; border: 2px solid var(--line); border-radius: var(--radius); padding: 8px 14px 6px; background: var(--card); color: var(--ink); }
 .act-detail.lv-0 { background: #eef6ef; border-color: #a9cdb1; } .act-detail.lv-1 { background: #faf5e4; border-color: #dcc98a; } .act-detail.lv-2 { background: #f8ebe9; border-color: #d9a9a2; }
 html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.dark .act-detail.lv-1 { background: #2b2717; border-color: #6e6230; } html.dark .act-detail.lv-2 { background: #2e1c1b; border-color: #774440; }
 .ad-head { display: flex; align-items: baseline; }
 .ad-verdict { font-size: 1.15rem; font-weight: 800; margin-right: 12px; }
 .ad-when { font-weight: 600; color: var(--muted); }
-.ad-why { margin: 3px 0 0; }
-.ad-hours { display: flex; margin-top: 8px; border-radius: 4px; overflow: hidden; }
+.ad-why { margin-left: 12px; color: var(--ink); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
+.ad-hours { display: flex; margin-top: 6px; border-radius: 4px; overflow: hidden; }
 .ad-h { -webkit-box-flex: 1; flex: 1; height: 10px; margin-right: 1px; background: var(--line); }
 .ad-h.lv-0 { background: #8fbf98; } .ad-h.lv-1 { background: #dcc98a; } .ad-h.lv-2 { background: #d29a94; }
 .ad-marks { position: relative; height: 14px; font-size: 0.7rem; color: var(--muted); }
@@ -468,7 +470,11 @@ html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.
 .tl-label { font-size: 13px; font-weight: 700; fill: var(--ink); }
 .tl-unit, .tl-tick { font-size: 10px; fill: var(--muted); } .tl-tick { text-anchor: end; }
 .tl-temp { font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
-.tl-rain { fill: var(--icon-rain); opacity: 0.75; }
+.tl-pop { font-size: 13px; font-weight: 600; fill: var(--muted); text-anchor: middle; }
+.tl-pop.wet { fill: var(--icon-rain); font-weight: 800; }
+.tl-warrow { fill: none; stroke: var(--wind); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
+.tl-wspd { font-size: 13px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.tl-gst { font-size: 11px; font-weight: 600; fill: var(--muted); }
 .tl-val { font-size: 11px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
 .tl-none { font-size: 12px; fill: var(--muted); }
 .tl-gust { fill: var(--gust); } .tl-wind { fill: none; stroke: var(--wind); stroke-width: 2.5; stroke-linejoin: round; }

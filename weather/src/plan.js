@@ -245,8 +245,7 @@ function actDetail(act, v, whenOf) {
   const marks = v.hours.map((h, i) => (i % 3 ? '' : `<span style="left:${(i / v.hours.length) * 100}%">${clock(h.min).n}${clock(h.min).ap === 'AM' ? 'a' : 'p'}</span>`)).join('');
   const limits = Object.keys(L).map((k) => `${LIMIT_LABELS[k][0].toLowerCase()} ${L[k]}${LIMIT_LABELS[k][1] === '°' ? '°' : ' ' + LIMIT_LABELS[k][1]}`).join(' · ');
   return `<div class="act-detail lv-${v.lv}">
-    <div class="ad-head"><b class="ad-verdict">${A.name}: ${LEVEL[v.lv]}</b>${whenOf(v) ? `<span class="ad-when">${esc(whenOf(v))}</span>` : ''}</div>
-    <p class="ad-why">${esc(v.why)}</p>
+    <div class="ad-head"><b class="ad-verdict">${A.name}: ${LEVEL[v.lv]}</b>${whenOf(v) ? `<span class="ad-when">${esc(whenOf(v))}</span>` : ''}<span class="ad-why">${esc(v.why)}</span></div>
     <div class="ad-hours">${cells}</div><div class="ad-marks">${marks}</div>
     <p class="ad-lim">Your limits: ${esc(limits)} <button type="button" class="link-btn" data-settings>Change</button></p>
   </div>`;
@@ -262,9 +261,12 @@ function drawTimeline(state, v) {
   const todayKey = planInfo ? planInfo.todayKey : dateKey(new Date()), tomorrow = addDays(todayKey, 1);
   const now = Date.now(), t0 = now - 15 * 6e4, t1 = now + 12 * 36e5;
   const gut = 58, padR = 10, x = (t) => gut + ((Math.min(t1, Math.max(t0, t)) - t0) / (t1 - t0)) * (W - gut - padR);
-  const rows = { sky: [0, 54], rain: [60, 30] };
-  const rest = H - 96 - 22, windH = Math.round(rest * 0.5), tideH = rest - windH;
-  rows.wind = [96, windH - 8]; rows.tide = [96 + windH, tideH - 6];
+  // rows: sky and temperature, rain chance, wind (arrow and speed), and the tide gets the rest; all scale with the height
+  const avail = H - 22, fit = (f, lo, hi) => Math.round(Math.min(hi, Math.max(lo, avail * f)));
+  const skyH = fit(0.25, 40, 54), rainH = fit(0.12, 20, 26), windH = fit(0.22, 36, 50);
+  const rows = { sky: [0, skyH], rain: [skyH + 4, rainH], wind: [skyH + rainH + 8, windH] };
+  rows.tide = [rows.wind[0] + windH + 4, Math.max(30, avail - (rows.wind[0] + windH + 4) - 2)];
+  const iconS = skyH < 48 ? 22 : 28;
   const axisY = H - 18;
   const hours = dayHours(state, todayKey).concat(dayHours(state, tomorrow)).filter((h) => h.t + 36e5 > t0 && h.t < t1);
   const s0 = sunMoon(todayKey).sun, s1 = sunMoon(tomorrow).sun;
@@ -297,43 +299,36 @@ function drawTimeline(state, v) {
   for (const h of hours) {
     if (Math.round(h.min / 60) % stepH || h.temp == null || h.t < t0) continue;
     const cx = x(h.t + 18e5);
-    out.push(wxIcon(h.short, isDay(h.t + 18e5), 28).replace('<svg ', `<svg x="${cx - 14}" y="2" `),
-      `<text x="${cx}" y="${rows.sky[0] + 46}" class="tl-temp">${h.temp}°</text>`);
+    out.push(wxIcon(h.short, isDay(h.t + 18e5), iconS).replace('<svg ', `<svg x="${cx - iconS / 2}" y="2" `),
+      `<text x="${cx}" y="${skyH - 6}" class="tl-temp">${h.temp}°</text>`);
   }
-  // rain chance bars
-  const rTop = rows.rain[0], rH = rows.rain[1];
+  // rain: the chance on each labelled hour, blue once it's worth noticing
   for (const h of hours) {
-    if (!h.pop) continue;
-    const bh = Math.max(2, (h.pop / 100) * rH), a = x(h.t), b = x(h.t + 36e5);
-    if (b - a > 2) out.push(`<rect x="${a + 1}" y="${rTop + rH - bh}" width="${b - a - 2}" height="${bh}" class="tl-rain" rx="2"/>`);
+    if (Math.round(h.min / 60) % stepH || h.t < t0) continue;
+    out.push(`<text x="${x(h.t + 18e5)}" y="${mid.rain + 5}" class="tl-pop${h.pop >= 30 ? ' wet' : ''}">${h.pop}%</text>`);
   }
   const wet = Math.max(0, ...hours.map((h) => h.pop));
   out.push(`<text x="4" y="${mid.rain + 11}" class="tl-unit">${wet >= 20 ? `up to ${wet}%` : 'dry'}</text>`);
 
-  // wind and gusts
+  // wind: on each labelled hour, an arrow the way it blows and the speed (and gusts when they're well above it)
   const wpts = hours.filter((h) => h.spd != null);
-  if (wpts.length > 1) {
-    const wTop = rows.wind[0] + 4, wH = rows.wind[1] - 4, max = Math.max(20, Math.ceil(Math.max(...wpts.map((h) => h.gst)) / 5) * 5);
-    const y = (k) => wTop + wH - (k / max) * wH;
-    const line = (k) => wpts.map((h, i) => `${i ? 'L' : 'M'}${x(h.t + 18e5).toFixed(1)},${y(h[k]).toFixed(1)}`).join('');
-    out.push(`<path d="${line('gst')}L${x(wpts[wpts.length - 1].t + 18e5).toFixed(1)},${wTop + wH}L${x(wpts[0].t + 18e5).toFixed(1)},${wTop + wH}Z" class="tl-gust"/>`,
-      `<path d="${line('spd')}" class="tl-wind"/>`);
-    for (const k of [10, 20, 30].filter((k) => k < max)) out.push(`<text x="${gut - 4}" y="${y(k) + 4}" class="tl-tick">${k}</text>`);
-    for (const h of wpts) if (Math.round(h.min / 60) % stepH === 0 && h.dir != null && h.t >= t0) out.push(`<g transform="translate(${x(h.t + 18e5)} ${y(h.spd) - 12}) rotate(${h.dir + 180})"><path d="M0,5V-5M-3.5,-1.5L0,-5 3.5,-1.5" class="tl-arrow"/></g>`);
-    const peak = wpts.reduce((a, b) => (b.gst > a.gst ? b : a));
-    out.push(`<text x="${x(peak.t + 18e5)}" y="${Math.max(wTop + 10, y(peak.gst) - 4)}" class="tl-val">G${Math.round(peak.gst)}</text>`);
+  for (const h of wpts) {
+    if (Math.round(h.min / 60) % stepH || h.t < t0) continue;
+    const cx = x(h.t + 18e5), spd = Math.round(h.spd), gst = Math.round(h.gst);
+    if (h.dir != null) out.push(`<g transform="translate(${cx} ${mid.wind - windH * 0.18}) rotate(${h.dir + 180}) scale(${windH < 44 ? 0.8 : 1})"><path d="M0,8V-8M-5,-3L0,-8 5,-3" class="tl-warrow"/></g>`);
+    out.push(`<text x="${cx}" y="${mid.wind + windH * 0.36}" class="tl-wspd">${spd}${gst > spd + 3 ? `<tspan class="tl-gst"> G${gst}</tspan>` : ''}</text>`);
   }
 
   // tide (its times are minutes from today's local midnight)
   const T = state.tides;
   let tidePts = [];
   if (T) {
-    const mid = localMidnight(todayKey).getTime(), at = (p) => mid + p.abs * 6e4;
+    const midnight0 = localMidnight(todayKey).getTime(), at = (p) => midnight0 + p.abs * 6e4;
     const pts = T.curve.filter((p) => at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5);
     tidePts = pts.map((p) => ({ t: at(p), v: p.v }));
     if (pts.length > 1) {
       const vals = T.curve.map((p) => p.v), lo = Math.min(...vals) - 0.3, hi = Math.max(...vals) + 0.3;
-      const tTop = rows.tide[0] + 14, tH = rows.tide[1] - 30;
+      const tTop = rows.tide[0] + 12, tH = Math.max(12, rows.tide[1] - 26);
       const y = (val) => tTop + tH - ((val - lo) / (hi - lo)) * tH;
       const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(at(p)).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
       out.push(`<path d="${path}L${x(at(pts[pts.length - 1])).toFixed(1)},${tTop + tH + 14}L${x(at(pts[0])).toFixed(1)},${tTop + tH + 14}Z" class="tl-tide-area"/>`, `<path d="${path}" class="tl-tide"/>`);
