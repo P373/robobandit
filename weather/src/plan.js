@@ -174,7 +174,8 @@ function verdict(act, hours, cond) {
   const lv = best === 0 && top.length < 2 && rated.length > 2 ? 1 : best;   // one good hour isn't a good day
   const worstHour = rated.filter((r) => r.lv === Math.max(...rated.map((x) => x.lv)))[0];
   const why = lv === 0 ? GOOD[act](top.map((r) => r.h), cond) : best > 0 ? (top[0] || worstHour).why : worstHour.why;
-  return { lv, why, from: top[0].h.min, to: top[top.length - 1].h.min + 60, all: top.length === rated.length, n: top.length };
+  return { lv, why, from: top[0].h.min, to: top[top.length - 1].h.min + 60, all: top.length === rated.length, n: top.length,
+    hours: rated.map((r) => ({ min: r.h.min, lv: r.lv, why: r.why })) };
 }
 
 // the hours to judge: daylight, and from now on if it's today
@@ -194,7 +195,7 @@ function fmtRange(a, b) {
 
 // ---------- render ----------
 
-let planState = null, planInfo = null, selected = null, planKey = null;
+let planState = null, planInfo = null, selected = null, planKey = null, expanded = false;
 const LEVEL = ['Go', 'Caution', 'Not today'];
 
 function renderPlan(state, info) {
@@ -214,19 +215,16 @@ function renderPlan(state, info) {
   // the activity tiles
   const verdicts = {};
   const started = isToday && judged.length > 0 && judged[0].min > sunMoonMin(planKey, 'sunrise') + 30;   // the day is already under way
-  // a muted green, yellow or red box around each activity's icon: do it, maybe, or not today.
-  // The why and when go in the tile's label, and in one line by the date for the activity you've tapped.
+  // a small muted green, yellow or red box around each activity's icon: do it, maybe, or not today;
+  // tap one to open it (the why, the best window, every hour, your limits)
   const whenOf = (v) => (v.lv === 2 ? '' : v.all ? (started ? `now until ${clock(v.to).n} ${clock(v.to).ap}` : 'all day') : `best ${fmtRange(v.from, v.to)}`);
   document.getElementById('acts').innerHTML = settings.shown.map((act) => {
     const v = verdicts[act] = verdict(act, judged, cond);
     const A = ACTIVITIES[act];
     const say = v ? `${A.name}: ${LEVEL[v.lv]} · ${v.why}${whenOf(v) ? ` · ${whenOf(v)}` : ''}` : `${A.name}: forecast not in yet`;
-    return `<button type="button" class="act${v ? ` lv-${v.lv}` : ''}${act === selected ? ' on' : ''}" data-act="${act}" aria-pressed="${act === selected}" aria-label="${esc(say)}" title="${esc(say)}">
+    return `<button type="button" class="act${v ? ` lv-${v.lv}` : ''}${act === selected ? ' on' : ''}" data-act="${act}" aria-pressed="${act === selected}" aria-expanded="${act === selected && expanded}" aria-label="${esc(say)}" title="${esc(say)}">
       ${A.icon}<span class="act-name">${A.name}</span></button>`;
-  }).join('');
-  const sv = verdicts[selected];
-  document.getElementById('plan-pick').innerHTML = sv
-    ? `<i class="dot lv-${sv.lv}"></i><b>${ACTIVITIES[selected].name}</b> · ${esc(LEVEL[sv.lv].toLowerCase())}${whenOf(sv) ? ` · ${esc(whenOf(sv))}` : ''} · ${esc(sv.why)}` : '';
+  }).join('') + (expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
 
   drawTimeline(state, planKey, hours, verdicts[selected], isToday);
   renderWeek(state, planKey);
@@ -237,6 +235,20 @@ function renderPlan(state, info) {
   const tl = document.getElementById('timeline');
   tl._w = 0;   // make fitPlan redraw the timeline at its final size
   fitPlan();
+}
+// The tapped activity, opened: the verdict and best window, why, every daylight hour in colour, and your limits
+function actDetail(act, v, whenOf) {
+  const A = ACTIVITIES[act], L = settings.limits[act];
+  if (!v) return `<div class="act-detail"><b>${A.name}</b>: the forecast isn't in yet.</div>`;
+  const cells = v.hours.map((h) => `<i class="ad-h lv-${h.lv}" title="${clock(h.min).n} ${clock(h.min).ap}: ${esc(LEVEL[h.lv])}${h.why ? ' · ' + esc(h.why) : ''}"></i>`).join('');
+  const marks = v.hours.map((h, i) => (i % 3 ? '' : `<span style="left:${(i / v.hours.length) * 100}%">${clock(h.min).n}${clock(h.min).ap === 'AM' ? 'a' : 'p'}</span>`)).join('');
+  const limits = Object.keys(L).map((k) => `${LIMIT_LABELS[k][0].toLowerCase()} ${L[k]}${LIMIT_LABELS[k][1] === '°' ? '°' : ' ' + LIMIT_LABELS[k][1]}`).join(' · ');
+  return `<div class="act-detail lv-${v.lv}">
+    <div class="ad-head"><b class="ad-verdict">${A.name}: ${LEVEL[v.lv]}</b>${whenOf(v) ? `<span class="ad-when">${esc(whenOf(v))}</span>` : ''}</div>
+    <p class="ad-why">${esc(v.why)}</p>
+    <div class="ad-hours">${cells}</div><div class="ad-marks">${marks}</div>
+    <p class="ad-lim">Your limits: ${esc(limits)} <button type="button" class="link-btn" data-settings>Change</button></p>
+  </div>`;
 }
 const sunMoonMin = (key, which) => minutesOfDay(sunMoon(key).sun[which]);
 
@@ -386,9 +398,12 @@ setInterval(() => {
 // ---------- taps: pick an activity, open a day, details, settings ----------
 
 document.getElementById('acts').addEventListener('click', (e) => {
+  if (e.target.closest('[data-settings]')) { document.getElementById('open-settings').click(); return; }
   const b = e.target.closest('.act');
   if (!b || !planState) return;
-  selected = b.getAttribute('data-act');
+  const act = b.getAttribute('data-act');
+  expanded = act === selected ? !expanded : true;   // tap again to close
+  selected = act;
   renderPlan(planState, planInfo);
 });
 

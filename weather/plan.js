@@ -321,7 +321,14 @@ function verdict(act, hours, cond) {
     from: top[0].h.min,
     to: top[top.length - 1].h.min + 60,
     all: top.length === rated.length,
-    n: top.length
+    n: top.length,
+    hours: rated.map(function (r) {
+      return {
+        min: r.h.min,
+        lv: r.lv,
+        why: r.why
+      };
+    })
   };
 }
 
@@ -356,7 +363,8 @@ function fmtRange(a, b) {
 var planState = null,
   planInfo = null,
   selected = null,
-  planKey = null;
+  planKey = null,
+  expanded = false;
 var LEVEL = ['Go', 'Caution', 'Not today'];
 function renderPlan(state, info) {
   planState = state;
@@ -376,8 +384,8 @@ function renderPlan(state, info) {
   // the activity tiles
   var verdicts = {};
   var started = isToday && judged.length > 0 && judged[0].min > sunMoonMin(planKey, 'sunrise') + 30; // the day is already under way
-  // a muted green, yellow or red box around each activity's icon: do it, maybe, or not today.
-  // The why and when go in the tile's label, and in one line by the date for the activity you've tapped.
+  // a small muted green, yellow or red box around each activity's icon: do it, maybe, or not today;
+  // tap one to open it (the why, the best window, every hour, your limits)
   var whenOf = function whenOf(v) {
     return v.lv === 2 ? '' : v.all ? started ? "now until ".concat(clock(v.to).n, " ").concat(clock(v.to).ap) : 'all day' : "best ".concat(fmtRange(v.from, v.to));
   };
@@ -385,10 +393,8 @@ function renderPlan(state, info) {
     var v = verdicts[act] = verdict(act, judged, cond);
     var A = ACTIVITIES[act];
     var say = v ? "".concat(A.name, ": ").concat(LEVEL[v.lv], " \xB7 ").concat(v.why).concat(whenOf(v) ? " \xB7 ".concat(whenOf(v)) : '') : "".concat(A.name, ": forecast not in yet");
-    return "<button type=\"button\" class=\"act".concat(v ? " lv-".concat(v.lv) : '').concat(act === selected ? ' on' : '', "\" data-act=\"").concat(act, "\" aria-pressed=\"").concat(act === selected, "\" aria-label=\"").concat(esc(say), "\" title=\"").concat(esc(say), "\">\n      ").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span></button>");
-  }).join('');
-  var sv = verdicts[selected];
-  document.getElementById('plan-pick').innerHTML = sv ? "<i class=\"dot lv-".concat(sv.lv, "\"></i><b>").concat(ACTIVITIES[selected].name, "</b> \xB7 ").concat(esc(LEVEL[sv.lv].toLowerCase())).concat(whenOf(sv) ? " \xB7 ".concat(esc(whenOf(sv))) : '', " \xB7 ").concat(esc(sv.why)) : '';
+    return "<button type=\"button\" class=\"act".concat(v ? " lv-".concat(v.lv) : '').concat(act === selected ? ' on' : '', "\" data-act=\"").concat(act, "\" aria-pressed=\"").concat(act === selected, "\" aria-expanded=\"").concat(act === selected && expanded, "\" aria-label=\"").concat(esc(say), "\" title=\"").concat(esc(say), "\">\n      ").concat(A.icon, "<span class=\"act-name\">").concat(A.name, "</span></button>");
+  }).join('') + (expanded ? actDetail(selected, verdicts[selected], whenOf) : '');
   drawTimeline(state, planKey, hours, verdicts[selected], isToday);
   renderWeek(state, planKey);
   var stale = info.stale.length ? " \xB7 showing saved ".concat(info.stale.map(function (s) {
@@ -399,6 +405,22 @@ function renderPlan(state, info) {
   var tl = document.getElementById('timeline');
   tl._w = 0; // make fitPlan redraw the timeline at its final size
   fitPlan();
+}
+// The tapped activity, opened: the verdict and best window, why, every daylight hour in colour, and your limits
+function actDetail(act, v, whenOf) {
+  var A = ACTIVITIES[act],
+    L = settings.limits[act];
+  if (!v) return "<div class=\"act-detail\"><b>".concat(A.name, "</b>: the forecast isn't in yet.</div>");
+  var cells = v.hours.map(function (h) {
+    return "<i class=\"ad-h lv-".concat(h.lv, "\" title=\"").concat(clock(h.min).n, " ").concat(clock(h.min).ap, ": ").concat(esc(LEVEL[h.lv])).concat(h.why ? ' · ' + esc(h.why) : '', "\"></i>");
+  }).join('');
+  var marks = v.hours.map(function (h, i) {
+    return i % 3 ? '' : "<span style=\"left:".concat(i / v.hours.length * 100, "%\">").concat(clock(h.min).n).concat(clock(h.min).ap === 'AM' ? 'a' : 'p', "</span>");
+  }).join('');
+  var limits = Object.keys(L).map(function (k) {
+    return "".concat(LIMIT_LABELS[k][0].toLowerCase(), " ").concat(L[k]).concat(LIMIT_LABELS[k][1] === '°' ? '°' : ' ' + LIMIT_LABELS[k][1]);
+  }).join(' · ');
+  return "<div class=\"act-detail lv-".concat(v.lv, "\">\n    <div class=\"ad-head\"><b class=\"ad-verdict\">").concat(A.name, ": ").concat(LEVEL[v.lv], "</b>").concat(whenOf(v) ? "<span class=\"ad-when\">".concat(esc(whenOf(v)), "</span>") : '', "</div>\n    <p class=\"ad-why\">").concat(esc(v.why), "</p>\n    <div class=\"ad-hours\">").concat(cells, "</div><div class=\"ad-marks\">").concat(marks, "</div>\n    <p class=\"ad-lim\">Your limits: ").concat(esc(limits), " <button type=\"button\" class=\"link-btn\" data-settings>Change</button></p>\n  </div>");
 }
 var sunMoonMin = function sunMoonMin(key, which) {
   return minutesOfDay(sunMoon(key).sun[which]);
@@ -647,9 +669,15 @@ setInterval(function () {
 // ---------- taps: pick an activity, open a day, details, settings ----------
 
 document.getElementById('acts').addEventListener('click', function (e) {
+  if (e.target.closest('[data-settings]')) {
+    document.getElementById('open-settings').click();
+    return;
+  }
   var b = e.target.closest('.act');
   if (!b || !planState) return;
-  selected = b.getAttribute('data-act');
+  var act = b.getAttribute('data-act');
+  expanded = act === selected ? !expanded : true; // tap again to close
+  selected = act;
   renderPlan(planState, planInfo);
 });
 function showDetails(key) {

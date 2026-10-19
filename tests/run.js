@@ -3358,7 +3358,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([], []);
       return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
     });
-    check(strip.cards.join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
+    check(strip.cards.slice(0, 6).join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
+    check(/^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[6]) && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[7]), 'then the next sunrise or sunset, and the moon: ' + strip.cards.slice(6).join(' | '));
     check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(217, 72, 15)' && strip.before.barHidden,
       'an alert tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory; watches are orange), the panel waits: ' + JSON.stringify(strip.before));
     check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),
@@ -3421,7 +3422,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const read = p => p.evaluate(() => ({
       day: document.getElementById('plan-day').textContent,
       tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], say: a.title, icon: !!a.querySelector('svg.act-ic'), bg: getComputedStyle(a).backgroundColor })),
-      pick: document.getElementById('plan-pick').textContent,
+      detail: (document.querySelector('#acts .act-detail') || {}).textContent || '', cells: document.querySelectorAll('#acts .ad-h').length,
       tl: { rain: document.querySelectorAll('#timeline .tl-rain').length, wind: !!document.querySelector('#timeline .tl-wind'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)).length },
       week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
       tileH: Math.max(...[...document.querySelectorAll('#acts .act')].map(a => a.getBoundingClientRect().height)),
@@ -3446,7 +3447,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const r = await read(p);
       check(errors.length === 0, name + ': script errors: ' + errors.join(' | '));
       check(r.fits.footBottom <= r.fits.inner + 1 && r.fits.scroll <= r.fits.inner + 1, `${name}: everything fits one ${w}×${h} screen: ` + JSON.stringify(r.fits));
-      check(r.tileH <= 170, `${name}: activity tiles are only as tall as their words (${Math.round(r.tileH)}px)`);
+      check(r.tileH <= 60, `${name}: activity tiles are small (${Math.round(r.tileH)}px)`);
       if (name === 'portrait') { await p.screenshot({ path: path.join(OUT, 'weather-plan-portrait.png') }); await ctx.close(); continue; }
 
       await p.screenshot({ path: path.join(OUT, 'weather-plan.png') });
@@ -3454,7 +3455,15 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(r.day === 'Today' && r.tiles.length === 4, 'today, four activities: ' + JSON.stringify(r.tiles.map(x => x.act)));
       check(t.boating.lv === '0' && /best (9|10) AM–(12|1|2) PM/.test(t.boating.say) && /SW .*kt, seas 1–2 ft/.test(t.boating.say), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
       check(r.tiles.every(x => x.icon) && t.boating.bg === 'rgb(223, 238, 226)' && t.swimming.bg === 'rgb(245, 237, 207)', 'each tile is its icon in a muted green / yellow / red box: ' + JSON.stringify(r.tiles.map(x => x.act + ' ' + x.bg)));
-      check(/Boating/.test(r.pick) && /best (9|10) AM/.test(r.pick), 'the line by the date says why for the tapped activity: ' + r.pick);
+      check(!r.detail, 'the tiles start closed');
+      // tap Boating: it opens under the row with the verdict, the best window, every hour and your limits; still one screen
+      await p.click('#acts .act[data-act="boating"]'); await p.waitForTimeout(200);
+      const open1 = await read(p);
+      check(/Boating: Go/.test(open1.detail) && /best (9|10) AM/.test(open1.detail) && /seas 1–2 ft/.test(open1.detail) && open1.cells >= 6 && /Your limits: wind up to 15 kt/.test(open1.detail), 'tapping Boating opens its detail: ' + open1.detail.replace(/\s+/g, ' ').slice(0, 200) + ' cells ' + open1.cells);
+      check(open1.fits.footBottom <= open1.fits.inner + 1, 'opened, it all still fits one screen: ' + JSON.stringify(open1.fits));
+      await p.screenshot({ path: path.join(OUT, 'weather-plan-open.png') });
+      await p.click('#acts .act[data-act="boating"]'); await p.waitForTimeout(200);
+      check(!(await read(p)).detail, 'tapping it again closes it');
       check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.say), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
       check(t.rollerblading.lv === '0' && /best 11 AM/.test(t.rollerblading.say), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
       check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));

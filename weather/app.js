@@ -963,6 +963,8 @@ var COND_ICONS = {
   wind: '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
   up: '<path d="M12 3v8"/><path d="m8 7 4-4 4 4"/><path d="M2 15c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
   down: '<path d="M12 3v8"/><path d="m8 7 4 4 4-4"/><path d="M2 15c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  sunrise: '<path d="M12 2v8"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m8 6 4-4 4 4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
+  sunset: '<path d="M12 10V2"/><path d="m4.93 10.93 1.41 1.41"/><path d="M2 18h2"/><path d="M20 18h2"/><path d="m19.07 10.93-1.41 1.41"/><path d="M22 22H2"/><path d="m16 6-4 4-4-4"/><path d="M16 18a4 4 0 0 0-8 0"/>',
   rain: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
   warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>'
 };
@@ -1068,7 +1070,18 @@ function renderNow(_ref) {
   var s = tides && tideState(tides),
     nx = s && s.next;
   var tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? "Next ".concat(nx.type === 'H' ? 'high' : 'low') : 'Tide', nx ? "".concat(s.label, " now \xB7 next ").concat(nx.type === 'H' ? 'high' : 'low', " ").concat(fmtClock(nx.min), ", ").concat(nx.v.toFixed(1), " ft \xB7 NOAA Chappaquoit Point") : 'Tide');
-  document.getElementById('now').innerHTML = "<div class=\"cond\">".concat(sky).concat(rain).concat(air).concat(water).concat(wind).concat(tide, "</div>");
+
+  // the sun: whichever comes next (sunset in the day, sunrise at night); and tonight's moon
+  var today = dateKey(new Date()),
+    smT = sunMoon(today),
+    nowT = Date.now();
+  var sunNext = nowT < smT.sun.sunrise ? ['sunrise', smT.sun.sunrise] : nowT < smT.sun.sunset ? ['sunset', smT.sun.sunset] : ['sunrise', sunMoon(addDays(today, 1)).sun.sunrise];
+  var sunCard = card(sunNext[0], fmt(sunNext[1]).replace(/ (AM|PM)$/, '<small>$1</small>'), sunNext[0] === 'sunrise' ? 'Sunrise' : 'Sunset', "Sunrise ".concat(fmt(smT.sun.sunrise), " \xB7 sunset ").concat(fmt(smT.sun.sunset), " \xB7 ").concat(fmtDuration(smT.dayLength), " of daylight"));
+  var ph = smT.illum.phase,
+    pct = Math.round(smT.illum.fraction * 100);
+  var moonWord = ph < 0.03 || ph > 0.97 ? 'New moon' : ph > 0.47 && ph < 0.53 ? 'Full moon' : ph < 0.5 ? 'Waxing' : 'Waning';
+  var moonCard = "<div class=\"cond-card cond-moon\" title=\"".concat(esc(smT.phaseName), " \xB7 ").concat(pct, "% lit \xB7 rises ").concat(fmt(smT.moon.rise), ", sets ").concat(fmt(smT.moon.set), "\">").concat(moonSvg(smT.illum.fraction, ph, 22), "<b>").concat(pct, "%</b><i>").concat(moonWord, "</i></div>");
+  document.getElementById('now').innerHTML = "<div class=\"cond\">".concat(sky).concat(rain).concat(air).concat(water).concat(wind).concat(tide).concat(sunCard).concat(moonCard, "</div>");
 }
 var fmtWhen = function fmtWhen(iso) {
   var d = new Date(iso);
