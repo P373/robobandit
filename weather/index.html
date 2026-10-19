@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow"><!-- unlisted: not linked from RoboBandit, kept out of search -->
+  <title>Cape Visual · Megansett Harbor</title>
+  <meta name="description" content="7-day tides, weather, marine forecast, sun and moon for Megansett Harbor, North Falmouth, MA.">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#0d2a44">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="Megansett">
+  <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
+  <link rel="stylesheet" href="styles.css?v=20261019-0100">
+</head>
+<body>
+  <header class="site-header">
+    <div class="wrap">
+      <div class="brand">
+        <h1>Megansett Harbor</h1>
+        <p class="sub">North Falmouth, MA 02556 · Buzzards Bay</p>
+      </div>
+      <div class="now" id="now" aria-live="polite"></div>
+    </div>
+  </header>
+
+  <nav class="day-nav" id="day-nav" aria-label="Jump to day"></nav>
+
+  <main class="wrap">
+    <div id="alerts"></div>
+    <details class="synopsis" id="synopsis" hidden>
+      <summary>Marine synopsis · Southern New England waters</summary>
+      <p></p>
+    </details>
+    <div id="days" class="days">
+      <p class="loading">Loading forecast…</p>
+    </div>
+
+    <section class="sources" id="map">
+      <h2>Where the data comes from</h2>
+      <div id="source-map" class="source-map" role="region" aria-label="Map of data sources"></div>
+      <ul id="source-list" class="source-list"></ul>
+    </section>
+  </main>
+
+  <footer class="wrap site-footer">
+    <p>
+      Weather: <a href="https://www.weather.gov/box/">NWS Boston/Norton</a> ·
+      Marine forecast: <a href="https://www.weather.gov/box/">NWS Boston/Norton</a>, Buzzards Bay (marine zone ANZ234) ·
+      Tides: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8447685">NOAA 8447685 Chappaquoit Point</a> ·
+      Currents: NOAA predictions for the <a href="https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0904_15">Cape Cod Canal</a> and <a href="https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0911_1">Woods Hole</a> ·
+      Water temp &amp; level: <a href="https://tidesandcurrents.noaa.gov/stationhome.html?id=8447930">NOAA Woods Hole</a> ·
+      Live wind: <a href="https://www.ndbc.noaa.gov/station_page.php?station=buzm3">Buzzards Bay tower (BUZM3)</a> ·
+      Sun &amp; moon calculated locally ·
+      <a href="#map">Map of sources</a>
+    </p>
+    <section id="currents-explained" class="currents-explained" hidden>
+      <h3>Reading the currents</h3>
+      <table>
+        <thead><tr><th></th><th>Flood (incoming tide)</th><th>Ebb (outgoing tide)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p>Current is the water flowing sideways; tide is it rising and falling. Slack water rarely lines up with high or low tide, especially in the canal, which runs on the difference between Cape Cod Bay and Buzzards Bay.</p>
+    </section>
+    <p id="updated"></p>
+    <p class="fine">Not for navigation. Always check official NWS forecasts before heading out.</p>
+  </footer>
+
+  <script src="vendor/suncalc.js"></script>
+  <script src="icons.js?v=20261019-0100"></script>
+  <script src="vendor/leaflet/leaflet.js"></script>
+  <script src="app.js?v=20261019-0100"></script>
+  <script src="map.js?v=20261019-0100"></script>
+  <script>
+    if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
+  </script>
+</body>
+</html>
