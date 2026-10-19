@@ -491,19 +491,7 @@ const COND_ICONS = {
 };
 const lineIcon = (k, cls) => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${COND_ICONS[k]}</svg>`;
 
-// High or Low within 45 minutes of the turn of the tide, otherwise Rising or Falling
-function tideState(tides) {
-  const nowAbs = minutesOfDay(new Date());
-  let prev = null, next = null;
-  for (const p of tides.hilo) { if (p.abs <= nowAbs) prev = p; else if (!next) next = p; }
-  if (!next) return null;
-  const near = (type) => (prev && prev.type === type && nowAbs - prev.abs < 45) || (next.type === type && next.abs - nowAbs < 45);
-  if (near('H')) return { label: 'High', up: true, next };
-  if (near('L')) return { label: 'Low', up: false, next };
-  return next.type === 'H' ? { label: 'Rising', up: true, next } : { label: 'Falling', up: false, next };
-}
-
-function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
+function renderNow({ weather, waterTemp, buoy, waterLevel }) {
   const card = (icon, value, label, title) =>
     `<div class="cond-card" title="${esc(title)}">${lineIcon(icon, 'cond-ic')}<b>${value}</b><i>${label}</i></div>`;
 
@@ -511,19 +499,8 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   // the sky first: sunny, partly cloudy, cloudy, rain, snow… (the colour icons the day cards use)
   const SKY = { sun: 'Sunny', moon: 'Clear', 'partly-day': 'Partly cloudy', 'partly-night': 'Partly cloudy', cloud: 'Cloudy',
     rain: 'Rain', 'showers-day': 'Showers', thunder: 'Storms', snow: 'Snow', fog: 'Fog', wind: 'Windy' };
-  const sky = n ? `<div class="cond-card cond-sky" title="${esc(n.shortForecast)} · NWS forecast for Megansett">${wxIcon(n.shortForecast, n.isDaytime, 44)}<i>${SKY[wxIconType(n.shortForecast, n.isDaytime)]}</i></div>` : '';
-  // chance of rain (or snow) this hour, and the most it gets to later today
-  let rain = '';
-  if (n) {
-    const pop = n.probabilityOfPrecipitation?.value || 0, snow = /snow|sleet|flurr/i.test(n.shortForecast);
-    const endOfDay = localMidnight(addDays(dateKey(new Date()), 1)).getTime();
-    const later = (weather.hours || []).filter((h) => h.t < endOfDay);
-    const peak = later.reduce((a, h) => (h.pop > a.pop ? h : a), { pop });
-    rain = card('rain', `${pop}%`, snow ? 'Snow' : 'Rain',
-      `Chance of ${snow ? 'snow' : 'rain'} this hour${peak.pop > pop && peak.t ? ` · up to ${peak.pop}% around ${fmt(new Date(peak.t))}` : ''} · NWS hourly forecast`);
-  }
-  const air = card('air', n ? `${n.temperature}°` : '--', 'Air', n ? `${n.shortForecast} · NWS forecast for Megansett` : 'Air temperature');
-
+  const sky = n ? `<div class="cond-card cond-sky" title="${esc(n.shortForecast)} · NWS forecast for Megansett">${wxIcon(n.shortForecast, n.isDaytime, 24)}<b>${n.temperature}°</b><i>${SKY[wxIconType(n.shortForecast, n.isDaytime)]}</i></div>`
+    : card('air', '--', 'Air', 'Air temperature');
   const d = waterLevel?.diff;
   const surge = d == null ? '' : Math.abs(d) < 0.3 ? 'Level near predicted · ' : `Level ${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} ft ${d > 0 ? 'above' : 'below'} predicted · `;
   const water = card('water', waterTemp != null ? `${Math.round(waterTemp)}°` : '--', 'Water', `${surge}NOAA Woods Hole`);
@@ -536,10 +513,6 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   }
 
   // the time of the next high or low; the arrow says which way the water is going until then
-  const s = tides && tideState(tides), nx = s && s.next;
-  const tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? `Next ${nx.type === 'H' ? 'high' : 'low'}` : 'Tide',
-    nx ? `${s.label} now · next ${nx.type === 'H' ? 'high' : 'low'} ${fmtClock(nx.min)}, ${nx.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
-
   // the sun: whichever comes next (sunset in the day, sunrise at night); and tonight's moon
   const today = dateKey(new Date()), smT = sunMoon(today), nowT = Date.now();
   const sunNext = nowT < smT.sun.sunrise ? ['sunrise', smT.sun.sunrise] : nowT < smT.sun.sunset ? ['sunset', smT.sun.sunset] : ['sunrise', sunMoon(addDays(today, 1)).sun.sunrise];
@@ -548,7 +521,7 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   const ph = smT.illum.phase, pct = Math.round(smT.illum.fraction * 100);
   const moonWord = ph < 0.03 || ph > 0.97 ? 'New moon' : ph > 0.47 && ph < 0.53 ? 'Full moon' : ph < 0.5 ? 'Waxing' : 'Waning';
   const moonCard = `<div class="cond-card cond-moon" title="${esc(smT.phaseName)} · ${pct}% lit · rises ${fmt(smT.moon.rise)}, sets ${fmt(smT.moon.set)}">${moonSvg(smT.illum.fraction, ph, 22)}<b>${pct}%</b><i>${moonWord}</i></div>`;
-  document.getElementById('now').innerHTML = `<div class="cond">${sky}${sunCard}${rain}${air}${water}${wind}${tide}${moonCard}</div>`;
+  document.getElementById('now').innerHTML = `<div class="cond">${sky}${sunCard}${water}${wind}${moonCard}</div>`;
 }
 
 const fmtWhen = (iso) => {
@@ -924,7 +897,9 @@ async function refresh() {
   document.getElementById('updated').textContent =
     `Updated ${fmt(new Date())}` + (state.marine ? ` · Marine forecast issued ${state.marine.issued}` : '') +
     (missing.length ? ` · Unavailable: ${missing.join(', ')}` : '');
-  renderPlan(state, { stale, missing, todayKey });
+  const health = names.map((k) => ({ name: sources[k][0], ok: !!results[k].value && !results[k].staleSince, savedAt: results[k].staleSince || null,
+    error: results[k].error ? String(results[k].error.message || results[k].error) : '' }));
+  renderPlan(state, { stale, missing, todayKey, health });
 }
 let sourceCell = null;
 

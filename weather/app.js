@@ -216,7 +216,7 @@ function loadWeather() {
 } // Convert an NWS quantity to knots based on its unit code.
 function _loadWeather() {
   _loadWeather = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee2() {
-    var point, _yield$Promise$all, _yield$Promise$all2, daily, hourly, grid, byDay, _iterator6, _step6, p, key;
+    var point, _yield$Promise$all, _yield$Promise$all2, daily, hourly, grid, byDay, _iterator5, _step5, p, key;
     return _regenerator().w(function (_context2) {
       while (1) switch (_context2.n) {
         case 0:
@@ -237,17 +237,17 @@ function _loadWeather() {
           hourly = _yield$Promise$all2[1];
           grid = _yield$Promise$all2[2];
           byDay = {};
-          _iterator6 = _createForOfIteratorHelper(daily.properties.periods);
+          _iterator5 = _createForOfIteratorHelper(daily.properties.periods);
           try {
-            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
-              p = _step6.value;
+            for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
+              p = _step5.value;
               key = p.startTime.slice(0, 10); // startTime carries the local offset
               (byDay[key] || (byDay[key] = {}))[p.isDaytime ? 'day' : 'night'] = p;
             }
           } catch (err) {
-            _iterator6.e(err);
+            _iterator5.e(err);
           } finally {
-            _iterator6.f();
+            _iterator5.f();
           }
           return _context2.a(2, {
             byDay: byDay,
@@ -971,51 +971,8 @@ var COND_ICONS = {
 var lineIcon = function lineIcon(k, cls) {
   return "<svg class=\"".concat(cls, "\" viewBox=\"0 0 24 24\" aria-hidden=\"true\">").concat(COND_ICONS[k], "</svg>");
 };
-
-// High or Low within 45 minutes of the turn of the tide, otherwise Rising or Falling
-function tideState(tides) {
-  var nowAbs = minutesOfDay(new Date());
-  var prev = null,
-    next = null;
-  var _iterator4 = _createForOfIteratorHelper(tides.hilo),
-    _step4;
-  try {
-    for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
-      var p = _step4.value;
-      if (p.abs <= nowAbs) prev = p;else if (!next) next = p;
-    }
-  } catch (err) {
-    _iterator4.e(err);
-  } finally {
-    _iterator4.f();
-  }
-  if (!next) return null;
-  var near = function near(type) {
-    return prev && prev.type === type && nowAbs - prev.abs < 45 || next.type === type && next.abs - nowAbs < 45;
-  };
-  if (near('H')) return {
-    label: 'High',
-    up: true,
-    next: next
-  };
-  if (near('L')) return {
-    label: 'Low',
-    up: false,
-    next: next
-  };
-  return next.type === 'H' ? {
-    label: 'Rising',
-    up: true,
-    next: next
-  } : {
-    label: 'Falling',
-    up: false,
-    next: next
-  };
-}
 function renderNow(_ref) {
   var weather = _ref.weather,
-    tides = _ref.tides,
     waterTemp = _ref.waterTemp,
     buoy = _ref.buoy,
     waterLevel = _ref.waterLevel;
@@ -1037,25 +994,7 @@ function renderNow(_ref) {
     fog: 'Fog',
     wind: 'Windy'
   };
-  var sky = n ? "<div class=\"cond-card cond-sky\" title=\"".concat(esc(n.shortForecast), " \xB7 NWS forecast for Megansett\">").concat(wxIcon(n.shortForecast, n.isDaytime, 44), "<i>").concat(SKY[wxIconType(n.shortForecast, n.isDaytime)], "</i></div>") : '';
-  // chance of rain (or snow) this hour, and the most it gets to later today
-  var rain = '';
-  if (n) {
-    var _n$probabilityOfPreci;
-    var pop = ((_n$probabilityOfPreci = n.probabilityOfPrecipitation) === null || _n$probabilityOfPreci === void 0 ? void 0 : _n$probabilityOfPreci.value) || 0,
-      snow = /snow|sleet|flurr/i.test(n.shortForecast);
-    var endOfDay = localMidnight(addDays(dateKey(new Date()), 1)).getTime();
-    var later = (weather.hours || []).filter(function (h) {
-      return h.t < endOfDay;
-    });
-    var peak = later.reduce(function (a, h) {
-      return h.pop > a.pop ? h : a;
-    }, {
-      pop: pop
-    });
-    rain = card('rain', "".concat(pop, "%"), snow ? 'Snow' : 'Rain', "Chance of ".concat(snow ? 'snow' : 'rain', " this hour").concat(peak.pop > pop && peak.t ? " \xB7 up to ".concat(peak.pop, "% around ").concat(fmt(new Date(peak.t))) : '', " \xB7 NWS hourly forecast"));
-  }
-  var air = card('air', n ? "".concat(n.temperature, "\xB0") : '--', 'Air', n ? "".concat(n.shortForecast, " \xB7 NWS forecast for Megansett") : 'Air temperature');
+  var sky = n ? "<div class=\"cond-card cond-sky\" title=\"".concat(esc(n.shortForecast), " \xB7 NWS forecast for Megansett\">").concat(wxIcon(n.shortForecast, n.isDaytime, 24), "<b>").concat(n.temperature, "\xB0</b><i>").concat(SKY[wxIconType(n.shortForecast, n.isDaytime)], "</i></div>") : card('air', '--', 'Air', 'Air temperature');
   var d = waterLevel === null || waterLevel === void 0 ? void 0 : waterLevel.diff;
   var surge = d == null ? '' : Math.abs(d) < 0.3 ? 'Level near predicted · ' : "Level ".concat(d > 0 ? '+' : '−').concat(Math.abs(d).toFixed(1), " ft ").concat(d > 0 ? 'above' : 'below', " predicted \xB7 ");
   var water = card('water', waterTemp != null ? "".concat(Math.round(waterTemp), "\xB0") : '--', 'Water', "".concat(surge, "NOAA Woods Hole"));
@@ -1067,10 +1006,6 @@ function renderNow(_ref) {
   }
 
   // the time of the next high or low; the arrow says which way the water is going until then
-  var s = tides && tideState(tides),
-    nx = s && s.next;
-  var tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? "Next ".concat(nx.type === 'H' ? 'high' : 'low') : 'Tide', nx ? "".concat(s.label, " now \xB7 next ").concat(nx.type === 'H' ? 'high' : 'low', " ").concat(fmtClock(nx.min), ", ").concat(nx.v.toFixed(1), " ft \xB7 NOAA Chappaquoit Point") : 'Tide');
-
   // the sun: whichever comes next (sunset in the day, sunrise at night); and tonight's moon
   var today = dateKey(new Date()),
     smT = sunMoon(today),
@@ -1081,7 +1016,7 @@ function renderNow(_ref) {
     pct = Math.round(smT.illum.fraction * 100);
   var moonWord = ph < 0.03 || ph > 0.97 ? 'New moon' : ph > 0.47 && ph < 0.53 ? 'Full moon' : ph < 0.5 ? 'Waxing' : 'Waning';
   var moonCard = "<div class=\"cond-card cond-moon\" title=\"".concat(esc(smT.phaseName), " \xB7 ").concat(pct, "% lit \xB7 rises ").concat(fmt(smT.moon.rise), ", sets ").concat(fmt(smT.moon.set), "\">").concat(moonSvg(smT.illum.fraction, ph, 22), "<b>").concat(pct, "%</b><i>").concat(moonWord, "</i></div>");
-  document.getElementById('now').innerHTML = "<div class=\"cond\">".concat(sky).concat(sunCard).concat(rain).concat(air).concat(water).concat(wind).concat(tide).concat(moonCard, "</div>");
+  document.getElementById('now').innerHTML = "<div class=\"cond\">".concat(sky).concat(sunCard).concat(water).concat(wind).concat(moonCard, "</div>");
 }
 var fmtWhen = function fmtWhen(iso) {
   var d = new Date(iso);
@@ -1266,11 +1201,11 @@ function parseSeaState(text) {
   var waveM = text.match(/Wave Detail:\s*([^.]*?)\.\s*/i);
   var waves = [];
   if (waveM) {
-    var _iterator5 = _createForOfIteratorHelper(waveM[1].matchAll(/\b([NSEW]{1,3}) (\d+(?:\.\d+)?) (?:ft|foot|feet) at (\d+) seconds?/gi)),
-      _step5;
+    var _iterator4 = _createForOfIteratorHelper(waveM[1].matchAll(/\b([NSEW]{1,3}) (\d+(?:\.\d+)?) (?:ft|foot|feet) at (\d+) seconds?/gi)),
+      _step4;
     try {
-      for (_iterator5.s(); !(_step5 = _iterator5.n()).done;) {
-        var m = _step5.value;
+      for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
+        var m = _step4.value;
         waves.push({
           dir: m[1].toUpperCase(),
           ft: +m[2],
@@ -1278,9 +1213,9 @@ function parseSeaState(text) {
         });
       }
     } catch (err) {
-      _iterator5.e(err);
+      _iterator4.e(err);
     } finally {
-      _iterator5.f();
+      _iterator4.f();
     }
   }
   var rest = text;
@@ -1433,7 +1368,7 @@ function refresh() {
 function _refresh() {
   _refresh = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11() {
     var _state$weather;
-    var todayKey, days, sources, names, results, _i3, _arr2, _results$tides$value, _results$tides$value2, p, _iterator7, _step7, s, _iterator8, _step8, e, state, stale, missing, _t5;
+    var todayKey, days, sources, names, results, _i3, _arr2, _results$tides$value, _results$tides$value2, p, _iterator6, _step6, s, _iterator7, _step7, e, state, stale, missing, health, _t5;
     return _regenerator().w(function (_context11) {
       while (1) switch (_context11.n) {
         case 0:
@@ -1489,26 +1424,26 @@ function _refresh() {
             p.dayIndex = dayDiff(todayKey, p.key);
             p.abs = p.dayIndex * 1440 + p.min;
           }
-          _iterator7 = _createForOfIteratorHelper(results.currents.value || []);
+          _iterator6 = _createForOfIteratorHelper(results.currents.value || []);
           try {
-            for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
-              s = _step7.value;
-              _iterator8 = _createForOfIteratorHelper(s.events);
+            for (_iterator6.s(); !(_step6 = _iterator6.n()).done;) {
+              s = _step6.value;
+              _iterator7 = _createForOfIteratorHelper(s.events);
               try {
-                for (_iterator8.s(); !(_step8 = _iterator8.n()).done;) {
-                  e = _step8.value;
+                for (_iterator7.s(); !(_step7 = _iterator7.n()).done;) {
+                  e = _step7.value;
                   e.dayIndex = dayDiff(todayKey, e.key);
                 }
               } catch (err) {
-                _iterator8.e(err);
+                _iterator7.e(err);
               } finally {
-                _iterator8.f();
+                _iterator7.f();
               }
             }
           } catch (err) {
-            _iterator7.e(err);
+            _iterator6.e(err);
           } finally {
-            _iterator7.f();
+            _iterator6.f();
           }
           state = _objectSpread({
             days: days
@@ -1532,10 +1467,19 @@ function _refresh() {
           if (!document.getElementById('details').hidden) renderSourceMap(sourceCell); // the map waits until Details opens
           renderCurrentsKey(state.currents);
           document.getElementById('updated').textContent = "Updated ".concat(fmt(new Date())) + (state.marine ? " \xB7 Marine forecast issued ".concat(state.marine.issued) : '') + (missing.length ? " \xB7 Unavailable: ".concat(missing.join(', ')) : '');
+          health = names.map(function (k) {
+            return {
+              name: sources[k][0],
+              ok: !!results[k].value && !results[k].staleSince,
+              savedAt: results[k].staleSince || null,
+              error: results[k].error ? String(results[k].error.message || results[k].error) : ''
+            };
+          });
           renderPlan(state, {
             stale: stale,
             missing: missing,
-            todayKey: todayKey
+            todayKey: todayKey,
+            health: health
           });
         case 2:
           return _context11.a(2);

@@ -217,6 +217,7 @@ function dayHours(state, key) {
       "short": f ? f["short"] : '',
       isDay: f ? f.isDay : true,
       thunder: !!(f && /thunder/i.test(f["short"])),
+      snow: !!(f && /snow|sleet|flurr/i.test(f["short"])),
       spd: w ? w.spd : null,
       gst: w ? w.gst : null,
       dir: w ? w.dir : null,
@@ -408,6 +409,7 @@ function renderPlan(state, info) {
   }).join(', ')) : '';
   document.getElementById('plan-updated').textContent = "Updated ".concat(fmt(new Date())).concat(stale).concat(info.missing.length ? " \xB7 no ".concat(info.missing.join(', ').toLowerCase()) : '');
   nightMode();
+  tickClock();
   var tl = document.getElementById('timeline');
   tl._w = 0; // make fitPlan redraw the timeline at its final size
   fitPlan();
@@ -476,17 +478,27 @@ function drawTimeline(state, v) {
   var out = [];
 
   // night, then the tapped activity's best window (for the planned day)
-  for (var _i2 = 0, _arr = [[t0, +s0.sunrise], [+s0.sunset, +s1.sunrise], [+s1.sunset, t1]]; _i2 < _arr.length; _i2++) {
+  // night from last light to first light; dawn (first light to sunrise) and dusk (sunset to last light) in a softer, warm shade
+  var band = function band(a, b, cls) {
+    if (b > t0 && a < t1) out.push("<rect x=\"".concat(x(a), "\" y=\"0\" width=\"").concat(x(b) - x(a), "\" height=\"").concat(axisY, "\" class=\"").concat(cls, "\"/>"));
+  };
+  for (var _i2 = 0, _arr = [[t0, +s0.dawn], [+s0.dusk, +s1.dawn], [+s1.dusk, t1]]; _i2 < _arr.length; _i2++) {
     var _arr$_i = _slicedToArray(_arr[_i2], 2),
       a = _arr$_i[0],
       b = _arr$_i[1];
-    if (b > t0 && a < t1) out.push("<rect x=\"".concat(x(a), "\" y=\"0\" width=\"").concat(x(b) - x(a), "\" height=\"").concat(axisY, "\" class=\"tl-night\"/>"));
+    band(a, b, 'tl-night');
+  }
+  for (var _i3 = 0, _arr2 = [[+s0.dawn, +s0.sunrise], [+s0.sunset, +s0.dusk], [+s1.dawn, +s1.sunrise], [+s1.sunset, +s1.dusk]]; _i3 < _arr2.length; _i3++) {
+    var _arr2$_i = _slicedToArray(_arr2[_i3], 2),
+      _a = _arr2$_i[0],
+      _b = _arr2$_i[1];
+    band(_a, _b, 'tl-twilight');
   }
   if (v && v.n) {
     var m0 = localMidnight(planKey).getTime(),
-      _a = m0 + v.from * 6e4,
-      _b = m0 + v.to * 6e4;
-    if (_b > t0 && _a < t1) out.push("<rect x=\"".concat(x(_a), "\" y=\"0\" width=\"").concat(x(_b) - x(_a), "\" height=\"").concat(axisY, "\" class=\"tl-win lv-").concat(v.lv, "\" rx=\"6\"/>"));
+      _a2 = m0 + v.from * 6e4,
+      _b2 = m0 + v.to * 6e4;
+    if (_b2 > t0 && _a2 < t1) out.push("<rect x=\"".concat(x(_a2), "\" y=\"0\" width=\"").concat(x(_b2) - x(_a2), "\" height=\"").concat(axisY, "\" class=\"tl-win lv-").concat(v.lv, "\" rx=\"6\"/>"));
   }
   // hours, labels, and midnight
   var stepH = W < 560 ? 3 : 2;
@@ -516,19 +528,24 @@ function drawTimeline(state, v) {
       var cx = x(h.t + 18e5);
       out.push(wxIcon(h["short"], isDay(h.t + 18e5), iconS).replace('<svg ', "<svg x=\"".concat(cx - iconS / 2, "\" y=\"2\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(skyH - 6, "\" class=\"tl-temp\">").concat(h.temp, "\xB0</text>"));
     }
-    // rain: the chance on each labelled hour, blue once it's worth noticing
+    // rain: the chance on each labelled hour, blue once it's worth noticing; ⚡ for thunderstorms and ❄ for snow on any hour
   } catch (err) {
     _iterator3.e(err);
   } finally {
     _iterator3.f();
   }
+  var sym = function sym(h) {
+    return h.thunder ? '⚡' : h.snow ? '❄' : '';
+  };
   var _iterator4 = _createForOfIteratorHelper(hours),
     _step4;
   try {
     for (_iterator4.s(); !(_step4 = _iterator4.n()).done;) {
       var _h = _step4.value;
-      if (Math.round(_h.min / 60) % stepH || _h.t < t0) continue;
-      out.push("<text x=\"".concat(x(_h.t + 18e5), "\" y=\"").concat(mid.rain + 5, "\" class=\"tl-pop").concat(_h.pop >= 30 ? ' wet' : '', "\">").concat(_h.pop, "%</text>"));
+      if (_h.t < t0 - 18e5) continue;
+      if (Math.round(_h.min / 60) % stepH === 0 && _h.t >= t0) {
+        out.push("<text x=\"".concat(x(_h.t + 18e5), "\" y=\"").concat(mid.rain + 5, "\" class=\"tl-pop").concat(_h.pop >= 30 ? ' wet' : '', "\">").concat(_h.pop, "%").concat(sym(_h) ? "<tspan class=\"tl-sym\"> ".concat(sym(_h), "</tspan>") : '', "</text>"));
+      } else if (sym(_h)) out.push("<text x=\"".concat(x(_h.t + 18e5), "\" y=\"").concat(mid.rain + 5, "\" class=\"tl-sym\">").concat(sym(_h), "</text>"));
     }
   } catch (err) {
     _iterator4.e(err);
@@ -580,16 +597,22 @@ function drawTimeline(state, v) {
       };
     });
     if (pts.length > 1) {
-      var vals = T.curve.map(function (p) {
+      // scaled to the whole year's range when we have it, so today's tides show how big or small they are
+      var st = T.stats,
+        vals = T.curve.map(function (p) {
           return p.v;
-        }),
-        lo = Math.min.apply(Math, _toConsumableArray(vals)) - 0.3,
-        hi = Math.max.apply(Math, _toConsumableArray(vals)) + 0.3;
+        });
+      var lo = Math.min.apply(Math, [st ? st.minLow.v : Infinity].concat(_toConsumableArray(vals))) - 0.25,
+        hi = Math.max.apply(Math, [st ? st.maxHigh.v : -Infinity].concat(_toConsumableArray(vals))) + 0.25;
       var tTop = rows.tide[0] + 12,
         tH = Math.max(12, rows.tide[1] - 26);
       var y = function y(val) {
         return tTop + tH - (val - lo) / (hi - lo) * tH;
       };
+      if (st) {
+        // muted, behind today's line: a typical high-to-low band, and the year's highest and lowest tides
+        out.push("<rect x=\"".concat(gut, "\" y=\"").concat(y(st.avgHigh), "\" width=\"").concat(W - gut - padR, "\" height=\"").concat(Math.max(1, y(st.avgLow) - y(st.avgHigh)), "\" class=\"tl-tide-typ\"/>"), "<line x1=\"".concat(gut, "\" x2=\"").concat(W - padR, "\" y1=\"").concat(y(st.maxHigh.v), "\" y2=\"").concat(y(st.maxHigh.v), "\" class=\"tl-tide-ext\"/>"), "<line x1=\"".concat(gut, "\" x2=\"").concat(W - padR, "\" y1=\"").concat(y(st.minLow.v), "\" y2=\"").concat(y(st.minLow.v), "\" class=\"tl-tide-ext\"/>"), "<text x=\"".concat(W - padR - 4, "\" y=\"").concat(y(st.maxHigh.v) - 3, "\" class=\"tl-tide-lbl\">Year high ").concat(st.maxHigh.v.toFixed(1), " ft</text>"), "<text x=\"".concat(W - padR - 4, "\" y=\"").concat(y(st.minLow.v) + 11, "\" class=\"tl-tide-lbl\">Year low ").concat(st.minLow.v.toFixed(1), " ft</text>"));
+      }
       var path = pts.map(function (p, i) {
         return "".concat(i ? 'L' : 'M').concat(x(at(p)).toFixed(1), ",").concat(y(p.v).toFixed(1));
       }).join('');
@@ -672,7 +695,7 @@ function setScrub(t) {
     gst = lerpAt(m.wind, t, 'gst'),
     tv = lerpAt(m.tide, t, 'v'),
     tv2 = lerpAt(m.tide, t + 15 * 6e4, 'v');
-  var reads = [[10, "".concat(isNow ? 'Now' : "".concat(clock(Math.round(mm / 5) * 5).n, " ").concat(clock(mm).ap)).concat(hour && hour.temp != null ? " \xB7 ".concat(hour.temp, "\xB0") : '').concat(isNow ? ' ↔' : ''), 'time'], [m.mid.rain, hour ? "".concat(hour.pop, "%") : ''], [m.mid.wind, spd != null ? "".concat(compass(near.dir), " ").concat(Math.round(spd)).concat(gst > spd + 3 ? " G".concat(Math.round(gst)) : '', " kt") : ''], [m.mid.tide, tv != null ? "".concat(tv.toFixed(1), " ft ").concat(tv2 > tv + 0.02 ? '↑' : tv2 < tv - 0.02 ? '↓' : '') : '']].filter(function (r) {
+  var reads = [[10, "".concat(isNow ? 'Now' : "".concat(clock(Math.round(mm / 5) * 5).n, " ").concat(clock(mm).ap)).concat(hour && hour.temp != null ? " \xB7 ".concat(hour.temp, "\xB0") : '').concat(isNow ? ' ↔' : ''), 'time'], [m.mid.rain, hour ? "".concat(hour.pop, "%").concat(hour.thunder ? ' ⚡ storms' : hour.snow ? ' ❄ snow' : '') : ''], [m.mid.wind, spd != null ? "".concat(compass(near.dir), " ").concat(Math.round(spd)).concat(gst > spd + 3 ? " G".concat(Math.round(gst)) : '', " kt") : ''], [m.mid.tide, tv != null ? "".concat(tv.toFixed(1), " ft ").concat(tv2 > tv + 0.02 ? '↑' : tv2 < tv - 0.02 ? '↓' : '') : '']].filter(function (r) {
     return r[1];
   });
   var pills = reads.map(function (_ref) {
@@ -801,6 +824,58 @@ function nightMode() {
   document.documentElement.classList.toggle('dark', now < sun.sunrise.getTime() - 20 * 6e4 || now > sun.sunset.getTime() + 20 * 6e4);
 }
 
+// ---------- the clock, and the night clock ----------
+
+function tickClock() {
+  var now = new Date(),
+    c = clock(minutesOfDay(now));
+  document.getElementById('clock').innerHTML = "".concat(c.n.indexOf(':') < 0 ? c.n + ':00' : c.n, "<small>").concat(c.ap, "</small>");
+  nightClock();
+}
+// From 11 PM until half an hour before sunrise: a nearly black screen with just the time, the temperature and the
+// sunrise (an iPad can't dim its own screen, but a black page is far gentler in a dark kitchen). Touch to wake it
+// for two minutes.
+var wokeAt = 0;
+function nightClock() {
+  var el = document.getElementById('nightclock'),
+    now = new Date(),
+    m = minutesOfDay(now);
+  var today = dateKey(now),
+    sun = sunMoon(today).sun;
+  var show = (m >= 23 * 60 || now.getTime() < sun.sunrise.getTime() - 30 * 6e4) && Date.now() - wokeAt > 2 * 6e4;
+  if (show) {
+    var c = clock(m),
+      rise = now.getTime() < sun.sunrise.getTime() ? sun.sunrise : sunMoon(addDays(today, 1)).sun.sunrise;
+    var n = planState && planState.weather && planState.weather.now;
+    var alert = document.querySelector('#now .cond-alert');
+    el.innerHTML = "<div class=\"nc-time\">".concat(c.n.indexOf(':') < 0 ? c.n + ':00' : c.n, "<small>").concat(c.ap, "</small></div>\n      ").concat(n ? "<div class=\"nc-line\">".concat(n.temperature, "\xB0 \xB7 ").concat(esc(n.shortForecast), "</div>") : '', "\n      <div class=\"nc-line\">Sunrise ").concat(fmt(rise), "</div>\n      ").concat(alert ? "<div class=\"nc-line nc-alert\">".concat(esc(alert.getAttribute('title').split(' · ')[0]), "</div>") : '', "\n      <div class=\"nc-hint\">Touch to wake</div>");
+  }
+  if (el.hidden === show) el.hidden = !show;
+}
+document.getElementById('nightclock').addEventListener('click', function () {
+  wokeAt = Date.now();
+  nightClock();
+  fitPlan();
+});
+setInterval(tickClock, 10000);
+
+// ---------- which forecasts loaded, and when ----------
+
+function renderHealth() {
+  var list = planInfo && planInfo.health || [];
+  var ver = ((document.querySelector('script[src*="plan.js"]') || {}).src || '').replace(/^.*[?&]v=/, '');
+  document.getElementById('health-body').innerHTML = "<ul class=\"health-list\">".concat(list.map(function (h) {
+    return "<li class=\"".concat(h.ok ? 'ok' : h.savedAt ? 'saved' : 'bad', "\">\n      <i class=\"dot ").concat(h.ok ? 'lv-0' : h.savedAt ? 'lv-1' : 'lv-2', "\"></i><b>").concat(esc(h.name), "</b>\n      <span>").concat(h.ok ? 'loaded' : h.savedAt ? "couldn't load; showing the copy from ".concat(esc(fmtWhen(new Date(h.savedAt).toISOString()))) : "couldn\u2019t load").concat(!h.ok && h.error ? " <small>(".concat(esc(h.error), ")</small>") : '', "</span></li>");
+  }).join(''), "</ul>\n    <p class=\"set-note\">Checked ").concat(esc(fmt(new Date())), "; it checks again every ").concat(CONFIG.refreshMinutes, " minutes. Page version ").concat(esc(ver || 'unknown'), " \xB7 ").concat(esc(navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1')), "</p>");
+}
+document.getElementById('plan-updated').addEventListener('click', function () {
+  renderHealth();
+  document.getElementById('health').hidden = false;
+});
+document.getElementById('health').addEventListener('click', function (e) {
+  if (e.target.id === 'close-health' || e.target.id === 'health') document.getElementById('health').hidden = true;
+});
+
 // keep it current on a stand: move "now", roll the verdicts on, and start a new day after midnight
 setInterval(function () {
   if (!planState) return;
@@ -882,8 +957,8 @@ document.getElementById('settings').addEventListener('change', function (e) {
 document.getElementById('settings').addEventListener('click', function (e) {
   if (e.target.id === 'reset-settings') {
     settings.shown = DEFAULT_SHOWN.slice();
-    for (var _i3 = 0, _Object$keys2 = Object.keys(ACTIVITIES); _i3 < _Object$keys2.length; _i3++) {
-      var k = _Object$keys2[_i3];
+    for (var _i4 = 0, _Object$keys2 = Object.keys(ACTIVITIES); _i4 < _Object$keys2.length; _i4++) {
+      var k = _Object$keys2[_i4];
       settings.limits[k] = Object.assign({}, ACTIVITIES[k].limits);
     }
     saveSettings();

@@ -133,7 +133,7 @@ function dayHours(state, key) {
   for (let t = t0; t < t1; t += 36e5) {
     const f = fc.get(Math.round(t / 36e5)), w = wind.get(Math.round(t / 36e5));
     hours.push({ t, min: minutesOfDay(new Date(t)), temp: f ? f.temp : null, pop: f ? f.pop : rain.get(Math.round(t / 36e5)) || 0, short: f ? f.short : '', isDay: f ? f.isDay : true,
-      thunder: !!(f && /thunder/i.test(f.short)), spd: w ? w.spd : null, gst: w ? w.gst : null, dir: w ? w.dir : null, known: !!(f || w) });
+      thunder: !!(f && /thunder/i.test(f.short)), snow: !!(f && /snow|sleet|flurr/i.test(f.short)), spd: w ? w.spd : null, gst: w ? w.gst : null, dir: w ? w.dir : null, known: !!(f || w) });
   }
   // wet roads: rain likely this hour or in the hours just before it
   const dry = settings.limits.rollerblading.dry;
@@ -233,6 +233,7 @@ function renderPlan(state, info) {
   const stale = info.stale.length ? ` · showing saved ${info.stale.map((s) => s[0].toLowerCase()).join(', ')}` : '';
   document.getElementById('plan-updated').textContent = `Updated ${fmt(new Date())}${stale}${info.missing.length ? ` · no ${info.missing.join(', ').toLowerCase()}` : ''}`;
   nightMode();
+  tickClock();
   const tl = document.getElementById('timeline');
   tl._w = 0;   // make fitPlan redraw the timeline at its final size
   fitPlan();
@@ -274,9 +275,10 @@ function drawTimeline(state, v) {
   const out = [];
 
   // night, then the tapped activity's best window (for the planned day)
-  for (const [a, b] of [[t0, +s0.sunrise], [+s0.sunset, +s1.sunrise], [+s1.sunset, t1]]) {
-    if (b > t0 && a < t1) out.push(`<rect x="${x(a)}" y="0" width="${x(b) - x(a)}" height="${axisY}" class="tl-night"/>`);
-  }
+  // night from last light to first light; dawn (first light to sunrise) and dusk (sunset to last light) in a softer, warm shade
+  const band = (a, b, cls) => { if (b > t0 && a < t1) out.push(`<rect x="${x(a)}" y="0" width="${x(b) - x(a)}" height="${axisY}" class="${cls}"/>`); };
+  for (const [a, b] of [[t0, +s0.dawn], [+s0.dusk, +s1.dawn], [+s1.dusk, t1]]) band(a, b, 'tl-night');
+  for (const [a, b] of [[+s0.dawn, +s0.sunrise], [+s0.sunset, +s0.dusk], [+s1.dawn, +s1.sunrise], [+s1.sunset, +s1.dusk]]) band(a, b, 'tl-twilight');
   if (v && v.n) {
     const m0 = localMidnight(planKey).getTime(), a = m0 + v.from * 6e4, b = m0 + v.to * 6e4;
     if (b > t0 && a < t1) out.push(`<rect x="${x(a)}" y="0" width="${x(b) - x(a)}" height="${axisY}" class="tl-win lv-${v.lv}" rx="6"/>`);
@@ -302,10 +304,13 @@ function drawTimeline(state, v) {
     out.push(wxIcon(h.short, isDay(h.t + 18e5), iconS).replace('<svg ', `<svg x="${cx - iconS / 2}" y="2" `),
       `<text x="${cx}" y="${skyH - 6}" class="tl-temp">${h.temp}°</text>`);
   }
-  // rain: the chance on each labelled hour, blue once it's worth noticing
+  // rain: the chance on each labelled hour, blue once it's worth noticing; ⚡ for thunderstorms and ❄ for snow on any hour
+  const sym = (h) => (h.thunder ? '⚡' : h.snow ? '❄' : '');
   for (const h of hours) {
-    if (Math.round(h.min / 60) % stepH || h.t < t0) continue;
-    out.push(`<text x="${x(h.t + 18e5)}" y="${mid.rain + 5}" class="tl-pop${h.pop >= 30 ? ' wet' : ''}">${h.pop}%</text>`);
+    if (h.t < t0 - 18e5) continue;
+    if (Math.round(h.min / 60) % stepH === 0 && h.t >= t0) {
+      out.push(`<text x="${x(h.t + 18e5)}" y="${mid.rain + 5}" class="tl-pop${h.pop >= 30 ? ' wet' : ''}">${h.pop}%${sym(h) ? `<tspan class="tl-sym"> ${sym(h)}</tspan>` : ''}</text>`);
+    } else if (sym(h)) out.push(`<text x="${x(h.t + 18e5)}" y="${mid.rain + 5}" class="tl-sym">${sym(h)}</text>`);
   }
   const wet = Math.max(0, ...hours.map((h) => h.pop));
   out.push(`<text x="4" y="${mid.rain + 11}" class="tl-unit">${wet >= 20 ? `up to ${wet}%` : 'dry'}</text>`);
@@ -327,9 +332,18 @@ function drawTimeline(state, v) {
     const pts = T.curve.filter((p) => at(p) >= t0 - 18e5 && at(p) <= t1 + 18e5);
     tidePts = pts.map((p) => ({ t: at(p), v: p.v }));
     if (pts.length > 1) {
-      const vals = T.curve.map((p) => p.v), lo = Math.min(...vals) - 0.3, hi = Math.max(...vals) + 0.3;
+      // scaled to the whole year's range when we have it, so today's tides show how big or small they are
+      const st = T.stats, vals = T.curve.map((p) => p.v);
+      const lo = Math.min(st ? st.minLow.v : Infinity, ...vals) - 0.25, hi = Math.max(st ? st.maxHigh.v : -Infinity, ...vals) + 0.25;
       const tTop = rows.tide[0] + 12, tH = Math.max(12, rows.tide[1] - 26);
       const y = (val) => tTop + tH - ((val - lo) / (hi - lo)) * tH;
+      if (st) {   // muted, behind today's line: a typical high-to-low band, and the year's highest and lowest tides
+        out.push(`<rect x="${gut}" y="${y(st.avgHigh)}" width="${W - gut - padR}" height="${Math.max(1, y(st.avgLow) - y(st.avgHigh))}" class="tl-tide-typ"/>`,
+          `<line x1="${gut}" x2="${W - padR}" y1="${y(st.maxHigh.v)}" y2="${y(st.maxHigh.v)}" class="tl-tide-ext"/>`,
+          `<line x1="${gut}" x2="${W - padR}" y1="${y(st.minLow.v)}" y2="${y(st.minLow.v)}" class="tl-tide-ext"/>`,
+          `<text x="${W - padR - 4}" y="${y(st.maxHigh.v) - 3}" class="tl-tide-lbl">Year high ${st.maxHigh.v.toFixed(1)} ft</text>`,
+          `<text x="${W - padR - 4}" y="${y(st.minLow.v) + 11}" class="tl-tide-lbl">Year low ${st.minLow.v.toFixed(1)} ft</text>`);
+      }
       const path = pts.map((p, i) => `${i ? 'L' : 'M'}${x(at(p)).toFixed(1)},${y(p.v).toFixed(1)}`).join('');
       out.push(`<path d="${path}L${x(at(pts[pts.length - 1])).toFixed(1)},${tTop + tH + 14}L${x(at(pts[0])).toFixed(1)},${tTop + tH + 14}Z" class="tl-tide-area"/>`, `<path d="${path}" class="tl-tide"/>`);
       for (const p of T.hilo.filter((q) => at(q) >= t0 && at(q) <= t1)) {
@@ -366,7 +380,7 @@ function setScrub(t) {
   const spd = lerpAt(m.wind, t, 'spd'), gst = lerpAt(m.wind, t, 'gst'), tv = lerpAt(m.tide, t, 'v'), tv2 = lerpAt(m.tide, t + 15 * 6e4, 'v');
   const reads = [
     [10, `${isNow ? 'Now' : `${clock(Math.round(mm / 5) * 5).n} ${clock(mm).ap}`}${hour && hour.temp != null ? ` · ${hour.temp}°` : ''}${isNow ? ' ↔' : ''}`, 'time'],
-    [m.mid.rain, hour ? `${hour.pop}%` : ''],
+    [m.mid.rain, hour ? `${hour.pop}%${hour.thunder ? ' ⚡ storms' : hour.snow ? ' ❄ snow' : ''}` : ''],
     [m.mid.wind, spd != null ? `${compass(near.dir)} ${Math.round(spd)}${gst > spd + 3 ? ` G${Math.round(gst)}` : ''} kt` : ''],
     [m.mid.tide, tv != null ? `${tv.toFixed(1)} ft ${tv2 > tv + 0.02 ? '↑' : tv2 < tv - 0.02 ? '↓' : ''}` : ''],
   ].filter((r) => r[1]);
@@ -454,6 +468,49 @@ function nightMode() {
   const sun = sunMoon(dateKey(new Date())).sun, now = Date.now();
   document.documentElement.classList.toggle('dark', now < sun.sunrise.getTime() - 20 * 6e4 || now > sun.sunset.getTime() + 20 * 6e4);
 }
+
+// ---------- the clock, and the night clock ----------
+
+function tickClock() {
+  const now = new Date(), c = clock(minutesOfDay(now));
+  document.getElementById('clock').innerHTML = `${c.n.indexOf(':') < 0 ? c.n + ':00' : c.n}<small>${c.ap}</small>`;
+  nightClock();
+}
+// From 11 PM until half an hour before sunrise: a nearly black screen with just the time, the temperature and the
+// sunrise (an iPad can't dim its own screen, but a black page is far gentler in a dark kitchen). Touch to wake it
+// for two minutes.
+let wokeAt = 0;
+function nightClock() {
+  const el = document.getElementById('nightclock'), now = new Date(), m = minutesOfDay(now);
+  const today = dateKey(now), sun = sunMoon(today).sun;
+  const show = (m >= 23 * 60 || now.getTime() < sun.sunrise.getTime() - 30 * 6e4) && Date.now() - wokeAt > 2 * 6e4;
+  if (show) {
+    const c = clock(m), rise = now.getTime() < sun.sunrise.getTime() ? sun.sunrise : sunMoon(addDays(today, 1)).sun.sunrise;
+    const n = planState && planState.weather && planState.weather.now;
+    const alert = document.querySelector('#now .cond-alert');
+    el.innerHTML = `<div class="nc-time">${c.n.indexOf(':') < 0 ? c.n + ':00' : c.n}<small>${c.ap}</small></div>
+      ${n ? `<div class="nc-line">${n.temperature}° · ${esc(n.shortForecast)}</div>` : ''}
+      <div class="nc-line">Sunrise ${fmt(rise)}</div>
+      ${alert ? `<div class="nc-line nc-alert">${esc(alert.getAttribute('title').split(' · ')[0])}</div>` : ''}
+      <div class="nc-hint">Touch to wake</div>`;
+  }
+  if (el.hidden === show) el.hidden = !show;
+}
+document.getElementById('nightclock').addEventListener('click', () => { wokeAt = Date.now(); nightClock(); fitPlan(); });
+setInterval(tickClock, 10000);
+
+// ---------- which forecasts loaded, and when ----------
+
+function renderHealth() {
+  const list = (planInfo && planInfo.health) || [];
+  const ver = ((document.querySelector('script[src*="plan.js"]') || {}).src || '').replace(/^.*[?&]v=/, '');
+  document.getElementById('health-body').innerHTML = `<ul class="health-list">${list.map((h) => `<li class="${h.ok ? 'ok' : h.savedAt ? 'saved' : 'bad'}">
+      <i class="dot ${h.ok ? 'lv-0' : h.savedAt ? 'lv-1' : 'lv-2'}"></i><b>${esc(h.name)}</b>
+      <span>${h.ok ? 'loaded' : h.savedAt ? `couldn't load; showing the copy from ${esc(fmtWhen(new Date(h.savedAt).toISOString()))}` : 'couldn\u2019t load'}${!h.ok && h.error ? ` <small>(${esc(h.error)})</small>` : ''}</span></li>`).join('')}</ul>
+    <p class="set-note">Checked ${esc(fmt(new Date()))}; it checks again every ${CONFIG.refreshMinutes} minutes. Page version ${esc(ver || 'unknown')} · ${esc(navigator.userAgent.replace(/^.*?\(([^)]*)\).*$/, '$1'))}</p>`;
+}
+document.getElementById('plan-updated').addEventListener('click', () => { renderHealth(); document.getElementById('health').hidden = false; });
+document.getElementById('health').addEventListener('click', (e) => { if (e.target.id === 'close-health' || e.target.id === 'health') document.getElementById('health').hidden = true; });
 
 // keep it current on a stand: move "now", roll the verdicts on, and start a new day after midnight
 setInterval(() => {

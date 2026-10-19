@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Megansett">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="styles.css?v=20261019-0225">
+  <link rel="stylesheet" href="styles.css?v=20261019-0233">
 </head>
 <body>
   <header class="site-header">
@@ -24,6 +24,7 @@
         <h1>Megansett Harbor</h1>
         <p class="sub">North Falmouth, MA 02556 · Buzzards Bay</p>
       </div>
+      <div class="clock" id="clock" aria-label="Time"></div>
       <div class="now" id="now" aria-live="polite" aria-label="Conditions now"></div>
     </div>
   </header>
@@ -37,7 +38,7 @@
     <div class="plan-head plan-head-acts"><h2 id="plan-day">Today</h2><span id="plan-date" class="plan-date"></span></div>
     <div class="acts" id="acts" role="group" aria-label="Activities"><p class="loading">Loading forecast…</p></div>
     <div class="plan-foot">
-      <span id="plan-updated"></span>
+      <button type="button" class="link-btn plan-updated" id="plan-updated" title="Which forecasts loaded"></button>
       <span class="plan-btns">
         <button type="button" class="link-btn" id="open-details">7-day details</button>
         <button type="button" class="link-btn" id="open-about">About the data</button>
@@ -92,6 +93,17 @@
     </footer>
   </div>
 
+  <!-- late at night: a nearly black screen with just the time (touch to wake) -->
+  <div class="nightclock" id="nightclock" hidden role="button" aria-label="Night clock. Touch to wake."></div>
+
+  <!-- which forecasts loaded, and when -->
+  <div class="sheet" id="health" hidden>
+    <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="health-title">
+      <div class="sheet-head"><h2 id="health-title">Forecast sources</h2><button type="button" class="done-btn" id="close-health">Done</button></div>
+      <div id="health-body"></div>
+    </div>
+  </div>
+
   <!-- what counts as a good day for you (saved on this iPad) -->
   <div class="sheet" id="settings" hidden>
     <div class="sheet-card" role="dialog" aria-modal="true" aria-labelledby="settings-title">
@@ -100,13 +112,13 @@
     </div>
   </div>
 
-  <script src="polyfills.js?v=20261019-0225"></script><!-- for old iPads: load first -->
+  <script src="polyfills.js?v=20261019-0233"></script><!-- for old iPads: load first -->
   <script src="vendor/suncalc.js"></script>
-  <script src="icons.js?v=20261019-0225"></script>
+  <script src="icons.js?v=20261019-0233"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
-  <script src="plan.js?v=20261019-0225"></script>
-  <script src="app.js?v=20261019-0225"></script>
-  <script src="map.js?v=20261019-0225"></script>
+  <script src="plan.js?v=20261019-0233"></script>
+  <script src="app.js?v=20261019-0233"></script>
+  <script src="map.js?v=20261019-0233"></script>
   <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   </script>

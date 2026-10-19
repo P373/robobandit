@@ -334,8 +334,7 @@ a { color: var(--sea); }
 .cond-ic { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 .cond-card b { font-size: 1.3rem; font-weight: 800; margin-top: 2px; white-space: nowrap; }
 .cond-card b small { font-size: 0.62em; font-weight: 700; margin-left: 2px; }
-.cond-sky { justify-content: space-between; }
-.cond-sky .wx-icon { width: 44px; height: 44px; margin: -2px 0 0; }
+.cond-sky .wx-icon { width: 24px; height: 24px; margin: -1px 0 0; }
 .cond-card i { white-space: nowrap; font-style: normal; font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: #4a6b8a; }
 @media (max-width: 560px) {
   .now, .cond { width: 100%; }
@@ -345,7 +344,6 @@ a { color: var(--sea); }
   .cond-card b small { font-size: 0.55em; margin-left: 1px; }
   .cond-ic { width: 19px; height: 19px; }
   .cond-card i { font-size: 0.6rem; letter-spacing: 0.04em; }
-  .cond-sky .wx-icon { width: 38px; height: 38px; }
   .cond { flex-wrap: wrap; }
   .cond-alert { -webkit-box-flex: 0; flex: 0 0 100%; flex-direction: row; margin: -2px 0 6px; padding: 6px; }
   .cond-alert b { max-width: none; margin: 0 6px; }
@@ -359,13 +357,13 @@ a { color: var(--sea); }
   .brand { -webkit-box-flex: 1; flex: 1 1 auto; min-width: 0; margin-right: 12px; }
   .brand h1 { white-space: nowrap; }
   .now { flex: none; }
+  .clock { flex: none; }
 }
 @media (min-width: 561px) and (max-width: 1100px) {
   .cond-card { min-width: 60px; padding: 2px 9px; }
   .cond-card b { font-size: 1.15rem; }
   .cond-card i { font-size: 0.64rem; letter-spacing: 0.05em; }
   .cond-ic { width: 20px; height: 20px; }
-  .cond-sky .wx-icon { width: 40px; height: 40px; }
   .cond-alert { padding: 4px 9px; }
   .cond-alert b { font-size: 0.95rem; max-width: 6em; }
 }
@@ -375,8 +373,33 @@ a { color: var(--sea); }
   .cond-card { min-width: 52px; padding: 2px 6px; }
   .cond-card b { font-size: 1.02rem; }
   .cond-card i { font-size: 0.58rem; letter-spacing: 0.03em; }
-  .cond-sky .wx-icon { width: 36px; height: 36px; }
 }
+
+/* the clock in the header */
+.clock { font-size: 2.3rem; font-weight: 700; line-height: 1; color: #fff; margin: 0 18px 0 0; white-space: nowrap; letter-spacing: -0.02em; }
+.clock small { font-size: 0.42em; font-weight: 600; margin-left: 3px; opacity: 0.8; letter-spacing: 0; }
+@media (max-width: 860px) { .clock { font-size: 1.8rem; margin-right: 12px; } }
+@media (max-width: 560px) { .clock { position: absolute; top: 12px; right: 16px; font-size: 1.5rem; margin: 0; } .site-header .wrap { position: relative; } }
+
+/* the night clock: nearly black, just the time, the temperature and the sunrise */
+.nightclock { position: fixed; top: 0; right: 0; bottom: 0; left: 0; z-index: 30; background: #000; color: #6b7480; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; text-align: center; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+.nightclock[hidden] { display: none; }
+.nc-time { font-size: 9rem; font-weight: 300; line-height: 1; color: #8a929c; letter-spacing: -0.03em; }
+.nc-time small { font-size: 0.28em; font-weight: 400; margin-left: 8px; letter-spacing: 0; }
+.nc-line { font-size: 1.6rem; margin-top: 14px; }
+.nc-alert { color: #a3524a; }
+.nc-hint { position: absolute; bottom: 18px; left: 0; right: 0; font-size: 0.85rem; color: #3a4048; }
+@media (max-width: 560px) { .nc-time { font-size: 5rem; } .nc-line { font-size: 1.2rem; } }
+
+/* which forecasts loaded */
+.health-list { list-style: none; margin: 6px 0 0; padding: 0; }
+.health-list li { padding: 8px 0; border-top: 1px solid var(--line); }
+.health-list b { margin-right: 8px; }
+.health-list span { color: var(--muted); }
+.health-list li.bad span { color: #b4473d; }
+.plan-foot .plan-updated { color: var(--muted); font-weight: 400; padding: 2px 0; text-align: left; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; min-width: 0; margin-right: 8px; text-decoration: underline; text-decoration-color: var(--line); }
+.tl-sym { font-size: 12px; text-anchor: middle; }
 
 /* an alert (gale warning, small craft advisory…) as a red tile first in the strip; tap for the full panel */
 .cond-alert { -webkit-appearance: none; justify-content: center; margin: -3px 6px -3px -1px; padding: 4px 12px; border: 0; border-radius: 11px;
@@ -465,6 +488,8 @@ html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.
 .tl-read { font-size: 12px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
 .tl-read.time { fill: #fff; font-size: 13px; }
 .tl-night { fill: var(--night); }
+.tl-twilight { fill: rgba(240, 160, 70, 0.12); }
+html.dark .tl-twilight { fill: rgba(240, 160, 70, 0.1); }
 .tl-grid { stroke: var(--line); stroke-width: 1; opacity: 0.6; } .tl-grid.major { opacity: 1; }
 .tl-hour { font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
 .tl-label { font-size: 13px; font-weight: 700; fill: var(--ink); }
@@ -480,6 +505,9 @@ html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.
 .tl-gust { fill: var(--gust); } .tl-wind { fill: none; stroke: var(--wind); stroke-width: 2.5; stroke-linejoin: round; }
 .tl-arrow { fill: none; stroke: var(--muted); stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round; }
 .tl-tide-area { fill: var(--sea-soft); } .tl-tide { fill: none; stroke: var(--sea); stroke-width: 2.5; }
+.tl-tide-typ { fill: var(--sea-soft); opacity: 0.45; }
+.tl-tide-ext { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 4 4; opacity: 0.6; }
+.tl-tide-lbl { font-size: 10px; fill: var(--muted); text-anchor: end; }
 .tl-dot.hi { fill: var(--hi); } .tl-dot.lo { fill: var(--lo); }
 .tl-grid.tl-midnight { stroke: var(--muted); opacity: 0.7; stroke-dasharray: 3 3; }
 .tl-day { font-size: 11px; font-weight: 700; fill: var(--muted); }

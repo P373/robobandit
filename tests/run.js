@@ -3358,8 +3358,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([], []);
       return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
     });
-    check([strip.cards[0]].concat(strip.cards.slice(2, 7)).join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, (the sun), chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
-    check(/^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[1]) && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[7]), 'the next sunrise or sunset right after the sky, and the moon last: ' + strip.cards.join(' | '));
+    check(strip.cards.length === 5 && strip.cards[0] === '70° Partly cloudy' && /^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[1]) && strip.cards[2] === '81° Water' && strip.cards[3] === 'SW 12kt Wind' && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[4]),
+      'the strip is just right now: the sky with the temperature, the sun, water, wind and the moon: ' + strip.cards.join(' | '));
     check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(217, 72, 15)' && strip.before.barHidden,
       'an alert tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory; watches are orange), the panel waits: ' + JSON.stringify(strip.before));
     check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),
@@ -3386,7 +3386,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         const d = Math.floor((t - start) / (24 * H)), m = minutesOfDay(new Date(t)), hr = m / 60;
         const temp = Math.round(66 + 12 * Math.max(0, Math.sin(Math.PI * (hr - 7) / 14)) + (d === 1 ? -6 : 0));
         let pop = d === 0 && hr >= 5 && hr < 9 ? 70 : d === 1 ? 80 : 5;
-        const thunder = d === 3 && hr >= 13 && hr < 19;
+        const thunder = (d === 3 && hr >= 13 && hr < 19) || (d === 0 && hr >= 17 && hr < 19);
         if (thunder) pop = 60;
         const isDay = hr >= 6 && hr < 20;
         const short = thunder ? 'Chance Showers And Thunderstorms' : pop >= 50 ? 'Rain Showers' : isDay ? (hr < 12 ? 'Sunny' : 'Partly Sunny') : 'Mostly Clear';
@@ -3415,8 +3415,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         { label: 'SUN', text: 'SW winds 20 to 25 kt. Seas 4 to 6 ft.', slots: [2] },
         { label: 'MON', text: 'W winds 10 kt. Seas 1 to 2 ft.', slots: [4] }] };
       window.__state = { days: Array.from({ length: 7 }, (_, i) => addDays(todayKey, i)), weather: { byDay, now: { temperature: hours[9].temp, shortForecast: hours[9].short, isDaytime: true, probabilityOfPrecipitation: { value: 10 } }, hours: hours.filter((h) => h.t >= Date.now() - H), wind, rainChance: hours.map((h) => ({ t: h.t, pop: h.pop })), cell: null },
-        marine, tides: { curve, hilo, stats: null }, currents: null, waterTemp: 64, waterLevel: null, buoy: { time: new Date().toISOString(), spd: 9, gst: 12, dir: 225 }, alerts: [] };
-      window.__info = { stale: [], missing: [], todayKey };
+        marine, tides: { curve, hilo, stats: { maxHigh: { v: 4.6 }, minLow: { v: -0.7 }, avgHigh: 3.6, avgLow: 0.4, highs: [], lows: [], ranges: [] } }, currents: null, waterTemp: 64, waterLevel: null, buoy: { time: new Date().toISOString(), spd: 9, gst: 12, dir: 225 }, alerts: [] };
+      window.__info = { stale: [], missing: [], todayKey, health: [{ name: 'Weather', ok: true }, { name: 'Tides', ok: true }, { name: 'Marine forecast', ok: false, savedAt: Date.now() - 2 * 36e5, error: 'timed out' }, { name: 'Alerts', ok: false, error: 'Failed to fetch' }] };
       renderNow(window.__state); renderPlan(window.__state, window.__info);
     };
     const read = p => p.evaluate(() => ({
@@ -3467,7 +3467,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.say), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
       check(t.rollerblading.lv === '0' && /best 11 AM/.test(t.rollerblading.say), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
       check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));
-      check(r.tl.rain.length >= 5 && r.tl.rain.every(t => /^\d+%$/.test(t)) && r.tl.wind.length >= 5 && r.tl.arrows >= 5 && !r.tl.graph && r.tl.wind.some(t => /^1[5-8] G2[0-4]$/.test(t)) && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows.join() === 'Low 12:30p,High 7p', 'the timeline has sky, the chance of rain as %, wind as arrows and speeds (no graph), tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
+      check(r.tl.rain.length >= 5 && r.tl.rain.every(t => /^\d+%( ⚡| ❄)?$/.test(t)) && r.tl.wind.length >= 5 && r.tl.arrows >= 5 && !r.tl.graph && r.tl.wind.some(t => /^1[5-8] G2[0-4]$/.test(t)) && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows.join() === 'Low 12:30p,High 7p', 'the timeline has sky, the chance of rain as %, wind as arrows and speeds (no graph), tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
       check(r.tl.hours[0] === '10a' && r.tl.hours[r.tl.hours.length - 1] === '8p' && !r.tl.day, 'at 9:30 AM the timeline runs from just before now to 12 hours ahead (10a … 8p), no midnight: ' + JSON.stringify(r.tl.hours));
       const sun = r.week[0], tue = r.week[2];
       check(r.week.length === 6 && /Not today/.test(sun.v) && /Boating/.test(sun.title), 'the week: six days, and stormy Sunday is not a boating day: ' + JSON.stringify(r.week.slice(0, 3)));
@@ -3477,6 +3477,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       await p.mouse.move(box.x + box.at3, box.y + box.h / 2, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(100);
       const reads = await p.evaluate(() => [...document.querySelectorAll('#timeline .tl-scrub .tl-read')].map(t => t.textContent));
       check(/^3 PM · 7\d°$/.test(reads[0]) && reads[1] === '5%' && /^SW 1[78] G2[34] kt$/.test(reads[2]) && /^1\.[23] ft ↑$/.test(reads[3]), 'dragging the slider to 3 PM reads its temperature, rain, wind and tide: ' + JSON.stringify(reads));
+      // the tide is drawn against the year's range: muted lines at the year's highest and lowest tides, and a typical band
+      const tideRef = await p.evaluate(() => ({ ext: document.querySelectorAll('#timeline .tl-tide-ext').length, typ: !!document.querySelector('#timeline .tl-tide-typ'), labels: [...document.querySelectorAll('#timeline .tl-tide-lbl')].map(t => t.textContent) }));
+      check(tideRef.ext === 2 && tideRef.typ && tideRef.labels.join() === 'Year high 4.6 ft,Year low -0.7 ft', 'the tide shows the year\'s highest and lowest tides and a typical band behind today: ' + JSON.stringify(tideRef));
+      check(await p.evaluate(() => document.querySelectorAll('#timeline .tl-twilight').length >= 1 && document.querySelectorAll('#timeline .tl-night').length >= 1), 'dusk is shaded (sunset to last light), then night');
+      // the clock; storm marks on the timeline (thunderstorms at 5 and 6 PM)
+      const extra = await p.evaluate(() => ({ clock: document.getElementById('clock').textContent, storms: [...document.querySelectorAll('#timeline text')].filter(t => /⚡/.test(t.textContent)).length }));
+      check(extra.clock === '9:30AM' && extra.storms >= 2, 'the clock reads 9:30 AM, and the late-afternoon thunderstorms are marked ⚡ on the timeline: ' + JSON.stringify(extra));
+      // the health sheet: which forecasts loaded
+      await p.click('#plan-updated'); await p.waitForTimeout(150);
+      const health = await p.evaluate(() => ({ shown: !document.getElementById('health').hidden, text: document.getElementById('health-body').textContent.replace(/\s+/g, ' ') }));
+      check(health.shown && /Weather loaded/.test(health.text) && /Marine forecast couldn't load; showing the copy from/.test(health.text) && /Alerts couldn.t load \(Failed to fetch\)/.test(health.text), 'tapping Updated shows which forecasts loaded: ' + JSON.stringify(health).slice(0, 300));
+      await p.click('#close-health');
       // tap Running: the timeline and the week follow it
       await p.click('#acts .act[data-act="running"]'); await p.waitForTimeout(200);
       const r2 = await read(p);
@@ -3501,6 +3513,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(night.dark && night.day === 'Tomorrow', 'after sunset: dark, and planning tomorrow: ' + JSON.stringify({ dark: night.dark, day: night.day }));
       check(night.tl.hours[0] === '10p' && night.tl.hours[night.tl.hours.length - 1] === '8a' && night.tl.day === 'Sun' && night.tl.lows.some(t => /High 7:30a/.test(t)), 'at 9:30 PM the timeline shows the night and tomorrow morning (10p … 8a), midnight marked Sun, and the morning high tide: ' + JSON.stringify(night.tl));
       await p.screenshot({ path: path.join(OUT, 'weather-plan-night.png') });
+      // late at night: the night clock (just the time, the temperature and the sunrise); a touch wakes the page
+      const nc = await p.evaluate(() => { window.__T = Date.parse('2026-07-19T03:40:00Z'); nightClock(); const el = document.getElementById('nightclock'); return { shown: !el.hidden, text: el.textContent.replace(/\s+/g, ' ').trim() }; });
+      await p.screenshot({ path: path.join(OUT, 'weather-nightclock.png') });
+      await p.click('#nightclock'); await p.waitForTimeout(100);
+      const woke = await p.evaluate(() => document.getElementById('nightclock').hidden);
+      check(nc.shown && /^11:40PM/.test(nc.text) && /Sunrise 5:\d\d AM/.test(nc.text) && woke, 'at 11:40 PM the night clock shows the time and the sunrise, and a touch wakes the page: ' + JSON.stringify(nc));
       check(errors.length === 0, 'script errors: ' + errors.join(' | '));
       await ctx.close();
     }
