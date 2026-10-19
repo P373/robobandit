@@ -15,7 +15,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="apple-mobile-web-app-title" content="Megansett">
   <link rel="stylesheet" href="vendor/leaflet/leaflet.css">
-  <link rel="stylesheet" href="styles.css?v=20261019-0109">
+  <link rel="stylesheet" href="styles.css?v=20261019-0123">
 </head>
 <body>
   <header class="site-header">
@@ -24,9 +24,11 @@
         <h1>Megansett Harbor</h1>
         <p class="sub">North Falmouth, MA 02556 · Buzzards Bay</p>
       </div>
-      <div class="now" id="now" aria-live="polite"></div>
+      <div class="now" id="now" aria-live="polite" aria-label="Conditions now"></div>
     </div>
   </header>
+
+  <div class="alert-bar" id="alert-bar" role="alert" hidden></div>
 
   <nav class="day-nav" id="day-nav" aria-label="Jump to day"></nav>
 
@@ -70,12 +72,12 @@
     <p class="fine">Not for navigation. Always check official NWS forecasts before heading out.</p>
   </footer>
 
-  <script src="polyfills.js?v=20261019-0109"></script><!-- for old iPads: load first -->
+  <script src="polyfills.js?v=20261019-0123"></script><!-- for old iPads: load first -->
   <script src="vendor/suncalc.js"></script>
-  <script src="icons.js?v=20261019-0109"></script>
+  <script src="icons.js?v=20261019-0123"></script>
   <script src="vendor/leaflet/leaflet.js"></script>
-  <script src="app.js?v=20261019-0109"></script>
-  <script src="map.js?v=20261019-0109"></script>
+  <script src="app.js?v=20261019-0123"></script>
+  <script src="map.js?v=20261019-0123"></script>
   <script>
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js');
   </script>

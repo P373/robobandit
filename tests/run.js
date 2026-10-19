@@ -3324,6 +3324,33 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.dateKey === '2026-10-18 2026-10-19' && r.minutes === 870, 'day keys and minutes come out right in Megansett time: ' + JSON.stringify(r));
     check(/Megansett Harbor/.test(r.text) && !/Loading forecast/.test(r.text), 'the page started and got past "Loading forecast…": ' + r.text.slice(0, 200));
     await p.screenshot({ path: path.join(OUT, 'weather-offline.png') });
+    // the conditions strip (Air · Water · Wind · Tide) and the red Small Craft Advisory bar, fed made-up readings
+    const strip = await p.evaluate(() => {
+      const nowAbs = minutesOfDay(new Date()), later = new Date(Date.now() + 6 * 36e5).toISOString();
+      const hilo = [{ abs: nowAbs - 200, min: 0, type: 'L', v: 0.2 }, { abs: nowAbs + 180, min: 600, type: 'H', v: 4.1 }];
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Sunny' } }, waterTemp: 81.2, buoy: { time: new Date().toISOString(), spd: 12.4, gst: 18, dir: 225 }, tides: { hilo } });
+      const cards = [...document.querySelectorAll('#now .cond-card')].map(c => c.querySelector('b').textContent + ' ' + c.querySelector('i').textContent);
+      renderAlertBar([{ event: 'Small Craft Advisory', ends: later, description: 'Southwest winds 15 to 20 kt with gusts up to 25 kt.', instruction: 'Inexperienced mariners should avoid navigating.' },
+        { event: 'Gale Watch', ends: later, description: 'Gales possible.' }], []);
+      const bar = document.getElementById('alert-bar');
+      const before = { shown: !bar.hidden, title: bar.querySelector('.alert-txt b').textContent, sub: bar.querySelector('.alert-txt span').textContent, red: getComputedStyle(bar).backgroundColor, open: bar.classList.contains('open') };
+      bar.querySelector('.alert-head').click();
+      const opened = { open: bar.classList.contains('open'), detail: getComputedStyle(bar.querySelector('.alert-detail')).display, text: bar.querySelector('.alert-detail').textContent };
+      return { cards, before, opened };
+    });
+    await p.screenshot({ path: path.join(OUT, 'weather-strip-alert.png') });
+    const fromForecast = await p.evaluate(() => {
+      const bar = document.getElementById('alert-bar'); bar.classList.remove('open');
+      renderAlertBar([], ['SMALL CRAFT ADVISORY IN EFFECT FROM 2 PM EDT THIS AFTERNOON THROUGH SATURDAY EVENING']);
+      const t = bar.querySelector('.alert-txt b').textContent;
+      renderAlertBar([], []);
+      return { title: t, hiddenWhenClear: bar.hidden };
+    });
+    check(strip.cards.join(' | ') === '70° Air | 81° Water | SW 12kt Wind | Rising Tide', 'the strip reads Air, Water, Wind, Tide: ' + strip.cards.join(' | '));
+    check(strip.before.shown && strip.before.title === 'Gale Watch' && /\+1 more/.test(strip.before.sub) && strip.before.red === 'rgb(198, 40, 40)' && !strip.before.open,
+      'the red bar shows the most serious alert first (a gale watch outranks a small craft advisory): ' + JSON.stringify(strip.before));
+    check(strip.opened.open && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text), 'Details opens every alert: ' + JSON.stringify(strip.opened).slice(0, 200));
+    check(fromForecast.title === 'Small Craft Advisory' && fromForecast.hiddenWhenClear, 'a marine-forecast headline alone shows the bar, and no alerts hides it: ' + JSON.stringify(fromForecast));
     await ctx.close();
   });
 

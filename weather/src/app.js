@@ -466,40 +466,53 @@ const windArrow = (deg, size = 14) => deg == null ? '' :
 
 const shortClock = (min) => fmtClock(min).replace(':00', '').replace(' AM', 'a').replace(' PM', 'p');
 
+// ---------- the conditions strip in the header: Air · Water · Wind · Tide (after Tampa Bay Boating's) ----------
+
+const COND_ICONS = {
+  air: '<path d="M14 4v10.54a4 4 0 1 1-4 0V4a2 2 0 0 1 4 0Z"/>',
+  water: '<path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  wind: '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
+  up: '<path d="M12 3v8"/><path d="m8 7 4-4 4 4"/><path d="M2 15c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  down: '<path d="M12 3v8"/><path d="m8 7 4 4 4-4"/><path d="M2 15c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
+};
+const lineIcon = (k, cls) => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${COND_ICONS[k]}</svg>`;
+
+// High or Low within 45 minutes of the turn of the tide, otherwise Rising or Falling
+function tideState(tides) {
+  const nowAbs = minutesOfDay(new Date());
+  let prev = null, next = null;
+  for (const p of tides.hilo) { if (p.abs <= nowAbs) prev = p; else if (!next) next = p; }
+  if (!next) return null;
+  const near = (type) => (prev && prev.type === type && nowAbs - prev.abs < 45) || (next.type === type && next.abs - nowAbs < 45);
+  if (near('H')) return { label: 'High', up: true, next };
+  if (near('L')) return { label: 'Low', up: false, next };
+  return next.type === 'H' ? { label: 'Rising', up: true, next } : { label: 'Falling', up: false, next };
+}
+
 function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
-  const el = document.getElementById('now');
-  const items = [];
-  const item = (big, sub, src) => `<div class="now-item"><span class="now-big">${big}</span><span class="now-sub">${sub}</span>${src ? `<span class="now-src">${src}</span>` : ''}</div>`;
+  const card = (icon, value, label, title) =>
+    `<div class="cond-card" title="${esc(title)}">${lineIcon(icon, 'cond-ic')}<b>${value}</b><i>${label}</i></div>`;
 
   const n = weather?.now;
-  if (n) items.push(item(`${wxIcon(n.shortForecast, n.isDaytime, 26)} ${n.temperature}°`, esc(n.shortForecast), 'NWS forecast · Megansett'));
+  const air = card('air', n ? `${n.temperature}°` : '--', 'Air', n ? `${n.shortForecast} · NWS forecast for Megansett` : 'Air temperature');
 
+  const d = waterLevel?.diff;
+  const surge = d == null ? '' : Math.abs(d) < 0.3 ? 'Level near predicted · ' : `Level ${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} ft ${d > 0 ? 'above' : 'below'} predicted · `;
+  const water = card('water', waterTemp != null ? `${Math.round(waterTemp)}°` : '--', 'Water', `${surge}NOAA Woods Hole`);
+
+  let wind = card('wind', '--', 'Wind', 'Wind now · NOAA BUZM3 Buzzards Bay tower');
   if (buoy) {
-    const t = new Date(buoy.time);
-    const old = Date.now() - t > 2 * 36e5 ? ' (old reading)' : '';
-    items.push(item(`${windArrow(buoy.dir, 20)} ${compass(buoy.dir)} ${Math.round(buoy.spd)} kt${buoy.gst ? `<small> G${Math.round(buoy.gst)}</small>` : ''}`,
-      'Wind now · Buzzards Bay tower', `NOAA BUZM3 · ${fmt(t)}${old}`));
+    const t = new Date(buoy.time), old = Date.now() - t > 2 * 36e5 ? ' (old reading)' : '';
+    wind = card('wind', `${compass(buoy.dir)} ${Math.round(buoy.spd)}<small>kt</small>`, 'Wind',
+      `${buoy.gst ? `Gusts ${Math.round(buoy.gst)} kt · ` : ''}NOAA BUZM3 Buzzards Bay tower · ${fmt(t)}${old}`);
   }
 
-  if (waterTemp != null || waterLevel) {
-    const d = waterLevel?.diff;
-    const surge = d == null ? '' : Math.abs(d) < 0.3 ? 'Level near predicted' :
-      `Level <b>${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} ft</b> ${d > 0 ? 'above' : 'below'} predicted`;
-    items.push(item(`${waterTemp != null ? `${waterTemp.toFixed(0)}° water` : 'Water'}`, surge || 'Water temperature',
-      `NOAA Woods Hole${waterLevel ? ` · ${fmtClock(+waterLevel.t.slice(11, 13) * 60 + +waterLevel.t.slice(14, 16))}` : ''}`));
-  }
+  const s = tides && tideState(tides);
+  const tide = card(s && !s.up ? 'down' : 'up', s ? s.label : '--', 'Tide',
+    s ? `Next ${s.next.type === 'H' ? 'high' : 'low'} ${fmtClock(s.next.min)} · ${s.next.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
 
-  if (tides) {
-    const nowAbs = minutesOfDay(new Date());
-    const next = tides.hilo.find((p) => p.abs > nowAbs);
-    if (next) {
-      const mins = next.abs - nowAbs;
-      const inStr = mins >= 60 ? `${Math.floor(mins / 60)}h ${mins % 60}m` : `${mins}m`;
-      items.push(item(`${next.type === 'H' ? '▲' : '▼'} ${next.type === 'H' ? 'High' : 'Low'} in ${inStr}`,
-        `${fmtClock(next.min)} · ${next.v.toFixed(1)} ft`, 'NOAA · Chappaquoit Pt, W. Falmouth'));
-    }
-  }
-  el.innerHTML = items.join('');
+  document.getElementById('now').innerHTML = `<div class="cond">${air}${water}${wind}${tide}</div>`;
 }
 
 const fmtWhen = (iso) => {
@@ -509,18 +522,55 @@ const fmtWhen = (iso) => {
 
 const paragraphs = (text) => esc(text).split(/\n\s*\n/).map((p) => `<p>${p.replace(/\n/g, ' ')}</p>`).join('');
 
+// ---------- the red alert bar under the header (Small Craft Advisory and the like) ----------
+
+// the most serious first
+const ALERT_ORDER = [/hurricane.*warning/, /tropical storm.*warning/, /storm warning/, /gale/, /hurricane.*watch/, /tropical storm.*watch/,
+  /small craft/, /special marine/, /severe thunderstorm|tornado|waterspout/, /warning/, /watch/];
+const alertRank = (event) => {
+  const i = ALERT_ORDER.findIndex((r) => r.test((event || '').toLowerCase()));
+  return i < 0 ? ALERT_ORDER.length : i;
+};
+
+function renderAlertBar(active, headlines) {
+  const bar = document.getElementById('alert-bar');
+  const list = (active || []).slice().sort((a, b) => alertRank(a.event) - alertRank(b.event));
+  let title, sub, detail;
+  if (list.length) {
+    const top = list[0];
+    title = top.event;
+    sub = (top.ends ? `Until ${fmtWhen(top.ends)}` : 'In effect') + (list.length > 1 ? ` · +${list.length - 1} more` : '');
+    detail = list.map((a) => `<section><h3>${esc(a.event)}${a.ends ? ` <span>until ${fmtWhen(a.ends)}</span>` : ''}</h3>
+      ${paragraphs(a.description)}${a.instruction ? `<p><b>What to do:</b> ${esc(a.instruction).replace(/\n/g, ' ')}</p>` : ''}</section>`).join('');
+  } else if (headlines && headlines.length) {
+    // no alert from the alerts service, but the marine forecast leads with one ("SMALL CRAFT ADVISORY IN EFFECT …")
+    const m = headlines[0].match(/^(.*?)\s+(IN EFFECT.*)$/i);
+    title = titleCase(m ? m[1] : headlines[0]);
+    sub = m ? m[2].charAt(0) + m[2].slice(1).toLowerCase() : 'From the NWS marine forecast';
+    detail = headlines.map((h) => `<p>${esc(h)}</p>`).join('') + '<p>From the NWS marine forecast for Buzzards Bay.</p>';
+  } else {
+    bar.hidden = true; bar.innerHTML = '';
+    return;
+  }
+  const open = bar.classList.contains('open');
+  bar.innerHTML = `<button type="button" class="alert-head" aria-expanded="${open}"><span class="alert-row">${lineIcon('warn', 'alert-ic')}
+    <span class="alert-txt"><b>${esc(title)}</b><span>${esc(sub)}</span></span><span class="alert-more">Details ${open ? '↑' : '↓'}</span></span></button>
+    <div class="alert-detail"><div class="alert-detail-in">${detail}</div></div>`;
+  bar.hidden = false;
+}
+document.getElementById('alert-bar').addEventListener('click', (e) => {
+  const head = e.target.closest('.alert-head');
+  if (!head) return;
+  const open = e.currentTarget.classList.toggle('open');
+  head.setAttribute('aria-expanded', String(open));
+  head.querySelector('.alert-more').textContent = `Details ${open ? '↑' : '↓'}`;
+});
+
 function renderAlerts({ alerts, marine }, stale) {
   const el = document.getElementById('alerts');
   const parts = [];
   const active = alerts?.filter((a) => !a.ends || Date.parse(a.ends) > Date.now());
-  if (active) {
-    parts.push(...active.map((a) => `<details class="alert sev-${esc((a.severity || '').toLowerCase())}">
-      <summary>⚠️ ${esc(a.event)}${a.ends ? ` <span class="alert-until">until ${fmtWhen(a.ends)}</span>` : ''}</summary>
-      ${paragraphs(a.description)}${a.instruction ? `<p><b>What to do:</b> ${esc(a.instruction).replace(/\n/g, ' ')}</p>` : ''}
-    </details>`));
-  } else if (marine?.headlines.length) {
-    parts.push(...marine.headlines.map((h) => `<div class="alert">⚠️ ${esc(h)}</div>`));
-  }
+  renderAlertBar(active, marine?.headlines);
   if (stale.length) {
     parts.push(`<div class="alert stale">Couldn't reach NOAA just now. Showing saved data for ${stale.map(([name, t]) => `${name} (from ${fmtWhen(new Date(t).toISOString())})`).join(', ')}.</div>`);
   }
