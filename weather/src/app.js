@@ -508,9 +508,10 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
       `${buoy.gst ? `Gusts ${Math.round(buoy.gst)} kt · ` : ''}NOAA BUZM3 Buzzards Bay tower · ${fmt(t)}${old}`);
   }
 
-  const s = tides && tideState(tides);
-  const tide = card(s && !s.up ? 'down' : 'up', s ? s.label : '--', 'Tide',
-    s ? `Next ${s.next.type === 'H' ? 'high' : 'low'} ${fmtClock(s.next.min)} · ${s.next.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
+  // the time of the next high or low; the arrow says which way the water is going until then
+  const s = tides && tideState(tides), nx = s && s.next;
+  const tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? `Next ${nx.type === 'H' ? 'high' : 'low'}` : 'Tide',
+    nx ? `${s.label} now · next ${nx.type === 'H' ? 'high' : 'low'} ${fmtClock(nx.min)}, ${nx.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
 
   document.getElementById('now').innerHTML = `<div class="cond">${air}${water}${wind}${tide}</div>`;
 }

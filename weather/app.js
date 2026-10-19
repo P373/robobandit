@@ -487,12 +487,12 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
       "".concat(buoy.gst ? "Gusts ".concat(Math.round(buoy.gst), " kt · ") : "", "NOAA BUZM3 Buzzards Bay tower · ").concat(fmt(t)).concat(old)
     );
   }
-  const s = tides && tideState(tides);
+  const s = tides && tideState(tides), nx = s && s.next;
   const tide = card(
     s && !s.up ? "down" : "up",
-    s ? s.label : "--",
-    "Tide",
-    s ? "Next ".concat(s.next.type === "H" ? "high" : "low", " ").concat(fmtClock(s.next.min), " · ").concat(s.next.v.toFixed(1), " ft · NOAA Chappaquoit Point") : "Tide"
+    nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, "<small>$1</small>") : "--",
+    nx ? "Next ".concat(nx.type === "H" ? "high" : "low") : "Tide",
+    nx ? "".concat(s.label, " now · next ").concat(nx.type === "H" ? "high" : "low", " ").concat(fmtClock(nx.min), ", ").concat(nx.v.toFixed(1), " ft · NOAA Chappaquoit Point") : "Tide"
   );
   document.getElementById("now").innerHTML = '<div class="cond">'.concat(air).concat(water).concat(wind).concat(tide, "</div>");
 }

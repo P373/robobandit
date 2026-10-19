@@ -3346,7 +3346,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([], []);
       return { title: t, hiddenWhenClear: bar.hidden };
     });
-    check(strip.cards.join(' | ') === '70° Air | 81° Water | SW 12kt Wind | Rising Tide', 'the strip reads Air, Water, Wind, Tide: ' + strip.cards.join(' | '));
+    check(strip.cards.join(' | ') === '70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
     check(strip.before.shown && strip.before.title === 'Gale Watch' && /\+1 more/.test(strip.before.sub) && strip.before.red === 'rgb(198, 40, 40)' && !strip.before.open,
       'the red bar shows the most serious alert first (a gale watch outranks a small craft advisory): ' + JSON.stringify(strip.before));
     check(strip.opened.open && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text), 'Details opens every alert: ' + JSON.stringify(strip.opened).slice(0, 200));
