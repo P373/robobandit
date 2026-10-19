@@ -386,6 +386,8 @@ function renderPlan(state, info) {
   }).join(', ')) : '';
   document.getElementById('plan-updated').textContent = "Updated ".concat(fmt(new Date())).concat(stale).concat(info.missing.length ? " \xB7 no ".concat(info.missing.join(', ').toLowerCase()) : '');
   nightMode();
+  var tl = document.getElementById('timeline');
+  tl._w = 0; // make fitPlan redraw the timeline at its final size
   fitPlan();
 }
 var sunMoonMin = function sunMoonMin(key, which) {
@@ -596,10 +598,15 @@ function renderWeek(state, fromKey) {
 function fitPlan() {
   var plan = document.getElementById('plan');
   if (plan.hidden) return;
-  var top = plan.getBoundingClientRect().top + (window.pageYOffset || 0);
-  // an iPad shows it all on one screen (the real window height: old iOS gets vh wrong); a phone scrolls
-  plan.style.height = window.innerWidth >= 760 ? Math.max(560, window.innerHeight - top) + 'px' : '';
   var tl = document.getElementById('timeline');
+  // An iPad shows it all on one screen: every row takes the height its content needs and the timeline gets the
+  // rest of the real window height (old iOS gets vh wrong, and old Safari stretches flex and grid rows). A phone scrolls.
+  if (window.innerWidth >= 760) {
+    var top = plan.getBoundingClientRect().top + (window.pageYOffset || 0);
+    tl.style.height = '190px';
+    var rest = plan.offsetHeight - tl.offsetHeight; // the tiles, the week, the footer, gaps and padding
+    tl.style.height = Math.max(190, Math.floor(window.innerHeight - top - rest)) + 'px';
+  } else tl.style.height = '';
   if (planState && Math.abs((tl._w || 0) - tl.clientWidth) + Math.abs((tl._h || 0) - tl.clientHeight) > 2) {
     tl._w = tl.clientWidth;
     tl._h = tl.clientHeight;

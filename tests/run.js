@@ -3339,25 +3339,31 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const cards = [...document.querySelectorAll('#now .cond-card')].map(c => (c.querySelector('b') ? c.querySelector('b').textContent + ' ' : (c.querySelector('svg.wx-icon') ? '☁ ' : '')) + c.querySelector('i').textContent);
       renderAlertBar([{ event: 'Small Craft Advisory', ends: later, description: 'Southwest winds 15 to 20 kt with gusts up to 25 kt.', instruction: 'Inexperienced mariners should avoid navigating.' },
         { event: 'Gale Watch', ends: later, description: 'Gales possible.' }], []);
-      const bar = document.getElementById('alert-bar');
-      const before = { shown: !bar.hidden, title: bar.querySelector('.alert-txt b').textContent, sub: bar.querySelector('.alert-txt span').textContent, red: getComputedStyle(bar).backgroundColor, open: bar.classList.contains('open') };
-      bar.querySelector('.alert-head').click();
-      const opened = { open: bar.classList.contains('open'), detail: getComputedStyle(bar.querySelector('.alert-detail')).display, text: bar.querySelector('.alert-detail').textContent };
+      const bar = document.getElementById('alert-bar'), tile = document.querySelector('#now .cond');
+      const first = tile.firstElementChild;
+      const before = { tile: first.classList.contains('cond-alert') ? first.querySelector('b').textContent + ' ' + first.querySelector('i').textContent : '', red: getComputedStyle(first).backgroundColor, barHidden: bar.hidden };
+      first.click();
+      const opened = { shown: !bar.hidden, title: bar.querySelector('.alert-txt b').textContent, sub: bar.querySelector('.alert-txt span').textContent, detail: getComputedStyle(bar.querySelector('.alert-detail')).display, text: bar.querySelector('.alert-detail').textContent };
       return { cards, before, opened };
     });
     await p.screenshot({ path: path.join(OUT, 'weather-strip-alert.png') });
     const fromForecast = await p.evaluate(() => {
-      const bar = document.getElementById('alert-bar'); bar.classList.remove('open');
+      const bar = document.getElementById('alert-bar');
+      bar.querySelector('.alert-head').click();
+      const closed = bar.hidden;
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Sunny', isDaytime: true } } });
       renderAlertBar([], ['SMALL CRAFT ADVISORY IN EFFECT FROM 2 PM EDT THIS AFTERNOON THROUGH SATURDAY EVENING']);
-      const t = bar.querySelector('.alert-txt b').textContent;
+      const t = document.querySelector('#now .cond-alert').textContent.trim();
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Sunny', isDaytime: true } } });
       renderAlertBar([], []);
-      return { title: t, hiddenWhenClear: bar.hidden };
+      return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
     });
     check(strip.cards.join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
-    check(strip.before.shown && strip.before.title === 'Gale Watch' && /\+1 more/.test(strip.before.sub) && strip.before.red === 'rgb(198, 40, 40)' && !strip.before.open,
-      'the red bar shows the most serious alert first (a gale watch outranks a small craft advisory): ' + JSON.stringify(strip.before));
-    check(strip.opened.open && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text), 'Details opens every alert: ' + JSON.stringify(strip.opened).slice(0, 200));
-    check(fromForecast.title === 'Small Craft Advisory' && fromForecast.hiddenWhenClear, 'a marine-forecast headline alone shows the bar, and no alerts hides it: ' + JSON.stringify(fromForecast));
+    check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(198, 40, 40)' && strip.before.barHidden,
+      'a red tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory), the panel waits: ' + JSON.stringify(strip.before));
+    check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),
+      'tapping the tile opens every alert in the red panel: ' + JSON.stringify(strip.opened).slice(0, 220));
+    check(fromForecast.closed && /Small Craft\s*Advisory/.test(fromForecast.tile) && fromForecast.clear, 'Close puts it away; a marine-forecast headline alone makes the tile; no alerts, no tile: ' + JSON.stringify(fromForecast));
     await ctx.close();
   });
 
@@ -3417,6 +3423,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       tiles: [...document.querySelectorAll('#acts .act')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], verdict: a.querySelector('.act-verdict').textContent, why: (a.querySelector('.act-why') || {}).textContent, when: (a.querySelector('.act-when') || {}).textContent })),
       tl: { rain: document.querySelectorAll('#timeline .tl-rain').length, wind: !!document.querySelector('#timeline .tl-wind'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)).length },
       week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
+      tileH: Math.max(...[...document.querySelectorAll('#acts .act')].map(a => a.getBoundingClientRect().height)),
       fits: { scroll: document.documentElement.scrollHeight, inner: innerHeight, weekBottom: Math.round(document.getElementById('week').getBoundingClientRect().bottom), footBottom: Math.round(document.querySelector('.plan-foot').getBoundingClientRect().bottom) },
       dark: document.documentElement.classList.contains('dark') }));
 
@@ -3431,6 +3438,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const r = await read(p);
       check(errors.length === 0, name + ': script errors: ' + errors.join(' | '));
       check(r.fits.footBottom <= r.fits.inner + 1 && r.fits.scroll <= r.fits.inner + 1, `${name}: everything fits one ${w}×${h} screen: ` + JSON.stringify(r.fits));
+      check(r.tileH <= 170, `${name}: activity tiles are only as tall as their words (${Math.round(r.tileH)}px)`);
       if (name === 'portrait') { await p.screenshot({ path: path.join(OUT, 'weather-plan-portrait.png') }); await ctx.close(); continue; }
 
       await p.screenshot({ path: path.join(OUT, 'weather-plan.png') });

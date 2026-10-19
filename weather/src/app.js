@@ -575,22 +575,29 @@ function renderAlertBar(active, headlines) {
     sub = m ? m[2].charAt(0) + m[2].slice(1).toLowerCase() : 'From the NWS marine forecast';
     detail = headlines.map((h) => `<p>${esc(h)}</p>`).join('') + '<p>From the NWS marine forecast for Buzzards Bay.</p>';
   } else {
-    bar.hidden = true; bar.innerHTML = '';
+    bar.hidden = true; bar.innerHTML = ''; alertShown = false;
     return;
   }
-  const open = bar.classList.contains('open');
-  bar.innerHTML = `<button type="button" class="alert-head" aria-expanded="${open}"><span class="alert-row">${lineIcon('warn', 'alert-ic')}
-    <span class="alert-txt"><b>${esc(title)}</b><span>${esc(sub)}</span></span><span class="alert-more">Details ${open ? '↑' : '↓'}</span></span></button>
+  // a red tile first in the conditions strip (the main screen keeps its height); tap it for the full red panel
+  const k = title.match(/^(.*?)\s*\b(Warning|Advisory|Watch|Statement)$/i);
+  const strip = document.querySelector('#now .cond');
+  if (strip) strip.insertAdjacentHTML('afterbegin', `<button type="button" class="cond-card cond-alert" aria-expanded="${alertShown}" title="${esc(title)} · ${esc(sub)}">${lineIcon('warn', 'cond-ic')}<b>${esc(k ? k[1] : title)}</b><i>${esc(k ? k[2] : 'Alert')}${list.length > 1 ? ` +${list.length - 1}` : ''}</i></button>`);
+  bar.innerHTML = `<button type="button" class="alert-head"><span class="alert-row">${lineIcon('warn', 'alert-ic')}
+    <span class="alert-txt"><b>${esc(title)}</b><span>${esc(sub)}</span></span><span class="alert-more">Close ↑</span></span></button>
     <div class="alert-detail"><div class="alert-detail-in">${detail}</div></div>`;
-  bar.hidden = false;
+  bar.classList.add('open');
+  bar.hidden = !alertShown;
 }
-document.getElementById('alert-bar').addEventListener('click', (e) => {
-  const head = e.target.closest('.alert-head');
-  if (!head) return;
-  const open = e.currentTarget.classList.toggle('open');
-  head.setAttribute('aria-expanded', String(open));
-  head.querySelector('.alert-more').textContent = `Details ${open ? '↑' : '↓'}`;
-});
+let alertShown = false;
+function showAlertPanel(show) {
+  alertShown = show;
+  document.getElementById('alert-bar').hidden = !show;
+  const tile = document.querySelector('#now .cond-alert');
+  if (tile) tile.setAttribute('aria-expanded', String(show));
+  if (typeof fitPlan === 'function') fitPlan();
+}
+document.getElementById('now').addEventListener('click', (e) => { if (e.target.closest('.cond-alert')) showAlertPanel(!alertShown); });
+document.getElementById('alert-bar').addEventListener('click', (e) => { if (e.target.closest('.alert-head')) showAlertPanel(false); });
 
 function renderAlerts({ alerts, marine }, stale) {
   const el = document.getElementById('alerts');
