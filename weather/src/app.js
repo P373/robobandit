@@ -480,6 +480,7 @@ const COND_ICONS = {
   wind: '<path d="M12.8 19.6A2 2 0 1 0 14 16H2"/><path d="M17.5 8a2.5 2.5 0 1 1 2 4H2"/><path d="M9.8 4.4A2 2 0 1 1 11 8H2"/>',
   up: '<path d="M12 3v8"/><path d="m8 7 4-4 4 4"/><path d="M2 15c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
   down: '<path d="M12 3v8"/><path d="m8 7 4 4 4-4"/><path d="M2 15c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 20c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/>',
+  rain: '<path d="M12 22a7 7 0 0 0 7-7c0-2-1-3.9-3-5.5s-3.5-4-4-6.5c-.5 2.5-2 4.9-4 6.5C6 11.1 5 13 5 15a7 7 0 0 0 7 7z"/>',
   warn: '<path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3"/><path d="M12 9v4"/><path d="M12 17h.01"/>',
 };
 const lineIcon = (k, cls) => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${COND_ICONS[k]}</svg>`;
@@ -505,6 +506,16 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   const SKY = { sun: 'Sunny', moon: 'Clear', 'partly-day': 'Partly cloudy', 'partly-night': 'Partly cloudy', cloud: 'Cloudy',
     rain: 'Rain', 'showers-day': 'Showers', thunder: 'Storms', snow: 'Snow', fog: 'Fog', wind: 'Windy' };
   const sky = n ? `<div class="cond-card cond-sky" title="${esc(n.shortForecast)} · NWS forecast for Megansett">${wxIcon(n.shortForecast, n.isDaytime, 44)}<i>${SKY[wxIconType(n.shortForecast, n.isDaytime)]}</i></div>` : '';
+  // chance of rain (or snow) this hour, and the most it gets to later today
+  let rain = '';
+  if (n) {
+    const pop = n.probabilityOfPrecipitation?.value || 0, snow = /snow|sleet|flurr/i.test(n.shortForecast);
+    const endOfDay = localMidnight(addDays(dateKey(new Date()), 1)).getTime();
+    const later = (weather.hours || []).filter((h) => h.t < endOfDay);
+    const peak = later.reduce((a, h) => (h.pop > a.pop ? h : a), { pop });
+    rain = card('rain', `${pop}%`, snow ? 'Snow' : 'Rain',
+      `Chance of ${snow ? 'snow' : 'rain'} this hour${peak.pop > pop && peak.t ? ` · up to ${peak.pop}% around ${fmt(new Date(peak.t))}` : ''} · NWS hourly forecast`);
+  }
   const air = card('air', n ? `${n.temperature}°` : '--', 'Air', n ? `${n.shortForecast} · NWS forecast for Megansett` : 'Air temperature');
 
   const d = waterLevel?.diff;
@@ -523,7 +534,7 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   const tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? `Next ${nx.type === 'H' ? 'high' : 'low'}` : 'Tide',
     nx ? `${s.label} now · next ${nx.type === 'H' ? 'high' : 'low'} ${fmtClock(nx.min)}, ${nx.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
 
-  document.getElementById('now').innerHTML = `<div class="cond">${sky}${air}${water}${wind}${tide}</div>`;
+  document.getElementById('now').innerHTML = `<div class="cond">${sky}${rain}${air}${water}${wind}${tide}</div>`;
 }
 
 const fmtWhen = (iso) => {
