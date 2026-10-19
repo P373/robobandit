@@ -231,7 +231,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Hamglider: autopilot lands on the target in every round of all four worlds (boosting down the Cape Cod Canal)', async () => {
+  await test('Hamglider: autopilot lands on the target in every round of all seven worlds (boosting down the Cape Cod Canal, the dartboard drifting on Frosty Floes)', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 480, height: 270 } });
     const r = await p.evaluate(() => {
       const out = [];
@@ -372,10 +372,70 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'hamglider-helpers.png');
   });
 
+  await test('Hamglider new worlds and missions: the Frosty Floes dartboard drifts, Cloud Kingdom hoops give +10, Moonlit Lagoon jellyfish bounce Pip up; a mission is three worlds, one flight each, with its best saved', async () => {
+    const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      out.worlds = WORLDS.map(w => w.id).join();
+      // the drifting dartboard
+      startGame(WORLDS.findIndex(w => w.id === 'ice')); action();
+      const x0 = targetPos.x; for (let i = 0; i < 240; i++) update(1 / 60);
+      out.drift = Math.abs(targetPos.x - x0);
+      // a hoop: put Pip in it
+      startGame(WORLDS.findIndex(w => w.id === 'sky')); action();
+      out.hoops = hoops.length;
+      state = 'air'; wings = true; const h = hoops[0]; pos.set(h.x, h.y, h.z); vel.set(0, 0, -15); bonusPts = 0; update(1 / 60);
+      out.hoopPts = bonusPts; out.hoopHit = h.hit;
+      // a jellyfish: drop onto it
+      startGame(WORLDS.findIndex(w => w.id === 'night')); action();
+      out.jellies = jellies.length;
+      const j = jellies[0]; state = 'air'; wings = false; pos.set(j.x, j.top + R + 0.3, j.z); vel.set(0, -10, 0); update(1 / 60);
+      out.bounce = vel.y; out.stillAir = state === 'air';
+      // a mission with every world open: three different worlds, then the end screen with the best saved
+      save.unlockAll = true; practice = false;
+      startMission();
+      out.missionWorlds = ROUNDS.map(r => r.w); out.hud = (updateHUD(), document.getElementById('hudRound').textContent);
+      out.banner = document.getElementById('banner').textContent;
+      for (let i = 0; i < 60 * 300 && state !== 'end'; i++) {
+        if (state === 'intro') action();
+        keys.boost = !!world.boost && (state === 'air' || state === 'ramp') && fuel > 0 && Math.hypot(targetPos.x - pos.x, targetPos.z - pos.z) > 120 + pos.y * 4;
+        if (state === 'air') {
+          const dx = targetPos.x - pos.x, dz = targetPos.z - pos.z, dist = Math.hypot(dx, dz);
+          if (!wings && vel.y < 0 && dist > 25 && pos.y > 8) action();
+          if (wings) {
+            const want = Math.atan2(dx, -dz), diff = Math.atan2(Math.sin(want - yaw), Math.cos(want - yaw));
+            keys.right = diff > 0.05; keys.left = diff < -0.05;
+            const need = (pos.y - 1.2) / Math.max(dist, 1);
+            keys.down = need > 0.3; keys.up = need < 0.09;
+            if (dist < 7) action();
+          }
+        } else { keys.left = keys.right = keys.up = keys.down = false; }
+        update(1 / 60);
+      }
+      keys.boost = false;
+      out.end = state; out.rounds = roundScores.length; out.total = total; out.best = save.mission;
+      out.title = document.getElementById('endTitle').textContent; out.again = document.getElementById('btnAgain').textContent;
+      out.rows = [...document.querySelectorAll('#scoreTable tr')].map(t => t.textContent);
+      out.next = document.getElementById('btnNext').classList.contains('hidden');
+      return out;
+    });
+    check(r.worlds === 'ocean,lava,storm,canal,ice,sky,night', 'seven worlds: ' + r.worlds);
+    check(r.drift > 2, 'the Frosty Floes dartboard drifts: ' + r.drift);
+    check(r.hoops === 3 && r.hoopHit && r.hoopPts === 10, 'Cloud Kingdom has 3 hoops and one is worth +10: ' + JSON.stringify(r));
+    check(r.jellies === 2 && r.bounce > 10 && r.stillAir, 'a Moonlit Lagoon jellyfish bounces Pip back up: ' + JSON.stringify(r));
+    check(new Set(r.missionWorlds).size === 3 && r.hud === 'MISSION 1/3' && /Mission flight 1 of 3/.test(r.banner), 'a mission is three different worlds: ' + JSON.stringify(r));
+    check(r.end === 'end' && r.rounds === 3 && r.total > 0 && r.best === r.total && r.title === 'MISSION DONE!' && /NEW MISSION/.test(r.again) && r.next && r.rows.length === 4, 'the mission ends after three flights with its best saved: ' + JSON.stringify(r));
+    await p.reload(); await p.waitForTimeout(500);
+    await p.click('#btnPlay');
+    const btn = await p.textContent('#btnMission');
+    check(/MISSION/.test(btn) && /Best \d+/.test(btn), 'the map has a Mission button showing the best: ' + btn);
+    await done(p, 'hamglider-mission.png');
+  });
+
   await test('Hamglider: worlds unlock in order, and "Unlock all" opens every world and ball', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
     await p.click('#btnPlay');
-    check(await p.$$eval('.world.locked', els => els.length) === 3, 'lava, storm and the canal should start locked');
+    check(await p.$$eval('.world.locked', els => els.length) === 6, 'every world but the first should start locked');
     await p.click('#btnUnlock');
     check(await p.$$eval('.world.locked', els => els.length) === 0, 'worlds still locked');
     await p.click('#btnBalls');
