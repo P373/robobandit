@@ -351,6 +351,31 @@ a { color: var(--sea); }
   .cond-alert b { max-width: none; margin: 0 6px; }
 }
 
+/* iPad and up: the title and the strip share one line; the title gives way (its second line wraps) and the strip tightens */
+@media (min-width: 561px) {
+  .site-header .wrap { flex-wrap: nowrap; }
+  .brand { -webkit-box-flex: 1; flex: 1 1 auto; min-width: 0; margin-right: 12px; }
+  .brand h1 { white-space: nowrap; }
+  .now { flex: none; }
+}
+@media (min-width: 561px) and (max-width: 1100px) {
+  .cond-card { min-width: 60px; padding: 2px 9px; }
+  .cond-card b { font-size: 1.15rem; }
+  .cond-card i { font-size: 0.64rem; letter-spacing: 0.05em; }
+  .cond-ic { width: 20px; height: 20px; }
+  .cond-sky .wx-icon { width: 40px; height: 40px; }
+  .cond-alert { padding: 4px 9px; }
+  .cond-alert b { font-size: 0.95rem; max-width: 6em; }
+}
+@media (min-width: 561px) and (max-width: 860px) {
+  .brand h1 { font-size: 1.45rem; }
+  .brand .sub { font-size: 0.85rem; }
+  .cond-card { min-width: 52px; padding: 2px 6px; }
+  .cond-card b { font-size: 1.02rem; }
+  .cond-card i { font-size: 0.58rem; letter-spacing: 0.03em; }
+  .cond-sky .wx-icon { width: 36px; height: 36px; }
+}
+
 /* an alert (gale warning, small craft advisory…) as a red tile first in the strip; tap for the full panel */
 .cond-alert { -webkit-appearance: none; justify-content: center; margin: -3px 6px -3px -1px; padding: 4px 12px; border: 0; border-radius: 11px;
   background: #c62828; color: #fff; font: inherit; cursor: pointer; }
@@ -360,6 +385,13 @@ html.dark .cond-card.cond-alert { color: #fff; }
 .cond-alert .cond-ic { animation: alert-blink 1.6s infinite; }
 .cond-alert + .cond-card { border-left: 0; }
 @media (prefers-reduced-motion: reduce) { .cond-alert .cond-ic { animation: none; } }
+
+/* the NWS tiers: warnings red (the default), watches orange, advisories amber, statements blue-grey */
+.cond-alert.tier-watch, .alert-bar.tier-watch { background: #d9480f; }
+.cond-alert.tier-advis, .alert-bar.tier-advis { background: #b7791f; }
+.cond-alert.tier-stmt, .alert-bar.tier-stmt { background: #4a6fa5; }
+.alert-bar.tier-watch .alert-detail { background: #b83b0c; } .alert-bar.tier-advis .alert-detail { background: #975f13; } .alert-bar.tier-stmt .alert-detail { background: #3d5c8a; }
+.alert-bar.tier-watch.open .alert-more { color: #d9480f; } .alert-bar.tier-advis.open .alert-more { color: #b7791f; } .alert-bar.tier-stmt.open .alert-more { color: #4a6fa5; }
 
 /* red alert bar under the header (Small Craft Advisory and the like) */
 .alert-bar { background: #c62828; color: #fff; }

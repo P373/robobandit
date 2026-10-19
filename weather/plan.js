@@ -117,7 +117,7 @@ var worst = function worst(checks) {
 };
 var RULES = {
   boating: function boating(h, c, L) {
-    return worst([c.boatAlert && [2, c.boatAlert], h.thunder && [2, 'Thunderstorms'], h.spd != null && (h.spd >= L.wind + 5 || h.gst >= L.gust + 5) && [2, "Wind ".concat(kt(h))], h.spd != null && (h.spd >= L.wind || h.gst >= L.gust) && [1, "Wind ".concat(kt(h))], c.seas != null && c.seas >= L.seas + 2 && [2, "Seas ".concat(c.seasTxt)], c.seas != null && c.seas >= L.seas && [1, "Seas ".concat(c.seasTxt)], h.pop >= 60 && [1, "Rain likely (".concat(h.pop, "%)")]]);
+    return worst([c.boatAlert && [c.boatLv, c.boatAlert], h.thunder && [2, 'Thunderstorms'], h.spd != null && (h.spd >= L.wind + 5 || h.gst >= L.gust + 5) && [2, "Wind ".concat(kt(h))], h.spd != null && (h.spd >= L.wind || h.gst >= L.gust) && [1, "Wind ".concat(kt(h))], c.seas != null && c.seas >= L.seas + 2 && [2, "Seas ".concat(c.seasTxt)], c.seas != null && c.seas >= L.seas && [1, "Seas ".concat(c.seasTxt)], h.pop >= 60 && [1, "Rain likely (".concat(h.pop, "%)")]]);
   },
   swimming: function swimming(h, c, L) {
     return worst([h.thunder && [2, 'Thunderstorms'], c.water != null && c.water < L.water - 6 && [2, "Water ".concat(Math.round(c.water), "\xB0")], c.water != null && c.water < L.water && [1, "Water ".concat(Math.round(c.water), "\xB0")], h.temp != null && h.temp < L.air - 8 && [2, "Air ".concat(h.temp, "\xB0")], h.temp != null && h.temp < L.air && [1, "Air ".concat(h.temp, "\xB0")], h.pop >= 50 && [1, "Rain likely (".concat(h.pop, "%)")], h.spd >= 18 && [1, "Breezy, ".concat(kt(h))]]);
@@ -129,7 +129,7 @@ var RULES = {
     return worst([h.thunder && [2, 'Thunderstorms'], h.wet && [2, 'Wet roads'], h.temp != null && h.temp <= 35 && [2, "Icy risk, ".concat(h.temp, "\xB0")], h.pop >= 30 && [1, "Chance of rain (".concat(h.pop, "%)")], h.spd != null && h.spd >= L.wind && [1, "Wind ".concat(kt(h))]]);
   },
   paddling: function paddling(h, c, L) {
-    return worst([c.boatAlert && [2, c.boatAlert], h.thunder && [2, 'Thunderstorms'], h.spd != null && (h.spd >= L.wind + 5 || h.gst >= L.wind + 10) && [2, "Wind ".concat(kt(h))], h.spd != null && (h.spd >= L.wind || h.gst >= L.wind + 5) && [1, "Wind ".concat(kt(h))], c.seas != null && c.seas >= 3 && [2, "Seas ".concat(c.seasTxt)], c.seas != null && c.seas >= 2 && [1, "Seas ".concat(c.seasTxt)], c.water != null && c.water < L.water && [1, "Cold water, ".concat(Math.round(c.water), "\xB0")]]);
+    return worst([c.boatAlert && [c.boatLv, c.boatAlert], h.thunder && [2, 'Thunderstorms'], h.spd != null && (h.spd >= L.wind + 5 || h.gst >= L.wind + 10) && [2, "Wind ".concat(kt(h))], h.spd != null && (h.spd >= L.wind || h.gst >= L.wind + 5) && [1, "Wind ".concat(kt(h))], c.seas != null && c.seas >= 3 && [2, "Seas ".concat(c.seasTxt)], c.seas != null && c.seas >= 2 && [1, "Seas ".concat(c.seasTxt)], c.water != null && c.water < L.water && [1, "Cold water, ".concat(Math.round(c.water), "\xB0")]]);
   },
   biking: function biking(h, c, L) {
     return worst([h.thunder && [2, 'Thunderstorms'], h.pop >= 60 && [2, "Rain (".concat(h.pop, "%)")], h.pop >= 30 && [1, "Chance of rain (".concat(h.pop, "%)")], h.spd != null && h.spd >= L.wind + 8 && [2, "Windy, ".concat(kt(h))], h.spd != null && h.spd >= L.wind && [1, "Wind ".concat(kt(h))], h.temp != null && h.temp >= L.hot && [1, "Hot, ".concat(h.temp, "\xB0")], h.temp != null && h.temp <= 25 && [1, "Cold, ".concat(h.temp, "\xB0")]]);
@@ -228,7 +228,9 @@ function dayHours(state, key) {
   });
   return hours;
 }
-var BOAT_ALERT = /small craft|gale|storm warning|hurricane|tropical/i;
+
+// alerts that matter on the water: warnings and advisories mean not today, a watch means caution
+var BOAT_ALERT = /small craft|brisk wind|gale|storm warning|storm watch|storm surge|hurricane|tropical|hazardous seas|freezing spray|special marine|tsunami|extreme wind|waterspout/i;
 function dayConditions(state, key) {
   var _state$marine;
   var mp = marineForDay(state.marine, key);
@@ -260,11 +262,13 @@ function dayConditions(state, key) {
   var headline = key === dateKey(new Date()) && (((_state$marine = state.marine) === null || _state$marine === void 0 ? void 0 : _state$marine.headlines) || []).find(function (h) {
     return BOAT_ALERT.test(h);
   });
+  var boatAlert = alert ? alert.event : headline ? titleCase(headline.replace(/\s+IN EFFECT.*$/i, '')) : '';
   return {
     seas: seas,
     seasTxt: seasTxt,
     water: state.waterTemp,
-    boatAlert: alert ? alert.event : headline ? titleCase(headline.replace(/\s+IN EFFECT.*$/i, '')) : ''
+    boatAlert: boatAlert,
+    boatLv: /watch$/i.test(boatAlert) ? 1 : 2
   };
 }
 

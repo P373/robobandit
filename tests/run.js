@@ -3359,8 +3359,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
     });
     check(strip.cards.join(' | ') === '☁ Partly cloudy | 20% Rain | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, chance of rain, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
-    check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(198, 40, 40)' && strip.before.barHidden,
-      'a red tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory), the panel waits: ' + JSON.stringify(strip.before));
+    check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(217, 72, 15)' && strip.before.barHidden,
+      'an alert tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory; watches are orange), the panel waits: ' + JSON.stringify(strip.before));
     check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),
       'tapping the tile opens every alert in the red panel: ' + JSON.stringify(strip.opened).slice(0, 220));
     check(fromForecast.closed && /Small Craft\s*Advisory/.test(fromForecast.tile) && fromForecast.clear, 'Close puts it away; a marine-forecast headline alone makes the tile; no alerts, no tile: ' + JSON.stringify(fromForecast));
@@ -3435,6 +3435,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       p.on('pageerror', e => errors.push(e.message));
       await p.goto(url('weather/index.html')); await p.waitForTimeout(1500);
       await p.evaluate(feed); await p.waitForTimeout(300);
+      // with an alert tile too, the conditions strip stays on the same line as "Megansett Harbor"
+      const line = await p.evaluate(() => {
+        renderAlertBar([{ event: 'Gale Warning', ends: new Date(Date.now() + 6 * 36e5).toISOString(), description: 'Gales.' }], []); fitPlan();
+        const h = document.querySelector('.brand h1').getBoundingClientRect(), n = document.getElementById('now').getBoundingClientRect();
+        return { sameLine: n.top < h.bottom && n.left > h.right, h1: Math.round(h.right), strip: [Math.round(n.left), Math.round(n.right)], width: innerWidth, red: getComputedStyle(document.querySelector('#now .cond-alert')).backgroundColor };
+      });
+      check(line.sameLine && line.strip[1] <= line.width && line.red === 'rgb(198, 40, 40)', `${name}: the strip (with a red Gale Warning tile) sits on the same line as the title: ` + JSON.stringify(line));
       const r = await read(p);
       check(errors.length === 0, name + ': script errors: ' + errors.join(' | '));
       check(r.fits.footBottom <= r.fits.inner + 1 && r.fits.scroll <= r.fits.inner + 1, `${name}: everything fits one ${w}×${h} screen: ` + JSON.stringify(r.fits));

@@ -1086,7 +1086,12 @@ var paragraphs = function paragraphs(text) {
 // ---------- the red alert bar under the header (Small Craft Advisory and the like) ----------
 
 // the most serious first
-var ALERT_ORDER = [/hurricane.*warning/, /tropical storm.*warning/, /storm warning/, /gale/, /hurricane.*watch/, /tropical storm.*watch/, /small craft/, /special marine/, /severe thunderstorm|tornado|waterspout/, /warning/, /watch/];
+// the most serious first (the marine ones by wind: hurricane force 64+ kt, storm 48–63, gale 34–47, small craft ~25+)
+var ALERT_ORDER = [/tsunami warning|extreme wind warning|hurricane warning|hurricane force wind warning/, /tropical storm warning|storm surge warning|^storm warning/, /gale warning|hazardous seas warning|heavy freezing spray warning|special marine warning|tornado warning|severe thunderstorm warning/, /tsunami watch|hurricane watch|hurricane force wind watch|tropical storm watch|storm surge watch|^storm watch/, /gale watch|hazardous seas watch|heavy freezing spray watch|tornado watch|severe thunderstorm watch/, /small craft advisory|brisk wind advisory|freezing spray advisory/, /warning/, /watch/, /advisory/];
+// warnings red, watches orange, advisories amber, statements blue-grey (the NWS tiers)
+var alertTier = function alertTier(event) {
+  return /warning$/i.test(event) ? 'warn' : /watch$/i.test(event) ? 'watch' : /advisory$/i.test(event) ? 'advis' : 'stmt';
+};
 var alertRank = function alertRank(event) {
   var i = ALERT_ORDER.findIndex(function (r) {
     return r.test((event || '').toLowerCase());
@@ -1123,9 +1128,9 @@ function renderAlertBar(active, headlines) {
   // a red tile first in the conditions strip (the main screen keeps its height); tap it for the full red panel
   var k = title.match(/^(.*?)\s*\b(Warning|Advisory|Watch|Statement)$/i);
   var strip = document.querySelector('#now .cond');
-  if (strip) strip.insertAdjacentHTML('afterbegin', "<button type=\"button\" class=\"cond-card cond-alert\" aria-expanded=\"".concat(alertShown, "\" title=\"").concat(esc(title), " \xB7 ").concat(esc(sub), "\">").concat(lineIcon('warn', 'cond-ic'), "<b>").concat(esc(k ? k[1] : title), "</b><i>").concat(esc(k ? k[2] : 'Alert')).concat(list.length > 1 ? " +".concat(list.length - 1) : '', "</i></button>"));
+  if (strip) strip.insertAdjacentHTML('afterbegin', "<button type=\"button\" class=\"cond-card cond-alert tier-".concat(alertTier(title), "\" aria-expanded=\"").concat(alertShown, "\" title=\"").concat(esc(title), " \xB7 ").concat(esc(sub), "\">").concat(lineIcon('warn', 'cond-ic'), "<b>").concat(esc(k ? k[1] : title), "</b><i>").concat(esc(k ? k[2] : 'Alert')).concat(list.length > 1 ? " +".concat(list.length - 1) : '', "</i></button>"));
   bar.innerHTML = "<button type=\"button\" class=\"alert-head\"><span class=\"alert-row\">".concat(lineIcon('warn', 'alert-ic'), "\n    <span class=\"alert-txt\"><b>").concat(esc(title), "</b><span>").concat(esc(sub), "</span></span><span class=\"alert-more\">Close \u2191</span></span></button>\n    <div class=\"alert-detail\"><div class=\"alert-detail-in\">").concat(detail, "</div></div>");
-  bar.classList.add('open');
+  bar.className = "alert-bar open tier-".concat(alertTier(title));
   bar.hidden = !alertShown;
 }
 var alertShown = false;

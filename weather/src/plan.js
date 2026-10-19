@@ -46,7 +46,7 @@ const worst = (checks) => checks.filter(Boolean).reduce((a, b) => (b[0] > a[0] ?
 
 const RULES = {
   boating: (h, c, L) => worst([
-    c.boatAlert && [2, c.boatAlert],
+    c.boatAlert && [c.boatLv, c.boatAlert],
     h.thunder && [2, 'Thunderstorms'],
     h.spd != null && (h.spd >= L.wind + 5 || h.gst >= L.gust + 5) && [2, `Wind ${kt(h)}`],
     h.spd != null && (h.spd >= L.wind || h.gst >= L.gust) && [1, `Wind ${kt(h)}`],
@@ -81,7 +81,7 @@ const RULES = {
     h.spd != null && h.spd >= L.wind && [1, `Wind ${kt(h)}`],
   ]),
   paddling: (h, c, L) => worst([
-    c.boatAlert && [2, c.boatAlert],
+    c.boatAlert && [c.boatLv, c.boatAlert],
     h.thunder && [2, 'Thunderstorms'],
     h.spd != null && (h.spd >= L.wind + 5 || h.gst >= L.wind + 10) && [2, `Wind ${kt(h)}`],
     h.spd != null && (h.spd >= L.wind || h.gst >= L.wind + 5) && [1, `Wind ${kt(h)}`],
@@ -141,7 +141,8 @@ function dayHours(state, key) {
   return hours;
 }
 
-const BOAT_ALERT = /small craft|gale|storm warning|hurricane|tropical/i;
+// alerts that matter on the water: warnings and advisories mean not today, a watch means caution
+const BOAT_ALERT = /small craft|brisk wind|gale|storm warning|storm watch|storm surge|hurricane|tropical|hazardous seas|freezing spray|special marine|tsunami|extreme wind|waterspout/i;
 function dayConditions(state, key) {
   const mp = marineForDay(state.marine, key);
   let seas = null, seasTxt = '';
@@ -154,7 +155,8 @@ function dayConditions(state, key) {
   const alert = (state.alerts || []).filter((a) => BOAT_ALERT.test(a.event) && (!a.ends || Date.parse(a.ends) > t0))
     .sort((a, b) => alertRank(a.event) - alertRank(b.event))[0];
   const headline = key === dateKey(new Date()) && (state.marine?.headlines || []).find((h) => BOAT_ALERT.test(h));
-  return { seas, seasTxt, water: state.waterTemp, boatAlert: alert ? alert.event : headline ? titleCase(headline.replace(/\s+IN EFFECT.*$/i, '')) : '' };
+  const boatAlert = alert ? alert.event : headline ? titleCase(headline.replace(/\s+IN EFFECT.*$/i, '')) : '';
+  return { seas, seasTxt, water: state.waterTemp, boatAlert, boatLv: /watch$/i.test(boatAlert) ? 1 : 2 };
 }
 
 // ---------- a verdict: the best stretch of the day for one activity ----------

@@ -551,8 +551,18 @@ const paragraphs = (text) => esc(text).split(/\n\s*\n/).map((p) => `<p>${p.repla
 // ---------- the red alert bar under the header (Small Craft Advisory and the like) ----------
 
 // the most serious first
-const ALERT_ORDER = [/hurricane.*warning/, /tropical storm.*warning/, /storm warning/, /gale/, /hurricane.*watch/, /tropical storm.*watch/,
-  /small craft/, /special marine/, /severe thunderstorm|tornado|waterspout/, /warning/, /watch/];
+// the most serious first (the marine ones by wind: hurricane force 64+ kt, storm 48–63, gale 34–47, small craft ~25+)
+const ALERT_ORDER = [
+  /tsunami warning|extreme wind warning|hurricane warning|hurricane force wind warning/,
+  /tropical storm warning|storm surge warning|^storm warning/,
+  /gale warning|hazardous seas warning|heavy freezing spray warning|special marine warning|tornado warning|severe thunderstorm warning/,
+  /tsunami watch|hurricane watch|hurricane force wind watch|tropical storm watch|storm surge watch|^storm watch/,
+  /gale watch|hazardous seas watch|heavy freezing spray watch|tornado watch|severe thunderstorm watch/,
+  /small craft advisory|brisk wind advisory|freezing spray advisory/,
+  /warning/, /watch/, /advisory/,
+];
+// warnings red, watches orange, advisories amber, statements blue-grey (the NWS tiers)
+const alertTier = (event) => (/warning$/i.test(event) ? 'warn' : /watch$/i.test(event) ? 'watch' : /advisory$/i.test(event) ? 'advis' : 'stmt');
 const alertRank = (event) => {
   const i = ALERT_ORDER.findIndex((r) => r.test((event || '').toLowerCase()));
   return i < 0 ? ALERT_ORDER.length : i;
@@ -581,11 +591,11 @@ function renderAlertBar(active, headlines) {
   // a red tile first in the conditions strip (the main screen keeps its height); tap it for the full red panel
   const k = title.match(/^(.*?)\s*\b(Warning|Advisory|Watch|Statement)$/i);
   const strip = document.querySelector('#now .cond');
-  if (strip) strip.insertAdjacentHTML('afterbegin', `<button type="button" class="cond-card cond-alert" aria-expanded="${alertShown}" title="${esc(title)} · ${esc(sub)}">${lineIcon('warn', 'cond-ic')}<b>${esc(k ? k[1] : title)}</b><i>${esc(k ? k[2] : 'Alert')}${list.length > 1 ? ` +${list.length - 1}` : ''}</i></button>`);
+  if (strip) strip.insertAdjacentHTML('afterbegin', `<button type="button" class="cond-card cond-alert tier-${alertTier(title)}" aria-expanded="${alertShown}" title="${esc(title)} · ${esc(sub)}">${lineIcon('warn', 'cond-ic')}<b>${esc(k ? k[1] : title)}</b><i>${esc(k ? k[2] : 'Alert')}${list.length > 1 ? ` +${list.length - 1}` : ''}</i></button>`);
   bar.innerHTML = `<button type="button" class="alert-head"><span class="alert-row">${lineIcon('warn', 'alert-ic')}
     <span class="alert-txt"><b>${esc(title)}</b><span>${esc(sub)}</span></span><span class="alert-more">Close ↑</span></span></button>
     <div class="alert-detail"><div class="alert-detail-in">${detail}</div></div>`;
-  bar.classList.add('open');
+  bar.className = `alert-bar open tier-${alertTier(title)}`;
   bar.hidden = !alertShown;
 }
 let alertShown = false;
