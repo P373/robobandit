@@ -495,6 +495,10 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
     `<div class="cond-card" title="${esc(title)}">${lineIcon(icon, 'cond-ic')}<b>${value}</b><i>${label}</i></div>`;
 
   const n = weather?.now;
+  // the sky first: sunny, partly cloudy, cloudy, rain, snow… (the colour icons the day cards use)
+  const SKY = { sun: 'Sunny', moon: 'Clear', 'partly-day': 'Partly cloudy', 'partly-night': 'Partly cloudy', cloud: 'Cloudy',
+    rain: 'Rain', 'showers-day': 'Showers', thunder: 'Storms', snow: 'Snow', fog: 'Fog', wind: 'Windy' };
+  const sky = n ? `<div class="cond-card cond-sky" title="${esc(n.shortForecast)} · NWS forecast for Megansett">${wxIcon(n.shortForecast, n.isDaytime, 44)}<i>${SKY[wxIconType(n.shortForecast, n.isDaytime)]}</i></div>` : '';
   const air = card('air', n ? `${n.temperature}°` : '--', 'Air', n ? `${n.shortForecast} · NWS forecast for Megansett` : 'Air temperature');
 
   const d = waterLevel?.diff;
@@ -513,7 +517,7 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   const tide = card(s && !s.up ? 'down' : 'up', nx ? fmtClock(nx.min).replace(/ (AM|PM)$/, '<small>$1</small>') : '--', nx ? `Next ${nx.type === 'H' ? 'high' : 'low'}` : 'Tide',
     nx ? `${s.label} now · next ${nx.type === 'H' ? 'high' : 'low'} ${fmtClock(nx.min)}, ${nx.v.toFixed(1)} ft · NOAA Chappaquoit Point` : 'Tide');
 
-  document.getElementById('now').innerHTML = `<div class="cond">${air}${water}${wind}${tide}</div>`;
+  document.getElementById('now').innerHTML = `<div class="cond">${sky}${air}${water}${wind}${tide}</div>`;
 }
 
 const fmtWhen = (iso) => {

@@ -3328,8 +3328,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const strip = await p.evaluate(() => {
       const nowAbs = minutesOfDay(new Date()), later = new Date(Date.now() + 6 * 36e5).toISOString();
       const hilo = [{ abs: nowAbs - 200, min: 0, type: 'L', v: 0.2 }, { abs: nowAbs + 180, min: 600, type: 'H', v: 4.1 }];
-      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Sunny' } }, waterTemp: 81.2, buoy: { time: new Date().toISOString(), spd: 12.4, gst: 18, dir: 225 }, tides: { hilo } });
-      const cards = [...document.querySelectorAll('#now .cond-card')].map(c => c.querySelector('b').textContent + ' ' + c.querySelector('i').textContent);
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Partly Sunny', isDaytime: true } }, waterTemp: 81.2, buoy: { time: new Date().toISOString(), spd: 12.4, gst: 18, dir: 225 }, tides: { hilo } });
+      const cards = [...document.querySelectorAll('#now .cond-card')].map(c => (c.querySelector('b') ? c.querySelector('b').textContent + ' ' : (c.querySelector('svg.wx-icon') ? '☁ ' : '')) + c.querySelector('i').textContent);
       renderAlertBar([{ event: 'Small Craft Advisory', ends: later, description: 'Southwest winds 15 to 20 kt with gusts up to 25 kt.', instruction: 'Inexperienced mariners should avoid navigating.' },
         { event: 'Gale Watch', ends: later, description: 'Gales possible.' }], []);
       const bar = document.getElementById('alert-bar');
@@ -3346,7 +3346,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       renderAlertBar([], []);
       return { title: t, hiddenWhenClear: bar.hidden };
     });
-    check(strip.cards.join(' | ') === '70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
+    check(strip.cards.join(' | ') === '☁ Partly cloudy | 70° Air | 81° Water | SW 12kt Wind | 10:00AM Next high', 'the strip reads the sky, Air, Water, Wind and the next tide: ' + strip.cards.join(' | '));
     check(strip.before.shown && strip.before.title === 'Gale Watch' && /\+1 more/.test(strip.before.sub) && strip.before.red === 'rgb(198, 40, 40)' && !strip.before.open,
       'the red bar shows the most serious alert first (a gale watch outranks a small craft advisory): ' + JSON.stringify(strip.before));
     check(strip.opened.open && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text), 'Details opens every alert: ' + JSON.stringify(strip.opened).slice(0, 200));

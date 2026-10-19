@@ -473,6 +473,20 @@ function tideState(tides) {
 function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
   const card = (icon, value, label, title) => '<div class="cond-card" title="'.concat(esc(title), '">').concat(lineIcon(icon, "cond-ic"), "<b>").concat(value, "</b><i>").concat(label, "</i></div>");
   const n = weather == null ? void 0 : weather.now;
+  const SKY = {
+    sun: "Sunny",
+    moon: "Clear",
+    "partly-day": "Partly cloudy",
+    "partly-night": "Partly cloudy",
+    cloud: "Cloudy",
+    rain: "Rain",
+    "showers-day": "Showers",
+    thunder: "Storms",
+    snow: "Snow",
+    fog: "Fog",
+    wind: "Windy"
+  };
+  const sky = n ? '<div class="cond-card cond-sky" title="'.concat(esc(n.shortForecast), ' · NWS forecast for Megansett">').concat(wxIcon(n.shortForecast, n.isDaytime, 44), "<i>").concat(SKY[wxIconType(n.shortForecast, n.isDaytime)], "</i></div>") : "";
   const air = card("air", n ? "".concat(n.temperature, "°") : "--", "Air", n ? "".concat(n.shortForecast, " · NWS forecast for Megansett") : "Air temperature");
   const d = waterLevel == null ? void 0 : waterLevel.diff;
   const surge = d == null ? "" : Math.abs(d) < 0.3 ? "Level near predicted · " : "Level ".concat(d > 0 ? "+" : "−").concat(Math.abs(d).toFixed(1), " ft ").concat(d > 0 ? "above" : "below", " predicted · ");
@@ -494,7 +508,7 @@ function renderNow({ weather, tides, waterTemp, buoy, waterLevel }) {
     nx ? "Next ".concat(nx.type === "H" ? "high" : "low") : "Tide",
     nx ? "".concat(s.label, " now · next ").concat(nx.type === "H" ? "high" : "low", " ").concat(fmtClock(nx.min), ", ").concat(nx.v.toFixed(1), " ft · NOAA Chappaquoit Point") : "Tide"
   );
-  document.getElementById("now").innerHTML = '<div class="cond">'.concat(air).concat(water).concat(wind).concat(tide, "</div>");
+  document.getElementById("now").innerHTML = '<div class="cond">'.concat(sky).concat(air).concat(water).concat(wind).concat(tide, "</div>");
 }
 const fmtWhen = (iso) => {
   const d = new Date(iso);
