@@ -25,6 +25,8 @@
   --icon-snow: #9cc9ee;
   --wind: #2f8f6f;
   --gust: rgba(47, 143, 111, 0.18);
+  --scrub: #4b5d72;      /* the timeline slider: a calm slate, so it never reads as a warning */
+  --scrub-ink: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -46,6 +48,8 @@
     --icon-cloud-dark: #8797a8;
     --wind: #5fd0a8;
     --gust: rgba(95, 208, 168, 0.18);
+    --scrub: #c3cfdb;
+    --scrub-ink: #0b1520;
   }
 }
 
@@ -68,6 +72,8 @@ html.dark {
     --icon-cloud-dark: #8797a8;
     --wind: #5fd0a8;
     --gust: rgba(95, 208, 168, 0.18);
+    --scrub: #c3cfdb;
+    --scrub-ink: #0b1520;
 }
 
 * { box-sizing: border-box; }
@@ -490,12 +496,12 @@ html.dark .act-detail.lv-0 { background: #18291f; border-color: #3c6a4b; } html.
 .timeline { position: relative; cursor: ew-resize; touch-action: none; -webkit-user-select: none; user-select: none; outline: none; }
 .timeline svg { display: block; }
 .tl-scrub { position: absolute; top: 0; left: 0; right: 0; bottom: 0; pointer-events: none; }
-.tl-now-dash { stroke: #c62828; stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0.55; }
-.tl-knob { fill: #c62828; stroke: #fff; stroke-width: 2; }
+.tl-now-dash { stroke: var(--scrub); stroke-width: 1.2; stroke-dasharray: 3 3; opacity: 0.55; }
+.tl-knob { fill: var(--scrub); stroke: var(--card); stroke-width: 2; }
 .tl-pill { fill: var(--card); stroke: var(--line); stroke-width: 1; }
-.tl-pill.time { fill: #c62828; stroke: #c62828; }
+.tl-pill.time { fill: var(--scrub); stroke: var(--scrub); }
 .tl-read { font-size: 12px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
-.tl-read.time { fill: #fff; font-size: 13px; }
+.tl-read.time { fill: var(--scrub-ink); font-size: 13px; }
 .tl-night { fill: var(--night); }
 .tl-twilight { fill: rgba(240, 160, 70, 0.12); }
 html.dark .tl-twilight { fill: rgba(240, 160, 70, 0.1); }
@@ -504,6 +510,7 @@ html.dark .tl-twilight { fill: rgba(240, 160, 70, 0.1); }
 .tl-label { font-size: 13px; font-weight: 700; fill: var(--ink); }
 .tl-unit, .tl-tick { font-size: 10px; fill: var(--muted); } .tl-tick { text-anchor: end; }
 .tl-temp { font-size: 14px; font-weight: 700; fill: var(--ink); text-anchor: middle; }
+.tl-temp.halo { stroke: var(--card); stroke-width: 3.5px; stroke-linejoin: round; }   /* keeps the number clear where it overlaps the icon */
 .tl-pop { font-size: 13px; font-weight: 600; fill: var(--muted); text-anchor: middle; }
 .tl-pop.wet { fill: var(--icon-rain); font-weight: 800; }
 .tl-warrow { fill: none; stroke: var(--wind); stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; }
@@ -520,7 +527,7 @@ html.dark .tl-twilight { fill: rgba(240, 160, 70, 0.1); }
 .tl-dot.hi { fill: var(--hi); } .tl-dot.lo { fill: var(--lo); }
 .tl-grid.tl-midnight { stroke: var(--muted); opacity: 0.7; stroke-dasharray: 3 3; }
 .tl-day { font-size: 11px; font-weight: 700; fill: var(--muted); }
-.tl-now { stroke: #c62828; stroke-width: 2; }
+.tl-now { stroke: var(--scrub); stroke-width: 2; }
 .week { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); grid-gap: 10px; gap: 10px; align-content: start; }
 .wk { display: block; font: inherit; line-height: 1.3; color: var(--ink); background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 5px 6px 6px; text-align: center; cursor: pointer; }
 .wk span { display: block; }

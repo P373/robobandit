@@ -282,7 +282,7 @@ function drawTimeline(state, v) {
   const skyH = fit(0.25, 40, 54), rainH = fit(0.12, 20, 26), windH = fit(0.22, 36, 50);
   const rows = { sky: [0, skyH], rain: [skyH + 4, rainH], wind: [skyH + rainH + 8, windH] };
   rows.tide = [rows.wind[0] + windH + 4, Math.max(30, avail - (rows.wind[0] + windH + 4) - 2)];
-  const iconS = skyH < 48 ? 22 : 28;
+  const iconS = skyH - 8;   // the sky icon fills the row; the temperature sits over its lower edge
   const axisY = H - 18;
   const hours = dayHours(state, todayKey).concat(dayHours(state, tomorrow)).filter((h) => h.t + 36e5 > t0 && h.t < t1);
   const s0 = sunMoon(todayKey).sun, s1 = sunMoon(tomorrow).sun;
@@ -316,8 +316,8 @@ function drawTimeline(state, v) {
   for (const h of hours) {
     if (Math.round(h.min / 60) % stepH || h.temp == null || h.t < t0) continue;
     const cx = x(h.t + 18e5);
-    out.push(wxIcon(h.short, isDay(h.t + 18e5), iconS).replace('<svg ', `<svg x="${cx - iconS / 2}" y="2" `),
-      `<text x="${cx}" y="${skyH - 6}" class="tl-temp">${h.temp}°</text>`);
+    out.push(wxIcon(h.short, isDay(h.t + 18e5), iconS).replace('<svg ', `<svg x="${cx - iconS / 2}" y="0" `),
+      `<text x="${cx}" y="${skyH - 3}" class="tl-temp halo">${h.temp}°</text><text x="${cx}" y="${skyH - 3}" class="tl-temp">${h.temp}°</text>`);
   }
   // rain: the chance on each labelled hour, blue once it's worth noticing; ⚡ for thunderstorms and ❄ for snow on any hour
   const sym = (h) => (h.thunder ? '⚡' : h.snow ? '❄' : '');
@@ -364,7 +364,7 @@ function drawTimeline(state, v) {
       for (const p of T.hilo.filter((q) => at(q) >= t0 && at(q) <= t1)) {
         const up = p.type === 'H', ty = up ? y(p.v) - 7 : y(p.v) + 15;
         out.push(`<circle cx="${x(at(p))}" cy="${y(p.v)}" r="3.5" class="tl-dot ${up ? 'hi' : 'lo'}"/>`,
-          `<text x="${x(at(p))}" y="${ty}" class="tl-val">${up ? 'High' : 'Low'} ${clock(p.min).n}${clock(p.min).ap === 'AM' ? 'a' : 'p'}</text>`);
+          `<text x="${x(at(p))}" y="${ty}" class="tl-val">${up ? 'High' : 'Low'} ${p.v.toFixed(1)} ft · ${clock(p.min).n}${clock(p.min).ap === 'AM' ? 'a' : 'p'}</text>`);
       }
     }
   }
@@ -376,7 +376,7 @@ function drawTimeline(state, v) {
   setScrub(scrubAt != null ? scrubAt : now);
 }
 
-// ---------- the slider: drag the red line (or tap) to read the forecast at any time ----------
+// ---------- the slider: drag the line (or tap) to read the forecast at any time ----------
 
 let tlModel = null, scrubAt = null, scrubBack = 0;
 const lerpAt = (pts, t, k) => {

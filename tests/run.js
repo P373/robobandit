@@ -3475,7 +3475,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.say), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
       check(t.rollerblading.lv === '0' && /best 11 AM/.test(t.rollerblading.say), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
       check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));
-      check(r.tl.rain.length >= 5 && r.tl.rain.every(t => /^\d+%( ⚡| ❄)?$/.test(t)) && r.tl.wind.length >= 5 && r.tl.arrows >= 5 && !r.tl.graph && r.tl.wind.some(t => /^1[5-8] G2[0-4]$/.test(t)) && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && r.tl.lows.join() === 'Low 12:30p,High 7p', 'the timeline has sky, the chance of rain as %, wind as arrows and speeds (no graph), tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
+      check(r.tl.rain.length >= 5 && r.tl.rain.every(t => /^\d+%( ⚡| ❄)?$/.test(t)) && r.tl.wind.length >= 5 && r.tl.arrows >= 5 && !r.tl.graph && r.tl.wind.some(t => /^1[5-8] G2[0-4]$/.test(t)) && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && /^Low -?\d+\.\d ft · 12:30p,High \d+\.\d ft · 7p$/.test(r.tl.lows.join()), 'the timeline has sky, the chance of rain as %, wind as arrows and speeds (no graph), tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
       check(r.tl.hours[0] === '10a' && r.tl.hours[r.tl.hours.length - 1] === '8p' && !r.tl.day, 'at 9:30 AM the timeline runs from just before now to 12 hours ahead (10a … 8p), no midnight: ' + JSON.stringify(r.tl.hours));
       const sun = r.week[0], tue = r.week[2];
       check(r.week.length === 6 && /Not today/.test(sun.v) && /Boating/.test(sun.title), 'the week: six days, and stormy Sunday is not a boating day: ' + JSON.stringify(r.week.slice(0, 3)));
@@ -3519,7 +3519,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       await p.evaluate(() => { window.__T = Date.parse('2026-07-19T01:30:00Z'); renderPlan(window.__state, window.__info); });
       const night = await read(p);
       check(night.dark && night.day === 'Tomorrow', 'after sunset: dark, and planning tomorrow: ' + JSON.stringify({ dark: night.dark, day: night.day }));
-      check(night.tl.hours[0] === '10p' && night.tl.hours[night.tl.hours.length - 1] === '8a' && night.tl.day === 'Sun' && night.tl.lows.some(t => /High 7:30a/.test(t)), 'at 9:30 PM the timeline shows the night and tomorrow morning (10p … 8a), midnight marked Sun, and the morning high tide: ' + JSON.stringify(night.tl));
+      check(night.tl.hours[0] === '10p' && night.tl.hours[night.tl.hours.length - 1] === '8a' && night.tl.day === 'Sun' && night.tl.lows.some(t => /^High \d+\.\d ft · 7:30a$/.test(t)), 'at 9:30 PM the timeline shows the night and tomorrow morning (10p … 8a), midnight marked Sun, and the morning high tide: ' + JSON.stringify(night.tl));
       await p.screenshot({ path: path.join(OUT, 'weather-plan-night.png') });
       // late at night: the night clock (just the time, the temperature and the sunrise); a touch wakes the page
       const nc = await p.evaluate(() => { window.__T = Date.parse('2026-07-19T03:40:00Z'); nightClock(); const el = document.getElementById('nightclock'); return { shown: !el.hidden, text: el.textContent.replace(/\s+/g, ' ').trim() }; });

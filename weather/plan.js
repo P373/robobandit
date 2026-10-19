@@ -482,7 +482,7 @@ function drawTimeline(state, v) {
     wind: [skyH + rainH + 8, windH]
   };
   rows.tide = [rows.wind[0] + windH + 4, Math.max(30, avail - (rows.wind[0] + windH + 4) - 2)];
-  var iconS = skyH < 48 ? 22 : 28;
+  var iconS = skyH - 8; // the sky icon fills the row; the temperature sits over its lower edge
   var axisY = H - 18;
   var hours = dayHours(state, todayKey).concat(dayHours(state, tomorrow)).filter(function (h) {
     return h.t + 36e5 > t0 && h.t < t1;
@@ -543,7 +543,7 @@ function drawTimeline(state, v) {
       var h = _step3.value;
       if (Math.round(h.min / 60) % stepH || h.temp == null || h.t < t0) continue;
       var cx = x(h.t + 18e5);
-      out.push(wxIcon(h["short"], isDay(h.t + 18e5), iconS).replace('<svg ', "<svg x=\"".concat(cx - iconS / 2, "\" y=\"2\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(skyH - 6, "\" class=\"tl-temp\">").concat(h.temp, "\xB0</text>"));
+      out.push(wxIcon(h["short"], isDay(h.t + 18e5), iconS).replace('<svg ', "<svg x=\"".concat(cx - iconS / 2, "\" y=\"0\" ")), "<text x=\"".concat(cx, "\" y=\"").concat(skyH - 3, "\" class=\"tl-temp halo\">").concat(h.temp, "\xB0</text><text x=\"").concat(cx, "\" y=\"").concat(skyH - 3, "\" class=\"tl-temp\">").concat(h.temp, "\xB0</text>"));
     }
     // rain: the chance on each labelled hour, blue once it's worth noticing; ⚡ for thunderstorms and ❄ for snow on any hour
   } catch (err) {
@@ -643,7 +643,7 @@ function drawTimeline(state, v) {
           var p = _step6.value;
           var up = p.type === 'H',
             ty = up ? y(p.v) - 7 : y(p.v) + 15;
-          out.push("<circle cx=\"".concat(x(at(p)), "\" cy=\"").concat(y(p.v), "\" r=\"3.5\" class=\"tl-dot ").concat(up ? 'hi' : 'lo', "\"/>"), "<text x=\"".concat(x(at(p)), "\" y=\"").concat(ty, "\" class=\"tl-val\">").concat(up ? 'High' : 'Low', " ").concat(clock(p.min).n).concat(clock(p.min).ap === 'AM' ? 'a' : 'p', "</text>"));
+          out.push("<circle cx=\"".concat(x(at(p)), "\" cy=\"").concat(y(p.v), "\" r=\"3.5\" class=\"tl-dot ").concat(up ? 'hi' : 'lo', "\"/>"), "<text x=\"".concat(x(at(p)), "\" y=\"").concat(ty, "\" class=\"tl-val\">").concat(up ? 'High' : 'Low', " ").concat(p.v.toFixed(1), " ft \xB7 ").concat(clock(p.min).n).concat(clock(p.min).ap === 'AM' ? 'a' : 'p', "</text>"));
         }
       } catch (err) {
         _iterator6.e(err);
@@ -680,7 +680,7 @@ function drawTimeline(state, v) {
   setScrub(scrubAt != null ? scrubAt : now);
 }
 
-// ---------- the slider: drag the red line (or tap) to read the forecast at any time ----------
+// ---------- the slider: drag the line (or tap) to read the forecast at any time ----------
 
 var tlModel = null,
   scrubAt = null,
