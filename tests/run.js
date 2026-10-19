@@ -3335,7 +3335,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const strip = await p.evaluate(() => {
       const nowAbs = minutesOfDay(new Date()), later = new Date(Date.now() + 6 * 36e5).toISOString();
       const hilo = [{ abs: nowAbs - 200, min: 0, type: 'L', v: 0.2 }, { abs: nowAbs + 180, min: 600, type: 'H', v: 4.1 }];
-      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Partly Sunny', isDaytime: true, probabilityOfPrecipitation: { value: 20 } } }, waterTemp: 81.2, buoy: { time: new Date().toISOString(), spd: 12.4, gst: 18, dir: 225 }, tides: { hilo } });
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Partly Sunny', isDaytime: true, probabilityOfPrecipitation: { value: 20 } }, wind: [{ t: Math.floor(Date.now() / 36e5) * 36e5, spd: 12.4, gst: 18, dir: 225 }] }, waterTemp: 81.2, tides: { hilo } });
       const cards = [...document.querySelectorAll('#now .cond-card')].map(c => (c.querySelector('b') ? c.querySelector('b').textContent + ' ' : (c.querySelector('svg.wx-icon') ? '☁ ' : '')) + c.querySelector('i').textContent);
       renderAlertBar([{ event: 'Small Craft Advisory', ends: later, description: 'Southwest winds 15 to 20 kt with gusts up to 25 kt.', instruction: 'Inexperienced mariners should avoid navigating.' },
         { event: 'Gale Watch', ends: later, description: 'Gales possible.' }], []);
@@ -3415,7 +3415,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         { label: 'SUN', text: 'SW winds 20 to 25 kt. Seas 4 to 6 ft.', slots: [2] },
         { label: 'MON', text: 'W winds 10 kt. Seas 1 to 2 ft.', slots: [4] }] };
       window.__state = { days: Array.from({ length: 7 }, (_, i) => addDays(todayKey, i)), weather: { byDay, now: { temperature: hours[9].temp, shortForecast: hours[9].short, isDaytime: true, probabilityOfPrecipitation: { value: 10 } }, hours: hours.filter((h) => h.t >= Date.now() - H), wind, rainChance: hours.map((h) => ({ t: h.t, pop: h.pop })), cell: null },
-        marine, tides: { curve, hilo, stats: { maxHigh: { v: 4.6 }, minLow: { v: -0.7 }, avgHigh: 3.6, avgLow: 0.4, highs: [], lows: [], ranges: [] } }, currents: null, waterTemp: 64, waterLevel: null, buoy: { time: new Date().toISOString(), spd: 9, gst: 12, dir: 225 }, alerts: [] };
+        marine, tides: { curve, hilo, stats: { maxHigh: { v: 4.6 }, minLow: { v: -0.7 }, avgHigh: 3.6, avgLow: 0.4, highs: [], lows: [], ranges: [] } }, currents: null, waterTemp: 64, waterLevel: null, alerts: [] };
       window.__info = { stale: [], missing: [], todayKey, health: [{ name: 'Weather', ok: true }, { name: 'Tides', ok: true }, { name: 'Marine forecast', ok: false, savedAt: Date.now() - 2 * 36e5, error: 'timed out' }, { name: 'Alerts', ok: false, error: 'Failed to fetch' }] };
       renderNow(window.__state); renderPlan(window.__state, window.__info);
     };

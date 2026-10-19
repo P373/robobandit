@@ -33,8 +33,6 @@ var CONFIG = {
   marineZone: 'ANZ234',
   // Buzzards Bay
   marineOffice: 'BOX',
-  buoy: 'BUZM3',
-  // Buzzards Bay tower (NDBC), via the NWS observations API
   waterLevelStation: '8447930',
   // Woods Hole: observed vs. predicted water level
   currentStations: [
@@ -506,52 +504,20 @@ function _loadWaterTemp() {
   return _loadWaterTemp.apply(this, arguments);
 }
 var COOPS = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
-function loadBuoy() {
-  return _loadBuoy.apply(this, arguments);
-} // Observed minus predicted water level at Woods Hole (positive = water running high).
-function _loadBuoy() {
-  _loadBuoy = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6() {
-    var _p$windSpeed, _p$windSpeed2, _p$windGust, _p$windGust2, _p$windDirection;
-    var p, spd;
-    return _regenerator().w(function (_context6) {
-      while (1) switch (_context6.n) {
-        case 0:
-          _context6.n = 1;
-          return getJSON("https://api.weather.gov/stations/".concat(CONFIG.buoy, "/observations/latest"));
-        case 1:
-          p = _context6.v.properties;
-          spd = toKnots((_p$windSpeed = p.windSpeed) === null || _p$windSpeed === void 0 ? void 0 : _p$windSpeed.value, (_p$windSpeed2 = p.windSpeed) === null || _p$windSpeed2 === void 0 ? void 0 : _p$windSpeed2.unitCode);
-          if (!(spd == null)) {
-            _context6.n = 2;
-            break;
-          }
-          throw new Error('No wind reading');
-        case 2:
-          return _context6.a(2, {
-            time: p.timestamp,
-            spd: spd,
-            gst: toKnots((_p$windGust = p.windGust) === null || _p$windGust === void 0 ? void 0 : _p$windGust.value, (_p$windGust2 = p.windGust) === null || _p$windGust2 === void 0 ? void 0 : _p$windGust2.unitCode),
-            dir: (_p$windDirection = p.windDirection) === null || _p$windDirection === void 0 ? void 0 : _p$windDirection.value
-          });
-      }
-    }, _callee6);
-  }));
-  return _loadBuoy.apply(this, arguments);
-}
 function loadWaterLevel(_x3) {
   return _loadWaterLevel.apply(this, arguments);
 }
 function _loadWaterLevel() {
-  _loadWaterLevel = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(todayKey) {
+  _loadWaterLevel = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee6(todayKey) {
     var common, _yield$Promise$all5, _yield$Promise$all6, obs, pred, o, match;
-    return _regenerator().w(function (_context7) {
-      while (1) switch (_context7.n) {
+    return _regenerator().w(function (_context6) {
+      while (1) switch (_context6.n) {
         case 0:
           common = "station=".concat(CONFIG.waterLevelStation, "&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=capevisual.com");
-          _context7.n = 1;
+          _context6.n = 1;
           return Promise.all([getJSON("".concat(COOPS, "?product=water_level&date=latest&").concat(common)), getJSON("".concat(COOPS, "?product=predictions&begin_date=").concat(addDays(todayKey, -1).replace(/-/g, ''), "&range=48&").concat(common))]);
         case 1:
-          _yield$Promise$all5 = _context7.v;
+          _yield$Promise$all5 = _context6.v;
           _yield$Promise$all6 = _slicedToArray(_yield$Promise$all5, 2);
           obs = _yield$Promise$all6[0];
           pred = _yield$Promise$all6[1];
@@ -560,17 +526,17 @@ function _loadWaterLevel() {
             return x.t === o.t;
           });
           if (match) {
-            _context7.n = 2;
+            _context6.n = 2;
             break;
           }
           throw new Error('No prediction for latest observation');
         case 2:
-          return _context7.a(2, {
+          return _context6.a(2, {
             t: o.t,
             diff: parseFloat(o.v) - parseFloat(match.v)
           });
       }
-    }, _callee7);
+    }, _callee6);
   }));
   return _loadWaterLevel.apply(this, arguments);
 }
@@ -578,23 +544,23 @@ function loadCurrents(_x4) {
   return _loadCurrents.apply(this, arguments);
 } // Active NWS alerts for Megansett (land) and the Buzzards Bay marine zone.
 function _loadCurrents() {
-  _loadCurrents = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9(todayKey) {
+  _loadCurrents = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8(todayKey) {
     var begin, hours;
-    return _regenerator().w(function (_context9) {
-      while (1) switch (_context9.n) {
+    return _regenerator().w(function (_context8) {
+      while (1) switch (_context8.n) {
         case 0:
           begin = todayKey.replace(/-/g, '');
           hours = (CONFIG.days + 1) * 24;
-          return _context9.a(2, Promise.all(CONFIG.currentStations.map(/*#__PURE__*/function () {
-            var _ref0 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee8(s) {
+          return _context8.a(2, Promise.all(CONFIG.currentStations.map(/*#__PURE__*/function () {
+            var _ref0 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee7(s) {
               var data, events, first;
-              return _regenerator().w(function (_context8) {
-                while (1) switch (_context8.n) {
+              return _regenerator().w(function (_context7) {
+                while (1) switch (_context7.n) {
                   case 0:
-                    _context8.n = 1;
+                    _context7.n = 1;
                     return getJSON("".concat(COOPS, "?product=currents_predictions&station=").concat(s.id, "&bin=").concat(s.bin, "&interval=MAX_SLACK&begin_date=").concat(begin, "&range=").concat(hours, "&time_zone=lst_ldt&units=english&format=json&application=capevisual.com"));
                   case 1:
-                    data = _context8.v;
+                    data = _context7.v;
                     events = data.current_predictions.cp.map(function (c) {
                       return {
                         key: c.Time.slice(0, 10),
@@ -604,20 +570,20 @@ function _loadCurrents() {
                       };
                     });
                     first = data.current_predictions.cp[0] || {};
-                    return _context8.a(2, _objectSpread(_objectSpread({}, s), {}, {
+                    return _context7.a(2, _objectSpread(_objectSpread({}, s), {}, {
                       events: events,
                       floodDir: first.meanFloodDir,
                       ebbDir: first.meanEbbDir
                     }));
                 }
-              }, _callee8);
+              }, _callee7);
             }));
             return function (_x8) {
               return _ref0.apply(this, arguments);
             };
           }())));
       }
-    }, _callee9);
+    }, _callee8);
   }));
   return _loadCurrents.apply(this, arguments);
 }
@@ -625,20 +591,20 @@ function loadAlerts() {
   return _loadAlerts.apply(this, arguments);
 } // Run a loader; on success remember the result, on failure fall back to the last good copy.
 function _loadAlerts() {
-  _loadAlerts = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0() {
+  _loadAlerts = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee9() {
     var _yield$Promise$all7, _yield$Promise$all8, point, zone, seen;
-    return _regenerator().w(function (_context0) {
-      while (1) switch (_context0.n) {
+    return _regenerator().w(function (_context9) {
+      while (1) switch (_context9.n) {
         case 0:
-          _context0.n = 1;
+          _context9.n = 1;
           return Promise.all([getJSON("https://api.weather.gov/alerts/active?point=".concat(CONFIG.lat, ",").concat(CONFIG.lon)), getJSON("https://api.weather.gov/alerts/active/zone/".concat(CONFIG.marineZone))]);
         case 1:
-          _yield$Promise$all7 = _context0.v;
+          _yield$Promise$all7 = _context9.v;
           _yield$Promise$all8 = _slicedToArray(_yield$Promise$all7, 2);
           point = _yield$Promise$all8[0];
           zone = _yield$Promise$all8[1];
           seen = new Set();
-          return _context0.a(2, [].concat(_toConsumableArray(point.features), _toConsumableArray(zone.features)).map(function (f) {
+          return _context9.a(2, [].concat(_toConsumableArray(point.features), _toConsumableArray(zone.features)).map(function (f) {
             return f.properties;
           }).filter(function (a) {
             return !seen.has(a.id) && seen.add(a.id);
@@ -653,7 +619,7 @@ function _loadAlerts() {
             };
           }));
       }
-    }, _callee0);
+    }, _callee9);
   }));
   return _loadAlerts.apply(this, arguments);
 }
@@ -661,54 +627,54 @@ function cached(_x5, _x6, _x7) {
   return _cached.apply(this, arguments);
 } // ---------- Coastal Waters Forecast parsing ----------
 function _cached() {
-  _cached = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1(name, maxAgeHours, loader) {
+  _cached = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee0(name, maxAgeHours, loader) {
     var key, value, saved, _t, _t2;
-    return _regenerator().w(function (_context1) {
-      while (1) switch (_context1.p = _context1.n) {
+    return _regenerator().w(function (_context0) {
+      while (1) switch (_context0.p = _context0.n) {
         case 0:
           key = "cv:".concat(name);
-          _context1.p = 1;
-          _context1.n = 2;
+          _context0.p = 1;
+          _context0.n = 2;
           return loader();
         case 2:
-          value = _context1.v;
+          value = _context0.v;
           try {
             localStorage.setItem(key, JSON.stringify({
               savedAt: Date.now(),
               value: value
             }));
           } catch (_unused) {/* storage full or disabled */}
-          return _context1.a(2, {
+          return _context0.a(2, {
             value: value
           });
         case 3:
-          _context1.p = 3;
-          _t = _context1.v;
+          _context0.p = 3;
+          _t = _context0.v;
           console.error(name, _t);
-          _context1.p = 4;
+          _context0.p = 4;
           saved = JSON.parse(localStorage.getItem(key));
           if (!(saved && Date.now() - saved.savedAt < maxAgeHours * 36e5)) {
-            _context1.n = 5;
+            _context0.n = 5;
             break;
           }
-          return _context1.a(2, {
+          return _context0.a(2, {
             value: saved.value,
             staleSince: saved.savedAt,
             error: _t
           });
         case 5:
-          _context1.n = 7;
+          _context0.n = 7;
           break;
         case 6:
-          _context1.p = 6;
-          _t2 = _context1.v;
+          _context0.p = 6;
+          _t2 = _context0.v;
         case 7:
-          return _context1.a(2, {
+          return _context0.a(2, {
             value: null,
             error: _t
           });
       }
-    }, _callee1, null, [[4, 6], [1, 3]]);
+    }, _callee0, null, [[4, 6], [1, 3]]);
   }));
   return _cached.apply(this, arguments);
 }
@@ -972,9 +938,9 @@ var lineIcon = function lineIcon(k, cls) {
   return "<svg class=\"".concat(cls, "\" viewBox=\"0 0 24 24\" aria-hidden=\"true\">").concat(COND_ICONS[k], "</svg>");
 };
 function renderNow(_ref) {
+  var _weather$wind;
   var weather = _ref.weather,
     waterTemp = _ref.waterTemp,
-    buoy = _ref.buoy,
     waterLevel = _ref.waterLevel;
   var card = function card(icon, value, label, title) {
     return "<div class=\"cond-card\" title=\"".concat(esc(title), "\">").concat(lineIcon(icon, 'cond-ic'), "<b>").concat(value, "</b><i>").concat(label, "</i></div>");
@@ -998,12 +964,13 @@ function renderNow(_ref) {
   var d = waterLevel === null || waterLevel === void 0 ? void 0 : waterLevel.diff;
   var surge = d == null ? '' : Math.abs(d) < 0.3 ? 'Level near predicted · ' : "Level ".concat(d > 0 ? '+' : '−').concat(Math.abs(d).toFixed(1), " ft ").concat(d > 0 ? 'above' : 'below', " predicted \xB7 ");
   var water = card('water', waterTemp != null ? "".concat(Math.round(waterTemp), "\xB0") : '--', 'Water', "".concat(surge, "NOAA Woods Hole"));
-  var wind = card('wind', '--', 'Wind', 'Wind now · NOAA BUZM3 Buzzards Bay tower');
-  if (buoy) {
-    var t = new Date(buoy.time),
-      old = Date.now() - t > 2 * 36e5 ? ' (old reading)' : '';
-    wind = card('wind', "".concat(compass(buoy.dir), " ").concat(Math.round(buoy.spd), "<small>kt</small>"), 'Wind', "".concat(buoy.gst ? "Gusts ".concat(Math.round(buoy.gst), " kt \xB7 ") : '', "NOAA BUZM3 Buzzards Bay tower \xB7 ").concat(fmt(t)).concat(old));
-  }
+
+  // wind this hour from the Megansett hourly forecast (the nearest live wind sensor is 28 miles out at the mouth of the bay)
+  var hr = Math.floor(Date.now() / 36e5) * 36e5,
+    w = weather === null || weather === void 0 || (_weather$wind = weather.wind) === null || _weather$wind === void 0 ? void 0 : _weather$wind.find(function (x) {
+      return x.t === hr;
+    });
+  var wind = w ? card('wind', "".concat(compass(w.dir), " ").concat(Math.round(w.spd), "<small>kt</small>"), 'Wind', "".concat(w.gst > w.spd + 2 ? "Gusts ".concat(Math.round(w.gst), " kt \xB7 ") : '', "NWS hourly forecast for Megansett, this hour")) : card('wind', '--', 'Wind', 'Wind this hour · NWS forecast for Megansett');
 
   // the time of the next high or low; the arrow says which way the water is going until then
   // the sun: whichever comes next (sunset in the day, sunrise at night); and tonight's moon
@@ -1366,11 +1333,11 @@ function refresh() {
   return _refresh.apply(this, arguments);
 }
 function _refresh() {
-  _refresh = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee11() {
+  _refresh = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10() {
     var _state$weather;
     var todayKey, days, sources, names, results, _i3, _arr2, _results$tides$value, _results$tides$value2, p, _iterator6, _step6, s, _iterator7, _step7, e, state, stale, missing, health, _t5;
-    return _regenerator().w(function (_context11) {
-      while (1) switch (_context11.n) {
+    return _regenerator().w(function (_context10) {
+      while (1) switch (_context10.n) {
         case 0:
           todayKey = dateKey(new Date());
           days = Array.from({
@@ -1391,33 +1358,32 @@ function _refresh() {
             waterLevel: ['Water level', 3, function () {
               return loadWaterLevel(todayKey);
             }],
-            buoy: ['Buzzards Bay tower', 3, loadBuoy],
             alerts: ['Alerts', 6, loadAlerts]
           };
           names = Object.keys(sources);
           _t5 = Object;
-          _context11.n = 1;
+          _context10.n = 1;
           return Promise.all(names.map(/*#__PURE__*/function () {
-            var _ref1 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee10(k) {
+            var _ref1 = _asyncToGenerator(/*#__PURE__*/_regenerator().m(function _callee1(k) {
               var _t3, _t4;
-              return _regenerator().w(function (_context10) {
-                while (1) switch (_context10.n) {
+              return _regenerator().w(function (_context1) {
+                while (1) switch (_context1.n) {
                   case 0:
                     _t3 = k;
-                    _context10.n = 1;
+                    _context1.n = 1;
                     return cached(k, sources[k][1], sources[k][2]);
                   case 1:
-                    _t4 = _context10.v;
-                    return _context10.a(2, [_t3, _t4]);
+                    _t4 = _context1.v;
+                    return _context1.a(2, [_t3, _t4]);
                 }
-              }, _callee10);
+              }, _callee1);
             }));
             return function (_x9) {
               return _ref1.apply(this, arguments);
             };
           }()));
         case 1:
-          results = _t5.fromEntries.call(_t5, _context11.v);
+          results = _t5.fromEntries.call(_t5, _context10.v);
           // Index tide and current events by day relative to today (cached data may start on an earlier day).
           for (_i3 = 0, _arr2 = [].concat(_toConsumableArray(((_results$tides$value = results.tides.value) === null || _results$tides$value === void 0 ? void 0 : _results$tides$value.curve) || []), _toConsumableArray(((_results$tides$value2 = results.tides.value) === null || _results$tides$value2 === void 0 ? void 0 : _results$tides$value2.hilo) || [])); _i3 < _arr2.length; _i3++) {
             p = _arr2[_i3];
@@ -1482,9 +1448,9 @@ function _refresh() {
             health: health
           });
         case 2:
-          return _context11.a(2);
+          return _context10.a(2);
       }
-    }, _callee11);
+    }, _callee10);
   }));
   return _refresh.apply(this, arguments);
 }

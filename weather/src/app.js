@@ -8,7 +8,6 @@ const CONFIG = {
   waterTempStation: '8447930', // Woods Hole
   marineZone: 'ANZ234',     // Buzzards Bay
   marineOffice: 'BOX',
-  buoy: 'BUZM3',            // Buzzards Bay tower (NDBC), via the NWS observations API
   waterLevelStation: '8447930', // Woods Hole: observed vs. predicted water level
   currentStations: [
     // Flow directions come from NOAA; these just say where each direction leads.
@@ -209,14 +208,6 @@ async function loadWaterTemp() {
 
 const COOPS = 'https://api.tidesandcurrents.noaa.gov/api/prod/datagetter';
 
-async function loadBuoy() {
-  const p = (await getJSON(`https://api.weather.gov/stations/${CONFIG.buoy}/observations/latest`)).properties;
-  const spd = toKnots(p.windSpeed?.value, p.windSpeed?.unitCode);
-  if (spd == null) throw new Error('No wind reading');
-  return { time: p.timestamp, spd, gst: toKnots(p.windGust?.value, p.windGust?.unitCode), dir: p.windDirection?.value };
-}
-
-// Observed minus predicted water level at Woods Hole (positive = water running high).
 async function loadWaterLevel(todayKey) {
   const common = `station=${CONFIG.waterLevelStation}&datum=MLLW&time_zone=lst_ldt&units=english&format=json&application=capevisual.com`;
   const [obs, pred] = await Promise.all([
@@ -491,7 +482,7 @@ const COND_ICONS = {
 };
 const lineIcon = (k, cls) => `<svg class="${cls}" viewBox="0 0 24 24" aria-hidden="true">${COND_ICONS[k]}</svg>`;
 
-function renderNow({ weather, waterTemp, buoy, waterLevel }) {
+function renderNow({ weather, waterTemp, waterLevel }) {
   const card = (icon, value, label, title) =>
     `<div class="cond-card" title="${esc(title)}">${lineIcon(icon, 'cond-ic')}<b>${value}</b><i>${label}</i></div>`;
 
@@ -505,12 +496,11 @@ function renderNow({ weather, waterTemp, buoy, waterLevel }) {
   const surge = d == null ? '' : Math.abs(d) < 0.3 ? 'Level near predicted · ' : `Level ${d > 0 ? '+' : '−'}${Math.abs(d).toFixed(1)} ft ${d > 0 ? 'above' : 'below'} predicted · `;
   const water = card('water', waterTemp != null ? `${Math.round(waterTemp)}°` : '--', 'Water', `${surge}NOAA Woods Hole`);
 
-  let wind = card('wind', '--', 'Wind', 'Wind now · NOAA BUZM3 Buzzards Bay tower');
-  if (buoy) {
-    const t = new Date(buoy.time), old = Date.now() - t > 2 * 36e5 ? ' (old reading)' : '';
-    wind = card('wind', `${compass(buoy.dir)} ${Math.round(buoy.spd)}<small>kt</small>`, 'Wind',
-      `${buoy.gst ? `Gusts ${Math.round(buoy.gst)} kt · ` : ''}NOAA BUZM3 Buzzards Bay tower · ${fmt(t)}${old}`);
-  }
+  // wind this hour from the Megansett hourly forecast (the nearest live wind sensor is 28 miles out at the mouth of the bay)
+  const hr = Math.floor(Date.now() / 36e5) * 36e5, w = weather?.wind?.find((x) => x.t === hr);
+  const wind = w ? card('wind', `${compass(w.dir)} ${Math.round(w.spd)}<small>kt</small>`, 'Wind',
+    `${w.gst > w.spd + 2 ? `Gusts ${Math.round(w.gst)} kt · ` : ''}NWS hourly forecast for Megansett, this hour`)
+    : card('wind', '--', 'Wind', 'Wind this hour · NWS forecast for Megansett');
 
   // the time of the next high or low; the arrow says which way the water is going until then
   // the sun: whichever comes next (sunset in the day, sunrise at night); and tonight's moon
@@ -870,7 +860,6 @@ async function refresh() {
     currents: ['Currents', 24 * 7, () => loadCurrents(todayKey)],
     waterTemp: ['Water temperature', 6, loadWaterTemp],
     waterLevel: ['Water level', 3, () => loadWaterLevel(todayKey)],
-    buoy: ['Buzzards Bay tower', 3, loadBuoy],
     alerts: ['Alerts', 6, loadAlerts],
   };
   const names = Object.keys(sources);

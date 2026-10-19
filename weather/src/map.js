@@ -4,13 +4,11 @@
 
 const SOURCES = [
   { id: 'home', lat: CONFIG.lat, lon: CONFIG.lon, color: '#d33', label: 'M', name: 'Megansett Harbor',
-    what: 'NWS weather forecast (2.5 km grid square shown) · sun & moon times' },
+    what: 'NWS weather & wind forecast (2.5 km grid square shown) · sun & moon times' },
   { id: 'tide', lat: 41.605, lon: -70.6517, color: '#2b7fb8', label: 'T', name: 'Chappaquoit Point, West Falmouth',
     what: 'Tide predictions (NOAA 8447685)', url: 'https://tidesandcurrents.noaa.gov/stationhome.html?id=8447685' },
   { id: 'wh', lat: 41.5236, lon: -70.6711, color: '#7b4fc9', label: 'W', name: 'Woods Hole',
     what: 'Water temperature & observed water level (NOAA 8447930)', url: 'https://tidesandcurrents.noaa.gov/stationhome.html?id=8447930' },
-  { id: 'buoy', lat: 41.397, lon: -71.033, color: '#2f8f6f', label: 'B', name: 'Buzzards Bay tower',
-    what: 'Live wind & gusts (NOAA BUZM3), at the mouth of the bay', url: 'https://www.ndbc.noaa.gov/station_page.php?station=buzm3' },
   { id: 'canal', lat: 41.74268, lon: -70.61418, color: '#b5651d', label: 'C', name: 'Cape Cod Canal · Railroad Bridge',
     what: 'Current predictions (NOAA COD0904)', url: 'https://tidesandcurrents.noaa.gov/noaacurrents/predictions?id=COD0904_15' },
   { id: 'strait', lat: 41.51929, lon: -70.68289, color: '#b5651d', label: 'C', name: 'Woods Hole · The Strait',
