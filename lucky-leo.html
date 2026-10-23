@@ -71,7 +71,7 @@
   #tHat { right: calc(max(14px, env(safe-area-inset-right)) + 104px); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 88px) !important; width: 64px !important; height: 64px !important; font-size: 24px !important; }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261019-1131">
+<link rel="stylesheet" href="common.css?v=20261023-1709">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -120,7 +120,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261019-1131"></script>
+<script src="common.js?v=20261023-1709"></script>
 <script>
 'use strict';
 // ===================== Lucky Leo =====================
@@ -1550,13 +1550,16 @@ function rrect(x, y, w, h, r) {
   g.lineTo(x + w, y + h - rr[2]); g.quadraticCurveTo(x + w, y + h, x + w - rr[2], y + h);
   g.lineTo(x + rr[3], y + h); g.quadraticCurveTo(x, y + h, x, y + h - rr[3]); g.lineTo(x, y + rr[0]); g.quadraticCurveTo(x, y, x + rr[0], y);
 }
+function rrectOn(c, x, y, w, h, r) { const old = g; g = c; try { rrect(x, y, w, h, r); } finally { g = old; } }
 function ell(x, y, rx, ry, rot = 0) { g.beginPath(); g.ellipse(x, y, Math.max(0.01, rx), Math.max(0.01, ry), rot, 0, TAU); }
 let noInk = false;   // characters and items are drawn like Leo: bold flat shapes, no dark outlines
 function paint(fill, lw = 0, stroke = INK) { g.fillStyle = fill; g.fill(); if (lw && !noInk) { g.lineWidth = lw; g.strokeStyle = stroke; g.stroke(); } }
 function vgrad(y0, y1, a, b) { const gr = g.createLinearGradient(0, y0, 0, y1); gr.addColorStop(0, a); gr.addColorStop(1, b); return gr; }
 // soft glows are painted once per colour into a small picture, then stretched: much cheaper than a gradient every frame
 const glowCache = new Map();
+let sprMain = null;   // while characters are painted onto their own layer (to be shaded), soft glows go straight onto the screen
 function glow(x, y, r, color, alpha = 0.6) {
+  if (sprMain && g !== sprMain) { const lay = g; sprMain.save(); sprMain.setTransform(lay.getTransform()); g = sprMain; try { glow(x, y, r, color, alpha); } finally { g = lay; sprMain.restore(); } return; }
   let c = glowCache.get(color);
   if (!c) {
     if (glowCache.size > 60) glowCache.clear();
@@ -1649,7 +1652,7 @@ function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
   g.translate(x + 8, y + H);
   if (fx.rot) { g.translate(0, -H / 2); g.rotate(fx.rot); g.translate(0, H / 2); }   // flips and spins turn round his middle
   g.rotate(fx.tilt || 0);
-  g.scale(face * s * wide * (1 + sq * 0.18), s * (1 - sq * 0.18));
+  g.scale(face * s * wide * (1 + sq * 0.24), s * (1 - sq * 0.24));
   const dead = pose === 'dead', ride = pose === 'ride', air = pose === 'jump' || dead, skid = pose === 'skid';
   const legA = air ? 0.7 : skid ? -0.4 : swing * 0.75;
   const fill = c => { g.fillStyle = c; g.fill(); };
@@ -1826,7 +1829,8 @@ function drawCap(x, y, spin, big) {
   star(0, -3.6, 2, '#ffe14a');
   g.restore();
 }
-function drawGrumblin(x, y, t, face, flat) {
+function drawGrumblin(x, y, t, face, flat, e = {}) {
+  const lx = (e.lookX || 0) * face, ly = e.lookY || 0, wide = e.spook > 0 ? 1.3 : 1;
   const bob = flat ? 0 : Math.abs(Math.sin(t * 9)) * 1.2;
   g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
   g.lineJoin = 'round'; const lw = 1.1;
@@ -1839,13 +1843,15 @@ function drawGrumblin(x, y, t, face, flat) {
   ell(0, -8, 7.2, 6.8); paint(vgrad(-15, -1, '#9ad466', '#5e9a3a'), lw);
   g.save(); ell(0, -8, 7.2, 6.8); g.clip(); g.fillStyle = '#8a4a2a'; g.fillRect(-8, -5, 16, 6); g.fillStyle = '#6a3418'; g.fillRect(-8, -5, 16, 1); g.restore();
   // grumpy face
-  for (const sx of [-2.6, 2.6]) { ell(sx, -9.5, 1.9, 2.2); paint('#fff', 0.8); g.beginPath(); g.arc(sx + 0.6, -9.2, 1, 0, TAU); paint(INK); }
-  g.lineWidth = 1.2; g.strokeStyle = INK; g.beginPath(); g.moveTo(-4.6, -13); g.lineTo(-1.2, -11.6); g.moveTo(4.6, -13); g.lineTo(1.2, -11.6); g.stroke();
+  for (const sx of [-2.6, 2.6]) { ell(sx, -9.5, 1.9 * wide, 2.2 * wide); paint('#fff', 0.8); g.beginPath(); g.arc(sx + 0.3 + lx * 0.8, -9.4 + ly * 0.9, 1, 0, TAU); paint(INK); }
+  const brow = e.spook > 0 ? -1.6 : 0;   // startled: the brows shoot up
+  g.lineWidth = 1.2; g.strokeStyle = INK; g.beginPath(); g.moveTo(-4.6, -13 + brow * 1.4); g.lineTo(-1.2, -11.6 + brow); g.moveTo(4.6, -13 + brow * 1.4); g.lineTo(1.2, -11.6 + brow); g.stroke();
   g.beginPath(); g.moveTo(-2, -5.6); g.quadraticCurveTo(0, -6.8, 2, -5.6); g.lineWidth = 1; g.stroke();
   g.beginPath(); g.moveTo(0.4, -6.2); g.lineTo(1, -5.2); g.lineTo(1.5, -6.3); paint('#fff');
   g.restore();
 }
-function drawSnaily(x, y, t, face, shellOnly, spin) {
+function drawSnaily(x, y, t, face, shellOnly, spin, e = {}) {
+  const lx = (e.lookX || 0) * face, ly = e.lookY || 0;
   g.save(); g.translate(x + 8, y + 16); g.scale(face, 1); g.lineJoin = 'round'; const lw = 1.1;
   if (!shellOnly) {
     const crawl = Math.sin(t * 6) * 0.6;
@@ -1854,7 +1860,7 @@ function drawSnaily(x, y, t, face, shellOnly, spin) {
     for (const [sx, k] of [[4.4, 0], [7, 1]]) {
       const wob = Math.sin(t * 5 + k * 2) * 0.8;
       g.beginPath(); g.moveTo(sx, -10.5); g.lineTo(sx + wob, -15); g.lineWidth = 1; g.strokeStyle = '#c8983a'; g.stroke();
-      g.beginPath(); g.arc(sx + wob, -15.5, 1.6, 0, TAU); paint('#fff', 0.8); g.beginPath(); g.arc(sx + wob + 0.5, -15.4, 0.8, 0, TAU); paint(INK);
+      g.beginPath(); g.arc(sx + wob, -15.5, 1.6 * (e.spook > 0 ? 1.3 : 1), 0, TAU); paint('#fff', 0.8); g.beginPath(); g.arc(sx + wob + 0.2 + lx * 0.6, -15.5 + ly * 0.6, 0.8, 0, TAU); paint(INK);
     }
   }
   const cy = shellOnly ? -6.5 : -8;
@@ -1866,7 +1872,8 @@ function drawSnaily(x, y, t, face, shellOnly, spin) {
   g.restore();
   g.restore();
 }
-function drawThorny(x, y, t, face) {
+function drawThorny(x, y, t, face, e = {}) {
+  const lx = (e.lookX || 0) * face, ly = e.lookY || 0;
   g.save(); g.translate(x + 8, y + 16); g.scale(face, 1); g.lineJoin = 'round'; const lw = 1;
   for (const fx2 of [-3.5, 3]) { const k = Math.sin(t * 8 + fx2); ell(fx2 + k, -1, 2.2, 1.4); paint('#4a3020', lw); }
   g.beginPath();
@@ -1874,7 +1881,7 @@ function drawThorny(x, y, t, face) {
   g.closePath(); paint(vgrad(-13, -2, '#9a8a7a', '#5a4a3a'), lw);
   ell(-1, -4.5, 6.5, 4); paint('#7a5a3a');
   ell(5, -4.2, 3.4, 2.6); paint('#f2d8b0', lw);
-  g.beginPath(); g.arc(8, -4.6, 1, 0, TAU); paint(INK); g.beginPath(); g.arc(4.6, -5.4, 0.8, 0, TAU); paint(INK);
+  g.beginPath(); g.arc(8 + lx * 0.5, -4.6 + ly * 0.5, 1, 0, TAU); paint(INK); g.beginPath(); g.arc(4.6 + lx * 0.5, -5.4 + ly * 0.5, 0.8, 0, TAU); paint(INK);
   g.restore();
 }
 function drawBuzzer(x, y, t, face) {
@@ -2669,10 +2676,11 @@ function groundTile(th, top, L, Rt, bot, v, theme, part = 0) {
   if (part === 2) { if (top) grassCap(th, L, Rt, v, theme); return; }
   const corners = [top && L ? r : 0, top && Rt ? r : 0, bot && Rt ? r : 0, bot && L ? r : 0];
   rrect(L ? 0 : -0.4, top ? 0 : -0.4, 16 + (L ? 0 : 0.4) + (Rt ? 0 : 0.4), 16 + (top ? 0 : 0.4) + (bot ? 0 : 0.4), corners);
-  g.fillStyle = vgrad(0, 16, th.dirt, th.dirtDk); g.fill();
-  // pebbles and speckles
+  g.fillStyle = th.dirt; g.fill();
+  // calm earth, like Mario's: just a faint speck now and then (a pebble pattern on every tile reads as busy)
+  if (v === 1) { ell(5 + hash(v, 3) * 6, 10, 2.2, 1.3); g.fillStyle = 'rgba(0,0,0,.07)'; g.fill(); }
   const rnd = k => hash(v * 31 + k, k * 7 + v);
-  for (let i = 0; i < 3; i++) { ell(2 + rnd(i) * 12, 6 + rnd(i + 5) * 8, 1.4 + rnd(i + 9) * 1.2, 1 + rnd(i + 3) * 0.6); g.fillStyle = 'rgba(0,0,0,.12)'; g.fill(); ell(1.6 + rnd(i) * 12, 5.6 + rnd(i + 5) * 8, 0.7, 0.4); g.fillStyle = 'rgba(255,255,255,.18)'; g.fill(); }
+  if (false) for (let i = 0; i < 3; i++) { ell(2 + rnd(i) * 12, 6 + rnd(i + 5) * 8, 1.4 + rnd(i + 9) * 1.2, 1 + rnd(i + 3) * 0.6); g.fillStyle = 'rgba(0,0,0,.12)'; g.fill(); ell(1.6 + rnd(i) * 12, 5.6 + rnd(i + 5) * 8, 0.7, 0.4); g.fillStyle = 'rgba(255,255,255,.18)'; g.fill(); }
   // outline the open sides
   g.lineWidth = 1.1; g.strokeStyle = th.edge;
   if (L) { g.beginPath(); g.moveTo(0.5, top ? r : 0); g.lineTo(0.5, bot ? 16 - r : 16); g.stroke(); }
@@ -2680,7 +2688,9 @@ function groundTile(th, top, L, Rt, bot, v, theme, part = 0) {
   if (bot) { g.beginPath(); g.moveTo(L ? r : 0, 15.5); g.lineTo(Rt ? 16 - r : 16, 15.5); g.stroke(); }
   if (top && part === 0) grassCap(th, L, Rt, v, theme);
 }
-function grassCap(th, L, Rt, v, theme) {
+// the cap is drawn half again as thick as it's laid out: a bold top edge says "you can stand here"
+function grassCap(th, L, Rt, v, theme) { g.save(); g.scale(1, 1.45); try { grassCap0(th, L, Rt, v, theme); } finally { g.restore(); } }
+function grassCap0(th, L, Rt, v, theme) {
   {
     // a grassy (or snowy, or crystal) cap with a wavy lower edge
     g.beginPath(); g.moveTo(L ? 0 : -0.5, 2.5);
@@ -2851,6 +2861,13 @@ let bgScaleWas = 0;
 const BG_DEPTH = sp => sp < 0.08 ? { haze: 0.58, filter: 'saturate(50%) contrast(72%) blur(0.9px)' }   // far away
   : sp < 0.3 ? { haze: 0.34, filter: 'saturate(68%) contrast(84%) blur(0.25px)' }                     // the middle distance
   : { haze: 0.12, filter: 'saturate(88%) contrast(94%)' };                                             // just behind the action
+// the whole background steps back behind a soft haze (sky-pale by day, deep blue at night), so everything Leo can
+// touch is the boldest thing on the screen, as in Mario; painted into the cached pictures, so it's free while playing
+function stepBack(tc, theme, h) {
+  const dark = darkTheme(theme), gr = tc.createLinearGradient(0, 0, 0, h);
+  gr.addColorStop(0, dark ? 'rgba(10,12,34,.45)' : 'rgba(238,247,255,.22)'); gr.addColorStop(1, dark ? 'rgba(10,12,34,.45)' : 'rgba(238,247,255,.6)');
+  tc.globalCompositeOperation = 'source-atop'; tc.fillStyle = gr; tc.fillRect(0, 0, tc.canvas.width, h); tc.globalCompositeOperation = 'source-over';
+}
 const BG_PARALLAX = 0.75;                                        // all the layers drift a little slower than they're painted to, so they don't swim
 function bgLayer(theme, i, L) {
   const bs = scale;   // painted at the screen's own resolution, so drawing it is a straight copy
@@ -2870,7 +2887,7 @@ function bgLayer(theme, i, L) {
     tc.globalCompositeOperation = 'source-atop';   // the haze only lands on what's painted, never on the empty sky between
     const hz = tc.createLinearGradient(0, 0, 0, c.height); hz.addColorStop(0, sky[0]); hz.addColorStop(1, sky[1]);
     tc.globalAlpha = depth.haze; tc.fillStyle = hz; tc.fillRect(0, 0, c.width, c.height);
-    tc.globalAlpha = 1; tc.globalCompositeOperation = 'source-over';
+    tc.globalAlpha = 1; stepBack(tc, theme, c.height); tc.globalCompositeOperation = 'source-over';
     bgCache.set(key, c);
   }
   return c;
@@ -3551,6 +3568,7 @@ function drawBackground(camX, t) {
       g.fillStyle = vgrad(0, LH, sky[0], sky[1]); g.fillRect(0, 0, LW, LH);
       if (th === 'hills' || th === 'rainbow' || th === 'sky') { glow(LW * 0.78, 34, 60, 'rgba(255,250,210,1)', 0.8); g.beginPath(); g.arc(LW * 0.78, 34, 13, 0, TAU); paint('#fff8d8'); }
     } finally { g = old; }
+    tc.setTransform(1, 0, 0, 1, 0, 0); stepBack(tc, th, skyPic.height);
   }
   // copy the sky and each scenery layer straight onto the screen, lined up on whole pixels
   g.save(); g.setTransform(1, 0, 0, 1, 0, offY);
@@ -3593,6 +3611,7 @@ function drawBackground(camX, t) {
 let state = 'title';      // 'title' → 'map' → 'level' (→ back to 'map') … 'ending'
 let lvl = null;           // the level: tiles copied so blocks can change
 let ents = [], parts = [], pops = [];   // enemies and items; particles; floating score numbers
+let shownScore = 0;   // the score on the HUD, counting up to the real one
 let player = null, camX = 0, clock = 0, lives = 5, coins = 0, score = 0, checkpoint = null, levelGems = [], gotKey = false;
 let outside = null, pipe = null;
 const tries = {};
@@ -3767,13 +3786,14 @@ function killPlayer() {
 }
 function addScore(n, x, y) { score += n; if (x !== undefined) pops.push({ x, y, t: 0, txt: String(n) }); }
 function getCoin(x, y) {
-  coins++; addScore(10); sfx.coin(); sparkle(x + 8, y + 8, '#fff2a0', 5);
+  coins++; addScore(10); sfx.coin(); sparkle(x + 8, y + 8, '#fff2a0', 5); ring(x + 8, y + 8, '#fff6c0');
   if (coins >= 100) { coins -= 100; oneUp(x, y); }
 }
 function oneUp(x, y) { lives++; sfx.oneUp(); pops.push({ x, y, t: 0, txt: '1UP' }); }
 function particle(x, y, vx, vy, c, life = 0.8, sz = 3, grav = 600) { parts.push({ x, y, vx, vy, c, t: 0, life, sz, grav }); }
 function bubble(x, y) { parts.push({ x, y, vx: rand(-6, 6), vy: rand(-40, -22), c: 'rgba(220,245,255,.75)', t: 0, life: rand(0.8, 1.4), sz: rand(1, 1.8), grav: 0, puff: true }); }
 function puff(x, y, n = 3, c = 'rgba(255,255,255,.8)') { for (let i = 0; i < n; i++) parts.push({ x: x + rand(-3, 3), y: y + rand(-1, 1), vx: rand(-25, 25), vy: rand(-18, -4), c, t: 0, life: rand(0.35, 0.55), sz: rand(1.6, 2.6), grav: 0, puff: true }); }
+function ring(x, y, c = '#ffffff', r = 11) { parts.push({ x, y, vx: 0, vy: 0, c, t: 0, life: 0.32, sz: r, grav: 0, ring: true }); }
 function sparkle(x, y, c = '#ffe14a', n = 10) { for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, s = rand(30, 110); particle(x, y, Math.cos(a) * s, Math.sin(a) * s, c, 0.5, 2, 0); } }
 
 function poundLand(p) {
@@ -3792,6 +3812,7 @@ function poundLand(p) {
 function hitBlock(tx, ty, t, fromAbove) {
   const x = tx * TS, y = ty * TS;
   bumps.push({ tx, ty, t: 0 });
+  puff(x + 3, y, 1); puff(x + 13, y, 1);   // a little dust shaken off the top
   // anything standing on the block gets knocked over
   for (const e of ents) if (!e.dead && isEnemy(e) && e.x + e.w > x && e.x < x + TS && Math.abs(e.y + e.h - y) < 4) flipEnemy(e, 0);
   if (tileAt(tx, ty - 1) === T.COIN) { setTile(tx, ty - 1, 0); getCoin(x, y - TS); coinPop(x, y - TS); }
@@ -4005,7 +4026,8 @@ function updatePlayer(dt) {
   if (p.pound === 'drop' && p.ground) poundLand(p);
   if (p.pound && p.ground) p.pound = null;
   // squash and stretch, and little puffs of dust
-  if (!wasGround && p.ground && fallV > 120) { p.squash = Math.min(1, fallV / 300); puff(p.x + p.w / 2, p.y + p.h, fallV > 220 ? 5 : 3); }
+  if (!wasGround && p.ground) p.landT = clock;
+  if (!wasGround && p.ground && fallV > 120) { p.squash = Math.min(1.2, fallV / 260); const n = fallV > 220 ? 3 : 2; puff(p.x + p.w / 2 - 5, p.y + p.h, n); puff(p.x + p.w / 2 + 5, p.y + p.h, n); }
   p.squash = (p.squash || 0) * Math.exp(-dt * 12);
   p.dustT = (p.dustT || 0) - dt;
   if (p.ground && (p.skid || Math.abs(p.vx) > 140) && p.dustT <= 0) { puff(p.x + p.w / 2 - p.face * 4, p.y + p.h, 1); p.dustT = p.skid ? 0.05 : 0.14; }
@@ -4028,6 +4050,11 @@ function updateEnts(dt) {
     if (!awake && !['plat', 'fall', 'firebar', 'boss', 'mid', 'boat', 'bowup', 'sponge'].includes(e.k)) continue;   // asleep until it's near
     switch (e.k) {
       case 'grumblin': case 'snaily': case 'thorny': {
+        // they react: eyes follow Leo, and a fright when he lands right next to them or a kicked shell rushes by
+        e.spook = Math.max(0, (e.spook || 0) - dt);
+        const ldx = p.x + p.w / 2 - (e.x + e.w / 2), ldy = p.y + p.h / 2 - (e.y + e.h / 2);
+        if (!e.spook && ((p.ground && clock - (p.landT ?? -9) < 0.03 && Math.abs(ldx) < 34 && Math.abs(ldy) < 20) || ents.some(o => o.k === 'shell' && Math.abs(o.vx) > 100 && Math.abs(o.x - e.x) < 40 && Math.abs(o.y - e.y) < 12 && Math.sign(o.vx) === Math.sign(e.x - o.x)))) e.spook = 0.5;
+        e.lookX = clamp(ldx / 60, -1, 1); e.lookY = clamp(ldy / 60, -1, 1);
         if (e.k === 'snaily' && !groundAhead(e) && e.ground) e.dir *= -1;
         e.vx = e.dir * (e.k === 'thorny' ? 28 : 32);
         e.vy = Math.min(e.vy + 900 * dt, 300);
@@ -4612,6 +4639,66 @@ function chunkPic(ci) {
   while (chunkCache.size > 8) chunkCache.delete(chunkCache.keys().next().value);
   return c;
 }
+// night, caves and space: a dark sky (its top colour) means a dark level
+function darkLevel() { return !!lvl.dark || darkTheme(lvl.theme); }
+function darkTheme(th) { const sk = SKIES[th], c = sk && sk[0]; if (!c || c[0] !== '#' || c.length < 7) return false; const v = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16)); return 0.3 * v[0] + 0.59 * v[1] + 0.11 * v[2] < 70; }
+// Characters and goodies are painted onto their own layer and shaded as one, instead of a black outline:
+// - a thin contour in a darker shade of each character's own colours (the layer itself, nudged out and dimmed)
+// - a soft shadow side away from the sun (bottom right), in two steps so it shades off
+// - a rim of light along the top left
+const SPR = {};
+function sprBegin() {
+  const W = canvas.width, H = canvas.height;
+  const c = SPR.L || (SPR.L = document.createElement('canvas')); if (c.width !== W || c.height !== H) { c.width = W; c.height = H; }
+  if (!SPR.m) { SPR.m = document.createElement('canvas'); SPR.m.width = SPR.m.height = 64; }
+  const x = SPR.L.getContext('2d');
+  x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, H);
+  x.setTransform(g.getTransform()); x.lineJoin = 'round'; x.lineCap = 'round'; x.imageSmoothingEnabled = true;
+  sprMain = g; g = x;
+}
+function sprEnd(boxes) {
+  const main = sprMain; g = main; sprMain = null;
+  const L = SPR.L, m = SPR.m, r = Math.max(1, Math.round(scale * 0.42)), d = Math.max(1, scale * 0.9), dark = darkLevel();
+  main.save(); main.setTransform(1, 0, 0, 1, 0, 0);
+  main.drawImage(L, 0, 0);
+  // the shading is worked out box by box in a small scratch picture the size of each box, so it costs next to nothing
+  for (const [x0, y0, x1, y1] of boxes) {
+    const w = x1 - x0, h = y1 - y0;
+    if (w <= 0 || h <= 0) continue;
+    if (m.width < w || m.height < h) { m.width = Math.max(m.width, w); m.height = Math.max(m.height, h); }
+    const mx = m.getContext('2d');
+    const put = (dx, dy) => mx.drawImage(L, x0, y0, w, h, dx, dy, w, h);
+    const begin = () => { mx.setTransform(1, 0, 0, 1, 0, 0); mx.globalCompositeOperation = 'source-over'; mx.clearRect(0, 0, w + 4, h + 4); };
+    const tint = (color, op = 'source-in') => { mx.globalCompositeOperation = op; mx.fillStyle = color; mx.fillRect(0, 0, w, h); mx.globalCompositeOperation = 'source-over'; };
+    const out = op => { main.globalCompositeOperation = op || 'source-over'; main.drawImage(m, 0, 0, w, h, x0, y0, w, h); main.globalCompositeOperation = 'source-over'; };
+    // contour: the characters nudged out four ways, darkened but keeping their colours, slipped in behind them
+    begin(); put(r, 0); put(-r, 0); put(0, r); put(0, -r); tint(dark ? 'rgba(6,8,26,.62)' : 'rgba(30,26,52,.5)', 'source-atop');
+    mx.globalCompositeOperation = 'destination-out'; put(0, 0); mx.globalCompositeOperation = 'source-over'; out();
+    // the shadow side: what's left of each shape after cutting away a copy shifted toward the sun
+    for (const k of [1, 0.5]) { begin(); put(0, 0); mx.globalCompositeOperation = 'destination-out'; put(-d * k, -d * k); tint('rgba(34,20,80,.13)'); out(); }
+    // the lit rim on top
+    begin(); put(0, 0); mx.globalCompositeOperation = 'destination-out'; put(d * 0.45, d * 0.55); tint('rgba(255,250,232,.32)'); out();
+  }
+  main.restore();
+}
+// the screen boxes round everything on the sprite layer (game box, padded), joined where they overlap
+const BIG_ENTS = new Set(['boss', 'plat', 'boat', 'whale', 'shark', 'manatee', 'steamboat', 'airboat', 'pirogue', 'chest', 'pot', 'crusher', 'goal', 'unicorn', 'bowup', 'heron', 'gator', 'mermaid', 'tarpon']);
+function sprBoxes(cx) {
+  const T0 = g.getTransform(), out = [], add = (x, y, w, h, pad) => {
+    if (x + w < cx - pad || x > cx + LW + pad) return;
+    out.push([Math.floor(T0.a * (x - pad) + T0.e), Math.floor(T0.d * (y - pad) + T0.f), Math.ceil(T0.a * (x + w + pad) + T0.e), Math.ceil(T0.d * (y + h + pad) + T0.f)]);
+  };
+  for (const e of ents) if (!e.gone) add(e.x, e.y, e.w || 16, e.h || 16, BIG_ENTS.has(e.k) || (e.w || 0) > 30 ? 56 : 20);
+  if (player) add(player.x, player.y, player.w, player.h, player.mount ? 40 : 22);
+  const tx0 = Math.max(0, Math.floor(cx / TS) - 1), tx1 = Math.min(lvl.w - 1, tx0 + Math.ceil(LW / TS) + 2);
+  for (let ty = 0; ty < lvl.h; ty++) for (let tx = tx0; tx <= tx1; tx++) if (lvl.t[ty * lvl.w + tx] === T.COIN) add(tx * TS, ty * TS, 16, 16, 4);
+  // join overlapping boxes so nothing is shaded twice
+  for (let i = 0; i < out.length; i++) for (let j = i + 1; j < out.length; j++) {
+    const A = out[i], B = out[j];
+    if (A[0] <= B[2] && B[0] <= A[2] && A[1] <= B[3] && B[1] <= A[3]) { out[i] = [Math.min(A[0], B[0]), Math.min(A[1], B[1]), Math.max(A[2], B[2]), Math.max(A[3], B[3])]; out.splice(j, 1); j = i; }
+  }
+  return out;
+}
 function drawLevel() {
   const t = clock;
   const sx = shake > 0 ? (Math.random() - 0.5) * 3 : 0;
@@ -4627,7 +4714,7 @@ function drawLevel() {
   const tx0 = Math.max(0, Math.floor(cx / TS) - 1), tx1 = Math.min(lvl.w - 1, tx0 + Math.ceil(LW / TS) + 2);
   for (let ty = 0; ty < lvl.h; ty++) for (let tx = tx0; tx <= tx1; tx++) {
     const tile = lvl.t[ty * lvl.w + tx];
-    if (!tile || tile === T.HIDDEN || STATIC.has(tile)) continue;
+    if (!tile || tile === T.HIDDEN || STATIC.has(tile) || tile === T.COIN) continue;
     const b = bumps.find(bb => bb.tx === tx && bb.ty === ty);
     const by = b ? -Math.sin(b.t / 0.2 * Math.PI) * 5 : 0;
     drawTile(tile, tx, ty, tx * TS, ty * TS + by, th, t);
@@ -4657,6 +4744,8 @@ function drawLevel() {
   };
   for (const e of ents) if (!e.dead && !e.flip && e.w > 6 && e.w < 40 && e.k !== 'mid' && e.k !== 'warp' && e.k !== 'exit' && e.k !== 'firebar' && e.x > cx - 40 && e.x < cx + LW + 40) shadow(e.x + e.w / 2, e.y + e.h, e.w);
   if (player && phase !== 'dying' && !pipe) shadow(player.x + player.w / 2, player.y + player.h, player.mount ? 22 : 14);
+  sprBegin();
+  for (let ty = 0; ty < lvl.h; ty++) for (let tx = tx0; tx <= tx1; tx++) if (lvl.t[ty * lvl.w + tx] === T.COIN) drawCoin(tx * TS, ty * TS, t + tx * 0.21);
   for (const e of ents) drawEnt(e, t);
   // Leo
   const p = player;
@@ -4669,7 +4758,7 @@ function drawLevel() {
       else if (p.skid) pose = 'skid';
       else if (Math.abs(p.vx) > 5) pose = 'walk';
       const sp = Math.min(1, Math.abs(p.vx) / 90);
-      const fx = { look: p.ground && input().up && !p.crouch ? -1 : 0, squash: p.crouch ? 0.5 : p.squash || 0, swing: pose === 'walk' ? Math.sin(p.anim * Math.PI) * (0.5 + sp * 0.5) : 0, tilt: phase === 'dying' ? 0 : clamp(p.vx / 1100, -0.14, 0.14), hatless: p.hatless };
+      const fx = { look: p.ground && input().up && !p.crouch ? -1 : 0, squash: p.crouch ? 0.5 : (p.squash || 0) + (!p.ground && !p.swim && p.vy < -120 ? -Math.min(0.45, -p.vy / 800) : 0), swing: pose === 'walk' ? Math.sin(p.anim * Math.PI) * (0.5 + sp * 0.5) : 0, tilt: phase === 'dying' ? 0 : clamp(p.vx / 1100, -0.14, 0.14), hatless: p.hatless };
       if (p.flip) fx.rot = -(1 - p.flip) * TAU * p.face;   // the backflip
       if (p.pound === 'spin') fx.rot = (p.poundT / 0.22) * TAU * p.face;
       if (p.pound === 'drop') { fx.squash = -0.5; pose = 'jump'; }
@@ -4706,12 +4795,14 @@ function drawLevel() {
       if (p.star > 0 && Math.random() < 0.5) sparkle(p.x + Math.random() * p.w, p.y + Math.random() * p.h, `hsl(${Math.random() * 360},90%,70%)`, 1);
     }
   }
+  { const bx = sprBoxes(cx); sprEnd(bx); }
   drawAirborne(cx, t);
   // particles: soft dots, sparkles and puffs of dust
   for (const q of parts) {
     const a = 1 - q.t / q.life;
     g.globalAlpha = Math.max(0, a);
-    if (q.puff) { g.beginPath(); g.arc(q.x, q.y, q.sz * (1 + q.t / q.life * 1.5), 0, TAU); g.fillStyle = q.c; g.fill(); }
+    if (q.ring) { g.beginPath(); g.arc(q.x, q.y, q.sz * (0.35 + q.t / q.life * 0.9), 0, TAU); g.lineWidth = 1.6 * a + 0.4; g.strokeStyle = q.c; g.stroke(); }
+    else if (q.puff) { g.beginPath(); g.arc(q.x, q.y, q.sz * (1 + q.t / q.life * 1.5), 0, TAU); g.fillStyle = q.c; g.fill(); }
     else if (q.sz <= 2.5) star(q.x, q.y, q.sz + 0.8, q.c);
     else { rrect(q.x - q.sz / 2, q.y - q.sz / 2, q.sz, q.sz, q.sz * 0.3); paint(q.c, 0.6); }
   }
@@ -4731,6 +4822,7 @@ function drawLevel() {
     g.fillRect(0, ly - r, Math.max(0, lx - r), r * 2); g.fillRect(lx + r, ly - r, LW, r * 2);
   }
 }
+const spookHop = e => (e.spook > 0 && !e.flat ? Math.sin((1 - e.spook / 0.5) * Math.PI) * 5 : 0);   // a little startled jump
 function drawEnt(e, t) { noInk = true; try { drawEnt0(e, t); } finally { noInk = false; } }
 function drawEnt0(e, t) {
   const x = e.x, y = e.y;
@@ -4739,10 +4831,10 @@ function drawEnt0(e, t) {
   const tt = t + (e.x % 7);   // so enemies don't all move in step
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
-    case 'grumblin': drawGrumblin(x - 1, y - 2, tt, face, e.flat); break;
-    case 'snaily': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y, tt, face, false); break;
+    case 'grumblin': drawGrumblin(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break;
+    case 'snaily': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
     case 'shell': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
-    case 'thorny': drawThorny(x - 1, y - 3, tt, face); break;
+    case 'thorny': drawThorny(x - 1, y - 3 - spookHop(e), tt, face, e); break;
     case 'buzzer': if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
@@ -5443,24 +5535,27 @@ function drawHUD() {
   }
   if (state !== 'level') return;
   tHatBtn.classList.toggle('off', !(player && player.form === 3));   // the 🎩 button only works with the magic hat
-  text(`☘️ × ${lives}`, s * 6, s * 5, 12);
-  text(`🪙 × ${coins}`, s * 6, s * 18, 12, '#ffd23a');
-  text(String(score).padStart(6, '0'), s * 6, s * 31, 11, '#ffffff');
-  // gems found in this level
-  ctx.font = font(12); ctx.textAlign = 'left';
-  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.3; ctx.fillText('🌈', s * 70 + i * s * 11, s * 6); }
+  // the game's own clover, coin and gem art on soft pills, outlined numbers, and a rounded item box
+  const ink = (str, x, y, size, color = '#fff', align = 'left') => { ctx.font = font(size); ctx.textAlign = align; ctx.lineJoin = 'round'; ctx.lineWidth = s * 1.6; ctx.strokeStyle = '#14202e'; ctx.strokeText(str, x, y); ctx.fillStyle = color; ctx.fillText(str, x, y); };
+  const pill = (x, y, w, h, r = h / 2) => { rrectOn(ctx, x, y, w, h, r); ctx.fillStyle = 'rgba(14,24,40,.42)'; ctx.fill(); };
+  const icon = (fn, x, y, k = 0.95) => { ctx.save(); ctx.setTransform(s * k, 0, 0, s * k, x, y + offY); const old = g; g = ctx; try { fn(); } finally { g = old; ctx.restore(); } };
+  pill(s * 5, s * 5, s * 40, s * 16); pill(s * 49, s * 5, s * 44, s * 16); pill(s * 97, s * 5, s * 64, s * 16);
+  icon(() => drawClover(0, 0, 0), s * 6, s * 5); ink(String(lives), s * 24, s * 7, 12);
+  icon(() => drawCoin(0, 0, 0), s * 51, s * 5); ink(String(coins).padStart(2, '0'), s * 68, s * 7, 12, '#ffd23a');
+  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.3; icon(() => drawGem(0, 0, 0.2), s * (98 + i * 12), s * 4.5, 0.75); }
   ctx.globalAlpha = 1;
-  // the reserve box: a spare power-up drops in when you get hit
-  const bx = W / 2 - s * 12, by = s * 4;
-  ctx.fillStyle = 'rgba(16,48,28,.6)'; ctx.fillRect(bx, by, s * 24, s * 24); ctx.strokeStyle = '#ffd23a'; ctx.lineWidth = s; ctx.strokeRect(bx, by, s * 24, s * 24);
-  if (reserve) { ctx.font = font(16); ctx.textAlign = 'center'; ctx.fillText(reserve === 'clover' ? '🍀' : reserve === 'magichat' ? '🎩' : '🌸', W / 2, by + s * 5); }
+  shownScore = shownScore > score ? score : shownScore + Math.ceil((score - shownScore) * 0.2);   // the score counts up
+  ink(String(shownScore).padStart(6, '0'), W - s * 8, s * 30, 11, '#ffffff', 'right');
+  const bx = W / 2 - s * 11, by = s * 4;
+  pill(bx, by, s * 22, s * 22, s * 6); ctx.lineWidth = s * 1.4; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.stroke();
+  if (reserve) icon(() => (reserve === 'clover' ? drawClover : reserve === 'magichat' ? drawMagicHat : drawFlower)(0, 0, 0), W / 2 - s * 9.5, by + s * 1.5, 1.2);
   if (!RB.touch) text(lvl.name.toUpperCase(), W - s * 8, LH * s - s * 14, 9, 'rgba(255,255,255,.75)', 'right');
-  if (gotKey) text('🗝️', W / 2 + s * 18, s * 6, 12);
+  if (gotKey) ink('🗝️', W / 2 + s * 16, s * 6, 12);
   // floating score numbers
-  for (const q of pops) text(q.txt, (q.x - camX + 8) * s, q.y * s, 8, '#ffffff', 'center');
+  for (const q of pops) ink(q.txt, (q.x - camX + 8) * s, q.y * s, 8, '#ffffff', 'center');
   if (bannerT > 0) {
-    text(bannerText[0], W / 2, LH * s * 0.28, 22, '#ffd23a', 'center');
-    if (bannerText[1]) text(bannerText[1], W / 2, LH * s * 0.28 + s * 26, 11, '#ffffff', 'center');
+    ink(bannerText[0], W / 2, LH * s * 0.28, 22, '#ffd23a', 'center');
+    if (bannerText[1]) ink(bannerText[1], W / 2, LH * s * 0.28 + s * 26, 11, '#ffffff', 'center');
   }
   if (phase === 'clear' && phaseT > 1.2) {
     text(`🪙 ${coins}   🌈 ${levelGems.filter(Boolean).length}/5   ⭐ ${lvl.stars || 0}`, W / 2, LH * s * 0.28 + s * 44, 12, '#ffffff', 'center');
@@ -5527,6 +5622,17 @@ function render() {
     }
   }
   else drawMap();
+  if (state === 'level' && lvl) {   // a warm wash of sunlight from the top (cool moonlight on dark levels) and softly darker edges
+    const dark = darkLevel(), key = LW + '|' + scale + '|' + dark;
+    if (render.lightKey !== key) {   // painted once, then copied each frame
+      const c = render.light || (render.light = document.createElement('canvas')); render.lightKey = key;
+      c.width = Math.ceil(LW * scale); c.height = Math.ceil(LH * scale);
+      const lc = c.getContext('2d'); lc.scale(scale, scale);
+      let gr = lc.createLinearGradient(0, 0, 0, LH); gr.addColorStop(0, dark ? 'rgba(120,160,255,.14)' : 'rgba(255,226,150,.32)'); gr.addColorStop(0.45, 'rgba(255,236,170,0)'); lc.fillStyle = gr; lc.fillRect(0, 0, LW, LH);
+      gr = lc.createRadialGradient(LW / 2, LH * 0.45, LH * 0.35, LW / 2, LH * 0.45, LW * 0.75); gr.addColorStop(0, 'rgba(10,20,40,0)'); gr.addColorStop(1, 'rgba(10,20,40,.45)'); lc.fillStyle = gr; lc.fillRect(0, 0, LW, LH);
+    }
+    ctx.setTransform(1, 0, 0, 1, 0, offY); ctx.drawImage(render.light, 0, 0);
+  }
   ctx.restore();
   ctx.setTransform(1, 0, 0, 1, 0, offY);
   drawHUD();

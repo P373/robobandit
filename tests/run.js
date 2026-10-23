@@ -2530,6 +2530,29 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  await test('Lucky Leo look: characters are shaded (a contour in their own colours, a shadow side, a lit rim), goblins react to Leo, coins ring, the score counts up, a game-art HUD', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => {
+      startGame(); startLevel('hills'); paused = true;
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      const e = ents.find(o => o.k === 'grumblin' && o.x > 100);
+      run(5); player.x = e.x - 24; player.y = e.y - 40; player.vy = 200; run(30);
+      const spooked = ents.some(o => o.k === 'grumblin' && o.spook > 0), look = Math.abs(e.lookX || 0) > 0;
+      const c0 = parts.length; getCoin(player.x, player.y); const rings = parts.slice(c0).filter(q => q.ring).length;
+      score += 500; drawHUD(); const s1 = shownScore; for (let i = 0; i < 40; i++) drawHUD();
+      // the sprite layer: Leo is drawn onto it, and the screen gets shading boxes round him
+      render(); g.save(); g.setTransform(scale, 0, 0, scale, 0, offY); g.translate(-camX, 0); const boxes = sprBoxes(camX); g.restore();
+      const px = (player.x - camX + player.w / 2) * scale, py = (player.y + player.h / 2) * scale + offY;
+      const leoBox = boxes.some(([x0, y0, x1, y1]) => px > x0 && px < x1 && py > y0 && py < y1);
+      paused = false;
+      return { spooked, look, rings, counting: s1 < score && shownScore === score, leoBox, dark: darkTheme('caves'), day: darkTheme('hills') };
+    });
+    check(r.spooked && r.look, 'a goblin jumps when Leo lands next to it, and its eyes follow him: ' + JSON.stringify(r));
+    check(r.rings === 1 && r.counting, 'a coin gives a ring of sparkle, and the score counts up: ' + JSON.stringify(r));
+    check(r.leoBox && r.dark && !r.day, 'Leo is shaded on his own layer, and caves count as a dark level: ' + JSON.stringify(r));
+    await done(p, 'lucky-leo-look.png');
+  });
+
   await test('Lucky Leo: the ☰ menu and pause screen go back to the map, start the level again, and back to the title', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     await p.evaluate(() => { startGame(); startLevel('woods'); });
