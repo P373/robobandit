@@ -2255,7 +2255,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(r[id].hidden, `${id} should hide a 1-up somewhere`);
     }
     check(r.caves.key === true, 'the golden key in Glimmer Caves should be reachable');
-    for (const id of ['canal', 'whale']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
+    for (const id of ['canal', 'whale', 'shore', 'orchard', 'glades', 'mobile']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
     await done(p);
   });
 
@@ -2550,6 +2550,31 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.yetiIcicles && r.sherlockVanishes && r.libertyFire && r.libertyTaxi, 'the Yeti shakes down icicles, Sherlock vanishes, Lady Liberty throws fire and calls a taxi: ' + JSON.stringify(r));
     check(r.chompsWallCannon && r.chompsCharge && r.rocketFlies && r.rocketIceCream && r.cowboyTumble && r.cowboyCharge, 'Chomps calls cannons and charges, the rocket flies and drops ice cream, the cowboy rolls tumbleweeds and charges: ' + JSON.stringify(r));
     check(r.threeHits, 'every boss takes three hits and has a line for each one: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
+  await test('Lucky Leo secret exits in every world: a spring bounces Leo up to a sky ledge, its golden flag opens a shortcut, and the map shows a star until it is found', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      paused = true; startGame(); lives = 99;
+      const out = {};
+      for (const [id, to] of [['shore', 'fort'], ['orchard', 'bridge'], ['glades', 'park'], ['mobile', 'quarter']]) {
+        delete save.secrets[id]; for (const k in save.cleared) delete save.cleared[k]; save.cleared[id] = false;
+        const starBefore = hasSecretExit(id) && !save.secrets[id];
+        startLevel(id); ents = ents.filter(e => !isEnemy(e)); player.inv = 999;
+        const flag = ents.find(e => e.k === 'sflag'), spring = ents.filter(e => e.k === 'spring').sort((a, b) => Math.abs(a.x - flag.x) - Math.abs(b.x - flag.x))[0];
+        player.x = spring.x; player.y = spring.y - 40; player.vy = 60; player.ground = false; keys.jump = true; let top = 999;
+        run(30, () => {}); for (let i = 0; i < 40; i++) { step(1 / 60); top = Math.min(top, player.y); if (player.vy < 0) keys.right = true; }
+        keys.jump = false; for (let i = 0; i < 60 * 8 && phase === 'play'; i++) { player.inv = 999; step(1 / 60); }
+        keys.right = false; const secret = lvl.secretExit === true; run(60 * 5);
+        out[id] = { starBefore, top: Math.round(top), secret, shortcut: state === 'map' && nodeOpen(node(to)), found: !!save.secrets[id] };
+      }
+      return out;
+    });
+    for (const [id, v] of Object.entries(r)) check(v.starBefore && v.secret && v.shortcut && v.found, `${id}: the spring reaches the sky ledge and its flag opens the golden shortcut: ` + JSON.stringify(v));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
   });
