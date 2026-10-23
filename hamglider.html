@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Hamglider | RoboBandit</title>
-<meta name="description" content="Roll Pip the hamster down a ramp, curve your takeoff, pop open your wings and glide onto the bullseye over the ocean, a lava lake and a stormy sea in Hamglider, a free RoboBandit game.">
+<meta name="description" content="Roll Pip the hamster down a ramp, curve your takeoff, pop open your wings and glide onto the bullseye over the ocean, a lava lake, a stormy sea and down the Cape Cod Canal in Hamglider, a free RoboBandit game.">
 <link rel="canonical" href="https://robobandit.com/hamglider.html">
 <meta name="theme-color" content="#5ec8ff">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/hamglider.html">
 <meta property="og:title" content="Hamglider | RoboBandit">
-<meta property="og:description" content="Roll down the ramp, pop open your wings and glide onto the bullseye! Three worlds: ocean, lava and storm.">
+<meta property="og:description" content="Roll down the ramp, pop open your wings and glide onto the bullseye! Seven worlds: ocean, lava, storm, the Cape Cod Canal, ice, clouds and a moonlit lagoon, plus 3-round missions.">
 <meta property="og:image" content="https://robobandit.com/previews/hamglider.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -58,10 +58,12 @@
   }
   @keyframes pulse { to { transform: scale(1.08); } }
   #banner {
-    position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: 52px/1.1 'Bungee', system-ui, sans-serif;
+    position: absolute; left: 0; right: 0; top: 30%; text-align: center; font: clamp(34px, 8vw, 52px)/1.1 'Bungee', system-ui, sans-serif;
     color: #ffe14a; text-shadow: 4px 4px 0 #0b2a5c; padding: 0 12px;
   }
-  #banner small { display: block; font-size: 22px; color: #fff; margin-top: 8px; }
+  #banner small { display: block; font-size: clamp(15px, 3.8vw, 22px); color: #fff; margin-top: 8px; text-shadow: 2px 2px 0 #0b2a5c; }
+  #tgtEdge { position: absolute; left: 0; top: 0; width: 48px; height: 48px; margin: -24px 0 0 -24px; display: grid; place-items: center;
+    font-size: 36px; color: #ffe14a; text-shadow: 2px 2px 0 #0b2a5c; animation: pulse .5s ease-in-out infinite alternate; }
   #flash { position: fixed; inset: 0; z-index: 1; background: #fff; opacity: 0; pointer-events: none; }
   #wingBtn {
     position: fixed; z-index: 3; right: max(18px, env(safe-area-inset-right)); bottom: max(80px, calc(env(safe-area-inset-bottom) + 70px));
@@ -96,6 +98,13 @@
   }
   kbd { display: inline-block; min-width: 1.5em; padding: 0 5px; font: bold 14px system-ui, sans-serif; text-align: center;
     background: #fff; border: 2px solid #0b2a5c; border-radius: 4px; box-shadow: 0 2px 0 #0b2a5c; }
+  .panel .steps li { font-size: 17px; }
+  .panel .steps li b:first-child { color: #ff8a1f; font-family: 'Bungee', system-ui, sans-serif; font-weight: normal; }
+  .more { text-align: left; margin: 4px 0 2px; font-size: 15px; line-height: 1.45; }
+  .more summary { cursor: pointer; font: 14px 'Bungee', system-ui, sans-serif; color: #3a6fd8; text-align: center; padding: 4px; }
+  .more ul { margin: 6px 0 0; padding-left: 20px; }
+  .more li { margin: 3px 0; padding: 0; font-size: 15px; counter-increment: none; }
+  .more li::before { display: none; }
   .rings { display: flex; justify-content: center; gap: 6px; flex-wrap: wrap; margin: 10px 0 4px; font: 13px 'Bungee', system-ui, sans-serif; }
   .rings span { padding: 4px 9px; border-radius: 12px; border: 2px solid #0b2a5c; }
   .big-btn {
@@ -103,6 +112,7 @@
     border: 4px solid #0b2a5c; color: #0b2a5c; background: #ffe14a; box-shadow: 0 6px 0 #0b2a5c;
   }
   .big-btn.alt { background: #fff; font-size: 16px; padding: 12px 18px; }
+  .big-btn small { display: block; font: 700 13px system-ui, sans-serif; margin-top: 2px; opacity: .85; }
   .big-btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #0b2a5c; }
   .touch-only { display: none; }
   @media (pointer: coarse) { .touch-only { display: inline; } .key-only { display: none; } }
@@ -132,7 +142,7 @@
   .ball.locked { cursor: default; opacity: .55; }
   .ball.locked i { filter: grayscale(1); }
 </style>
-<link rel="stylesheet" href="common.css?v=20261018-1140">
+<link rel="stylesheet" href="common.css?v=20261019-1131">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -150,6 +160,7 @@
     <div class="boost hidden" id="gBoostBox">🚀 BOOST<i id="gBoost"></i></div>
   </div>
   <div id="prompt" class="hidden"></div>
+  <div id="tgtEdge" class="hidden" aria-hidden="true">➤</div>
   <div id="banner" class="hidden"></div>
 </div>
 <button id="wingBtn" class="hidden rb-touch">WINGS</button>
@@ -159,19 +170,24 @@
   <div class="panel">
     <h1>HAMGLIDER</h1>
     <div class="sub">🐹 Pip the hamster takes to the skies!</div>
-    <ol>
-      <li><b>Roll down the ramp.</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> (or the 🎮 left stick) lean the ball</span><span class="touch-only">Drag left or right to lean the ball</span>
-        and it <b>spins</b>, so you take off on a <b>curve</b>!</li>
-      <li><b>Fly off the end</b>, then press <span class="key-only"><kbd>Space</kbd> (or 🎮 <b data-pad="A">A</b>)</span><span class="touch-only">the yellow <b>WINGS</b> button</span>:
-        your ball pops open and each half becomes a <b>wing</b>!</li>
-      <li><b>Glide to the target.</b>
-        <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> turn. <kbd>W</kbd> float. <kbd>S</kbd> dive. (🎮 left stick)</span>
-        <span class="touch-only">Drag to steer: left/right to turn, up to float, down to dive.</span></li>
-      <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>: the camera swings all the way round Pip. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b> or click the right stick<span class="key-only"> (or <kbd>R</kbd>)</span> swings it back behind.</li>
-      <li><b>Drop onto the dartboard.</b> Close your wings to fall straight down<span class="key-only"> (<kbd>Space</kbd> again, or <kbd>Ctrl</kbd>, or 🎮 <b data-pad="LT">LT</b> / <b data-pad="B">B</b>)</span>. Overshot it? Land safely on one of the <b>big islands</b> out past the target!</li>
-      <li><b>Cape Cod Canal:</b> roll off the top of the Bourne Bridge, past the railroad bridge, all the way to Cleveland Ledge Light! Hold <span class="key-only"><kbd>Shift</kbd> (🎮 <b data-pad="RT">RT</b> or <b data-pad="X">X</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
-      <li>Grab 🌻 seeds, beat <b>4 worlds</b>, unlock new <b>hamster balls</b>… and look for a <b>secret</b> hidden in each world. 🤫</li>
+    <ol class="steps">
+      <li><b>Roll!</b> <span class="key-only"><kbd>Space</kbd> starts you down the ramp. <kbd>A</kbd> <kbd>D</kbd> lean the ball to take off on a curve.</span><span class="touch-only">Tap to roll down the ramp. Drag left or right to take off on a curve.</span></li>
+      <li><b>Fly!</b> <span class="key-only">Off the end, press <kbd>Space</kbd> (🎮 <b data-pad="A">A</b>): your ball pops open into wings. <kbd>A</kbd> <kbd>D</kbd> turn, <kbd>W</kbd> float, <kbd>S</kbd> dive.</span><span class="touch-only">Off the end, tap the yellow <b>WINGS</b> button. Drag to steer: up floats, down dives.</span></li>
+      <li><b>Drop!</b> Over the dartboard, close your wings <span class="key-only">(<kbd>Space</kbd> again)</span><span class="touch-only">(tap <b>CLOSE</b>)</span> and fall onto the middle. Watch your shadow!</li>
     </ol>
+    <details class="more">
+      <summary>More tips</summary>
+      <ul>
+        <li>Follow the <b>yellow arrow</b>: it bounces over the dartboard, and points the way when it's off the screen.</li>
+        <li>Overshot it? Land on one of the <b>big islands</b> out past the target for 15 points.</li>
+        <li><b>Look around</b> with the 🎮 right stick<span class="key-only">, <kbd>Z</kbd> / <kbd>X</kbd> or a right-click drag</span><span class="touch-only"> or a second finger</span>. <b data-pad="LB">LB</b> / <b data-pad="RB">RB</b><span class="key-only"> or <kbd>R</kbd></span> swings it back behind Pip.</li>
+        <li><span class="key-only"><kbd>Ctrl</kbd> or 🎮 <b data-pad="LT">LT</b> / <b data-pad="B">B</b> also close the wings.</span> Forgot your wings? They pop open by themselves before a splash.</li>
+        <li><b>Cape Cod Canal:</b> roll off the Bourne Bridge all the way to Cleveland Ledge Light. Hold <span class="key-only"><kbd>Shift</kbd> (🎮 <b data-pad="RT">RT</b> or <b data-pad="X">X</b>)</span><span class="touch-only">the orange <b>🚀</b> button</span> to <b>boost</b>.</li>
+        <li><b>Frosty Floes:</b> the dartboard drifts on the current. <b>Cloud Kingdom:</b> fly through 🌈 hoops for +10 each. <b>Moonlit Lagoon:</b> glowing jellyfish bounce you back up.</li>
+        <li><b>🎲 Mission:</b> three rounds from three different worlds, one flight each. Beat your best mission score!</li>
+        <li>Grab 🌻 seeds, beat <b>7 worlds</b>, unlock new <b>hamster balls</b>… and look for the <b>secret</b> hidden in each world. 🤫</li>
+      </ul>
+    </details>
     <div class="rings">
       <span style="background:#ff4d4d;color:#fff">100</span><span style="background:#ffe14a">50</span><span style="background:#fff">30</span>
       <span style="background:#5bd0ff">20</span><span style="background:#3a6fd8;color:#fff">10</span><span style="background:#ffe7a3">ISLAND 15</span>
@@ -198,9 +214,9 @@
 </div>
 
 <script src="vendor/three.min.js"></script>
-<script src="common.js?v=20261018-1140"></script>
-<script src="orbit-cam.js?v=20261018-1140"></script>
-<script src="touch-stick.js?v=20261018-1140"></script>
+<script src="common.js?v=20261019-1131"></script>
+<script src="orbit-cam.js?v=20261019-1131"></script>
+<script src="touch-stick.js?v=20261019-1131"></script>
 <script>
 'use strict';
 
@@ -216,7 +232,7 @@ const ISLAND_PTS = 15, SECRET_PTS = 50;
 const GLIDE_DRAG = 0.0028;           // tuned so a level glide settles near 20 m/s
 const STALL = 8;
 
-// ---------- The three worlds ----------
+// ---------- The seven worlds ----------
 // Each world is three rounds. Rounds: how far the target is, how far to the side, and the wind speed.
 // secret: where that world's hidden treasure sits (it needs a curved takeoff or a long glide to reach).
 const WORLDS = [
@@ -238,6 +254,21 @@ const WORLDS = [
     sky: ['#3a8ad8', '#9ad0f0', '#d8eef8'], fog: '#bcd8e8', fogNear: 220, fogFar: 1100, hemi: ['#e8f4ff', '#4a6a50', 0.8], sun: ['#fff8e8', 1],
     rounds: [{ dist: 345, side: -40, wind: 1 }, { dist: 420, side: -75, wind: 2 }, { dist: 495, side: -105, wind: 2.5 }],
     boost: true, canal: true, secret: { x: 58, z: -(RAMP_LEN + 95), name: 'golden striped bass', ball: 'striper' }, card: 'linear-gradient(#5ab0e8, #2a6a8a)' },
+  // an icy sea: snow falls and the dartboard drifts back and forth on its ice floe, so aim for where it will be
+  { id: 'ice', name: 'Frosty Floes', icon: '❄️', tag: 'Snow, icebergs and a drifting dartboard!',
+    sky: ['#6a9ac8', '#b8d8ee', '#e8f4fb'], fog: '#cfe4f2', fogNear: 120, fogFar: 600, hemi: ['#f0f8ff', '#6a8aa8', 0.85], sun: ['#ffffff', 0.85],
+    rounds: [{ dist: 170, side: 15, wind: 1.5 }, { dist: 215, side: -30, wind: 2 }, { dist: 255, side: 25, wind: 2.5 }],
+    drift: 9, snow: true, secret: { x: 80, z: -(RAMP_LEN + 140), name: 'crystal snowflake', ball: 'frost' }, card: 'linear-gradient(#bfe4ff, #4a8ac0)' },
+  // high above the clouds: rainbow hoops on the way are worth a bonus each, and the "sea" is a soft cloud carpet
+  { id: 'sky', name: 'Cloud Kingdom', icon: '☁️', tag: 'Fly through the rainbow hoops!',
+    sky: ['#5a7ae8', '#b8b0f0', '#ffe0f0'], fog: '#f4e4f4', fogNear: 150, fogFar: 700, hemi: ['#ffffff', '#c8a8e0', 0.9], sun: ['#fff4e0', 0.95],
+    rounds: [{ dist: 180, side: -15, wind: 1 }, { dist: 225, side: 30, wind: 2 }, { dist: 260, side: -30, wind: 2.5 }],
+    hoops: true, secret: { x: -82, z: -(RAMP_LEN + 175), name: 'golden harp', ball: 'cloud' }, card: 'linear-gradient(#ffc8ec, #7a8ae8)' },
+  // night on a warm lagoon: stars, the moon, and glowing jellyfish that bounce Pip back up into the air
+  { id: 'night', name: 'Moonlit Lagoon', icon: '🌙', tag: 'Glowing jellyfish bounce you back up!',
+    sky: ['#05081a', '#1a2050', '#2a3a6a'], fog: '#18244a', fogNear: 90, fogFar: 520, hemi: ['#8aa0ff', '#0a1430', 0.8], sun: ['#c8d8ff', 0.7],
+    rounds: [{ dist: 190, side: 20, wind: 1.5 }, { dist: 230, side: -35, wind: 2 }, { dist: 265, side: 30, wind: 2.5 }],
+    jellies: true, secret: { x: 74, z: -(RAMP_LEN + 225), name: 'moon pearl', ball: 'pearl' }, card: 'linear-gradient(#3a4a9a, #0a1030)' },
 ];
 // Hamster balls to collect: unlocked by stars, or by finding a world's secret.
 const BALLS = [
@@ -250,20 +281,24 @@ const BALLS = [
   { id: 'magma', name: 'Magma', ball: '#ffb08a', wing: '#ff4d1a', band: '#2a0e06', egg: 'lava' },
   { id: 'rainbow', name: 'Rainbow', ball: '#ffffff', wing: '#ff7eb6', band: '#7b4bd6', egg: 'storm', rainbow: true },
   { id: 'striper', name: 'Striper', ball: '#e4ecf2', wing: '#5a7a9a', band: '#2a3a4a', egg: 'canal' },
+  { id: 'aurora', name: 'Aurora', ball: '#c8fff0', wing: '#3ad8a0', band: '#7b4bd6', stars: 14 },
+  { id: 'frost', name: 'Frost', ball: '#eaf8ff', wing: '#8ad0ff', band: '#2a6aa8', egg: 'ice' },
+  { id: 'cloud', name: 'Cloud', ball: '#ffffff', wing: '#ffc8ec', band: '#8a8ae8', egg: 'sky' },
+  { id: 'pearl', name: 'Pearl', ball: '#f4f0ff', wing: '#4a5ac8', band: '#ffe8a8', egg: 'night' },
 ];
 
 // ---------- Saved progress ----------
-// hg_save: { stars: {world: 0-3}, best: {world: n}, eggs: {world: true}, ball, unlockAll, practice }
+// hg_save: { stars: {world: 0-3}, best: {world: n}, eggs: {world: true}, ball, unlockAll, practice, mission: best mission total }
 const save = (() => {
   let s = null;
   try { s = JSON.parse(RB.store.get('hg_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
-  return { stars: s.stars || {}, best: s.best || {}, eggs: s.eggs || {}, ball: s.ball || 'classic', unlockAll: !!s.unlockAll, practice: !!s.practice };
+  return { stars: s.stars || {}, best: s.best || {}, eggs: s.eggs || {}, ball: s.ball || 'classic', unlockAll: !!s.unlockAll, practice: !!s.practice, mission: +s.mission || 0 };
 })();
 function persist() {
   RB.store.set('hg_save', JSON.stringify(save));
-  // hg_best is what the game list shows: the best world total ever
-  RB.store.set('hg_best', String(Math.max(+(RB.store.get('hg_best') || 0), ...Object.values(save.best).map(Number), 0)));
+  // hg_best is what the game list shows: the best world (or mission) total ever
+  RB.store.set('hg_best', String(Math.max(+(RB.store.get('hg_best') || 0), ...Object.values(save.best).map(Number), save.mission, 0)));
 }
 const totalStars = () => WORLDS.reduce((a, w) => a + (save.stars[w.id] || 0), 0);
 const worldOpen = i => save.unlockAll || i === 0 || (save.stars[WORLDS[i - 1].id] || 0) > 0;
@@ -399,6 +434,9 @@ const SEA_MATS = {
   lava: lavaMat,
   storm: new THREE.MeshPhongMaterial({ color: '#2a5a78', specular: '#9fb8d0', shininess: 40, flatShading: true }),
   canal: new THREE.MeshPhongMaterial({ color: '#2f7896', specular: '#cfe6f5', shininess: 70, flatShading: true }),
+  ice: new THREE.MeshPhongMaterial({ color: '#2f78a8', specular: '#ffffff', shininess: 90, flatShading: true }),
+  sky: new THREE.MeshLambertMaterial({ color: '#ffffff', emissive: '#d8c8e0', flatShading: true }),   // a carpet of cloud
+  night: new THREE.MeshPhongMaterial({ color: '#0e2a4a', specular: '#9ab0ff', shininess: 80, flatShading: true }),
 };
 const ocean = new THREE.Mesh(oceanGeo, SEA_MATS.ocean);
 ocean.receiveShadow = true;
@@ -473,11 +511,22 @@ function updateOcean(t, cx, cz) {
     pole.position.set(RAMP_HALF_W + 0.1, rampY(d) + 1.8, -d);
     scene.add(flag, pole);
   }
+  // the start deck under the top of the ramp (on stilts like the rest), so the camera never sees under the lip
+  const deckTop = rampY(0) - 0.03, deckD = 12;
+  const startDeck = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 1.4, 5, deckD), mat('#ffe3f0'));
+  startDeck.position.set(0, deckTop - 2.5, deckD / 2); startDeck.castShadow = startDeck.receiveShadow = true;
+  const deckBand = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 1.6, 1.2, deckD + 0.2), mat('#ff7eb6'));
+  deckBand.position.set(0, deckTop - 1.1, deckD / 2);
+  scene.add(startDeck, deckBand);
+  for (const sx of [-1, 1]) for (const sz of [1.2, deckD - 1.2]) {
+    const h = deckTop + 4, leg = new THREE.Mesh(new THREE.CylinderGeometry(0.6, 0.8, h, 10), legMat);
+    leg.position.set(sx * (RAMP_HALF_W - 0.4), deckTop - h / 2, sz); leg.castShadow = true; scene.add(leg);
+  }
   // start gate behind the ball
   const gateMat = mat('#ffe14a');
   for (const side of [-1, 1]) {
-    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 7, 10), gateMat);
-    post.position.set(side * (RAMP_HALF_W + 0.5), rampY(0) + 3.5, 1.5);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.4, 0.4, 15, 10), gateMat);
+    post.position.set(side * (RAMP_HALF_W + 0.5), rampY(0) + 7.5, 1.5);
     scene.add(post);
   }
   const sign = new THREE.Mesh(new THREE.BoxGeometry(2 * RAMP_HALF_W + 2, 1.6, 0.4), new THREE.MeshStandardMaterial({
@@ -487,7 +536,7 @@ function updateOcean(t, cx, cz) {
       g.fillText('★ HAMGLIDER ★', w / 2, h / 2 + 2);
     }),
   }));
-  sign.position.set(0, rampY(0) + 7, 1.5);
+  sign.position.set(0, rampY(0) + 14.5, 1.5);   // high, so it stays above the chase camera looking down the ramp
   sign.rotation.y = Math.PI;   // readable from the ramp side
   scene.add(sign);
 }
@@ -590,6 +639,47 @@ const decor = {};
   // the canal: built further down (buildCanal), once its helpers exist
   const c = make('canal');
   clouds(c, '#ffffff', 150, 12);
+  // ice: icebergs, white with blue shadows
+  const ic = make('ice'), berg = mat('#f4fbff', { flatShading: true }), bergB = mat('#9fd0ee', { flatShading: true });
+  ring(ic, 8, i => {
+    const g = new THREE.Group(), h = 40 + (i % 3) * 20;
+    const a = new THREE.Mesh(new THREE.ConeGeometry(26 + i * 3, h, 5), berg); a.position.y = h / 2 - 6;
+    const b = new THREE.Mesh(new THREE.ConeGeometry(16 + i * 2, h * 0.6, 4), bergB); b.position.set(22, h * 0.3 - 6, 8);
+    g.add(a, b);
+    return g;
+  });
+  clouds(ic, '#f0f6fb', 130, 14);
+  // the cloud kingdom: castles on cloud islands floating in the distance, and puffy clouds low and high
+  const sk = make('sky'), puff = mat('#ffffff', { flatShading: true }), wall = mat('#f4e8ff', { flatShading: true }), roof = mat('#ff8ac8', { flatShading: true });
+  ring(sk, 6, i => {
+    const g = new THREE.Group(), y = 40 + (i % 3) * 30;
+    for (let k = 0; k < 4; k++) { const p = new THREE.Mesh(new THREE.IcosahedronGeometry(16 + k * 3, 1), puff); p.position.set(k * 16 - 24, y - 6 + (k % 2) * 4, (k % 3) * 6); g.add(p); }
+    for (let k = 0; k < 3; k++) {
+      const th = 22 + (k === 1 ? 14 : 0), t = new THREE.Mesh(new THREE.CylinderGeometry(4, 4.5, th, 8), wall); t.position.set(k * 12 - 12, y + th / 2 + 6, 0);
+      const r = new THREE.Mesh(new THREE.ConeGeometry(6, 10, 8), roof); r.position.set(k * 12 - 12, y + th + 11, 0);
+      g.add(t, r);
+    }
+    return g;
+  });
+  clouds(sk, '#ffffff', 18, 16);
+  clouds(sk, '#ffe8f6', 150, 10);
+  // the lagoon at night: the moon, the stars, and dark palm islands on the horizon
+  const ng = make('night'), dark = mat('#0a1a2a', { flatShading: true });
+  ring(ng, 7, i => { const m = new THREE.Mesh(new THREE.ConeGeometry(32 + i * 4, 22 + (i % 3) * 10, 7), dark); m.position.y = 6; return m; });
+  const moon = new THREE.Mesh(new THREE.SphereGeometry(28, 24, 16), new THREE.MeshBasicMaterial({ color: '#fff6d8', fog: false }));
+  moon.position.set(-190, 120, -760);
+  const halo = new THREE.Mesh(new THREE.SphereGeometry(48, 24, 16), new THREE.MeshBasicMaterial({ color: '#c8d8ff', transparent: true, opacity: 0.14, fog: false, depthWrite: false }));
+  halo.position.copy(moon.position);
+  ng.add(moon, halo);
+  {
+    const N = 700, p = new Float32Array(N * 3), r = rng(77);
+    for (let i = 0; i < N; i++) {
+      const a = r() * Math.PI * 2, el = 0.04 + r() * r() * 1.4, d = 700;   // more of them low, where you look; inside the sky dome
+      p[i * 3] = Math.cos(a) * Math.cos(el) * d; p[i * 3 + 1] = Math.sin(el) * d; p[i * 3 + 2] = Math.sin(a) * Math.cos(el) * d - 150;
+    }
+    const geo = new THREE.BufferGeometry(); geo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
+    ng.add(new THREE.Points(geo, new THREE.PointsMaterial({ color: '#ffffff', size: 3, sizeAttenuation: false, fog: false })));
+  }
 }
 
 // ---------- Islands you can land on, thermals (lava) and the secret treasure ----------
@@ -631,7 +721,7 @@ function lighthouse() {
 // one landable island: a flat top of radius r, with props at the edge
 function makeIsle(kind, r, seed) {
   const g = new THREE.Group(), rr = rng(seed);
-  const topMat = kind === 'lava' ? mat('#3a2a2a', { flatShading: true }) : kind === 'storm' || kind === 'canal' ? mat('#8a8f80', { flatShading: true }) : mat('#ffe7a3', { flatShading: true });
+  const topMat = mat({ lava: '#3a2a2a', storm: '#8a8f80', canal: '#8a8f80', ice: '#f4fbff', sky: '#ffffff', night: '#b8a888' }[kind] || '#ffe7a3', { flatShading: true });
   const top = new THREE.Mesh(new THREE.CylinderGeometry(r, r + 2.5, 3, 18), topMat);
   top.position.y = ISLE_TOP - 1.5; top.receiveShadow = true; g.add(top);
   if (kind === 'ocean') {
@@ -652,6 +742,26 @@ function makeIsle(kind, r, seed) {
       const c = new THREE.Mesh(new THREE.OctahedronGeometry(0.8 + rr() * 0.8), new THREE.MeshStandardMaterial({ color: '#ff5a1f', emissive: '#ff3a00', emissiveIntensity: 0.8 }));
       const a = rr() * Math.PI * 2; c.position.set(Math.cos(a) * r * 0.8, ISLE_TOP + 0.6, Math.sin(a) * r * 0.8); g.add(c);
     }
+  } else if (kind === 'ice') {   // an ice floe with blue ice spikes and a penguin
+    for (let k = 0; k < (r > 14 ? 6 : 2); k++) {
+      const sp = new THREE.Mesh(new THREE.ConeGeometry(1 + rr(), 3 + rr() * 4, 5), mat('#9fd8f5', { flatShading: true }));
+      const a = rr() * Math.PI * 2; sp.position.set(Math.cos(a) * r * 0.82, ISLE_TOP + 1.5, Math.sin(a) * r * 0.82); g.add(sp);
+    }
+    const peng = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.SphereGeometry(0.9, 12, 10), mat('#1a1a24')); body.scale.set(1, 1.5, 0.9); body.position.y = 1.3;
+    const belly = new THREE.Mesh(new THREE.SphereGeometry(0.7, 12, 10), mat('#ffffff')); belly.scale.set(1, 1.4, 0.6); belly.position.set(0, 1.2, 0.45);
+    const beak = new THREE.Mesh(new THREE.ConeGeometry(0.2, 0.5, 6), mat('#ffa020')); beak.rotation.x = Math.PI / 2; beak.position.set(0, 2.2, 0.8);
+    peng.add(body, belly, beak); peng.position.set(r * 0.55, ISLE_TOP, r * 0.2); peng.rotation.y = rr() * 6; g.add(peng);
+  } else if (kind === 'sky') {   // a cloud island: puffs round the edge
+    for (let k = 0; k < 9; k++) {
+      const p = new THREE.Mesh(new THREE.IcosahedronGeometry(r * 0.22 + rr() * 1.5, 1), mat('#ffffff', { flatShading: true }));
+      const a = k / 9 * Math.PI * 2; p.position.set(Math.cos(a) * r, ISLE_TOP - 1, Math.sin(a) * r); g.add(p);
+    }
+  } else if (kind === 'night') {   // a palm and a glowing lantern
+    const p = palm(1); p.position.set(r * 0.6, ISLE_TOP, -r * 0.2); g.add(p);
+    const lamp = new THREE.Mesh(new THREE.SphereGeometry(0.8, 12, 10), new THREE.MeshBasicMaterial({ color: '#ffd27a' }));
+    lamp.position.set(-r * 0.5, ISLE_TOP + 2.2, r * 0.3); g.add(lamp);
+    const glow = new THREE.Mesh(new THREE.SphereGeometry(2.4, 12, 10), glowMat('#ffd27a', 0.25)); glow.position.copy(lamp.position); g.add(glow);
   } else if (kind === 'canal') {   // a granite boulder sticking out of the canal
     for (let k = 0; k < 5; k++) {
       const b = new THREE.Mesh(new THREE.DodecahedronGeometry(r * 0.35 + rr() * 1.5, 0), mat('#8a8780', { flatShading: true }));
@@ -684,6 +794,21 @@ function makeTreasure(id) {
     const tail = new THREE.Mesh(new THREE.ConeGeometry(0.6, 1, 4), gold); tail.rotation.x = -Math.PI / 2; tail.scale.set(0.2, 1, 1); tail.position.z = 1.9; fish.add(tail);
     for (let k = -2; k <= 2; k++) { const st = new THREE.Mesh(new THREE.BoxGeometry(0.47, 0.06, 2.6 - Math.abs(k) * 0.5), mat('#6a4a00')); st.position.y = k * 0.17; fish.add(st); }
     fish.position.y = 1.4; fish.rotation.z = 0.3; g.add(fish);
+  } else if (id === 'ice') {   // a crystal snowflake
+    const ice = mat('#bff0ff', { metalness: 0.3, roughness: 0.1, emissive: '#2a8ab8' }), flake = new THREE.Group();
+    for (let k = 0; k < 3; k++) { const arm = new THREE.Mesh(new THREE.BoxGeometry(0.25, 3, 0.25), ice); arm.rotation.z = k * Math.PI / 3; flake.add(arm); }
+    flake.position.y = 1.6; g.add(flake);
+  } else if (id === 'sky') {   // a golden harp
+    const gold = mat('#ffc21a', { metalness: 0.6, roughness: 0.3, emissive: '#7a5000' }), harp = new THREE.Group();
+    const arc = new THREE.Mesh(new THREE.TorusGeometry(1.1, 0.16, 8, 20, Math.PI * 1.3), gold); arc.rotation.z = -0.4; harp.add(arc);
+    const post = new THREE.Mesh(new THREE.CylinderGeometry(0.14, 0.14, 2.4, 8), gold); post.position.set(-0.9, -0.2, 0); harp.add(post);
+    for (let k = 0; k < 5; k++) { const st = new THREE.Mesh(new THREE.CylinderGeometry(0.03, 0.03, 1.6 - k * 0.15, 4), mat('#fff8d0')); st.position.set(-0.6 + k * 0.32, -0.1, 0); harp.add(st); }
+    harp.position.y = 1.7; g.add(harp);
+  } else if (id === 'night') {   // a glowing pearl in its shell
+    const shell = new THREE.Mesh(new THREE.SphereGeometry(1.3, 16, 10, 0, Math.PI * 2, 0, Math.PI / 2), mat('#ffb8d0', { side: THREE.DoubleSide }));
+    shell.rotation.x = Math.PI; shell.position.y = 1.2;
+    const pearl = new THREE.Mesh(new THREE.SphereGeometry(0.7, 18, 14), mat('#fff8ff', { metalness: 0.4, roughness: 0.15, emissive: '#8a8aff' })); pearl.position.y = 1.4;
+    g.add(shell, pearl);
   } else {
     const orb = new THREE.Mesh(new THREE.IcosahedronGeometry(1.2, 2), new THREE.MeshNormalMaterial({ flatShading: true }));
     orb.position.y = 1.5; g.add(orb);
@@ -709,6 +834,32 @@ function makeThermal() {
   geo.setAttribute('position', new THREE.Float32BufferAttribute(p, 3));
   const pts = new THREE.Points(geo, new THREE.PointsMaterial({ color: '#ffe080', size: 1, map: DOT, transparent: true, opacity: 0.8, depthWrite: false }));
   pts.userData.rise = true; pts.frustumCulled = false; g.add(pts);
+  return g;
+}
+
+// Cloud Kingdom: rainbow hoops to fly through (+10 each)
+const HOOP_R = 4.5, HOOP_PTS = 10;
+let hoops = [];      // { x, y, z, hit, g }
+const HOOP_COLS = ['#ff5a7a', '#ffb03a', '#ffe14a', '#5ee07a', '#4ab8ff', '#9a6aff'];
+function makeHoop() {
+  const g = new THREE.Group();
+  HOOP_COLS.forEach((c, k) => { const t = new THREE.Mesh(new THREE.TorusGeometry(HOOP_R + 0.9 - k * 0.3, 0.17, 6, 40), new THREE.MeshBasicMaterial({ color: c })); g.add(t); });
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(HOOP_R - 0.6, 32), glowMat('#ffffff', 0.12)); glow.material.side = THREE.DoubleSide; g.add(glow);
+  g.userData.hoop = true;
+  return g;
+}
+// Moonlit Lagoon: glowing jellyfish that bounce you back up
+let jellies = [];    // { x, z, r, top, g }
+function makeJelly(k) {
+  const g = new THREE.Group(), col = ['#7af0ff', '#ff8ae8', '#b89aff'][k % 3];
+  const bell = new THREE.Mesh(new THREE.SphereGeometry(6, 24, 12, 0, Math.PI * 2, 0, Math.PI / 2), new THREE.MeshBasicMaterial({ color: col, transparent: true, opacity: 0.75 }));
+  bell.scale.y = 0.45; g.add(bell);
+  const glow = new THREE.Mesh(new THREE.CircleGeometry(9, 32), glowMat(col, 0.22)); glow.rotation.x = -Math.PI / 2; glow.position.y = 0.15; g.add(glow);
+  for (let i = 0; i < 8; i++) {
+    const a = i / 8 * Math.PI * 2, t = new THREE.Mesh(new THREE.CylinderGeometry(0.12, 0.05, 3, 4), glowMat(col, 0.6));
+    t.position.set(Math.cos(a) * 3.5, -1.2, Math.sin(a) * 3.5); g.add(t);
+  }
+  g.userData.jelly = k;
   return g;
 }
 
@@ -1075,12 +1226,12 @@ const rain = particles(RAIN_N, 0.22, '#d6e4f5');
   rain.material.opacity = 0.7;
 }
 function stepRain(dt) {
-  rain.visible = !!(world && world.rain);
+  rain.visible = !!(world && (world.rain || world.snow));
   if (!rain.visible) return;
   rain.position.set(camPos.x, camPos.y - 30, camPos.z);
-  const p = rain.geometry.attributes.position.array;
+  const p = rain.geometry.attributes.position.array, fall = world.snow ? 6 : 45, sway = world.snow ? 1.5 : 0;
   for (let i = 0; i < RAIN_N; i++) {
-    p[i * 3 + 1] -= 45 * dt; p[i * 3] += wind.x * dt * 2; p[i * 3 + 2] += wind.z * dt * 2;
+    p[i * 3 + 1] -= fall * dt; p[i * 3] += (wind.x * 2 + Math.sin(clock + i) * sway) * dt; p[i * 3 + 2] += wind.z * dt * 2;
     if (p[i * 3 + 1] < 0) { p[i * 3 + 1] += 60; p[i * 3] = (Math.random() - 0.5) * 120; p[i * 3 + 2] = (Math.random() - 0.5) * 120; }
   }
   rain.geometry.attributes.position.needsUpdate = true;
@@ -1088,6 +1239,17 @@ function stepRain(dt) {
 // practice mode: a ring showing where you'd land if you closed your wings right now
 const dropMarker = new THREE.Mesh(new THREE.TorusGeometry(2.2, 0.35, 8, 32), new THREE.MeshBasicMaterial({ color: '#ffe14a', transparent: true, opacity: 0.85 }));
 dropMarker.rotation.x = Math.PI / 2; dropMarker.visible = false; scene.add(dropMarker);
+// a soft round shadow right under Pip (on the sea, the dartboard or an island), to judge when to drop
+const blob = new THREE.Mesh(new THREE.PlaneGeometry(1, 1), new THREE.MeshBasicMaterial({
+  map: canvasTex(64, 64, (g, w, h) => {
+    const gr = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2);
+    gr.addColorStop(0, 'rgba(0,0,0,.7)'); gr.addColorStop(0.55, 'rgba(0,0,0,.4)'); gr.addColorStop(1, 'rgba(0,0,0,0)');
+    g.clearRect(0, 0, w, h); g.fillStyle = gr; g.fillRect(0, 0, w, h);
+  }), transparent: true, depthWrite: false, polygonOffset: true, polygonOffsetFactor: -4 }));
+blob.rotation.x = -Math.PI / 2; blob.renderOrder = 2; blob.visible = false; scene.add(blob);
+// a big bouncing arrow over the dartboard, so you can always spot it from the ramp
+const targetArrow = new THREE.Mesh(new THREE.ConeGeometry(3.6, 6.5, 4), new THREE.MeshBasicMaterial({ color: '#ffe14a', fog: false }));
+targetArrow.rotation.x = Math.PI; targetArrow.visible = false; scene.add(targetArrow);
 
 // ---------- Sound ----------
 // Wind and rolling noise run through filters that follow your speed; music plays a loop for each world.
@@ -1126,6 +1288,8 @@ const sfx = {
   whoosh: () => swish(350, 1800, 0.6, 0.25),
   boost: () => { swish(200, 2400, 0.7, 0.35); beep(220, 660, 0.4, 'sawtooth', 0.04); },
   seed: () => { beep(1300, 1900, 0.08, 'sine', 0.1); beep(1900, 2600, 0.08, 'sine', 0.08, 0.06); },
+  hoop: () => [659, 784, 988, 1319].forEach((f, i) => beep(f, f, 0.12, 'triangle', 0.1, i * 0.05)),
+  boing: () => { beep(180, 720, 0.3, 'sine', 0.2); beep(360, 1100, 0.2, 'triangle', 0.06, 0.05); },
   thud: () => { RB.pad.rumble(150, 0.5); beep(140, 60, 0.25, 'sine', 0.3); swish(600, 150, 0.2, 0.2, 'lowpass'); },
   bump: () => beep(220, 120, 0.08, 'square', 0.06),
   splash: () => { RB.pad.rumble(400, 0.8); swish(2400, 300, 0.9, 0.5, 'lowpass'); beep(700, 200, 0.25, 'sine', 0.08); },
@@ -1169,6 +1333,27 @@ const MUSIC = {
       [7, null, 7, 8, 9, null, 7, null], [8, null, 7, null, 5, null, 3, null], [4, null, 5, null, 6, 5, 4, 3], [4, null, null, null, 0, null, null, null]],
     drums: { kick: 'x...x...', snare: '..x...x.', hat: '.x.x.x.x' }, arp: false, lift: true },
 };
+// snowy and twinkly in E major: bells over a slow waltz-like pulse
+MUSIC.ice = { bpm: 96, key: 64, scale: 'major', lead: 'steel', pad: 'warm',
+  chords: [[0, 'M'], [9, 'm'], [5, 'M'], [7, 'M'], [0, 'M'], [4, 'm'], [5, 'M'], [7, 'M']],
+  melody: [
+    [7, null, 6, null, 4, null, null, null], [5, null, 4, null, 2, null, null, null], [3, null, 4, null, 5, null, 7, null], [6, null, null, null, 4, null, null, null],
+    [7, null, 9, null, 8, null, 7, null], [6, null, 4, null, 2, null, null, null], [3, null, 4, 5, 6, null, 5, null], [4, null, null, null, null, null, null, null]],
+  drums: { kick: 'x.......', snare: '....x...', hat: '..x...x.' }, arp: true };
+// bright and floaty in F major for the cloud castles
+MUSIC.sky = { bpm: 120, key: 65, scale: 'major', lead: 'strings', pad: 'warm',
+  chords: [[0, 'M'], [5, 'M'], [9, 'm'], [7, 'M'], [0, 'M'], [5, 'M'], [7, 'M'], [0, 'M']],
+  melody: [
+    [0, 2, 4, null, 7, null, 4, null], [5, null, 4, null, 2, null, null, null], [2, 4, 5, null, 9, null, 7, null], [8, null, 7, null, 6, null, null, null],
+    [7, null, 9, null, 11, null, 9, 7], [8, null, 7, null, 5, null, 4, null], [3, 4, 5, null, 6, null, 8, null], [7, null, null, null, null, null, null, null]],
+  drums: { kick: 'x...x...', snare: '..x...x.', hat: 'xxxxxxxx', shaker: true }, arp: true, lift: true };
+// a quiet night tune in A minor: music-box bells and a soft heartbeat drum
+MUSIC.night = { bpm: 84, key: 57, scale: 'minor', lead: 'steel', pad: 'dark',
+  chords: [[0, 'm'], [8, 'M'], [3, 'M'], [10, 'M'], [0, 'm'], [5, 'm'], [8, 'M'], [7, 'M']],
+  melody: [
+    [4, null, null, 3, 2, null, null, null], [0, null, null, null, 2, null, null, null], [4, null, 5, null, 7, null, null, null], [6, null, null, null, 4, null, null, null],
+    [7, null, null, 6, 5, null, 4, null], [3, null, null, null, 2, null, null, null], [0, null, 2, null, 4, null, 3, null], [1, null, null, null, null, null, null, null]],
+  drums: { kick: 'x.......', hat: '....x...' }, arp: true };
 const SCALES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10] };
 const music = (() => {
   let timer = null, track = null, step = 0, nextT = 0, bus = null;
@@ -1343,6 +1528,7 @@ const PLAYING = ['intro', 'ramp', 'air', 'roll', 'falloff', 'splash', 'burn', 'r
 let state = 'title', world = null, worldI = 0, round = 0, total = 0, roundScores = [];
 let d = 0, rampV = 0, sideV = 0, lean = 0, curve = 0;   // ramp: distance, speed, sideways speed, lean; air: spin curve
 const pos = new THREE.Vector3(), vel = new THREE.Vector3(), wind = new THREE.Vector3(), baseWind = new THREE.Vector3();
+let wingsUsed = false, autoWingsT = 0;   // wings helper: they pop open by themselves if you forget, just before a splash
 let wings = false, wingOpen = 0, yaw = 0, gamma = 0, bank = 0, roll = 0, stateT = 0, bonusPts = 0, secretThisRound = false;
 let resultText = '', clock = 0, surf = null, whooshCD = 0, flashT = 0, nextBolt = 5;
 let practice = save.practice;
@@ -1350,17 +1536,19 @@ let fuel = 1, boosting = false;   // the canal world's boost: a rocket tank that
 const BOOST_DRAIN = 0.24, BOOST_FILL = 0.05;
 const targetPos = new THREE.Vector3();
 let ROUNDS = WORLDS[0].rounds;
+let mission = false;   // mission: three rounds from different worlds, one flight each (ROUNDS then carries each round's world as .w)
 
 // switches the whole scene to a world's look
 function applyWorld(w) {
-  world = w; ROUNDS = w.rounds;
+  world = w; if (!mission) ROUNDS = w.rounds;
   skyDome.material.map = skyTex[w.id]; skyDome.material.needsUpdate = true;
   scene.background.set(w.fog); scene.fog.color.set(w.fog); scene.fog.near = w.fogNear; scene.fog.far = w.fogFar;
   hemi.color.set(w.hemi[0]); hemi.groundColor.set(w.hemi[1]); hemi.intensity = w.hemi[2];
   sun.color.set(w.sun[0]); sun.intensity = w.sun[1];
   ocean.material = SEA_MATS[w.id];
-  waveAmp = w.id === 'storm' ? 2 : w.id === 'lava' ? 0.25 : w.id === 'canal' ? 0.6 : 1;
-  waveSpeed = w.id === 'storm' ? 1.6 : w.id === 'lava' ? 0.15 : 1;   // lava: thick, slow swells
+  waveAmp = { storm: 2, lava: 0.25, canal: 0.6, ice: 0.5, sky: 1.6, night: 0.4 }[w.id] || 1;
+  waveSpeed = { storm: 1.6, lava: 0.15, sky: 0.35, night: 0.6 }[w.id] || 1;   // lava: thick, slow swells; clouds billow slowly
+  rain.material.color.set(w.snow ? '#ffffff' : '#d6e4f5'); rain.material.size = w.snow ? 0.6 : 0.22;
   for (const id in decor) decor[id].visible = id === w.id;
   targetBaseMat.color.set(w.id === 'lava' ? '#4a3a3a' : '#ff8a1f');
   for (const b of buoys) b.visible = w.id !== 'lava';
@@ -1407,11 +1595,27 @@ function buildRound(r, i) {
       void k;
     });
   }
+  // rainbow hoops along the way, about where a good glide passes
+  hoops = [];
+  if (world.hoops) [0.3, 0.52, 0.74].forEach((f, k) => {
+    const off = (rr() - 0.5) * 16, x = sx + ux * f + px * off, z = sz + uz * f + pz * off, y = 31 - f * 20;
+    const g = makeHoop(); g.position.set(x, y, z); g.rotation.y = Math.atan2(ux, uz); thermalGroup.add(g);
+    hoops.push({ x, y, z, hit: false, g });
+    void k;
+  });
+  // jellyfish a little off the straight line, to bounce off if you're dropping short
+  jellies = [];
+  if (world.jellies) [0.38, 0.66].forEach((f, k) => {
+    const off = (k ? -1 : 1) * (10 + rr() * 5), x = sx + ux * f + px * off, z = sz + uz * f + pz * off;
+    const g = makeJelly(k + i); g.position.set(x, 0.6, z); thermalGroup.add(g);
+    jellies.push({ x, z, r: 6, top: 2.4, g });
+  });
 }
 
 function setupRound(i) {
   round = i;
   const r = ROUNDS[i];
+  if (mission) { worldI = r.w; applyWorld(WORLDS[r.w]); }
   targetPos.set(r.side, 0, -(RAMP_LEN + r.dist));
   target.position.copy(targetPos);
   const a = Math.random() * Math.PI * 2, wv = practice ? 0 : r.wind;
@@ -1422,13 +1626,13 @@ function setupRound(i) {
   d = 0; rampV = 2; sideV = 0; lean = 0; curve = 0;
   pos.set(0, rampY(0) + R, 0);
   vel.set(0, 0, 0);
-  wings = false; wingOpen = 0; bonusPts = 0; roll = 0; bank = 0; surf = null; secretThisRound = false; fuel = 1; boosting = false;
+  wings = false; wingsUsed = false; autoWingsT = 0; wingOpen = 0; bonusPts = 0; roll = 0; bank = 0; surf = null; secretThisRound = false; fuel = 1; boosting = false;
   rec.length = 0; replayPending = false;
   state = 'intro'; stateT = 0;
   cam.reset();
   setFace('happy');
   const windTxt = practice ? 'practice: no wind' : `wind ${r.wind ? r.wind.toFixed(1) + ' m/s' : 'calm'}${world.gusts ? ', gusty!' : ''}`;
-  showBanner(`ROUND ${i + 1}`, `Target ${r.dist} m away · ${windTxt}<br>${RB.pad && RB.pad.connected ? RB.padText('Press {A}') : matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
+  showBanner(mission ? `${world.icon} ${world.name.toUpperCase()}` : `ROUND ${i + 1}`, `${mission ? `Mission flight ${i + 1} of ${ROUNDS.length} · one try!<br>` : ''}Target ${r.dist} m · ${windTxt}<br>${RB.pad && RB.pad.connected ? RB.padText('Press {A}') : matchMedia('(pointer: coarse)').matches ? 'Tap' : 'Press SPACE'} to roll!`);
 }
 
 function action() {
@@ -1436,7 +1640,7 @@ function action() {
   if (state === 'intro') { hideBanner(); state = 'ramp'; stateT = 0; sfx.go(); music.play(world.id); }
   else if (state === 'replay') endReplay();
   else if (state === 'air') {
-    wings = !wings;
+    wings = !wings; wingsUsed = true;
     if (wings) {
       sfx.open();
       const hs = Math.hypot(vel.x, vel.z);
@@ -1475,7 +1679,7 @@ function failDown(text) {
     sfx.sizzle();
   } else {
     burst(pos.x, 0.5, pos.z, { color: '#ffffff' });
-    state = 'splash'; stateT = 0; resultText = text;
+    state = 'splash'; stateT = 0; resultText = world.id === 'sky' && text === 'SPLASH!' ? 'POOF! INTO THE CLOUDS!' : text;
     sfx.splash();
   }
   setFace('wow');
@@ -1533,6 +1737,13 @@ function update(dt) {
     wind.set(Math.cos(ang) * m, 0, Math.sin(ang) * m);
   }
 
+  // Frosty Floes: the dartboard drifts back and forth on the current (and carries Pip with it)
+  if (world && world.drift && ['intro', 'ramp', 'air', 'roll', 'falloff', 'splash'].includes(state)) {
+    const nx = ROUNDS[round].side + Math.sin(clock * 0.35) * world.drift, dx = nx - targetPos.x;
+    targetPos.x = nx; target.position.x = nx;
+    if (state === 'roll' && surf && surf.target) { pos.x += dx; surf.x = nx; }
+  }
+
   if (state === 'ramp') {
     const slope = rampSlope(d), th = Math.atan(slope);
     rampV += (-G * Math.sin(th) - 0.35 + (boosting ? 8 : 0)) * dt;
@@ -1555,6 +1766,9 @@ function update(dt) {
       state = 'air'; stateT = 0;
     }
   } else if (state === 'air') {
+    // never opened the wings and heading for a splash? they pop open by themselves
+    autoWingsT = Math.max(0, autoWingsT - dt);
+    if (!wings && !wingsUsed && stateT > 1.5 && vel.y < -8 && pos.y - R < 14 && !surfaceUnder(pos.x, pos.z)) { action(); autoWingsT = 2; }
     if (wings) {
       const V = vel.length();
       let targetGamma = -0.13 + (pitch > 0 ? pitch * 0.4 : pitch * 0.55);
@@ -1590,6 +1804,18 @@ function update(dt) {
       if (s.visible && s.position.distanceTo(pos) < 2.6) { s.visible = false; bonusPts += 5; sfx.seed(); if (world.boost) fuel = Math.min(1, fuel + 0.2); }
     }
     checkSecret();
+    // Cloud Kingdom: fly through a rainbow hoop
+    for (const h of hoops) if (!h.hit && Math.hypot(pos.x - h.x, pos.y - h.y, pos.z - h.z) < HOOP_R) {
+      h.hit = true; bonusPts += HOOP_PTS; sfx.hoop(); h.g.visible = false;
+      burst(h.x, h.y, h.z, { color: HOOP_COLS[Math.floor(Math.random() * 6)], speed: 6, up: 3, grav: 2, life: 1, size: 0.5, n: 90 });
+    }
+    // Moonlit Lagoon: drop onto a jellyfish and it bounces you back up
+    for (const j of jellies) if (vel.y < 0 && pos.y - R <= j.top + 0.6 && pos.y - R > j.top - 2.5 && Math.hypot(pos.x - j.x, pos.z - j.z) < j.r) {
+      if (wings) { const V = Math.max(vel.length(), 24); gamma = 0.9; vel.set(V * Math.cos(gamma) * Math.sin(yaw), V * Math.sin(gamma), -V * Math.cos(gamma) * Math.cos(yaw)); }
+      else vel.y = 18;
+      pos.y = j.top + R + 0.7; j.squish = 1; sfx.boing(); setFace('wow');
+      burst(j.x, j.top, j.z, { color: '#9af6ff', speed: 4, up: 6, life: 0.9, size: 0.45, n: 70 });
+    }
     // touchdown on the dartboard or an island; otherwise the sea (or lava) is waiting
     const s = surfaceUnder(pos.x, pos.z);
     if (s && pos.y - R <= s.top && pos.y - R > s.top - 1.5) {
@@ -1753,6 +1979,8 @@ function updateVisuals(dt) {
     want = pos.clone().addScaledVector(camRay, 12);
     const rd = -want.z;   // keep it above the ramp (and the start platform behind it), however it swings round
     if (rd < RAMP_LEN && Math.abs(want.x) < RAMP_HALF_W + 3) want.y = Math.max(want.y, rampY(Math.max(0, rd)) + 3.5);
+    // on the steep top of the ramp, rise above the slope behind Pip so you look down the drop, not over the lip
+    if (state === 'ramp' && want.z > pos.z) want.y = Math.max(want.y, Math.min(pos.y + 13, pos.y + (want.z - pos.z) * -rampSlope(d) + 1.5));
     // from behind, look ahead past Pip toward the target; swung round, look right at Pip
     const ahead = cam.ahead();
     look = pos.clone().addScaledVector(fwd, 14 * ahead);
@@ -1778,6 +2006,8 @@ function updateVisuals(dt) {
     if (o.userData.glow) o.scale.setScalar(1 + Math.sin(clock * 4) * 0.12);
   });
   isleGroup.traverse(o => { if (o.userData.spin) o.rotation.y += dt * 0.8; });
+  for (const j of jellies) { j.squish = Math.max(0, (j.squish || 0) - dt * 2.5); j.g.scale.set(1 + j.squish * 0.25, 1 + Math.sin(clock * 2 + j.x) * 0.1 - j.squish * 0.45, 1 + j.squish * 0.25); j.g.position.y = 0.6 + Math.sin(clock * 1.3 + j.z) * 0.25; }
+  for (const h of hoops) h.g.children.forEach((c, k) => { c.rotation.z = clock * (k % 2 ? 0.4 : -0.4); });
   if (treasure) treasure.traverse(o => { if (o.userData.spin) o.rotation.y += dt * 0.8; });
   thermalGroup.traverse(o => {
     if (o.userData.rise) {
@@ -1791,6 +2021,17 @@ function updateVisuals(dt) {
   stepFlame(dt, boosting);
   stepRain(dt);
   document.getElementById('flash').style.opacity = flashT > 0 ? (flashT > 0.25 || (flashT > 0.1 && flashT < 0.17) ? 0.5 : 0) : 0;
+  // Pip's shadow straight down, smaller and fainter the higher you are
+  blob.visible = state === 'air' || state === 'falloff';
+  if (blob.visible) {
+    const sf = surfaceUnder(pos.x, pos.z), gy = sf ? sf.top + 0.08 : Math.max(0.05, waveH(pos.x, pos.z, clock) + 0.25), h = Math.max(0, pos.y - R - gy);
+    blob.position.set(pos.x, gy, pos.z);
+    blob.scale.setScalar(Math.max(2.2, 4.2 - h * 0.03));
+    blob.material.opacity = Math.max(0.25, 1 - h / 60);
+  }
+  const hDist = Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z);
+  targetArrow.visible = ['intro', 'ramp', 'air'].includes(state) && hDist > 35;
+  if (targetArrow.visible) { targetArrow.position.set(targetPos.x, TOP + 18 + Math.sin(clock * 3) * 2, targetPos.z); targetArrow.rotation.y += dt * 1.5; }
   // practice helper: where would Pip land if the wings closed right now?
   dropMarker.visible = practice && state === 'air';
   if (dropMarker.visible) {
@@ -1802,7 +2043,7 @@ function updateVisuals(dt) {
 
 // ---------- HUD ----------
 const $ = id => document.getElementById(id);
-const hud = $('hud'), prompt = $('prompt'), banner = $('banner');
+const hud = $('hud'), prompt = $('prompt'), banner = $('banner'), edgeV = new THREE.Vector3();
 function showBanner(t, sub) { banner.innerHTML = `${t}${sub ? `<small>${sub}</small>` : ''}`; banner.classList.remove('hidden'); }
 function hideBanner() { banner.classList.add('hidden'); }
 function updateHUD() {
@@ -1817,7 +2058,7 @@ function updateHUD() {
   $('gBoost').style.width = `${Math.round(fuel * 100)}%`;
   if (!playing) return;
   $('hudWorld').textContent = `${world.icon} ${world.name.toUpperCase()}${practice ? ' · PRACTICE' : ''}`;
-  $('hudRound').textContent = `ROUND ${round + 1}/${ROUNDS.length}`;
+  $('hudRound').textContent = `${mission ? 'MISSION' : 'ROUND'} ${round + 1}/${ROUNDS.length}`;
   $('hudScore').textContent = `SCORE ${total}`;
   $('hudSeeds').textContent = bonusPts ? `🌻 +${bonusPts}` : '';
   const sp = state === 'ramp' ? rampV : vel.length();
@@ -1828,14 +2069,32 @@ function updateHUD() {
   const windYaw = Math.atan2(wind.x, -wind.z);
   $('windArrow').style.transform = `rotate(${(windYaw - camYaw) * 180 / Math.PI - 90}deg)`;
   $('windSpeed').textContent = wind.length() < 0.1 ? 'CALM' : wind.length().toFixed(1);
+  // the dartboard off the screen (looking round, or curving away)? an arrow at the edge points to it
+  const edge = $('tgtEdge'), wantEdge = state === 'ramp' || state === 'air';
+  let onScreen = true;
+  if (wantEdge) {
+    const v = edgeV.set(targetPos.x, TOP + 2, targetPos.z).project(camera), behind = v.z > 1;
+    onScreen = !behind && Math.abs(v.x) < 0.92 && Math.abs(v.y) < 0.88;
+    if (!onScreen) {
+      let x = behind ? -v.x : v.x, y = behind ? -v.y : v.y;
+      if (Math.hypot(x, y) < 1e-3) y = -1;
+      const k = 1 / Math.max(Math.abs(x) / 0.86, Math.abs(y) / 0.72);
+      x *= k; y *= k;
+      edge.style.transform = `translate(${(x + 1) / 2 * innerWidth}px, ${(1 - y) / 2 * innerHeight}px) rotate(${Math.atan2(-y, x)}rad)`;
+    }
+  }
+  edge.classList.toggle('hidden', !wantEdge || onScreen);
   let msg = '';
   const pad = !!(RB.pad && RB.pad.connected);
   const touch = !pad && matchMedia('(pointer: coarse)').matches;
   if (state === 'ramp' && d < 45 && round === 0) msg = pad ? 'LEFT STICK TO CURVE!' : touch ? 'DRAG TO CURVE!' : 'A / D TO CURVE!';
   else if (state === 'ramp' && d > 60) msg = 'GET READY…';
+  else if (autoWingsT > 0) msg = 'WINGS OUT! 🪽';
   else if (state === 'air' && !wings && stateT < 4 && vel.y > -25) msg = pad ? RB.padText('{A} TO OPEN WINGS!') : touch ? 'TAP WINGS TO FLY!' : 'SPACE TO OPEN WINGS!';
   else if (state === 'air' && wings && vel.length() < STALL + 1 && !boosting) msg = 'TOO SLOW! NOSE DOWN';
   else if (world.boost && (state === 'air' || state === 'ramp') && round === 0 && stateT < 5 && fuel > 0.9) msg = pad ? RB.padText('HOLD {RT} TO BOOST!') : touch ? 'HOLD 🚀 TO BOOST!' : 'HOLD SHIFT TO BOOST!';
+  else if (state === 'air' && world.hoops && round === 0 && stateT < 4) msg = 'FLY THROUGH THE HOOPS!';
+  else if (state === 'air' && world.drift && round === 0 && stateT < 4) msg = 'THE TARGET IS DRIFTING!';
   else if (state === 'air' && wings && thermals.some(t => Math.hypot(pos.x - t.x, pos.z - t.z) < t.r)) msg = 'HOT AIR! GOING UP!';
   else if (state === 'air' && wings && pos.y < 14 && Math.hypot(pos.x - targetPos.x, pos.z - targetPos.z) < TARGET_R) msg = pad ? RB.padText('{A} OR {LT} TO DROP!') : touch ? 'CLOSE TO DROP!' : 'SPACE TO DROP!';
   else if (state === 'replay') msg = '⏪ SLOW-MO REPLAY';
@@ -1859,12 +2118,14 @@ function mapScreen() {
         <span class="ic">${open ? w.icon : '🔒'}</span>${esc(w.name)}<small>${open ? esc(w.tag) : 'Finish ' + esc(WORLDS[i - 1].name) + ' to open'}</small>
         <span class="st">${starStr(save.stars[w.id] || 0)}</span>${save.best[w.id] ? `<small>Best ${save.best[w.id]}</small>` : ''}${save.eggs[w.id] ? '<small>🤫 Secret found!</small>' : ''}</button>`;
     }).join('')}</div>
+    <button class="big-btn" id="btnMission">🎲 MISSION<small>3 worlds, one flight each${save.mission ? ` · Best ${save.mission}` : ''}</small></button><br>
     <label class="toggle"><input type="checkbox" id="practice" ${practice ? 'checked' : ''}> 🎯 Practice mode: no wind, and a ring shows where you'll land</label><br>
     <button class="big-btn alt" id="btnBalls">🔮 HAMSTER BALLS</button>
     ${anyLocked ? '<button class="big-btn alt" id="btnUnlock" title="Played on another device? Open everything here.">🔓 UNLOCK ALL</button>' : ''}`;
   $('mapPanel').querySelectorAll('.world').forEach(b => b.addEventListener('click', () => { if (!b.disabled) startWorld(+b.dataset.i); }));
   $('practice').addEventListener('change', e => { practice = save.practice = e.target.checked; persist(); });
   $('btnBalls').addEventListener('click', ballsScreen);
+  $('btnMission').addEventListener('click', startMission);
   if ($('btnUnlock')) $('btnUnlock').addEventListener('click', () => { save.unlockAll = true; persist(); RB.toast('🔓 Every world and ball is open!'); mapScreen(); });
   showScreen('map');
 }
@@ -1883,6 +2144,7 @@ function ballsScreen() {
 }
 function startWorld(i) {
   audio();
+  mission = false;
   worldI = i;
   applyWorld(WORLDS[i]);
   showScreen(null);
@@ -1891,8 +2153,37 @@ function startWorld(i) {
 }
 // for tests: play a world straight away
 function startGame(i = 0) { startWorld(i); }
-function endWorld() {
+// Mission: three rounds, each from a different open world (repeating only if fewer than three are open),
+// getting harder: the first world's easy round, the second's middle one, the third's hardest. One flight each.
+function startMission() {
+  audio();
+  const open = WORLDS.map((_, i) => i).filter(worldOpen), pool = open.slice(), pick = [];
+  for (let k = 0; k < 3; k++) { if (!pool.length) pool.push(...open); pick.push(pool.splice(Math.floor(Math.random() * pool.length), 1)[0]); }
+  mission = true;
+  ROUNDS = pick.map((wi, k) => ({ ...WORLDS[wi].rounds[k], w: wi }));
+  showScreen(null);
+  total = 0; roundScores = [];
+  setupRound(0);
+}
+function endMission() {
   state = 'end'; music.stop();
+  const stars = practice ? 0 : 1 + (total >= 120 ? 1 : 0) + (total >= 220 ? 1 : 0), isBest = !practice && total > save.mission;
+  if (isBest) { save.mission = total; persist(); }
+  $('endTitle').textContent = practice ? 'PRACTICE MISSION DONE!' : 'MISSION DONE!';
+  $('endStars').textContent = practice ? '🎯' : starStr(stars);
+  $('scoreTable').innerHTML = roundScores.map((r, k) => { const w = WORLDS[ROUNDS[k].w];
+    return `<tr><td>${w.icon} ${esc(w.name)}</td><td>${r.pts ? r.pts : esc(r.text)}${r.seeds ? ` + 🌻${r.seeds}` : ''}</td><td>${r.pts + r.seeds}</td></tr>`; }).join('') +
+    `<tr><td><b>TOTAL</b></td><td></td><td>${total}</td></tr>`;
+  $('endBest').textContent = practice ? 'Practice missions don\'t count. Turn practice off on the map for a real score!' : isBest ? `🏆 NEW BEST MISSION: ${total}!` : `Best mission: ${save.mission}`;
+  $('endUnlocks').innerHTML = '';
+  $('btnAgain').textContent = '🎲 NEW MISSION';
+  $('btnNext').classList.add('hidden');
+  showScreen('end');
+}
+function endWorld() {
+  if (mission) return endMission();
+  state = 'end'; music.stop();
+  $('btnAgain').textContent = '↺ FLY AGAIN';
   const id = world.id, stars = practice ? 0 : 1 + (total >= 120 ? 1 : 0) + (total >= 220 ? 1 : 0);
   const before = BALLS.filter(ballOpen).map(b => b.id), wasOpen = worldOpen(worldI + 1 < WORLDS.length ? worldI + 1 : worldI);
   const isBest = !practice && total > (save.best[id] || 0);
@@ -1916,7 +2207,7 @@ function endWorld() {
   showScreen('end');
 }
 $('btnPlay').addEventListener('click', () => { audio(); mapScreen(); });
-$('btnAgain').addEventListener('click', () => startWorld(worldI));
+$('btnAgain').addEventListener('click', () => (mission ? startMission() : startWorld(worldI)));
 $('btnMap').addEventListener('click', mapScreen);
 $('btnNext').addEventListener('click', () => startWorld(worldI + 1));
 {

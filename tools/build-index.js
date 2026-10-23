@@ -1,7 +1,7 @@
 // Writes the arcade page's game cards into index.html itself (between <!-- games:start --> and
 // <!-- games:end -->), plus a JSON-LD list of every game for search engines (between <!-- jsonld:start -->
 // and <!-- jsonld:end -->). Search engines and link previews then see the games without running the page's
-// script; the script still redraws the cards on load (adding best scores, filters and Keep playing).
+// script; the script still redraws the cards on load (adding today's game, best scores, filters and Keep playing).
 // Run after changing the GAMES list in index.html:   node tools/build-index.js
 // node tools/build-index.js --check   only reports whether index.html is up to date (the tests use this).
 const fs = require('fs');
@@ -16,9 +16,10 @@ function build(html) {
   // the page's own list and card template, run on their own (no browser needed)
   const script = html.slice(html.indexOf('// GAMES:start'), html.indexOf('let filter = '));
   const sandbox = { localStorage: { getItem: () => null, setItem() {} }, out: null };
-  vm.runInNewContext(script + '\nout = { GAMES, EXTRAS, card, soonCard };', sandbox);
-  const { GAMES, EXTRAS, card, soonCard } = sandbox.out;
-  const cards = GAMES.slice().reverse().map(g => card(g, { withBest: false })).join('') + soonCard();
+  vm.runInNewContext(script + '\nout = { GAMES, EXTRAS, card };', sandbox);
+  const { GAMES, EXTRAS, card } = sandbox.out;
+  // every game (the page itself then lifts today's game out into the big card at the top)
+  const cards = GAMES.slice().reverse().map(g => card(g, { withBest: false })).join('');
   const items = [...GAMES.slice().reverse(), ...EXTRAS].map((g, i) => ({
     '@type': 'ListItem', position: i + 1,
     item: {

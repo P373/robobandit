@@ -61,11 +61,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 (async () => {
   const browser = await chromium.launch({ args: ['--use-gl=swiftshader', '--ignore-gpu-blocklist'] });
 
-  await test('game list shows every game and the coming-soon card', async () => {
+  await test("game list shows every game (today's big at the top, the rest as cards)", async () => {
     const p = await open(browser, 'index.html');
     const cards = await p.$$eval('.card', els => els.length);
     const games = await p.evaluate(() => GAMES.length);
-    check(cards === games + 1, `${cards} cards for ${games} games`);
+    check(cards === games - 1, `${cards} cards for ${games} games (today's game is the big one at the top)`);
     for (const g of await p.evaluate(() => GAMES)) {
       check(fs.existsSync(path.join(ROOT, g.url)), 'missing page ' + g.url);
       check(fs.existsSync(path.join(ROOT, g.thumb)), 'missing thumbnail ' + g.thumb);
@@ -76,7 +76,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'index.png');
   });
 
-  await test("home page: today's game up top, Keep playing, filter chips, card details, and the cards are in the HTML itself", async () => {
+  await test("home page: today's game up top (and not again below), Keep playing, three filters, a quiet line on each card, the pitch on hover, and the cards are in the HTML itself", async () => {
     // the cards and the JSON-LD game list are written into index.html (search engines see them without the script)
     check(require('child_process').spawnSync('node', [path.join(ROOT, 'tools/build-index.js'), '--check']).status === 0, 'index.html is out of date: run node tools/build-index.js');
     const html = fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8');
@@ -85,12 +85,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await open(browser, 'index.html');
     const info = await p.evaluate(() => ({ games: GAMES.length, extras: EXTRAS.length, newest: GAMES[GAMES.length - 1].title }));
     check(ld['@type'] === 'ItemList' && ld.itemListElement.length === info.games + info.extras, 'JSON-LD lists every game: ' + ld.itemListElement.length);
-    check(staticCards === info.games + 1, `${staticCards} cards written into the HTML for ${info.games} games`);
+    check(staticCards === info.games, `${staticCards} cards written into the HTML for ${info.games} games`);
     // today's game: the newest, with a big play button, above the game list
     const hero = await p.evaluate(() => { const h = document.getElementById('hero'), g = document.getElementById('games');
       return { text: h.textContent, play: h.querySelector('.play')?.textContent, above: h.getBoundingClientRect().top < g.getBoundingClientRect().top,
         foldersBelow: document.querySelector('.folder').getBoundingClientRect().top > g.getBoundingClientRect().bottom }; });
-    check(hero.text.includes(info.newest) && /TODAY'S GAME/.test(hero.text) && /PLAY/.test(hero.play) && hero.above && hero.foldersBelow, "today's game up top, school folders under the games: " + JSON.stringify(hero));
+    check(hero.text.includes(info.newest) && /Today's game/.test(hero.text) && /Play/.test(hero.play) && /Tomorrow/.test(hero.text) && hero.above && hero.foldersBelow, "today's game up top, school folders under the games: " + JSON.stringify(hero));
     // Keep playing: hidden until a game was played, then shows it with its best (times as m:ss)
     check(await p.evaluate(() => document.getElementById('recentWrap').hidden), 'Keep playing starts hidden');
     await p.goto(url('witch-way-out.html')); await p.waitForTimeout(500);
@@ -100,25 +100,32 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(!recent.hidden && /Witch Way Out/.test(recent.text) && /1:23/.test(recent.text), 'playing a game puts it in Keep playing with its best time: ' + JSON.stringify(recent));
     // card details: players, age, Moto Rush is the classic, blurbs are short
     const cards = await p.$$eval('#games .card', els => els.map(e => e.textContent));
-    check(cards.some(t => /Moto Rush/.test(t) && /CLASSIC/.test(t)), 'Moto Rush is marked CLASSIC');
-    check(cards.filter(t => /👤|👥/.test(t) && /🧸/.test(t)).length === info.games, 'every card shows players and age');
+    check(!cards.some(t => t.includes(info.newest)), "today's game isn't repeated in the list");
+    check(cards.some(t => /Moto Rush/.test(t) && /Classic/.test(t)), 'Moto Rush is marked Classic');
+    check(cards.filter(t => /\d players?/.test(t) && /Ages \d/.test(t)).length === info.games - 1, 'every card shows players and age');
+    // the pitch slides up over the picture on hover
+    await p.hover('#games .card:nth-child(2)'); await p.waitForTimeout(300);
+    check(await p.evaluate(() => +getComputedStyle(document.querySelector('#games .card:nth-child(2) .more')).opacity > 0.9), 'hovering a card shows its pitch');
     check(await p.evaluate(() => GAMES.every(g => g.blurb.length <= 90)), 'every blurb is 90 letters or fewer');
     // filter chips
     const counts = {};
-    for (const f of ['little', 'multi', 'racing', 'learning', 'all']) {
+    check(await p.$$eval('#filters .chip', els => els.length) === 4, 'four filter chips: All and three questions');
+    for (const f of ['little', 'multi', 'learning', 'all']) {
       await p.click(`#filters .chip[data-f="${f}"]`);
       counts[f] = await p.evaluate(f => ({ n: document.querySelectorAll('#games .card:not(.soon)').length,
         ok: [...document.querySelectorAll('#games .card:not(.soon)')].every(c => f === 'all' || c.dataset.tags.split(' ').includes(f)),
         pressed: document.querySelector(`#filters .chip[data-f="${f}"]`).getAttribute('aria-pressed') }), f);
     }
-    check(Object.values(counts).every(c => c.ok && c.pressed === 'true') && counts.little.n >= 2 && counts.multi.n >= 3 && counts.all.n === info.games, 'filters show only matching games: ' + JSON.stringify(counts));
+    check(Object.values(counts).every(c => c.ok && c.pressed === 'true') && counts.little.n >= 2 && counts.multi.n >= 3 && counts.all.n === info.games - 1, 'filters show only matching games: ' + JSON.stringify(counts));
     check(/ABC Train/.test(await p.evaluate(() => { document.querySelector('#filters .chip[data-f="little"]').click(); return document.getElementById('games').textContent; })), 'Little kids includes ABC Train');
-    check(/FOR GROWN-UPS/.test(await p.textContent('body')), 'the grown-ups strip shows');
+    check(/For grown-ups/.test(await p.textContent('body')), 'the grown-ups line shows');
     await done(p, 'index-filters.png');
     // a phone: the hero and the games come before the folders, nothing scrolls sideways
     const ph = await open(browser, 'index.html', PHONE);
-    const phone = await ph.evaluate(() => ({ wide: document.documentElement.scrollWidth > innerWidth + 1, play: document.querySelector('#hero .play').getBoundingClientRect().bottom < innerHeight * 1.2 }));
-    check(!phone.wide && phone.play, 'phone layout: ' + JSON.stringify(phone));
+    const phone = await ph.evaluate(() => { const c = [...document.querySelectorAll('#games .card')].slice(0, 2).map(e => e.getBoundingClientRect());
+      return { wide: document.documentElement.scrollWidth > innerWidth + 1, play: document.querySelector('#hero .play').getBoundingClientRect().bottom < innerHeight * 1.2,
+        twoUp: Math.abs(c[0].top - c[1].top) < 2 && c[1].left > c[0].right, tall: document.documentElement.scrollHeight }; });
+    check(!phone.wide && phone.play && phone.twoUp && phone.tall < 3200, 'phone layout (two pictures a row, a short page): ' + JSON.stringify(phone));
     await done(ph, 'index-phone.png');
   });
 
@@ -224,7 +231,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Hamglider: autopilot lands on the target in every round of all four worlds (boosting down the Cape Cod Canal)', async () => {
+  await test('Hamglider: autopilot lands on the target in every round of all seven worlds (boosting down the Cape Cod Canal, the dartboard drifting on Frosty Floes)', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 480, height: 270 } });
     const r = await p.evaluate(() => {
       const out = [];
@@ -325,10 +332,110 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'hamglider-features.png');
   });
 
+  await test('Hamglider helpers: the camera looks down the ramp (never under it), a shadow under Pip, the target arrow (and the edge arrow off screen), wings that pop open before a splash, a short title', async () => {
+    const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
+    check(await p.evaluate(() => { const r = $('btnPlay').getBoundingClientRect(); return r.bottom <= innerHeight; }), "LET'S FLY is on the screen without scrolling");
+    const r = await p.evaluate(() => {
+      const out = {};
+      startGame(0); action();
+      // down the steep top (once it has swept in from the round card): the camera stays above the slope behind Pip
+      let under = 0;
+      for (let i = 0; i < 90; i++) { update(1 / 60); updateVisuals(1 / 60); if (i >= 30 && camPos.z > pos.z && camPos.y < pos.y + (camPos.z - pos.z) * -rampSlope(d)) under++; }
+      out.under = under;
+      out.arrowOnRamp = targetArrow.visible;
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      for (let i = 0; i < 30; i++) { update(1 / 60); updateVisuals(1 / 60); }
+      out.blob = { on: blob.visible, below: blob.position.y < pos.y - 5, x: Math.abs(blob.position.x - pos.x) < 0.01 };
+      // swing the camera right round: the dartboard is off the screen, so the edge arrow shows
+      updateHUD(); out.edgeAhead = !$('tgtEdge').classList.contains('hidden');
+      camera.position.set(pos.x, pos.y, pos.z - 10); camera.lookAt(pos.x, pos.y, pos.z + 50); camera.updateMatrixWorld();
+      updateHUD(); out.edgeBehind = !$('tgtEdge').classList.contains('hidden');
+      // never opened the wings and dropping toward the sea: they pop open by themselves
+      pos.set(targetPos.x + 70, 30, targetPos.z); vel.set(0, -12, -5); wings = false; wingsUsed = false; stateT = 2;
+      for (let i = 0; i < 60 * 3 && !wings && state === 'air'; i++) update(1 / 60);
+      out.auto = { wings, y: +pos.y.toFixed(1), msg: (updateHUD(), $('prompt').textContent) };
+      // but a deliberate drop onto the dartboard (wings closed on purpose) is left alone
+      startGame(0); action();
+      for (let i = 0; i < 60 * 30 && state !== 'air'; i++) update(1 / 60);
+      action(); action();   // open, then close
+      pos.set(targetPos.x, 12, targetPos.z); vel.set(0, -10, 0); curve = 0; stateT = 3;
+      for (let i = 0; i < 60 * 3 && state === 'air'; i++) update(1 / 60);
+      out.drop = { state, wings };
+      return out;
+    });
+    check(r.under === 0, `the camera dipped under the slope ${r.under} times on the steep top of the ramp`);
+    check(r.arrowOnRamp, 'the arrow over the dartboard shows from the ramp');
+    check(r.blob.on && r.blob.below && r.blob.x, "Pip's shadow sits right under the ball: " + JSON.stringify(r.blob));
+    check(!r.edgeAhead && r.edgeBehind, `edge arrow: ahead ${r.edgeAhead}, looking back ${r.edgeBehind}`);
+    check(r.auto.wings && r.auto.y > 2 && /WINGS OUT/.test(r.auto.msg), 'the wings pop open before a splash: ' + JSON.stringify(r.auto));
+    check(r.drop.state !== 'air' && !r.drop.wings, 'a deliberate drop onto the target is not stopped: ' + JSON.stringify(r.drop));
+    await done(p, 'hamglider-helpers.png');
+  });
+
+  await test('Hamglider new worlds and missions: the Frosty Floes dartboard drifts, Cloud Kingdom hoops give +10, Moonlit Lagoon jellyfish bounce Pip up; a mission is three worlds, one flight each, with its best saved', async () => {
+    const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
+    const r = await p.evaluate(() => {
+      const out = {};
+      out.worlds = WORLDS.map(w => w.id).join();
+      // the drifting dartboard
+      startGame(WORLDS.findIndex(w => w.id === 'ice')); action();
+      const x0 = targetPos.x; for (let i = 0; i < 240; i++) update(1 / 60);
+      out.drift = Math.abs(targetPos.x - x0);
+      // a hoop: put Pip in it
+      startGame(WORLDS.findIndex(w => w.id === 'sky')); action();
+      out.hoops = hoops.length;
+      state = 'air'; wings = true; const h = hoops[0]; pos.set(h.x, h.y, h.z); vel.set(0, 0, -15); bonusPts = 0; update(1 / 60);
+      out.hoopPts = bonusPts; out.hoopHit = h.hit;
+      // a jellyfish: drop onto it
+      startGame(WORLDS.findIndex(w => w.id === 'night')); action();
+      out.jellies = jellies.length;
+      const j = jellies[0]; state = 'air'; wings = false; pos.set(j.x, j.top + R + 0.3, j.z); vel.set(0, -10, 0); update(1 / 60);
+      out.bounce = vel.y; out.stillAir = state === 'air';
+      // a mission with every world open: three different worlds, then the end screen with the best saved
+      save.unlockAll = true; practice = false;
+      startMission();
+      out.missionWorlds = ROUNDS.map(r => r.w); out.hud = (updateHUD(), document.getElementById('hudRound').textContent);
+      out.banner = document.getElementById('banner').textContent;
+      for (let i = 0; i < 60 * 300 && state !== 'end'; i++) {
+        if (state === 'intro') action();
+        keys.boost = !!world.boost && (state === 'air' || state === 'ramp') && fuel > 0 && Math.hypot(targetPos.x - pos.x, targetPos.z - pos.z) > 120 + pos.y * 4;
+        if (state === 'air') {
+          const dx = targetPos.x - pos.x, dz = targetPos.z - pos.z, dist = Math.hypot(dx, dz);
+          if (!wings && vel.y < 0 && dist > 25 && pos.y > 8) action();
+          if (wings) {
+            const want = Math.atan2(dx, -dz), diff = Math.atan2(Math.sin(want - yaw), Math.cos(want - yaw));
+            keys.right = diff > 0.05; keys.left = diff < -0.05;
+            const need = (pos.y - 1.2) / Math.max(dist, 1);
+            keys.down = need > 0.3; keys.up = need < 0.09;
+            if (dist < 7) action();
+          }
+        } else { keys.left = keys.right = keys.up = keys.down = false; }
+        update(1 / 60);
+      }
+      keys.boost = false;
+      out.end = state; out.rounds = roundScores.length; out.total = total; out.best = save.mission;
+      out.title = document.getElementById('endTitle').textContent; out.again = document.getElementById('btnAgain').textContent;
+      out.rows = [...document.querySelectorAll('#scoreTable tr')].map(t => t.textContent);
+      out.next = document.getElementById('btnNext').classList.contains('hidden');
+      return out;
+    });
+    check(r.worlds === 'ocean,lava,storm,canal,ice,sky,night', 'seven worlds: ' + r.worlds);
+    check(r.drift > 2, 'the Frosty Floes dartboard drifts: ' + r.drift);
+    check(r.hoops === 3 && r.hoopHit && r.hoopPts === 10, 'Cloud Kingdom has 3 hoops and one is worth +10: ' + JSON.stringify(r));
+    check(r.jellies === 2 && r.bounce > 10 && r.stillAir, 'a Moonlit Lagoon jellyfish bounces Pip back up: ' + JSON.stringify(r));
+    check(new Set(r.missionWorlds).size === 3 && r.hud === 'MISSION 1/3' && /Mission flight 1 of 3/.test(r.banner), 'a mission is three different worlds: ' + JSON.stringify(r));
+    check(r.end === 'end' && r.rounds === 3 && r.total > 0 && r.best === r.total && r.title === 'MISSION DONE!' && /NEW MISSION/.test(r.again) && r.next && r.rows.length === 4, 'the mission ends after three flights with its best saved: ' + JSON.stringify(r));
+    await p.reload(); await p.waitForTimeout(500);
+    await p.click('#btnPlay');
+    const btn = await p.textContent('#btnMission');
+    check(/MISSION/.test(btn) && /Best \d+/.test(btn), 'the map has a Mission button showing the best: ' + btn);
+    await done(p, 'hamglider-mission.png');
+  });
+
   await test('Hamglider: worlds unlock in order, and "Unlock all" opens every world and ball', async () => {
     const p = await open(browser, 'hamglider.html', { viewport: { width: 960, height: 600 } });
     await p.click('#btnPlay');
-    check(await p.$$eval('.world.locked', els => els.length) === 3, 'lava, storm and the canal should start locked');
+    check(await p.$$eval('.world.locked', els => els.length) === 6, 'every world but the first should start locked');
     await p.click('#btnUnlock');
     check(await p.$$eval('.world.locked', els => els.length) === 0, 'worlds still locked');
     await p.click('#btnBalls');
@@ -3313,6 +3420,244 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check((await p.textContent('#btnMute')) === '🔇', f + ' mute button shows sound on');
     }
     await ctx.close();
+  });
+
+  await test('/weather works on an old iPad (iOS 10.3): built scripts up to date, unlisted, polyfills stand in for the newer functions, no script errors', async () => {
+    // the scripts are built from weather/src for Safari 10.1, and the page stays out of search
+    check(require('child_process').spawnSync('node', [path.join(ROOT, 'tools/build-weather.js'), '--check']).status === 0, 'weather scripts are out of date: run node tools/build-weather.js');
+    const html = fs.readFileSync(path.join(ROOT, 'weather/index.html'), 'utf8');
+    check(/name="robots" content="noindex/.test(html) && html.indexOf('polyfills.js') < html.indexOf('app.js'), 'noindex, and polyfills.js loads before app.js');
+    check(!/weather\//.test(fs.readFileSync(path.join(ROOT, 'index.html'), 'utf8')), 'the arcade page does not link to /weather');
+    // pretend to be old Safari: take away the newer functions (and flexbox gap) so the stand-ins have to do the work
+    const ctx = await browser.newContext({ viewport: { width: 1024, height: 768 } });
+    await ctx.route(/^https?:/, r => r.abort());   // no network: NOAA can't be reached from the tests
+    await ctx.addInitScript(() => {
+      delete Array.prototype.at; delete Object.fromEntries; delete String.prototype.matchAll;
+      delete Navigator.prototype.serviceWorker;   // iOS 10 has none (and file:// pages can't register one)
+      const real = CSSStyleDeclaration.prototype.setProperty;
+      Object.defineProperty(CSSStyleDeclaration.prototype, 'cssText', { set(v) { this.setProperty('display', /display:flex/.test(v) ? 'block' : ''); real.call(this, 'position', 'absolute'); }, configurable: true });
+    });
+    const p = await ctx.newPage(); const errors = [];
+    p.on('pageerror', e => errors.push(e.message));
+    await p.goto(url('weather/index.html')); await p.waitForTimeout(2500);
+    const r = await p.evaluate(() => ({
+      at: [1, 2, 3].at(-1), from: JSON.stringify(Object.fromEntries([['a', 1], ['b', 2]])),
+      all: Array.from('w 3 ft at 5 s, N 2 ft at 4 s'.matchAll(/(\d) ft at (\d)/g), m => m[1] + m[2]).join(' '),
+      noGap: document.documentElement.classList.contains('no-flexgap'),
+      dateKey: dateKey(new Date('2026-10-19T03:59:00Z')) + ' ' + dateKey(new Date('2026-10-19T04:00:00Z')),
+      minutes: minutesOfDay(new Date('2026-07-01T18:30:00Z')), text: document.body.innerText.slice(0, 400) }));
+    check(errors.length === 0, 'script errors: ' + errors.join(' | '));
+    check(r.at === 3 && r.from === '{"a":1,"b":2}' && r.all === '35 24', 'the stand-ins for at / fromEntries / matchAll work: ' + JSON.stringify(r));
+    check(r.noGap, 'no flexbox gap is noticed, so the margin fallbacks switch on');
+    check(r.dateKey === '2026-10-18 2026-10-19' && r.minutes === 870, 'day keys and minutes come out right in Megansett time: ' + JSON.stringify(r));
+    check(/Megansett Harbor/.test(r.text) && !/Loading forecast/.test(r.text), 'the page started and got past "Loading forecast…": ' + r.text.slice(0, 200));
+    await p.screenshot({ path: path.join(OUT, 'weather-offline.png') });
+    // if something breaks on a device, the page says what (file and line) instead of "Loading forecast…" for ever
+    const broken = await ctx.newPage();
+    await broken.addInitScript(() => { const Real = Intl.DateTimeFormat; Intl.DateTimeFormat = function (loc, o) { if (o && o.hour12 === false) throw new Error('no 24-hour clock here'); return new Real(loc, o); }; });
+    await broken.goto(url('weather/index.html')); await broken.waitForTimeout(1200);
+    const errBox = await broken.evaluate(() => (document.querySelector('#acts .plan-error') || {}).textContent || '');
+    check(/couldn.t start/.test(errBox) && /no 24-hour clock here/.test(errBox) && /app\.js line \d+/.test(errBox), 'a script failure shows on the page with the file and line: ' + errBox);
+    await broken.close();
+    // the conditions strip (Air · Water · Wind · Tide) and the red Small Craft Advisory bar, fed made-up readings
+    const strip = await p.evaluate(() => {
+      const nowAbs = minutesOfDay(new Date()), later = new Date(Date.now() + 6 * 36e5).toISOString();
+      const hilo = [{ abs: nowAbs - 200, min: 0, type: 'L', v: 0.2 }, { abs: nowAbs + 180, min: 600, type: 'H', v: 4.1 }];
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Partly Sunny', isDaytime: true, probabilityOfPrecipitation: { value: 20 } }, wind: [{ t: Math.floor(Date.now() / 36e5) * 36e5, spd: 12.4, gst: 18, dir: 225 }] }, waterTemp: 81.2, tides: { hilo } });
+      const cards = [...document.querySelectorAll('#now .cond-card')].map(c => (c.querySelector('b') ? c.querySelector('b').textContent + ' ' : (c.querySelector('svg.wx-icon') ? '☁ ' : '')) + c.querySelector('i').textContent);
+      renderAlertBar([{ event: 'Small Craft Advisory', ends: later, description: 'Southwest winds 15 to 20 kt with gusts up to 25 kt.', instruction: 'Inexperienced mariners should avoid navigating.' },
+        { event: 'Gale Watch', ends: later, description: 'Gales possible.' }], []);
+      const bar = document.getElementById('alert-bar'), tile = document.querySelector('#now .cond');
+      const first = tile.lastElementChild;
+      const before = { tile: first.classList.contains('cond-alert') ? first.querySelector('b').textContent + ' ' + first.querySelector('i').textContent : '', red: getComputedStyle(first).backgroundColor, barHidden: bar.hidden };
+      first.click();
+      const opened = { shown: !bar.hidden, title: bar.querySelector('.alert-txt b').textContent, sub: bar.querySelector('.alert-txt span').textContent, detail: getComputedStyle(bar.querySelector('.alert-detail')).display, text: bar.querySelector('.alert-detail').textContent };
+      return { cards, before, opened };
+    });
+    await p.screenshot({ path: path.join(OUT, 'weather-strip-alert.png') });
+    const fromForecast = await p.evaluate(() => {
+      const bar = document.getElementById('alert-bar');
+      bar.querySelector('.alert-head').click();
+      const closed = bar.hidden;
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Sunny', isDaytime: true } } });
+      renderAlertBar([], ['SMALL CRAFT ADVISORY IN EFFECT FROM 2 PM EDT THIS AFTERNOON THROUGH SATURDAY EVENING']);
+      const t = document.querySelector('#now .cond-alert').textContent.trim();
+      renderNow({ weather: { now: { temperature: 70, shortForecast: 'Sunny', isDaytime: true } } });
+      renderAlertBar([], []);
+      return { closed, tile: t, clear: !document.querySelector('#now .cond-alert') && bar.hidden };
+    });
+    check(strip.cards.length === 6 && strip.cards[0] === '70° Partly cloudy' && /^\d{1,2}:\d\d(AM|PM) Sun(rise|set)$/.test(strip.cards[1]) && strip.cards[2] === '81° Water' && strip.cards[3] === 'SW 12kt Wind' && strip.cards[4] === '10:00AM Next high' && /^\d{1,3}% (Waxing|Waning|Full moon|New moon)$/.test(strip.cards[5]),
+      'the strip is just right now: the sky with the temperature, the sun, water, wind, the next tide and the moon: ' + strip.cards.join(' | '));
+    check(strip.before.tile === 'Gale Watch +1' && strip.before.red === 'rgb(217, 72, 15)' && strip.before.barHidden,
+      'an alert tile leads the strip with the most serious alert (a gale watch outranks a small craft advisory; watches are orange), the panel waits: ' + JSON.stringify(strip.before));
+    check(strip.opened.shown && strip.opened.title === 'Gale Watch' && /\+1 more/.test(strip.opened.sub) && strip.opened.detail === 'block' && /Small Craft Advisory/.test(strip.opened.text) && /Inexperienced mariners/.test(strip.opened.text),
+      'tapping the tile opens every alert in the red panel: ' + JSON.stringify(strip.opened).slice(0, 220));
+    check(fromForecast.closed && /Small Craft\s*Advisory/.test(fromForecast.tile) && fromForecast.clear, 'Close puts it away; a marine-forecast headline alone makes the tile; no alerts, no tile: ' + JSON.stringify(fromForecast));
+    await ctx.close();
+  });
+
+  await test('/weather plan: activity verdicts with the best window, one timeline for the day, the week, settings, details, night look, and it all fits an iPad screen', async () => {
+    // a made-up July Saturday at 9:30 AM: rain early this morning (only the grid's rain chance remembers it; the hourly forecast
+    // starts now), so the roads are wet until late morning; the wind
+    // building to 18 kt gusting 24 in the afternoon, 64° water; a stormy Sunday and a thundery Tuesday
+    const fakeClock = () => {
+      window.__T = Date.parse('2026-07-18T13:30:00Z');
+      delete Navigator.prototype.serviceWorker;   // file:// pages can't register one
+      const Real = Date;
+      class FakeDate extends Real { constructor(...a) { super(...(a.length ? a : [window.__T])); } static now() { return window.__T; } }
+      window.Date = FakeDate;
+    };
+    const feed = () => {
+      const todayKey = dateKey(new Date()), H = 36e5, start = localMidnight(todayKey).getTime();
+      const hours = [], wind = [], byDay = {};
+      for (let t = start; t < start + 8 * 24 * H; t += H) {
+        const d = Math.floor((t - start) / (24 * H)), m = minutesOfDay(new Date(t)), hr = m / 60;
+        const temp = Math.round(66 + 12 * Math.max(0, Math.sin(Math.PI * (hr - 7) / 14)) + (d === 1 ? -6 : 0));
+        let pop = d === 0 && hr >= 5 && hr < 9 ? 70 : d === 1 ? 80 : 5;
+        const thunder = (d === 3 && hr >= 13 && hr < 19) || (d === 0 && hr >= 17 && hr < 19);
+        if (thunder) pop = 60;
+        const isDay = hr >= 6 && hr < 20;
+        const short = thunder ? 'Chance Showers And Thunderstorms' : pop >= 50 ? 'Rain Showers' : isDay ? (hr < 12 ? 'Sunny' : 'Partly Sunny') : 'Mostly Clear';
+        hours.push({ t, temp, pop, short, isDay });
+        const bump = Math.max(0, Math.sin(Math.PI * (hr - 11) / 9));
+        const spd = d === 1 ? 22 : 7 + 11 * bump, gst = d === 1 ? 31 : spd + 2 + 4 * bump;
+        wind.push({ t, spd, gst, dir: 225 });
+        const key = addDays(todayKey, d);
+        byDay[key] = byDay[key] || { day: { name: 'Day', temperature: 0, shortForecast: '', isDaytime: true, windDirection: 'SW', windSpeed: '10 mph', detailedForecast: '' }, night: { name: 'Night', temperature: 99, shortForecast: 'Clear', isDaytime: false, windDirection: 'SW', windSpeed: '5 mph', detailedForecast: '' } };
+        if (temp > byDay[key].day.temperature) byDay[key].day.temperature = temp;
+        if (temp < byDay[key].night.temperature) byDay[key].night.temperature = temp;
+        if (hr === 14) byDay[key].day.shortForecast = short;
+      }
+      const curve = [], hilo = [];
+      for (let a = 0; a < 8 * 1440; a += 30) {
+        const v = +(2 + 1.8 * Math.sin(2 * Math.PI * (a - 200) / 745)).toFixed(2);
+        curve.push({ key: addDays(todayKey, Math.floor(a / 1440)), min: a % 1440, v, dayIndex: Math.floor(a / 1440), abs: a });
+      }
+      for (let i = 1; i < curve.length - 1; i++) {
+        const [p, c, n] = [curve[i - 1], curve[i], curve[i + 1]];
+        if ((c.v >= p.v && c.v > n.v) || (c.v <= p.v && c.v < n.v)) hilo.push(Object.assign({}, c, { type: c.v > 2 ? 'H' : 'L' }));
+      }
+      const marine = { issueKey: todayKey, issued: '400 AM EDT SAT JUL 18 2026', headlines: [], synopsis: '', periods: [
+        { label: 'TODAY', text: 'SW winds 10 to 15 kt. Seas 1 to 2 ft.', slots: [0] },
+        { label: 'TONIGHT', text: 'SW winds 10 kt. Seas around 1 ft.', slots: [1] },
+        { label: 'SUN', text: 'SW winds 20 to 25 kt. Seas 4 to 6 ft.', slots: [2] },
+        { label: 'MON', text: 'W winds 10 kt. Seas 1 to 2 ft.', slots: [4] }] };
+      window.__state = { days: Array.from({ length: 7 }, (_, i) => addDays(todayKey, i)), weather: { byDay, now: { temperature: hours[9].temp, shortForecast: hours[9].short, isDaytime: true, probabilityOfPrecipitation: { value: 10 } }, hours: hours.filter((h) => h.t >= Date.now() - H), wind, rainChance: hours.map((h) => ({ t: h.t, pop: h.pop })), cell: null },
+        marine, tides: { curve, hilo, stats: { maxHigh: { v: 4.6 }, minLow: { v: -0.7 }, avgHigh: 3.6, avgLow: 0.4, highs: [], lows: [], ranges: [] } }, currents: null, waterTemp: 64, waterLevel: null, alerts: [] };
+      window.__info = { stale: [], missing: [], todayKey, health: [{ name: 'Weather', ok: true }, { name: 'Tides', ok: true }, { name: 'Marine forecast', ok: false, savedAt: Date.now() - 2 * 36e5, error: 'timed out' }, { name: 'Alerts', ok: false, error: 'Failed to fetch' }] };
+      renderNow(window.__state); renderPlan(window.__state, window.__info);
+    };
+    const read = p => p.evaluate(() => ({
+      day: document.getElementById('plan-day').textContent,
+      tiles: [...document.querySelectorAll('#acts .act:not(.act-seas)')].map(a => ({ act: a.dataset.act, lv: (a.className.match(/lv-(\d)/) || [])[1], say: a.title, icon: !!a.querySelector('svg.act-ic'), bg: getComputedStyle(a).backgroundColor })),
+      detail: (document.querySelector('#acts .act-detail') || {}).textContent || '', cells: document.querySelectorAll('#acts .ad-h').length,
+      tl: { rain: [...document.querySelectorAll('#timeline .tl-pop')].map(t => t.textContent), wind: [...document.querySelectorAll('#timeline .tl-wspd')].map(t => t.textContent), arrows: document.querySelectorAll('#timeline .tl-warrow').length, graph: !!document.querySelector('#timeline .tl-wind, #timeline .tl-gust'), tide: !!document.querySelector('#timeline .tl-tide'), now: !!document.querySelector('#timeline .tl-now'), win: !!document.querySelector('#timeline .tl-win'), icons: document.querySelectorAll('#timeline svg svg').length, lows: [...document.querySelectorAll('#timeline .tl-val')].map(t => t.textContent).filter(t => /High|Low/.test(t)), hours: [...document.querySelectorAll('#timeline .tl-hour')].map(t => t.textContent), day: (document.querySelector('#timeline .tl-day') || {}).textContent || '' },
+      week: [...document.querySelectorAll('#week .wk')].map(w => ({ day: w.querySelector('.wk-day').textContent, v: w.querySelector('.wk-v').textContent, title: w.title })),
+      tileH: Math.max(...[...document.querySelectorAll('#acts .act')].map(a => a.getBoundingClientRect().height)),
+      fits: { scroll: document.documentElement.scrollHeight, inner: innerHeight, weekBottom: Math.round(document.getElementById('week').getBoundingClientRect().bottom), footBottom: Math.round(document.querySelector('.plan-foot').getBoundingClientRect().bottom) },
+      dark: document.documentElement.classList.contains('dark') }));
+
+    for (const [w, h, name] of [[1024, 690, 'landscape'], [768, 946, 'portrait']]) {   // an iPad's Safari window, toolbars taken off
+      const ctx = await browser.newContext({ viewport: { width: w, height: h } });
+      await ctx.route(/^https?:/, r => r.abort());
+      await ctx.addInitScript(fakeClock);
+      const p = await ctx.newPage(); const errors = [];
+      p.on('pageerror', e => errors.push(e.message));
+      await p.goto(url('weather/index.html')); await p.waitForTimeout(1500);
+      await p.evaluate(feed); await p.waitForTimeout(300);
+      // with an alert tile too, the conditions strip stays on the same line as "Megansett Harbor"
+      const line = await p.evaluate(() => {
+        renderAlertBar([{ event: 'Gale Warning', ends: new Date(Date.now() + 6 * 36e5).toISOString(), description: 'Gales.' }], []); fitPlan();
+        const h = document.querySelector('.brand h1').getBoundingClientRect(), n = document.getElementById('now').getBoundingClientRect();
+        return { sameLine: n.top < h.bottom && n.left > h.right, h1: Math.round(h.right), strip: [Math.round(n.left), Math.round(n.right)], width: innerWidth, red: getComputedStyle(document.querySelector('#now .cond-alert')).backgroundColor };
+      });
+      check(line.sameLine && line.strip[1] <= line.width && line.red === 'rgb(198, 40, 40)', `${name}: the strip (with a red Gale Warning tile) sits on the same line as the title: ` + JSON.stringify(line));
+      const r = await read(p);
+      check(errors.length === 0, name + ': script errors: ' + errors.join(' | '));
+      check(r.fits.footBottom <= r.fits.inner + 1 && r.fits.scroll <= r.fits.inner + 1, `${name}: everything fits one ${w}×${h} screen: ` + JSON.stringify(r.fits));
+      check(r.tileH <= 60, `${name}: activity tiles are small (${Math.round(r.tileH)}px)`);
+      if (name === 'portrait') { await p.screenshot({ path: path.join(OUT, 'weather-plan-portrait.png') }); await ctx.close(); continue; }
+
+      await p.screenshot({ path: path.join(OUT, 'weather-plan.png') });
+      const t = Object.fromEntries(r.tiles.map(x => [x.act, x]));
+      check(r.day === 'Today' && r.tiles.length === 4, 'today, four activities: ' + JSON.stringify(r.tiles.map(x => x.act)));
+      check(!r.dark && /<html lang="en" class="dark">/.test(fs.readFileSync(path.join(ROOT, 'weather/index.html'), 'utf8')), 'the page starts dark and turns light in daylight (9:30 AM)');
+      check(t.boating.lv === '0' && /best (9|10) AM–(12|1|2) PM/.test(t.boating.say) && /SW .*kt, seas 1–2 ft/.test(t.boating.say), 'boating: go in the morning before the wind builds: ' + JSON.stringify(t.boating));
+      check(r.tiles.every(x => x.icon) && t.boating.bg === 'rgb(223, 238, 226)' && t.swimming.bg === 'rgb(245, 237, 207)', 'each tile is its icon in a muted green / yellow / red box: ' + JSON.stringify(r.tiles.map(x => x.act + ' ' + x.bg)));
+      check(!r.detail, 'the tiles start closed');
+      // the seas tile comes first, before Boating; it opens the day's marine forecast
+      const seas = await p.evaluate(() => { const first = document.querySelector('#acts .act'); return { seas: first.classList.contains('act-seas'), text: first.textContent.replace(/\s+/g, ' ').trim(), next: first.nextElementSibling.dataset.act }; });
+      check(seas.seas && seas.text === '1–2 ft seas' && seas.next === 'boating', 'a seas tile (1–2 ft) sits before Boating: ' + JSON.stringify(seas));
+      await p.click('#acts .act-seas'); await p.waitForTimeout(150);
+      const seasOpen = await p.evaluate(() => (document.querySelector('#acts .act-detail.seas') || {}).textContent || '');
+      check(/Today/.test(seasOpen) && /Seas 1–2 ft/.test(seasOpen) && /SW winds 10 to 15 kt/.test(seasOpen), 'tapping it opens the marine forecast for the day: ' + seasOpen.replace(/\s+/g, ' ').slice(0, 160));
+      await p.click('#acts .act-seas'); await p.waitForTimeout(150);
+      // tap Boating: it opens under the row with the verdict, the best window, every hour and your limits; still one screen
+      await p.click('#acts .act[data-act="boating"]'); await p.waitForTimeout(200);
+      const open1 = await read(p);
+      check(/Boating: Go/.test(open1.detail) && /best (9|10) AM/.test(open1.detail) && /seas 1–2 ft/.test(open1.detail) && open1.cells >= 6 && /Your limits: wind up to 15 kt/.test(open1.detail), 'tapping Boating opens its detail: ' + open1.detail.replace(/\s+/g, ' ').slice(0, 200) + ' cells ' + open1.cells);
+      check(open1.fits.footBottom <= open1.fits.inner + 1, 'opened, it all still fits one screen: ' + JSON.stringify(open1.fits));
+      await p.screenshot({ path: path.join(OUT, 'weather-plan-open.png') });
+      await p.click('#acts .act[data-act="boating"]'); await p.waitForTimeout(200);
+      check(!(await read(p)).detail, 'tapping it again closes it');
+      check(t.swimming.lv === '1' && /Water 64°/.test(t.swimming.say), 'swimming: caution, the water is 64°: ' + JSON.stringify(t.swimming));
+      check(t.rollerblading.lv === '0' && /best 11 AM/.test(t.rollerblading.say), 'rollerblading: wet roads until the morning rain has had two hours to dry: ' + JSON.stringify(t.rollerblading));
+      check(t.running.lv === '0', 'running: a go: ' + JSON.stringify(t.running));
+      check(r.tl.rain.length >= 5 && r.tl.rain.every(t => /^\d+%( ⚡| ❄)?$/.test(t)) && r.tl.wind.length >= 5 && r.tl.arrows >= 5 && !r.tl.graph && r.tl.wind.some(t => /^1[5-8] G2[0-4]$/.test(t)) && r.tl.tide && r.tl.now && r.tl.win && r.tl.icons >= 4 && /^Low -?\d+\.\d ft · 12:30p,High \d+\.\d ft · 7p$/.test(r.tl.lows.join()), 'the timeline has sky, the chance of rain as %, wind as arrows and speeds (no graph), tide (with highs and lows), now and the best window: ' + JSON.stringify(r.tl));
+      check(r.tl.hours[0] === '10a' && r.tl.hours[r.tl.hours.length - 1] === '8p' && !r.tl.day, 'at 9:30 AM the timeline runs from just before now to 12 hours ahead (10a … 8p), no midnight: ' + JSON.stringify(r.tl.hours));
+      const sun = r.week[0], tue = r.week[2];
+      check(r.week.length === 6 && /Not today/.test(sun.v) && /Boating/.test(sun.title), 'the week: six days, and stormy Sunday is not a boating day: ' + JSON.stringify(r.week.slice(0, 3)));
+      // drag the red line to 3 PM: it reads that time's rain, wind and tide
+      const box = await p.evaluate(() => { const r = document.getElementById('timeline').getBoundingClientRect(); return { x: r.left, y: r.top, h: r.height, at3: tlModel.x(Date.parse('2026-07-18T19:00:00Z')), now: tlModel.x(Date.now()) }; });
+      await p.mouse.move(box.x + box.now, box.y + box.h / 2); await p.mouse.down();
+      await p.mouse.move(box.x + box.at3, box.y + box.h / 2, { steps: 5 }); await p.mouse.up(); await p.waitForTimeout(100);
+      const reads = await p.evaluate(() => [...document.querySelectorAll('#timeline .tl-scrub .tl-read')].map(t => t.textContent));
+      check(/^3 PM · 7\d°$/.test(reads[0]) && reads[1] === '5%' && /^SW 1[78] G2[34] kt$/.test(reads[2]) && /^1\.[23] ft ↑$/.test(reads[3]), 'dragging the slider to 3 PM reads its temperature, rain, wind and tide: ' + JSON.stringify(reads));
+      // the tide is drawn against the year's range: muted lines at the year's highest and lowest tides, and a typical band
+      const tideRef = await p.evaluate(() => ({ ext: document.querySelectorAll('#timeline .tl-tide-ext').length, typ: !!document.querySelector('#timeline .tl-tide-typ'), labels: [...document.querySelectorAll('#timeline .tl-tide-lbl')].map(t => t.textContent) }));
+      check(tideRef.ext === 2 && tideRef.typ && tideRef.labels.join() === 'Year high 4.6 ft,Year low -0.7 ft', 'the tide shows the year\'s highest and lowest tides and a typical band behind today: ' + JSON.stringify(tideRef));
+      check(await p.evaluate(() => document.querySelectorAll('#timeline .tl-twilight').length >= 1 && document.querySelectorAll('#timeline .tl-night').length >= 1), 'dusk is shaded (sunset to last light), then night');
+      // the clock; storm marks on the timeline (thunderstorms at 5 and 6 PM)
+      const extra = await p.evaluate(() => ({ clock: document.getElementById('clock').textContent, storms: [...document.querySelectorAll('#timeline text')].filter(t => /⚡/.test(t.textContent)).length }));
+      check(extra.clock === '9:30AM' && extra.storms >= 2, 'the clock reads 9:30 AM, and the late-afternoon thunderstorms are marked ⚡ on the timeline: ' + JSON.stringify(extra));
+      // the health sheet: which forecasts loaded
+      await p.click('#plan-updated'); await p.waitForTimeout(150);
+      const health = await p.evaluate(() => ({ shown: !document.getElementById('health').hidden, text: document.getElementById('health-body').textContent.replace(/\s+/g, ' ') }));
+      check(health.shown && /Weather loaded/.test(health.text) && /Marine forecast couldn't load; showing the copy from/.test(health.text) && /Alerts couldn.t load \(Failed to fetch\)/.test(health.text), 'tapping Updated shows which forecasts loaded: ' + JSON.stringify(health).slice(0, 300));
+      await p.click('#close-health');
+      // tap Running: the timeline and the week follow it
+      await p.click('#acts .act[data-act="running"]'); await p.waitForTimeout(200);
+      const r2 = await read(p);
+      check(/Running/.test(r2.week[0].title) && /Not today/.test(r2.week[0].v) && /Go/.test(r2.week[2].v) && /best \d+ AM–1 PM/.test(r2.week[2].title), 'tapping Running: the week shows running (rainy Sunday; Tuesday, go in the morning before the 1 PM thunderstorms): ' + JSON.stringify(r2.week.slice(0, 3)));
+      void tue;
+      // settings: swap rollerblading for kayak & SUP, and swim in colder water
+      await p.click('#open-settings'); await p.waitForTimeout(150);
+      await p.click('input[data-show="rollerblading"]'); await p.click('input[data-show="paddling"]');
+      await p.fill('input[data-act="swimming"][data-limit="water"]', '62'); await p.press('input[data-act="swimming"][data-limit="water"]', 'Tab');
+      await p.click('#close-settings'); await p.waitForTimeout(200);
+      const r3 = await read(p);
+      const saved = await p.evaluate(() => JSON.parse(localStorage.getItem('cv:plan')));
+      check(r3.tiles.map(x => x.act).join() === 'boating,swimming,running,paddling' && r3.tiles[1].lv === '0' && saved.limits.swimming.water === 62, 'settings change the activities and limits, and are saved: ' + JSON.stringify({ tiles: r3.tiles.map(x => x.act + x.lv), saved }));
+      // a day in the week opens the details at that day; back to today
+      await p.click('#week .wk'); await p.waitForTimeout(300);
+      const det = await p.evaluate(() => ({ plan: document.getElementById('plan').hidden, details: document.getElementById('details').hidden, map: !!document.querySelector('#source-map .leaflet-container, #source-map.leaflet-container') }));
+      await p.click('#close-details'); await p.waitForTimeout(200);
+      check(det.plan && !det.details && det.map && !(await p.evaluate(() => document.getElementById('plan').hidden)), 'a week day opens the 7-day details (and the map then); back returns to the plan: ' + JSON.stringify(det));
+      // after sunset: the night look, and the plan turns to tomorrow
+      await p.evaluate(() => { window.__T = Date.parse('2026-07-19T01:30:00Z'); renderPlan(window.__state, window.__info); });
+      const night = await read(p);
+      check(night.dark && night.day === 'Tomorrow', 'after sunset: dark, and planning tomorrow: ' + JSON.stringify({ dark: night.dark, day: night.day }));
+      check(night.tl.hours[0] === '10p' && night.tl.hours[night.tl.hours.length - 1] === '8a' && night.tl.day === 'Sun' && night.tl.lows.some(t => /^High \d+\.\d ft · 7:30a$/.test(t)), 'at 9:30 PM the timeline shows the night and tomorrow morning (10p … 8a), midnight marked Sun, and the morning high tide: ' + JSON.stringify(night.tl));
+      await p.screenshot({ path: path.join(OUT, 'weather-plan-night.png') });
+      // late at night: the night clock (just the time, the temperature and the sunrise); a touch wakes the page
+      const nc = await p.evaluate(() => { window.__T = Date.parse('2026-07-19T03:40:00Z'); nightClock(); const el = document.getElementById('nightclock'); return { shown: !el.hidden, text: el.textContent.replace(/\s+/g, ' ').trim() }; });
+      await p.screenshot({ path: path.join(OUT, 'weather-nightclock.png') });
+      await p.click('#nightclock'); await p.waitForTimeout(100);
+      const woke = await p.evaluate(() => document.getElementById('nightclock').hidden);
+      check(nc.shown && /^11:40PM/.test(nc.text) && /Sunrise 5:\d\d AM/.test(nc.text) && woke, 'at 11:40 PM the night clock shows the time and the sunrise, and a touch wakes the page: ' + JSON.stringify(nc));
+      check(errors.length === 0, 'script errors: ' + errors.join(' | '));
+      await ctx.close();
+    }
   });
 
   await browser.close();
