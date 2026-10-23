@@ -2199,6 +2199,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await ctx.close();
   });
 
+  const WORLD_IDS = ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'mobile', 'bayou', 'quarter', 'river', 'basin', 'sabine'];
   await test('Lucky Leo: every level can be finished (a search over every place Leo can stand), and the golden key can be reached', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
@@ -2238,13 +2239,20 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         }
         const keyE = L.ents.find(e => e.k === 'key'), flagE = L.ents.find(e => e.k === 'sflag');
         const near = (q, o) => { const [a, b] = q.split(',').map(Number); return Math.abs(a - o.x) <= 1 && Math.abs(b - o.y) <= 1; };
-        out[id] = { far, goal: L.goal || 178, gems: L.ents.filter(e => e.k === 'gem').length, key: keyE ? [...seen].some(q => near(q, keyE)) : null, flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
+        const hatI = [...L.t].findIndex(v => v === T.QHAT), hx = hatI % W, hy = Math.floor(hatI / W);
+        const hat = hatI < 0 ? null : { early: hx < 20, reach: [...seen].some(q => { const [a, b] = q.split(',').map(Number); return Math.abs(a - hx) <= 1 && b >= hy + 1 && b <= hy + 5; }) };
+        out[id] = { far, goal: L.goal || 178, gems: L.ents.filter(e => e.k === 'gem').length, hat, hidden: L.t.includes(T.HIDDEN), key: keyE ? [...seen].some(q => near(q, keyE)) : null, flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
       }
       return out;
     });
     for (const [id, v] of Object.entries(r)) {
       check(v.far >= v.goal, `${id}: Leo can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
       check(v.gems === 5, `${id} should have 5 rainbow gems, has ${v.gems}`);
+    }
+    const playable = WORLD_IDS.concat(['vineyard', 'nantucket']);
+    for (const id of playable) {
+      check(r[id].hat && !r[id].hat.early && r[id].hat.reach, `${id}: the magic hat should be found partway in (not at the start), up where Leo can climb to it: ` + JSON.stringify(r[id].hat));
+      check(r[id].hidden, `${id} should hide a 1-up somewhere`);
     }
     check(r.caves.key === true, 'the golden key in Glimmer Caves should be reachable');
     for (const id of ['canal', 'whale']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
@@ -2639,8 +2647,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       paused = true; startGame(); keep = { form: 0, mount: false }; startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); run(20);
       // no magic hat: no throw
       pressed.hat = true; run(1); out.noThrow = !ents.some(e => e.k === 'cap') && !player.hatless;
-      // the magic hat block (C) next to the clover block in Clover Hills
-      player.x = 16 * 16 + 2; player.vx = 0; run(10); keys.jump = true; pressed.jump = true; run(20); keys.jump = false; run(90);
+      // the magic hat block (C), up where Leo has to climb for it in Clover Hills: bump it from below
+      const hatAt = [...lvl.t].findIndex(v => v === T.QHAT), htx = hatAt % lvl.w, hty = Math.floor(hatAt / lvl.w);
+      player.x = htx * 16 + 2; player.y = (hty + 1) * 16 + 1; player.vx = 0; player.vy = -260; player.ground = false; run(30); run(90);
       const mh = ents.find(e => e.k === 'magichat'); out.sprouted = !!mh;
       if (mh) touchPlayerAs(mh);
       out.form = player.form;

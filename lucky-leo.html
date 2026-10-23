@@ -200,7 +200,7 @@ const LEVELS = {};
 // 1. Clover Hills: the basics
 LEVELS.hills = builder('hills', 'Clover Hills', 'hills', 214)
   .ground(0, 213).gap(42, 44).gap(88, 91).gap(141, 144).gap(166, 168)
-  .at(12, 8, '?BPBC').at(14, 4, '?').e('grumblin', 20, 11)
+  .at(12, 8, '?BPB?').at(14, 4, '?').e('grumblin', 20, 11)
   .pipe(26, 10).e('grumblin', 31, 11).e('grumblin', 33, 11).pipe(36, 9)
   .arc(41, 8, 5).at(48, 8, 'BB?BB').at(50, 4, 'M').e('snaily', 54, 11)
   .stairs(60, 4).fill(64, 67, 8, 11, T.STONE).stairs(68, 4, false)
@@ -211,22 +211,24 @@ LEVELS.hills = builder('hills', 'Clover Hills', 'hills', 214)
   .at(130, 9, '-----').at(133, 6, '----').e('spring', 138, 11).coins(136, 2, 5)
   .arc(140, 8, 6).at(148, 8, 'BYBB').e('grumblin', 152, 11).e('snaily', 156, 11).pipe(160, 10)
   .arc(165, 8, 5).stairs(176, 6).fill(182, 183, 6, 11, T.STONE).e('grumblin', 188, 11)
+  .at(50, 4, 'C').at(172, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(14, 2, 43, 7, 102, 3, 137, 1, 182, 4)
   .done({ goal: 200, music: 'hills', sky: ['#7fd0ff', '#c8f0ff'] });
 
 // 2. Mushroom Woods: bouncy mushroom tops over the gaps, springs and bees
 LEVELS.woods = builder('woods', 'Mushroom Woods', 'woods', 222)
   .ground(0, 30).ground(31, 60, 12).ground(70, 92).ground(104, 128).ground(140, 158).ground(170, 221)
-  .at(10, 8, '?PC').e('grumblin', 16, 11).e('buzzer', 24, 6)
+  .at(10, 8, '?P?').e('grumblin', 16, 11).e('buzzer', 24, 6)
   .at(34, 9, '---').at(39, 7, '---').at(44, 5, '---').coins(44, 4, 3).e('snaily', 48, 11).e('grumblin', 54, 11)
   .at(61, 10, '---').at(65, 8, '---').arc(61, 7, 7).e('buzzer', 66, 4)
   .e('spring', 76, 11).at(74, 3, 'B?B').coins(78, 2, 4).e('grumblin', 84, 11).e('grumblin', 86, 11)
   .at(93, 9, '----').at(98, 8, '----').at(102, 10, '--').e('buzzer', 98, 4).e('mid', 108, 11)
   .at(112, 8, 'BYB').pipe(118, 9).e('snapper', 118, 9).e('snaily', 124, 11)
   .at(129, 10, '---').at(133, 8, '--').at(136, 6, '--').e('buzzer', 133, 3).e('buzzer', 137, 9)
-  .at(144, 8, '?L?').e('thorny', 148, 11).e('grumblin', 152, 11).e('spring', 157, 11)
+  .at(144, 8, '?P?').e('thorny', 148, 11).e('grumblin', 152, 11).e('spring', 157, 11)
   .at(159, 7, '----').at(164, 5, '----').coins(164, 4, 4).e('buzzer', 166, 8)
   .at(176, 8, 'B?B?B').e('snaily', 180, 11).e('snaily', 183, 11).stairs(190, 5)
+  .at(35, 5, 'C').at(173, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(11, 5, 45, 3, 79, 1, 135, 4, 166, 3)
   .done({ goal: 206, music: 'woods', sky: ['#5ab07a', '#c8eac0'] });
 
@@ -234,7 +236,7 @@ LEVELS.woods = builder('woods', 'Mushroom Woods', 'woods', 222)
 LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 272)
   .fill(0, 271, 0, 1, T.GROUND).fill(206, 271, 2, 13, T.GROUND).ground(0, 205)   // past the gate the rock is solid: the only way on is up on the roof
   .gap(36, 39).gap(96, 99).gap(150, 154)   // each pit is also a hole in the ceiling: jump up through one to walk along the roof
-  .at(10, 8, '?PCB').e('grumblin', 16, 11).e('thorny', 22, 11)
+  .at(10, 8, '?P?B').e('grumblin', 16, 11).e('thorny', 22, 11)
   .fill(26, 30, 2, 7, T.GROUND).e('snaily', 32, 11)
   .at(43, 8, 'BBBBBB').coins(43, 7, 6).e('thorny', 46, 11).e('crusher', 50, 2)
   .stairs(56, 3).fill(59, 64, 9, 11, T.STONE).e('grumblin', 61, 8).stairs(65, 3, false)
@@ -246,35 +248,38 @@ LEVELS.caves = builder('caves', 'Glimmer Caves', 'caves', 272)
   .pipe(136, 9).e('snapper', 136, 9).at(142, 8, 'BPB').e('snaily', 146, 11)
   .at(149, 9, '-------').at(152, 5, '===')   // a ledge under the right edge of the last hole in the ceiling: a high jump (or a jump and a spin) from it lands on the roof
   .e('crusher', 160, 2).e('thorny', 166, 11).e('thorny', 170, 11).stairs(176, 5)
+  .at(59, 5, 'C').at(165, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(12, 5, 38, 9, 62, 5, 97, 5, 153, 6)
   .done({ goal: 192, secretGoal: 262, music: 'caves', dark: true });
 
 // 4. Cloud Hop: up in the sky, cloud tops and moving platforms over nothing at all
 LEVELS.sky = builder('sky', 'Cloud Hop', 'sky', 220)
-  .ground(0, 18).at(8, 8, '?PC').e('grumblin', 14, 11)
+  .ground(0, 18).at(8, 8, '?P?').e('grumblin', 14, 11)
   .at(22, 10, '----').at(28, 8, '-----').e('snaily', 30, 7).at(36, 10, '---')
   .e('plat', 41, 9, { w: 3, dx: 4, sp: 1 }).at(51, 9, '----').e('buzzer', 52, 5).coins(51, 8, 4)
   .e('plat', 57, 8, { w: 3, dy: 3, sp: 1.2 }).at(62, 7, '-----').e('grumblin', 63, 6).at(66, 3, '?M?')
-  .e('plat', 70, 9, { w: 3, dx: 5, sp: 0.9 }).ground(82, 96).e('mid', 86, 11).at(90, 8, 'YLB').e('snaily', 93, 11)
+  .e('plat', 70, 9, { w: 3, dx: 5, sp: 0.9 }).ground(82, 96).e('mid', 86, 11).at(90, 8, 'YPB').e('snaily', 93, 11)
   .at(99, 10, '---').at(104, 8, '---').at(109, 6, '---').coins(109, 5, 3).e('buzzer', 106, 3)
   .e('plat', 114, 8, { w: 3, dx: 4, sp: 1.1 }).e('plat', 124, 6, { w: 3, dy: 3, sp: 1 }).at(129, 8, '------').e('thorny', 132, 7)
   .e('plat', 137, 9, { w: 2, dx: 6, sp: 1.2 }).at(149, 9, '----').e('buzzer', 150, 5).e('buzzer', 153, 7)
   .e('fall', 155, 9, { w: 3 }).e('fall', 160, 8, { w: 3 }).e('fall', 165, 9, { w: 3 }).ground(170, 219)
   .at(176, 8, '?S??').e('grumblin', 180, 11).e('snaily', 184, 11).stairs(190, 5)
+  .at(37, 6, 'C').at(173, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 44, 6, 67, 1, 125, 2, 162, 5)
   .done({ goal: 205, music: 'sky', sky: ['#4aa8f0', '#e8f6ff'] });
 
 // 5. Bubbling Bog: islands in murky water, sinking logs, snapping plants
 LEVELS.bog = builder('bog', 'Bubbling Bog', 'bog', 220)
   .fill(0, 219, 12, 13, T.WATER).ground(0, 20).ground(26, 40).ground(47, 58).ground(64, 72).ground(90, 112).ground(118, 130).ground(150, 162).ground(176, 219)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).pipe(18, 10).e('snapper', 18, 10)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).pipe(18, 10).e('snapper', 18, 10)
   .arc(20, 8, 6).e('thorny', 32, 11).at(30, 8, 'BMB').e('buzzer', 38, 7)
   .e('fall', 42, 10, { w: 3 }).e('snaily', 52, 11).pipe(56, 9).e('snapper', 56, 9)
   .e('fall', 60, 9, { w: 2 }).e('thorny', 68, 11).e('fall', 75, 10, { w: 3 }).e('fall', 80, 9, { w: 3 }).e('fall', 85, 10, { w: 3 })
-  .e('mid', 94, 11).at(98, 8, '?L?').e('grumblin', 102, 11).e('grumblin', 104, 11).pipe(108, 9).e('snapper', 108, 9)
+  .e('mid', 94, 11).at(98, 8, '?P?').e('grumblin', 102, 11).e('grumblin', 104, 11).pipe(108, 9).e('snapper', 108, 9)
   .e('plat', 113, 9, { w: 3, dy: 2, sp: 1 }).e('snaily', 124, 11).e('buzzer', 127, 6)
   .e('fall', 133, 10, { w: 3 }).e('fall', 138, 9, { w: 3 }).e('fall', 143, 10, { w: 3 }).e('thorny', 156, 11).at(152, 8, 'BSB')
   .e('plat', 165, 9, { w: 3, dx: 4, sp: 1 }).e('grumblin', 182, 11).e('snaily', 186, 11).pipe(190, 9).e('snapper', 190, 9).stairs(196, 5)
+  .at(33, 4, 'C').at(159, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 46, 6, 82, 5, 115, 4, 168, 5)
   .done({ goal: 208, music: 'bog', sky: ['#5a6a4a', '#a8b890'] });
 
@@ -282,14 +287,15 @@ LEVELS.bog = builder('bog', 'Bubbling Bog', 'bog', 220)
 LEVELS.castle = builder('castle', 'Gillette Castle', 'castle', 196)
   .fill(0, 195, 0, 0, T.STONE).fill(0, 195, 12, 13, T.LAVA).ground(0, 22, 12, T.STONE).ground(27, 44, 12, T.STONE).ground(49, 70, 12, T.STONE)
   .ground(76, 98, 12, T.STONE).ground(103, 130, 12, T.STONE).ground(134, 195, 12, T.STONE)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('firebar', 20, 8, { len: 4 })
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('firebar', 20, 8, { len: 4 })
   .e('crusher', 32, 1).e('thorny', 38, 11).e('firebar', 42, 6, { len: 4, sp: -1 })
   .at(46, 9, '==').e('crusher', 54, 1).e('crusher', 60, 1).at(64, 8, 'BSB').e('grumblin', 67, 11)
   .e('plat', 71, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 80, 11).e('firebar', 86, 8, { len: 5 }).e('snaily', 92, 11)
-  .e('plat', 99, 10, { w: 2, dx: 1, sp: 1 }).at(108, 8, '?L?').e('crusher', 114, 1).e('thorny', 120, 11).e('firebar', 126, 7, { len: 4, sp: -1.2 })
+  .e('plat', 99, 10, { w: 2, dx: 1, sp: 1 }).at(108, 8, '?P?').e('crusher', 114, 1).e('thorny', 120, 11).e('firebar', 126, 7, { len: 4, sp: -1.2 })
   .e('fall', 130, 10, { w: 3 })
   // the throne room: walls on both sides, King Grumbles waiting
   .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { who: 'sherlock' })   // King Grumbles at the end of World 3, dressed as Sherlock Holmes
+  .at(48, 5, 'C').at(123, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 46, 7, 72, 4, 110, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
@@ -307,41 +313,44 @@ LEVELS.bonus = builder('bonus', 'Rainbow Road', 'rainbow', 170)
 // 8. Seashell Shore: sandy islands in the sea, crabby snails, sinking driftwood
 LEVELS.shore = builder('shore', 'Seashell Shore', 'shore', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 24).ground(29, 52).ground(57, 70).ground(75, 100).ground(105, 130).ground(134, 150).ground(155, 209)
-  .at(8, 8, '?PC').e('snaily', 14, 11).e('grumblin', 20, 11)
+  .at(8, 8, '?P?').e('snaily', 14, 11).e('grumblin', 20, 11)
   .arc(24, 8, 6).at(33, 8, 'B?B').e('snaily', 38, 11).e('spring', 46, 11).coins(44, 3, 5)
   .at(52, 9, '---').e('buzzer', 58, 6).e('grumblin', 63, 11).at(64, 8, '?Y?')
-  .arc(70, 8, 6).e('mid', 80, 11).e('snaily', 86, 11).e('snaily', 89, 11).at(92, 8, 'BLB')
+  .arc(70, 8, 6).e('mid', 80, 11).e('snaily', 86, 11).e('snaily', 89, 11).at(92, 8, 'BPB')
   .e('plat', 100, 9, { w: 3, dx: 3, sp: 1 }).e('thorny', 112, 11).at(116, 8, '?S?').e('grumblin', 122, 11)
   .e('fall', 130, 9, { w: 3 }).e('buzzer', 140, 7).e('snaily', 144, 11).e('fall', 151, 9, { w: 3 })
   .at(160, 8, 'B?B?B').e('grumblin', 166, 11).e('snaily', 170, 11).stairs(180, 5)
+  .at(34, 4, 'C').at(137, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 26, 6, 46, 1, 93, 5, 141, 4)
   .done({ goal: 196, music: 'shore' });
 
 // 9. Frosty Peaks: slippery snow (Leo slides!), high ledges and crush-stones
 LEVELS.snow = builder('snow', 'Frosty Peaks', 'snow', 214)
   .ground(0, 30).ground(34, 58, 10).ground(62, 90).ground(95, 120, 11).ground(125, 150).ground(156, 213)
-  .at(10, 8, '?PC').e('grumblin', 16, 11).e('thorny', 24, 11)
+  .at(10, 8, '?P?').e('grumblin', 16, 11).e('thorny', 24, 11)
   .at(36, 6, '?B?').e('snaily', 44, 9).e('grumblin', 50, 9)
   .pipe(66, 10).e('snapper', 66, 10).e('grumblin', 72, 11).e('grumblin', 74, 11).at(78, 8, 'BMB').e('crusher', 84, 2)
-  .e('mid', 98, 10).at(104, 7, '?L?').e('thorny', 110, 10).e('snaily', 116, 10)
+  .e('mid', 98, 10).at(104, 7, '?P?').e('thorny', 110, 10).e('snaily', 116, 10)
   .e('plat', 121, 8, { w: 3, dy: 2, sp: 1 })
   .at(130, 8, '----').at(135, 6, '----').coins(135, 5, 4).e('buzzer', 138, 3).e('grumblin', 144, 11)
   .e('fall', 151, 9, { w: 3 })
   .at(162, 8, '?S?').e('thorny', 168, 11).e('snaily', 172, 11).stairs(184, 5)
+  .at(37, 2, 'C').at(141, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(11, 5, 37, 3, 80, 5, 136, 3, 152, 6)
   .done({ goal: 198, music: 'snow', slippery: true });
 
 // 10. Moonlit Meadow: night time, fireflies (buzzers) and hidden blocks
 LEVELS.night = builder('night', 'Moonlit Meadow', 'night', 214)
   .ground(0, 213).gap(44, 47).gap(96, 99).gap(150, 153).gap(176, 178)
-  .at(10, 8, '?PC').e('grumblin', 16, 11).e('buzzer', 22, 7)
+  .at(10, 8, '?P?').e('grumblin', 16, 11).e('buzzer', 22, 7)
   .at(26, 8, 'BHB').e('snaily', 32, 11).pipe(36, 10)
   .arc(43, 8, 6).e('buzzer', 52, 6).e('buzzer', 58, 8).at(54, 8, '?Y?').e('grumblin', 62, 11).e('grumblin', 64, 11)
   .stairs(70, 4).at(74, 7, '---').coins(74, 6, 3).stairs(78, 4, false).e('thorny', 86, 11)
-  .arc(95, 8, 6).e('mid', 104, 11).at(110, 8, '?L?').e('snaily', 116, 11).e('buzzer', 120, 6).pipe(124, 10).e('snapper', 124, 10)
+  .arc(95, 8, 6).e('mid', 104, 11).at(110, 8, '?P?').e('snaily', 116, 11).e('buzzer', 120, 6).pipe(124, 10).e('snapper', 124, 10)
   .e('spring', 134, 11).coins(132, 2, 5).at(138, 8, 'BSB').e('thorny', 144, 11)
   .arc(149, 8, 6).e('grumblin', 158, 11).e('snaily', 162, 11).e('buzzer', 168, 7)
   .arc(175, 8, 5).stairs(184, 5)
+  .at(77, 3, 'C').at(165, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(11, 5, 28, 5, 75, 4, 133, 1, 170, 7)
   .done({ goal: 198, music: 'night', dark: true });
 
@@ -349,13 +358,14 @@ LEVELS.night = builder('night', 'Moonlit Meadow', 'night', 214)
 LEVELS.fort = builder('fort', 'Frost Fortress', 'fort', 196)
   .fill(0, 195, 0, 0, T.STONE).fill(0, 195, 12, 13, T.WATER).ground(0, 22, 12, T.STONE).ground(27, 46, 12, T.STONE).ground(51, 72, 12, T.STONE)
   .ground(78, 100, 12, T.STONE).ground(105, 132, 12, T.STONE).ground(136, 195, 12, T.STONE)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('firebar', 20, 8, { len: 4 })
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('firebar', 20, 8, { len: 4 })
   .e('crusher', 31, 1).e('thorny', 38, 11).e('firebar', 44, 7, { len: 4, sp: -1 })
   .at(48, 9, '==').e('crusher', 56, 1).e('snaily', 62, 11).at(66, 8, 'BSB').e('grumblin', 70, 11)
   .e('plat', 73, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 82, 11).e('firebar', 88, 8, { len: 5, sp: 1.2 }).e('thorny', 94, 11)
-  .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?L?').e('crusher', 116, 1).e('snaily', 122, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
+  .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?P?').e('crusher', 116, 1).e('snaily', 122, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
   .e('fall', 132, 10, { w: 3 })
   .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { kind: 'yeti', who: 'yeti' })   // the Frost Yeti guards the fortress
+  .at(49, 5, 'C').at(125, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
@@ -363,7 +373,7 @@ LEVELS.fort = builder('fort', 'Frost Fortress', 'fort', 196)
 // 12. Bourne Bridge: along the Cape Cod Canal under the big steel arch, with seagulls overhead
 LEVELS.canal = builder('canal', 'Bourne Bridge', 'canal', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 30).ground(35, 60).ground(66, 90).ground(95, 118).ground(124, 150).ground(155, 209)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('snaily', 22, 11)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('snaily', 22, 11)
   .arc(30, 8, 6).at(40, 8, 'B?B').e('buzzer', 44, 6).e('grumblin', 50, 11).pipe(54, 10)
   .e('plat', 61, 9, { w: 3, dx: 2, sp: 1 }).at(70, 8, '?Y?').e('snaily', 76, 11).e('grumblin', 82, 11)
   .arc(90, 8, 6).e('mid', 100, 11).at(104, 7, 'BMB').e('thorny', 110, 11).e('buzzer', 114, 5)
@@ -371,38 +381,41 @@ LEVELS.canal = builder('canal', 'Bourne Bridge', 'canal', 210)
   .e('fall', 151, 9, { w: 3 }).at(162, 8, '?S?')
   // the secret: way up at the top, past the high ledges, a golden flag for the ferry to Martha's Vineyard
   .at(140, 2, '========').e('sflag', 146, 1).e('grumblin', 168, 11).e('buzzer', 172, 6).stairs(184, 5)
+  .at(41, 4, 'C').at(158, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 32, 6, 71, 5, 136, 3, 152, 6)
   .done({ goal: 198, music: 'canal' });
 
 // 13. Cranberry Bog: a flooded autumn bog, hop across on floating rafts of berries
 LEVELS.cranberry = builder('cranberry', 'Cranberry Bog', 'cranberry', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 18).ground(30, 44).ground(62, 74).ground(96, 112).ground(130, 142).ground(166, 213)
-  .at(8, 8, '?PC').e('grumblin', 13, 11)
+  .at(8, 8, '?P?').e('grumblin', 13, 11)
   .e('sponge', 20, 12, { w: 3 }).e('sponge', 25, 12, { w: 3 })   // squishy bog mats: they sink slowly while you stand on them
   .at(34, 8, 'B?B').e('snaily', 40, 11)
   .e('plat', 46, 9, { w: 3, dx: 4, sp: 1 }).e('fall', 56, 9, { w: 3 })
   .e('buzzer', 66, 6).at(66, 8, '?M?').e('grumblin', 70, 11)
   .e('sponge', 76, 12, { w: 3 }).e('sponge', 81, 12, { w: 3 }).e('sponge', 86, 12, { w: 3 }).e('sponge', 91, 12, { w: 3 })
-  .e('mid', 100, 11).at(104, 8, '?L?').e('thorny', 108, 11)
+  .e('mid', 100, 11).at(104, 8, '?P?').e('thorny', 108, 11)
   .e('plat', 114, 9, { w: 3, dy: 2, sp: 1 }).e('plat', 121, 8, { w: 3, dx: 3, sp: 1 })
   .at(134, 8, 'BSB').e('snaily', 138, 11)
   .e('sponge', 144, 12, { w: 3 }).e('sponge', 149, 12, { w: 3 })
   // the dark, bubbly mat never stops sinking: stay on it and it takes Leo down under the bog
   .e('sponge', 155, 12, { w: 3, deep: true }).e('sponge', 160, 12, { w: 3 })
   .at(172, 8, '?B?B').e('grumblin', 176, 11).e('snaily', 180, 11).stairs(188, 5)
+  .at(35, 4, 'C').at(169, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 26, 6, 57, 6, 105, 5, 150, 6)
   .done({ goal: 202, music: 'cranberry' });
 
 // 14. Nauset Dunes: rolling sand dunes, beach grass and a red-and-white lighthouse
 LEVELS.dunes = builder('dunes', 'Nauset Dunes', 'dunes', 214)
   .ground(0, 40).ground(41, 60, 10).ground(61, 81, 11).ground(86, 110, 9).ground(111, 130, 11).ground(136, 160, 10).ground(161, 213)
-  .at(10, 8, '?PC').e('grumblin', 16, 11).e('buzzer', 24, 6).e('spring', 34, 11).coins(32, 3, 5)
+  .at(10, 8, '?P?').e('grumblin', 16, 11).e('buzzer', 24, 6).e('spring', 34, 11).coins(32, 3, 5)
   .e('snaily', 50, 9).at(52, 6, 'B?B').e('grumblin', 58, 9)
   .e('buzzer', 70, 7).at(72, 7, '?Y?').e('snaily', 76, 10)
-  .e('mid', 92, 8).at(96, 5, '?L?').e('thorny', 102, 8).e('grumblin', 106, 8)
+  .e('mid', 92, 8).at(96, 5, '?P?').e('thorny', 102, 8).e('grumblin', 106, 8)
   .e('spring', 116, 10).coins(114, 2, 5).e('buzzer', 122, 5).e('snaily', 126, 10)
   .at(142, 6, 'BMB').e('thorny', 148, 9).e('grumblin', 154, 9)
   .at(168, 8, '?S?').e('snaily', 174, 11).e('buzzer', 180, 7).stairs(188, 5)
+  .at(53, 2, 'C').at(164, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(11, 5, 33, 2, 73, 4, 97, 2, 143, 3)
   .done({ goal: 198, music: 'dunes' });
 
@@ -410,50 +423,54 @@ LEVELS.dunes = builder('dunes', 'Nauset Dunes', 'dunes', 214)
 // sharks, bump the floating blocks, and jump into a whale's spout to shoot up high. Seals pop up to watch.
 LEVELS.whale = builder('whale', 'Whale Watch', 'sea', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 8).ground(188, 199)
-  .at(3, 8, '?PC').e('boat', 9, 12, { w: 7, to: 181 })
+  .at(3, 8, '?P?').e('boat', 9, 12, { w: 7, to: 181 })
   .coins(14, 8, 4).e('shark', 26, 12).arc(30, 8, 6).at(38, 8, '?B?').e('sealhead', 40, 12)
   .e('whale', 46, 12).coins(45, 4, 3)
   .e('shark', 56, 12).e('buzzer', 62, 6).at(68, 8, 'BMB').e('shark', 78, 12)
-  .e('whale', 90, 12).coins(89, 5, 3).e('sealhead', 96, 12).e('mid', 100, 11).e('shark', 108, 12).at(116, 8, '?L?').e('buzzer', 122, 6).e('shark', 132, 12)
+  .e('whale', 90, 12).coins(89, 5, 3).e('sealhead', 96, 12).e('mid', 100, 11).e('shark', 108, 12).at(116, 8, '?P?').e('buzzer', 122, 6).e('shark', 132, 12)
   .e('sealhead', 138, 12).e('whale', 146, 12)
   // the secret: the last whale's spout reaches a long cloud, and at its far end a golden flag (the way to Nantucket)
   .at(149, 4, '-'.repeat(38)).coins(152, 3, 6).e('sflag', 178, 3)
   .e('shark', 158, 12).e('buzzer', 164, 7).e('shark', 172, 12)
+  .at(39, 4, 'C').at(129, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(20, 7, 47, 2, 91, 3, 126, 7, 160, 2)
   .done({ goal: 194, music: 'sea' });
 
 // 16. Provincetown Pier: the last stand, out on the wharf at sunset with the Pilgrim Monument on the hill. King Grumbles, five stomps.
 LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 24).ground(29, 48).ground(53, 74).ground(80, 102).ground(107, 134).ground(139, 199)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 20, 6)
   .e('crusher', 33, 1).e('thorny', 40, 11).e('buzzer', 46, 5)
   .at(50, 9, '--').e('crusher', 58, 1).e('snaily', 64, 11).at(68, 8, 'BSB').e('grumblin', 72, 11)
   .e('plat', 75, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 84, 11).e('firebar', 90, 8, { len: 4, sp: 1.2 }).e('thorny', 96, 11)
-  .e('plat', 103, 10, { w: 2, dx: 1, sp: 1 }).at(112, 8, '?L?').e('crusher', 118, 1).e('snaily', 124, 11).e('buzzer', 128, 6)
+  .e('plat', 103, 10, { w: 2, dx: 1, sp: 1 }).at(112, 8, '?P?').e('crusher', 118, 1).e('snaily', 124, 11).e('buzzer', 128, 6)
   .e('fall', 135, 10, { w: 3 })
   .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { kind: 'crab', who: 'pinch' })   // Captain Pinch, the giant crab
+  .at(52, 5, 'C').at(131, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 50, 7, 76, 4, 113, 5, 142, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
 // Secret level: Martha's Vineyard, along the striped clay cliffs of Aquinnah, past gingerbread cottages
 LEVELS.vineyard = builder('vineyard', "Martha's Vineyard", 'cliffs', 180)
   .ground(0, 30).ground(31, 50, 10).ground(51, 70, 8).ground(75, 96, 9).ground(97, 120, 11).ground(125, 179)
-  .at(8, 8, '?PC').arc(14, 8, 6).e('grumblin', 22, 11).e('spring', 26, 11).coins(24, 2, 5)
+  .at(8, 8, '?P?').arc(14, 8, 6).e('grumblin', 22, 11).e('spring', 26, 11).coins(24, 2, 5)
   .at(36, 6, 'BMB').e('snaily', 44, 9).arc(52, 5, 7).e('buzzer', 60, 4).e('grumblin', 66, 7)
   .arc(70, 5, 6).at(80, 5, '?L?').e('thorny', 88, 8).coins(90, 6, 5)
   .e('mid', 100, 10).arc(104, 8, 8).e('grumblin', 112, 10).arc(120, 7, 6)
   .at(130, 8, '?S?').e('spring', 140, 11).coins(138, 2, 6).e('snaily', 148, 11).e('buzzer', 152, 6).stairs(156, 5)
+  .at(37, 2, 'C').at(135, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(12, 5, 26, 1, 62, 3, 110, 6, 140, 1)
   .done({ goal: 170, music: 'vineyard' });
 
 // Secret level: Nantucket, the "Grey Lady": foggy harbour docks, grey-shingled houses and Brant Point lighthouse
 LEVELS.nantucket = builder('nantucket', 'Nantucket', 'nantucket', 180)
   .fill(0, 179, 12, 13, T.WATER).ground(0, 24).ground(30, 52).ground(57, 64, 9).ground(70, 92).ground(98, 120).ground(127, 179)
-  .at(8, 8, '?PC').e('grumblin', 16, 11).arc(24, 8, 7).e('buzzer', 34, 6).at(38, 8, 'B?B?B').e('snaily', 46, 11)
+  .at(8, 8, '?P?').e('grumblin', 16, 11).arc(24, 8, 7).e('buzzer', 34, 6).at(38, 8, 'B?B?B').e('snaily', 46, 11)
   .arc(52, 7, 6).at(58, 5, 'M').e('grumblin', 62, 8).arc(64, 8, 7)
   .e('plat', 74, 8, { w: 3, dx: 3, sp: 1 }).at(80, 8, '?L?').e('thorny', 86, 11)
   .e('mid', 96, 11).arc(92, 8, 7).e('buzzer', 104, 6).at(108, 8, 'BSB').e('snaily', 114, 11)
   .arc(120, 8, 8).e('plat', 122, 7, { w: 2, dy: 2, sp: 1 }).e('grumblin', 134, 11).at(140, 8, '----').coins(140, 7, 4).e('buzzer', 146, 6).stairs(152, 5)
+  .at(39, 4, 'C').at(117, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(12, 5, 41, 7, 59, 3, 81, 5, 142, 6)
   .done({ goal: 170, music: 'nantucket' });
 
@@ -477,40 +494,43 @@ for (const [lv, bx, by, room, out, gi, kind] of [['hills', 23, 8, 'hillsSky', 11
 // 4-1. Apple Orchard: rows of apple trees in Western New York; ripe apples drop when Leo walks underneath
 LEVELS.orchard = builder('orchard', 'Apple Orchard', 'orchard', 210)
   .ground(0, 209).gap(46, 49).gap(102, 105).gap(150, 153)
-  .at(8, 8, '?PC').e('grumblin', 16, 11).e('apple', 22, 0).e('snaily', 28, 11)
+  .at(8, 8, '?P?').e('grumblin', 16, 11).e('apple', 22, 0).e('snaily', 28, 11)
   .at(32, 8, 'BB?BB').coins(32, 4, 5).e('buzzer', 38, 6).e('apple', 42, 0)
   .arc(45, 8, 6).stairs(54, 4).fill(58, 62, 8, 11, T.STONE).e('grumblin', 60, 7).stairs(63, 4, false)
   .e('apple', 70, 0).at(72, 8, '?Y?').e('snaily', 78, 11).e('apple', 84, 0).e('grumblin', 88, 11)
   .e('mid', 96, 11).arc(101, 8, 6).at(110, 8, 'B?B').e('thorny', 114, 11).e('apple', 118, 0)
   .e('spring', 124, 11).at(122, 3, '====').coins(122, 2, 4).e('buzzer', 130, 6).e('apple', 134, 0).e('grumblin', 140, 11)
   .arc(149, 8, 6).at(158, 8, '?S?').e('snaily', 164, 11).e('apple', 170, 0).e('grumblin', 176, 11).stairs(184, 5)
+  .at(58, 4, 'C').at(133, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 33, 3, 60, 4, 123, 1, 159, 5)
   .done({ goal: 198, music: 'orchard' });
 
 // 4-2. Niagara Falls: boardwalks and rocky islands below the thundering falls, the Maid of the Mist chugging past
 LEVELS.niagara = builder('niagara', 'Niagara Falls', 'falls', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 22).ground(27, 50, 10).ground(56, 70).ground(76, 96, 11).ground(103, 120).ground(127, 146, 11).ground(152, 168).ground(174, 213)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('crab', 19, 11)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('crab', 19, 11)
   .at(31, 6, '------').coins(31, 5, 6).e('grumblin', 40, 9).e('buzzer', 46, 5)
   .at(58, 8, 'B?B').e('snaily', 64, 11).arc(70, 8, 7)
   .e('grumblin', 82, 10).at(84, 7, '?Y?').e('thorny', 90, 10).e('buzzer', 94, 6)
-  .e('plat', 98, 10, { w: 3, dx: 2, sp: 1 }).e('mid', 108, 11).at(112, 8, '?L?').e('crab', 116, 11)
+  .e('plat', 98, 10, { w: 3, dx: 2, sp: 1 }).e('mid', 108, 11).at(112, 8, '?P?').e('crab', 116, 11)
   .arc(121, 8, 6).e('grumblin', 132, 10).at(136, 6, 'BMB').e('thorny', 142, 10).e('buzzer', 146, 5)
   .e('spring', 156, 11).at(158, 3, '===').coins(158, 2, 3).e('crab', 162, 11)
   .at(178, 8, '?S?').e('grumblin', 184, 11).stairs(190, 5)
+  .at(59, 4, 'C').at(159, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 34, 4, 85, 4, 159, 1, 137, 3)
   .done({ goal: 202, music: 'falls' });
 
 // 4-3. George Washington Bridge: along the bridge deck high over the Hudson, dodging yellow taxis (fall off and it's a swim)
 LEVELS.bridge = builder('bridge', 'George Washington Bridge', 'gwb', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 13).stairs(11, 3).fill(14, 189, 9, 9, T.STONE).ground(190, 209)
-  .at(6, 8, '?PC').e('grumblin', 22, 8).at(26, 5, 'B?B').e('taxi', 40, 8).fill(46, 50, 9, 9, T.EMPTY)
+  .at(6, 8, '?P?').e('grumblin', 22, 8).at(26, 5, 'B?B').e('taxi', 40, 8).fill(46, 50, 9, 9, T.EMPTY)
   .at(54, 5, '------').coins(54, 4, 6).e('snaily', 58, 8).e('buzzer', 64, 4)
   .at(70, 5, '?Y?').e('taxi', 80, 8).e('grumblin', 86, 8).fill(92, 95, 9, 9, T.EMPTY)
-  .e('mid', 100, 8).at(104, 5, '?L?').e('thorny', 110, 8).e('taxi', 120, 8)
+  .e('mid', 100, 8).at(104, 5, '?P?').e('thorny', 110, 8).e('taxi', 120, 8)
   .e('spring', 126, 8).at(127, 1, '===').coins(127, 0, 3).fill(134, 138, 9, 9, T.EMPTY)
   .e('buzzer', 142, 4).at(146, 5, 'BMB').e('snaily', 152, 8).e('taxi', 160, 8)
   .at(166, 5, '?S?').e('grumblin', 172, 8).fill(178, 181, 9, 9, T.EMPTY)
+  .at(31, 5, 'C').at(155, 5, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 55, 3, 71, 3, 128, 0, 147, 3)
   .done({ goal: 198, music: 'gwb' });
 
@@ -518,28 +538,30 @@ LEVELS.bridge = builder('bridge', 'George Washington Bridge', 'gwb', 210)
 // you can only climb by wall-kicking back and forth, with a rainbow gem at the very top
 LEVELS.city = builder('city', 'Empire State Rooftops', 'city', 214)
   .ground(0, 20, 10).ground(26, 40, 9).ground(45, 60, 8).ground(66, 78, 10).ground(83, 101, 9).ground(106, 118, 7).ground(124, 140, 9).ground(146, 160, 8).ground(166, 180, 10).ground(185, 213, 12)
-  .at(6, 6, '?PC').e('grumblin', 14, 9).e('buzzer', 22, 5)
+  .at(6, 6, '?P?').e('grumblin', 14, 9).e('buzzer', 22, 5)
   .at(30, 5, 'B?B').e('snaily', 36, 8).arc(41, 6, 5)
   .e('grumblin', 50, 7).at(52, 4, '?Y?').e('buzzer', 58, 3).e('thorny', 70, 9).e('spring', 74, 9).at(72, 1, '===').coins(72, 0, 3)
-  .e('mid', 88, 8).at(92, 5, '?L?').e('taxi', 96, 8).e('plat', 102, 6, { w: 2, dy: 2, sp: 1 })
+  .e('mid', 88, 8).at(92, 5, '?P?').e('taxi', 96, 8).e('plat', 102, 6, { w: 2, dy: 2, sp: 1 })
   .e('grumblin', 110, 6).at(112, 3, 'BMB').e('buzzer', 120, 3).e('thorny', 130, 8).at(132, 5, 'B?B')
   .e('grumblin', 150, 7).arc(141, 6, 5).e('buzzer', 156, 3).at(170, 6, '?S?').e('snaily', 176, 9)
   // the wall-kick climb: two tall walls hang down from the sky with a narrow gap between them (walk underneath, jump in)
   .fill(187, 187, 0, 8, T.STONE).fill(191, 191, 0, 8, T.STONE).coins(188, 7, 3).coins(188, 5, 3).coins(188, 3, 3).e('hint', 189, 11)
   .e('grumblin', 198, 11).stairs(200, 4)
+  .at(30, 5, 'C').at(158, 4, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(7, 3, 53, 1, 73, 0, 113, 0, 189, 1)
   .done({ goal: 206, music: 'city' });
 
 // 4-5. Statue of Liberty: the final showdown on Liberty Island, with Lady Liberty holding her torch up behind. King Grumbles, six hits.
 LEVELS.liberty = builder('liberty', 'Statue of Liberty', 'harbor', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 22).ground(28, 50).ground(56, 76).ground(82, 104).ground(110, 136).ground(142, 199)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 20, 6)
   .e('plat', 23, 10, { w: 2, dx: 1, sp: 1 }).e('taxi', 40, 11).e('crab', 46, 11)
   .at(52, 8, 'B?B').e('crusher', 62, 1).e('snaily', 68, 11).at(72, 8, 'BSB')
   .e('plat', 77, 9, { w: 2, dy: 2, sp: 1 }).e('mid', 86, 11).e('firebar', 94, 8, { len: 4, sp: 1.3 }).e('thorny', 100, 11)
-  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?L?').e('crusher', 122, 1).e('crab', 128, 11).e('buzzer', 132, 6)
+  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?P?').e('crusher', 122, 1).e('crab', 128, 11).e('buzzer', 132, 6)
   .e('fall', 137, 10, { w: 3 })
   .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { who: 'liberty' })   // King Grumbles as the Statue of Liberty
+  .at(53, 4, 'C').at(124, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
@@ -550,13 +572,14 @@ LEVELS.liberty = builder('liberty', 'Statue of Liberty', 'harbor', 200)
 // 5-1. Miami Beach: Ocean Drive, pastel art deco hotels, palm trees and flamingos
 LEVELS.miami = builder('miami', 'Miami Beach', 'deco', 210)
   .ground(0, 209).gap(40, 43).gap(94, 97).gap(146, 149)
-  .at(8, 8, '?PC').e('grumblin', 16, 11).e('palm', 20, 0).e('snaily', 24, 11)
+  .at(8, 8, '?P?').e('grumblin', 16, 11).e('palm', 20, 0).e('snaily', 24, 11)
   .at(28, 8, 'B?B?B').coins(28, 4, 5).e('buzzer', 34, 6)
   .arc(39, 8, 6).e('heron', 50, 11).at(54, 8, '?Y?').e('crab', 60, 11).e('palm', 62, 0)
   .stairs(66, 4).fill(70, 74, 8, 11, T.STONE).e('grumblin', 72, 7).stairs(75, 4, false)
-  .e('snaily', 84, 11).arc(93, 8, 6).e('mid', 102, 11).at(106, 8, '?L?').e('heron', 112, 11)
+  .e('snaily', 84, 11).arc(93, 8, 6).e('mid', 102, 11).at(106, 8, '?P?').e('heron', 112, 11)
   .e('spring', 120, 11).at(118, 3, '====').coins(118, 2, 4).e('buzzer', 126, 6).e('crab', 132, 11).e('palm', 136, 0).e('grumblin', 138, 11)
   .arc(145, 8, 6).at(154, 8, '?S?').e('snaily', 160, 11).e('heron', 168, 11).e('palm', 172, 0).e('grumblin', 176, 11).stairs(184, 5)
+  .at(70, 4, 'C').at(135, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 29, 3, 72, 4, 119, 1, 155, 5)
   .done({ goal: 198, music: 'tropic' });
 
@@ -565,51 +588,55 @@ LEVELS.reef = builder('reef', 'Coral Reef', 'reef', 200)
   .fill(0, 199, 0, 11, T.WATER).ground(0, 199)
   .fill(14, 18, 9, 11, T.GROUND).fill(30, 33, 4, 6, T.GROUND).fill(44, 50, 8, 11, T.GROUND).fill(62, 65, 2, 4, T.GROUND).fill(76, 82, 9, 11, T.GROUND)
   .fill(96, 99, 5, 7, T.GROUND).fill(112, 118, 8, 11, T.GROUND).fill(130, 133, 3, 5, T.GROUND).fill(146, 152, 9, 11, T.GROUND).fill(166, 169, 5, 7, T.GROUND)
-  .at(6, 8, '?PC').arc(20, 8, 8).coins(30, 3, 4).e('jelly', 24, 5).e('puffer', 38, 8).coins(44, 7, 7)
+  .at(6, 8, '?P?').arc(20, 8, 8).coins(30, 3, 4).e('jelly', 24, 5).e('puffer', 38, 8).coins(44, 7, 7)
   .e('turtle', 54, 6).e('jelly', 56, 3).at(62, 7, '?Y?').e('puffer', 70, 6).coins(76, 8, 7).e('minnows', 86, 4)
-  .e('jelly', 88, 7).arc(96, 4, 4).e('mid', 104, 11).at(106, 6, '?L?').e('puffer', 110, 4)
+  .e('jelly', 88, 7).arc(96, 4, 4).e('mid', 104, 11).at(106, 6, '?P?').e('puffer', 110, 4)
   .e('plat', 121, 6, { w: 3, dx: 3, sp: 0.5, look: 'manatee' }).coins(112, 7, 7).e('jelly', 126, 9).e('turtle', 138, 7)
   .at(140, 7, 'BMB').e('puffer', 144, 4).e('jelly', 156, 5).arc(158, 9, 7).e('minnows', 162, 2).e('puffer', 174, 8).e('jelly', 180, 4)
+  .at(32, 1, 'C').at(124, 2, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(7, 5, 31, 2, 64, 1, 98, 2, 167, 3)
   .done({ goal: 188, music: 'reef', swim: true });
 
 // 5-3. Key West: sandy keys in turquoise water at the southernmost point; roosters run wild, coconuts drop, tarpon leap the gaps
 LEVELS.keywest = builder('keywest', 'Key West', 'keys', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 24).ground(30, 54).ground(60, 78).ground(84, 108).ground(114, 134).ground(140, 160).ground(166, 209)
-  .at(8, 8, '?PC').e('rooster', 14, 11).e('palm', 20, 0)
+  .at(8, 8, '?P?').e('rooster', 14, 11).e('palm', 20, 0)
   .e('tarpon', 27, 12).at(34, 8, 'B?B').e('snaily', 40, 11).e('palm', 46, 0).e('rooster', 48, 11)
   .e('tarpon', 57, 12).at(64, 8, '?Y?').e('heron', 70, 11).e('crab', 76, 11)
-  .e('tarpon', 81, 12).e('mid', 88, 11).at(92, 8, 'BLB').e('rooster', 98, 11).e('palm', 102, 0).e('snaily', 104, 11)
+  .e('tarpon', 81, 12).e('mid', 88, 11).at(92, 8, 'BPB').e('rooster', 98, 11).e('palm', 102, 0).e('snaily', 104, 11)
   .e('tarpon', 111, 12).e('spring', 118, 11).at(116, 3, '====').coins(116, 2, 4).e('rooster', 126, 11).e('palm', 130, 0)
   .e('tarpon', 137, 12).at(144, 8, '?S?').e('heron', 150, 11).e('crab', 156, 11)
   .e('tarpon', 163, 12).e('rooster', 172, 11).e('palm', 178, 0).e('snaily', 182, 11).stairs(188, 5)
+  .at(35, 4, 'C').at(130, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 35, 5, 65, 5, 117, 1, 145, 5)
   .done({ goal: 200, music: 'tropic' });
 
 // 5-4. Everglades: the river of grass. Herons, snakes and gators on the hammocks; hop the gator backs (they sink!) and ride the airboat
 LEVELS.glades = builder('glades', 'Everglades', 'glades', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 22).ground(28, 48).ground(54, 62).ground(118, 140).ground(146, 160).ground(186, 213)
-  .at(8, 8, '?PC').e('heron', 16, 11).e('snake', 20, 11)
+  .at(8, 8, '?P?').e('heron', 16, 11).e('snake', 20, 11)
   .e('sponge', 23, 12, { w: 3 }).at(32, 8, 'B?B').e('gator', 40, 11).e('buzzer', 44, 6)
   .e('sponge', 49, 12, { w: 3 }).at(56, 8, '?Y?').e('snake', 60, 11)
   .e('boat', 63, 12, { w: 6, to: 112, sp: 64 }).coins(70, 8, 4).e('buzzer', 78, 6).at(82, 8, '?M?').e('buzzer', 94, 5).coins(98, 8, 4).at(104, 8, 'BLB')
-  .e('mid', 122, 11).e('gator', 128, 11).at(132, 8, '?L?').e('heron', 137, 11)
+  .e('mid', 122, 11).e('gator', 128, 11).at(132, 8, '?P?').e('heron', 137, 11)
   .e('sponge', 141, 12, { w: 3 }).e('snake', 150, 11).e('gator', 156, 11)
   .e('sponge', 162, 12, { w: 3 }).e('sponge', 167, 12, { w: 3 }).e('sponge', 172, 12, { w: 3 }).e('sponge', 177, 12, { w: 3 }).e('sponge', 182, 12, { w: 3 })
   .coins(167, 8, 13).at(190, 8, '?S?').e('snake', 196, 11).stairs(198, 5)
+  .at(33, 4, 'C').at(140, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 33, 5, 83, 5, 133, 5, 174, 7)
   .done({ goal: 206, music: 'glades' });
 
 // 5-5. St. Pete Pier: out along the long pier over Tampa Bay, pelicans gliding, tarpon leaping, the Bending Arc net billowing above
 LEVELS.stpete = builder('stpete', 'St. Pete Pier', 'stpete', 210)
   .fill(0, 209, 12, 13, T.WATER).ground(0, 13).stairs(11, 3).fill(14, 189, 9, 9, T.STONE).ground(190, 209)
-  .at(6, 8, '?PC').e('crab', 20, 8).at(26, 5, 'B?B').e('buzzer', 34, 4).fill(42, 46, 9, 9, T.EMPTY).e('tarpon', 44, 12)
+  .at(6, 8, '?P?').e('crab', 20, 8).at(26, 5, 'B?B').e('buzzer', 34, 4).fill(42, 46, 9, 9, T.EMPTY).e('tarpon', 44, 12)
   .at(52, 5, '------').coins(52, 4, 6).e('heron', 58, 8).e('snaily', 66, 8)
   .at(72, 5, '?Y?').e('buzzer', 78, 4).e('crab', 84, 8).fill(90, 94, 9, 9, T.EMPTY).e('tarpon', 92, 12)
-  .e('mid', 100, 8).at(104, 5, '?L?').e('heron', 112, 8).e('buzzer', 118, 4)
+  .e('mid', 100, 8).at(104, 5, '?P?').e('heron', 112, 8).e('buzzer', 118, 4)
   .e('spring', 124, 8).at(125, 1, '===').coins(125, 0, 3).fill(132, 136, 9, 9, T.EMPTY).e('tarpon', 134, 12)
   .e('crab', 142, 8).at(146, 5, 'BMB').e('snaily', 152, 8).e('heron', 160, 8)
   .at(166, 5, '?S?').e('buzzer', 170, 4).fill(176, 180, 9, 9, T.EMPTY).e('tarpon', 178, 12)
+  .at(31, 5, 'C').at(160, 5, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 55, 3, 73, 3, 126, 0, 147, 3)
   .done({ goal: 198, music: 'stpete' });
 
@@ -617,29 +644,31 @@ LEVELS.stpete = builder('stpete', 'St. Pete Pier', 'stpete', 210)
 // up to one for a gift) and manatees drift by (stand on one for a ride)
 LEVELS.springs = builder('springs', 'Weeki Wachee Springs', 'springs', 210)
   .fill(0, 209, 4, 11, T.WATER).ground(0, 209).ground(0, 12, 4).ground(197, 209, 4)
-  .at(5, 1, '?PC').arc(14, 6, 7).fill(26, 30, 9, 11, T.GROUND).e('mermaid', 22, 8).e('frog', 34, 9)
+  .at(5, 1, '?P?').arc(14, 6, 7).fill(26, 30, 9, 11, T.GROUND).e('mermaid', 22, 8).e('frog', 34, 9)
   .fill(42, 46, 7, 8, T.GROUND).coins(42, 6, 5).e('plat', 52, 9, { w: 3, dx: 2, sp: 0.4, look: 'manatee' }).e('turtle', 60, 9)
   .e('mermaid', 66, 6).at(70, 8, '?Y?').e('frog', 80, 6).e('minnows', 88, 7).fill(90, 95, 10, 11, T.GROUND).coins(90, 9, 6)
-  .e('mid', 100, 11).at(104, 7, '?L?').e('frog', 108, 9).e('mermaid', 118, 8).fill(124, 127, 5, 6, T.GROUND).coins(124, 4, 4)
+  .e('mid', 100, 11).at(104, 7, '?P?').e('frog', 108, 9).e('mermaid', 118, 8).fill(124, 127, 5, 6, T.GROUND).coins(124, 4, 4)
   .e('turtle', 132, 8).e('plat', 140, 8, { w: 3, dx: 3, sp: 0.35, look: 'manatee' }).e('frog', 150, 7).at(156, 8, 'BMB')
   .e('mermaid', 168, 6).e('minnows', 172, 9).e('frog', 180, 8).fill(184, 188, 9, 11, T.GROUND).coins(184, 8, 5)
+  .at(44, 3, 'C').at(145, 2, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(6, 0, 44, 5, 92, 8, 125, 3, 170, 9)
   .done({ goal: 202, music: 'springs', swim: true });
 
 // 5-7. Thrill Park: a theme park at night, fireworks overhead; ride roller-coaster cars and spinning teacups over the gaps
 LEVELS.park = builder('park', 'Thrill Park', 'park', 214)
   .ground(0, 28).ground(34, 58).ground(70, 92).ground(104, 126).ground(140, 160).ground(172, 213)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 22, 6)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 22, 6)
   .e('plat', 30, 10, { w: 3, dx: 1, sp: 1.1, look: 'coaster' })
   .at(38, 8, 'B?B').e('snaily', 44, 11).e('grumblin', 50, 11).e('spring', 56, 11).coins(54, 3, 5)
   .e('plat', 61, 9, { w: 3, dx: 3, sp: 1, look: 'coaster' })
   .at(74, 8, '?Y?').e('thorny', 80, 11).e('grumblin', 86, 11)
   .e('plat', 94, 9, { w: 3, dy: 2, sp: 1.2, look: 'teacup' }).e('plat', 99, 8, { w: 3, dy: 2, sp: 1, look: 'teacup' })
-  .e('mid', 108, 11).at(112, 8, '?L?').e('snaily', 118, 11).e('buzzer', 122, 6)
+  .e('mid', 108, 11).at(112, 8, '?P?').e('snaily', 118, 11).e('buzzer', 122, 6)
   .e('plat', 129, 9, { w: 3, dx: 3, sp: 1.1, look: 'coaster' })
   .at(144, 8, 'BMB').e('grumblin', 150, 11).e('thorny', 156, 11)
   .e('plat', 163, 9, { w: 3, dx: 3, sp: 1, look: 'coaster' })
   .at(176, 8, '?S?').e('snaily', 182, 11).e('grumblin', 186, 11).stairs(192, 5)
+  .at(39, 4, 'C').at(153, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 39, 5, 55, 1, 100, 5, 145, 5)
   .done({ goal: 204, music: 'park' });
 
@@ -647,38 +676,41 @@ LEVELS.park = builder('park', 'Thrill Park', 'park', 214)
 LEVELS.castillo = builder('castillo', 'Castillo de San Marcos', 'castillo', 196)
   .fill(0, 195, 0, 0, T.STONE).fill(0, 195, 12, 13, T.WATER).ground(0, 22, 12, T.STONE).ground(27, 46, 12, T.STONE).ground(51, 72, 12, T.STONE)
   .ground(78, 100, 12, T.STONE).ground(105, 132, 12, T.STONE).ground(136, 195, 12, T.STONE)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('cannon', 21, 11)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('cannon', 21, 11)
   .e('crusher', 31, 1).e('snake', 38, 11).e('firebar', 44, 7, { len: 4, sp: -1 })
   .at(48, 9, '==').e('cannon', 58, 11).e('snaily', 62, 11).at(66, 8, 'BSB').e('grumblin', 70, 11)
   .e('plat', 73, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 82, 11).e('firebar', 88, 8, { len: 5, sp: 1.2 }).e('snake', 94, 11)
-  .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?L?').e('crusher', 116, 1).e('cannon', 124, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
+  .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?P?').e('crusher', 116, 1).e('cannon', 124, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
   .e('fall', 132, 10, { w: 3 })
   .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { kind: 'gator', who: 'chomps' })   // Captain Chomps guards the treasure
+  .at(49, 5, 'C').at(121, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
   .done({ goal: 0, boss: true, midBoss: true, music: 'castle' });
 
 // 5-9. Daytona Beach: race cars zoom along the hard-packed sand. Jump them, stomp them, or hop up onto the boardwalk
 LEVELS.daytona = builder('daytona', 'Daytona Beach', 'daytona', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 48).ground(53, 98).ground(104, 150).ground(156, 213)
-  .at(8, 8, '?PC').e('grumblin', 16, 11)
+  .at(8, 8, '?P?').e('grumblin', 16, 11)
   .at(22, 8, '------').coins(22, 7, 6).e('racer', 36, 11).e('buzzer', 40, 6)
   .arc(47, 8, 7).at(58, 8, 'B?B').e('snaily', 64, 11).at(70, 8, '-----').at(76, 5, '?Y?').e('racer', 80, 11).at(84, 8, '-----')
-  .arc(97, 8, 8).e('mid', 108, 11).at(112, 8, '?L?').e('heron', 118, 11).at(124, 8, '------').coins(124, 7, 6).e('racer', 134, 11)
+  .arc(97, 8, 8).e('mid', 108, 11).at(112, 8, '?P?').e('heron', 118, 11).at(124, 8, '------').coins(124, 7, 6).e('racer', 134, 11)
   .e('spring', 142, 11).at(140, 3, '===').coins(140, 2, 3)
   .arc(149, 8, 8).at(160, 8, '?S?').e('crab', 166, 11).at(172, 8, '-----').e('racer', 178, 11).e('grumblin', 186, 11).stairs(192, 5)
+  .at(59, 4, 'C').at(137, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 25, 6, 77, 3, 141, 1, 161, 5)
   .done({ goal: 204, music: 'daytona' });
 
 // 5-10. Cape Canaveral: across the launch complex to the pad, where King Grumbles is trying to blast off with the gold. Seven hits.
 LEVELS.canaveral = builder('canaveral', 'Cape Canaveral', 'cape', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 22).ground(28, 50).ground(56, 76).ground(82, 104).ground(110, 136).ground(142, 199)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 20, 6)
   .e('plat', 23, 10, { w: 2, dx: 1, sp: 1, look: 'gantry' }).e('heron', 36, 11).e('snake', 44, 11)
   .at(52, 8, 'B?B').e('crusher', 62, 1).e('gator', 66, 11).at(72, 8, 'BSB')
   .e('plat', 77, 9, { w: 2, dy: 2, sp: 1, look: 'gantry' }).e('mid', 86, 11).e('firebar', 94, 8, { len: 4, sp: 1.3 }).e('thorny', 100, 11)
-  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1, look: 'gantry' }).at(116, 8, '?L?').e('crusher', 122, 1).e('snake', 128, 11).e('buzzer', 132, 6)
+  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1, look: 'gantry' }).at(116, 8, '?P?').e('crusher', 122, 1).e('snake', 128, 11).e('buzzer', 132, 6)
   .e('fall', 137, 10, { w: 3 })
   .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { who: 'rocket' })   // King Grumbles in a space helmet
+  .at(53, 4, 'C').at(124, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'launch' });
 
@@ -698,7 +730,7 @@ LEVELS.space = builder('space', 'Outer Space', 'space', 176)
 // 6-1. Mobile Bay: giant live oaks dripping with Spanish moss, azaleas in bloom, the old battleship out on the bay
 LEVELS.mobile = builder('mobile', 'Mobile Bay', 'oaks', 212)
   .ground(0, 211).gap(38, 41).gap(92, 95).gap(150, 153)
-  .at(8, 8, '?PC').e('grumblin', 15, 11).e('snaily', 22, 11)
+  .at(8, 8, '?P?').e('grumblin', 15, 11).e('snaily', 22, 11)
   .at(26, 8, '-----').at(31, 5, '-----').coins(31, 4, 5).e('buzzer', 34, 2)
   .arc(37, 8, 6).e('heron', 48, 11).at(52, 8, 'B?B?B').e('grumblin', 58, 11)
   .stairs(64, 4).fill(68, 72, 8, 11, T.STONE).e('snaily', 70, 7).stairs(73, 4, false)
@@ -706,6 +738,7 @@ LEVELS.mobile = builder('mobile', 'Mobile Bay', 'oaks', 212)
   .at(116, 9, '----').at(121, 6, '----').at(126, 3, '----').coins(126, 2, 4).e('buzzer', 122, 3)
   .e('spring', 134, 11).e('grumblin', 138, 11).e('crab', 144, 11)
   .arc(149, 8, 6).at(158, 8, '?S?').e('snaily', 164, 11).e('heron', 170, 11).e('crab', 176, 11).e('grumblin', 180, 11).stairs(186, 5)
+  .at(53, 4, 'C').at(131, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 33, 3, 70, 5, 127, 1, 159, 5)
   .done({ goal: 200, music: 'oaks' });
 
@@ -713,14 +746,15 @@ LEVELS.mobile = builder('mobile', 'Mobile Bay', 'oaks', 212)
 // that sink as you cross, and a pirogue (a little flat Cajun boat) to pole across the open water
 LEVELS.bayou = builder('bayou', 'Honey Island Swamp', 'bayou', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 20).ground(26, 40).ground(46, 56).ground(110, 124).ground(130, 142).ground(178, 213)
-  .at(8, 8, '?PC').e('heron', 14, 11).e('snake', 18, 11)
+  .at(8, 8, '?P?').e('heron', 14, 11).e('snake', 18, 11)
   .e('sponge', 21, 12, { w: 3 }).at(30, 8, 'B?B').e('gator', 36, 11)
   .e('sponge', 41, 12, { w: 3 }).at(48, 8, '?Y?').e('crab', 53, 11)
   .e('boat', 57, 12, { w: 5, to: 104, sp: 56 }).coins(66, 8, 4).e('buzzer', 72, 6).at(78, 8, '?M?').e('buzzer', 90, 5).coins(94, 8, 4)
-  .e('mid', 113, 11).at(116, 8, '?L?').e('gator', 120, 11)
+  .e('mid', 113, 11).at(116, 8, '?P?').e('gator', 120, 11)
   .e('sponge', 125, 12, { w: 3 }).e('snake', 134, 11).e('heron', 139, 11)
   .e('fall', 145, 10, { w: 3 }).e('sponge', 150, 12, { w: 3 }).e('fall', 155, 9, { w: 3 }).e('sponge', 160, 12, { w: 3 }).e('fall', 166, 10, { w: 3 }).e('sponge', 171, 12, { w: 3 })
   .coins(150, 7, 10).at(184, 8, '?S?').e('crab', 190, 11).e('gator', 194, 11).stairs(198, 5)
+  .at(79, 4, 'C').at(142, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 31, 5, 79, 5, 117, 5, 161, 6)
   .done({ goal: 206, music: 'bayou' });
 
@@ -728,17 +762,18 @@ LEVELS.bayou = builder('bayou', 'Honey Island Swamp', 'bayou', 214)
 // streetcar and the Mardi Gras floats over the gaps, and catch the beads (they're coins!)
 LEVELS.quarter = builder('quarter', 'French Quarter', 'quarter', 214)
   .ground(0, 30).ground(36, 62).ground(74, 98).ground(110, 134).ground(146, 170).ground(176, 213)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 26, 6)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 26, 6)
   .at(18, 8, '----').at(23, 5, '----').coins(23, 4, 4)
   .e('plat', 31, 10, { w: 3, dx: 1, sp: 1, look: 'streetcar' })
   .at(40, 8, 'B?B').e('snaily', 46, 11).e('grumblin', 51, 11).at(54, 8, '----').at(58, 5, '----').coins(58, 4, 4)
   .e('plat', 65, 9, { w: 3, dx: 3, sp: 1, look: 'float' })
   .at(78, 8, '?Y?').e('crab', 84, 11).e('grumblin', 90, 11).e('buzzer', 94, 6)
   .e('plat', 101, 9, { w: 3, dx: 3, sp: 1.1, look: 'float' })
-  .e('mid', 114, 11).at(118, 8, '?L?').e('snaily', 124, 11).at(126, 8, '----').at(130, 5, '----').coins(130, 4, 4).e('grumblin', 132, 11)
+  .e('mid', 114, 11).at(118, 8, '?P?').e('snaily', 124, 11).at(126, 8, '----').at(130, 5, '----').coins(130, 4, 4).e('grumblin', 132, 11)
   .e('plat', 138, 10, { w: 3, dx: 3, sp: 1, look: 'streetcar' })
   .at(150, 8, 'BMB').e('crab', 156, 11).e('grumblin', 162, 11).e('spring', 166, 11).coins(164, 3, 5)
   .at(180, 8, '?S?').e('snaily', 186, 11).e('grumblin', 190, 11).stairs(194, 5)
+  .at(41, 4, 'C').at(159, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 24, 3, 59, 3, 131, 3, 181, 5)
   .done({ goal: 206, music: 'jazz' });
 
@@ -746,11 +781,12 @@ LEVELS.quarter = builder('quarter', 'French Quarter', 'quarter', 214)
 // leap out of the muddy water, and bump the blocks floating by
 LEVELS.river = builder('river', 'Mississippi Steamboat', 'river', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 8).ground(188, 199)
-  .at(3, 8, '?PC').e('boat', 9, 12, { w: 9, to: 178, sp: 40 })
+  .at(3, 8, '?P?').e('boat', 9, 12, { w: 9, to: 178, sp: 40 })
   .coins(16, 8, 4).e('tarpon', 28, 12).at(36, 8, '?B?').e('buzzer', 44, 6).e('tarpon', 52, 12)
   .arc(58, 8, 6).at(68, 8, 'BMB').e('tarpon', 78, 12).e('buzzer', 86, 5).e('mid', 96, 11)
-  .at(108, 8, '?L?').e('tarpon', 118, 12).e('buzzer', 126, 6).arc(132, 8, 6).e('tarpon', 142, 12)
+  .at(108, 8, '?P?').e('tarpon', 118, 12).e('buzzer', 126, 6).arc(132, 8, 6).e('tarpon', 142, 12)
   .at(150, 8, '?S?').e('buzzer', 158, 6).e('tarpon', 166, 12).coins(170, 8, 5)
+  .at(37, 4, 'C').at(129, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(20, 7, 37, 5, 69, 5, 109, 5, 151, 5)
   .done({ goal: 194, music: 'river' });
 
@@ -758,18 +794,19 @@ LEVELS.river = builder('river', 'Mississippi Steamboat', 'river', 200)
 // over the black water, and gator eyes glinting
 LEVELS.basin = builder('basin', 'Atchafalaya Basin', 'basin', 214)
   .fill(0, 213, 12, 13, T.WATER).ground(0, 22).ground(30, 44).ground(60, 72).ground(96, 112).ground(128, 140).ground(170, 213)
-  .at(8, 8, '?PC').e('snake', 16, 11)
+  .at(8, 8, '?P?').e('snake', 16, 11)
   .e('sponge', 23, 12, { w: 3 }).e('buzzer', 26, 7)
   .at(34, 8, 'B?B').e('gator', 40, 11)
   .at(45, 10, '---').at(50, 8, '---').at(55, 10, '---').coins(50, 7, 3).e('buzzer', 52, 5)
   .at(64, 8, '?Y?').e('crab', 68, 11)
   .e('plat', 74, 9, { w: 3, dx: 3, sp: 0.9 }).e('fall', 82, 10, { w: 3 }).e('plat', 88, 9, { w: 3, dy: 2, sp: 1 })
-  .e('mid', 100, 11).at(104, 8, '?L?').e('gator', 108, 11)
+  .e('mid', 100, 11).at(104, 8, '?P?').e('gator', 108, 11)
   .e('sponge', 113, 12, { w: 3 }).e('sponge', 118, 12, { w: 3 }).e('sponge', 123, 12, { w: 3 })
   .e('heron', 134, 11)
   .at(141, 9, '---').at(146, 7, '---').at(151, 9, '---').at(156, 7, '---').at(161, 9, '---').at(166, 10, '---')
   .coins(146, 6, 3).coins(156, 6, 3).e('buzzer', 150, 4).e('buzzer', 160, 5)
   .at(176, 8, '?S?').e('snake', 182, 11).e('gator', 188, 11).stairs(194, 5)
+  .at(35, 4, 'C').at(137, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 35, 5, 51, 5, 105, 5, 157, 4)
   .done({ goal: 206, music: 'basin', dark: true });
 
@@ -777,13 +814,14 @@ LEVELS.basin = builder('basin', 'Atchafalaya Basin', 'basin', 214)
 // river (eight hits!) before he runs off into Texas
 LEVELS.sabine = builder('sabine', 'Sabine River Bridge', 'sabine', 200)
   .fill(0, 199, 12, 13, T.WATER).ground(0, 22).ground(28, 50).ground(56, 76).ground(82, 104).ground(110, 136).ground(142, 199)
-  .at(8, 8, '?PC').e('grumblin', 14, 11).e('buzzer', 20, 6)
+  .at(8, 8, '?P?').e('grumblin', 14, 11).e('buzzer', 20, 6)
   .e('plat', 23, 10, { w: 2, dx: 1, sp: 1 }).e('heron', 36, 11).e('snake', 44, 11)
   .at(52, 8, 'B?B').e('gator', 66, 11).at(72, 8, 'BSB')
   .e('plat', 77, 9, { w: 2, dy: 2, sp: 1 }).e('mid', 86, 11).e('crab', 94, 11).e('grumblin', 100, 11)
-  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?L?').e('snake', 126, 11).e('buzzer', 132, 6)
+  .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?P?').e('snake', 126, 11).e('buzzer', 132, 6)
   .e('fall', 137, 10, { w: 3 })
   .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { who: 'cowboy' })   // King Grumbles in his cowboy hat
+  .at(53, 4, 'C').at(129, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'sabine' });
 
