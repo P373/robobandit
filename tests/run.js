@@ -2512,6 +2512,40 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Lucky Leo: the Grumble Gang: every boss takes three hits, and each hit sets off a new trick from where he is', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      paused = true; startGame(); lives = 99;
+      const seen = (id, hp, check) => { startLevel(id); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const b = ents.find(e => e.k === 'boss');
+        player.x = 172 * 16; player.y = 11 * 16 - 14; player.inv = 999; run(20); b.hp = hp; b.act = 0; b.throwT = 0.1; let hit = false;
+        for (let i = 0; i < 60 * 6 && !hit; i++) { player.x = 160 * 16; player.inv = 999; step(1 / 60); hit = check(b); } return { hit, hp: b.maxHp, who: b.who }; };
+      const shot = k => ents.some(e => e.k === 'acorn' && e.kind === k);
+      return {
+        pinchCalm: seen('ptown', 3, () => shot('bubble')).hit === false,
+        pinchBubbles: seen('ptown', 2, () => shot('bubble')).hit,
+        yetiIcicles: seen('fort', 1, () => shot('icicle')).hit,
+        sherlockVanishes: seen('castle', 2, b => b.ghost > 0).hit,
+        libertyFire: seen('liberty', 2, () => shot('fire')).hit,
+        libertyTaxi: seen('liberty', 1, () => ents.some(e => e.k === 'taxi')).hit,
+        chompsWallCannon: seen('castillo', 2, () => ents.some(e => e.k === 'acorn' && e.kind === 'cannonball' && e.x < 155 * 16)).hit,
+        chompsCharge: seen('castillo', 1, b => b.cst === 'rush').hit,
+        rocketFlies: seen('canaveral', 2, b => b.flying && b.y < 8 * 16).hit,
+        rocketIceCream: seen('canaveral', 1, () => shot('icecream')).hit,
+        cowboyTumble: seen('sabine', 2, () => shot('tumble')).hit,
+        cowboyCharge: seen('sabine', 1, b => b.cst === 'rush').hit,
+        threeHits: ['ptown', 'fort', 'castle', 'liberty', 'castillo', 'canaveral', 'sabine'].map(id => LEVELS[id].ents.find(e => e.k === 'boss')).every(e => !e.hp) && Object.values(BOSS_CAST).every(c => c.hits.length === 2 && c.intro && c.done),
+      };
+    });
+    check(r.pinchCalm && r.pinchBubbles, 'Captain Pinch only blows bubbles once his cap is gone: ' + JSON.stringify(r));
+    check(r.yetiIcicles && r.sherlockVanishes && r.libertyFire && r.libertyTaxi, 'the Yeti shakes down icicles, Sherlock vanishes, Lady Liberty throws fire and calls a taxi: ' + JSON.stringify(r));
+    check(r.chompsWallCannon && r.chompsCharge && r.rocketFlies && r.rocketIceCream && r.cowboyTumble && r.cowboyCharge, 'Chomps calls cannons and charges, the rocket flies and drops ice cream, the cowboy rolls tumbleweeds and charges: ' + JSON.stringify(r));
+    check(r.threeHits, 'every boss takes three hits and has a line for each one: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
   await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, on along the Gulf Coast, and the Sabine River at the Texas line is the real ending', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
@@ -2533,11 +2567,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(r.start.at === 'canal' && r.start.canal && !r.start.shore && !r.start.hills && r.start.tag === '1-1', 'Leo starts on Cape Cod at the Bourne Bridge (1-1): ' + JSON.stringify(r.start));
     check(r.w1.hp === 3 && r.w1.kind === 'crab' && /WORLD 1/.test(r.w1.title) && /World 2/.test(r.w1.btn) && r.w1.shore && !r.w1.night && r.w1.boat && r.w1.beaten, 'Provincetown Pier (Captain Pinch, 3 hits) ends World 1 and a boat goes up to Maine: ' + JSON.stringify(r.w1));
-    check(r.w2.hp === 4 && r.w2.kind === 'yeti' && /WORLD 2/.test(r.w2.title) && /World 3/.test(r.w2.btn) && r.w2.snow && !r.w2.sky && r.w2.beaten2 && r.slippery, 'the Frost Fortress in Maine (the Frost Yeti, 4 hits) ends World 2 and opens the White Mountains: ' + JSON.stringify(r.w2));
-    check(r.w3.hp === 5 && r.w3.kind === 'grumbles' && /WORLD 3/.test(r.w3.title) && /World 4/.test(r.w3.btn) && r.w3.orchard && !r.w3.niagara && r.w3.walk && r.w3.beaten3, 'Gillette Castle in Connecticut (King Grumbles, 5 hits) ends World 3 and the path runs on into New York: ' + JSON.stringify(r.w3));
-    check(r.w4.hp === 6 && /WORLD 4/.test(r.w4.title) && /World 5/.test(r.w4.btn) && r.w4.miami && !r.w4.reef && r.w4.flight && r.w4.map === 'fl' && r.w4.beaten4, 'the Statue of Liberty (6 hits) ends World 4, and a flight opens Miami Beach on the map of Florida: ' + JSON.stringify(r.w4));
-    check(r.w5.hp === 7 && /WORLD 5/.test(r.w5.title) && /World 6/.test(r.w5.btn) && r.w5.beaten5 && r.w5.space && r.w5.levels === 10 && r.castillo === 'gator' && r.w5.mobile && !r.w5.bayou && r.w5.flight, 'Cape Canaveral ends World 5, opens the bonus trip to space, and a flight west opens Mobile Bay: ' + JSON.stringify(r.w5));
-    check(r.w6.hp === 8 && /GOLD/.test(r.w6.title) && r.w6.beaten6 && r.w6.levels === 6 && r.w6.texas && r.w6.names[0] === 'Alabama' && r.w6.names.includes('New Orleans'), 'the Sabine River Bridge (King Grumbles, 8 hits) is the real ending, with Texas coming soon: ' + JSON.stringify(r.w6));
+    check(r.w2.hp === 3 && r.w2.kind === 'yeti' && /WORLD 2/.test(r.w2.title) && /World 3/.test(r.w2.btn) && r.w2.snow && !r.w2.sky && r.w2.beaten2 && r.slippery, 'the Frost Fortress in Maine (the Frost Yeti, 3 hits) ends World 2 and opens the White Mountains: ' + JSON.stringify(r.w2));
+    check(r.w3.hp === 3 && r.w3.kind === 'grumbles' && /WORLD 3/.test(r.w3.title) && /World 4/.test(r.w3.btn) && r.w3.orchard && !r.w3.niagara && r.w3.walk && r.w3.beaten3, 'Gillette Castle in Connecticut (King Grumbles, 3 hits) ends World 3 and the path runs on into New York: ' + JSON.stringify(r.w3));
+    check(r.w4.hp === 3 && /WORLD 4/.test(r.w4.title) && /World 5/.test(r.w4.btn) && r.w4.miami && !r.w4.reef && r.w4.flight && r.w4.map === 'fl' && r.w4.beaten4, 'the Statue of Liberty (3 hits) ends World 4, and a flight opens Miami Beach on the map of Florida: ' + JSON.stringify(r.w4));
+    check(r.w5.hp === 3 && /WORLD 5/.test(r.w5.title) && /World 6/.test(r.w5.btn) && r.w5.beaten5 && r.w5.space && r.w5.levels === 10 && r.castillo === 'gator' && r.w5.mobile && !r.w5.bayou && r.w5.flight, 'Cape Canaveral ends World 5, opens the bonus trip to space, and a flight west opens Mobile Bay: ' + JSON.stringify(r.w5));
+    check(r.w6.hp === 3 && /GOLD/.test(r.w6.title) && r.w6.beaten6 && r.w6.levels === 6 && r.w6.texas && r.w6.names[0] === 'Alabama' && r.w6.names.includes('New Orleans'), 'the Sabine River Bridge (King Grumbles, 3 hits) is the real ending, with Texas coming soon: ' + JSON.stringify(r.w6));
     check(r.regions.shore === 'Maine' && r.regions.night === 'Maine' && r.regions.fort === 'Maine' && r.regions.snow === 'New Hampshire' && r.regions.sky === 'Vermont' && r.regions.caves === 'Vermont' && r.regions.hills === 'Connecticut' && r.regions.castle === 'Connecticut', 'the levels sit in Maine, New Hampshire, Vermont and Connecticut: ' + JSON.stringify(r.regions));
     check(r.allListed && /Cape Cod/.test(r.names[0]) && /Maine/.test(r.names[1]), 'every level is on the map and in the list: ' + JSON.stringify(r.names));
     await done(p, 'lucky-leo-world2.png');
@@ -2621,7 +2655,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       run(12); out.kick = player.vx < -100 && player.x < x0 - 20 && player.y < 3 * 16;
       // King Grumbles on the Statue of Liberty (six hits)
       startLevel('liberty'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss');
-      const boss = ents.find(e => e.k === 'boss'); player.x = 168 * 16; run(30);
+      const boss = ents.find(e => e.k === 'boss'); player.x = 168 * 16; run(30); boss.hp = boss.maxHp = 9;
       const hold = () => { boss.hurt = 0; boss.vy = 0; boss.jumpT = 9; boss.throwT = 9; boss.y = 12 * 16 - boss.h; boss.x = 178 * 16; boss.dir = 1; ents = ents.filter(e => e.k !== 'acorn'); };
       const hits = {};
       hold(); let hp = boss.hp; ents.push(mk('spring', boss.x + 4, boss.y + boss.h - 16, { w: 16, h: 16, squash: 0 })); run(2); hits.spring = boss.hp === hp;
@@ -2655,7 +2689,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.sprouted && r.form === 3 && r.throws, 'the magic hat block gives the hat throw: ' + JSON.stringify(r));
     check(r.afterHit === 1 && r.noThrowAfter, 'a hit takes the magic hat away: ' + JSON.stringify(r));
     check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
-    check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 2, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
+    check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 5, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
     check(Object.entries(r.stomps).every(([k, v]) => v === 0) && r.sideHurts, 'every boss: stomping him again and again (even while he flashes) never hurts Leo and beats him in every world; walking into his side does hurt: ' + JSON.stringify(r));
     await done(p, 'lucky-leo-magic-hat.png');
   });
@@ -2920,7 +2954,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('castillo'); const cn = ents.find(e => e.k === 'cannon'); player.x = cn.x + 120; cn.cool = 0; run(3); const ball = ents.find(e => e.k === 'acorn' && e.kind === 'cannonball'); out.cannon = !!ball && ball.vx > 0;
       // Captain Chomps guards a treasure chest: grabbing it clears the level and opens Daytona Beach (no ending screen)
       startLevel('castillo'); const cb = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
-      for (let k = 0; k < 5; k++) { player.inv = 9; run(100); player.x = cb.x + 8; player.y = cb.y - 30; player.vy = 150; run(8); }
+      for (let k = 0, n = cb.hp; k < n; k++) { player.inv = 9; run(100); player.x = cb.x + 8; player.y = cb.y - 30; player.vy = 150; run(8); }
       run(60 * 3); const chest = ents.find(e => e.k === 'pot'); if (chest) { player.x = chest.x; player.y = chest.y; run(3); } run(60 * 5);
       out.chomps = { hp: cb.hp, state, daytona: nodeOpen(node('daytona')), cleared: !!save.cleared.castillo };
       // out in space Leo jumps much higher

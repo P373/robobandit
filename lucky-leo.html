@@ -289,7 +289,7 @@ LEVELS.castle = builder('castle', 'Gillette Castle', 'castle', 196)
   .e('plat', 99, 10, { w: 2, dx: 1, sp: 1 }).at(108, 8, '?L?').e('crusher', 114, 1).e('thorny', 120, 11).e('firebar', 126, 7, { len: 4, sp: -1.2 })
   .e('fall', 130, 10, { w: 3 })
   // the throne room: walls on both sides, King Grumbles waiting
-  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 5 })   // King Grumbles at the end of World 3
+  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { who: 'sherlock' })   // King Grumbles at the end of World 3, dressed as Sherlock Holmes
   .gems(9, 5, 46, 7, 72, 4, 110, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
@@ -355,7 +355,7 @@ LEVELS.fort = builder('fort', 'Frost Fortress', 'fort', 196)
   .e('plat', 73, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 82, 11).e('firebar', 88, 8, { len: 5, sp: 1.2 }).e('thorny', 94, 11)
   .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?L?').e('crusher', 116, 1).e('snaily', 122, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
   .e('fall', 132, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 4, kind: 'yeti' })   // the Frost Yeti guards the fortress
+  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { kind: 'yeti', who: 'yeti' })   // the Frost Yeti guards the fortress
   .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
   .done({ goal: 0, boss: true, music: 'castle', dark: true });
 
@@ -431,7 +431,7 @@ LEVELS.ptown = builder('ptown', 'Provincetown Pier', 'pier', 200)
   .e('plat', 75, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 84, 11).e('firebar', 90, 8, { len: 4, sp: 1.2 }).e('thorny', 96, 11)
   .e('plat', 103, 10, { w: 2, dx: 1, sp: 1 }).at(112, 8, '?L?').e('crusher', 118, 1).e('snaily', 124, 11).e('buzzer', 128, 6)
   .e('fall', 135, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 3, kind: 'crab' })   // Captain Pinch, the giant crab (World 1's boss: three hits)
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { kind: 'crab', who: 'pinch' })   // Captain Pinch, the giant crab
   .gems(9, 5, 50, 7, 76, 4, 113, 5, 142, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
@@ -539,7 +539,7 @@ LEVELS.liberty = builder('liberty', 'Statue of Liberty', 'harbor', 200)
   .e('plat', 77, 9, { w: 2, dy: 2, sp: 1 }).e('mid', 86, 11).e('firebar', 94, 8, { len: 4, sp: 1.3 }).e('thorny', 100, 11)
   .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?L?').e('crusher', 122, 1).e('crab', 128, 11).e('buzzer', 132, 6)
   .e('fall', 137, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 6, kind: 'grumbles' })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { who: 'liberty' })   // King Grumbles as the Statue of Liberty
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'castle' });
 
@@ -653,7 +653,7 @@ LEVELS.castillo = builder('castillo', 'Castillo de San Marcos', 'castillo', 196)
   .e('plat', 73, 8, { w: 2, dy: 2, sp: 1 }).e('mid', 82, 11).e('firebar', 88, 8, { len: 5, sp: 1.2 }).e('snake', 94, 11)
   .e('plat', 101, 10, { w: 2, dx: 1, sp: 1 }).at(110, 8, '?L?').e('crusher', 116, 1).e('cannon', 124, 11).e('firebar', 128, 7, { len: 4, sp: -1.3 })
   .e('fall', 132, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { hp: 5, kind: 'gator' })   // Captain Chomps guards the treasure
+  .fill(150, 151, 1, 8, T.STONE).fill(193, 195, 1, 11, T.STONE).e('boss', 180, 9, { kind: 'gator', who: 'chomps' })   // Captain Chomps guards the treasure
   .gems(9, 5, 48, 7, 74, 4, 111, 5, 140, 8)
   .done({ goal: 0, boss: true, midBoss: true, music: 'castle' });
 
@@ -678,7 +678,7 @@ LEVELS.canaveral = builder('canaveral', 'Cape Canaveral', 'cape', 200)
   .e('plat', 77, 9, { w: 2, dy: 2, sp: 1, look: 'gantry' }).e('mid', 86, 11).e('firebar', 94, 8, { len: 4, sp: 1.3 }).e('thorny', 100, 11)
   .e('plat', 105, 10, { w: 2, dx: 1, sp: 1, look: 'gantry' }).at(116, 8, '?L?').e('crusher', 122, 1).e('snake', 128, 11).e('buzzer', 132, 6)
   .e('fall', 137, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 7, kind: 'grumbles' })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { who: 'rocket' })   // King Grumbles in a space helmet
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'launch' });
 
@@ -783,7 +783,7 @@ LEVELS.sabine = builder('sabine', 'Sabine River Bridge', 'sabine', 200)
   .e('plat', 77, 9, { w: 2, dy: 2, sp: 1 }).e('mid', 86, 11).e('crab', 94, 11).e('grumblin', 100, 11)
   .e('plat', 105, 10, { w: 2, dx: 1, sp: 1 }).at(116, 8, '?L?').e('snake', 126, 11).e('buzzer', 132, 6)
   .e('fall', 137, 10, { w: 3 })
-  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { hp: 8, kind: 'grumbles' })
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { who: 'cowboy' })   // King Grumbles in his cowboy hat
   .gems(9, 5, 53, 7, 78, 4, 117, 5, 146, 8)
   .done({ goal: 0, boss: true, music: 'sabine' });
 
@@ -1916,7 +1916,63 @@ function drawCrusher(x, y, angry, t) {
 }
 const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!' };
 const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps' };
+// The Grumble Gang: King Grumbles and his crew, each guarding a bag of Leo's gold somewhere in America, each dressed for
+// where they are. They all take three hits, and every hit makes them try something new (and a bit tougher) that belongs
+// to that place. Later bosses start out quicker, so the gang gets harder world by world.
+const BOSS_CAST = {
+  pinch: { intro: "King Grumbles' crabby first mate, guarding the Cape Cod gold!", speed: 50,
+    hits: ["His sailor cap blew into the bay! Now he's steamed... and blowing bubbles!", 'Red as a boiled lobster! Double-time scuttling!'],
+    done: 'Captain Pinch scuttles off to sulk in a tide pool.' },
+  yeti: { intro: 'In a lobster bib, guarding the Maine gold!', speed: 34,
+    hits: ["Off comes his lobster bib! Now he's hungry... and throwing snowballs!", 'A Maine-sized snit! Every stomp shakes icicles off the roof!'],
+    done: 'The Frost Yeti waddles off to find a lobster roll.' },
+  sherlock: { intro: 'Dressed as Sherlock Holmes (Mr. Gillette played him on stage)!', speed: 40,
+    hits: ["'Elementary!' He slips away through the castle's trick doors!", 'Secret passages AND two acorns at a time!'],
+    done: "'You've cracked the case!' He drops the gold and runs for New York..." },
+  liberty: { intro: 'In a Statue of Liberty costume, guarding the New York gold!', speed: 44,
+    hits: ['He lit his torch! Fireballs across the harbor: jump them!', 'Rush hour! A taxi zooms in to help him!'],
+    done: 'King Grumbles hails a cab to the airport... next stop, Florida!' },
+  chomps: { intro: "King Grumbles' pirate gator, guarding the treasure chest!", speed: 46,
+    hits: ['Arr! He calls for cannon fire from the walls! (Stomp the cannonballs.)', 'Chomp chomp! He charges across the deck!'],
+    done: 'Captain Chomps swims off to look for his treasure map.' },
+  rocket: { intro: 'In a space helmet, trying to blast off with the gold!', speed: 46,
+    hits: ['T-minus two! He fires up a jetpack: stomp him when he swoops!', "He's dropping space ice cream from up high!"],
+    done: 'His jetpack sputters... he zooms off west along the Gulf!' },
+  cowboy: { intro: 'In his cowboy hat, one bridge away from Texas!', speed: 50,
+    hits: ['Yee-haw! Tumbleweeds rolling across the bridge: jump them!', "He's charging like a Texas longhorn!"],
+    done: "'This ain't over, leprechaun!' He gallops off into Texas..." },
+};
 // the Frost Yeti: a huge shaggy white snow-beast with little horns, a blue face and an icy grin; its landings shake the ground
+// each boss dressed for where he is (and missing a piece once he's been hit)
+function drawBossCostume(e, x, y, t, face, ph) {
+  g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
+  const w = e.who;
+  if (w === 'yeti' && ph === 0) {   // a lobster bib
+    rrect(-3, -12, 14, 11, 3); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 0.6; g.strokeStyle = '#c8d0d8'; g.stroke();
+    ell(4, -6.5, 3, 2.2); g.fillStyle = '#e8302a'; g.fill(); for (const sx of [-1, 1]) { g.beginPath(); g.arc(4 + sx * 3.6, -9, 1.3, 0, TAU); g.fill(); }
+  }
+  if (w === 'sherlock') {
+    if (ph === 0) { g.beginPath(); g.ellipse(0, -34, 12, 10, 0, Math.PI, 0); g.fillStyle = '#9a7a4a'; g.fill(); ell(0, -34, 14, 2.6); g.fillStyle = '#8a6a3a'; g.fill(); g.strokeStyle = 'rgba(60,40,20,.5)'; g.lineWidth = 0.6; for (const xx of [-6, 0, 6]) { g.beginPath(); g.moveTo(xx, -40); g.lineTo(xx, -34); g.stroke(); } }   // the deerstalker
+    g.strokeStyle = '#6a4a2a'; g.lineWidth = 2; g.beginPath(); g.moveTo(10, -10); g.lineTo(14, -16); g.stroke();   // the magnifying glass
+    g.beginPath(); g.arc(16, -19, 4.5, 0, TAU); g.fillStyle = 'rgba(200,235,255,.45)'; g.fill(); g.lineWidth = 1.4; g.strokeStyle = C.gold; g.stroke();
+  }
+  if (w === 'liberty') {
+    for (let k = -3; k <= 3; k++) { const a = -Math.PI / 2 + k * 0.32; g.beginPath(); g.moveTo(Math.cos(a) * 9, -34 + Math.sin(a) * 3); g.lineTo(Math.cos(a) * 17, -36 + Math.sin(a) * 9); g.lineTo(Math.cos(a + 0.12) * 9, -34 + Math.sin(a + 0.12) * 3); g.closePath(); g.fillStyle = '#6ac0a8'; g.fill(); }   // the spiky crown
+    g.fillStyle = '#6ac0a8'; g.fillRect(11, -30, 3, 18); g.fillStyle = '#c8a040'; g.beginPath(); g.moveTo(9.5, -30); g.lineTo(15.5, -30); g.lineTo(14, -34); g.lineTo(11, -34); g.closePath(); g.fill();   // the torch
+    if (ph >= 1) { glow(12.5, -38, 10, 'rgba(255,170,60,1)', 0.7); g.beginPath(); g.moveTo(10, -34); g.quadraticCurveTo(12.5, -44 - Math.sin(t * 14) * 2, 15, -34); g.fillStyle = '#ffa23a'; g.fill(); }
+  }
+  if (w === 'rocket') {
+    rrect(-17, -24, 7, 14, 2); g.fillStyle = '#c8ccd8'; g.fill(); g.lineWidth = 0.8; g.strokeStyle = '#5a5e6a'; g.stroke(); g.fillStyle = '#e8453a'; g.fillRect(-17, -16, 7, 2);   // the jetpack
+    if (e.flying) { g.beginPath(); g.moveTo(-16, -10); g.lineTo(-13.5, -2 - Math.random() * 5); g.lineTo(-11, -10); g.fillStyle = '#ffb84a'; g.fill(); }
+  }
+  if (w === 'cowboy') {
+    g.beginPath(); g.moveTo(-8, 0 - 20); g.lineTo(8, -20); g.lineTo(0, -15); g.closePath(); g.fillStyle = '#d8302a'; g.fill();   // a red bandana
+    ell(0, -34, 15, 3); g.fillStyle = '#8a5a2a'; g.fill(); rrect(-7, -43, 14, 9, [4, 4, 1, 1]); g.fill(); g.fillStyle = '#5a3a1a'; g.fillRect(-7, -36.5, 14, 1.6);   // the cowboy hat
+    if (ph === 2) for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(sx * 6, -40); g.quadraticCurveTo(sx * 20, -44, sx * 22, -52); g.lineTo(sx * 19, -44); g.quadraticCurveTo(sx * 12, -40, sx * 6, -37); g.closePath(); g.fillStyle = '#f4ecd8'; g.fill(); }   // longhorns!
+  }
+  if (ph === 2) { g.strokeStyle = '#e8302a'; g.lineWidth = 1.3; g.beginPath(); for (const [a, b] of [[-11, -38], [-7, -42]]) { g.moveTo(a, b); g.lineTo(a + 2, b + 2); g.moveTo(a + 2, b); g.lineTo(a, b + 2); } g.stroke(); }   // a cross little anger mark
+  g.restore();
+}
 function drawYeti(x, y, t, face, hurt) {
   g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
   const bob = Math.abs(Math.sin(t * 5)) * 1.4, fur = hurt ? '#ffd0d0' : '#f6faff', shade = hurt ? '#e8a8a8' : '#cfe0f2';
@@ -1933,7 +1989,7 @@ function drawYeti(x, y, t, face, hurt) {
   g.restore();
 }
 // Captain Pinch: a giant red crab in a little captain's hat, with two big snapping claws
-function drawCrabBoss(x, y, t, face, hurt) {
+function drawCrabBoss(x, y, t, face, hurt, cap = true) {
   g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
   const shell = hurt ? '#ffb0a0' : '#e84a32', dark = hurt ? '#e08070' : '#b83222', snap = Math.abs(Math.sin(t * 7));
   for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) { g.save(); g.translate(sx * (6 + i * 4), -6); g.rotate(sx * (0.5 + Math.sin(t * 14 + i) * 0.25)); g.fillStyle = dark; g.fillRect(-1, 0, 2, 7); g.restore(); }   // scuttling legs
@@ -1945,7 +2001,7 @@ function drawCrabBoss(x, y, t, face, hurt) {
     g.restore();
   }
   for (const ex of [-3.5, 3.5]) { g.fillStyle = dark; g.fillRect(ex - 0.7, -24, 1.4, 6); g.beginPath(); g.arc(ex, -25, 2.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.6, -25, 1.2, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }   // eyes on stalks
-  rrect(-6, -31.5, 12, 3, 1); g.fillStyle = '#23324a'; g.fill(); rrect(-4, -35, 8, 4, [2, 2, 0, 0]); g.fill(); g.fillStyle = C.gold; g.fillRect(-1, -33.6, 2, 1.4);   // captain's hat
+  if (cap) { rrect(-6, -31.5, 12, 3, 1); g.fillStyle = '#23324a'; g.fill(); rrect(-4, -35, 8, 4, [2, 2, 0, 0]); g.fill(); g.fillStyle = C.gold; g.fillRect(-1, -33.6, 2, 1.4); }   // captain's hat (it blows away at the first hit)
   g.beginPath(); g.moveTo(-4, -8); g.quadraticCurveTo(0, -5, 4, -8); g.lineWidth = 1; g.strokeStyle = '#5a1a12'; g.stroke();
   g.restore();
 }
@@ -3712,7 +3768,7 @@ function spawnFromSpec(e) {
     case 'fall': ents.push(mk('fall', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, st: 'wait', cyc: 0 })); break;
     case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
-    case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: e.hp || 3, maxHp: e.hp || 3, kind: e.kind || 'grumbles', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3 })); break;
+    case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: 3, maxHp: 3, kind: e.kind || 'grumbles', who: e.who || 'sherlock', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3, act: 0, cst: 'walk' })); break;
     case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
     case 'boat': ents.push(mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: e.sp || 44, go: false, mx: 0, my: 0 })); break;
     case 'shark': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5) })); break;
@@ -4228,7 +4284,13 @@ function updateEnts(dt) {
         break;
       case 'smudge': e.life -= dt; if (e.life <= 0) e.gone = true; break;
       case 'unicorn': updateUnicorn(e, dt); break;
-      case 'acorn': e.vy += (e.grav || 600) * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.y > LH || e.t > 6) e.gone = true; break;
+      case 'acorn':
+        if (e.wait > 0) { e.wait -= dt; break; }   // an icicle wobbles a moment before it drops
+        e.vy += (e.grav || 600) * dt; e.x += e.vx * dt; e.y += e.vy * dt;
+        if (e.bounce && e.y + e.h > ARENA_FLOOR) { e.y = ARENA_FLOOR - e.h; e.vy = -Math.max(140, Math.abs(e.vy) * 0.75); }   // tumbleweeds bounce along the bridge
+        if (e.kind === 'icicle' && e.y + e.h >= ARENA_FLOOR) { e.gone = true; puff(e.x + 4, ARENA_FLOOR - 2, 3); }
+        if (e.y > LH || e.t > 6 || (e.kind === 'fire' && (e.x < 151 * TS || e.x > 196 * TS))) e.gone = true;
+        break;
       case 'boss': updateBoss(e, dt); break;
       case 'pot': e.vy = Math.min((e.vy || 0) + 600 * dt, 300); moveY(e, e.vy * dt); break;
     }
@@ -4402,7 +4464,7 @@ function touchPlayer(e) {
       if (Math.random() < 0.5) particle(p.x + p.w / 2 + rand(-6, 6), p.y + p.h, rand(-30, 30), rand(40, 120), '#cfeaff', 0.5, rand(2, 3));
       break;
     case 'boss': {
-      if (e.hp <= 0) break;
+      if (e.hp <= 0 || e.ghost > 0) break;
       // landing on top always bounces Leo off, even while King Grumbles is still flashing from the last hit (no sinking into
       // him and getting hurt when the flash ends); measured against his own movement, as he jumps about a lot
       const rv = p.vy - (e.vy || 0), feet = p.y + p.h, wasAbove = feet - p.vy * STEP <= e.y - (e.vy || 0) * STEP + 10 || feet <= e.y + 10;
@@ -4456,43 +4518,98 @@ function heronTouch(e) {
   return overlap(p, body);
 }
 
-// ---------- King Grumbles ----------
+// ---------- King Grumbles and the Grumble Gang ----------
+const ARENA_FLOOR = 12 * TS;
+function bossShot(kind, x, y, vx, vy, more = {}) { ents.push(mk('acorn', x, y, { vx, vy, w: 10, h: 10, kind, ...more })); }
 function updateBoss(e, dt) {
-  const p = player;
+  const p = player, cast = BOSS_CAST[e.who] || BOSS_CAST.sherlock;
   if (e.hp <= 0) { e.vy = (e.vy || 0) + 700 * dt; e.y += e.vy * dt; if (e.y > LH + 60) e.gone = true; return; }
   if (Math.abs(p.x - e.x) > 260 && !e.awake) return;
-  if (!e.awake) { e.awake = true; lvl.bossKind = e.kind; music.play('boss'); const him = e.kind === 'grumbles' || e.kind === 'gator' ? 'him' : 'it'; banner(BOSS_NAMES[e.kind] || 'KING GRUMBLES!', `Hit ${him} ${['', 'once', 'twice', 'three times', 'four times', 'five times'][e.maxHp || 3] || (e.maxHp + ' times')}: stomp ${him}, or throw shells, sparks and hats!`); }
+  if (!e.awake) { e.awake = true; lvl.bossKind = e.kind; lvl.bossWho = e.who; music.play('boss'); banner(BOSS_NAMES[e.kind] || 'KING GRUMBLES!', cast.intro + ' Three hits!', 3.2); }
   e.hurt = Math.max(0, e.hurt - dt);
-  const angry = (e.maxHp || 3) - e.hp;   // he gets faster and wilder with every hit
-  const speed = (e.kind === 'crab' ? 62 : e.kind === 'yeti' ? 34 : e.kind === 'gator' ? 46 : 40) + angry * 20;
+  const ph = (e.maxHp || 3) - e.hp, who = e.who;   // 0 to start; 1 after the first hit; 2 after the second
+  e.act = (e.act || 0) + dt;
+  if (ph >= 1 && Math.random() < dt * (ph === 2 ? 6 : 2.5)) particle(e.x + 14 + rand(-6, 6), e.y - 4, rand(-20, 20), rand(-70, -40), 'rgba(255,255,255,.8)', 0.6, rand(2, 3.5));   // steaming mad
+  // the vanishing detective: fades out, then pops up somewhere else in the castle
+  if (e.ghost > 0) {
+    e.ghost -= dt;
+    if (e.ghost <= 0) { let nx; for (let k = 0; k < 8; k++) { nx = rand(153, 188) * TS; if (Math.abs(nx - p.x) > 70) break; } e.x = nx; e.appear = 0.45; puff(e.x + 14, e.y + 16, 6); sfx.pipe(); }
+    return;
+  }
+  if (e.appear > 0) e.appear -= dt;
+  if (who === 'sherlock' && ph >= 1 && e.act > (ph === 2 ? 2.4 : 3.2)) { e.act = 0; e.ghost = 0.5; puff(e.x + 14, e.y + 16, 6); return; }
+  let speed = cast.speed + ph * 18, gravity = true;
+  // the jetpack: up in the air drifting after Leo, then a swoop down to the ground (that's the time to stomp him)
+  if (who === 'rocket' && ph >= 1) {
+    const cyc = e.act % 4.6;
+    if (cyc < 3.2) {
+      gravity = false; e.flying = true;
+      e.vy += ((5.2 * TS - e.y) * 3 - e.vy) * Math.min(1, dt * 3);
+      e.dir = p.x + p.w / 2 < e.x + e.w / 2 ? -1 : 1; speed = 64;
+      if (ph === 2) { e.dropT = (e.dropT || 0) - dt; if (e.dropT <= 0) { e.dropT = 1.1; bossShot('icecream', e.x + 9, e.y + 26, 0, 40, { grav: 500 }); } }
+      if (Math.random() < dt * 30) particle(e.x + (e.face > 0 ? 4 : 24), e.y + 26, rand(-15, 15), rand(60, 120), Math.random() < 0.5 ? '#ffb84a' : '#ff6a2a', 0.35, rand(2, 3.5));
+    } else e.flying = false;
+  }
+  // the charge: Captain Chomps and the cowboy dig in, then rush right across the arena
+  if ((who === 'chomps' || who === 'cowboy') && ph === 2) {
+    if (e.cst === 'walk' && e.act > 2.2 && e.ground) { e.cst = 'wind'; e.act = 0; e.dir = p.x < e.x ? -1 : 1; }
+    if (e.cst === 'wind') { speed = 0; if (Math.random() < 0.5) puff(e.x + 14 - e.dir * 12, e.y + 30, 1); if (e.act > 0.7) { e.cst = 'rush'; e.act = 0; sfx.kick(); } }
+    if (e.cst === 'rush') { speed = 250; if (e.wall || e.x <= 152 * TS + 1) { e.cst = 'walk'; e.act = 0; shake = 0.2; } }
+  }
   e.vx = e.dir * speed;
-  e.vy = Math.min((e.vy || 0) + 900 * dt, 400);
+  if (gravity) e.vy = Math.min((e.vy || 0) + 900 * dt, 400);
   moveX(e, e.vx * dt); if (e.wall) e.dir = -e.wall;
   if (e.x < 152 * TS) { e.x = 152 * TS; e.dir = 1; }
-  moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+  moveY(e, e.vy * dt); if (e.ground && gravity) e.vy = 0;
   e.face = e.dir;
   e.jumpT -= dt; e.throwT -= dt;
-  if (e.jumpT <= 0 && e.ground) { e.vy = (e.kind === 'crab' ? -240 : e.kind === 'yeti' ? -380 : -330) - angry * 30; e.jumpT = rand(1.6, 2.8); e.jumped = true; }
-  if (e.jumped && e.ground && e.vy >= 0) { e.jumped = false; if (e.kind === 'yeti') { shake = 0.3; sfx.pound(); RB.pad.rumble(160, 0.6); } }   // the yeti's landings shake the ground
-  if (e.throwT <= 0) {
-    e.throwT = Math.max(0.9, rand(1.8, 3) - angry * 0.3);
-    const dx = p.x - e.x;
-    if (e.kind === 'crab') for (const k of [-1, 0, 1]) ents.push(mk('acorn', e.x + 10, e.y + 4, { vx: clamp(dx, -160, 160) * 0.5 + k * 40, vy: -120 - Math.abs(k) * 30, w: 10, h: 10, kind: 'bubble', grav: 90 }));   // three slow bubbles
-    else ents.push(mk('acorn', e.x + 10, e.y + 6, { vx: clamp(dx, -200, 200) * 0.9, vy: -260, w: 10, h: 10, kind: e.kind === 'yeti' ? 'snowball' : e.kind === 'gator' ? 'cannonball' : 'acorn' }));
+  const busy = e.flying || e.cst !== 'walk';
+  if (!busy && e.jumpT <= 0 && e.ground) { e.vy = (e.kind === 'crab' ? -240 : e.kind === 'yeti' ? -380 : -330) - ph * 30; e.jumpT = rand(1.6, 2.8) - (who === 'pinch' && ph === 2 ? 0.7 : 0); e.jumped = true; }
+  if (e.jumped && e.ground && e.vy >= 0) {
+    e.jumped = false;
+    if (e.kind === 'yeti') { shake = 0.3; sfx.pound(); RB.pad.rumble(160, 0.6);   // the yeti's landings shake the ground (and, when he's in a snit, the icicles down)
+      if (ph === 2) for (const dx of [-30, 30]) bossShot('icicle', clamp(p.x + dx + rand(-10, 10), 153 * TS, 191 * TS), 1 * TS, 0, 0, { w: 8, h: 14, grav: 700, wait: 0.7 }); }
+  }
+  // what each of them throws, and when
+  if (e.throwT <= 0 && !e.flying) {
+    const dx = p.x - e.x, gap = Math.max(0.9, rand(2.0, 3.0) - ph * 0.35);
+    e.throwT = gap;
+    if (who === 'pinch') { if (ph >= 1) for (const k of [-1, 0, 1]) bossShot('bubble', e.x + 10, e.y + 4, clamp(dx, -160, 160) * 0.5 + k * 40, -120 - Math.abs(k) * 30, { grav: 90 }); }
+    else if (who === 'yeti') { if (ph >= 1) bossShot('snowball', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260); }
+    else if (who === 'sherlock') { for (let k = 0; k < (ph === 2 ? 2 : 1); k++) bossShot('acorn', e.x + 10, e.y + 6, clamp(dx, -200, 200) * (0.9 - k * 0.35), -260 - k * 60); }
+    else if (who === 'liberty') {
+      if (ph === 0) bossShot('pretzel', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+      else bossShot('fire', e.x + 14 + Math.sign(dx) * 10, ARENA_FLOOR - 14, Math.sign(dx || 1) * 150, 0, { grav: 0.001 });   // low across the floor: jump it
+      if (ph === 2 && !ents.some(o => o.k === 'taxi' && !o.dead)) ents.push(mk('taxi', (p.x < 170 * TS ? 188 : 154) * TS, ARENA_FLOOR - 14, { w: 28, h: 14, dir: p.x < 170 * TS ? -1 : 1, face: p.x < 170 * TS ? -1 : 1 }));
+    }
+    else if (who === 'chomps') {
+      bossShot('cannonball', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+      if (ph >= 1) { e.throwT = gap * 0.8; bossShot('cannonball', 152 * TS + 4, (Math.random() < 0.5 ? 10 : 8.5) * TS, 150, -70, { grav: 300 }); }   // and a cannon on the wall joins in
+    }
+    else if (who === 'rocket') bossShot('acorn', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+    else if (who === 'cowboy') {
+      if (ph === 0) bossShot('pepper', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+      else bossShot('tumble', e.x + 14 + Math.sign(dx) * 12, ARENA_FLOOR - 12, Math.sign(dx || 1) * (120 + ph * 20), -120, { w: 12, h: 12, grav: 600, bounce: true });
+    }
     sfx.kick();
   }
 }
 // King Grumbles can be hurt by a stomp, a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power
 // (not springs). After each hit he flashes for a moment and nothing hurts him until he stops.
-const bossOpen = o => o.k === 'boss' && o.hurt <= 0 && o.hp > 0;
+const bossOpen = o => o.k === 'boss' && o.hurt <= 0 && o.hp > 0 && !(o.ghost > 0);
 function bossHit(e) {
   e.hp--; e.hurt = 1.4; sfx.bossHit(); shake = 0.35; addScore(2000, e.x, e.y);
   for (const o of ents) if (o.k === 'acorn') o.gone = true;
   if (e.hp <= 0) {
     e.vy = -250; bossDown = true; music.stop();
     phase = 'boss-won'; phaseT = 0;
-    banner('YOU DID IT!', `${BOSS_WHO[e.kind] || 'King Grumbles'} is beaten!`);
-  } else { e.dir = player.x < e.x ? 1 : -1; e.jumpT = 0.6; }
+    banner('YOU DID IT!', (BOSS_CAST[e.who] || {}).done || `${BOSS_WHO[e.kind] || 'King Grumbles'} is beaten!`, 3.2);
+  } else {
+    e.dir = player.x < e.x ? 1 : -1; e.jumpT = 0.6; e.act = 0; e.cst = 'walk'; e.ghost = 0; e.flying = false;
+    const ph = (e.maxHp || 3) - e.hp, line = ((BOSS_CAST[e.who] || {}).hits || [])[ph - 1];
+    if (line) banner(ph === 1 ? 'ONE HIT!' : 'TWO HITS!', line, 3);
+    if (ph === 1) for (let k = 0; k < 6; k++) particle(e.x + 14, e.y + 2, rand(-120, 120), rand(-260, -120), '#ffe14a', 1, rand(2, 3.5));   // there goes his hat (or bib)!
+  }
 }
 function bossWonUpdate(dt) {
   updateEnts(dt);
@@ -4900,11 +5017,21 @@ function drawEnt0(e, t) {
     case 'acorn': if (e.kind === 'cannonball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); g.fillStyle = '#2a2a32'; g.fill(); g.beginPath(); g.arc(x + 3.4, y + 3.4, 1.6, 0, TAU); g.fillStyle = 'rgba(255,255,255,.45)'; g.fill(); }
       else if (e.kind === 'snowball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); paint('#ffffff', 0.8, '#9ab8dc'); g.beginPath(); g.arc(x + 3.5, y + 3.5, 1.6, 0, TAU); paint('rgba(200,225,255,.9)'); }
       else if (e.kind === 'bubble') { g.globalAlpha = 0.8; g.beginPath(); g.arc(x + 5, y + 5, 5.5, 0, TAU); g.fillStyle = 'rgba(180,230,255,.35)'; g.fill(); g.lineWidth = 0.9; g.strokeStyle = '#e8f8ff'; g.stroke(); g.beginPath(); g.arc(x + 3, y + 3, 1.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
+      else if (e.kind === 'pretzel') { g.lineWidth = 2.4; g.strokeStyle = '#a8642a'; g.beginPath(); g.arc(x + 3, y + 5, 3, 0, TAU); g.moveTo(x + 10, y + 5); g.arc(x + 7, y + 5, 3, 0, TAU); g.stroke(); g.fillStyle = '#fff'; g.fillRect(x + 4, y + 2, 1, 1); g.fillRect(x + 7, y + 7, 1, 1); }
+      else if (e.kind === 'fire') { glow(x + 5, y + 5, 12, 'rgba(255,150,40,1)', 0.6); g.beginPath(); g.arc(x + 5, y + 5, 4.5, 0, TAU); g.fillStyle = '#ff8a2a'; g.fill(); g.beginPath(); g.arc(x + 5, y + 5, 2.4, 0, TAU); g.fillStyle = '#ffe48a'; g.fill(); }
+      else if (e.kind === 'icicle') { const wob = e.wait > 0 ? Math.sin(t * 60) * 1 : 0; g.beginPath(); g.moveTo(x + wob, y); g.lineTo(x + 8 + wob, y); g.lineTo(x + 4 + wob, y + 14); g.closePath(); paint('#dff4ff', 0.8, '#7ab0e0'); }
+      else if (e.kind === 'tumble') { g.save(); g.translate(x + 6, y + 6); g.rotate(t * 8 * Math.sign(e.vx)); g.strokeStyle = '#a8844a'; g.lineWidth = 1; for (let k = 0; k < 6; k++) { g.beginPath(); g.arc(0, 0, 6, k, k + 2.2); g.stroke(); } g.restore(); }
+      else if (e.kind === 'pepper') { g.save(); g.translate(x + 5, y + 5); g.rotate(t * 6); ell(0, 0, 5, 2.4); g.fillStyle = '#e8302a'; g.fill(); g.fillStyle = '#3a9a3a'; g.fillRect(-6, -1, 2, 2); g.restore(); }
+      else if (e.kind === 'icecream') { g.beginPath(); g.moveTo(x + 2, y + 4); g.lineTo(x + 8, y + 4); g.lineTo(x + 5, y + 12); g.closePath(); g.fillStyle = '#e8b86a'; g.fill(); g.beginPath(); g.arc(x + 5, y + 3, 3.6, 0, TAU); g.fillStyle = ['#ffb8d8', '#fff4d8', '#b8f0d0'][Math.floor(e.x) % 3]; g.fill(); }
       else drawAcorn(x, y, t); break;
     case 'pot': if (lvl.midBoss) drawChest(x, y, t); else drawPot(x, y, t); break;
     case 'boss': {
       const hurtBlink = e.hurt > 0 && Math.floor(t * 16) % 2 === 0;
-      if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'gator') drawGatorBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
+      const ph = (e.maxHp || 3) - e.hp, fade = e.ghost > 0 ? Math.max(0, e.ghost / 0.5) : e.appear > 0 ? 1 - e.appear / 0.45 : 1;
+      g.globalAlpha = fade;
+      if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink, ph === 0); else if (e.kind === 'gator') drawGatorBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
+      drawBossCostume(e, x - 2, y, tt, face, ph);
+      g.globalAlpha = 1;
       if (lvl.theme === 'cape' && e.kind === 'grumbles') { g.beginPath(); g.arc(x + 14, y + 7 - Math.abs(Math.sin(tt * 6)) * 1.5, 17, 0, TAU); g.fillStyle = 'rgba(200,240,255,.22)'; g.fill(); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.8)'; g.stroke(); ell(x + 8, y - 1, 4, 2.4, -0.6); g.fillStyle = 'rgba(255,255,255,.55)'; g.fill(); }   // King Grumbles in a space helmet
       if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - 16, 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
       break;
