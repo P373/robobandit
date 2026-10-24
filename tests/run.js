@@ -2311,7 +2311,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {};
-      for (const id of ORDER) {
+      for (const id of [...ORDER, ...RETIRED]) {   // (the levels taken off the map are kept working too)
         const L = LEVELS[id], W = L.w, H = L.h;
         const tile = (x, y) => (x < 0 || x >= W ? T.STONE : y < 0 || y >= H ? 0 : L.t[y * W + x]);
         const deadly = (x, y) => [T.LAVA, T.WATER, T.SPIKES].includes(tile(x, y));
@@ -2392,10 +2392,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('hills'); const lv = lives; player.x = 43 * 16; player.y = 150; run(60 * 4);
       out.pit = { lost: lv - lives, state };
       startLevel('hills'); player.x = 199 * 16; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
-      out.goal = { state, cleared: !!save.cleared.hills, woodsOpen: nodeOpen(node('woods')), cavesOpen: nodeOpen(node('caves')) };
+      out.goal = { state, cleared: !!save.cleared.hills, castleBefore: nodeOpen(node('castle')) };
       startLevel('caves'); const k = ents.find(e => e.k === 'key'); player.x = k.x; player.y = k.y; run(2);
       out.key = gotKey; player.x = 192 * 16 + 8; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
-      out.bonusOpen = nodeOpen(node('bonus'));
+      out.bonusOpen = nodeOpen(node('bonus')); out.goal.castleAfter = !!save.cleared.caves && nodeOpen(node('castle'));
       startLevel('castle'); const b = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
       for (let h = 0, n = b.hp; h < n; h++) { player.inv = 9; run(100); player.x = b.x + 8; player.y = b.y - 30; player.vy = 150; run(8); }
       out.boss = b.hp;
@@ -2411,7 +2411,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.block.used && r.block.clover && r.big === 1, 'bumping the clover block and growing: ' + JSON.stringify(r));
     check(r.shell && r.kicked, 'stomp a snail, kick its shell: ' + JSON.stringify(r));
     check(r.pit.lost === 1 && r.pit.state === 'level', 'a pit costs a life and restarts: ' + JSON.stringify(r.pit));
-    check(r.goal.state === 'map' && r.goal.cleared && r.goal.woodsOpen && !r.goal.cavesOpen, 'the goal clears the level and opens the next: ' + JSON.stringify(r.goal));
+    check(r.goal.state === 'map' && r.goal.cleared && !r.goal.castleBefore && r.goal.castleAfter, 'the goal clears the level, and finishing Glimmer Caves opens the next (Gillette Castle): ' + JSON.stringify(r.goal));
     check(r.key && r.bonusOpen, 'the golden key opens Rainbow Road: ' + JSON.stringify(r));
     check(r.boss === 0 && r.pot && r.ending.state === 'ending' && r.ending.beaten && r.ending.best > 0, 'five stomps beat King Grumbles at Gillette Castle, then the pot of gold: ' + JSON.stringify(r));
     await done(p, 'lucky-leo.png');
@@ -2494,7 +2494,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.upTop = player.y + player.h < 4 && player.ground;
       keys.run = true; let gateClear = false; run(700, () => { if (phase === 'clear' && !lvl.secretExit) gateClear = true; }); keys.right = false; keys.run = false;
       out.secret = !gateClear && lvl.secretExit === true; run(300);
-      out.secretPath = !!save.secrets.caves && state === 'map' && nodeOpen(node('castle'));
+      out.secretPath = !!save.secrets.caves && state === 'map' && nodeOpen(node('slater'));
       // the box at the top: a saved clover drops when asked for
       startLevel('hills'); run(5);
       reserve = 'clover'; pressed.item = true; run(1); out.recalled = reserve === null && ents.some(e => e.k === 'clover' && e.drop);
@@ -2585,7 +2585,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
       paused = true; startGame(); lives = 9;
-      out.drawn = WORLDS[5].map(id => { startLevel(id); run(20); return lvl.id === id && phase === 'play' && !!SCENERY[lvl.theme] && !!SKIES[lvl.theme] && !!THEMES[lvl.theme] && !!SONGS[lvl.music]; });
+      out.drawn = ['mobile', 'bayou', 'quarter', 'river', 'basin', 'sabine'].map(id => { startLevel(id); run(20); return lvl.id === id && phase === 'play' && !!SCENERY[lvl.theme] && !!SKIES[lvl.theme] && !!THEMES[lvl.theme] && !!SONGS[lvl.music]; });
       // the pirogue in Honey Island Swamp and the steamboat on the Mississippi only set off once Leo steps aboard
       const ride = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); const b = ents.find(e => e.k === 'boat'); run(30); const before = b.x;
         player.x = b.x + 10; player.y = b.y - player.h - 2; player.vy = 0; run(120); return { still: before === b.x0, moved: b.x > b.x0 + 40, aboard: player.ride === b }; };
@@ -2598,7 +2598,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('mobile'); ents = ents.filter(e => !isEnemy(e) || e.k === 'crab'); const cf = ents.find(e => e.k === 'crab');
       player.x = cf.x; player.y = cf.y - 30; player.vy = 150; run(10); out.crawfish = { gulf: GULF.has(lvl.theme), stomped: !ents.includes(cf) || cf.dead || cf.squish > 0 };
       out.swamp = SWAMP.has('bayou') && SWAMP.has('basin') && LEVELS.bayou.ents.some(e => e.k === 'sponge') && LEVELS.basin.dark;
-      out.map = WORLDS[5].every(id => node(id).map === 'fl' && node(id).y > 40);
+      out.map = ['mobile', 'river', 'quarter', 'bayou'].every(id => worldOf(id) === 3 && node(id)) && ['basin', 'sabine'].every(id => !node(id) && RETIRED.includes(id));
       paused = false; return out;
     });
     check(r.drawn.every(Boolean), 'every Gulf Coast level starts and has its own scenery, sky, ground and music: ' + JSON.stringify(r.drawn));
@@ -2606,7 +2606,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.streetcar && r.looks, 'the streetcar carries Leo, and the Quarter has streetcars and Mardi Gras floats: ' + JSON.stringify(r));
     check(r.crawfish.gulf && r.crawfish.stomped, 'a crawfish can be stomped: ' + JSON.stringify(r.crawfish));
     check(r.swamp, 'the swamps have dragonflies and gator backs, and the Atchafalaya is dark: ' + JSON.stringify(r));
-    check(r.map, 'the Gulf Coast levels are on the map of Florida, clear of the names at the top: ' + JSON.stringify(r));
+    check(r.map, 'the Gulf Coast levels are in World 4 (the Music South) on the map; the Atchafalaya and the Sabine River are kept but off the map: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-gulf.png');
   });
@@ -2637,7 +2637,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
   await test('Lucky Leo starts where you left off: the same spot on the map, with the same power-up, after the page is closed and opened again', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const fresh = await p.evaluate(() => { localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k]; save.at = null; save.keep = null; startGame(); return mapLeo.at; });
-    await p.evaluate(() => { for (const id of ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'shore']) save.cleared[id] = true; keep = { form: 2, mount: false, laser: false }; goMap('night'); });
+    await p.evaluate(() => { for (const id of ['canal', 'cranberry', 'ptown', 'shore']) save.cleared[id] = true; keep = { form: 2, mount: false, laser: false }; goMap('fort'); });
     await p.reload(); await p.waitForTimeout(500);
     const back = await p.evaluate(() => { startGame(); return { at: mapLeo.at, form: keep.form, state }; });
     // a spot that isn't open (an old save, say) falls back to the start
@@ -2645,7 +2645,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.reload(); await p.waitForTimeout(500);
     const locked = await p.evaluate(() => { startGame(); return mapLeo.at; });
     check(fresh === 'canal', 'a brand-new game starts at the Bourne Bridge: ' + fresh);
-    check(back.at === 'night' && back.form === 2 && back.state === 'map', 'after closing and opening the page, Leo is back at Moonlit Meadow with his rainbow flower: ' + JSON.stringify(back));
+    check(back.at === 'fort' && back.form === 2 && back.state === 'map', 'after closing and opening the page, Leo is back at the Frost Fortress with his rainbow flower: ' + JSON.stringify(back));
     check(locked === 'canal', 'a saved spot that is not open falls back to the start: ' + locked);
     await done(p);
   });
@@ -2691,7 +2691,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
       paused = true; startGame(); lives = 99;
       const out = {};
-      for (const [id, to] of [['shore', 'fort'], ['orchard', 'bridge'], ['glades', 'park'], ['mobile', 'quarter']]) {
+      for (const [id, to] of [['shore', 'snow'], ['orchard', 'glades'], ['glades', 'canaveral'], ['mobile', 'quarter']]) {
         delete save.secrets[id]; for (const k in save.cleared) delete save.cleared[k]; save.cleared[id] = false;
         const starBefore = hasSecretExit(id) && !save.secrets[id];
         startLevel(id); ents = ents.filter(e => !isEnemy(e)); player.inv = 999;
@@ -2709,35 +2709,95 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo worlds in order: Cape Cod, then by boat up to Maine, over the White and Green Mountains to Connecticut, along Long Island Sound to New York, a flight to Florida, on along the Gulf Coast, and the Sabine River at the Texas line is the real ending', async () => {
+  await test('Lucky Leo map: one map of the whole country in nine regional worlds; levels still being built are signposts Leo walks past; worlds not reached yet are grey; zoom out to see it all; Unlock All', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
-      localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k];
-      startGame(); const start = { at: mapLeo.at, canal: nodeOpen(node('canal')), shore: nodeOpen(node('shore')), hills: nodeOpen(node('hills')), tag: levelTag('canal') };
-      const end = id => { const prev = WORLDS[worldOf(id)].slice(0, -1); prev.forEach(x => { save.cleared[x] = true; }); startLevel(id); const b = ents.find(e => e.k === 'boss');
-        const hp = b.hp, kind = b.kind; winGame();
-        const out = { hp, kind, title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
-        document.getElementById('btnMapAgain').click(); out.state = state; out.at = mapLeo.at; return out; };
-      const w1 = end('ptown'); w1.shore = nodeOpen(node('shore')); w1.night = nodeOpen(node('night')); w1.boat = SEA_PATHS.has('ptown|shore'); w1.beaten = save.beaten;
-      const w2 = end('fort'); w2.snow = nodeOpen(node('snow')); w2.sky = nodeOpen(node('sky')); w2.beaten2 = save.beaten2;
-      const w3 = end('castle'); w3.orchard = nodeOpen(node('orchard')); w3.niagara = nodeOpen(node('niagara')); w3.beaten3 = save.beaten3; w3.walk = !FLIGHT_PATHS.has('castle|orchard');
-      const w4 = end('liberty'); w4.miami = nodeOpen(node('miami')); w4.reef = nodeOpen(node('reef')); w4.flight = FLIGHT_PATHS.has('liberty|miami'); w4.map = node('miami').map; w4.beaten4 = save.beaten4;
-      const w5 = end('canaveral'); w5.beaten5 = save.beaten5; w5.space = nodeOpen(node('space')); w5.levels = WORLDS[4].length; w5.mobile = nodeOpen(node('mobile')); w5.bayou = nodeOpen(node('bayou')); w5.flight = FLIGHT_PATHS.has('canaveral|mobile');
-      const w6 = end('sabine'); w6.beaten6 = save.beaten6; w6.levels = WORLDS[5].length; w6.names = WORLDS[5].map(id => node(id).region); w6.texas = /Texas/.test(document.querySelector('#ending .sub').textContent);
-      const regions = Object.fromEntries(['shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle', 'orchard'].map(id => [id, node(id).region]));
-      return { start, w1, w2, w3, w4, w5, w6, regions, castillo: LEVELS.castillo.ents.find(e => e.k === 'boss').kind, slippery: !!LEVELS.snow.slippery,
-        allListed: WORLDS.flat().every(id => ORDER.includes(id) && node(id)), names: WORLD_NAMES.slice(0, 3) };
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      localStorage.removeItem('ll_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k]; save.unlockAll = false; save.key = false;
+      startGame();
+      const start = { at: mapLeo.at, tag: levelTag('canal'), cranberry: nodeOpen(node('cranberry')), shore: nodeOpen(node('shore')), w1: worldOpen(0), w2: worldOpen(1), buttons: !document.getElementById('mapBtns').classList.contains('hidden') };
+      // the worlds: every state is in one, every built level is on the map once, and the worlds are about the same size
+      const shape = { worlds: WORLDS.length, sizes: WORLDS.map(w => w.length), names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length,
+        everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
+        built: ORDER.every(id => node(id) && LEVELS[id]) && NODES.filter(n => LEVELS[n.id]).every(n => ORDER.includes(n.id)),
+        retired: RETIRED.every(id => LEVELS[id] && !node(id)), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]),
+        dc: NODES.some(n => /Washington, D\.C\./.test(n.region)), goldRush: node('sutter').region === 'California' && WORLDS[8][WORLDS[8].length - 1] === 'sutter' };
+      // a signpost is walked past: beating Frosty Peaks opens the Cog Railway and Maple Sugarhouse signs, and Glimmer Caves behind them
+      ['canal', 'cranberry', 'ptown', 'shore', 'fort'].forEach(id => { save.cleared[id] = true; });
+      const signs = { snow: nodeOpen(node('snow')), cogBefore: nodeOpen(node('cog')), cavesBefore: nodeOpen(node('caves')) };
+      save.cleared.snow = true; Object.assign(signs, { cog: nodeOpen(node('cog')), maple: nodeOpen(node('maple')), caves: nodeOpen(node('caves')), castle: nodeOpen(node('castle')) });
+      goMap('cog', true); enterLevel(); signs.notStarted = state === 'map';
+      // beating Gillette Castle opens the road to Boston and the boat to New York: World 2 isn't grey any more
+      save.cleared.caves = true; const w2Before = worldOpen(1); save.cleared.castle = true;
+      const boat = { w2Before, w2After: worldOpen(1), liberty: nodeOpen(node('liberty')), sea: SEA_PATHS.has('midnight|liberty'), w3: worldOpen(2) };
+      // zoom out to the whole country and back in (the X button, Shift or M)
+      goMap('caves', true); run(90); const z1 = mapCam.z;
+      mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
+      pressed.run = true; step(1 / 60); run(90); zoom.backIn = !mapWhole && Math.abs(mapCam.z - z1) < 0.02;
+      // the camera follows Leo into the next world, by boat from Boston to New York
+      save.unlockAll = true; goMap('midnight', true); const areaA = mapArea(); mapMove([-1, 0]); if (mapLeo.to !== 'liberty') { mapLeo.to = 'liberty'; } run(400); const follow = { areaA, at: mapLeo.at, areaB: mapArea(), z: mapCam.z };
+      save.unlockAll = false;
+      // the Unlock All button opens every level and path (for building and testing), and turns back off
+      goMap('caves', true);
+      const lockedBefore = !worldOpen(8) && !nodeOpen(node('sutter')) && !nodeOpen(node('bonus'));
+      document.getElementById('bUnlock').click();
+      const unlocked = save.unlockAll && worldOpen(8) && nodeOpen(node('sutter')) && nodeOpen(node('bonus')) && pathOpen(PATHS.find(([a, b]) => a === 'canal' && b === 'vineyard')) && WORLDS.every((w, i) => worldOpen(i));
+      document.getElementById('bUnlock').click();
+      const relocked = !save.unlockAll && !nodeOpen(node('sutter')) && JSON.parse(localStorage.getItem('ll_save')).unlockAll === false;
+      // the boss partway through a world, and the castle at the end of one
+      startLevel('ptown'); winGame(); const mid = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
+      document.getElementById('btnMapAgain').click(); mid.shore = nodeOpen(node('shore')); mid.state = state;
+      ['luray', 'jamestown', 'kittyhawk', 'blackbeard', 'rainbowrow', 'sweetgrass', 'savannah', 'orchard', 'castillo', 'glades', 'reef'].forEach(id => { save.cleared[id] = true; });
+      startLevel('canaveral'); winGame(); const end = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
+      document.getElementById('btnMapAgain').click(); end.mobile = nodeOpen(node('mobile')) && worldOpen(3); end.space = nodeOpen(node('space'));
+      // every view draws: each world, Alaska and Hawaii, and the whole country
+      let drew = true;
+      for (const id of ['canal', 'liberty', 'canaveral', 'quarter', 'hodag', 'badlands', 'pikes', 'et', 'iditarod', 'waves', 'sutter']) { save.unlockAll = true; goMap(id, true); run(5); try { drawMap(); } catch (e) { drew = e.message; } }
+      mapZoom(true); run(5); try { drawMap(); } catch (e) { drew = e.message; } save.unlockAll = false;
+      goMap('canal', true); startLevel('canal'); const hiddenInLevel = document.getElementById('mapBtns').classList.contains('hidden') || (render(), document.getElementById('mapBtns').classList.contains('hidden'));
+      return { start, shape, signs, boat, zoom, follow, lockedBefore, unlocked, relocked, mid, end, drew, hiddenInLevel };
     });
-    check(r.start.at === 'canal' && r.start.canal && !r.start.shore && !r.start.hills && r.start.tag === '1-1', 'Leo starts on Cape Cod at the Bourne Bridge (1-1): ' + JSON.stringify(r.start));
-    check(r.w1.hp === 3 && r.w1.kind === 'crab' && /WORLD 1/.test(r.w1.title) && /World 2/.test(r.w1.btn) && r.w1.shore && !r.w1.night && r.w1.boat && r.w1.beaten, 'Provincetown Pier (Captain Pinch, 3 hits) ends World 1 and a boat goes up to Maine: ' + JSON.stringify(r.w1));
-    check(r.w2.hp === 3 && r.w2.kind === 'yeti' && /WORLD 2/.test(r.w2.title) && /World 3/.test(r.w2.btn) && r.w2.snow && !r.w2.sky && r.w2.beaten2 && r.slippery, 'the Frost Fortress in Maine (the Frost Yeti, 3 hits) ends World 2 and opens the White Mountains: ' + JSON.stringify(r.w2));
-    check(r.w3.hp === 3 && r.w3.kind === 'grumbles' && /WORLD 3/.test(r.w3.title) && /World 4/.test(r.w3.btn) && r.w3.orchard && !r.w3.niagara && r.w3.walk && r.w3.beaten3, 'Gillette Castle in Connecticut (King Grumbles, 3 hits) ends World 3 and the path runs on into New York: ' + JSON.stringify(r.w3));
-    check(r.w4.hp === 3 && /WORLD 4/.test(r.w4.title) && /World 5/.test(r.w4.btn) && r.w4.miami && !r.w4.reef && r.w4.flight && r.w4.map === 'fl' && r.w4.beaten4, 'the Statue of Liberty (3 hits) ends World 4, and a flight opens Miami Beach on the map of Florida: ' + JSON.stringify(r.w4));
-    check(r.w5.hp === 3 && /WORLD 5/.test(r.w5.title) && /World 6/.test(r.w5.btn) && r.w5.beaten5 && r.w5.space && r.w5.levels === 10 && r.castillo === 'gator' && r.w5.mobile && !r.w5.bayou && r.w5.flight, 'Cape Canaveral ends World 5, opens the bonus trip to space, and a flight west opens Mobile Bay: ' + JSON.stringify(r.w5));
-    check(r.w6.hp === 3 && /GOLD/.test(r.w6.title) && r.w6.beaten6 && r.w6.levels === 6 && r.w6.texas && r.w6.names[0] === 'Alabama' && r.w6.names.includes('New Orleans'), 'the Sabine River Bridge (King Grumbles, 3 hits) is the real ending, with Texas coming soon: ' + JSON.stringify(r.w6));
-    check(r.regions.shore === 'Maine' && r.regions.night === 'Maine' && r.regions.fort === 'Maine' && r.regions.snow === 'New Hampshire' && r.regions.sky === 'Vermont' && r.regions.caves === 'Vermont' && r.regions.hills === 'Connecticut' && r.regions.castle === 'Connecticut', 'the levels sit in Maine, New Hampshire, Vermont and Connecticut: ' + JSON.stringify(r.regions));
-    check(r.allListed && /Cape Cod/.test(r.names[0]) && /Maine/.test(r.names[1]), 'every level is on the map and in the list: ' + JSON.stringify(r.names));
-    await done(p, 'lucky-leo-world2.png');
+    check(r.start.at === 'canal' && r.start.tag === '1-1' && !r.start.cranberry && !r.start.shore && r.start.w1 && !r.start.w2, 'a new game starts at the Bourne Bridge (1-1), with the rest of the trip still locked: ' + JSON.stringify(r.start));
+    check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.sizes.every(n => n >= 10 && n <= 14) && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific', 'nine regional worlds of 10 to 14 levels, and every state (and D.C.) is in one: ' + JSON.stringify(r.shape));
+    check(r.shape.built && r.shape.retired && r.shape.soon && r.shape.dc && r.shape.goldRush, 'every built level is on the map once, the retired ones are kept off it, signposts mark the rest, Washington D.C. is a stop and the Gold Rush is the end: ' + JSON.stringify(r.shape));
+    check(r.signs.snow && !r.signs.cogBefore && !r.signs.cavesBefore && r.signs.cog && r.signs.maple && r.signs.caves && !r.signs.castle && r.signs.notStarted, 'signposts are walked past: beating Frosty Peaks opens the way to Glimmer Caves, and a signpost doesn\'t start a level: ' + JSON.stringify(r.signs));
+    check(!r.boat.w2Before && r.boat.w2After && r.boat.liberty && r.boat.sea && !r.boat.w3, 'beating Gillette Castle opens the road to Boston and the boat to New York (World 2): ' + JSON.stringify(r.boat));
+    check(r.zoom.whole && r.zoom.z2 < r.zoom.z1 * 0.6 && r.zoom.backIn, 'zoom out to the whole country and back in: ' + JSON.stringify(r.zoom));
+    check(r.follow.areaA === '1' && r.follow.at === 'liberty' && r.follow.areaB === '2', 'the camera follows Leo by boat from Boston into World 2: ' + JSON.stringify(r.follow));
+    check(r.lockedBefore && r.unlocked && r.relocked, 'Unlock All opens every level and path, and turns back off (and is saved): ' + JSON.stringify(r));
+    check(/BOSS/.test(r.mid.title) && /Maine/.test(r.mid.btn) && r.mid.shore && r.mid.state === 'map', 'Captain Pinch is a boss partway through World 1, and the boat to Maine opens: ' + JSON.stringify(r.mid));
+    check(/WORLD 3/.test(r.end.title) && /World 4/.test(r.end.btn) && r.end.mobile && r.end.space, 'Cape Canaveral ends World 3 and opens World 4 and Outer Space: ' + JSON.stringify(r.end));
+    check(r.drew === true && r.hiddenInLevel, 'every world, Alaska, Hawaii and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-map.png');
+  });
+
+  await test('Lucky Leo history facts: every level on the map has ten, a "Did you know?" card shows one after each win, and winning again shows the next', async () => {
+    const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      localStorage.removeItem('ll_save'); save.facts = {}; startGame();
+      const lists = ORDER.map(id => [id, (FACTS[id] || []).length, new Set(FACTS[id] || []).size, Math.max(...(FACTS[id] || ['']).map(f => f.length))]);
+      const card = () => ({ open: factOpen && !document.getElementById('fact').classList.contains('hidden'), text: document.querySelector('#fact .ftxt').textContent, src: document.querySelector('#fact .fsrc').textContent });
+      startLevel('canal'); finishLevel(); const first = card();
+      const at = mapLeo.at; pressed.right = true; step(1 / 60); const blocked = !mapLeo.to && mapLeo.at === at;
+      pressed.jump = true; step(1 / 60); const closed = !factOpen && document.getElementById('fact').classList.contains('hidden');
+      startLevel('canal'); finishLevel(); const second = card(); closeFact();
+      save.facts.canal = 10; startLevel('canal'); finishLevel(); const wrapped = card(); closeFact();
+      const kept = JSON.parse(localStorage.getItem('ll_save')).facts.canal;
+      startLevel('canaveral'); winGame(); const ending = document.getElementById('endFact').textContent;
+      return { lists, first, blocked, closed, second, wrapped, kept, ending, canal: FACTS.canal.slice(0, 2), canaveral: FACTS.canaveral[0] };
+    });
+    check(r.lists.every(([, n, u, len]) => n === 10 && u === 10 && len <= 170), 'each level on the map has ten different, short facts: ' + JSON.stringify(r.lists.filter(([, n, u, len]) => n !== 10 || u !== 10 || len > 170)));
+    check(r.first.open && r.first.text === r.canal[0] && /Bourne Bridge · fact 1 of 10/.test(r.first.src), 'the first win shows fact 1: ' + JSON.stringify(r.first));
+    check(r.blocked && r.closed, 'the map waits while the card is up, and jump closes it: ' + JSON.stringify(r));
+    check(r.second.text === r.canal[1] && /fact 2 of 10/.test(r.second.src), 'winning again shows the next fact: ' + JSON.stringify(r.second));
+    check(/fact 1 of 10/.test(r.wrapped.src) && r.kept === 1, 'after the tenth, it starts over (and is saved): ' + JSON.stringify(r.wrapped));
+    check(r.ending.includes(r.canaveral), 'the world-clear screen has a fact too: ' + r.ending);
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'lucky-leo-fact.png');
   });
 
   await test('Lucky Leo: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, open-mouth gulp, eye laser with the prism), comes along to the next level, and a hit only knocks Leo off', async () => {
@@ -2858,7 +2918,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'lucky-leo-magic-hat.png');
   });
 
-  await test('Lucky Leo Cape Cod: the whale-watch boat sails with Leo aboard, sharks leap, a whale spout shoots him up, and secret exits open Martha\'s Vineyard and Nantucket', async () => {
+  await test('Lucky Leo Cape Cod: the whale-watch boat sails with Leo aboard, sharks leap, a whale spout shoots him up (Whale Watch is kept, off the map), and secret exits open Martha\'s Vineyard and Nantucket', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
@@ -2879,20 +2939,21 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.spout = player.vy < -380;
       // the secret flag on the cloud: a secret exit that opens Nantucket
       startLevel('whale'); const fl = ents.find(e => e.k === 'sflag'); touchPlayerAs(fl); out.secretPhase = phase === 'clear' && lvl.secretExit;
-      run(300); out.nantucket = state === 'map' && !!save.secrets.whale && nodeOpen(node('nantucket'));
+      run(300); out.whaleSecret = state === 'map' && !!save.secrets.whale;
+      save.cleared.cranberry = true; save.secrets.cranberry = true; goMap('cranberry', true); out.nantucket = nodeOpen(node('nantucket'));   // (Cranberry Bog's flag is under the bog: its own test finds it)
       startLevel('canal'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.vineyard = state === 'map' && nodeOpen(node('vineyard'));
       // the island levels and the boat level all start
       out.starts = ['vineyard', 'nantucket', 'whale'].map(id => { startLevel(id); run(30); return state === 'level' && player.y > 0 && phase === 'play'; });
-      out.path = PATHS.some(([a, b, s2]) => a === 'cranberry' && b === 'whale' && !s2) && PATHS.some(([a, b, s2]) => a === 'whale' && b === 'dunes' && !s2);
+      out.path = PATHS.some(([a, b, s2]) => a === 'cranberry' && b === 'nantucket' && s2) && SEA_PATHS.has('cranberry|nantucket') && RETIRED.includes('whale') && !node('whale');
       paused = false; return out;
     });
     check(r.islandsHidden, 'the secret islands should start hidden: ' + JSON.stringify(r));
     check(r.boat, 'the boat should sail off with Leo aboard: ' + JSON.stringify(r));
     check(r.leap, 'a great white should leap out ahead of Leo: ' + JSON.stringify(r));
     check(r.spout, "a whale's spout should shoot Leo up: " + JSON.stringify(r));
-    check(r.secretPhase && r.nantucket, 'the golden flag on Whale Watch should be a secret exit to Nantucket: ' + JSON.stringify(r));
+    check(r.secretPhase && r.whaleSecret && r.nantucket, 'the golden flag on Whale Watch is still a secret exit, and the one in Cranberry Bog opens the ferry to Nantucket: ' + JSON.stringify(r));
     check(r.vineyard, "the golden flag on Bourne Bridge should open Martha's Vineyard: " + JSON.stringify(r));
-    check(r.starts.every(Boolean) && r.path, 'the new levels start, and Whale Watch sits between Cranberry Bog and Nauset Dunes: ' + JSON.stringify(r));
+    check(r.starts.every(Boolean) && r.path, 'the island levels and Whale Watch start, and the secret ferry to Nantucket leaves from Cranberry Bog: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-cape.png');
   });
@@ -2938,10 +2999,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.thorny = drop('thorny'); run(30); out.snapper = drop('snapper'); run(30);
       setTile(Math.floor((player.x + 6) / 16) + 2, 11, T.SPIKES); keys.right = true; run(40); keys.right = false; out.spikes = !!player.mount && player.inv === 0 && phase === 'play';
       // the map: Leo walks along a curved trail (off the straight line between the two levels)
-      goMap('hills'); save.cleared.hills = true; mapLeo.to = 'woods'; mapLeo.at = 'hills'; let off = 0;
-      const a = node('hills'), b = node('woods');
+      goMap('canaveral'); save.cleared.canaveral = true; mapLeo.to = 'mobile'; mapLeo.at = 'canaveral'; let off = 0;
+      const a = node('canaveral'), b = node('mobile');
       run(20, () => { const ax = b.x - a.x, ay = b.y - a.y, d = Math.hypot(ax, ay); off = Math.max(off, Math.abs((mapLeo.x - a.x) * ay - (mapLeo.y - a.y) * ax) / d); });
-      run(120); out.curved = off > 3; out.arrived = mapLeo.at === 'woods' && !mapLeo.to;
+      run(240); out.curved = off > 3; out.arrived = mapLeo.at === 'mobile' && !mapLeo.to;
       paused = false; return out;
     });
     check(r.thorny.gone && r.thorny.safe && r.snapper.gone && r.snapper.safe, 'Shamrock stomps spiky hedgehogs and snapping plants: ' + JSON.stringify(r));
@@ -3017,7 +3078,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const gem = ents.find(e => e.k === 'gem'); out.gem = !!gem && gem.idx === 4;
       // the secret exit at the far end
       touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300);
-      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'dunes' && s2));
+      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'nantucket' && s2));
       paused = false; return out;
     });
     check(r.swims && r.stroke && r.alive, 'water: Leo swims instead of dying: ' + JSON.stringify(r));
@@ -3077,7 +3138,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Lucky Leo World 5 (Florida): herons (walk under their legs, mind the beak), gators and gator backs, snakes, roosters, race cars, jellyfish, puffer fish, tarpon, mermaids, manatees, cannons, coconuts, the airboat, low gravity in space, and the flight between the maps', async () => {
+  await test('Lucky Leo World 5 (Florida): herons (walk under their legs, mind the beak), gators and gator backs, snakes, roosters, race cars, jellyfish, puffer fish, tarpon, mermaids, manatees, cannons, coconuts, the airboat, low gravity in space, and a flight to Alaska on the one big map', async () => {
     const p = await open(browser, 'lucky-leo.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
@@ -3120,13 +3181,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('castillo'); const cb = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
       for (let k = 0, n = cb.hp; k < n; k++) { player.inv = 9; run(100); player.x = cb.x + 8; player.y = cb.y - 30; player.vy = 150; run(8); }
       run(60 * 3); const chest = ents.find(e => e.k === 'pot'); if (chest) { player.x = chest.x; player.y = chest.y; run(3); } run(60 * 5);
-      out.chomps = { hp: cb.hp, state, daytona: nodeOpen(node('daytona')), cleared: !!save.cleared.castillo };
+      out.chomps = { hp: cb.hp, state, glades: nodeOpen(node('glades')), cleared: !!save.cleared.castillo };
       // out in space Leo jumps much higher
       const jumpHeight = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); run(20); const y0 = player.y; let top = y0; keys.jump = true; pressed.jump = true; run(90, () => { top = Math.min(top, player.y); }); keys.jump = false; return y0 - top; };
       out.jump = { hills: Math.round(jumpHeight('hills')), space: Math.round(jumpHeight('space')) };
-      // the map: from the Statue of Liberty, Leo flies off the bottom of New England and lands in Miami, on the map of Florida
-      save.cleared.liberty = true; goMap('liberty'); const v0 = mapView(); mapMove([0, 1]); const flyTo = mapLeo.to; run(60); const vMid = mapView(), flying = !!mapLeo.flying; run(150);
-      out.flight = { v0, flyTo, vMid, flying, at: mapLeo.at, v1: mapView() };
+      // the map: from the Space Needle, Leo flies a little plane down to Alaska, and the camera follows him into its box
+      save.unlockAll = true; goMap('needle'); const v0 = mapArea(); mapMove([0, 1]); const flyTo = mapLeo.to; run(60); const flying = !!mapLeo.flying; run(150);
+      out.flight = { v0, flyTo, flying, at: mapLeo.at, v1: mapArea() }; save.unlockAll = false;
       paused = false; return out;
     });
     check(r.underLegs.lives === 5 && r.underLegs.form === 0 && r.underLegs.phase === 'play', 'small Leo walks right under a heron\'s legs: ' + JSON.stringify(r.underLegs));
@@ -3138,9 +3199,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.jellyDrifts && r.manatee.riding && r.manatee.moved > 4, 'jellyfish drift and a manatee gives Leo a ride: ' + JSON.stringify(r));
     check(r.mermaid.gave && r.mermaid.coins === 5, 'a mermaid gives Leo five coins: ' + JSON.stringify(r.mermaid));
     check(r.tarpon && r.coconut && r.cannon, 'tarpon leap, coconuts drop and cannons fire: ' + JSON.stringify(r));
-    check(r.chomps.hp === 0 && r.chomps.state === 'map' && r.chomps.daytona && r.chomps.cleared, 'beating Captain Chomps and grabbing the treasure opens Daytona Beach: ' + JSON.stringify(r.chomps));
+    check(r.chomps.hp === 0 && r.chomps.state === 'map' && r.chomps.glades && r.chomps.cleared, 'beating Captain Chomps and grabbing the treasure opens the Everglades: ' + JSON.stringify(r.chomps));
     check(r.jump.space > r.jump.hills * 1.5, 'low gravity in space: much higher jumps: ' + JSON.stringify(r.jump));
-    check(r.flight.v0 === 'ne' && r.flight.flyTo === 'miami' && r.flight.flying && r.flight.at === 'miami' && r.flight.v1 === 'fl', 'Leo flies from New York to the map of Florida: ' + JSON.stringify(r.flight));
+    check(r.flight.v0 === '9' && r.flight.flyTo === 'iditarod' && r.flight.flying && r.flight.at === 'iditarod' && r.flight.v1 === '9ak', 'Leo flies from Seattle to Alaska, and the camera follows: ' + JSON.stringify(r.flight));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'lucky-leo-florida.png');
   });
@@ -3180,7 +3241,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const q = await ph.newPage();
     await q.goto(url('lucky-leo.html')); await q.waitForTimeout(500);
     await q.tap('#btnPlay'); await q.waitForTimeout(400);
-    const pt = await q.evaluate(() => { const n = node(START), dpr = canvas.width / innerWidth; return { x: (n.x - mapCam) * scale / dpr, y: (n.y * scale + offY) / dpr }; });
+    const pt = await q.evaluate(() => { const n = node(START), dpr = canvas.width / innerWidth, [sx, sy] = mapS(n.x, n.y); return { x: sx * scale / dpr, y: (sy * scale + offY) / dpr }; });
     await q.touchscreen.tap(pt.x, pt.y); await q.waitForTimeout(200); await q.touchscreen.tap(pt.x, pt.y); await q.waitForTimeout(500);
     check(await q.evaluate(() => state === 'level' && !document.getElementById('touch').classList.contains('hidden')), 'tapping the first level twice should start it, with the touch buttons showing');
     const cdp = await ph.newCDPSession(q), rb = await q.locator('#tRight').boundingBox(), jb = await q.locator('#tJump').boundingBox();
