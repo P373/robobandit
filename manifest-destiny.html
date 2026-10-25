@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <title>Manifest Destiny | RoboBandit</title>
-<meta name="description" content="Manifest Destiny: run, jump and stomp on a road trip across all of America with Leo the leprechaun, and learn a little history in every state. A free RoboBandit game.">
+<meta name="description" content="Manifest Destiny: sail on the Mayflower, build Plimoth with the Pilgrims, and follow America's story west across all 50 states. Run, jump, stomp and learn a little history in every state. A free RoboBandit game.">
 <link rel="canonical" href="https://robobandit.com/manifest-destiny.html">
 <meta name="theme-color" content="#2fae4a">
 <link rel="icon" href="/favicon.svg" type="image/svg+xml">
@@ -16,7 +16,7 @@
 <meta property="og:site_name" content="RoboBandit">
 <meta property="og:url" content="https://robobandit.com/manifest-destiny.html">
 <meta property="og:title" content="Manifest Destiny | RoboBandit">
-<meta property="og:description" content="A road trip across America, from the Pilgrims to the Gold Rush: run, jump and learn history in every state!">
+<meta property="og:description" content="America's story, from the Mayflower to the railroad that joined the country: run, jump and learn history in every state!">
 <meta property="og:image" content="https://robobandit.com/previews/manifest-destiny.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -74,6 +74,8 @@
   .rlist button { display: grid; grid-template-columns: 34px 1fr auto; gap: 2px 12px; align-items: center; width: 100%; padding: 8px 12px; cursor: pointer; text-align: left;
     font: 15px/1.3 system-ui, sans-serif; color: #10301c; background: #fff; border: 3px solid #10301c; border-radius: 14px; box-shadow: 0 3px 0 #10301c; }
   .rlist button:hover, .rlist button:focus-visible { background: #fff2b8; outline: none; }
+  .rlist button:disabled { cursor: default; background: #f2efe4; color: #6a7a6e; }
+  .rlist button:disabled:hover { background: #f2efe4; }
   .rlist .ri { grid-row: span 2; font-size: 24px; text-align: center; }
   .rlist b { font: 16px 'Bungee', system-ui, sans-serif; }
   .rlist small { grid-column: 2; color: #4a6a54; }
@@ -114,6 +116,7 @@
 <div id="mapBtns" class="hidden">
   <button id="bZoom" aria-label="Zoom out to the whole country" title="The whole country (M)">🗺️</button>
   <button id="bUnlock" aria-label="Unlock every level" title="Unlock all (while we build)">🔓</button>
+  <button id="bHeroes" aria-label="The Hart family" title="The Hart family">👪</button>
   <button id="bRetired" aria-label="Retired levels" title="Retired levels">🗃️</button>
 </div>
 
@@ -127,23 +130,30 @@
 <div id="title" class="screen">
   <div class="panel">
     <h1>MANIFEST <span>DESTINY</span></h1>
-    <div class="sub">🗺️ Leo the leprechaun's road trip across America: nine worlds, all 50 states, from the Pilgrims on Cape Cod to the California Gold Rush. Run, jump and stomp, and learn a little history in every state!</div>
+    <div class="sub">🇺🇸 America's story, from the Pilgrims at Plimoth in 1620 to the railroad that joined the country coast to coast. Run, jump and learn a little history in every state!</div>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> to walk, <kbd>Space</kbd> to jump. Hold <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 <b data-pad="A">A</b> jumps, <b data-pad="X">X</b> runs. Hold jump to go higher!</li>
-      <li><b>Stomp</b> the goblins. Stomp a snail and <b>kick its shell</b> to knock out a whole row! Or <b>hold run</b> as you walk into a shell to <b>pick it up</b>, and let go to throw it. Springs can be carried the same way: move them wherever you need a big bounce! <b>Ground pound</b> onto a spring for a <b>super bounce</b> way up into the sky! Don't stomp the spiky hedgehogs… unless you <b>ground pound</b> them. An extra power-up waits in the <b>box at the top</b>: tap it (or press <span class="key-only"><kbd>E</kbd> · </span>🎮 <b data-pad="LB">LB</b>) to drop it when you need it.</li>
-      <li>🎩 Get the <b>magic hat</b> (Leo's hat turns purple with a gold star) and you can <b>throw your hat</b> (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · 🎩 button</span>) to knock out enemies and grab coins. It comes back like a boomerang, and you can <b>bounce off it</b> in mid-air: throw it, <b>keep holding the hat button</b> so it hovers, then jump and land on it (hold jump to bounce higher, then spin for a little more)! Get hit and the magic is gone. <b>Aim it</b> any way you like: push the stick (🎮) or hold two directions together (<span class="key-only"><kbd>W</kbd> <kbd>D</kbd> for a slant</span><span class="touch-only">▲ ▶ for a slant</span>) to throw it up, sideways, on a slant, or down from the air; straight up bumps blocks, and <b>crouching</b> throws it low at little enemies.</li>
-      <li>🦄 <b>Shamrock the unicorn</b>: hit the special block and a cloud shines a rainbow down, and there he is! Hop on! Jump higher, hold jump to float, stomp even the spiky hedgehogs and snapping plants, trot right over spikes, press run and he opens wide and gulps down the enemy in front of him (after three… watch your step!). Grab a <b>rainbow prism</b> (from a ☘️ block while riding) and run fires a rainbow laser from his eyes instead. If you get hit you just fall off: catch him again! To hop off, press <span class="key-only"><kbd>F</kbd> · </span>🎮 hold <b data-pad="LT">LT</b> and press <b data-pad="A">A</b><span class="touch-only"> · hold ▼ and tap A</span>.</li>
-      <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) and jump for a big backflip. 🌀 <b>Spin:</b> press jump again in the air to twirl a little higher (once a jump). 🧱 <b>Wall kick:</b> jump into a wall and hold towards it to slide down, then press jump to kick off it. Kick back and forth between two walls to climb up!</li>
-      <li>👑 <b>King Grumbles</b> can be stomped, or hit with a thrown shell, rainbow sparks, the magic hat, Shamrock's laser or the horseshoe's rainbow power.</li>
-      <li><b>Bump the ☘️ blocks</b> from below: a <b>four-leaf clover</b> makes Leo big, a <b>rainbow flower</b> lets him throw rainbow sparks (<span class="key-only"><kbd>Shift</kbd></span><span class="touch-only"><b>B</b> button</span> · 🎮 <b data-pad="X">X</b>), and a <b>lucky horseshoe</b> makes him unstoppable. Now and then there's a <b>rainbow-striped block</b>: bump it and a really long rainbow grows up into the sky. Jump on it to ride up to a <b>secret place above the clouds</b>, full of power-ups and coins, with a rainbow gem!</li>
-      <li>🗺️ <b>The map is the whole United States</b>, in nine worlds: New England, the Mid-Atlantic, the Atlantic South, the Music South, the Great Lakes, the Great Plains, the Rocky Mountains, the Southwest and the Pacific. Press <span class="key-only"><kbd>M</kbd> · </span>🎮 <b data-pad="X">X</b><span class="touch-only"> · the 🗺️ button, or pinch</span> to zoom out and see it all. Worlds you haven't reached yet are grey, and 🚧 signposts mark levels still being built. Win a level and you'll learn a bit of history about the place: win it again for a new fact!</li>
-      <li>🌊 Water won't hurt Leo: he <b>swims</b>! Press jump to paddle up, and jump at the surface to leap out. In Cranberry Bog the squishy bog mats sink under your feet… and one of them goes all the way down. 🐸</li>
-      <li>Grab <b>gold coins</b> (100 = an extra life) and the <b>5 rainbow gems</b> hidden in every level.</li>
-      <li>Break the <b>rainbow tape</b> at the end. The higher you hit it, the more stars! Somewhere there's a <b>golden key</b> to a secret level… and a <b>secret exit</b> for anyone who can find another way to the end. 🤫</li>
+      <li>🦃 <b>Stomp</b> the animals in your way: <b>wild turkeys</b> (watch out: they fan their tails and charge!), wolves, crows and the Mayflower's rats. Stomp a <b>box turtle</b> and <b>kick its shell</b>, or <b>hold run</b> to pick the shell up and throw it. <b>Porcupines</b> are prickly: only a <b>ground pound</b> works on them.</li>
+      <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> and jump. 🌀 <b>Spin:</b> press jump again in the air. 🧱 <b>Wall kick:</b> slide down a wall and jump off it.</li>
+      <li>🎩 Find the <b>hat with the red band</b> and you can <b>throw your hat</b> like a boomerang (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · 🎩 button</span>). Keep holding the button and it hovers: jump on it for an extra boost!</li>
+      <li><b>Bump the <span style="font-family:Bungee">?</span> blocks</b> from below for coins and power-ups. 100 coins (Pine Tree shillings!) is an extra life.</li>
+      <li>🌽 Find the <b>5 ears of corn</b> hidden in every New England level. Corn kept the Pilgrims alive! Each region has its own treasures to find.</li>
+      <li>📜 Every level starts with a bit of the story, and every win ends with a <b>"Did you know?"</b> fact. Win again for a new one.</li>
+      <li>🗺️ <b>The map is the whole United States</b>, with Canada and Mexico next door. Press <span class="key-only"><kbd>M</kbd> · </span>🎮 <b data-pad="X">X</b><span class="touch-only"> · the 🗺️ button, or pinch</span> to see it all. Signposts 🚧 mark levels still being built. Look for <b>secret exits</b>: they lead to places you can't reach any other way. 🤫</li>
+      <li>👪 <b>The Hart family:</b> you're Will Hart, a Pilgrim boy. A new member of the family, with a new skill, joins you in every region.</li>
     </ol>
     <div class="stats" id="titleBest"></div>
-    <button class="big-btn" id="btnPlay">☘️ Let's Go!</button>
-    <div><button class="big-btn alt" id="btnRetiredTitle">🗃️ Retired levels</button></div>
+    <button class="big-btn" id="btnPlay">⛵ Set sail!</button>
+    <div><button class="big-btn alt" id="btnHeroesTitle">👪 The Hart family</button> <button class="big-btn alt" id="btnRetiredTitle">🗃️ Retired levels</button></div>
+  </div>
+</div>
+
+<div id="heroes" class="screen hidden" role="dialog" aria-label="The Hart family">
+  <div class="panel">
+    <h1>THE HART <span>FAMILY</span></h1>
+    <div class="sub">One family, 250 years of America. A new Hart joins you in every region, each with a skill of their own time.</div>
+    <div class="rlist" id="hlist"></div>
+    <button class="big-btn alt" id="btnHeroesBack">⬅️ Back</button>
   </div>
 </div>
 
@@ -523,6 +533,62 @@ LEVELS.nantucket = builder('nantucket', 'Nantucket', 'nantucket', 180)
   .done({ goal: 170, music: 'nantucket' });
 
 // ===================== World 1: New England =====================
+// 1-1. The Mayflower: Plymouth, England, September 1620. Board the Mayflower and sail the Atlantic: climb her rigging for
+// coins, jump the waves that wash over the deck in the great storm (and the ship's rats), and if you go overboard, a
+// rope hauls you back, as one did for John Howland. After 66 days: land ho! Cape Cod, and the beach at Provincetown.
+LEVELS.voyage = builder('voyage', 'The Mayflower', 'atlantic', 220)
+  .fill(0, 219, 12, 13, T.WATER).ground(0, 10, 10).ground(170, 219, 10)
+  .at(5, 6, '?P?')   // the quay at Plymouth, England (a gentle start: the rats are aboard)
+  // the Mayflower: her deck (the ship's own platform), the stern and fore castles, the yards up her three masts, the main top
+  .e('boat', 11, 10, { w: 20, to: 150, sp: 46, look: 'mayflower', storm: [56, 112],
+    rig: [[0, -2, 4, 'castle'], [16.5, -1, 3.5, 'castle'], [4, -5, 3, 'yard'], [7.5, -4.5, 5, 'yard'], [8.5, -7.5, 3.5, 'yard'], [10.4, -9, 1.6, 'top'], [13.5, -4.5, 4.5, 'yard'], [14, -7, 3.5, 'yard']],
+    rats: [[5, 9], [12, 16]] })
+  .e('buzzer', 20, 6, { as: 'gull' }).coins(22, 3, 4).at(24, 6, '?B?').arc(32, 2, 6)
+  .e('whale', 44, 12).coins(42, 0, 5).at(50, 6, 'B?B')
+  .at(60, 6, 'C').coins(64, 3, 5)                                          // the hat power-up, partway across
+  .e('sflag', 66, 1)   // the secret: up at the main top as the ship passes, a golden flag (she first tried for the Hudson, south past Nantucket's shoals)
+  .arc(72, 2, 7).at(80, 6, '?P?').e('mid', 86, 9).coins(92, 4, 6).at(100, 6, 'B?BH')   // (a hidden 1-up)
+  .arc(108, 2, 7).at(118, 6, '?B?').e('whale', 126, 12).coins(124, 0, 5).at(136, 6, 'BPB')
+  .e('buzzer', 146, 5, { as: 'gull' }).e('buzzer', 160, 6, { as: 'gull' })
+  // Provincetown: the beach at the tip of Cape Cod, with the dunes and woods the Pilgrims saw
+  .e('crab', 176, 9).at(180, 6, '?P?').e('turkey', 186, 9).at(190, 7, '----').coins(190, 6, 4).e('turkey', 196, 9).e('buzzer', 198, 6, { as: 'gull' })
+  .gems(6, 3, 34, 0, 76, 1, 104, 3, 192, 4)
+  .done({ goal: 206, music: 'mayflower', ship: true, storm: [56, 112], decor: [['quay', 0, 10, { to: 11 }], ['capeshore', 168, 10, { to: 220 }]], collect: 'corn', cast: { grumblin: 'rat' },
+    story: ['SEPTEMBER 1620', '102 passengers set sail from Plymouth, England, for America. Climb aboard the Mayflower!'],
+    beats: [[48, 'WEEKS AT SEA', 'Cold, wet and seasick! The Pilgrims sleep crowded below deck.'],
+      [70, 'A GREAT STORM!', 'Huge waves wash over the deck. Jump them!'],
+      [96, 'CRACK!', 'A main beam splits in the storm! The sailors push it back with a great iron screw.'],
+      [140, 'LAND HO!', 'November 9, 1620: after 66 days at sea, there\'s Cape Cod!'],
+      [172, 'PROVINCETOWN', 'Before going ashore, 41 men sign the Mayflower Compact: a promise to make fair laws together.', 4.4]] });
+
+// 1-2. Plimoth Plantation, 1621: from the shore up through the Wampanoag homesite by Town Brook, where Tisquantum shows
+// the Pilgrims how to plant corn, through the cornfields to the palisade wall, and up the first street to the fort.
+LEVELS.plimoth = builder('plimoth', 'Plimoth Plantation', 'plimoth', 222)
+  .ground(0, 23).ground(30, 70).ground(71, 92, 11).ground(93, 124).ground(125, 150, 11).ground(151, 172, 10).ground(173, 221, 9)
+  .fill(24, 29, 13, 13, T.GROUND).fill(24, 29, 12, 12, T.WATER)   // Town Brook, shallow enough to wade, where the herring run in spring
+  .at(8, 8, '?P?').e('crab', 14, 11).e('buzzer', 18, 6, { as: 'gull' }).e('turkey', 21, 11)
+  .at(25, 10, '=').at(28, 9, '=')   // stepping stones across the brook
+  .e('snaily', 34, 11).e('friend', 44, 11, { who: 'tisquantum' }).e('turkey', 52, 11).at(56, 8, 'B?B').e('thorny', 62, 11)
+  .e('grumblin', 68, 11).arc(70, 7, 6)
+  // the cornfields: corn, beans and squash growing together, and crows after the corn
+  .e('buzzer', 78, 5).at(80, 6, '?C?').e('turkey', 86, 10).e('snaily', 90, 10).at(96, 8, '----').at(100, 6, '----').coins(100, 5, 4)
+  .e('buzzer', 104, 4).e('mid', 108, 11).e('grumblin', 114, 11).e('turkey', 118, 11).at(120, 8, 'BPB')
+  // the palisade, and Leyden Street climbing the hill: house roofs to hop along
+  .at(128, 7, '-----').at(135, 5, '----').e('thorny', 138, 10).e('grumblin', 144, 10).at(146, 6, '?S?')
+  .at(154, 6, '-----').e('turkey', 158, 9).at(161, 4, '----').coins(161, 3, 4).e('buzzer', 166, 3).e('grumblin', 170, 9)
+  .at(176, 5, '-----').e('snaily', 180, 8).at(183, 3, '----').e('turkey', 186, 8).at(188, 4, 'BHB').e('buzzer', 192, 4)
+  .e('thorny', 194, 8)
+  .gems(9, 5, 27, 6, 64, 6, 136, 3, 184, 1)
+  .done({ goal: 208, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
+    story: ['DECEMBER 1620', 'The Pilgrims build their homes at Plymouth. Their first winter is cold and hard.'],
+    beats: [[30, 'THE WAMPANOAG', 'This is Wampanoag land. Their homes are called wetus.'],
+      [74, 'SPRING 1621', 'Corn, beans and squash, the "Three Sisters," grow together in little hills.'],
+      [126, 'THE PALISADE', 'A tall wall of logs goes up around the town.'],
+      [190, 'THE FORT', 'On top of the hill: a fort with cannons, and the meetinghouse where everyone gathers.']],
+    decor: [['rock', 5, 12], ['wetu', 38, 12], ['fire', 48, 12], ['wetu', 58, 12, { s: 0.85 }], ['canoe', 31, 12], ['corn', 74, 11, { n: 18 }], ['palisade', 125, 11, { to: 205 }],
+      ['house', 130.5, 11], ['house', 136.5, 11, { h: 96 }], ['house', 156.5, 10], ['house', 162.5, 10, { h: 96 }], ['house', 178.5, 9], ['house', 184.5, 9, { h: 96 }], ['fort', 201, 9]] });
+
+// 1-3 on: older levels from the road trip, waiting to be reworked into the Pilgrims' story
 // The road trip starts here: the Pilgrims on Cape Cod (1620), up the coast of Maine, over New Hampshire's and
 // Vermont's mountains, down through Connecticut and Rhode Island, and into Boston for the Midnight Ride (1775).
 
@@ -1062,9 +1128,9 @@ for (const [lv, x, top, room, out] of [['hills', 36, 9, 'hillsTree', [84, 10]], 
 // the levels on the map that are built, in trip order (the map has signposts for the rest). The older levels taken off the
 // map (to keep the worlds even, and the first boss levels, whose places have new levels now) are still here: they're in the
 // Retired Levels list, where they can still be played, and can go back on the map any time.
-const ORDER = ['canal', 'cranberry', 'mayflower', 'vineyard', 'nantucket', 'shore', 'lighthouse', 'snow', 'cog', 'maple', 'caves', 'bonus', 'gillette', 'mystic', 'newport', 'slater', 'midnight', 'liberty', 'city', 'niagara',
+const ORDER = ['voyage', 'plimoth', 'canal', 'cranberry', 'vineyard', 'nantucket', 'shore', 'lighthouse', 'snow', 'cog', 'maple', 'caves', 'bonus', 'gillette', 'mystic', 'newport', 'slater', 'midnight', 'liberty', 'city', 'niagara',
   'orchard', 'castillo', 'glades', 'reef', 'canaveral', 'space', 'mobile', 'river', 'quarter', 'bayou'];
-const RETIRED = ['ptown', 'fort', 'castle', 'dunes', 'whale', 'night', 'sky', 'bog', 'woods', 'hills', 'bridge', 'miami', 'keywest', 'stpete', 'springs', 'park', 'daytona', 'basin', 'sabine'];
+const RETIRED = ['mayflower', 'ptown', 'fort', 'castle', 'dunes', 'whale', 'night', 'sky', 'bog', 'woods', 'hills', 'bridge', 'miami', 'keywest', 'stpete', 'springs', 'park', 'daytona', 'basin', 'sabine'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -1153,6 +1219,8 @@ const sfx = {
   highJump: () => { tone(260, 950, 0.32, 'triangle', 0.08); tone(520, 1500, 0.26, 'sine', 0.035, 0.05); puffNoise(0.25, 0.05, 1000, 'bandpass', 0, 4000); },
   throwHat: () => { tone(500, 1050, 0.16, 'triangle', 0.06); puffNoise(0.16, 0.05, 2000, 'bandpass', 0, 600); },
   catchHat: () => tone(1100, 1600, 0.08, 'sine', 0.06),
+  thunder: () => { puffNoise(1.4, 0.34, 160, 'lowpass', 0, 60); puffNoise(0.3, 0.14, 900, 'bandpass'); RB.pad.rumble(300, 0.4); },
+  gobble: () => { for (let i = 0; i < 5; i++) tone(700 - (i % 2) * 220, 560 - (i % 2) * 160, 0.05, 'square', 0.035, i * 0.055, { cut: 2400, vib: 0.04 }); },
 };
 
 // Music: little original jigs and reels (Irish dance tunes suit a leprechaun!). Each song is a list of
@@ -1251,6 +1319,10 @@ Object.assign(SONGS, {
 });
 // World 1: New England
 Object.assign(SONGS, {
+  plimoth: { bpm: 104, key: 65, mode: 'major', beat: 3, lead: 'reed', melody: held(   // a plain harvest-time tune in three
+    [0, 2], [2, 1], [4, 2], [4, 1], [5, 2], [4, 1], [2, 3], [0, 2], [1, 1], [2, 2], [1, 1], [0, 2], [-1, 1], [0, 3],
+    [4, 2], [5, 1], [7, 2], [7, 1], [5, 2], [4, 1], [2, 3], [0, 2], [2, 1], [1, 2], [-1, 1], [0, 6]),
+    bass: [0, 0, 3, 4, 0, 3, 4, 0] },
   mayflower: { bpm: 84, key: 67, mode: 'major', beat: 4, lead: 'soft', melody: held(   // "Old Hundredth", a psalm tune the Pilgrims sang (1551)
     [0, 4], [0, 2], [-1, 2], [-2, 2], [-3, 4], [0, 2], [1, 2], [2, 6], [2, 4], [2, 2], [2, 2], [1, 2], [0, 4], [3, 2], [2, 2], [1, 6],
     [0, 4], [1, 2], [2, 2], [1, 2], [0, 4], [-2, 2], [-1, 2], [0, 6], [4, 4], [2, 2], [0, 2], [1, 2], [3, 4], [2, 2], [1, 2], [0, 6]),
@@ -1281,7 +1353,7 @@ const MODES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], do
 // holding the chords, pizzicato and harp or a driving ostinato underneath, a woodwind, celesta or French-horn melody, low
 // strings and timpani or taiko, all in a concert-hall reverb. Each time a tune comes round again the arrangement grows,
 // like a score building: first just the tune and the strings, then the rhythm, then countermelodies and the big drums.
-const MUSIC_STYLE = { mayflower: 'tender', lighthouse: 'tender', mystic: 'whimsy', midnight: 'epic', boss: 'epic', castle: 'epic', launch: 'epic', sabine: 'epic', caves: 'tender', night: 'tender', deep: 'tender', reef: 'tender',
+const MUSIC_STYLE = { plimoth: 'whimsy', mayflower: 'tender', lighthouse: 'tender', mystic: 'whimsy', midnight: 'epic', boss: 'epic', castle: 'epic', launch: 'epic', sabine: 'epic', caves: 'tender', night: 'tender', deep: 'tender', reef: 'tender',
   springs: 'tender', space: 'tender', nantucket: 'tender', snow: 'tender', basin: 'tender', jazz: 'swing', bayou: 'swing', city: 'swing', glades: 'swing', gwb: 'swing' };
 const MUSIC_VOL = 0.34;   // (about as loud as the old tunes, so the sound effects still come through)
 const music = (() => {
@@ -1458,7 +1530,7 @@ const save = (() => {
     unlockAll: !!s.unlockAll, facts: s.facts && typeof s.facts === 'object' ? s.facts : {},   // (Unlock All, while we build; and which history fact each level shows next)
     at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
 })();
-for (const [old, now] of [['ptown', 'mayflower'], ['fort', 'lighthouse'], ['castle', 'gillette']]) {
+for (const [old, now] of [['ptown', 'mayflower'], ['mayflower', 'voyage'], ['fort', 'lighthouse'], ['castle', 'gillette']]) {   // (levels that moved off the map: their place goes to the level there now)
   if (save.cleared[old] && !(now in save.cleared)) save.cleared[now] = true;
   if (save.at === old) save.at = now;
 }
@@ -1874,6 +1946,8 @@ function shamrock(x, y, r, fill, lw = 0) {
 
 // ---- things drifting through the air in each world (petals, leaves, snow, fireflies, sea spray…) ----
 const AIR = {
+  atlantic: { n: 18, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -30, vy: -4 },
+  plimoth: { n: 10, c: ['#e8a040', '#d86030', '#c8a040'], kind: 'leaf', vx: -10, vy: 12 },
   hills: { n: 14, c: ['#ffffff', '#ffd0e8', '#fff2a0'], kind: 'petal', vx: -12, vy: 8 },
   woods: { n: 12, c: ['#e8a040', '#d86030', '#8ac850'], kind: 'leaf', vx: -10, vy: 14 },
   caves: { n: 16, c: ['#9ae8ff', '#ff9af0'], kind: 'mote', vx: 0, vy: -6 },
@@ -1925,16 +1999,20 @@ function drawAirborne(cx, t) {
   }
 }
 
-// ---- Lucky Leo ----
+// ---- the hero: Will Hart, a Pilgrim boy (1620) ----
 // x, y: top-left of his box (16 wide; 16 tall when small, 28 when big). fx: { squash, swing, tilt, rot, hatless }
-// Drawn like a cartoon mascot: a few big, bold shapes in flat colours with a soft shade on each, and no outlines.
-function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
-  const big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Leo is round and chubby
+// Drawn as a cartoon: a few big, bold shapes in flat colours with a soft shade on each, and no outlines. Pilgrims didn't
+// all wear black, and they didn't wear buckles (those came in pictures painted 200 years later): Will wears a russet
+// doublet with a wide white collar, breeches, grey stockings, plain shoes, and a tall black capotain hat.
+const PILGRIM = { coat: '#a8643a', coatDk: '#824628', breeches: '#4e5a3c', breechesDk: '#3a4430', hose: '#9a9a96', shoe: '#2e2620',
+  hat: '#2e2e36', hatDk: '#1c1c22', band: '#6a4a2e', hair: '#7a4a24', hairDk: '#5a3418' };
+function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
+  const P = PILGRIM, big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Will is round and chubby
   const sq = fx.squash || 0, swing = fx.swing || 0;
-  let coat = '#2fbf4f', coatDk = '#1f9a3c', hat = '#2fbf4f', hatDk = '#1f9a3c', pants = '#1c7a33';
-  if (form === 2) { coat = '#ffffff'; coatDk = '#e2dccf'; }
-  if (form === 3) { hat = '#8a4ae0'; hatDk = '#6430b8'; coatDk = '#6a3ab0'; }   // the magic hat: purple, with a gold star
-  if (flash === 'star') { const h = (t * 420) % 360; coat = `hsl(${h},85%,58%)`; coatDk = `hsl(${h},75%,45%)`; hat = `hsl(${(h + 150) % 360},85%,55%)`; hatDk = `hsl(${(h + 150) % 360},75%,42%)`; }
+  let coat = P.coat, coatDk = P.coatDk, hat = P.hat, hatDk = P.hatDk, band = P.band;
+  if (form === 2) { coat = '#4a8a3a'; coatDk = '#346a2a'; }                    // the apple-throwing power: a green doublet
+  if (form === 3) { band = '#d8302a'; }                                         // his throwing hat: a bright red band
+  if (flash === 'star') { const h = (t * 420) % 360; coat = `hsl(${h},85%,58%)`; coatDk = `hsl(${h},75%,45%)`; band = `hsl(${(h + 150) % 360},85%,55%)`; }
   g.save();
   g.translate(x + 8, y + H);
   if (fx.rot) { g.translate(0, -H / 2); g.rotate(fx.rot); g.translate(0, H / 2); }   // flips and spins turn round his middle
@@ -1945,50 +2023,50 @@ function drawLeo(x, y, form, pose, face, t, flash, fx = {}) {
   const fill = c => { g.fillStyle = c; g.fill(); };
   const leg = (hx, ang, back) => {
     g.save(); g.translate(hx, -8.5); g.rotate(ang);
-    rrect(-2, -0.5, 4, 5.6, 2); fill(back ? '#16602a' : pants);
-    ell(1.6, 6, 3.6, 2.4); fill(back ? '#4a260e' : '#7a4220');            // big round boots
-    ell(1.2, 5.1, 1.6, 0.7); fill('rgba(255,255,255,.3)');
+    rrect(-2.2, -0.5, 4.4, 3.4, 1.6); fill(back ? P.breechesDk : P.breeches);   // breeches to the knee
+    rrect(-1.6, 2.4, 3.2, 3, 1.2); fill(back ? '#7a7a76' : P.hose);              // stockings
+    ell(1.4, 6, 3.4, 2.1); fill(back ? '#1a1612' : P.shoe);                     // plain shoes, tied with a lace
+    ell(1, 5.2, 1.4, 0.6); fill('rgba(255,255,255,.22)');
     g.restore();
   };
   const arm = (sx, sy, ang, back) => {
     g.save(); g.translate(sx, sy); g.rotate(ang);
-    rrect(-1.8, -0.6, 3.6, 5.8, 1.8); fill(back ? coatDk : coat);
-    g.beginPath(); g.arc(0, 6.2, 2.2, 0, TAU); fill(back ? '#f0c098' : C.skin);  // round hands
+    rrect(-1.8, -0.6, 3.6, 5.2, 1.8); fill(back ? coatDk : coat);
+    rrect(-2, 3.8, 4, 1.6, 0.8); fill(back ? '#d8d4c8' : '#f4f0e4');            // white cuffs
+    g.beginPath(); g.arc(0, 6.6, 2.1, 0, TAU); fill(back ? '#f0c098' : C.skin);  // round hands
     g.restore();
   };
   leg(-1.8, ride ? -1.35 : air ? -0.6 : -legA, true);
   arm(-3.8, -16.5, ride ? -1.0 : air ? -2.5 : skid ? 0.9 : -swing * 0.9, true);
-  // a round little coat: a light top and a darker hem, a black belt and a big gold buckle
-  ell(0, -11.5, 7.2, 6.6); fill(coat);
-  g.save(); ell(0, -11.5, 7.2, 6.6); g.clip(); g.fillStyle = coatDk; g.fillRect(-8, -9, 16, 6); g.restore();
-  if (form === 2) ['#ff5a5a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((c, i) => { rrect(-6 + i * 2.4, -16, 2.4, 3, 0.6); fill(c); });
-  rrect(-7, -10.4, 14, 2.4, 1.2); fill('#2a1a10');
-  rrect(-2, -11, 4, 3.6, 0.8); fill(C.gold); rrect(-0.8, -10, 1.6, 1.6, 0.3); fill('#2a1a10');
+  // a round doublet, darker at the hem, with a row of buttons and a plain leather belt
+  ell(0, -11.5, 7, 6.6); fill(coat);
+  g.save(); ell(0, -11.5, 7, 6.6); g.clip(); g.fillStyle = coatDk; g.fillRect(-8, -8.6, 16, 6); g.restore();
+  rrect(-7, -10.2, 14, 2, 1); fill('#4a2e18');
+  for (const by of [-15, -13]) { g.beginPath(); g.arc(3.6, by, 0.7, 0, TAU); fill('#5a3a1e'); }
   leg(1.8, ride ? -1.15 : air ? 0.8 : legA, false);
-  // a big round head
+  // the wide white collar (a "falling band")
+  ell(1, -16.6, 6.6, 2.4); fill('#f6f2e8'); ell(1, -15.9, 5.6, 1.2); fill('#e2dccc');
+  // a big round head: brown hair cut to the ears, rosy cheeks, a little nose
   g.beginPath(); g.arc(0.6, -22.5, 7, 0, TAU); fill(C.skin);
-  ell(-5, -22.4, 2.1, 3.3); fill(C.ginger);                                       // hair at the back
-  // a short ginger beard round the chin
-  for (const [bx, by, br] of [[-1.2, -17.6, 2.5], [2, -16.6, 2.9], [5, -17.8, 2.3]]) { g.beginPath(); g.arc(bx, by, br, 0, TAU); fill(C.ginger); }
-  g.beginPath(); g.arc(-0.2, -21, 1.6, 0, TAU); fill('rgba(255,120,120,.4)');      // rosy cheek
-  ell(3.4, -19.2, 3, 1.4, -0.15); fill(C.dkginger);                                // moustache
-  g.beginPath(); g.arc(6.8, -21, 2.6, 0, TAU); fill('#ffa98a');                   // big round nose
-  g.beginPath(); g.arc(6.1, -21.8, 0.9, 0, TAU); fill('rgba(255,255,255,.55)');
+  ell(-4.6, -22.6, 2.6, 4.2); fill(P.hair);                                       // hair at the back, down to his collar
+  ell(-1.4, -27.2, 6, 2.2); fill(P.hair);                                         // and a fringe under the hat
+  g.beginPath(); g.arc(1.4, -19.8, 1.7, 0, TAU); fill('rgba(255,120,120,.4)');      // rosy cheek
+  g.beginPath(); g.arc(6.9, -21.6, 1.5, 0, TAU); fill('#f8b898');                 // a little nose
+  g.beginPath(); g.arc(4.6, -18.4, 1.6, 0.15, Math.PI - 0.6); g.lineWidth = 0.8; g.strokeStyle = '#a0503a'; g.stroke();   // a smile
   // one big friendly eye
-  if (dead) { g.lineWidth = 1.3; g.strokeStyle = '#1e2a3a'; g.lineCap = 'round'; g.beginPath(); g.moveTo(2.4, -26.2); g.lineTo(5, -23.6); g.moveTo(5, -26.2); g.lineTo(2.4, -23.6); g.stroke(); }
-  else if ((t + (fx.blinkOff || 0)) % 3.4 < 0.13) { rrect(2.2, -25, 3, 1, 0.5); fill('#1e2a3a'); }
-  else { const ly = (fx.look || 0) * 0.9; ell(3.7, -24.8, 1.9, 2.5); fill('#ffffff'); ell(4.3, -24.5 + ly, 1.15, 1.6); fill('#1e2a3a'); g.beginPath(); g.arc(4.7, -25.2 + ly, 0.45, 0, TAU); fill('#ffffff'); }
-  rrect(1.8, -28.4 + (fx.look < 0 ? -0.7 : 0), 3.8, 1, 0.5); fill(C.dkginger);       // eyebrow (up when he looks up)
-  // a tall green hat with a black band and a gold buckle (unless it's off being thrown)
-  if (fx.hatless) { ell(0.6, -28.4, 6, 2.8); fill(C.ginger); g.beginPath(); g.arc(1.8, -30.6, 1.6, 0, TAU); fill(C.ginger); }
+  if (dead) { g.lineWidth = 1.3; g.strokeStyle = '#1e2a3a'; g.lineCap = 'round'; g.beginPath(); g.moveTo(2.4, -25.4); g.lineTo(5, -22.8); g.moveTo(5, -25.4); g.lineTo(2.4, -22.8); g.stroke(); }
+  else if ((t + (fx.blinkOff || 0)) % 3.4 < 0.13) { rrect(2.2, -24.2, 3, 1, 0.5); fill('#1e2a3a'); }
+  else { const ly = (fx.look || 0) * 0.9; ell(3.7, -24, 1.9, 2.5); fill('#ffffff'); ell(4.3, -23.7 + ly, 1.15, 1.6); fill('#1e2a3a'); g.beginPath(); g.arc(4.7, -24.4 + ly, 0.45, 0, TAU); fill('#ffffff'); }
+  rrect(1.8, -27.4 + (fx.look < 0 ? -0.7 : 0), 3.8, 1, 0.5); fill(P.hairDk);         // eyebrow (up when he looks up)
+  // the tall capotain hat: a flat brim, a tapering crown with a rounded top, and a plain band (unless it's off being thrown)
+  if (fx.hatless) { ell(0.4, -28.4, 6.6, 3); fill(P.hair); g.beginPath(); g.arc(2.4, -30.4, 1.8, 0, TAU); fill(P.hair); }
   else {
-    ell(0.8, -28.6, 8.4, 2.4); fill(hatDk);
-    rrect(-3.8, -38, 9.2, 9.6, [2.5, 2.5, 0.5, 0.5]); fill(hat);
-    rrect(2.6, -38, 2.8, 9.6, [0, 2.5, 0.5, 0]); fill(hatDk);                    // the shady side
-    rrect(-3.8, -31.6, 9.2, 2.2, 0); fill(form === 3 ? C.gold : '#2a1a10');
-    if (form === 3) { star(1.3, -34.8, 2.4, '#ffe14a'); if (t % 0.9 < 0.3) star(5.6 + Math.sin(t * 7), -39, 1.2, '#ffffff'); }
-    else { rrect(-0.2, -32, 3, 3, 0.6); fill(C.gold); }
-    rrect(-2.6, -36.6, 1.3, 3.6, 0.6); fill('rgba(255,255,255,.35)');           // shine
+    ell(0.8, -28.6, 9, 2.2); fill(hatDk);
+    g.beginPath(); g.moveTo(-4.6, -29); g.lineTo(-3.4, -39.4); g.quadraticCurveTo(1, -41.6, 5.4, -39.4); g.lineTo(6.4, -29); g.closePath(); fill(hat);
+    g.beginPath(); g.moveTo(3.6, -29); g.lineTo(3.4, -40.4); g.quadraticCurveTo(4.6, -40.2, 5.4, -39.4); g.lineTo(6.4, -29); g.closePath(); fill(hatDk);   // the shady side
+    rrect(-4.5, -31.6, 10.8, 2.2, 0.4); fill(band);
+    if (form === 3 && t % 0.9 < 0.3) star(6 + Math.sin(t * 7), -40, 1.2, '#ffffff');
+    rrect(-2.6, -38.6, 1.2, 5.6, 0.6); fill('rgba(255,255,255,.18)');           // shine
   }
   arm(4.4, -16.5, ride ? -0.85 : air ? -2.7 : skid ? -0.6 : swing * 0.9, false);
   g.restore();
@@ -2065,7 +2143,7 @@ function drawPoop(e, t) {
   g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
 }
 
-const CAPE = new Set(['canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor']);   // (seagulls, and blue water)
+const CAPE = new Set(['atlantic', 'plimoth', 'canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor']);   // (seagulls, and blue water)
 const BIGCITY = new Set(['gwb', 'city', 'quarter']);   // (pigeons)
 function drawPigeon(x, y, t, face) {   // a New York pigeon: grey, with a shimmery green-purple neck
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
@@ -2088,6 +2166,220 @@ function drawGull(x, y, t, face) {   // a cheeky Cape Cod seagull
   g.restore();
 }
 
+// ---- the animals of the Pilgrims' New England (and the Mayflower's rats) ----
+// Each is drawn like the others: x, y the top-left of a 16 x 16 box, feet on its bottom edge, facing right when face is 1.
+function drawTurkey(x, y, t, face, e = {}) {   // a wild turkey: bronze feathers, a bare blue-and-red head, a wattle; it fans its tail and rushes
+  const fan = e.fan || 0, walk = e.rush > 0 ? 18 : 9, s = Math.sin(t * walk), flat = !!e.flat;
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.4 : 1);
+  g.strokeStyle = '#c8908a'; g.lineWidth = 0.9; g.lineCap = 'round';
+  for (const k of [-1, 1]) { g.beginPath(); g.moveTo(-0.5 + k, -4.4); g.lineTo(k * 1.6 + s * k * 1.4, 0); g.stroke(); }
+  // the tail: a little bundle while strutting, a big striped fan when it puffs up to rush
+  const tr = 4 + fan * 5.5, tx = -4.5, ty = -8.5;
+  for (let i = 0; i <= 8; i++) {
+    const a = Math.PI * (0.62 + fan * 0.1) + i / 8 * Math.PI * (0.3 + fan * 0.55);
+    g.save(); g.translate(tx, ty); g.rotate(a - Math.PI / 2); rrect(-1.4, 0, 2.8, tr, 1.4); g.fillStyle = i % 2 ? '#6a4224' : '#7e5230'; g.fill();
+    rrect(-1.4, tr - 1.4, 2.8, 1.4, 0.7); g.fillStyle = '#e8d8b8'; g.fill(); rrect(-1.4, tr - 2.6, 2.8, 1.1, 0.3); g.fillStyle = '#3a2414'; g.fill(); g.restore();
+  }
+  ell(-0.5, -7.6, 6.2, 4.8); g.fillStyle = vgrad(-12, -3, '#7a5a3a', '#4a2e1a'); g.fill();
+  ell(-1.5, -7.2, 4, 2.6, -0.2); g.fillStyle = '#5a3a22'; g.fill();
+  g.fillStyle = 'rgba(255,240,220,.7)'; for (const wx of [-3.4, -1.6, 0.2]) g.fillRect(wx, -6.6, 0.8, 1.6);   // white bars on the wing
+  ell(-1, -10.4, 3.4, 1.2); g.fillStyle = 'rgba(120,200,160,.35)'; g.fill();                              // a bronze-green sheen
+  g.beginPath(); g.moveTo(3.2, -6.4); g.lineTo(3.6, -3.8); g.lineTo(4.4, -6.2); g.fillStyle = '#1e1a16'; g.fill();   // the "beard" on his chest
+  // the long bare neck and head, bobbing forward as he walks
+  const nb = Math.sin(t * walk * 0.5) * 0.8 + (e.rush > 0 ? 1.4 : 0);
+  g.beginPath(); g.moveTo(2.6, -10); g.quadraticCurveTo(4.6 + nb, -12, 4.6 + nb, -14); g.lineWidth = 2.2; g.strokeStyle = '#d86a6a'; g.stroke();
+  g.beginPath(); g.arc(5 + nb, -14.4, 2.1, 0, TAU); g.fillStyle = '#8ab8e0'; g.fill();
+  g.beginPath(); g.moveTo(6.6 + nb, -14.6); g.lineTo(8.6 + nb, -14); g.lineTo(6.6 + nb, -13.4); g.fillStyle = '#e8c87a'; g.fill();
+  ell(6.4 + nb, -12, 1, 1.7); g.fillStyle = '#e8303a'; g.fill();                                          // the wattle
+  g.beginPath(); g.moveTo(6.3 + nb, -15.6); g.quadraticCurveTo(8 + nb, -15.2, 8.4 + nb, -12.6); g.lineWidth = 0.8; g.strokeStyle = '#e8303a'; g.stroke();   // the snood over the beak
+  g.beginPath(); g.arc(5.6 + nb, -15, 0.65, 0, TAU); g.fillStyle = '#1e1a16'; g.fill();
+  g.restore();
+}
+function drawRat(x, y, t, face, flat, e = {}) {   // a ship's rat: grey, with pink ears, a pink nose and a long bare tail
+  const s = Math.sin(t * 14);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  g.beginPath(); g.moveTo(-6, -3); g.quadraticCurveTo(-11, -2 + s, -14, -6 - s * 0.6); g.lineWidth = 1; g.strokeStyle = '#e8a0a8'; g.lineCap = 'round'; g.stroke();
+  for (const fx2 of [-3.5, 2.5]) { ell(fx2 + s * (fx2 < 0 ? 1 : -1), -0.8, 1.8, 1); g.fillStyle = '#d88890'; g.fill(); }
+  ell(-1, -4.4, 6.6, 4); g.fillStyle = vgrad(-8, 0, '#8e8e98', '#5e5e68'); g.fill();
+  ell(-1, -2.4, 4.6, 1.6); g.fillStyle = '#a8a8b0'; g.fill();
+  g.beginPath(); g.moveTo(3, -7.6); g.quadraticCurveTo(7, -7, 9.6, -4.4); g.quadraticCurveTo(6, -2, 3, -2.6); g.closePath(); g.fillStyle = '#7e7e88'; g.fill();
+  g.beginPath(); g.arc(9.6, -4.6, 1, 0, TAU); g.fillStyle = '#ff8a9a'; g.fill();
+  g.beginPath(); g.arc(3.4, -8.4, 2.2, 0, TAU); g.fillStyle = '#7e7e88'; g.fill(); g.beginPath(); g.arc(3.4, -8.4, 1.3, 0, TAU); g.fillStyle = '#f0a8b0'; g.fill();
+  g.beginPath(); g.arc(6, -5.8, 0.9 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#1e1a20'; g.fill(); g.beginPath(); g.arc(6.3, -6.1, 0.3, 0, TAU); g.fillStyle = '#fff'; g.fill();
+  g.strokeStyle = 'rgba(40,40,50,.6)'; g.lineWidth = 0.4; for (const k of [-1, 0, 1]) { g.beginPath(); g.moveTo(8.6, -4.6); g.lineTo(11.4, -4.6 + k * 1.2); g.stroke(); }
+  g.restore();
+}
+function drawWolf(x, y, t, face, flat, e = {}) {   // a grey wolf: long legs, a bushy tail, pointed ears and a long snout
+  const s = Math.sin(t * 11);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  g.save(); g.translate(-6, -8); g.rotate(-0.5 + s * 0.15); ell(-3.4, 0, 4, 1.8); g.fillStyle = '#7a7e88'; g.fill(); ell(-6.4, 0, 1.4, 1.2); g.fillStyle = '#e8e8ec'; g.fill(); g.restore();
+  for (const [lx, k] of [[-4.6, 1], [-2.6, -1], [2.4, -1], [4.4, 1]]) { const sw = s * k * 1.2; rrect(lx - 0.9 + sw * 0.3, -6, 1.8, 6, 0.9); g.fillStyle = k > 0 ? '#5a5e68' : '#6e727c'; g.fill(); }
+  ell(-0.4, -7.6, 6.6, 3.8); g.fillStyle = vgrad(-11, -4, '#9aa0aa', '#6a6e78'); g.fill();
+  ell(-0.4, -5.8, 4.6, 1.6); g.fillStyle = '#d8d8dc'; g.fill();
+  ell(5, -10.4, 3.4, 3); g.fillStyle = '#8a8e98'; g.fill();                                               // head
+  g.beginPath(); g.moveTo(6.4, -11.4); g.lineTo(11.4, -9.6); g.lineTo(6.6, -8); g.closePath(); g.fillStyle = '#9aa0aa'; g.fill();   // the snout
+  ell(8.4, -8.8, 2.4, 0.9); g.fillStyle = '#e8e8ec'; g.fill();
+  g.beginPath(); g.arc(11.2, -9.7, 0.8, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  for (const ex of [3.6, 5.4]) { g.beginPath(); g.moveTo(ex - 1.2, -12.4); g.lineTo(ex - 0.2, -15.6); g.lineTo(ex + 1, -12.4); g.closePath(); g.fillStyle = '#6e727c'; g.fill(); }
+  g.beginPath(); g.arc(6.4, -11.2, 0.8 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#ffc21a'; g.fill(); g.beginPath(); g.arc(6.6, -11.2, 0.4, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  g.restore();
+}
+function drawCrow(x, y, t, face) {   // a black crow after the corn, flapping
+  g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
+  const flap = Math.sin(t * 11);
+  for (const k of [-1, 1]) { g.beginPath(); g.moveTo(-1, -1); g.quadraticCurveTo(-5, -5 - flap * 4 * k, -10.5, -1 - flap * 5); g.lineTo(-7, 0.6); g.lineTo(-3, 1); g.closePath(); g.fillStyle = k < 0 ? '#1c1c26' : '#2e2e3a'; g.fill(); }
+  ell(0, 1, 6, 3.4); g.fillStyle = '#26262f'; g.fill(); g.beginPath(); g.arc(4.6, -1.2, 2.9, 0, TAU); g.fill();
+  g.beginPath(); g.moveTo(-5.4, 0.4); g.lineTo(-9.6, 1.2); g.lineTo(-5.4, 3); g.fill();
+  g.beginPath(); g.moveTo(7, -2); g.lineTo(10.6, -0.6); g.lineTo(7, 0.4); g.fillStyle = '#4a4a52'; g.fill();
+  g.beginPath(); g.arc(5.4, -2, 0.8, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(5.6, -2, 0.4, 0, TAU); g.fillStyle = '#111'; g.fill();
+  ell(1, -0.4, 3, 1, -0.2); g.fillStyle = 'rgba(120,140,220,.3)'; g.fill();                               // a blue-purple sheen
+  g.restore();
+}
+function drawPorcupine(x, y, t, face, e = {}) {   // a porcupine: a round brown back bristling with white-tipped quills (stomping it hurts!)
+  const lx = (e.lookX || 0) * face;
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, 1);
+  for (const fx2 of [-3.5, 3]) { const k = Math.sin(t * 8 + fx2); ell(fx2 + k, -1, 2.2, 1.4); g.fillStyle = '#3a2618'; g.fill(); }
+  g.lineCap = 'round';
+  for (let i = 0; i < 15; i++) {
+    const a = Math.PI * 1.02 + i / 14 * Math.PI * 0.9, r0 = 5, r1 = 9.6 + (i % 2) * 1.4 + Math.sin(t * 3 + i) * 0.3;
+    const x0 = -1 + Math.cos(a) * r0, y0 = -4 + Math.sin(a) * r0 * 0.9, x1 = -1 + Math.cos(a) * r1, y1 = -4 + Math.sin(a) * r1 * 0.9;
+    g.beginPath(); g.moveTo(x0, y0); g.lineTo(x1, y1); g.lineWidth = 1.1; g.strokeStyle = '#4a3624'; g.stroke();
+    g.beginPath(); g.moveTo(x0 + (x1 - x0) * 0.7, y0 + (y1 - y0) * 0.7); g.lineTo(x1, y1); g.strokeStyle = '#f2ead8'; g.stroke();
+  }
+  ell(-1, -4.4, 6.4, 4.2); g.fillStyle = vgrad(-9, -1, '#6a4a30', '#3e2a1a'); g.fill();
+  ell(4.6, -4, 3.2, 2.6); g.fillStyle = '#5a3e28'; g.fill();
+  g.beginPath(); g.arc(7.6, -3.8, 1, 0, TAU); g.fillStyle = '#1e1410'; g.fill();
+  g.beginPath(); g.arc(5.2 + lx * 0.5, -5, 0.8, 0, TAU); g.fillStyle = '#1e1410'; g.fill(); g.beginPath(); g.arc(5.4 + lx * 0.5, -5.2, 0.3, 0, TAU); g.fillStyle = '#fff'; g.fill();
+  g.restore();
+}
+function drawBoxTurtle(x, y, t, face, shellOnly, spin, e = {}) {   // an eastern box turtle: a high dark dome with yellow-orange spots (stomp it and kick the shell)
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, 1);
+  if (!shellOnly) {
+    const k = Math.sin(t * 6);
+    for (const [fx2, kk] of [[-4.4, 1], [3.8, -1]]) { ell(fx2 + k * kk * 0.8, -1.2, 2, 1.4); g.fillStyle = '#7a6a3a'; g.fill(); }
+    ell(7, -4.4 + Math.sin(t * 3) * 0.4, 2.6, 2.1); g.fillStyle = '#8a7a3e'; g.fill();
+    g.beginPath(); g.arc(7.8, -5, 0.8 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#c83a1a'; g.fill();   // (the males have red eyes)
+    g.beginPath(); g.arc(8, -5.1, 0.35, 0, TAU); g.fillStyle = '#111'; g.fill();
+    ell(8.4, -3.6, 1.2, 0.6); g.fillStyle = '#e8b83a'; g.fill();
+  }
+  g.save(); g.translate(shellOnly ? 0 : -0.8, shellOnly ? -5 : -5.4); g.rotate(spin || 0);
+  g.beginPath(); g.ellipse(0, 1.6, 7, 6.4, 0, Math.PI, 0); g.closePath(); g.fillStyle = vgrad(-5, 2, '#6a4a22', '#3a2812'); g.fill();
+  rrect(-7.2, 1, 14.4, 2, 1); g.fillStyle = '#c89a3a'; g.fill();
+  g.fillStyle = '#e8a83a';
+  for (const [sx, sy, r] of [[-4, -1, 1.2], [0, -3, 1.4], [3.6, -0.6, 1.1], [-1.4, 0.4, 0.9], [1.8, -1.6, 0.8]]) { g.beginPath(); g.arc(sx, sy, r, 0, TAU); g.fill(); }
+  ell(-2.4, -2.6, 1.8, 0.9, -0.5); g.fillStyle = 'rgba(255,255,255,.3)'; g.fill();
+  g.restore();
+  g.restore();
+}
+
+// ---- the Mayflower (1620): a merchant ship about 100 feet long, with three masts, square sails and tall castles fore and aft ----
+// e.y is her main deck; the castles, yards and the main top are her own platforms (see the 'boat' spawn), drawn over this
+const MAYFLOWER_MASTS = [[5.5, 6.2], [10, 10.4], [15.75, 8]];   // where each mast stands along the deck and how tall it is, in tiles
+function drawMayflowerShip(e, t) {
+  const x = e.x, y = e.y, W = e.w, roll = Math.sin(t * 1.3) * 0.6;
+  g.save(); g.translate(0, roll);
+  // rigging first, behind everything: the shrouds from each masthead down to the ship's sides
+  g.strokeStyle = 'rgba(50,34,20,.55)'; g.lineWidth = 0.7;
+  for (const [mx, mh] of MAYFLOWER_MASTS) { const cx = x + mx * TS, top = y - mh * TS; g.beginPath(); for (const d of [-1.6, -0.8, 0.8, 1.6]) { g.moveTo(cx, top + 6); g.lineTo(cx + d * TS, y - 2); } g.stroke(); }
+  g.beginPath(); g.moveTo(x + 15.75 * TS, y - 8 * TS); g.lineTo(x + W + 52, y - 46); g.moveTo(x + 10 * TS, y - 10.4 * TS); g.lineTo(x + 15.75 * TS, y - 7 * TS); g.stroke();   // stays
+  // the masts
+  for (const [mx, mh] of MAYFLOWER_MASTS) { const cx = x + mx * TS; g.fillStyle = '#6a4424'; g.fillRect(cx - 2, y - mh * TS, 4, mh * TS); g.fillStyle = '#4a2e14'; g.fillRect(cx + 1, y - mh * TS, 1, mh * TS); }
+  // the sails: billowing canvas between the yards (a lateen sail on the mizzen)
+  const billow = 3 + Math.sin(t * 1.7) * 1.2;
+  const sail = (cx, top, bot, w1, w2) => {
+    g.beginPath(); g.moveTo(cx - w1 / 2, top); g.quadraticCurveTo(cx, top + billow, cx + w1 / 2, top);
+    g.quadraticCurveTo(cx + w2 / 2 + billow, (top + bot) / 2, cx + w2 / 2, bot); g.quadraticCurveTo(cx, bot + billow * 1.6, cx - w2 / 2, bot);
+    g.quadraticCurveTo(cx - w2 / 2 - billow * 0.6, (top + bot) / 2, cx - w1 / 2, top); g.closePath();
+    g.fillStyle = vgrad(top, bot, '#f4ead0', '#d8c8a2'); g.fill();
+    g.strokeStyle = 'rgba(150,120,80,.45)'; g.lineWidth = 0.6; g.beginPath(); for (let k = 1; k < 4; k++) { const sx = cx - w2 / 2 + w2 * k / 4; g.moveTo(cx - w1 / 2 + w1 * k / 4, top + 2); g.lineTo(sx, bot - 1); } g.stroke();
+  };
+  sail(x + 10 * TS, y - 7.5 * TS + 6, y - 4.5 * TS - 1, 50, 64);   // main topsail
+  sail(x + 10 * TS, y - 4.5 * TS + 6, y - 20, 70, 80);             // main course
+  sail(x + 15.75 * TS, y - 7 * TS + 6, y - 4.5 * TS - 1, 46, 58);  // fore topsail
+  sail(x + 15.75 * TS, y - 4.5 * TS + 6, y - 24, 60, 70);          // fore course
+  g.beginPath(); g.moveTo(x + 4 * TS - 6, y - 5 * TS + 6); g.lineTo(x + 7 * TS + 4, y - 5 * TS - 6); g.quadraticCurveTo(x + 6.6 * TS + billow, y - 3.2 * TS, x + 5.5 * TS + 2, y - 2.6 * TS); g.closePath();
+  g.fillStyle = vgrad(y - 90, y - 40, '#f4ead0', '#d8c8a2'); g.fill();   // the mizzen's lateen sail
+  // the flag of England (the cross of St George) at the main masthead
+  const wv = Math.sin(t * 5) * 1.5, fx = x + 10 * TS + 2, fy = y - 10.4 * TS;
+  g.beginPath(); g.moveTo(fx, fy); g.quadraticCurveTo(fx + 8, fy + wv, fx + 16, fy + 1); g.lineTo(fx + 16, fy + 10); g.quadraticCurveTo(fx + 8, fy + 10 + wv, fx, fy + 9); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+  g.fillStyle = '#d8302a'; g.fillRect(fx + 6, fy + 0.4 + wv * 0.5, 3, 9); g.fillRect(fx, fy + 3.4 + wv * 0.5, 16, 2.6);
+  // the bowsprit
+  g.strokeStyle = '#5a3a1e'; g.lineWidth = 3; g.lineCap = 'round'; g.beginPath(); g.moveTo(x + W - 4, y - 18); g.lineTo(x + W + 52, y - 46); g.stroke();
+  // the hull: a high stern castle (the Pilgrims' "great cabin"), a low waist, the forecastle, and a curving bow
+  g.beginPath();
+  g.moveTo(x - 12, y - 36); g.lineTo(x + 4 * TS + 2, y - 36); g.lineTo(x + 4 * TS + 6, y - 5); g.lineTo(x + 16.5 * TS - 4, y - 5); g.lineTo(x + 16.5 * TS, y - 20);
+  g.lineTo(x + W + 6, y - 22); g.quadraticCurveTo(x + W + 26, y + 6, x + W - 10, y + 46); g.lineTo(x + 22, y + 46); g.quadraticCurveTo(x - 8, y + 30, x - 12, y - 36); g.closePath();
+  g.fillStyle = vgrad(y - 36, y + 46, '#8a5630', '#3e2412'); g.fill();
+  g.save(); g.clip();
+  g.strokeStyle = 'rgba(30,16,6,.45)'; g.lineWidth = 0.6; for (let k = -30; k < 46; k += 5) { g.beginPath(); g.moveTo(x - 14, y + k); g.quadraticCurveTo(x + W / 2, y + k + 6, x + W + 30, y + k - 4); g.stroke(); }   // planks
+  g.fillStyle = '#2a1608'; for (const k of [7, 19]) { g.beginPath(); g.moveTo(x - 14, y + k); g.quadraticCurveTo(x + W / 2, y + k + 7, x + W + 30, y + k - 4); g.lineTo(x + W + 30, y + k - 1.6); g.quadraticCurveTo(x + W / 2, y + k + 9.4, x - 14, y + k + 2.4); g.fill(); }   // the wales
+  g.fillStyle = '#d8a83a'; g.fillRect(x - 14, y - 6, W + 44, 1.6);   // a painted stripe along the rail
+  for (let k = 0; k < 7; k++) { const gx = x + 5 * TS + k * 26; rrect(gx, y + 10 + k * 0.4, 7, 6, 1); g.fillStyle = '#1e1006'; g.fill(); }   // gunports
+  for (let k = 0; k < 3; k++) { rrect(x + 4 + k * 16, y - 28, 9, 8, 2); g.fillStyle = '#ffe8a0'; g.fill(); g.fillStyle = '#5a3418'; g.fillRect(x + 8 + k * 16, y - 28, 1, 8); }   // the great cabin's windows, lit
+  g.fillStyle = 'rgba(24,90,170,.78)'; g.beginPath(); g.moveTo(x - 20, y + 33 + Math.sin(t * 2) * 1.2); for (let k = 0; k <= W + 40; k += 10) g.lineTo(x - 20 + k, y + 32 + Math.sin(t * 2 + k / 22) * 1.6); g.lineTo(x + W + 40, y + 50); g.lineTo(x - 20, y + 50); g.fill();   // under the waterline
+  g.restore();
+  // a rail along the waist, and white water at the bow as she sails
+  g.fillStyle = '#5a3418'; g.fillRect(x + 4 * TS + 4, y - 6, (12.5 * TS) - 8, 2); for (let k = 0; k < 12; k++) g.fillRect(x + 4 * TS + 8 + k * 16, y - 6, 1.6, 6);
+  if (e.go && e.x < e.x1) for (let k = 0; k < 4; k++) { g.globalAlpha = 0.7; g.beginPath(); g.arc(x + W + 8 - k * 7 + Math.sin(t * 9 + k) * 2, y + 33, 4 - k * 0.6, Math.PI, 0); g.fillStyle = '#ffffff'; g.fill(); g.globalAlpha = 1; }
+  g.restore();
+}
+function drawShipPart(e, t) {   // the Mayflower's own platforms: a yard (a spar the sails hang from), a castle's deck, the main top
+  const x = e.x, y = e.y + Math.sin(t * 1.3) * 0.6, w = e.w;
+  if (e.look === 'yard') { rrect(x - 2, y, w + 4, 5, 2.5); paint(vgrad(y, y + 5, '#8a5a32', '#5a3418')); g.fillStyle = 'rgba(255,240,210,.35)'; g.fillRect(x, y + 0.8, w, 1); for (const k of [0.25, 0.75]) { g.fillStyle = '#3a2410'; g.fillRect(x + w * k, y, 1.4, 5); } return true; }
+  if (e.look === 'castle') { rrect(x - 2, y, w + 4, 6, 1); paint(vgrad(y, y + 6, '#b07a44', '#7a4a26')); g.fillStyle = '#5a3418'; g.fillRect(x - 2, y - 6, w + 4, 1.6); for (let k = 0; k <= w; k += 8) g.fillRect(x - 2 + k, y - 6, 1.4, 6); return true; }
+  if (e.look === 'top') { g.beginPath(); g.moveTo(x - 3, y); g.lineTo(x + w + 3, y); g.lineTo(x + w - 1, y + 9); g.lineTo(x + 1, y + 9); g.closePath(); paint(vgrad(y, y + 9, '#9a6a3a', '#5a3418')); g.fillStyle = 'rgba(30,16,6,.5)'; for (let k = 2; k < w; k += 4) g.fillRect(x + k, y + 2, 1, 6); return true; }
+  return false;
+}
+// Tisquantum (Squanto) of the Patuxet Wampanoag, who lived with the Pilgrims and showed them how to plant corn and where
+// to fish. Drawn plainly, in the deerskin clothes of his time: a mantle over one shoulder, leggings and moccasins.
+function drawFriend(e, t) {
+  const x = e.x, y = e.y, near = player && Math.abs(player.x - x) < 70, wave = near ? Math.sin(t * 6) * 0.5 - 0.9 : 0.2;
+  g.save(); g.translate(x + 8, y + 30); g.scale(e.face || -1, 1);
+  const skin = '#b8784a', skinDk = '#9a5e36', hide = '#b8905a', hideDk = '#8e6a3e';
+  for (const [lx, c] of [[-2, hideDk], [2, hide]]) { rrect(lx - 1.8, -11, 3.6, 10, 1.4); g.fillStyle = c; g.fill(); ell(lx + 0.6, -0.8, 2.6, 1.4); g.fillStyle = '#6a4a2a'; g.fill(); }   // leggings and moccasins
+  g.save(); g.translate(-3.4, -20); g.rotate(0.15); rrect(-1.6, 0, 3.2, 9, 1.5); g.fillStyle = skinDk; g.fill(); g.restore();
+  rrect(-4.6, -22, 9.2, 12, 3.5); g.fillStyle = skin; g.fill();                                                   // body
+  g.beginPath(); g.moveTo(-4.8, -22); g.lineTo(3.4, -22.4); g.lineTo(5, -11); g.lineTo(-5, -10.4); g.closePath(); g.fillStyle = hide; g.fill();   // the deerskin mantle, over one shoulder
+  g.strokeStyle = hideDk; g.lineWidth = 0.6; for (let k = 0; k < 5; k++) { g.beginPath(); g.moveTo(-4.4 + k * 2.2, -10.6); g.lineTo(-4.6 + k * 2.2, -8.6); g.stroke(); }   // its fringe
+  rrect(-5.2, -12.2, 10.4, 1.8, 0.8); g.fillStyle = '#6a3a1e'; g.fill();                                          // a belt, with a small pouch
+  rrect(2.6, -12, 3, 3.6, 1); g.fillStyle = '#7a5230'; g.fill();
+  g.beginPath(); g.arc(0.4, -27, 4.8, 0, TAU); g.fillStyle = skin; g.fill();                                       // head
+  g.beginPath(); g.moveTo(-4.2, -29.4); g.quadraticCurveTo(0, -33.6, 4.6, -29.2); g.quadraticCurveTo(1, -30.4, -2, -28.6); g.lineTo(-5, -20); g.lineTo(-6, -27); g.closePath(); g.fillStyle = '#1e1a18'; g.fill();   // long black hair, tied back
+  g.beginPath(); g.arc(-4.6, -21.6, 1.2, 0, TAU); g.fillStyle = '#c84a2a'; g.fill();                                 // a red-dyed tie
+  g.beginPath(); g.arc(2.6, -27.6, 0.8, 0, TAU); g.fillStyle = '#1e1a18'; g.fill();
+  g.beginPath(); g.arc(1.8, -25.2, 1.6, 0.2, Math.PI - 0.5); g.lineWidth = 0.7; g.strokeStyle = '#6a3a22'; g.stroke();   // a smile
+  g.save(); g.translate(3.6, -20.4); g.rotate(-wave * 1.6); rrect(-1.6, 0, 3.2, 9, 1.5); g.fillStyle = skin; g.fill(); g.restore();   // his near arm, waving hello
+  g.restore();
+  if (near && !e.told) { const by = y - 16 + Math.abs(Math.sin(t * 4)) * 3; rrect(x - 1, by - 7, 18, 11, 4); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(x + 6, by + 4); g.lineTo(x + 9, by + 8); g.lineTo(x + 10, by + 4); g.fill(); g.fillStyle = '#2a4a2a'; g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillText('…', x + 8, by + 1); }
+}
+const FRIENDS = {
+  tisquantum: { name: 'TISQUANTUM', first: 'Plant corn in little hills, with a fish in each to feed it. Here, have some corn!', again: 'The herring come up Town Brook in the spring. Good fishing!' },
+};
+function friendTouch(e) {   // walk up to a friend: they say hello, and help you on your way
+  const p = player;
+  e.face = p.x < e.x ? -1 : 1;
+  if (Math.abs(p.x + p.w / 2 - (e.x + 8)) > 22 || Math.abs(p.y + p.h - (e.y + e.h)) > 30) return;
+  const f = FRIENDS[e.who]; if (!f || (e.told && clock - e.told < 6)) return;
+  const firstTime = !e.told; e.told = clock;
+  banner(f.name, firstTime ? f.first : f.again, 4);
+  if (firstTime) { sparkle(e.x + 8, e.y + 4, '#ffe14a', 12); sfx.power(); if (p.form === 0) setForm(1); else { for (let i = 0; i < 3; i++) { coinPop(e.x - 4 + i * 8, e.y - 6); getCoin(e.x, e.y); } } }
+}
+// New England's collectible, five in every level: ears of flint corn ("Indian corn"), speckled red, gold and blue. Corn kept
+// the Pilgrims alive: Tisquantum showed them how to grow it, and the 1621 harvest was the one they celebrated.
+function drawCornEar(x, y, t) {
+  const bob = Math.sin(t * 3) * 1.2;
+  g.save(); g.translate(x + 8, y + 9 + bob); g.rotate(-0.35);
+  glow(0, 0, 14, 'rgba(255,220,120,1)', 0.45);
+  for (const [a, c] of [[-0.55, '#d8c48a'], [0.5, '#c8b070']]) { g.save(); g.rotate(a); g.beginPath(); g.moveTo(0, 7); g.quadraticCurveTo(-4.4, 1, -1.4, -7); g.quadraticCurveTo(0.4, 1, 1.6, 7); g.closePath(); g.fillStyle = c; g.fill(); g.restore(); }   // the dry husks, pulled back
+  ell(0, -1, 3.4, 6.6); g.fillStyle = '#e8b83a'; g.fill();
+  const kc = ['#e8b83a', '#c8402a', '#7a3a6a', '#f0d88a', '#3a4a8a', '#d86a2a'];
+  for (let r = 0; r < 6; r++) for (let c = 0; c < 3; c++) { const kx = (c - 1) * 2, ky = -5.6 + r * 1.9; if (Math.abs(kx) / 3.4 + Math.abs(ky + 1) / 6.6 > 1.05) continue; g.beginPath(); g.arc(kx, ky, 0.95, 0, TAU); g.fillStyle = kc[(r * 3 + c * 5 + 2) % kc.length]; g.fill(); }
+  ell(-1.2, -3, 0.8, 2.4); g.fillStyle = 'rgba(255,255,255,.35)'; g.fill();
+  if (t % 1.6 < 0.5) star(-4, -6, 2 * Math.sin((t % 1.6) / 0.5 * Math.PI), '#fff');
+  g.restore();
+}
+const collectIcon = () => lvl && lvl.collect === 'corn' ? drawCornEar : drawGem;
+
 // the magic cloud: it puffs up, shines a rainbow down to the ground, and Shamrock appears where the rainbow lands
 function drawSummon(e, t) {
   const k = e.t, fade = k < 0.4 ? k / 0.4 : k > 2 ? Math.max(0, 1 - (k - 2) / 0.6) : 1;
@@ -2105,15 +2397,14 @@ function drawSummon(e, t) {
 
 // ---- enemies ----
 // Leo's top hat, spinning through the air
-function drawCap(x, y, spin, big) {
+function drawCap(x, y, spin, big) {   // Will's hat, spinning through the air
   const k = Math.cos(spin), s2 = big ? 0.8 : 0.62;
   g.save(); g.translate(x + 6, y + 7); g.scale(s2, s2);
-  glow(0, -2, 16, 'rgba(255,255,220,1)', 0.35);
+  glow(0, -2, 16, 'rgba(255,255,220,1)', 0.3);
   g.scale(Math.max(0.2, Math.abs(k)) * (k < 0 ? -1 : 1), 1);
-  ell(0, 2, 8, 2.1); paint('#5a2a9a', 1.5);
-  g.beginPath(); g.moveTo(-4.6, 1.6); g.lineTo(-4.1, -6.6); g.quadraticCurveTo(0, -8.2, 4.1, -6.6); g.lineTo(4.6, 1.6); g.closePath(); paint(vgrad(-8, 2, '#a070f0', '#5a2a9a'), 1.5);
-  g.fillStyle = C.gold; g.fillRect(-4.4, -1.2, 8.8, 2);
-  star(0, -3.6, 2, '#ffe14a');
+  ell(0, 2, 8.4, 2.1); paint(PILGRIM.hatDk);
+  g.beginPath(); g.moveTo(-4.8, 1.6); g.lineTo(-3.8, -7.6); g.quadraticCurveTo(0, -9.4, 3.8, -7.6); g.lineTo(4.8, 1.6); g.closePath(); paint(vgrad(-9, 2, '#4a4a54', PILGRIM.hat));
+  g.fillStyle = '#d8302a'; g.fillRect(-4.6, -1.2, 9.2, 2);
   g.restore();
 }
 function drawGrumblin(x, y, t, face, flat, e = {}) {
@@ -2529,9 +2820,100 @@ function drawPalm(x, t) {   // a coconut palm: a curving ringed trunk and a crow
   for (const [dx, dy] of [[-3, 3], [2.4, 3.6], [-0.4, 1]]) { g.beginPath(); g.arc(x + sway + dx, top + dy, 2.6, 0, TAU); g.fillStyle = '#6a4a2a'; g.fill(); }
 }
 // Decorations painted behind the ground (they don't block anything): [kind, tileX, tileY, options]
+const groundTopAt = tx => { for (let ty = 0; ty < lvl.h; ty++) { const tl = tileAt(Math.floor(tx), ty); if (tl === T.GROUND || (tl === T.STONE && ty > 7)) return ty * TS; } return 12 * TS; };   // (the ground itself, not blocks floating above it)
 function drawDecor(d, t) {
   const [kind, tx, ty, o = {}] = d, x = tx * TS, y = ty * TS;
   switch (kind) {
+    case 'quay': {   // Plymouth, England: the stone quay the Mayflower sailed from, and the town's houses behind it
+      for (let k = 0; k < 4; k++) { const hx = x + 6 + k * 40, hh = 46 + (k % 2) * 12, base = y; rrect(hx, base - hh, 34, hh, 1); g.fillStyle = ['#d8c8a8', '#c8b090', '#e0d4b8', '#c0a888'][k]; g.fill();
+        g.strokeStyle = 'rgba(70,46,22,.6)'; g.lineWidth = 1.2; for (let b = 6; b < 34; b += 9) { g.beginPath(); g.moveTo(hx + b, base - hh); g.lineTo(hx + b, base); g.stroke(); } g.beginPath(); g.moveTo(hx, base - hh * 0.5); g.lineTo(hx + 34, base - hh * 0.5); g.stroke();   // Tudor timber framing
+        g.beginPath(); g.moveTo(hx - 3, base - hh); g.lineTo(hx + 17, base - hh - 18); g.lineTo(hx + 37, base - hh); g.closePath(); g.fillStyle = '#6a4a3a'; g.fill(); }
+      break;
+    }
+    case 'capeshore': {   // Provincetown in 1620: no town yet, just sand dunes with beach grass and thick woods behind
+      for (let lx = x; lx < (o.to || tx + 40) * TS; lx += 22) { if (lx > camX + LW + 40 || lx < camX - 60) continue; const k = Math.floor(lx / 22); g.fillStyle = k % 3 ? '#3a6a3a' : '#2e5a32'; g.beginPath(); g.arc(lx + 11, y - 60 - (k % 2) * 8, 20, 0, TAU); g.fill(); g.fillStyle = '#2a4a2a'; g.beginPath(); g.moveTo(lx, y - 40); g.lineTo(lx + 11, y - 92 - (k % 3) * 6); g.lineTo(lx + 22, y - 40); g.fill(); }
+      g.fillStyle = '#e8d49a'; g.beginPath(); g.moveTo(x, y); for (let lx = x; lx <= (o.to || tx + 40) * TS; lx += 10) g.lineTo(lx, y - 30 - Math.abs(Math.sin(lx / 60)) * 22); g.lineTo((o.to || tx + 40) * TS, y); g.closePath(); g.fill();
+      g.strokeStyle = '#7a9a4a'; g.lineWidth = 1; for (let lx = x; lx < (o.to || tx + 40) * TS; lx += 7) { const gy = y - 28 - Math.abs(Math.sin(lx / 60)) * 22; g.beginPath(); g.moveTo(lx, gy + 6); g.lineTo(lx - 2 + Math.sin(t + lx) * 0.6, gy - 3); g.moveTo(lx, gy + 6); g.lineTo(lx + 2, gy - 4); g.stroke(); }
+      break;
+    }
+    case 'rock': {   // Plymouth Rock, with its date (cut into it much later: the story that the Pilgrims stepped onto it was first told in 1741)
+      g.beginPath(); g.moveTo(x - 18, y); g.quadraticCurveTo(x - 20, y - 14, x - 4, y - 16); g.quadraticCurveTo(x + 16, y - 18, x + 20, y - 4); g.lineTo(x + 20, y); g.closePath(); paint(vgrad(y - 18, y, '#b8b4a8', '#7a766e'));
+      ell(x - 6, y - 12, 7, 2.4, -0.2); g.fillStyle = 'rgba(255,255,255,.25)'; g.fill();
+      g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#4a4640'; g.fillText('1620', x + 1, y - 5);
+      break;
+    }
+    case 'wetu': {   // a Wampanoag wetu: a round house of bent saplings covered with bark and woven mats, a smoke hole on top
+      const k = o.s || 1, w = 30 * k, h = 30 * k;
+      g.beginPath(); g.moveTo(x - w, y); g.quadraticCurveTo(x - w, y - h * 1.3, x, y - h * 1.3); g.quadraticCurveTo(x + w, y - h * 1.3, x + w, y); g.closePath(); paint(vgrad(y - h, y, '#a88a5a', '#7a5e3a'));
+      g.save(); g.clip(); g.strokeStyle = 'rgba(70,50,28,.5)'; g.lineWidth = 0.8;
+      for (let r = 1; r < 6; r++) { g.beginPath(); g.moveTo(x - w, y - r * h * 0.2); g.lineTo(x + w, y - r * h * 0.2); g.stroke(); }
+      for (let c = -4; c <= 4; c++) { g.beginPath(); g.moveTo(x + c * w * 0.24, y); g.quadraticCurveTo(x + c * w * 0.2, y - h * 1.1, x, y - h * 1.3); g.stroke(); }
+      g.fillStyle = 'rgba(200,170,110,.35)'; for (let i = 0; i < 6; i++) g.fillRect(x - w + 4 + i * w / 3, y - h * 0.62, w / 4, h * 0.2);   // bark sheets
+      g.restore();
+      rrect(x - 6 * k, y - 16 * k, 12 * k, 16 * k, [6 * k, 6 * k, 0, 0]); g.fillStyle = '#3a2a1a'; g.fill();   // the doorway
+      for (let i = 0; i < 3; i++) { const ph = (t * 0.4 + i / 3) % 1; g.globalAlpha = 0.35 * (1 - ph); g.beginPath(); g.arc(x + Math.sin(ph * 6 + i) * 4, y - h * 1.3 - ph * 30, 3 + ph * 6, 0, TAU); g.fillStyle = '#e8e8e8'; g.fill(); g.globalAlpha = 1; }
+      break;
+    }
+    case 'fire': {   // a cooking fire in a ring of stones, with a clay pot
+      for (let i = 0; i < 6; i++) { ell(x - 10 + i * 4, y - 1.5, 2.6, 2); g.fillStyle = '#8a8478'; g.fill(); }
+      const fl = Math.sin(t * 14) * 1.4; glow(x, y - 6, 18, 'rgba(255,160,60,1)', 0.5);
+      g.beginPath(); g.moveTo(x - 6, y - 2); g.quadraticCurveTo(x, y - 16 + fl, x + 6, y - 2); g.fillStyle = '#ff9a2a'; g.fill(); g.beginPath(); g.moveTo(x - 3, y - 2); g.quadraticCurveTo(x, y - 10 - fl, x + 3, y - 2); g.fillStyle = '#ffe48a'; g.fill();
+      ell(x + 16, y - 5, 5, 5); g.fillStyle = '#9a5a34'; g.fill(); ell(x + 16, y - 9.4, 3.6, 1.2); g.fillStyle = '#5a3418'; g.fill();
+      break;
+    }
+    case 'canoe': {   // a mishoon: a canoe dug out of one big tree, pulled up by the brook
+      g.beginPath(); g.moveTo(x - 20, y - 7); g.quadraticCurveTo(x - 22, y, x - 12, y); g.lineTo(x + 16, y); g.quadraticCurveTo(x + 24, y, x + 22, y - 7); g.closePath(); paint(vgrad(y - 8, y, '#7a4a26', '#4a2a12'));
+      g.fillStyle = '#3a200c'; g.fillRect(x - 16, y - 7, 34, 2);
+      break;
+    }
+    case 'corn': {   // a field of "Three Sisters" hills: corn standing tall, beans climbing it, squash spreading underneath
+      for (let i = 0; i < (o.n || 10); i++) {
+        const cx = x + i * 3 * TS + 8, base = groundTopAt(cx / TS), sw = Math.sin(t * 1.4 + i) * 1.2;
+        if (cx > camX + LW + 40 || cx < camX - 40) continue;
+        ell(cx, base, 9, 3); g.fillStyle = '#7a5a34'; g.fill();
+        g.strokeStyle = '#4a9a3a'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(cx, base); g.quadraticCurveTo(cx + sw * 0.4, base - 20, cx + sw, base - 38); g.stroke();
+        for (const [ly, dir] of [[10, 1], [17, -1], [24, 1], [30, -1]]) { g.beginPath(); g.moveTo(cx + sw * ly / 38, base - ly); g.quadraticCurveTo(cx + dir * 9, base - ly - 6, cx + dir * 13, base - ly + 2); g.lineWidth = 1.2; g.strokeStyle = '#5aaa44'; g.stroke(); }
+        ell(cx + 2, base - 20, 1.8, 4); g.fillStyle = '#e8d080'; g.fill();                                                    // an ear of corn
+        g.strokeStyle = '#d8b84a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(cx + sw, base - 38); g.lineTo(cx + sw - 3, base - 43); g.moveTo(cx + sw, base - 38); g.lineTo(cx + sw + 3, base - 43); g.stroke();   // the tassel
+        g.strokeStyle = '#3a7a2a'; g.lineWidth = 0.7; g.beginPath(); for (let k = 0; k < 6; k++) { const yy = base - 4 - k * 5; g.lineTo(cx + (k % 2 ? 2 : -2), yy); } g.stroke();   // a bean vine twining up
+        for (const sx of [-1, 1]) { ell(cx + sx * 8, base - 2.6, 4, 2.6); g.fillStyle = '#3a8a3a'; g.fill(); }
+        if (i % 2) { ell(cx + 8, base - 2.4, 3, 2.4); g.fillStyle = '#e8a030'; g.fill(); }                                     // a squash
+      }
+      break;
+    }
+    case 'palisade': {   // the town's wall of tall pointed logs (1622), along the hill, with a gate where the street comes in
+      for (let lx = x; lx < (o.to || tx + 40) * TS; lx += 6) {
+        if (lx > camX + LW + 20 || lx < camX - 20) continue;
+        const base = groundTopAt(lx / TS), top = base - 74 - (Math.floor(lx / 6) % 3) * 2;
+        g.fillStyle = Math.floor(lx / 6) % 2 ? '#8a6a44' : '#7a5c3a'; g.fillRect(lx, top, 6, base - top);
+        g.beginPath(); g.moveTo(lx, top); g.lineTo(lx + 3, top - 6); g.lineTo(lx + 6, top); g.fill();
+      }
+      g.fillStyle = 'rgba(40,24,10,.3)'; g.fillRect(x, groundTopAt(tx) - 30, (o.to - tx) * TS, 2);   // a rail across the logs
+      break;
+    }
+    case 'house': {   // a Pilgrim house: a timber frame with clapboards, a steep thatched roof (its ridge is the ledge to hop on), a chimney
+      const h = o.h || 64, w = 5 * TS, wall = h - 26, base = y, roof = base - wall;
+      rrect(x - w / 2 + 6, roof, w - 12, wall, 1); g.fillStyle = vgrad(roof, base, '#c8a878', '#9a7a52'); g.fill();
+      g.strokeStyle = 'rgba(80,56,30,.45)'; g.lineWidth = 0.6; for (let k = roof + 4; k < base; k += 4) { g.beginPath(); g.moveTo(x - w / 2 + 6, k); g.lineTo(x + w / 2 - 6, k); g.stroke(); }
+      rrect(x - 5, base - 18, 10, 18, 1); g.fillStyle = '#5a3a1e'; g.fill(); rrect(x + 12, roof + 8, 8, 7, 1); g.fillStyle = '#3a4a5a'; g.fill(); g.fillStyle = '#c8a878'; g.fillRect(x + 15.4, roof + 8, 1, 7);
+      if (h > 70) { rrect(x - 20, roof + 8, 8, 7, 1); g.fillStyle = '#3a4a5a'; g.fill(); }
+      g.beginPath(); g.moveTo(x - w / 2 - 2, roof + 2); g.lineTo(x, base - h); g.lineTo(x + w / 2 + 2, roof + 2); g.closePath(); g.fillStyle = vgrad(base - h, roof, '#d8b868', '#a8883a'); g.fill();
+      g.strokeStyle = 'rgba(110,80,30,.55)'; g.lineWidth = 0.7; for (let k = 1; k < 8; k++) { g.beginPath(); g.moveTo(x - (w / 2) * k / 8, base - h + (h - wall) * k / 8 + 2); g.lineTo(x + (w / 2) * k / 8, base - h + (h - wall) * k / 8 + 2); g.stroke(); }   // the thatch
+      g.fillStyle = '#7a6a5a'; g.fillRect(x + 16, base - h + 8, 6, 14);
+      break;
+    }
+    case 'fort': {   // the fort and meetinghouse at the top of the hill (1622): a square timber building with cannons on its flat roof
+      const w = 6 * TS, h = 56, base = y;
+      rrect(x - w / 2, base - h, w, h, 1); g.fillStyle = vgrad(base - h, base, '#a88a5e', '#7a5e3a'); g.fill();
+      g.strokeStyle = 'rgba(70,46,22,.5)'; g.lineWidth = 0.7; for (let k = 4; k < w; k += 6) { g.beginPath(); g.moveTo(x - w / 2 + k, base - h); g.lineTo(x - w / 2 + k, base); g.stroke(); }
+      rrect(x - 7, base - 22, 14, 22, [3, 3, 0, 0]); g.fillStyle = '#4a2e16'; g.fill();
+      g.fillStyle = '#5a3a1e'; g.fillRect(x - w / 2 - 3, base - h - 4, w + 6, 5);
+      for (const cx of [-30, 0, 30]) { g.fillStyle = '#2a2a32'; rrect(x + cx - 5, base - h - 9, 10, 5, 2); g.fill(); g.fillRect(x + cx + 4, base - h - 8, 6, 2.4); }
+      g.fillStyle = '#6a4424'; g.fillRect(x + 40, base - h - 40, 2, 36); const wv = Math.sin(t * 5) * 1.5;
+      g.beginPath(); g.moveTo(x + 42, base - h - 40); g.quadraticCurveTo(x + 50, base - h - 39 + wv, x + 58, base - h - 38); g.lineTo(x + 58, base - h - 29); g.quadraticCurveTo(x + 50, base - h - 30 + wv, x + 42, base - h - 31); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+      g.fillStyle = '#d8302a'; g.fillRect(x + 48, base - h - 39.6 + wv * 0.5, 2.6, 9); g.fillRect(x + 42, base - h - 36.4 + wv * 0.5, 16, 2.4);
+      break;
+    }
     case 'mast': {   // a ship's mast with square sails (the ledges in front are its yards, to climb on), rigging and a flag
       const h = (o.h || 8) * TS, top = y - h + TS;
       g.fillStyle = '#6a4424'; g.fillRect(x + 6, top, 4, h); g.fillStyle = '#4a2e14'; g.fillRect(x + 9, top, 1, h);
@@ -2791,7 +3173,7 @@ function coinShape(a) {
   g.save(); g.translate(x + 8, y + 8); g.scale(Math.max(0.12, Math.abs(sx)), 1);
   ell(0, 0, 5.6, 7); paint(vgrad(-7, 7, '#ffe680', '#e89a10'), 1, '#8a5a08');
   ell(0, 0, 3.8, 5.2); paint(sx > 0 ? '#ffd23a' : '#f0b020');
-  if (sx > 0.3) shamrock(0, -0.8, 2.2, '#3aa84a');
+  if (sx > 0.3) { g.fillStyle = '#b87010'; g.fillRect(-0.4, 0.6, 0.8, 2.6); for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(-2.4 + k * 0.5, 1.4 - k * 1.7); g.lineTo(0, -1.6 - k * 1.7); g.lineTo(2.4 - k * 0.5, 1.4 - k * 1.7); g.closePath(); g.fill(); } }   // a pine tree, like Massachusetts' first coins (the Pine Tree shilling, 1652)
   ell(-2, -3.5, 1, 1.8, 0.3); paint('rgba(255,255,255,.7)');
   g.restore();
 }
@@ -2941,20 +3323,20 @@ function drawSeaLife(t) {
   }
 }
 // the magic hat power-up: a purple top hat with a gold star band, twinkling
-function drawMagicHat(x, y, t) {
+function drawMagicHat(x, y, t) {   // the hat power-up: a capotain with a bright red band (Will can throw it like a boomerang)
   g.save(); g.translate(x + 8, y + 12 + Math.sin(t * 4) * 0.8);
-  glow(0, -4, 14, 'rgba(200,150,255,1)', 0.5);
-  ell(0, 0, 7.5, 2); paint('#5a2a9a', 1);
-  g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.8, -10); g.quadraticCurveTo(0, -11.4, 3.8, -10); g.lineTo(4.4, -0.4); g.closePath(); paint(vgrad(-11, 0, '#b080ff', '#6a36c0'), 1);
-  rrect(-4.2, -3.6, 8.4, 2.2, 0.5); paint(C.gold); star(0, -6.6, 2.2, '#ffe14a');
+  glow(0, -4, 14, 'rgba(255,200,120,1)', 0.5);
+  ell(0, 0, 7.8, 2); paint(PILGRIM.hatDk);
+  g.beginPath(); g.moveTo(-4.6, -0.4); g.lineTo(-3.6, -10.4); g.quadraticCurveTo(0, -12, 3.6, -10.4); g.lineTo(4.6, -0.4); g.closePath(); paint(vgrad(-12, 0, '#55555f', PILGRIM.hat));
+  rrect(-4.4, -3.6, 8.8, 2.2, 0.5); paint('#d8302a');
   for (let i = 0; i < 3; i++) { const a = t * 3 + i * 2.1; if (Math.sin(a * 2) > 0) star(Math.cos(a) * 9, -5 + Math.sin(a) * 6, 1.1, '#ffffff'); }
   g.restore();
 }
-function drawHat1up(x, y, t) {
+function drawHat1up(x, y, t) {   // an extra life: Will's own hat
   g.save(); g.translate(x + 8, y + 12 + Math.sin(t * 4) * 0.6);
-  ell(0, 0, 7.5, 2); paint('#1b6a30', 1);
-  g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.8, -9); g.quadraticCurveTo(0, -10.4, 3.8, -9); g.lineTo(4.4, -0.4); g.closePath(); paint(vgrad(-10, 0, '#4ac85a', '#1f8a3a'), 1);
-  rrect(-4.2, -3.4, 8.4, 2, 0.5); paint('#2a1a10'); rrect(-1.3, -3.8, 2.6, 2.8, 0.5); paint(C.gold, 0.7);
+  ell(0, 0, 7.8, 2); paint(PILGRIM.hatDk);
+  g.beginPath(); g.moveTo(-4.6, -0.4); g.lineTo(-3.6, -9.4); g.quadraticCurveTo(0, -11, 3.6, -9.4); g.lineTo(4.6, -0.4); g.closePath(); paint(vgrad(-11, 0, '#55555f', PILGRIM.hat));
+  rrect(-4.4, -3.4, 8.8, 2, 0.5); paint(PILGRIM.band);
   g.font = 'bold 4px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#fff'; g.fillText('1UP', 0, -5);
   g.restore();
 }
@@ -3048,6 +3430,8 @@ const THEMES = {
   basin: { top: '#4a7a4a', topDk: '#2e5a32', dirt: '#3a3428', dirtDk: '#2a241a', edge: '#14100a' },       // swamp muck by moonlight
   sabine: { top: '#7ab85a', topDk: '#4a8a3a', dirt: '#c8784a', dirtDk: '#9a5432', edge: '#5a2a14' },
   // World 1 (New England)
+  atlantic: { top: '#ead494', topDk: '#c8aa60', dirt: '#8a6a4a', dirtDk: '#6a4e34', edge: '#2a180a' },   // the stone quay at Plymouth, England, and the sand at Provincetown
+  plimoth: { top: '#6ab84a', topDk: '#3a8a3a', dirt: '#9a6a40', dirtDk: '#6e4828', edge: '#4a2e18' },
   mayflower: { top: '#ead494', topDk: '#c8aa60', dirt: '#7a4e2c', dirtDk: '#5a361c', edge: '#2a180a' },    // sand on the wharves; dark oak timbers (the ship's hull too)
   lighthouse: { top: '#6ab85a', topDk: '#3a8a3a', dirt: '#8a8a94', dirtDk: '#6a6a74', edge: '#34343c' },  // grass on Maine's granite ledges
   summit: { top: '#a8b0a0', topDk: '#7a8274', dirt: '#8a8478', dirtDk: '#6a645a', edge: '#3a362e' },      // Mount Washington's bare rocks
@@ -3248,8 +3632,8 @@ function qTile() {
   rrect(0.4, 0.4, 15.2, 15.2, 3.4); paint(vgrad(0, 16, '#ffe36a', '#f0a018'), 1.1, '#8a5208');
   g.fillStyle = 'rgba(255,255,255,.5)'; rrect(2, 1.5, 12, 1.6, 0.8); g.fill();
   g.fillStyle = 'rgba(140,80,0,.25)'; rrect(1.5, 13, 13, 1.5, 0.8); g.fill();
-  shamrock(8, 7.4, 3.8, '#fffbe8', 0.9);
-  shamrock(8, 7.4, 2.6, '#3cb04a');
+  g.font = 'bold 11px Bungee, system-ui, sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
+  g.fillStyle = '#b86a0a'; g.fillText('?', 8.6, 9); g.fillStyle = '#fffbe8'; g.fillText('?', 8, 8.2);
   for (const [a, b] of [[2.6, 2.6], [13.4, 2.6], [2.6, 13.4], [13.4, 13.4]]) { g.beginPath(); g.arc(a, b, 0.8, 0, TAU); paint('#b87010'); }
 }
 // the rainbow block: rainbow stripes and a little white arc (a really long rainbow is inside)
@@ -3288,7 +3672,11 @@ function onewayTile(theme, L, Rt, alt) {
     rrect(L ? 0.5 : -0.5, 0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 8, [L ? 3 : 0, Rt ? 3 : 0, Rt ? 3 : 0, L ? 3 : 0]);
     paint(vgrad(0, 8, '#8a9ad8', '#4a5a9a'), 1, '#22264a');
     if (alt) { g.beginPath(); g.moveTo(6, 0.5); g.lineTo(7.5, -3.5); g.lineTo(9, 0.5); paint('rgba(170,230,255,.9)', 0.5, '#5a8ad0'); }
-  } else if (theme === 'mayflower' || theme === 'mystic') {   // a ship's yard: a round wooden spar with rope lashings
+  } else if (theme === 'plimoth') {   // the bundled-straw ridge of a thatched roof (and rails of split wood)
+    rrect(L ? 0.5 : -0.5, 0.5, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 7, L || Rt ? 3.5 : 0); paint(vgrad(0, 7, '#e8c878', '#a8883a'), 0.8, '#6a5220');
+    g.strokeStyle = 'rgba(110,80,30,.6)'; g.lineWidth = 0.6; for (let k = 2; k < 16; k += 3) { g.beginPath(); g.moveTo(k, 1); g.lineTo(k - 1.4, 7); g.stroke(); }
+    g.fillStyle = '#7a5a2a'; g.fillRect(alt ? 4 : 10, 0.5, 1.4, 7);
+  } else if (theme === 'mayflower' || theme === 'mystic' || theme === 'atlantic') {   // a ship's yard: a round wooden spar with rope lashings
     rrect(L ? 0.5 : -0.5, 1, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 6, L || Rt ? 3 : 0); paint(vgrad(1, 7, '#b0804a', '#6a4424'), 1, '#3a2410');
     g.fillStyle = 'rgba(255,240,200,.35)'; g.fillRect(L ? 2 : -0.5, 2, 16 - (L ? 2 : -0.5) - (Rt ? 2 : -0.5), 1.2);
     if (alt) { g.fillStyle = '#d8c8a0'; g.fillRect(7, 0.6, 1.6, 6.8); g.fillRect(9.4, 0.6, 1.6, 6.8); }
@@ -4137,6 +4525,34 @@ SCENERY.slater = [
       g.fillStyle = '#7a3a2a'; g.fillRect(x + 66, 76, 10, 46); }
   } },
 ];
+SCENERY.atlantic = [
+  { sp: 0.02, draw() {   // the open Atlantic, all the way to the horizon
+    g.fillStyle = vgrad(132, 224, '#3a78b0', '#1a4a80'); g.fillRect(-1, 136, BG_W + 2, 88);
+    g.strokeStyle = 'rgba(255,255,255,.3)'; g.lineWidth = 1; for (let i = 0; i < 34; i++) { const x = rndB(i, 2) * BG_W, y = 140 + rndB(i, 3) * 76; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 6 + rndB(i, 4) * 10, y); g.stroke(); }
+  } },
+  { sp: 0.1, draw() { for (let i = 0; i < 4; i++) cloudPuff(40 + i * 120, 30 + (i % 2) * 30, 1 + (i % 2) * 0.3, '#eef2f6', 'rgba(140,160,190,.7)'); } },
+  { sp: 0.36, draw() {   // big rolling swells
+    for (let r = 0; r < 2; r++) { g.fillStyle = r ? '#2a64a0' : '#3474b0'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 170 + r * 14 + Math.sin(x / 38 + r * 2) * 7 + Math.sin(x / 13 + r) * 2); g.lineTo(BG_W, 224); g.fill(); }
+    g.fillStyle = 'rgba(255,255,255,.55)'; for (let i = 0; i < 9; i++) { const x = (i * 53 + 20) % BG_W, y = 166 + Math.sin(x / 38) * 7; g.beginPath(); g.ellipse(x, y, 7, 1.6, 0, 0, TAU); g.fill(); }
+  } },
+];
+SCENERY.plimoth = [
+  { sp: 0.03, draw() {   // Plymouth Bay, with the Mayflower at anchor (she stayed till April 1621) and the long beach across the bay
+    g.fillStyle = vgrad(150, 224, '#4a90d0', '#2a6aa8'); g.fillRect(-1, 152, BG_W + 2, 72);
+    g.fillStyle = '#d8c890'; g.beginPath(); g.ellipse(120, 153, 110, 4, 0, Math.PI, 0); g.fill(); g.fillStyle = '#5a8a4a'; g.beginPath(); g.ellipse(420, 153, 60, 10, 0, Math.PI, 0); g.fill();
+    const x = 300; g.fillStyle = '#5a3a1e'; g.beginPath(); g.moveTo(x - 18, 146); g.lineTo(x + 20, 146); g.lineTo(x + 14, 154); g.lineTo(x - 14, 154); g.closePath(); g.fill(); g.fillRect(x - 15, 140, 8, 6);
+    g.fillStyle = '#4a2e14'; for (const mx of [-8, 2, 11]) g.fillRect(x + mx, 116 + Math.abs(mx) * 0.6, 1.4, 30 - Math.abs(mx) * 0.6);
+    g.fillStyle = '#efe4c8'; for (const mx of [2, 11]) { g.fillRect(x + mx - 6, 122, 13, 8); g.fillRect(x + mx - 5, 132, 11, 7); }
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 34 + (i % 2) * 24, 0.85); } },
+  { sp: 0.32, draw() {   // the woods around the town: oaks, chestnuts and white pines
+    for (let i = 0; i < 16; i++) {
+      const x = i * 32 + rndB(i, 3) * 14, h = 44 + rndB(i, 4) * 26, base = 196;
+      if (i % 3 === 0) { g.fillStyle = '#2a5a3a'; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(x - 14 + k * 3, base - k * 16); g.lineTo(x, base - h - 8 - k * 4); g.lineTo(x + 14 - k * 3, base - k * 16); g.fill(); } }
+      else { g.fillStyle = '#5a3e26'; g.fillRect(x - 2, base - h * 0.5, 4, h * 0.5); g.fillStyle = i % 2 ? '#4a8a3a' : '#5a9a42'; g.beginPath(); g.arc(x, base - h * 0.62, h * 0.32, 0, TAU); g.fill(); g.beginPath(); g.arc(x - h * 0.2, base - h * 0.5, h * 0.22, 0, TAU); g.fill(); }
+    }
+  } },
+];
 SCENERY.boston = [
   { sp: 0.03, draw() {   // a starry night with a big moon over Boston Harbor (the night of April 18, 1775)
     for (let i = 0; i < 40; i++) { g.globalAlpha = 0.4 + rndB(i, 2) * 0.6; g.fillStyle = '#ffffff'; g.fillRect(rndB(i, 1) * BG_W, rndB(i, 3) * 120, 1.4, 1.4); } g.globalAlpha = 1;
@@ -4161,6 +4577,7 @@ const SKIES = {
   springs: ['#5ac0f0', '#e8f8ff'], park: ['#0e0a30', '#3a1a5a'], castillo: ['#5ab0e8', '#f8ecd0'], daytona: ['#3aa8f0', '#e0f4ff'], cape: ['#3a90e0', '#e8f0ff'], space: ['#05051a', '#14143e'],
   oaks: ['#6ab8f0', '#fff0d8'], bayou: ['#86ae94', '#e4ecd4'], quarter: ['#4a3a8a', '#ff9a7a'], river: ['#6ab0e8', '#f4ecd8'], basin: ['#060e22', '#1a2c48'], sabine: ['#ff7a4a', '#ffd88a'],
   deep: ['#2a8a8a', '#0e3a48'], sea: ['#3aa0e8', '#d8f0ff'], cliffs: ['#5ab0f0', '#fff0dc'], nantucket: ['#9ab8cc', '#eef2f4'],
+  atlantic: ['#8aaac6', '#e8eef0'], plimoth: ['#7ec2f0', '#f6ecd6'],
   mayflower: ['#7ac0f0', '#ffe8c8'], lighthouse: ['#5aa8e8', '#e8f4ff'], summit: ['#7aa0cc', '#e6ecf4'], maple: ['#8ac0e8', '#f6eedc'],
   mystic: ['#5ab0e8', '#eaf6ff'], newport: ['#4aa8f0', '#fff4dc'], slater: ['#7ab0d0', '#f2eadc'], boston: ['#070c26', '#24305e'],
 };
@@ -4324,6 +4741,9 @@ function startLevel(id, fromCheck = false) {
   music.play(lvl.music);
   state = 'level';
   showTouch();
+  // the story: the year and what's happening, at the start of the level; and the bits along the way not passed yet
+  lvl.beatSeen = (lvl.beats || []).map(b => b[0] * TS < startX - 2 * TS);
+  if (lvl.story && !fromCheck) banner(lvl.story[0], lvl.story[1], 4.2);
 }
 function mk(k, x, y, o = {}) { return { k, x, y, w: 14, h: 14, vx: 0, vy: 0, dir: -1, t: 0, dead: false, ...o }; }
 function spawnFromSpec(e) {
@@ -4332,7 +4752,7 @@ function spawnFromSpec(e) {
     case 'grumblin': ents.push(mk('grumblin', x + 1, y + 2, { dir: -1, w: 14, h: 14 })); break;
     case 'snaily': ents.push(mk('snaily', x + 1, y, { dir: -1, w: 14, h: 16 })); break;
     case 'thorny': ents.push(mk('thorny', x + 1, y + 3, { dir: -1, w: 14, h: 13 })); break;
-    case 'buzzer': ents.push(mk('buzzer', x, y, { y0: y, x0: x, w: 14, h: 12 })); break;
+    case 'buzzer': ents.push(mk('buzzer', x, y, { y0: y, x0: x, w: 14, h: 12, as: e.as })); break;
     case 'snapper': ents.push(mk('snapper', x + 8, y * 1 + 0, { pipeY: y, w: 12, h: 18, up: 0, cyc: 0 })); break;
     case 'crusher': ents.push(mk('crusher', x - 4, y, { y0: y, w: 24, h: 30, st: 'wait', cyc: 0 })); break;
     case 'firebar': setTile(e.x, e.y, T.USED); ents.push(mk('firebar', x + 8, y + 8, { len: e.len || 4, sp: e.sp || 1, ang: Math.random() * 6, w: 0, h: 0 })); break;
@@ -4344,7 +4764,14 @@ function spawnFromSpec(e) {
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: 3, maxHp: 3, kind: e.kind || 'grumbles', who: e.who || 'sherlock', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3, act: 0, cst: 'walk' })); break;
     case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
-    case 'boat': ents.push(mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: e.sp || 44, go: false, mx: 0, my: 0 })); break;
+    case 'boat': {
+      const b = mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: e.sp || 44, go: false, mx: 0, my: 0, look: e.look, storm: e.storm, waveT: 2 });
+      ents.push(b);
+      // a ship's own platforms (castles, yards, the main top) and the rats on her deck, all carried along with her
+      for (const [ox, oy, w, look] of e.rig || []) ents.push(mk('plat', x + ox * TS, y + oy * TS, { on: b, ox: ox * TS, oy: oy * TS, w: w * TS, h: 8, look, mx: 0, my: 0 }));
+      for (const [lo, hi] of e.rats || []) ents.push(mk('grumblin', x + lo * TS, y - 14, { w: 14, h: 14, deck: b, lo: lo * TS, hi: hi * TS, ox: rand(lo, hi) * TS, dir: Math.random() < 0.5 ? -1 : 1 }));
+      break;
+    }
     case 'shark': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5) })); break;
     case 'whale': ents.push(mk('whale', x, LH + 40, { bx: x + 8, w: 14, h: 0, cyc: rand(0, 2) })); break;
     case 'sealhead': ents.push(mk('sealhead', x, 12 * TS - 6, { w: 0, h: 0 })); break;
@@ -4355,11 +4782,13 @@ function spawnFromSpec(e) {
     case 'snake': ents.push(mk('snake', x, y + 8, { w: 18, h: 8, dir: -1, rear: 0, rearCD: rand(1, 3) })); break;
     case 'gator': ents.push(mk('gator', x - 6, y + 4, { w: 28, h: 12, dir: -1 })); break;
     case 'rooster': ents.push(mk('rooster', x + 1, y + 2, { w: 14, h: 14, dir: -1, hopCD: rand(0.5, 1.6) })); break;
+    case 'turkey': ents.push(mk('turkey', x + 1, y + 2, { w: 14, h: 14, dir: -1, rush: 0, cool: rand(0.5, 1.5), fan: 0 })); break;
     case 'racer': ents.push(mk('racer', x - 6, y + 4, { w: 28, h: 12, dir: -1, face: -1, n: e.x })); break;
     case 'jelly': ents.push(mk('jelly', x + 2, y, { x0: x + 2, y0: y, w: 12, h: 12, ph: rand(0, 6) })); break;
     case 'puffer': ents.push(mk('puffer', x, y, { w: 14, h: 14, kick: rand(0.3, 1.2), face: -1, puff: 0 })); break;
     case 'tarpon': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5), look: 'tarpon' })); break;   // (leaps like the sharks)
     case 'mermaid': ents.push(mk('mermaid', x, y, { w: 18, h: 26 })); break;
+    case 'friend': ents.push(mk('friend', x, y - 14, { w: 16, h: 30, who: e.who, face: -1 })); break;   // someone to meet, who helps (never an enemy)
     case 'cannon': setTile(e.x, e.y, T.USED); ents.push(mk('cannon', x, y, { w: 0, h: 0, cool: rand(1, 2), recoil: 0, face: -1 })); break;
     case 'palm': ents.push(mk('appletree', x, 0, { w: 0, h: 0, cool: rand(0.3, 1.5), palm: true })); break;   // a palm tree that drops coconuts
     case 'hint': ents.push(mk('hint', x - 16, y - 3 * TS, { w: 48, h: 4 * TS })); break;
@@ -4453,7 +4882,7 @@ function hitBlock(tx, ty, t, fromAbove) {
 function coinPop(x, y) { ents.push(mk('coinpop', x, y - 8, { vy: -260, w: 16, h: 16 })); }
 function sprout(kind, x, y) { ents.push(mk(kind, x + 1, y, { w: 14, h: 14, rise: 16, dir: 1 })); sfx.sprout(); }
 
-const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog', 'taxi', 'crab', 'applefall', 'heron', 'snake', 'gator', 'rooster', 'racer', 'jelly', 'puffer'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
+const isEnemy = e => ['grumblin', 'snaily', 'shell', 'thorny', 'buzzer', 'snapper', 'boss', 'shark', 'frog', 'taxi', 'crab', 'applefall', 'heron', 'snake', 'gator', 'rooster', 'turkey', 'racer', 'jelly', 'puffer'].includes(e.k) && !(e.k === 'shark' && e.st !== 'leap');
 // knocked out by a shell, a spark, a bumped block or the horseshoe: flips over and falls off the screen
 function flipEnemy(e, from) {
   if (e.dead || e.k === 'boss') return;
@@ -4482,6 +4911,8 @@ function updateLevel(dt) {
   if (phase === 'bow') { bowUpdate(dt); updateEnts(dt); return; }
   if (phase === 'dive') { diveUpdate(dt); return; }
   if (camY) { camY *= Math.exp(-dt * 2.6); if (Math.abs(camY) < 0.5) camY = 0; }   // (easing back after the dive)
+  if (lvl.beats) lvl.beats.forEach((b, i) => { if (!lvl.beatSeen[i] && player.x >= b[0] * TS && bannerT <= 0.4) { lvl.beatSeen[i] = true; banner(b[1], b[2], b[3] || 3.6); } });   // the story, as you go
+  if (lvl.storm && Math.floor(clock / 5.3) !== Math.floor((clock - dt) / 5.3) && stormAt(camX) > 0.3) sfx.thunder();
   updatePlayer(dt);
   updateEnts(dt);
   // camera: leads in the direction Leo runs
@@ -4492,6 +4923,7 @@ function updateLevel(dt) {
   camX = clamp(camX, 0, lvl.w * TS - LW);
 }
 
+const stormAt = cx => { const [a, b] = lvl.storm, x = (cx + LW / 2) / TS; return clamp(Math.min(x - a, b - x) / 8, 0, 1); };   // how stormy it is here (0 to 1)
 const waterAt = (x, y) => tileAt(Math.floor(x / TS), Math.floor(y / TS)) === T.WATER;
 const inSyrup = o => !!lvl.syrup && ents.some(s => s.k === 'syrup' && o.x + o.w > s.x + 2 && o.x < s.x + s.w - 2 && o.y + o.h >= s.y - 1 && o.y + o.h <= s.y + 8);
 // a level with wind (lvl.wind): a gust every few seconds, building up, blowing and dying away (0 to 1)
@@ -4673,6 +5105,11 @@ function updateEnts(dt) {
         const ldx = p.x + p.w / 2 - (e.x + e.w / 2), ldy = p.y + p.h / 2 - (e.y + e.h / 2);
         if (!e.spook && ((p.ground && clock - (p.landT ?? -9) < 0.03 && Math.abs(ldx) < 34 && Math.abs(ldy) < 20) || ents.some(o => o.k === 'shell' && Math.abs(o.vx) > 100 && Math.abs(o.x - e.x) < 40 && Math.abs(o.y - e.y) < 12 && Math.sign(o.vx) === Math.sign(e.x - o.x)))) e.spook = 0.5;
         e.lookX = clamp(ldx / 60, -1, 1); e.lookY = clamp(ldy / 60, -1, 1);
+        if (e.deck) {   // a ship's rat scurrying up and down the deck as she sails
+          if (!e.flat) { e.ox += e.dir * 34 * dt; if (e.ox < e.lo || e.ox > e.hi) { e.ox = clamp(e.ox, e.lo, e.hi); e.dir *= -1; } }
+          e.x = e.deck.x + e.ox; e.y = e.deck.y - e.h; e.vx = e.dir * 34; e.face = e.dir;
+          break;
+        }
         if (e.k === 'snaily' && !groundAhead(e) && e.ground) e.dir *= -1;
         e.vx = e.dir * (e.k === 'thorny' ? 28 : 32) * (inSyrup(e) ? 0.35 : 1);
         e.vy = Math.min(e.vy + 900 * dt, 300);
@@ -4722,6 +5159,7 @@ function updateEnts(dt) {
       }
       case 'firebar': e.ang += e.sp * 1.6 * dt; break;
       case 'plat': {
+        if (e.on) { e.x = e.on.x + e.ox; e.y = e.on.y + e.oy; e.mx = e.on.mx; e.my = 0; break; }   // part of a ship
         const ox = e.x, oy = e.y;
         e.ph += dt * e.sp;
         e.x = e.x0 + (e.orbit ? Math.cos(e.ph) : Math.sin(e.ph)) * e.dx; e.y = e.y0 + Math.sin(e.ph) * e.dy * (e.rise ? -1 : 1);   // (a rising one climbs as it goes right: the cog railway)
@@ -4800,6 +5238,20 @@ function updateEnts(dt) {
         e.face = e.dir;
         break;
       }
+      case 'turkey': {   // a wild turkey struts along; when the hero comes up in front of it, it fans its tail, gobbles and rushes at him
+        e.cool -= dt; e.rush = Math.max(0, e.rush - dt);
+        const front = (p.x + p.w / 2 - (e.x + e.w / 2)) * e.dir, level = Math.abs(p.y + p.h - (e.y + e.h)) < 24;
+        if (e.rush <= 0 && e.cool <= 0 && front > 0 && front < 80 && level) { e.rush = 0.9; e.cool = 2.2; sfx.gobble(); }
+        e.fan = clamp(e.fan + (e.rush > 0 || (front > 0 && front < 110 && level) ? 4 : -2) * dt, 0, 1);
+        if (!groundAhead(e) && e.ground) { e.dir *= -1; e.rush = 0; }
+        e.vx = e.dir * (e.rush > 0 ? 96 : 26);
+        e.vy = Math.min(e.vy + 900 * dt, 300);
+        moveX(e, e.vx * dt); if (e.wall) { e.dir = -e.wall; e.rush = 0; }
+        moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
+        if (e.y > LH + 30) e.gone = true;
+        e.face = e.dir;
+        break;
+      }
       case 'snake': case 'gator': case 'rooster': case 'racer': {   // walkers: a snake that rears up, a slow gator, a hopping rooster, a race car
         if (!groundAhead(e) && e.ground) e.dir *= -1;
         e.vx = e.dir * { snake: 30, gator: 24, rooster: 44, racer: 118 }[e.k];
@@ -4842,8 +5294,20 @@ function updateEnts(dt) {
         e.face = e.dir;
         break;
       }
-      case 'boat': {   // sails off once Leo is aboard, and stops at the far dock
-        if (!e.go && p.ride === e) e.go = true;
+      case 'boat': {   // sails off once the hero is aboard, and stops at the far dock
+        if (!e.go && (p.ride === e || (p.ride && p.ride.on === e))) e.go = true;
+        const sailing = e.go && e.x < e.x1;
+        if (sailing && e.storm && e.x / TS > e.storm[0] - 10 && e.x / TS < e.storm[1] - 10 && phase === 'play') {   // in the storm, waves wash across the deck from the bow
+          e.waveT -= dt;
+          if (e.waveT <= 0) { e.waveT = rand(2.3, 3.4); ents.push(mk('acorn', e.x + e.w + 8, e.y - 12, { vx: e.sp - 112, vy: 0, w: 12, h: 12, kind: 'wave', grav: 1e-9, free: true })); sfx.splash(); }
+        }
+        if (e.look === 'mayflower' && (p.swim || (p.y + p.h > 12 * TS - 4 && !p.ride)) && phase === 'play') {   // overboard (at sea, at the quay or by the beach), even bobbing at the surface: a rope hauls the hero back on deck
+          e.ob = (e.ob || 0) + dt;
+          if (e.ob > 0.8) {
+            e.ob = 0; p.x = e.x + 3 * TS; p.y = e.y - p.h - 30; p.vx = 0; p.vy = 0; p.inv = Math.max(p.inv, 1.2); sfx.spring();
+            if (!e.toldRope) { e.toldRope = true; banner('MAN OVERBOARD!', 'Like John Howland in 1620, you grab a rope and the sailors haul you back aboard!', 3.6); }
+          }
+        } else e.ob = Math.max(0, (e.ob || 0) - dt * 0.5);
         e.mx = e.go ? Math.min(e.sp * dt, e.x1 - e.x) : 0; e.my = 0; e.x += e.mx;
         if (e.go && e.mx > 0 && Math.random() < 0.5) particle(e.x + rand(-4, 2), e.y + 10, rand(-40, -10), rand(-30, -5), 'rgba(255,255,255,.8)', 0.5, rand(1.5, 3));   // the wake
         break;
@@ -4878,7 +5342,7 @@ function updateEnts(dt) {
         e.vy += (e.grav || 600) * dt; e.x += e.vx * dt; e.y += e.vy * dt;
         if (e.bounce && e.y + e.h > ARENA_FLOOR) { e.y = ARENA_FLOOR - e.h; e.vy = -Math.max(140, Math.abs(e.vy) * 0.75); }   // tumbleweeds bounce along the bridge
         if (e.kind === 'icicle' && e.y + e.h >= ARENA_FLOOR) { e.gone = true; puff(e.x + 4, ARENA_FLOOR - 2, 3); }
-        if (e.y > LH || e.t > 6 || ((e.kind === 'fire' || e.kind === 'wave') && (e.x < 151 * TS || e.x > 196 * TS))) e.gone = true;
+        if (e.y > LH || e.t > 6 || ((e.kind === 'fire' || e.kind === 'wave') && !e.free && (e.x < 151 * TS || e.x > 196 * TS))) e.gone = true;
         break;
       case 'boss': updateBoss(e, dt); break;
       case 'pot': e.vy = Math.min((e.vy || 0) + 600 * dt, 300); moveY(e, e.vy * dt); break;
@@ -4966,6 +5430,7 @@ function touchPlayer(e) {
     }
     return;
   }
+  if (e.k === 'friend') { friendTouch(e); return; }
   if (e.k === 'hint') { if (overlap(p, e) && !e.told) { e.told = true; banner('WALL JUMP!', 'Jump in, hold towards a wall, and press jump to kick off it. Back and forth to the top!', 3.4); } return; }
   if (e.k === 'heron' ? !heronTouch(e) : !overlap(p, e)) return;
   const stomp = p.vy > 0 && p.y + p.h - p.vy * STEP <= e.y + (p.mount ? 10 : 6), pounding = p.pound === 'drop';
@@ -5091,7 +5556,7 @@ function touchPlayer(e) {
         else if (e.k === 'snaily') { e.k = 'shell'; e.vx = 0; e.h = 14; e.y += 2; e.still = 0; }
         else if (e.k === 'shell') { e.vx = 0; }
         else if (e.k === 'buzzer') { e.dead = true; e.flip = true; e.vy = 0; }
-        else if (['shark', 'frog', 'taxi', 'crab', 'applefall', 'heron', 'snake', 'gator', 'rooster', 'racer', 'jelly', 'puffer'].includes(e.k)) { flipEnemy(e, p.face); }
+        else if (['shark', 'frog', 'taxi', 'crab', 'applefall', 'heron', 'snake', 'gator', 'rooster', 'turkey', 'racer', 'jelly', 'puffer'].includes(e.k)) { flipEnemy(e, p.face); }
         break;
       }
       if (e.k === 'shell' && e.grace > 0) break;
@@ -5248,8 +5713,8 @@ const goalTapeY = () => 40 + (Math.sin(clock * 1.6) * 0.5 + 0.5) * (10 * TS - 40
 function clearUpdate(dt) {
   const p = player;
   p.vx = lvl.secretExit && !lvl.secretGoal ? 0 : 70; p.face = 1;
-  p.vy = Math.min(p.vy + 1500 * dt, 290);
-  moveX(p, p.vx * dt); moveY(p, p.vy * dt);
+  if (lvl.secretExit && p.ride && p.ride.on) { p.x += p.ride.mx || 0; p.y = p.ride.y - p.h; p.vx = 0; }   // (a secret exit up a ship's mast: he rides along)
+  else { p.vy = Math.min(p.vy + 1500 * dt, 290); moveX(p, p.vx * dt); moveY(p, p.vy * dt); }
   p.anim += Math.abs(p.vx) * dt * 0.11;
   camX += (clamp(p.x - LW * 0.4, 0, lvl.w * TS - LW) - camX) * Math.min(1, dt * 4);
   if (phaseT > 4.2) finishLevel();
@@ -5273,7 +5738,7 @@ function afterDeath() {
   if (lives <= 0) {
     lives = 5;
     goMap(lvl.id);
-    RB.toast('☘️ Have another go! (5 more lives)', 2600);
+    RB.toast('🎩 Have another go! (5 more lives)', 2600);
     return;
   }
   startLevel(lvl.id, true);
@@ -5385,7 +5850,7 @@ function sprEnd(boxes) {
   main.restore();
 }
 // the screen boxes round everything on the sprite layer (game box, padded), joined where they overlap
-const BIG_ENTS = new Set(['boss', 'plat', 'boat', 'whale', 'shark', 'manatee', 'steamboat', 'airboat', 'pirogue', 'chest', 'pot', 'crusher', 'goal', 'unicorn', 'bowup', 'heron', 'gator', 'mermaid', 'tarpon']);
+const BIG_ENTS = new Set(['friend', 'boss', 'plat', 'boat', 'whale', 'shark', 'manatee', 'steamboat', 'airboat', 'pirogue', 'chest', 'pot', 'crusher', 'goal', 'unicorn', 'bowup', 'heron', 'gator', 'mermaid', 'tarpon']);
 function sprBoxes(cx) {
   const T0 = g.getTransform(), out = [], add = (x, y, w, h, pad) => {
     if (x + w < cx - pad || x > cx + LW + pad) return;
@@ -5409,7 +5874,7 @@ function drawLevel() {
   const camDev = Math.round((camX - sx) * scale), cx = camDev / scale;
   drawBackground(cx, t);
   if (lvl.theme === 'springs') { g.fillStyle = vgrad(4 * TS, 12 * TS, 'rgba(110,225,240,.3)', 'rgba(30,130,200,.42)'); g.fillRect(0, 4 * TS, LW, 8 * TS); }   // the spring's clear water, all in one piece (the rock is drawn over it)
-  if (lvl.decor) { g.save(); g.translate(-cx, 0); for (const d of lvl.decor) if (d[1] * TS > cx - 260 && d[1] * TS < cx + LW + 260) drawDecor(d, t); g.restore(); }   // ships' masts, a lighthouse, a church steeple… (behind the ground)
+  if (lvl.decor) { g.save(); g.translate(-cx, 0); for (const d of lvl.decor) { const end = d[3] && (d[3].to || (d[3].n && d[1] + d[3].n * 3)) || d[1]; if (end * TS > cx - 260 && d[1] * TS < cx + LW + 260) drawDecor(d, t); } g.restore(); }   // ships' masts, a lighthouse, a church steeple… (behind the ground)
   g.save(); g.setTransform(1, 0, 0, 1, 0, offY);
   for (let ci = Math.floor(cx / (CHUNK * TS)); ci * CHUNK * TS < cx + LW; ci++) { const c = chunkPic(ci); g.drawImage(c, c.x0 - camDev, 0); }
   g.restore();
@@ -5472,7 +5937,7 @@ function drawLevel() {
       if (p.twirl > 0) {   // the spin: Leo turns round twice, seen from the side
         const c = Math.cos((1 - p.twirl / 0.34) * TAU * 2), cxp = p.x + p.w / 2;
         g.save(); g.translate(cxp, 0); g.scale(Math.sign(c || 1) * Math.max(0.15, Math.abs(c)), 1); g.translate(-cxp, 0);
-        drawLeo(p.x - 2, p.y - 2, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, fx);
+        drawHero(p.x - 2, p.y - 2, p.form, 'jump', p.face, t, p.star > 0 ? 'star' : null, fx);
         g.restore();
       } else if (p.mount) {   // riding Shamrock: the unicorn underneath, Leo sitting in the saddle
         const gait = p.ground ? Math.min(1, Math.abs(p.vx) / 80) : 0.3;
@@ -5486,9 +5951,9 @@ function drawLevel() {
         }
         const big = p.form > 0, lh = big ? 28 : 16, ls = big ? 0.78 : 0.52, bob = Math.abs(Math.sin(t * 14)) * 0.7 * gait * UNI_S;
         const seat = p.y + p.h - 18.6 * UNI_S - bob + 0.5;   // the top of the saddle
-        drawLeo(p.x + p.w / 2 - p.face * 3.5 - 8, seat + 1 + 8.5 * ls - lh, p.form, 'ride', p.face, t, p.star > 0 ? 'star' : null, { ...fx, swing: 0, squash: 0, tilt: 0 });
-      } else if (p.slide && !p.ground) drawLeo(p.x - 2, p.y - 2, p.form, 'skid', -p.slide, t, p.star > 0 ? 'star' : null, { ...fx, tilt: 0.12 * p.slide, swing: 0 });   // sliding down a wall, back to it
-      else drawLeo(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
+        drawHero(p.x + p.w / 2 - p.face * 3.5 - 8, seat + 1 + 8.5 * ls - lh, p.form, 'ride', p.face, t, p.star > 0 ? 'star' : null, { ...fx, swing: 0, squash: 0, tilt: 0 });
+      } else if (p.slide && !p.ground) drawHero(p.x - 2, p.y - 2, p.form, 'skid', -p.slide, t, p.star > 0 ? 'star' : null, { ...fx, tilt: 0.12 * p.slide, swing: 0 });   // sliding down a wall, back to it
+      else drawHero(p.x - 2, p.y - 2, p.form, pose, p.face, t, p.star > 0 ? 'star' : null, fx);
       if (pipe) g.restore();
       // up above the top of the screen: a little marker shows where Leo is
       if (p.y + p.h < 2 && phase === 'play') {
@@ -5513,6 +5978,15 @@ function drawLevel() {
   }
   g.globalAlpha = 1;
   g.restore();
+  // a storm at sea: dark clouds, rain and now and then a flash of lightning
+  const st = lvl.storm ? stormAt(cx) : 0;
+  if (st > 0.01) {
+    g.fillStyle = `rgba(20,28,48,${0.32 * st})`; g.fillRect(0, 0, LW, LH);
+    g.strokeStyle = `rgba(210,225,245,${0.5 * st})`; g.lineWidth = 0.8; g.beginPath();
+    for (let i = 0; i < 46; i++) { const rx = (i * 37 + t * 260) % (LW + 40) - 20, ry = (i * 61 + t * 520) % (LH + 30) - 20; g.moveTo(rx, ry); g.lineTo(rx - 5, ry + 12); }
+    g.stroke();
+    const fl = (t % 5.3) / 5.3; if (fl < 0.035 || (fl > 0.05 && fl < 0.065)) { g.fillStyle = `rgba(255,255,255,${0.45 * st})`; g.fillRect(0, 0, LW, LH); }
+  }
   // dark levels: a soft glow around Leo
   if (lvl.dark) {
     if (!drawLevel.dark) {
@@ -5536,11 +6010,12 @@ function drawEnt0(e, t) {
   const tt = t + (e.x % 7);   // so enemies don't all move in step
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
-    case 'grumblin': drawGrumblin(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break;
-    case 'snaily': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
-    case 'shell': (HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
-    case 'thorny': drawThorny(x - 1, y - 3 - spookHop(e), tt, face, e); break;
-    case 'buzzer': if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'grumblin': { const c = lvl.cast && lvl.cast.grumblin; (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
+    case 'turkey': drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
+    case 'snaily': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
+    case 'shell': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
+    case 'thorny': (lvl.cast && lvl.cast.thorny === 'porcupine' ? drawPorcupine : drawThorny)(x - 1, y - 3 - spookHop(e), tt, face, e); break;
+    case 'buzzer': if (e.as === 'gull') drawGull(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'crow') drawCrow(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'gull') drawGull(x - 1, y - 2, tt, face); else if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
     case 'firebar': for (let i = 0; i <= e.len; i++) drawFireball(x + Math.cos(e.ang) * i * 8, y + Math.sin(e.ang) * i * 8, t + i * 0.05); break;
@@ -5551,6 +6026,7 @@ function drawEnt0(e, t) {
       break;
     }
     case 'plat': case 'fall': {
+      if (e.on && drawShipPart(e, t)) break;
       if (e.look && drawPlatLook(e, t)) break;
       const sx = e.st === 'shake' ? Math.sin(t * 60) * 0.8 : 0;
       if (lvl.theme === 'bog' || e.k === 'fall') {
@@ -5571,7 +6047,8 @@ function drawEnt0(e, t) {
       ['#ff5a5a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(x + 3, yy + i * 1.2, 10, 1.3); });
       break;
     }
-    case 'gem': drawGem(x - 1, y - 1, t); break;
+    case 'gem': collectIcon()(x - 1, y - 1, t); break;
+    case 'friend': drawFriend(e, t); break;
     case 'warp': case 'exit': {   // a little bouncing arrow over a hollow tree when Leo's close: press S to go in
       const near = player && Math.abs(player.x + player.w / 2 - (x + 16)) < 40 && Math.abs(player.y + player.h - (y + 4)) < 60;
       if (near && !pipe) { const by = y - 22 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 10, by); g.lineTo(x + 22, by); g.lineTo(x + 16, by + 8); g.closePath(); g.fillStyle = '#ffe14a'; g.fill(); }
@@ -5591,7 +6068,7 @@ function drawEnt0(e, t) {
       g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
       g.restore(); break;
     }
-    case 'boat': if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
+    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
     case 'heron': drawHeron(e, tt, FLAMINGOS.has(lvl.theme)); break;
     case 'snake': drawSnake(e, tt); break;
     case 'gator': drawGator(x, y, tt, face, e.w + 2); break;
@@ -5741,6 +6218,12 @@ function drawEnt0(e, t) {
 const US_SHAPES = {AL:'6416,3840 476,-43 133,473 71,129 -37,102 49,187 -501,52 -4,30 48,39 12,55 -26,37 -85,19 39,-18 -57,-85 -18,85 -51,-7 -43,-345 15,-688',AK:'991,5699 31,-40 13,11 12,21|933,5754 38,-10 19,-37 41,-1 7,43 -78,55 15,-33 -21,25|442,5475 53,-8 14,18 1,27 -26,8|313,6008 79,-40 -12,21 20,-1 -34,21|507,5045 132,-50 18,2 -5,42 91,-2 -46,-55 29,37 6,-43 -67,-20 -71,-112 21,-36 80,-8 58,-86 114,-33 26,-30 32,10 -10,25 25,-23 22,29 52,-5 10,31 65,-10 127,30 44,-21 69,27 144,727 72,-20 91,97 58,-89 222,197 85,10 23,93 -21,19 -35,-76 13,49 -37,-14 -3,-30 -13,30 -6,-49 -11,30 -19,-13 12,-33 -72,-37 -18,-39 22,4 -52,-42 -22,10 -59,-72 44,81 -76,-43 -14,9 46,31 -23,19 -150,-72 4,-42 -24,34 -104,-13 -66,34 18,-22 -35,-27 -35,-7 -35,28 31,-28 -36,-8 19,-11 -19,-19 -56,31 -2,-21 13,49 0,40 -14,-15 -40,26 -2,-21 -10,39 -79,42 29,-51 -35,3 15,-77 38,-27 50,10 -39,-20 23,-25 -45,15 -132,157 -2,28 36,12 -38,58 -181,126 -10,39 -126,39 -15,-22 -20,38 -28,-20 -1,27 -29,-10 4,31 -85,7 19,-32 56,6 78,-70 45,-6 -2,23 24,0 -1,-39 78,-37 45,-59 35,-103 -48,19 -12,-32 -20,48 -54,-59 -63,34 -9,-130 -72,16 -40,-60 21,-38 -29,-70 78,-99 47,19 32,-30 40,3 15,-20 -20,-54 27,-21 -12,-17 -60,40 -9,-26 -104,-13 -13,-47 20,-7|344,5178 9,-17 41,18 45,56 -31,10|1849,5731 1,-33 50,20 58,75 -33,-3 -29,-15 24,38|1803,5672 51,-29 33,24 -23,12 -25,6 -5,47|1746,5559 59,48 -14,53|1739,5648 33,-14 29,89|1691,5614 24,-36 44,26 12,23 -34,-5 1,26',AZ:'1451,4070 52,-19 -1,-43 -32,-22 5,-47 49,-48 15,-86 89,-69 -39,-43 -21,-131 27,-248 71,1 34,34 26,-34 34,-182 886,147 -178,1283 -386,-58 -659,-388',CO:'2771,2372 843,93 339,25 -14,229 -42,688 -172,-13 -1079,-114',FL:'7937,6042 68,-65 46,24|7108,4688 34,62 516,-35 15,45 24,-4 3,-107 101,12 69,202 176,247 20,109 155,271 17,255 -20,-8 -11,93 33,-52 -2,25 -74,129 33,-71 -142,28 -49,-111 -87,-24 -54,-112 -35,-29 -16,13 -22,-42 18,1 -6,-65 -31,58 -121,-169 18,1 36,-91 -27,16 -32,-37 27,45 -23,49 -32,-58 -12,-73 20,34 9,-88 -17,-105 -30,-51 -49,10 -147,-162 -71,-32 -48,7 -10,48 -146,58 24,19 59,-39 -64,48 -63,-10 -17,-62 -169,-74 -104,-1 -147,40 26,-37 -12,-55 -48,-39 4,-30',GA:'6892,3797 235,-29 222,-31 -32,78 94,39 72,108 230,182 101,190 47,12 -47,77 -1,121 -30,58 16,-3 2,62 -101,-12 -3,107 -24,4 -15,-45 -516,35 -34,-62 -49,-187 37,-102 -71,-129',IN:'6403,2298 46,16 70,-38 339,-22 67,589 10,73 -106,25 7,41 -65,69 -30,77 -59,-49 -38,82 -47,-25 -44,51 -86,-37 0,33 -54,-16 -19,30 0,-94 74,-137 -33,-87 15,-43',KS:'3939,2719 1160,33 66,25 8,37 -38,44 50,74 41,12 2,494 -1331,-31',ME:'9102,1501 -66,-66 -127,-411 39,7 -5,-38 30,-5 -21,-25 48,-102 -23,-64 14,-122 68,-199 29,-1 37,48 72,-64 100,38 90,302 59,0 15,71 34,27 25,-16 43,45 -13,68 -35,2 -13,60 -34,-13 -30,60 -24,-6 8,33 -33,7 -8,-40 -27,16 19,85 -63,-97 -25,25 17,103 -31,36 -23,-17 -4,30 -93,63',MA:'9183,1883 30,-39 25,16|8710,1676 131,-28 188,-41 66,-59 17,37 31,-1 -37,38 -6,64 50,4 67,87 71,-26 -26,-51 -26,0 31,-3 43,71 -4,30 -9,-22 -50,23 -86,77 39,-43 -21,-39 -51,70 -23,-36 -7,-7 -43,-61 -67,20 -276,60',MN:'4795,707 313,1 -1,-86 30,3 49,140 121,23 8,25 122,-28 54,17 -11,18 31,2 23,51 15,-31 32,-2 77,67 102,-50 21,32 195,6 -205,116 -182,183 13,17 -43,12 5,133 -88,84 -1,33 38,26 -20,160 230,163 40,111 -857,19 2,-409 -64,-70 47,-74',NJ:'8492,2458 5,-14 11,-30 98,-106 -107,-100 16,-47 -19,-23 54,-98 151,50 -9,74 -3,8 -23,42 49,1 17,158 -88,213 -18,4 3,-52 -43,5 -82,-48 -10,-32',NC:'7555,3340 1033,-181 96,158 -116,-148 55,95 -30,-34 7,17 -21,-1 -35,-18 29,28 -72,8 32,12 -34,30 -31,-3 -13,-52 -5,32 24,44 106,-35 19,74 20,-79 30,32 2,54 -54,70 -63,4 -25,-27 22,-15 -30,16 15,26 -86,-13 112,37 -46,79 -34,-3 43,11 45,-44 37,7 -28,82 -22,-20 -6,19 30,7 68,-109 -68,124 -30,-18 -63,20 -88,79 -46,136 -106,20 -247,-177 -205,31 -1,-27 -34,-34 -17,17 -4,-24 -248,23 -123,67 -222,31 -1,-54 47,-22 19,-54 154,-79 55,-76 17,24 43,-48 46,-4 17,-44 33,-13',ND:'3769,657 1026,50 96,692 -1180,-56',OK:'3725,3394 172,13 1331,31 2,115 38,252 -4,402 -140,-72 -10,19 -153,7 -45,37 -45,-46 -33,14 -44,-29 -33,48 -7,-41 -41,22 -48,-39 -34,31 -46,-71 -68,19 -130,-38 -34,-57 -4,18 -55,-3 -55,-43 19,-444 -542,-31',PA:'7561,2090 114,-87 11,61 723,-143 54,32 34,71 53,16 -54,98 19,23 -16,47 107,100 -98,106 -59,32 -626,123 -178,30 -34,-207',SD:'3691,1557 20,-214 1180,56 -47,74 64,70 -2,409 -24,0 26,87 -33,80 31,64 -127,-82 -101,-7 -35,23 -75,-55 -915,-52',TX:'3716,3508 542,31 -19,444 55,43 55,3 4,-18 34,57 130,38 68,-19 46,71 34,-31 48,39 41,-22 7,41 33,-48 44,29 33,-14 45,46 45,-37 153,-7 10,-19 140,72 84,18 2,122 5,232 43,51 -2,40 65,129 -40,111 10,111 -42,54 17,29 -184,78 55,-38 -56,-1 4,-57 -41,19 15,89 -53,45 85,-51 -453,323 -78,191 42,220 -41,-107 3,-179 58,-126 128,-113 -47,23 -18,-21 -32,64 -21,-15 -36,22 38,-5 -33,65 -61,-15 47,43 -33,85 -20,10 -1,-20 -23,27 42,-3 -7,146 59,148 -62,23 -41,-39 -123,-14 -169,-78 -70,-144 -8,-122 -72,-56 -9,-41 -70,-72 -69,-191 -136,-154 -181,-37 -10,23 -60,6 -44,106 -52,55 -61,-18 -194,-145 -69,-234 -86,-65 -195,-233 -12,-51 678,63',WY:'3691,1557 -38,453 -39,455 -843,-93 -336,-50 37,-226 88,-557 18,-119',CT:'8712,1840 276,-60 29,155 -170,49 -106,99 -18,-23 34,-34',MO:'5020,2619 689,-23 56,51 -13,58 29,90 116,104 30,86 22,-24 61,23 -34,148 157,111 21,67 -16,24 29,55 45,10 0,73 -43,41 -13,2 -12,-18 3,18 4,52 -29,6 20,28 -23,30 -117,9 50,-67 -16,-51 -806,31 -2,-115 -2,-494 -41,-12 -50,-74 38,-44 -8,-37 -66,-25',WV:'7332,2948 47,-13 35,-140 26,32 20,-14 4,-82 34,-37 39,0 51,-64 21,-164 -20,-56 22,-18 34,207 178,-30 18,116 56,-71 26,2 19,-49 62,16 41,-49 63,10 31,59 -10,46 -103,-58 3,69 -63,106 -26,-16 -37,109 -65,-30 -78,222 6,42 -28,24 -68,10 -3,27 -54,27 -28,-19 -51,39 -63,-69 -62,-21 -45,-55 -32,-49',IL:'5765,2647 0,-38 47,-31 24,-60 -29,-71 9,-39 97,-31 42,-67 0,-72 -85,-84 472,-30 -2,44 63,130 47,538 -15,43 33,87 -74,137 0,94 -21,34 17,42 -68,25 9,71 -100,-27 -19,57 -45,-10 -29,-55 16,-24 -21,-67 -157,-111 34,-148 -61,-23 -22,24 -30,-86 -116,-104 -29,-90',NM:'2646,3280 1079,114 -9,114 -87,1025 -678,-63 12,51 -321,-39 -13,102 -161,-21',AR:'5230,3553 806,-31 16,51 -50,67 117,-9 18,21 -53,42 8,51 -22,-7 -1,33 -21,-3 23,64 -43,35 12,20 -42,8 7,29 -21,6 20,13 -23,2 5,59 -63,48 22,6 -25,12 14,24 -37,14 21,43 -29,15 22,11 -37,1 19,18 -17,36 33,1 -15,98 -544,16 -2,-122 -84,-18 4,-402',CA:'566,3550 70,28 -41,8|326,1600 679,192 -172,663 735,1107 21,131 39,43 -89,69 -15,86 -49,48 -5,47 32,22 1,43 -52,19 -456,-53 -30,-194 -86,-113 -58,-17 -4,-68 -107,-44 -60,-88 -162,-50 -23,-38 33,-124 -34,-24 5,-56 -53,-68 -68,-172 3,-62 30,-9 11,-63 -41,-17 -37,-67 19,-135 20,-1 -6,50 46,46 -35,-131 31,-25 -32,-10 -25,62 -70,-64 23,-57 -84,-180 39,-206 -55,-120 4,-41 88,-114',DE:'8449,2446 59,-32 -11,30 -4,49 75,114 45,20 24,76 -111,22',DC:'8259,2670 11,-17 27,19 -18,27',HI:'3054,5845 48,-53 -5,-67 125,58 80,99 17,21 -146,78 -35,50 -54,-46 7,-48|2916,5579 23,-25 25,31 52,-8 52,47 -83,32 -18,-45|2916,5667 27,-17 5,20|2839,5583 35,-3 13,34 -28,7|2786,5538 10,-26 105,9 -23,29|2581,5430 66,-30 67,94 -99,-1|2261,5326 49,-44 44,4 11,24 -32,53|2163,5366 29,-33 6,23 -27,26',IA:'4906,1952 857,-19 29,54 -18,29 25,89 57,19 14,30 85,84 0,72 -42,67 -97,31 -9,39 29,71 -24,60 -47,31 0,38 -56,-51 -689,23 -21,-34 -6,-166 -29,-20 -5,-97 -53,-119 -31,-64 33,-80 -26,-87',KY:'6212,3399 19,-57 100,27 -9,-71 68,-25 -17,-42 21,-34 19,-30 54,16 0,-33 86,37 44,-51 47,25 38,-82 59,49 30,-77 65,-69 -7,-41 106,-25 -10,-73 60,-11 54,66 100,29 23,-21 44,18 64,-45 62,69 0,59 32,49 45,55 62,21 -181,210 -92,45 -790,67 6,41 -245,18 43,-41',MD:'7823,2569 626,-123 77,279 111,-22 -12,102 -70,33 -39,15 -14,-99 -41,38 -47,-51 11,-34 39,6 -48,-29 -13,14 13,-59 -26,24 4,-46 25,5 -26,-29 36,-60 -3,-44 -34,56 -9,-21 2,34 -17,-18 -5,48 -28,-10 45,49 -18,61 76,154 -108,-52 8,23 -16,-6 -23,-31 -38,22 10,-60 8,-39 18,-27 -27,-19 -11,17 -120,-67 -31,-59 -63,-10 -41,49 -62,-16 -19,49 -26,-2 -56,71',MI:'6519,2276 79,-174 -9,-122 -65,-137 25,-246 99,-125 -9,87 11,13 13,-52 -2,56 12,-121 69,-36 -37,-36 12,-45 37,-11 213,72 46,71 -29,2 38,67 2,86 -80,107 7,56 44,10 29,-77 75,-44 53,47 63,188 -6,86 -24,24 6,-35 -28,7 -80,223 -225,37|6014,924 103,-75 19,-5 -22,25 -48,48|5853,1231 216,-112 82,-91 66,-30 42,13 -73,50 -30,105 45,-51 -19,32 58,-22 91,83 87,8 100,-64 148,-37 34,-5 -2,66 67,7 69,-35 10,67 -19,15 65,33 4,-25 38,-2 16,35 -136,17 -47,-22 -8,50 -45,-33 -83,-10 -25,32 -91,14 -45,81 -18,-16 23,-49 -37,10 -22,40 -15,-31 -75,176 -25,-15 3,-50 -29,5 9,-68 -51,-21 -4,-31 -324,-70',MS:'5894,4331 15,-98 -33,-1 17,-36 -19,-18 37,-1 -22,-11 29,-15 -21,-43 37,-14 -14,-24 25,-12 -22,-6 63,-48 -5,-59 23,-2 -20,-13 21,-6 -7,-29 42,-8 -12,-20 388,-27 21,22 -15,688 43,345 -174,28 -6,-16 -37,47 -72,-105 20,-77 -370,20 -4,-61 24,-3 -13,-28 20,7 -9,-37 20,-10 -22,-9 81,-96 -17,-9 28,-24 -30,-7 50,-33 -45,-33 25,-4 -9,-34 -24,3 17,-21 -20,-3 15,-34 -4,-20 -23,12',MT:'1981,390 864,158 924,109 -58,686 -20,214 -1113,-137 -18,119 -45,-72 -24,45 -124,-27 -21,24 -61,-19 -15,26 -29,-101 -47,-30 -25,-175 -23,-28 -65,44 -29,-29 82,-234 -66,-25 -60,-141 -55,-54 17,-1 -2,-55 -35,-72',NH:'8861,1105 -3,-51 51,-30 127,411 66,66 -7,47 -66,59 -188,41 -24,-31 -11,-159 25,-128 -13,-51 61,-58',NY:'7675,2003 128,-142 -55,-101 90,-43 160,2 116,-41 82,-79 -27,-55 24,-19 -46,-22 3,-39 136,-185 58,-48 232,-53 63,319 17,-14 15,20 39,173 2,164 45,186 -34,34 18,23 -11,47 41,-45 138,-43 56,-55 -9,19 39,12 36,-23 -197,149 -117,49 -25,-29 9,-74 -151,-50 -53,-16 -34,-71 -54,-32 -723,143',OH:'6858,2254 225,-37 173,57 119,-42 67,-73 119,-69 50,302 -22,18 20,56 -21,164 -51,64 -39,0 -34,37 -4,82 -20,14 -26,-32 -35,140 -47,13 -62,-69 -64,45 -44,-18 -23,21 -100,-29 -54,-66 -60,11',OR:'710,702 85,67 -5,99 59,43 89,-12 73,20 17,28 92,-8 33,20 234,-11 318,76 52,99 -183,243 43,67 -38,72 -90,402 -484,-115 -679,-192 2,-201 126,-192 129,-311 55,-207 19,22',TN:'6119,3631 23,-30 -20,-28 29,-6 -4,-52 9,0 13,-2 245,-18 -6,-41 790,-67 357,-47 2,58 -33,13 -17,44 -46,4 -43,48 -17,-24 -55,76 -154,79 -19,54 -47,22 1,54 -235,29 -476,43 -388,27 43,-35 -23,-64 21,3 1,-33 22,7 -8,-51 53,-42',UT:'1977,2011 495,85 -37,226 336,50 -125,908 -886,-147',VA:'8555,2838 70,-33 -83,237 -16,-76|7471,3132 63,69 51,-39 28,19 54,-27 3,-27 68,-10 28,-24 -6,-42 78,-222 65,30 37,-109 26,16 63,-106 -3,-69 103,58 10,-46 120,67 20,29 -8,39 -20,2 7,69 38,-22 23,39 63,3 77,44 -8,67 -111,-62 82,68 42,3 16,55 -29,-15 18,26 -24,11 41,20 4,29 -17,12 -54,-49 -53,8 47,-2 50,61 81,-25 44,79 -1033,181 -357,47 92,-45',WA:'950,310 35,-33 8,29 -35,10 13,50 12,-15 12,36 -28,-11|910,212 30,17 19,-30 10,25 -22,41|1836,359 -135,582 4,83 -318,-76 -234,11 -33,-20 -92,8 -17,-28 -73,-20 -89,12 -59,-43 5,-99 -85,-67 -80,-26 25,-78 1,60 41,-68 -38,-18 4,-36 44,3 -32,-32 -17,22 16,-338 95,80 120,36 31,49 26,-27 7,62 -115,91 39,4 -31,-10 120,-86 -42,134 -12,12 -11,-30 -10,46 0,-51 -15,12 18,44 34,-40 33,2 4,-71 50,-61 -10,-61 -5,37 -18,-22 27,-37 -34,-40 34,6 15,-26 -5,-42 -23,3 4,-61',WI:'5602,1211 181,-65 14,15 -27,67 32,-23 51,26 50,49 324,70 4,31 51,21 -9,68 29,-5 -3,50 25,15 -55,91 -7,35 19,5 45,-72 32,-8 21,-72 26,-31 13,16 -93,314 -17,145 34,171 -472,30 -14,-30 -57,-19 -25,-89 18,-29 -29,-54 -40,-111 -230,-163 20,-160 -38,-26 1,-33 88,-84 -5,-133',NE:'3653,2010 915,52 75,55 35,-23 101,7 127,82 53,119 5,97 29,20 6,166 21,34 79,133 -1160,-33 14,-229 -339,-25',SC:'7349,3737 123,-67 248,-23 4,24 17,-17 34,34 1,27 205,-31 247,177 -65,61 -53,157 -41,7 -63,104 -84,39 8,40 -56,15 21,14 -34,48 -47,-12 -101,-190 -230,-182 -72,-108 -94,-39',ID:'1705,1024 -4,-83 135,-582 145,31 -48,225 35,72 2,55 -17,1 55,54 60,141 66,25 -82,234 29,29 65,-44 23,28 25,175 47,30 29,101 15,-26 61,19 21,-24 124,27 24,-45 45,72 -88,557 -495,-85 -488,-104 90,-402 38,-72 -43,-67 183,-243',NV:'1005,1792 484,115 488,104 -217,1122 -34,182 -26,34 -34,-34 -71,-1 -27,248 -735,-1107',VT:'8576,1178 285,-73 18,116 -61,58 13,51 -25,128 11,159 24,31 -131,28 -39,-173 -15,-20 -17,14',LA:'5350,4347 544,-16 -8,17 23,-12 4,20 -15,34 20,3 -17,21 24,-3 9,34 -25,4 45,33 -50,33 30,7 -28,24 17,9 -81,96 22,9 -20,10 9,37 -20,-7 13,28 -24,3 4,61 370,-20 -20,77 72,105 -58,57 48,12 19,-47 25,37 29,-16 -31,33 17,17 -72,49 141,77 -24,45 -24,-19 -30,37 23,-59 -25,14 -88,-38 -72,58 -45,-57 -82,71 -20,-27 -64,-12 1,-26 30,23 -3,-20 -41,-9 -6,-27 -19,10 -35,-58 -51,7 9,-27 -72,20 33,37 -55,15 -170,-49 -130,22 -17,-29 42,-54 -10,-111 40,-111 -65,-129 2,-40 -43,-51',RI:'9017,1935 -29,-155 67,-20 43,61 -5,19 -26,-28 9,95'};
 const US_POLYS = {};   // each state: rings of [x, y] (each ring is stored as differences from the point before, in tenths)
 for (const [k, v] of Object.entries(US_SHAPES)) US_POLYS[k] = v.split('|').map(r => { let x = 0, y = 0; return r.split(' ').map(p => { const [a, b] = p.split(','); x += +a; y += +b; return [x / 10, y / 10]; }); });
+// the neighbours, Canada and Mexico, as land (from Natural Earth via world-atlas, in the same projection, stored the same way), and the
+// Great Lakes and a few big border lakes, cut back out of Canada's side (its outline runs down their middles)
+const NEIGHBOUR_SHAPES = {"CAN":"18,-1394 43,24 6,36 -73,42 48,12 35,-68 69,2 -63,75 -52,85 -50,-2 -37,-32 6,-22 33,20 -41,-57 9,-114 19,-28|59,-1158 -6,61 -48,-8 54,63 -28,18 35,98 -40,-20 -54,-150 20,-43 -42,-49|480,-403 217,147 40,197 99,102 31,160 21,-14 1,50 -50,16 -72,-48 -124,-115 75,-82 -30,37 -86,-9 -38,-49 33,-11 -40,-28 13,-32 -32,-14 -51,-12 4,-33 70,-8 -52,-28 -38,-65 -34,3 0,-61 -21,14 -8,-30 -58,-11 17,-69 56,28 16,-36 -89,-11 -26,-56 14,-18 58,5|5134,-1600 -20,124 86,72 -4,87 25,-92 122,-1 107,292 -46,86 220,-78 69,0 239,72 192,153 252,66 68,47 -14,60 37,-49 154,-25 212,24 32,52 -10,126 52,86 4,173 116,115 -25,50 39,-8 143,84 44,76 -49,67 47,-49 55,-3 128,94 -67,-68 -5,-50 46,-70 72,81 13,-69 -47,-54 57,-119 -147,-284 -1,-81 -35,-11 11,-17 -96,-94 236,-179 105,-175 13,-82 -39,-170 -51,-93 -59,-65 -198,-101 2501,0 -12,83 76,-83 64,1 -22,93 38,-94 55,0 40,34 53,-7 18,-27 109,4 7,44 -67,50 -36,86 -136,106 -23,65 -37,1 52,19 -12,57 159,-232 82,-61 -50,16 6,-30 105,-29 68,58 -35,58 37,18 40,-81 46,-27 115,50 70,136 -59,51 82,-20 5,24 -33,7 65,33 -108,213 -199,132 -97,265 -236,143 -37,-17 -116,27 -521,200 -49,66 -18,157 -121,72 -139,274 -213,-1 204,27 -10,87 -70,160 -64,97 -87,48 -140,148 -51,122 -74,73 -44,3 62,29 -165,142 -127,180 -73,158 -305,60 -66,49 64,117 -15,28 -181,132 -164,63 -175,150 -42,6 -61,-28 -29,-67 84,-123 36,-224 -124,-390 -178,-83 14,-43 -27,-24 -55,15 -40,-100 -62,27 -61,-94 -568,-261 -159,81 -198,-12 -28,-22 -90,38 -76,-51 -62,8 -15,-35 -77,-37 -107,22 -139,-46 -50,-135 -32,-4 0,84 -421,-2 -771,-37 -831,-86 -1077,-186 -749,-180 -263,-73 -20,-25 -22,15 -5,-67 60,-15 -61,-5 34,-68 -67,46 -58,-66 13,-26 16,39 39,-10 -38,-24 34,-85 -15,-14 -25,64 -49,10 -55,-75 -12,-97 58,-88 -52,68 -60,-16 2,-34 -27,33 -61,-27 -43,-35 83,0 -86,-23 30,-26 -18,-13 14,-40 -26,24 -62,-9 -70,-91 73,-82 106,14 -88,-31 -58,34 -14,-51 45,-105 60,-18 29,1 48,95 -37,-105 54,-50 -3,-23 -20,38 -124,42 -78,89 -8,-89 55,-18 30,-43 -58,23 69,-103 -48,3 2,-73 -57,-73 1,-39 54,-20 -17,28 91,65 17,39 -22,-56 -56,-36 2,-44 38,-12 -57,-17 -70,73 -53,19 -61,-116 65,-87 62,0 -64,-12 -26,-66 190,-169 -22,-30 -71,89 53,-149|10370,396 32,-22 -6,71 44,-29 22,-62 -39,19 35,-100 20,20 60,-11 18,42 -37,63 -57,59 -89,39 -61,-66 22,-216 51,-69 33,51 15,108|9524,877 -37,11 -39,-90 -64,-10 -91,-293 -92,-36 -84,59 -30,-42 -31,0 -68,196 6,188 -49,163 -72,14 -14,70 -496,123 157,-135 30,-144 130,-159 212,-169 170,-360 271,-262 162,-85 85,-12 101,30 16,21 -46,8 50,19 4,62 -102,130 -108,-4 -102,72 47,-24 85,8 52,40 76,-68 52,11 -10,41 6,46 -41,77 75,-15 1,40 101,121 99,-17 17,8 -27,30 65,17 159,-29 -1,23 42,-9 59,-82 44,35 39,-22 30,16 21,24 -20,26 54,-16 13,18 -287,255 -49,7 14,44 -71,-15 -4,40 -33,-4 18,46 -126,239 -43,4 -40,-43 -38,8 -34,-68 20,-109 -29,26 189,-264 71,51 -8,-43 98,-70 -226,81 48,-132 -22,14 -33,-22 1,74 -138,145 -40,-9 5,-26 -40,90 -64,27|10673,-1090 -2,38 -55,38 58,46 -32,252 23,98 42,-141 18,35 85,-49 -53,113 32,-26 -9,57 93,-51 15,22 3,-35 23,95 74,-145 26,37 9,-28 80,-28 48,38 -46,110 40,-25 -6,29 40,-13 -30,86 119,-124 14,15 1,43 -47,70 17,22 -34,33 32,-14 1,72 38,-3 12,-89 35,-54 28,145 27,-23 1,-55 3,285 -55,-104 -28,90 -27,3 -9,-136 -49,-55 -39,-8 3,113 -12,-30 -38,57 -20,128 -63,39 -32,-23 46,-57 53,-148 -81,38 -11,53 -82,27 29,-35 -20,-47 -106,110 -235,60 -73,67 -50,7 -37,-57 92,-181 -121,41 30,-58 -1,23 31,0 2,-118 66,-4 -23,-13 3,-38 -31,6 -15,-25 14,-44 36,-2 -38,-35 -3,-194 25,-37 -23,-10 7,-79 19,-86 66,-86 53,-1 -7,-23|10017,-229 -147,36 -126,-9 -64,-39 -90,-8 19,-34 212,-19 179,34 28,24|9929,432 12,-26 92,0 137,-66 26,7 -57,74 17,48 -79,7 14,-19 -28,-30 -31,44 -60,3 -30,-29 -54,12 -17,-36 -46,-6 33,-100 7,66|7138,-297 -186,-30 9,-35 105,-25|7254,-1090 -17,86 -14,-69 -24,73 -38,26 25,-71 -46,61 -15,-11 51,-111 11,40 10,-87|308,-1056 -59,-111 15,-14 51,65 11,48|463,-947 -26,89 -39,40 26,-102 -28,11 -10,-23 -4,-56 42,-52 41,54","MEX":"994,4017 456,54 -30,42 668,395 540,76 14,-101 336,43 267,298 80,238 215,148 76,-43 38,-95 80,-45 188,40 134,160 64,171 152,183 6,111 66,140 353,137 47,-19 -113,351 -23,322 -25,71 18,115 95,122 -21,64 6,-65 -78,-103 119,291 157,188 37,116 104,129 142,11 79,38 440,0 33,-30 163,-29 15,40 86,12 56,-40 -18,-59 -21,3 149,-109 5,-83 42,-51 -3,-168 20,-67 35,-27 436,-141 192,20 12,-23 -42,3 53,-20 70,37 3,119 -108,155 3,81 -50,55 11,17 48,-11 -47,55 3,21 33,-10 -49,209 -16,20 -39,-43 -14,-76 -43,83 -50,10 -19,47 -3263,0 -50,-20 -124,-139 -189,-105 -106,-157 -31,-93 93,-34 -11,-40 -35,-9 62,-69 15,-82 -46,-33 -38,-86 9,-74 -25,-70 -211,-304 -157,-152 46,31 7,-28 -88,-40 -55,-112 48,9 -125,-87 -13,-37 -52,6 38,-53 -90,11 -11,-92 54,-55 16,14 -25,-67 -36,-45 -55,-6 -25,-90 -99,-70 -17,-79 25,-44 -114,-42 -92,-130 -74,-138 -75,-236 -39,-194 28,-84 -103,-57 -17,-53 -32,-22 -43,20 -131,-118 16,62 -40,106 13,266 126,176 31,108 53,38 10,69 40,27 3,138 69,81 61,204 29,27 -7,-69 38,46 23,213 91,224 -12,117 52,63 30,-51 148,217 -26,68 -115,43 -52,-168 -241,-254 -25,-1 -50,-97 33,-140 -37,-153 -116,-105 -12,-85 -30,30 -68,4 -39,-64 -109,-79 -10,-51 -76,-85 -4,-26 90,32 57,-9 -5,21 42,31 -28,-65 65,-101 -133,-239 -124,-120 -25,-249 -37,-46 5,-53 -45,-94 -3,-41 25,-21 -35,-42|1777,4990 -24,50 -43,-25 21,-70 39,-10"};
+const LAKE_SHAPES = "7124,2084 6,49 48,10 30,-13 25,20 11,-41 82,-61 3,13 16,-46 47,-49 59,-17 159,1 -60,-4 31,-44 74,-32 112,-21 19,-18 -30,-36 29,11 14,52 -88,110 -121,102 -139,85 -73,71 -122,45 -30,-12 -64,12 52,-25 -23,-8 -21,11 -88,-34 37,-76|4926,322 11,24 -36,-24 -6,58 -16,16 -36,-15 0,-133 46,-58 -14,-9 -31,38 -7,-13 37,-76 -21,-29 -33,18 -21,44 -7,-119 -19,-11 -19,23 -4,-14 16,-32 -36,-1 -8,48 -24,-3 -31,-78 -34,-24 -63,-106 0,-13 63,-26 -63,-5 -46,-35 48,-142 88,10 53,30 -48,-47 -4,-23 40,-84 12,8 -7,12 22,4 -37,21 -18,38 20,21 46,-32 -34,24 19,71 65,136 -7,32 28,46 49,178 19,11 -2,25 62,100 -15,37|8219,1383 -71,103 49,15 -27,36 26,62 -107,95 -92,18 -109,-9 -82,23 -98,56 -66,-1 -10,-14 23,-64 72,-72 135,-55 93,-35 16,14 75,4 25,-19 -26,3 22,-39 -36,20 -8,-28 -25,23 -8,-12 -33,14 97,-37 -18,25 11,5|7129,2086 25,-31 10,-64 22,-8 5,25 37,13 0,36|6755,1326 -33,10 -13,39 9,30 21,10 -67,39 4,55 -19,62 3,-51 -20,38 4,-85 -41,60 -31,14 -7,39 -20,13 3,84 -30,62 19,58 -13,42 62,133 11,85 -12,80 -37,95 -82,69 -61,-12 -57,-107 -16,-145 -22,-100 61,-344 -15,-19 -29,7 -47,69 -17,-12 26,-76 30,-23 81,-205 15,44 25,-39 30,-8 -16,43 12,17 48,-77 57,-7 78,-47 68,20 37,24|6787,1156 12,3 -24,18 -81,-6 -4,-63 -171,41 -73,61 -64,-15 -50,9 -73,-76 -69,-8 -34,36 -6,-47 -32,-47 -104,87 -77,25 -72,48 -63,-16 -28,21 20,-70 -12,-12 -175,68 -19,-20 186,-188 193,-109 29,-26 14,-68 20,-19 45,-23 -17,51 27,-7 27,-103 16,-4 13,23 -31,68 60,-58 -22,-66 33,-6 125,39 119,-7 96,154 47,15 116,-15 -16,72 72,64 -19,74 63,15 -23,26 5,24 15,-8 -16,43 13,12|6801,1152 27,-10 17,44 102,15 174,-14 96,16 21,-17 13,8 -14,11 9,15 64,-21 15,14 43,-9 61,73 14,-9 19,48 47,-2 -5,35 21,13 -11,12 61,56 10,-14 7,23 -24,4 -20,-18 -26,17 23,32 -7,39 -63,-10 -39,-28 -34,31 -4,-37 -37,8 18,-49 -24,16 -38,-56 1,-14 -63,9 63,53 24,73 -51,126 20,167 -48,67 -50,34 -66,-183 -41,-39 -78,39 -8,45 -22,25 -37,-1 -17,-15 3,-52 40,-27 10,-51 26,-27 -7,-93 -31,-43 2,-16 24,0 -40,-62 -216,-77 14,-61 19,11 97,-9 -29,-37 -31,-6 5,-19|5272,622 -9,37 -22,-59 -76,19 -2,12 26,-2 22,25 16,-8 43,24 -35,13 -60,54 -44,-22 -41,18 11,-63 32,-6 -5,-39 54,-53 -68,32 -7,-36 34,10 15,-25 35,-8 -15,-51 10,-9 25,56 21,12 -8,27|6162,444 -16,12 3,100 -37,19 -18,-33 -10,28 -23,-5 21,-44 -43,33 -17,-11 17,-4 -7,-39 -16,8 -8,-17 22,-5 3,-53 24,-46 36,1 24,18 -19,-30 12,2 28,29 -7,33 15,-11";
+const unpackRings = v => v.split('|').map(r => { let x = 0, y = 0; return r.split(' ').map(p => { const [a, b] = p.split(','); x += +a; y += +b; return [x / 10, y / 10]; }); });
+const NEIGHBOURS = { CAN: unpackRings(NEIGHBOUR_SHAPES.CAN), MEX: unpackRings(NEIGHBOUR_SHAPES.MEX) }, LAKES = unpackRings(LAKE_SHAPES);
 // the projection the outlines were made with (d3's Albers USA, scale 1300), so places go on the map by longitude and latitude
 const albers = (rot, cLon, cLat, p0, p1, k, tx, ty) => {
   const R = Math.PI / 180, s0 = Math.sin(p0 * R), n = (s0 + Math.sin(p1 * R)) / 2, c = 1 + s0 * (2 * n - s0), r0 = Math.sqrt(c) / n;
@@ -5785,11 +6268,13 @@ const CAPE_ARM = [[-3, 0], [14, 2.5], [32, 3], [50, 0], [55, -14], [52, -30], [4
 const at = (id, xy, name, region, more = {}) => ({ id, x: xy[0], y: xy[1], name, region, ...more });
 const soon = { soon: true };   // a level that isn't built yet: a signpost on the map
 const NODES = [
-  // World 1: New England. Out along Cape Cod, by boat up the Gulf of Maine, over the White and Green Mountains, down to
-  // Connecticut and Rhode Island, and into Boston for the Midnight Ride
+  // World 1: New England. The Mayflower sails into Provincetown (1620), across Cape Cod Bay to Plymouth, then out along
+  // the Cape, by boat up the Gulf of Maine, over the White and Green Mountains, down to Connecticut and Rhode Island, and
+  // into Boston for the Midnight Ride (1775)
+  at('voyage', CAPEXY(31, -44), 'The Mayflower', 'from Plymouth, England, to Provincetown', { year: 1620 }),
+  at('plimoth', US(-70.78, 42.12), 'Plimoth Plantation', 'Plymouth, Massachusetts', { year: 1621 }),
   at('canal', CAPEXY(1, 0), 'Bourne Bridge', 'Cape Cod, Massachusetts'),
   at('cranberry', CAPEXY(25, 3), 'Cranberry Bog', 'Cape Cod, Massachusetts'),
-  at('mayflower', CAPEXY(31, -44), 'Mayflower Landing', 'Provincetown, Cape Cod'),
   at('vineyard', CAPEXY(3, 21), "Martha's Vineyard", 'Massachusetts', { island: true }),    // the islands: secret levels
   at('nantucket', CAPEXY(46, 23), 'Nantucket', 'Massachusetts', { island: true }),
   at('shore', US(-68.35, 44.35), 'Seashell Shore', 'Acadia, Maine'),
@@ -5914,9 +6399,9 @@ const NODES = [
   at('sutter', US(-120.89, 38.8), "Sutter's Mill", 'California', { soon: true, boss: 'castle' }),
 ];
 const node = id => NODES.find(n => n.id === id);
-const START = 'canal';   // Leo's adventure starts at the Bourne Bridge, on Cape Cod
+const START = 'voyage';   // the story starts on the Mayflower, coming into Provincetown Harbor in 1620
 const WORLDS = [
-  ['canal', 'cranberry', 'mayflower', 'shore', 'lighthouse', 'snow', 'cog', 'maple', 'caves', 'gillette', 'mystic', 'newport', 'slater', 'midnight'],
+  ['voyage', 'plimoth', 'canal', 'cranberry', 'shore', 'lighthouse', 'snow', 'cog', 'maple', 'caves', 'gillette', 'mystic', 'newport', 'slater', 'midnight'],
   ['liberty', 'city', 'niagara', 'edison', 'boardwalk', 'independence', 'chocolate', 'firststate', 'horseshoe', 'mchenry', 'crabdocks', 'mall', 'smithsonian'],
   ['luray', 'jamestown', 'kittyhawk', 'blackbeard', 'rainbowrow', 'sweetgrass', 'savannah', 'orchard', 'castillo', 'glades', 'reef', 'canaveral'],
   ['mobile', 'rocket', 'blues', 'river', 'quarter', 'bayou', 'diamonds', 'hotsprings', 'musiccity', 'mammoth', 'derby', 'fireflies', 'gorge', 'mothman'],
@@ -5932,16 +6417,16 @@ const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WOR
 const ROUTE = WORLDS.flat().filter(id => !SIDE_TRIPS[id]);
 const PATHS = [...ROUTE.slice(1).map((id, i) => [ROUTE[i], id]), ...Object.entries(SIDE_TRIPS).map(([id, from]) => [from, id]),
   ['caves', 'bonus'], ['canaveral', 'space'],
-  ['canal', 'vineyard', 'secret'], ['cranberry', 'nantucket', 'secret'], ['shore', 'snow', 'secret'], ['caves', 'slater', 'secret'],
+  ['canal', 'vineyard', 'secret'], ['cranberry', 'nantucket', 'secret'], ['voyage', 'nantucket', 'secret'], ['shore', 'snow', 'secret'], ['caves', 'slater', 'secret'],
   ['orchard', 'glades', 'secret'], ['glades', 'canaveral', 'secret'], ['mobile', 'quarter', 'secret']];
 const pathReady = ([a, , sec]) => !sec || !!save.secrets[a] || !!save.unlockAll;
 // most of the trip is on foot; a few legs are by boat, plane or rocket
 const FLIGHT_PATHS = new Set(['needle|iditarod', 'lights|waves', 'kilauea|goldengate', 'canaveral|space']);
-const SEA_PATHS = new Set(['mayflower|shore', 'midnight|liberty', 'canal|vineyard', 'cranberry|nantucket']);
+const SEA_PATHS = new Set(['voyage|plimoth', 'cranberry|shore', 'voyage|nantucket', 'midnight|liberty', 'canal|vineyard', 'cranberry|nantucket']);
 // a few trails are bent by hand: the boats keep to the sea, and the flights swing round each other
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
-bend('mayflower|shore', US(-69.0, 43.0)); bend('midnight|liberty', US(-71.2, 40.0)); bend('canal|vineyard', CAPEXY(-4, 11)); bend('cranberry|nantucket', CAPEXY(40, 12));
+bend('voyage|plimoth', CAPEXY(10, -40)); bend('cranberry|shore', CAPEXY(78, -34)); bend('voyage|nantucket', CAPEXY(78, 4)); bend('midnight|liberty', US(-71.2, 40.0)); bend('canal|vineyard', CAPEXY(-4, 11)); bend('cranberry|nantucket', CAPEXY(40, 12));
 bend('caves|slater', US(-71.9, 42.9)); bend('shore|snow', US(-69.9, 44.9));
 bend('needle|iditarod', [10, 330]); bend('lights|waves', [215, 520]); bend('kilauea|goldengate', [175, 420]);
 const pathCtrl = pth => {
@@ -5982,6 +6467,30 @@ const mapLeo = { at: START, x: node(START).x, y: node(START).y, to: null, path: 
 // ---- a history fact after every win ----
 // Each level has ten "Did you know?" facts about its place, for readers about 7 to 13. Win it again and you get the next one.
 const FACTS = {
+  voyage: [
+    'The Mayflower left Plymouth, England, on September 6, 1620, with 102 passengers and about 30 sailors.',
+    'The trip across the Atlantic Ocean took 66 days. Today a plane makes it in about 7 hours!',
+    'The passengers lived crowded together below deck, in a space about as tall as a grown-up.',
+    'In a storm, a young passenger named John Howland fell overboard. He grabbed a rope and was pulled back aboard!',
+    'A baby boy was born at sea on the Mayflower. His parents named him Oceanus.',
+    'In a great storm, one of the ship\'s big beams cracked. The passengers had a large iron screw that pushed it back into place.',
+    'The Pilgrims were heading for the Hudson River, near today\'s New York City, but the shoals off Cape Cod turned them back.',
+    'Before going ashore, 41 men signed the Mayflower Compact, a promise to make fair laws together and obey them.',
+    'The Mayflower anchored first in Provincetown Harbor, at the tip of Cape Cod, on November 11, 1620.',
+    'The Pilgrims called themselves "Saints." Many came so they could worship God in their own way.',
+  ],
+  plimoth: [
+    'Plymouth was built where the Wampanoag village of Patuxet had been. Most of its people had died of a sickness brought by European sailors.',
+    'The Pilgrims\' first winter was terrible: about half of the people from the Mayflower died before spring.',
+    'Tisquantum, also called Squanto, was a Patuxet man who spoke English. He showed the Pilgrims how to plant corn and where to fish.',
+    'The Wampanoag planted the "Three Sisters" together: corn, beans and squash. The beans climb the corn, and the squash leaves keep weeds down.',
+    'Tisquantum taught the Pilgrims to put a fish in each corn hill. The fish fed the soil as it rotted.',
+    'In 1621, the Wampanoag leader Ousamequin (also called Massasoit) and the Pilgrims agreed to help and protect each other.',
+    'In the fall of 1621, the Pilgrims had a harvest feast. About 90 Wampanoag men came, and they ate and celebrated for three days.',
+    'The Wampanoag brought five deer to the harvest feast. There were probably wild ducks and geese too, and maybe turkey.',
+    'The Pilgrims built a tall fence of logs, called a palisade, all the way around their town.',
+    'Today Plimoth Patuxet Museums rebuilds the 1627 village and a Wampanoag homesite, run by Native people.',
+  ],
   canal: [
     'The Cape Cod Canal opened in 1914. Ships no longer had to sail all the way around the Cape.',
     'There are only two bridges for cars onto Cape Cod: the Bourne Bridge and the Sagamore Bridge.',
@@ -6407,6 +6916,7 @@ function mapZoom(whole) {
 function rememberSpot() { save.at = mapLeo.at; save.keep = keep; persist(); }
 let secretJustFound = null;   // (a secret exit is announced the first time it's found)
 const SECRET_TOASTS = {
+  voyage: '🧭 Secret exit! The Mayflower first tried to sail south for the Hudson River. A golden sea lane now runs past the shoals to Nantucket',
   caves: '🌟 Secret exit! A golden path now runs from Glimmer Caves straight to Rhode Island',
   canal: "⛴️ Secret exit! A ferry path now runs to Martha's Vineyard",
   cranberry: '🐋 Secret exit! A golden ferry now runs from Cranberry Bog out to Nantucket',
@@ -6419,6 +6929,7 @@ const SECRET_TOASTS = {
 const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LEVELS[id] && LEVELS[id].secretGoal);
 // ---- the Retired Levels list: older levels off the map, still playable ----
 const RETIRED_INFO = {
+  mayflower: ['⛵', 'Mayflower Landing', 'Provincetown. The Mayflower moored in the harbor (the new 1-1 sails her across the Atlantic)'],
   ptown: ['🦀', 'Provincetown Pier', 'Cape Cod. Captain Pinch, the giant crab (the old World 1 boss)'],
   fort: ['❄️', 'Frost Fortress', 'Maine. The Frost Yeti (the old World 2 boss)'],
   castle: ['🏰', 'Gillette Castle, with Sherlock Grumbles', 'Connecticut. The old World 3 boss'],
@@ -6439,6 +6950,36 @@ const RETIRED_INFO = {
   basin: ['🔦', 'Atchafalaya Basin', 'Louisiana. A swamp by firefly light'],
   sabine: ['🤠', 'Sabine River Bridge', 'the Texas line. Cowboy Grumbles (the old World 6 boss)'],
 };
+// ---- the Hart family: a new hero joins in each region (Will the Pilgrim is the first; the others come as their worlds are built) ----
+const HEROES = [
+  ['🎩', 'Will Hart, Pilgrim', 1620, 'New England', 'Throws his tall hat like a boomerang, and carries turtle shells and springs.'],
+  ['🏮', 'Patience Hart, Patriot messenger', 1776, 'the Mid-Atlantic', 'The fastest runner and the best rider. Her lantern lights up dark places.'],
+  ['⚓', 'Ben Hart, sailor', 1718, 'the Atlantic South', 'A grappling hook to swing from rigging and branches. Swims fast.'],
+  ['🪓', 'Ruth Hart, frontier scout', 1775, 'over the mountains', 'Climbs tree trunks and cliffs, and walks so quietly that bears stay asleep.'],
+  ['🛶', 'Jacques Hart, voyageur', 1790, 'the Great Lakes', 'Paddles a canoe through the water levels; snowshoes keep him on top of deep snow.'],
+  ['🌾', 'Addie Hart, pioneer', 1848, 'the Great Plains', 'Strong enough to push boulders, rides the covered wagon, and plants seeds that sprout into ledges.'],
+  ['🔨', 'Lee Hart, railroad builder', 1866, 'the Rocky Mountains', 'Drives spikes to build little bridges and ladders, and rides the handcar.'],
+  ['🤠', 'Rosa Hart, vaquera', 1870, 'the Southwest', 'Her lasso ropes enemies, pulls down far blocks, and swings from posts.'],
+  ['⛏️', 'Sam Hart, forty-niner', 1849, 'the Pacific', 'A pickaxe breaks stone and digs down; panning in streams turns up gold.'],
+];
+const heroesEl = document.getElementById('heroes');
+let heroesFrom = 'title';
+function showHeroes() {
+  if (state === 'map' && mapLeo.to) return;
+  closeFact(); heroesFrom = state; state = 'heroes'; showTouch();
+  document.getElementById('title').classList.add('hidden');
+  document.getElementById('hlist').innerHTML = HEROES.map(([icon, name, year, where, skill], i) => {
+    const here = i === 0;   // (Will is the only one so far: the others join when their regions are built)
+    return `<button type="button" ${here ? '' : 'disabled'}><span class="ri">${here ? icon : '🔒'}</span><b>${name}</b><span class="rdone">${here ? '✔' : year}</span><small>${here ? skill : `Joins in World ${i + 1}, ${where}. ${skill}`}</small></button>`;
+  }).join('');
+  heroesEl.classList.remove('hidden'); heroesEl.scrollTop = 0;
+}
+function hideHeroes() {
+  heroesEl.classList.add('hidden');
+  if (heroesFrom === 'map') goMap(mapLeo.at, true); else { state = 'title'; document.getElementById('title').classList.remove('hidden'); }
+}
+document.getElementById('btnHeroesBack').addEventListener('click', () => { RB.audio(); hideHeroes(); });
+document.getElementById('btnHeroesTitle').addEventListener('click', () => { RB.audio(); showHeroes(); });
 const retiredEl = document.getElementById('retired');
 function showRetired() {
   if (state === 'map' && mapLeo.to) return;
@@ -6612,8 +7153,13 @@ function drawMapLand() {
   g.lineJoin = 'round'; g.lineCap = 'round';
   const ring = r => { g.beginPath(); r.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); };
   const all = Object.entries(US_POLYS);
+  // Canada and Mexico: land, but quiet (the trip only crosses into them now and then), then the lakes cut out of them
+  for (const rings of Object.values(NEIGHBOURS)) for (const r of rings) { ring(r); g.lineWidth = 6; g.strokeStyle = 'rgba(140,220,255,.4)'; g.stroke(); }
+  for (const rings of Object.values(NEIGHBOURS)) for (const r of rings) { ring(r); g.lineWidth = 2; g.strokeStyle = '#e6d8a8'; g.stroke(); }
+  for (const [k, rings] of Object.entries(NEIGHBOURS)) { g.fillStyle = k === 'CAN' ? '#c4d0bc' : '#d8c8a8'; for (const r of rings) { ring(r); g.fill(); } }
+  for (const r of LAKES) { ring(r); g.fillStyle = '#3488da'; g.fill(); g.lineWidth = 0.8; g.strokeStyle = 'rgba(140,220,255,.6)'; g.stroke(); }
   // the insets' frames (Alaska and Hawaii, as on a classroom map)
-  for (const b of INSETS) { rrect(b[0] - 2, b[1] - 2, b[2] - b[0] + 4, b[3] - b[1] + 4, 8); g.fillStyle = 'rgba(255,255,255,.07)'; g.fill(); g.setLineDash([4, 3]); g.lineWidth = 1.2 / z; g.strokeStyle = 'rgba(255,255,255,.55)'; g.stroke(); g.setLineDash([]); }
+  for (const b of INSETS) { rrect(b[0] - 2, b[1] - 2, b[2] - b[0] + 4, b[3] - b[1] + 4, 8); g.fillStyle = '#2f80d0'; g.fill(); g.fillStyle = 'rgba(255,255,255,.07)'; g.fill(); g.setLineDash([4, 3]); g.lineWidth = 1.2 / z; g.strokeStyle = 'rgba(255,255,255,.55)'; g.stroke(); g.setLineDash([]); }
   for (const [, rings] of all) for (const r of rings) { ring(r); g.lineWidth = 6; g.strokeStyle = 'rgba(140,220,255,.45)'; g.stroke(); }
   for (const [, rings] of all) for (const r of rings) { ring(r); g.lineWidth = 2.4; g.strokeStyle = '#f6e2a0'; g.stroke(); }
   for (const [st, rings] of all) { g.fillStyle = stateFill(st); for (const r of rings) { ring(r); g.fill(); } }
@@ -6633,6 +7179,10 @@ function drawMapLand() {
   if (z > 0.42) for (const d of MAP_DECO) { if (!onScreen(d.x, d.y)) continue; const [sx, sy] = mapS(d.x, d.y); drawMapDeco(d, sx, sy, df, stateOpen(d.st)); }
   g.textAlign = 'center'; g.textBaseline = 'middle';
   const label = mapLabel;
+  for (const [txt, lon, lat] of [['CANADA', -98, 51.6], ['CANADA', -73.5, 48.6], ['MEXICO', -101.5, 24.2]]) {
+    const [x, y] = US_L48(lon, lat); if (!onScreen(x, y)) continue;
+    const [sx, sy] = mapS(x, y); label(txt, sx, sy, clamp(9 * Math.sqrt(z), 6, 12), 'rgba(90,100,90,.55)', 'rgba(255,255,255,.25)');
+  }
   if (mapWhole) {
     // the whole country: each world's number (and name, if there's room), a lock on the ones still to come, and how many levels are beaten
     const roomy = LW >= 340;
@@ -6759,13 +7309,13 @@ function drawMap() {
     g.save(); g.translate(0, -hop * 0.5); g.scale(0.62, 0.62);
     drawUnicorn(0, 0, mface, t, walking ? 1 : 0);
     const lsc = mbig ? 0.78 : 0.52, lh = mbig ? 28 : 16, seat = -18.6 * UNI_S + 1.5;
-    drawLeo(-mface * 3.5 - 8, seat + 8.5 * lsc - lh, mf, 'ride', mface, t, null, {});
+    drawHero(-mface * 3.5 - 8, seat + 8.5 * lsc - lh, mf, 'ride', mface, t, null, {});
     g.restore();
   } else if (mbig) {
     g.save(); g.translate(0, -hop); g.scale(0.72, 0.72);
-    drawLeo(-8, -28, mf, walking ? 'walk' : 'stand', mface, t, null, mfx);
+    drawHero(-8, -28, mf, walking ? 'walk' : 'stand', mface, t, null, mfx);
     g.restore();
-  } else drawLeo(-8, -16 - hop, 0, walking ? 'walk' : 'stand', mface, t, null, mfx);
+  } else drawHero(-8, -16 - hop, 0, walking ? 'walk' : 'stand', mface, t, null, mfx);
   g.restore();
 }
 function drawPlane(x, y, ang, s = 1) {   // a little white plane with a red stripe
@@ -6806,8 +7356,8 @@ function drawHUD() {
     const n = node(mapLeo.to || mapLeo.at), gems = save.gems[n.id] || [], wi = worldOf(n.id);
     text(wi >= 0 ? `WORLD ${wi + 1}: ${WORLD_NAMES[wi].toUpperCase()}` : 'MANIFEST DESTINY', s * 8, s * 6, 12, '#ffd23a');
     text(`${levelTag(n.id)}  ${n.name.toUpperCase()}`, s * 8, s * 20, 12, '#ffffff');
-    text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${n.soon ? '🚧 COMING SOON' : `${save.cleared[n.id] ? '✔ CLEARED  ' : ''}🌈 ${gems.filter(Boolean).length}/5`}`, s * 8, s * 31, 9, '#fff2c0');
-    text(`☘️ × ${lives}   🌈 ${gemCount()}${save.unlockAll ? (LW >= 400 ? '   🔓 ALL UNLOCKED' : '  🔓') : ''}`, s * 8, LH * s - s * 18, 12);
+    text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${n.soon ? '🚧 COMING SOON' : `${save.cleared[n.id] ? '✔ CLEARED  ' : ''}${LEVELS[n.id] && LEVELS[n.id].collect === 'corn' ? '🌽' : '🌈'} ${gems.filter(Boolean).length}/5`}`, s * 8, s * 31, 9, '#fff2c0');
+    text(`🎩 × ${lives}   🌽 ${gemCount()}${save.unlockAll ? (LW >= 400 ? '   🔓 ALL UNLOCKED' : '  🔓') : ''}`, s * 8, LH * s - s * 18, 12);
     const hint = RB.touch ? 'TAP A LEVEL · TAP AGAIN TO PLAY' : RB.pad.connected ? RB.padText('{DPAD} MOVE · {A} PLAY · {X} WHOLE MAP') : 'W A S D MOVE · SPACE PLAY · M WHOLE MAP';
     if (!RB.touch && LW >= 400) text(hint, W - s * 8, LH * s - s * 18, 10, '#ffffff', 'right');
     return;
@@ -6819,9 +7369,9 @@ function drawHUD() {
   const pill = (x, y, w, h, r = h / 2) => { rrectOn(ctx, x, y, w, h, r); ctx.fillStyle = 'rgba(14,24,40,.42)'; ctx.fill(); };
   const icon = (fn, x, y, k = 0.95) => { ctx.save(); ctx.setTransform(s * k, 0, 0, s * k, x, y + offY); const old = g; g = ctx; try { fn(); } finally { g = old; ctx.restore(); } };
   pill(s * 5, s * 5, s * 40, s * 16); pill(s * 49, s * 5, s * 44, s * 16); pill(s * 97, s * 5, s * 64, s * 16);
-  icon(() => drawClover(0, 0, 0), s * 6, s * 5); ink(String(lives), s * 24, s * 7, 12);
+  icon(() => { g.save(); g.translate(8, 12); ell(0, 0, 7.4, 1.9); paint(PILGRIM.hatDk); g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.4, -9.6); g.quadraticCurveTo(0, -11, 3.4, -9.6); g.lineTo(4.4, -0.4); g.closePath(); paint('#3a3a44'); rrect(-4.2, -3.4, 8.4, 2, 0.5); paint(PILGRIM.band); g.restore(); }, s * 6, s * 5); ink(String(lives), s * 24, s * 7, 12);
   icon(() => drawCoin(0, 0, 0), s * 51, s * 5); ink(String(coins).padStart(2, '0'), s * 68, s * 7, 12, '#ffd23a');
-  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.3; icon(() => drawGem(0, 0, 0.2), s * (98 + i * 12), s * 4.5, 0.75); }
+  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.3; icon(() => collectIcon()(0, 0, 0.2), s * (98 + i * 12), s * 4.5, 0.75); }
   ctx.globalAlpha = 1;
   shownScore = shownScore > score ? score : shownScore + Math.ceil((score - shownScore) * 0.2);   // the score counts up
   ink(String(shownScore).padStart(6, '0'), W - s * 8, s * 30, 11, '#ffffff', 'right');
@@ -6834,10 +7384,15 @@ function drawHUD() {
   for (const q of pops) ink(q.txt, (q.x - camX + 8) * s, q.y * s, 8, '#ffffff', 'center');
   if (bannerT > 0) {
     ink(bannerText[0], W / 2, LH * s * 0.28, 22, '#ffd23a', 'center');
-    if (bannerText[1]) ink(bannerText[1], W / 2, LH * s * 0.28 + s * 26, 11, '#ffffff', 'center');
+    if (bannerText[1]) {   // (a long line of the story wraps onto two)
+      ctx.font = font(11); let lines = [bannerText[1]];
+      if (ctx.measureText(bannerText[1]).width > W * 0.9) { const w = bannerText[1].split(' '); let best = 1, bd = 1e9; for (let i = 1; i < w.length; i++) { const d = Math.abs(ctx.measureText(w.slice(0, i).join(' ')).width - ctx.measureText(w.slice(i).join(' ')).width); if (d < bd) { bd = d; best = i; } } lines = [w.slice(0, best).join(' '), w.slice(best).join(' ')]; }
+      const fs = ctx.measureText(lines[0]).width > W * 0.94 || (lines[1] && ctx.measureText(lines[1]).width > W * 0.94) ? 9 : 11;
+      lines.forEach((ln, i) => ink(ln, W / 2, LH * s * 0.28 + s * (26 + i * 13), fs, '#ffffff', 'center'));
+    }
   }
   if (phase === 'clear' && phaseT > 1.2) {
-    text(`🪙 ${coins}   🌈 ${levelGems.filter(Boolean).length}/5   ⭐ ${lvl.stars || 0}`, W / 2, LH * s * 0.28 + s * 44, 12, '#ffffff', 'center');
+    text(`🪙 ${coins}   ${lvl.collect === 'corn' ? '🌽' : '🌈'} ${levelGems.filter(Boolean).length}/5   ⭐ ${lvl.stars || 0}`, W / 2, LH * s * 0.28 + s * 44, 12, '#ffffff', 'center');
   }
 }
 
@@ -6847,6 +7402,7 @@ function showTouch() { touchEl.classList.toggle('hidden', !(RB.touch && (state =
 const mapBtns = document.getElementById('mapBtns'), bZoom = document.getElementById('bZoom'), bUnlock = document.getElementById('bUnlock');
 bZoom.addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); mapZoom(); });
 document.getElementById('bRetired').addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); showRetired(); });
+document.getElementById('bHeroes').addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); showHeroes(); });
 bUnlock.addEventListener('click', e => {
   RB.audio(); e.currentTarget.blur();
   save.unlockAll = !save.unlockAll; persist();

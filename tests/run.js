@@ -3218,6 +3218,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
           if (e.k === 'whale') springs.add(k(e.x, 11));
           if (e.k === 'sponge') for (let ox = 0; ox < (e.w || 3); ox++) stand.add(k(e.x + ox, 11));   // a bog mat   // a whale's spout shoots Leo up like a spring
           if (e.k === 'boat') for (let ox = e.x; ox <= e.to + e.w - 1; ox++) stand.add(k(ox, e.y - 1));   // the boat carries Leo along
+          if (e.k === 'boat') for (const [rx, ry, rw] of e.rig || []) for (let ox = Math.floor(e.x + rx); ox <= e.to + rx + rw - 1; ox++) stand.add(k(ox, Math.round(e.y + ry) - 1));   // and a ship's castles, yards and main top
         }
         const pts = [...stand].map(q => q.split(',').map(Number));
         const start = pts.filter(([x]) => x <= 4).sort((a, b) => b[1] - a[1])[0];
@@ -3247,13 +3248,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(v.far >= v.goal, `${id}: Leo can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
       check(v.gems === 5, `${id} should have 5 rainbow gems, has ${v.gems}`);
     }
-    const playable = MD_WORLD_IDS.concat(['vineyard', 'nantucket', 'mayflower', 'lighthouse', 'cog', 'maple', 'gillette', 'mystic', 'newport', 'slater', 'midnight']);
+    const playable = MD_WORLD_IDS.concat(['voyage', 'plimoth', 'vineyard', 'nantucket', 'mayflower', 'lighthouse', 'cog', 'maple', 'gillette', 'mystic', 'newport', 'slater', 'midnight']);
     for (const id of playable) {
       check(r[id].hat && !r[id].hat.early && r[id].hat.reach, `${id}: the magic hat should be found partway in (not at the start), up where Leo can climb to it: ` + JSON.stringify(r[id].hat));
       check(r[id].hidden, `${id} should hide a 1-up somewhere`);
     }
     check(r.caves.key === true, 'the golden key in Glimmer Caves should be reachable');
-    for (const id of ['canal', 'whale', 'shore', 'orchard', 'glades', 'mobile']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
+    for (const id of ['voyage', 'canal', 'whale', 'shore', 'orchard', 'glades', 'mobile']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
     await done(p);
   });
 
@@ -3535,9 +3536,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { save.at = 'sabine'; persist(); });
     await p.reload(); await p.waitForTimeout(500);
     const locked = await p.evaluate(() => { startGame(); return mapLeo.at; });
-    check(fresh === 'canal', 'a brand-new game starts at the Bourne Bridge: ' + fresh);
+    check(fresh === 'voyage', 'a brand-new game starts on the Mayflower: ' + fresh);
     check(back.at === 'lighthouse' && back.form === 2 && back.state === 'map', 'after closing and opening the page, Leo is back at Portland Head Light with his rainbow flower: ' + JSON.stringify(back));
-    check(locked === 'canal', 'a saved spot that is not open falls back to the start: ' + locked);
+    check(locked === 'voyage', 'a saved spot that is not open falls back to the start: ' + locked);
     await done(p);
   });
 
@@ -3684,7 +3685,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
       localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k]; save.unlockAll = false; save.key = false;
       startGame();
-      const start = { at: mapLeo.at, tag: levelTag('canal'), cranberry: nodeOpen(node('cranberry')), shore: nodeOpen(node('shore')), w1: worldOpen(0), w2: worldOpen(1), buttons: !document.getElementById('mapBtns').classList.contains('hidden') };
+      const start = { at: mapLeo.at, tag: levelTag('voyage'), plimoth: nodeOpen(node('plimoth')), cranberry: nodeOpen(node('cranberry')), shore: nodeOpen(node('shore')), w1: worldOpen(0), w2: worldOpen(1), buttons: !document.getElementById('mapBtns').classList.contains('hidden') };
       for (const k in save.cleared) delete save.cleared[k];
       // the worlds: every state is in one, every built level is on the map once, and the worlds are about the same size
       const shape = { worlds: WORLDS.length, sizes: WORLDS.map(w => w.length), names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length,
@@ -3728,8 +3729,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       goMap('canal', true); startLevel('canal'); const hiddenInLevel = document.getElementById('mapBtns').classList.contains('hidden') || (render(), document.getElementById('mapBtns').classList.contains('hidden'));
       return { start, shape, signs, boat, zoom, follow, lockedBefore, unlocked, relocked, mid, end, drew, hiddenInLevel };
     });
-    check(r.start.at === 'canal' && r.start.tag === '1-1' && !r.start.cranberry && !r.start.shore && r.start.w1 && !r.start.w2, 'a new game starts at the Bourne Bridge (1-1), with the rest of the trip still locked: ' + JSON.stringify(r.start));
-    check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.sizes.every(n => n >= 10 && n <= 14) && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific', 'nine regional worlds of 10 to 14 levels, and every state (and D.C.) is in one: ' + JSON.stringify(r.shape));
+    check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && !r.start.cranberry && !r.start.shore && r.start.w1 && !r.start.w2, 'a new game starts on the Mayflower (1-1), with the rest of the trip still locked: ' + JSON.stringify(r.start));
+    check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.sizes.every(n => n >= 10 && n <= 15) && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific', 'nine regional worlds of 10 to 15 levels, and every state (and D.C.) is in one: ' + JSON.stringify(r.shape));
     check(r.shape.built && r.shape.retired && r.shape.soon && r.shape.dc && r.shape.goldRush, 'every built level is on the map once, the retired ones are kept off it, signposts mark the rest, Washington D.C. is a stop and the Gold Rush is the end: ' + JSON.stringify(r.shape));
     check(r.signs.city && !r.signs.edisonBefore && !r.signs.orchardBefore && r.signs.edison && r.signs.smithsonian && r.signs.orchard && !r.signs.castillo && r.signs.notStarted, 'signposts are walked past: beating the Empire State Building opens the way past World 2\'s signposts to the Peach Orchard, and a signpost doesn\'t start a level: ' + JSON.stringify(r.signs));
     check(r.boat.w1Built && r.boat.midnight && !r.boat.w2Before && r.boat.w2After && r.boat.liberty && r.boat.sea && !r.boat.w3, 'World 1 is all built; beating the Midnight Ride opens the boat to New York (World 2): ' + JSON.stringify(r.boat));
@@ -3888,6 +3889,71 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'manifest-destiny-magic-hat.png');
   });
 
+  await test('Manifest Destiny 1-1 and 1-2: the Mayflower sails with the Pilgrim aboard (yards to climb, rats on deck, storm waves, a rope for anyone overboard) to Provincetown; at Plimoth, turkeys charge and Tisquantum shares his corn; ears of corn to find; a story card and facts', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
+      paused = true; startGame();
+      out.route = WORLDS[0].slice(0, 2).join() === 'voyage,plimoth' && START === 'voyage' && RETIRED.includes('mayflower') && levelTag('plimoth') === '1-2';
+      startLevel('voyage');
+      out.story = bannerT > 0 && /1620/.test(bannerText[0]);
+      out.cast = LEVELS.voyage.cast.grumblin === 'rat' && LEVELS.plimoth.cast.snaily === 'turtle' && LEVELS.plimoth.collect === 'corn';
+      const ship = ents.find(e => e.k === 'boat' && e.look === 'mayflower'), rig = ents.filter(e => e.on === ship), rats = ents.filter(e => e.deck === ship);
+      out.parts = rig.length >= 6 && rats.length >= 2;
+      // walk aboard: she sails, and her yards and rats go with her
+      ents.filter(e => e.deck).forEach(e => { e.lo = e.hi = ship.w - 16; e.ox = e.lo; });   // (the rats wait up at the bow while he boards)
+      keys.right = true; run(240, () => { if ((player.ride === ship || (player.ride && player.ride.on === ship)) && player.x > ship.x + 60) keys.right = false; }); keys.right = false;
+      out.ratsAboard = rats.every(e => Math.abs(e.y + e.h - ship.y) < 0.5 && e.x >= ship.x && e.x <= ship.x + ship.w);
+      rats.forEach(e => { e.gone = true; });
+      const sx = ship.x, yard = rig.find(e => e.look === 'yard'), off = yard.x - ship.x; run(120);
+      out.sails = ship.go && ship.x > sx + 60 && Math.abs(yard.x - ship.x - off) < 0.01 && phase === 'play';
+      // up onto a yard: it carries him along
+      player.x = yard.x + 8; player.y = yard.y - player.h - 2; player.vy = 0; run(30); const px = player.x; run(30);
+      out.yard = player.ride === yard && player.x > px + 15;
+      // overboard: a rope hauls him back on deck
+      player.x = ship.x + ship.w + 40; player.y = 12 * 16 + 4; player.vy = 0; player.ride = null; run(90);
+      out.rope = player.y < ship.y && player.x > ship.x && player.x < ship.x + ship.w && phase === 'play';
+      // in the storm, waves wash across the deck
+      ship.x = 70 * 16; ship.waveT = 0; run(2); out.wave = ents.some(e => e.k === 'acorn' && e.kind === 'wave' && e.free);
+      // she stops at Provincetown, where the beach leads on to the goal
+      ship.x = ship.x1 - 4; run(20); out.arrived = ship.x === ship.x1 && LEVELS.voyage.t[10 * LEVELS.voyage.w + (ship.x1 + ship.w) / 16] === T.GROUND;
+      // her secret exit, up at the main top, opens a sea lane to Nantucket
+      startLevel('voyage'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.secret = !!save.secrets.voyage && pathOpen(PATHS.find(([a, b]) => a === 'voyage' && b === 'nantucket'));
+      out.plimothOpen = nodeOpen(node('plimoth'));
+      // Plimoth: a turkey fans its tail and charges when the Pilgrim walks up in front of it
+      startLevel('plimoth'); ents = ents.filter(e => e.k === 'friend' || e.k === 'turkey'); run(5);
+      const tk = ents.find(e => e.k === 'turkey'); tk.cool = 0; tk.dir = -1; player.x = tk.x - 50; player.y = tk.y; player.vy = 0; run(6);
+      out.turkey = tk.rush > 0 && Math.abs(tk.vx) > 80 && isEnemy(tk);
+      tk.gone = true; run(1);
+      // Tisquantum: say hello and he shares his corn (the hero grows)
+      const fr = ents.find(e => e.k === 'friend'); setForm(0); player.x = fr.x; player.y = fr.y + fr.h - player.h; run(2);
+      out.friend = player.form === 1 && /TISQUANTUM/.test(bannerText[0]) && !isEnemy(fr);
+      // the ears of corn: five to find, on the HUD too
+      out.corn = LEVELS.plimoth.ents.filter(e => e.k === 'gem').length === 5 && collectIcon() === drawCornEar;
+      out.facts = FACTS.voyage.length === 10 && FACTS.plimoth.length === 10;
+      // the Pilgrim's on the map, and Canada and Mexico are land
+      goMap('plimoth', true); run(5); let drew = true; try { drawMap(); } catch (e) { drew = e.message; }
+      out.map = drew === true && NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 && LAKES.length >= 5;
+      showHeroes(); out.heroes = document.querySelectorAll('#hlist button').length === 9 && document.querySelectorAll('#hlist button:disabled').length === 8; hideHeroes();
+      paused = false; return out;
+    });
+    check(r.route, 'World 1 starts with the Mayflower and Plimoth Plantation (the old Mayflower Landing is retired): ' + JSON.stringify(r));
+    check(r.story && r.cast, 'the level opens with its story card, and the new animals play the parts: ' + JSON.stringify(r));
+    check(r.parts && r.sails && r.ratsAboard, 'the Mayflower sails off with the Pilgrim aboard, her yards and rats carried along: ' + JSON.stringify(r));
+    check(r.yard, 'a yard carries the Pilgrim along with the ship: ' + JSON.stringify(r));
+    check(r.rope, 'overboard, a rope hauls him back on deck: ' + JSON.stringify(r));
+    check(r.wave && r.arrived, 'storm waves wash across the deck, and she stops at the Provincetown beach: ' + JSON.stringify(r));
+    check(r.secret && r.plimothOpen, "the secret exit opens the sea lane to Nantucket (and beating 1-1 opens Plimoth): " + JSON.stringify(r));
+    check(r.turkey, 'a turkey fans its tail and charges: ' + JSON.stringify(r));
+    check(r.friend, 'Tisquantum shares his corn and is never an enemy: ' + JSON.stringify(r));
+    check(r.corn && r.facts, 'five ears of corn to find, and ten facts for each level: ' + JSON.stringify(r));
+    check(r.map && r.heroes, 'the map draws (with Canada and Mexico), and the Hart family lists nine heroes, eight still to come: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-mayflower.png');
+  });
+
   await test('Manifest Destiny Cape Cod: the whale-watch boat sails with Leo aboard, sharks leap, a whale spout shoots him up (Whale Watch is kept, off the map), and secret exits open Martha\'s Vineyard and Nantucket', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
@@ -4008,9 +4074,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       reachGoal(); run(300);
       const onMap = state === 'map' && keep.mount && keep.form === 3;
       // what gets drawn on the map: Leo riding Shamrock, with the magic hat
-      const calls = []; const dU = drawUnicorn, dL = drawLeo;
-      drawUnicorn = (...a) => { calls.push('unicorn'); return dU(...a); }; drawLeo = (...a) => { calls.push('leo:' + a[2] + ':' + a[3]); return dL(...a); };
-      try { drawMap(); } finally { drawUnicorn = dU; drawLeo = dL; }
+      const calls = []; const dU = drawUnicorn, dL = drawHero;
+      drawUnicorn = (...a) => { calls.push('unicorn'); return dU(...a); }; drawHero = (...a) => { calls.push('leo:' + a[2] + ':' + a[3]); return dL(...a); };
+      try { drawMap(); } finally { drawUnicorn = dU; drawHero = dL; }
       // ↓ + jump hops off
       startLevel('woods'); run(10); const rode = !!player.mount; keys.down = true; downFrom = 'KeyS'; pressed.jump = true; run(2); keys.down = false; run(60);
       const off = !player.mount;
@@ -4185,7 +4251,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await padTap(p, 'A'); await p.waitForTimeout(300);
     check(await p.evaluate(() => state === 'map'), 'Ⓐ on the title should open the map');
     await padTap(p, 'A'); await p.waitForTimeout(400);
-    check(await p.evaluate(() => state === 'level' && lvl.id === 'canal'), 'Ⓐ on the map should start Bourne Bridge, the first level');
+    check(await p.evaluate(() => state === 'level' && lvl.id === 'voyage'), 'Ⓐ on the map should start the Mayflower, the first level');
     await p.waitForTimeout(300);
     await padHold(p, 'A', true); await p.waitForTimeout(120);
     const air = await p.evaluate(() => !player.ground && player.vy < 0);
