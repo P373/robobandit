@@ -2283,7 +2283,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const m = await p.evaluate(() => ({ paused, games: document.querySelectorAll('.rb-menu-game').length, cur: document.querySelector('.rb-menu .cur').textContent,
       pauseHidden: document.querySelector('.rb-pause').style.display === 'none', hrefs: [...document.querySelectorAll('.rb-menu a')].map(a => a.href) }));
     check(m.paused && m.pauseHidden, 'opening the menu should pause the game: ' + JSON.stringify(m));
-    check(m.games === 17 && m.cur.includes('Witch Way Out'), 'the menu should list 14 games and 3 folders, marking this one: ' + JSON.stringify(m));
+    check(m.games === 18 && m.cur.includes('Witch Way Out'), 'the menu should list 15 games and 3 folders, marking this one: ' + JSON.stringify(m));
     check(m.hrefs.every(h => fs.existsSync(h.replace('file://', '').split('#')[0])), 'every menu link should go to a real page: ' + m.hrefs.join(' '));
     await p.keyboard.press('KeyJ'); await p.waitForTimeout(100);
     check(await p.evaluate(() => paused && !!document.querySelector('.rb-menu')), 'keys should not reach the game while the menu is open');
