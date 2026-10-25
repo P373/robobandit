@@ -1,5 +1,6 @@
 // Renders the 1200×630 link-preview pictures in previews/ (what iMessage, WhatsApp, Facebook etc. show
 // when someone shares a link). Run after adding a game:  node tools/make-previews.js
+// (or just one game's picture, and the arcade's:  node tools/make-previews.js manifest-destiny)
 // Needs Playwright (see tests/README.md). Each game's picture is built from its thumbs/ screenshot.
 const fs = require('fs');
 const path = require('path');
@@ -20,6 +21,7 @@ const GAMES = [
   { file: 'pumpkin-pals', title: 'PUMPKIN PALS', tag: 'Rescue the pumplings on Halloween night!', color: '#ffa63a' },
   { file: 'moto-rush', title: 'MOTO RUSH', tag: 'Race your friends round the figure 8!', color: '#ffc93a' },
   { file: 'moto-mania', title: 'MOTO MANIA', tag: 'Items, 4 bikes and a balloon battle!', color: '#ff5a8a' },
+  { file: 'manifest-destiny', title: 'MANIFEST DESTINY', tag: 'A road trip across America!', color: '#ffd23a' },
   { file: 'abc-train', title: 'ABC TRAIN', tag: 'Drive the train and learn your letters!', color: '#ffe14a' },
 ];
 
@@ -48,7 +50,8 @@ const page = body => `<!doctype html><html><head><meta charset="utf-8">
     const type = f.endsWith('.svg') ? 'image/svg+xml' : 'image/jpeg';
     return `data:${type};base64,${fs.readFileSync(path.join(ROOT, f)).toString('base64')}`;
   };
-  for (const g of GAMES) {
+  const only = process.argv.slice(2);
+  for (const g of GAMES.filter(g => !only.length || only.includes(g.file))) {
     await p.setContent(page(`
       <div style="position:absolute;left:60px;top:90px;width:520px">
         <img class="logo" src="${file('favicon.svg')}">

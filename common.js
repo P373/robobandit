@@ -253,7 +253,7 @@ const RB = (() => {
   const GAMES = [
     ['space-wars.html', '🚀', 'Space Wars'], ['floppy-bird.html', '🐦', 'Floppy Bird'], ['surfs-up.html', '🏄', "Surf's Up"],
     ['hamglider.html', '🐹', 'Hamglider'], ['web-hero.html', '🕸️', 'Web Hero'], ['sparkle-meadow.html', '🦄', 'Sparkle Meadow'],
-    ['witch-way-out.html', '🧙', 'Witch Way Out'], ['flight-school.html', '✈️', 'Flight School'], ['lucky-leo.html', '☘️', 'Lucky Leo'],
+    ['witch-way-out.html', '🧙', 'Witch Way Out'], ['flight-school.html', '✈️', 'Flight School'], ['lucky-leo.html', '☘️', 'Lucky Leo'], ['manifest-destiny.html', '🗺️', 'Manifest Destiny'],
     ['lily-pad-lunch.html', '🐸', 'Lily Pad Lunch'], ['pumpkin-pals.html', '🎃', 'Pumpkin Pals'], ['moto-rush.html', '🏍️', 'Moto Rush'], ['moto-mania.html', '🎈', 'Moto Mania'],
     ['preschool/abc-train.html', '🚂', 'ABC Train'],
   ];
