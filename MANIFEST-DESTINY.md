@@ -6,7 +6,7 @@ coast to coast. Each world is a region and an era, and the trip moves west the w
 - **Who it's for:** the history is written for 2nd to 5th graders (about ages 7 to 11). The platforming, the
   secret exits, the railroad challenge levels and the hidden journal pages are there for older kids and grown-ups.
 - **What it teaches:** where things are (regions, states, the map), when things happened (a year on every level),
-  and why (short story cards and "Did you know?" facts). Plus new words: colony, compact, frontier, territory,
+  and why (a short story card as each level starts, and info boxes full of facts). Plus new words: colony, compact, frontier, territory,
   treaty, purchase, homestead, transcontinental.
 - **The theme:** *Manifest Destiny* was a phrase first used in 1845. It meant the belief that Americans were meant to
   spread across the whole continent. The game follows that spread, but it is honest about who already lived on the
@@ -21,15 +21,18 @@ porcupines, and so on.
 
 ## The story
 
-**The Hart family.** One family's story runs across 250 years. Each world brings in a new member of the family,
-a child or young grown-up of that time and place, and each has a skill that suits that time. The first is **Will
-Hart, a Pilgrim boy** on the Mayflower in 1620. His grandchildren's grandchildren end up on the Pacific coast and
-at the Golden Spike in 1869. A family tree on the hero screen shows how they're related, so kids can see that
-history is made of people, one generation after another.
+**Real young people from history.** Each world brings in a new hero: a real child or teenager of that time and
+place wherever history records one, each with a skill that suits their time. The first is **Wrestling Brewster**, a
+real Mayflower boy who was about six when he sailed in 1620 with his father, Elder William Brewster. Each hero's card
+says which parts are true and which are the game's. Real Native people appear as respected characters you meet
+(like Tisquantum), not as characters you control.
 
-**Each level opens with a story card**: a year, a place and one or two plain sentences ("1620. After 66 days at
-sea, the Mayflower reaches Cape Cod."). **Each win ends with a "Did you know?" fact**: ten per level, a new one
-each time you beat it again.
+**Each level opens with a story card**: a year, a place and one or two plain sentences ("September 1620. 102
+passengers set sail from Plymouth, England, for America."). **The history is in info boxes**: blocks with an italic
+*i*, 3 to 5 in every level. Bump one and its fact pops up (the game waits), and the level's **info meter** fills in.
+**At the end of each region, after its boss, comes a quiz**: five questions picked at random from all of that
+region's info boxes. Get all five right and the next region opens; a wrong answer shows the right one and offers a
+fresh quiz.
 
 **The villain: Silas Grabwell** (made up). He's a greedy land speculator who turns up in every era trying to grab
 whatever's valuable first: furs, land, gold, the railroad. His **Grab Gang** run the boss fights alongside the
@@ -40,21 +43,21 @@ the part of westward expansion that was about grabbing. The finale has him tryin
 
 ## Heroes: a new one in every region
 
-You start as Will the Pilgrim. **Beat a world's boss and the next region's hero joins the family.** Once a hero has
+You start as Wrestling Brewster. **Beat a world's boss (and its quiz) and the next region's hero joins you.** Once a hero has
 joined, you can play any level as any hero. Some secrets can only be reached with a particular hero's skill, so
 older players have a reason to go back.
 
 | World | Hero | Era | Skill |
 |---|---|---|---|
-| 1 New England | **Will Hart, Pilgrim** | 1620 | All-rounder. Throws his tall hat like a boomerang (with the hat power-up) and can bounce on it. Carries things: turtle shells, crates, pumpkins. |
-| 2 Mid-Atlantic | **Patience Hart, Patriot messenger** (inspired by Sybil Ludington, 16, who rode 40 miles in 1777) | 1776 | Fastest runner and the best rider: on the horse she gallops and leaps further. Lantern lights dark levels. |
-| 3 Atlantic South | **Ben Hart, sailor** | 1718 to 1780s | Grappling hook: swings from rigging, branches and lamp posts. Swims fast. |
-| 4 Frontier South | **Ruth Hart, frontier scout** (the Boone era, over the Appalachians) | 1775 to 1800 | Climbs tree trunks and cliffs like a ladder. Walks quietly, so sleeping bears stay asleep. |
-| 5 Great Lakes | **Jacques Hart, voyageur and trapper** (the fur trade with French and Native partners) | 1780s to 1830s | Paddles a canoe through water levels, and snowshoes keep him on top of deep snow. |
-| 6 Great Plains | **Addie Hart, pioneer** (the Oregon Trail jumping-off towns) | 1840s to 1860s | Strong: pushes boulders and wagon wheels, rides the covered wagon, and plants seeds that sprout into platforms. |
-| 7 Rocky Mountains | **Lee Hart, railroad builder** (Union Pacific and Central Pacific crews) | 1860s | Hammer: drives spikes to build little bridges and ladders, and rides the handcar along the rails. |
-| 8 Southwest | **Rosa Hart, vaquera / cowgirl** (cattle drives; cowboying began with Mexican vaqueros) | 1860s to 1880s | Lasso: ropes enemies, pulls far blocks down, and swings from posts and cactus arms. |
-| 9 Pacific | **Sam Hart, forty-niner** (the California Gold Rush) | 1849 | Pickaxe: breaks stone, digs down through soft ground; panning in streams turns up hidden gold. |
+| 1 New England | **Wrestling Brewster, Pilgrim** (real: about 6 on the Mayflower) | 1620 | All-rounder. Throws his tall hat like a boomerang (with the hat power-up) and can bounce on it. Carries things: turtle shells, crates, pumpkins. |
+| 2 Mid-Atlantic | **Sybil Ludington, Patriot rider** (real: at 16 she rode 40 miles in the night, 1777) | 1777 | Fastest runner and the best rider: on the horse she gallops and leaps further. Lantern lights dark levels. |
+| 3 Atlantic South | **James Forten, powder boy** (real: went to sea at 14 in the Revolution, later an abolitionist) | 1781 | Grappling hook: swings from rigging, branches and lamp posts. Swims fast. |
+| 4 Frontier South | **Jemima Boone, frontier girl** (real: Daniel Boone's daughter, Kentucky) | 1776 | Climbs tree trunks and cliffs like a ladder. Walks quietly, so sleeping bears stay asleep. |
+| 5 Great Lakes | **a young voyageur** (to be named: the fur trade's canoe men) | 1790 | Paddles a canoe through water levels, and snowshoes keep him on top of deep snow. |
+| 6 Great Plains | **Virginia Reed, pioneer** (real: at 12 she crossed the plains by wagon and wrote about it, 1846) | 1846 | Strong: pushes boulders and wagon wheels, rides the covered wagon, and plants seeds that sprout into platforms. |
+| 7 Rocky Mountains | **a young railroad builder** (to be named: the Union Pacific and Central Pacific crews) | 1866 | Hammer: drives spikes to build little bridges and ladders, and rides the handcar along the rails. |
+| 8 Southwest | **a young vaquera** (to be named: cowboying began with Mexico's vaqueros) | 1870 | Lasso: ropes enemies, pulls far blocks down, and swings from posts and cactus arms. |
+| 9 Pacific | **a young forty-niner** (to be named: the California Gold Rush) | 1849 | Pickaxe: breaks stone, digs down through soft ground; panning in streams turns up hidden gold. |
 
 **Treasures: five hidden in every level, something people of that place and time really gathered:**
 
@@ -138,20 +141,18 @@ Southwest and the Pacific. Every world's card says whose homelands it crosses.
 
 1. **The Mayflower** (1620): sail across the Atlantic and into Provincetown Harbor ✅ built
 2. **Plimoth Plantation** (1621): the colony, the Wampanoag homesite, the first harvest ✅ built
-3. **Cranberry Bog** (Wampanoag foods: cranberries, the Three Sisters)
-4. **Boston, a city upon a hill** (1630, the Puritans)
-5. **Providence** (1636, Roger Williams and freedom of religion)
-6. **The Connecticut River** (1639, the Fundamental Orders, one of the first written constitutions)
+3. **Cranberry Bog** (1622): the Wampanoag homeland, sassamanash, the seasons ✅ built
+4. **A City upon a Hill** (1630): the Puritans build Boston; the cows on the Common ✅ built
+5. **Providence** (1636): Roger Williams, the Narragansett, freedom of religion ✅ built
+6. **The Connecticut River** (1639): Thomas Hooker, the Dutch post, the Fundamental Orders ✅ built
 7. **The Gulf of Maine** (cod fishing, the coast of Maine)
 8. **Maple Sugarhouse** (the Abenaki taught settlers to make maple sugar)
-9. **Boston Light** (1716, America's first lighthouse)
-10. **The Boston Tea Party** (1773)
-11. **The Midnight Ride and Lexington and Concord** (1775) 🏰 boss: the redcoats · unlocks **Liberty the horse**
+9. **The Boston Tea Party** (1773)
+10. **The Midnight Ride and Lexington and Concord** (1775) 🏰 boss: the redcoats, then the World 1 quiz · unlocks
+    **Liberty the horse**
 
 *Secret-only levels (whaling and islands):* Martha's Vineyard (Noepe), Nantucket (the whaling capital).
 *Railroad depot:* the Granite Railway, Quincy (1826, America's first commercial railroad).
-*Set aside from the old World 1 (out of era):* Bourne Bridge (1935), the Cog Railway (1869), Gillette Castle
-(1914), the Newport mansions (1890s), Slater Mill (1793, moves to World 2), Frosty Peaks and Glimmer Caves (fantasy).
 
 ### World 2: The Mid-Atlantic, a new nation (1775 to 1830)
 *Lenape, Haudenosaunee (Iroquois), Susquehannock, Nanticoke and Piscataway homelands*
@@ -290,11 +291,10 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
 
 ## Learning features (to add as we go)
 
-- **Story cards** at the start of each level (year, place, one or two sentences). ✅ the first two levels have them
-- **"Did you know?" facts**: ten per level, a new one each win. ✅ the first two levels have them
-- **History Journal**: each level's page fills in as you find its 5 journal pages, with a picture and the facts
-  you've unlocked.
-- **Pop quiz** at each world's end (3 quick questions, coins for right answers, no penalty for wrong ones).
+- **Story cards** at the start of each level (year, place, one or two sentences). ✅
+- **Info boxes**: 3 to 5 per level, each a fact with a quiz question; an info meter on screen and on the map. ✅
+- **The region quiz** after each region's boss: five questions from its info boxes, all five right to go on. ✅
+- **History Journal**: every info box you've found, level by level, to read again any time.
 - **Timeline** strip on the map screen, with a marker for where (and when) you are.
 - **Read-aloud** button on story cards and facts, for younger players.
 
@@ -302,11 +302,14 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
 
 ## Building order
 
-1. ✅ **The Mayflower** and **Plimoth Plantation**, with Will the Pilgrim, turkeys, wolves, crows, porcupines,
-   box turtles, ship rats and seagulls; ears of corn to find; Canada and Mexico on the map; the Hart family screen.
+1. ✅ **The Mayflower** and **Plimoth Plantation**, with Wrestling Brewster, turkeys, wolves, crows, porcupines,
+   box turtles, ship rats and seagulls; ears of corn to find; Canada and Mexico on the map; the heroes screen.
    The Mayflower's secret exit (up at the main top) opens the sea lane to Nantucket.
-2. The rest of World 1 in history order (rework or retire the out-of-era levels), the redcoat boss, Liberty the
-   horse, the new power-ups (pumpkin, apples, horseshoe), and a new look for the goal posts.
-3. The hero picker and the family tree. Patience and World 2.
-4. The railroad: depots, golden spikes, the train between depots, the first Railroad Challenge.
-5. Worlds 3 to 9, one at a time, each with its hero, its creatures, its secret-only levels and its depot.
+2. ✅ The old road-trip levels removed (Lucky Leo keeps them); every stop of the story on the map as a signpost;
+   the new power-ups (pumpkin, apples, horseshoe); info boxes and the region quiz; the game's own pause menu (new
+   game, unlock all levels); the title scene; and 1-3 to 1-6 (Cranberry Bog, Boston, Providence, the Connecticut River).
+3. The rest of World 1 (the Gulf of Maine, the Maple Sugarhouse, the Tea Party), the redcoat boss and Liberty the
+   horse, the secret-only islands, and a mid-gate and goal for each level that fit its story.
+4. The hero picker. Sybil Ludington and World 2.
+5. The railroad: depots, golden spikes, the train between depots, the first Railroad Challenge.
+6. Worlds 3 to 9, one at a time, each with its hero, its creatures, its secret-only levels and its depot.

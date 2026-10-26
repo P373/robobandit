@@ -368,12 +368,12 @@ const RB = (() => {
 
   // ---------- Pausing ----------
   let pauseEl = null, pauseExtras = [];
-  function showPause(onResume, { extra = [] } = {}) {
+  function showPause(onResume, { extra = [], sub = '' } = {}) {   // sub: a line under PAUSED (where you are in the game)
     if (pauseEl) return;
     pauseExtras = extra;
     pauseEl = document.createElement('div');
-    pauseEl.className = 'rb-pause';
-    pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>
+    pauseEl.className = 'rb-pause' + (extra.length > 3 ? ' rb-many' : '');   // (a long menu: smaller buttons, and it scrolls if it has to)
+    pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>${sub ? `<div class="rb-pause-sub">${sub}</div>` : ''}
       <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}${controls && !extra.some(x => /controls/i.test(x.label)) ? '<button type="button" class="rb-guide-btn">🕹️ CONTROLS</button>' : ''}<a href="${homeHref()}" class="rb-home">🏠 All games</a>
       <div class="rb-hint">${pad.connected ? padText('🎮 {A} to pick · {MENU} to carry on · {VIEW} for the menu') : touch ? 'Tap the button to carry on' : 'Press Esc to carry on · F1 for the controls'}</div></div>`;
     pauseEl.querySelector('.rb-home').addEventListener('click', () => dispatchEvent(new Event('rb-leave')));

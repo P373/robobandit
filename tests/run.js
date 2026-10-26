@@ -3197,12 +3197,28 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
   });
 
   // ---- Manifest Destiny: Leo's road trip across the whole country (it started as Lucky Leo's next version) ----
-  const MD_WORLD_IDS = ['canal', 'cranberry', 'whale', 'dunes', 'ptown', 'shore', 'night', 'fort', 'snow', 'sky', 'bog', 'caves', 'woods', 'hills', 'castle', 'orchard', 'niagara', 'bridge', 'city', 'liberty', 'miami', 'reef', 'keywest', 'glades', 'stpete', 'springs', 'park', 'castillo', 'daytona', 'canaveral', 'mobile', 'bayou', 'quarter', 'river', 'basin', 'sabine'];
-  await test('Manifest Destiny: every level can be finished (a search over every place Leo can stand), and the golden key can be reached', async () => {
+  // a practice level for the move tests: the old Clover Hills layout (the game itself only has the levels of the story)
+  const MD_PRACTICE = `LEVELS.hills = builder('hills', 'Clover Hills', 'hills', 214)
+  .ground(0, 213).gap(42, 44).gap(88, 91).gap(141, 144).gap(166, 168)
+  .at(12, 8, '?BPB?').at(14, 4, '?').e('grumblin', 20, 11)
+  .pipe(26, 10).e('grumblin', 31, 11).e('grumblin', 33, 11).pipe(36, 9)
+  .arc(41, 8, 5).at(48, 8, 'BB?BB').at(50, 4, 'M').e('snaily', 54, 11)
+  .stairs(60, 4).fill(64, 67, 8, 11, T.STONE).stairs(68, 4, false)
+  .at(75, 8, '??H?').e('grumblin', 78, 11).e('grumblin', 80, 11)
+  .arc(87, 8, 6).at(96, 9, '----').at(101, 6, '----').coins(101, 5, 4).e('grumblin', 102, 5)
+  .e('mid', 106, 11)
+  .pipe(112, 9).e('snapper', 112, 9).at(118, 8, '?S?').e('snaily', 122, 11).e('grumblin', 126, 11)
+  .at(130, 9, '-----').at(133, 6, '----').e('spring', 138, 11).coins(136, 2, 5)
+  .arc(140, 8, 6).at(148, 8, 'BYBB').e('grumblin', 152, 11).e('snaily', 156, 11).pipe(160, 10)
+  .arc(165, 8, 5).stairs(176, 6).fill(182, 183, 6, 11, T.STONE).e('grumblin', 188, 11)
+  .at(50, 4, 'C').at(172, 8, 'H')   // the magic hat up where you climb for it; a hidden 1-up
+  .gems(14, 2, 43, 7, 102, 3, 137, 1, 182, 4)
+  .done({ goal: 200, music: 'hills', sky: ['#7fd0ff', '#c8f0ff'] });`;
+  await test('Manifest Destiny: every level can be finished (a search over every place the hero can stand), with 5 ears of corn, 3 to 5 info boxes, the hat partway in and a hidden 1-up', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const r = await p.evaluate(() => {
       const out = {};
-      for (const id of [...ORDER, ...RETIRED]) {   // (the levels taken off the map are kept working too)
+      for (const id of ORDER) {
         const L = LEVELS[id], W = L.w, H = L.h;
         const tile = (x, y) => (x < 0 || x >= W ? T.STONE : y < 0 || y >= H ? 0 : L.t[y * W + x]);
         const deadly = (x, y) => [T.LAVA, T.WATER, T.SPIKES].includes(tile(x, y));
@@ -3210,14 +3226,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         for (let x = 0; x < W; x++) for (let y = 1; y < H - 1; y++) {
           const below = tile(x, y + 1);
           if (!SOLID.has(tile(x, y)) && !deadly(x, y) && (SOLID.has(below) || below === T.ONEWAY)) stand.add(k(x, y));
-          if (L.swim && tile(x, y) === T.WATER) stand.add(k(x, y));   // an underwater level: Leo can swim anywhere in it
+          if (tile(x, y) === T.WATER && SOLID.has(below)) stand.add(k(x, y));   // (shallow water: wade through it)
         }
         for (const e of L.ents) {
           if (e.k === 'plat' || e.k === 'fall') for (let ox = -(e.dx || 0); ox <= (e.dx || 0) + (e.w || 3) - 1; ox++) for (let oy = -(e.dy || 0); oy <= (e.dy || 0); oy++) stand.add(k(e.x + ox, e.y - 1 + oy));
           if (e.k === 'spring') springs.add(k(e.x, e.y));
-          if (e.k === 'whale') springs.add(k(e.x, 11));
-          if (e.k === 'sponge') for (let ox = 0; ox < (e.w || 3); ox++) stand.add(k(e.x + ox, 11));   // a bog mat   // a whale's spout shoots Leo up like a spring
-          if (e.k === 'boat') for (let ox = e.x; ox <= e.to + e.w - 1; ox++) stand.add(k(ox, e.y - 1));   // the boat carries Leo along
+          if (e.k === 'sponge') for (let ox = 0; ox < (e.w || 3); ox++) stand.add(k(e.x + ox, 11));   // a bog mat
+          if (e.k === 'boat') for (let ox = e.x; ox <= e.to + e.w - 1; ox++) stand.add(k(ox, e.y - 1));   // the boat carries the hero along
           if (e.k === 'boat') for (const [rx, ry, rw] of e.rig || []) for (let ox = Math.floor(e.x + rx); ox <= e.to + rx + rw - 1; ox++) stand.add(k(ox, Math.round(e.y + ry) - 1));   // and a ship's castles, yards and main top
         }
         const pts = [...stand].map(q => q.split(',').map(Number));
@@ -3236,43 +3251,41 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
             if (ok) { seen.add(k(x2, y2)); q.push([x2, y2]); }
           }
         }
-        const keyE = L.ents.find(e => e.k === 'key'), flagE = L.ents.find(e => e.k === 'sflag');
         const near = (q, o) => { const [a, b] = q.split(',').map(Number); return Math.abs(a - o.x) <= 1 && Math.abs(b - o.y) <= 1; };
+        const below = (tx, ty) => [...seen].some(q => { const [a, b] = q.split(',').map(Number); return Math.abs(a - tx) <= 1 && b >= ty + 1 && b <= ty + 5; });   // somewhere to bump it from
         const hatI = [...L.t].findIndex(v => v === T.QHAT), hx = hatI % W, hy = Math.floor(hatI / W);
-        const hat = hatI < 0 ? null : { early: hx < 20, reach: [...seen].some(q => { const [a, b] = q.split(',').map(Number); return Math.abs(a - hx) <= 1 && b >= hy + 1 && b <= hy + 5; }) };
-        out[id] = { far, goal: L.goal || 178, gems: L.ents.filter(e => e.k === 'gem').length, hat, hidden: L.t.includes(T.HIDDEN), key: keyE ? [...seen].some(q => near(q, keyE)) : null, flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
+        const infos = []; for (let i = 0; i < L.t.length; i++) if (L.t[i] === T.QINFO) infos.push([i % W, Math.floor(i / W)]);
+        const flagE = L.ents.find(e => e.k === 'sflag');
+        out[id] = { far, goal: L.goal, corn: L.ents.filter(e => e.k === 'gem').length, hat: hatI < 0 ? null : { early: hx < 20, reach: below(hx, hy) },
+          hidden: L.t.includes(T.HIDDEN), infos: infos.length, info: (INFO[id] || []).length, infoReach: infos.every(([x, y]) => below(x, y)), flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
       }
       return out;
     });
     for (const [id, v] of Object.entries(r)) {
-      check(v.far >= v.goal, `${id}: Leo can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
-      check(v.gems === 5, `${id} should have 5 rainbow gems, has ${v.gems}`);
+      check(v.far >= v.goal, `${id}: the hero can only get as far as tile ${v.far}, the goal is at ${v.goal}`);
+      check(v.corn === 5, `${id} should have 5 ears of corn, has ${v.corn}`);
+      check(v.hat && !v.hat.early && v.hat.reach, `${id}: the hat should be found partway in, up where the hero can climb to it: ` + JSON.stringify(v.hat));
+      check(v.hidden, `${id} should hide a 1-up somewhere`);
+      check(v.infos >= 3 && v.infos <= 5 && v.infos === v.info && v.infoReach, `${id}: 3 to 5 info boxes, one for each fact, all within reach: ` + JSON.stringify(v));
     }
-    const playable = MD_WORLD_IDS.concat(['voyage', 'plimoth', 'vineyard', 'nantucket', 'mayflower', 'lighthouse', 'cog', 'maple', 'gillette', 'mystic', 'newport', 'slater', 'midnight']);
-    for (const id of playable) {
-      check(r[id].hat && !r[id].hat.early && r[id].hat.reach, `${id}: the magic hat should be found partway in (not at the start), up where Leo can climb to it: ` + JSON.stringify(r[id].hat));
-      check(r[id].hidden, `${id} should hide a 1-up somewhere`);
-    }
-    check(r.caves.key === true, 'the golden key in Glimmer Caves should be reachable');
-    for (const id of ['voyage', 'canal', 'whale', 'shore', 'orchard', 'glades', 'mobile']) check(r[id].flag === true, `the secret exit flag in ${id} should be reachable`);
+    check(r.voyage.flag === true, 'the secret exit at the Mayflower\'s main top should be reachable');
     await done(p);
   });
 
-  await test('Manifest Destiny: walk, stomp, blocks, growing, shells, pits, the goal, the golden key and King Grumbles', async () => {
+  await test('Manifest Destiny: walk, stomp, blocks, growing, shells, pits, and the goal opens the next level', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(MD_PRACTICE);
     const r = await p.evaluate(() => {
-      localStorage.removeItem('md_save');
-      for (const k in save.cleared) delete save.cleared[k]; save.key = false; save.beaten = false;
+      localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k];
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true;   // the page's own loop sits still while we step by hand
-      startGame(); startLevel('hills');
+      paused = true; startGame(); startLevel('hills');
       const x0 = player.x; keys.right = true; run(60); keys.right = false; out.walk = player.x - x0;
       const gob = ents.find(e => e.k === 'grumblin');
       player.x = gob.x; player.y = gob.y - 30; player.vy = 100; run(30);
       out.stomp = { squished: !!gob.flat || !!gob.gone, score };
       startLevel('hills'); player.x = 14 * 16 + 2; player.y = 12 * 16 - 14; run(5);
       keys.jump = true; pressed.jump = true; run(30); keys.jump = false; run(40);
-      out.block = { used: tileAt(14, 8) === T.USED, clover: ents.some(e => e.k === 'clover') };
+      out.block = { used: tileAt(14, 8) === T.USED, pumpkin: ents.some(e => e.k === 'clover') };
       const cl = ents.find(e => e.k === 'clover');
       if (cl) { run(60); player.x = cl.x; player.y = cl.y - 2; run(2); }
       out.big = player.form;
@@ -3283,34 +3296,24 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       if (sh) { player.x = sh.x - 14; player.y = sh.y + sh.h - player.h; player.vy = 0; keys.right = true; run(10); keys.right = false; out.kicked = Math.abs(sh.vx) > 100; }
       startLevel('hills'); const lv = lives; player.x = 43 * 16; player.y = 150; run(60 * 4);
       out.pit = { lost: lv - lives, state };
-      startLevel('hills'); player.x = 199 * 16; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
-      out.goal = { state, cleared: !!save.cleared.hills, castleBefore: nodeOpen(node('gillette')) };
-      startLevel('caves'); const k = ents.find(e => e.k === 'key'); player.x = k.x; player.y = k.y; run(2);
-      out.key = gotKey; player.x = 192 * 16 + 8; player.y = 11 * 16 - 14; keys.right = true; run(30); keys.right = false; run(60 * 5);
-      out.bonusOpen = nodeOpen(node('bonus')); out.goal.castleAfter = !!save.cleared.caves && nodeOpen(node('gillette'));
-      startLevel('castle'); const b = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
-      for (let h = 0, n = b.hp; h < n; h++) { player.inv = 9; run(100); player.x = b.x + 8; player.y = b.y - 30; player.vy = 150; run(8); }
-      out.boss = b.hp;
-      run(60 * 3);
-      const pot = ents.find(e => e.k === 'pot'); out.pot = !!pot;
-      if (pot) { player.x = pot.x; player.y = pot.y; run(5); }
-      out.ending = { state, beaten: save.beaten3, best: +localStorage.getItem('md_best') };
-      paused = false;
-      return out;
+      // the goal at the end of Plimoth Plantation clears it and opens Cranberry Bog
+      save.cleared.voyage = true; const before = nodeOpen(node('cranberry'));
+      startLevel('plimoth'); ents = ents.filter(e => !isEnemy(e)); player.x = (LEVELS.plimoth.goal - 1) * 16; player.y = 0; keys.right = true; run(60); keys.right = false; run(60 * 5);
+      out.goal = { state, cleared: !!save.cleared.plimoth, before, after: nodeOpen(node('cranberry')) };
+      paused = false; return out;
     });
-    check(r.walk > 50, 'Leo should walk: ' + JSON.stringify(r));
-    check(r.stomp.squished && r.stomp.score >= 100, 'stomping a goblin: ' + JSON.stringify(r.stomp));
-    check(r.block.used && r.block.clover && r.big === 1, 'bumping the clover block and growing: ' + JSON.stringify(r));
-    check(r.shell && r.kicked, 'stomp a snail, kick its shell: ' + JSON.stringify(r));
+    check(r.walk > 50, 'the hero should walk: ' + JSON.stringify(r));
+    check(r.stomp.squished && r.stomp.score >= 100, 'stomping an enemy: ' + JSON.stringify(r.stomp));
+    check(r.block.used && r.block.pumpkin && r.big === 1, 'bumping the block for a pumpkin and growing: ' + JSON.stringify(r));
+    check(r.shell && r.kicked, 'stomp a turtle, kick its shell: ' + JSON.stringify(r));
     check(r.pit.lost === 1 && r.pit.state === 'level', 'a pit costs a life and restarts: ' + JSON.stringify(r.pit));
-    check(r.goal.state === 'retired' && r.goal.cleared && !r.goal.castleBefore && r.goal.castleAfter, 'the goal clears the level (Clover Hills is retired: back to the list), and finishing Glimmer Caves opens the next (Gillette Castle): ' + JSON.stringify(r.goal));
-    check(r.key && r.bonusOpen, 'the golden key opens Rainbow Road: ' + JSON.stringify(r));
-    check(r.boss === 0 && r.pot && r.ending.state === 'ending' && r.ending.beaten && r.ending.best > 0, 'five stomps beat King Grumbles at Gillette Castle, then the pot of gold: ' + JSON.stringify(r));
-    await done(p, 'lucky-leo.png');
+    check(r.goal.state === 'map' && r.goal.cleared && !r.goal.before && r.goal.after, 'the goal clears the level and opens the next: ' + JSON.stringify(r.goal));
+    await done(p);
   });
 
   await test('Manifest Destiny moves: high jump (crouch + jump), spin jump, corner and ledge help, ground pound, and the boomerang hat (knocks out enemies, comes back, bounce on it)', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(MD_PRACTICE);
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
       paused = true; startGame(); lives = 9;
@@ -3359,12 +3362,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Manifest Destiny: carry a shell, moves above the screen, recall the saved power-up, hollow-tree rooms, hat up and low, no surprise ground pound', async () => {
+  await test('Manifest Destiny: carry a shell, moves above the screen, recall the saved power-up, hat up and low, no surprise ground pound', async () => {
     const ctx = await browser.newContext({ viewport: { width: 960, height: 540 } });
     await ctx.addInitScript(fakePad);
     const p = await ctx.newPage();
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     await p.goto(url('manifest-destiny.html')); await p.waitForTimeout(600);
+    await p.evaluate(MD_PRACTICE);
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
       paused = true; startGame(); lives = 9;
@@ -3375,27 +3379,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       keys.run = false; run(2); out.thrown = !player.carry && Math.abs(sn.vx) > 100;
       // up above the top of the screen: the ground pound still works
       player.y = -60; player.vy = 0; player.ground = false; run(1); pressed.down = true; run(2); out.highPound = player.pound === 'spin'; run(120);
-      // with the lucky horseshoe's power, a crush-stone breaks to rubble when it hits Leo
-      startLevel('caves'); ents = ents.filter(e => !isEnemy(e)); const cr = ents.find(e => e.k === 'crusher'); player.star = 5; player.x = cr.x + 4; player.y = 11 * 16 + 16 - player.h; run(90);
-      out.smashed = !ents.includes(cr) && phase === 'play'; player.star = 0;
-      // Glimmer Caves: from the ledge under the last hole in the ceiling, a high jump up onto the roof, then along it past the gate
-      // to the secret exit, which opens a golden path to Gillette Castle
-      delete save.secrets.caves; delete save.cleared.castle; delete save.cleared.bog;
-      startLevel('caves'); ents = ents.filter(e => !isEnemy(e) && e.k !== 'crusher'); player.x = 153 * 16; player.y = 5 * 16 - player.h; player.vy = 0; run(10);
-      keys.down = true; run(2); pressed.jump = true; keys.jump = true; run(1); keys.down = false; run(4); keys.right = true; run(60); keys.jump = false;
-      out.upTop = player.y + player.h < 4 && player.ground;
-      keys.run = true; let gateClear = false; run(700, () => { if (phase === 'clear' && !lvl.secretExit) gateClear = true; }); keys.right = false; keys.run = false;
-      out.secret = !gateClear && lvl.secretExit === true; run(300);
-      out.secretPath = !!save.secrets.caves && state === 'map' && nodeOpen(node('slater'));
       // the box at the top: a saved clover drops when asked for
       startLevel('hills'); run(5);
       reserve = 'clover'; pressed.item = true; run(1); out.recalled = reserve === null && ents.some(e => e.k === 'clover' && e.drop);
-      // down a hollow tree into its bonus room, and back out of a log further on
-      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); const w = ents.find(e => e.k === 'warp');
-      player.x = w.x + 10; player.y = w.y - 30; run(40); keys.down = true; downFrom = 'KeyS'; run(60); keys.down = false; run(30);
-      out.room = lvl.id;
-      const ex = ents.find(e => e.k === 'exit'); player.x = ex.x + 10; player.y = ex.y - 30; run(40); keys.down = true; run(60); keys.down = false; run(60);
-      out.back = lvl.id === 'hills' && Math.abs(player.x / 16 - w.out[0]) < 2 && player.ground && phase === 'play';
       // the hat: thrown up while looking up, and low along the ground while crouching
       startLevel('hills'); setForm(3); ents = ents.filter(e => !isEnemy(e)); player.x = 6 * 16; run(20);
       keys.up = true; pressed.hat = true; run(1); const capU = ents.find(e => e.k === 'cap'); out.capUp = !!capU && capU.vy < -200; keys.up = false; run(120);
@@ -3413,9 +3399,6 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.carried && r.thrown, 'pick up a shell by holding run, throw it by letting go: ' + JSON.stringify(r));
     check(r.highPound, 'the ground pound should work above the top of the screen: ' + JSON.stringify(r));
     check(r.recalled, 'the saved power-up should drop from the box: ' + JSON.stringify(r));
-    check(r.upTop && r.secret && r.secretPath, 'Glimmer Caves: a high jump through the hole in the ceiling should reach the roof, and the secret exit past the gate should open the path to Gillette Castle: ' + JSON.stringify(r));
-    check(r.smashed, 'with the lucky horseshoe Leo should smash the crush-stone: ' + JSON.stringify(r));
-    check(r.room === 'hillsTree' && r.back, 'down the hollow tree into the room and back out further on: ' + JSON.stringify(r));
     check(r.capUp && r.capLow, 'the hat should go up when looking up and low when crouching: ' + JSON.stringify(r));
     check(r.slantKeys && r.slantKeys.vx < -150 && r.slantKeys.vy < -150 && r.stickUp && r.stickUp.vx > 80 && r.stickUp.vy < -200 && r.stickDown && r.stickDown.vx < -100 && r.stickDown.vy > 100, 'the hat can be aimed: on a slant with the arrows, and at the stick\'s own angle, down too from the air: ' + JSON.stringify({ slantKeys: r.slantKeys, stickUp: r.stickUp, stickDown: r.stickDown }));
     // running right with the stick a little down, holding Ⓧ and pressing Ⓐ: a jump, never a ground pound (or a crouch)
@@ -3432,6 +3415,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
 
   await test('Manifest Destiny look: characters are shaded (a contour in their own colours, a shadow side, a lit rim), goblins react to Leo, coins ring, the score counts up, a game-art HUD', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(MD_PRACTICE);
     const r = await p.evaluate(() => {
       startGame(); startLevel('hills'); paused = true;
       const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
@@ -3453,54 +3437,38 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'manifest-destiny-look.png');
   });
 
-  await test('Manifest Destiny: the ☰ menu and pause screen go back to the map, start the level again, and back to the title', async () => {
+  await test('Manifest Destiny: its own pause menu (back to the map, start again, unlock all levels, the heroes, a new game) and the ☰ menu', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    await p.evaluate(() => { startGame(); startLevel('woods'); });
+    await p.evaluate(() => { localStorage.removeItem('md_save'); startGame(); startLevel('plimoth'); });
     await p.click('#btnMenu'); await p.waitForTimeout(150);
     const labels = await p.$$eval('.rb-menu-this button', bs => bs.map(b => b.textContent));
     await p.click('.rb-menu-this [data-g="1"]'); await p.waitForTimeout(150);
     const again = await p.evaluate(() => ({ state, id: lvl.id, menu: !!document.querySelector('.rb-menu') }));
     await p.evaluate(() => pause()); await p.waitForTimeout(100);
+    const pauseShows = await p.evaluate(() => ({ sub: (document.querySelector('.rb-pause-sub') || {}).textContent, labels: [...document.querySelectorAll('.rb-pause .rb-extra')].map(b => b.textContent) }));
     await p.click('.rb-pause .rb-extra'); await p.waitForTimeout(150);
     const map = await p.evaluate(() => ({ state, paused, pause: !!document.querySelector('.rb-pause') }));
-    await p.click('#btnMenu'); await p.waitForTimeout(150); await p.click('.rb-menu-this [data-g="0"]'); await p.waitForTimeout(150);
-    const title = await p.evaluate(() => ({ state, shown: !document.getElementById('title').classList.contains('hidden') }));
-    check(labels.some(l => /map/.test(l)) && again.state === 'level' && again.id === 'woods' && !again.menu, 'menu: start the level again: ' + JSON.stringify({ labels, again }));
-    check(map.state === 'map' && !map.paused && !map.pause, 'pause screen: back to the map: ' + JSON.stringify(map));
-    check(title.state === 'title' && title.shown, 'menu on the map: back to the title: ' + JSON.stringify(title));
-    await done(p);
-  });
-
-  await test('Manifest Destiny World 6 (the Gulf Coast): crawfish, dragonflies and gator backs in the swamp, the pirogue and the steamboat set off with Leo aboard, streetcars and Mardi Gras floats carry him, and every level draws', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true; startGame(); lives = 9;
-      out.drawn = ['mobile', 'bayou', 'quarter', 'river', 'basin', 'sabine'].map(id => { startLevel(id); run(20); return lvl.id === id && phase === 'play' && !!SCENERY[lvl.theme] && !!SKIES[lvl.theme] && !!THEMES[lvl.theme] && !!SONGS[lvl.music]; });
-      // the pirogue in Honey Island Swamp and the steamboat on the Mississippi only set off once Leo steps aboard
-      const ride = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); const b = ents.find(e => e.k === 'boat'); run(30); const before = b.x;
-        player.x = b.x + 10; player.y = b.y - player.h - 2; player.vy = 0; run(120); return { still: before === b.x0, moved: b.x > b.x0 + 40, aboard: player.ride === b }; };
-      out.pirogue = ride('bayou'); out.steamboat = ride('river');
-      // a streetcar carries Leo along in the French Quarter
-      startLevel('quarter'); ents = ents.filter(e => !isEnemy(e)); const car = ents.find(e => e.k === 'plat' && e.look === 'streetcar');
-      player.x = car.x + 8; player.y = car.y - player.h - 1; player.vy = 0; const x0 = player.x; run(90); out.streetcar = player.ride === car && Math.abs(player.x - x0) > 4;
-      out.looks = ['streetcar', 'float'].every(k => LEVELS.quarter.ents.some(e => e.look === k));
-      // crawfish and dragonflies are the Gulf's own critters; a stomp still squashes a crawfish
-      startLevel('mobile'); ents = ents.filter(e => !isEnemy(e) || e.k === 'crab'); const cf = ents.find(e => e.k === 'crab');
-      player.x = cf.x; player.y = cf.y - 30; player.vy = 150; run(10); out.crawfish = { gulf: GULF.has(lvl.theme), stomped: !ents.includes(cf) || cf.dead || cf.squish > 0 };
-      out.swamp = SWAMP.has('bayou') && SWAMP.has('basin') && LEVELS.bayou.ents.some(e => e.k === 'sponge') && LEVELS.basin.dark;
-      out.map = ['mobile', 'river', 'quarter', 'bayou'].every(id => worldOf(id) === 3 && node(id)) && ['basin', 'sabine'].every(id => !node(id) && RETIRED.includes(id));
-      paused = false; return out;
+    // pause on the map too: unlock all levels, then lock them again
+    await p.evaluate(() => pause()); await p.waitForTimeout(100);
+    await p.evaluate(() => [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /Unlock all/.test(b.textContent)).click()); await p.waitForTimeout(100);
+    const unlocked = await p.evaluate(() => ({ all: save.unlockAll && worldOpen(8) && nodeOpen(node('spike')), paused }));
+    await p.evaluate(() => { pause(); [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /Lock the levels/.test(b.textContent)).click(); });
+    const relocked = await p.evaluate(() => !save.unlockAll && !nodeOpen(node('spike')));
+    // a new game (after saying yes): everything back to the start, the best score kept
+    const fresh = await p.evaluate(() => {
+      save.cleared.voyage = save.cleared.plimoth = true; save.best = 1234; save.info.voyage = [true]; persist(); goMap('cranberry', true);
+      pause(); window.confirm = () => true; [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /New game/.test(b.textContent)).click();
+      return { at: mapLeo.at, cleared: Object.keys(save.cleared).length, info: Object.keys(save.info).length, best: save.best, state };
     });
-    check(r.drawn.every(Boolean), 'every Gulf Coast level starts and has its own scenery, sky, ground and music: ' + JSON.stringify(r.drawn));
-    check(r.pirogue.still && r.pirogue.moved && r.steamboat.still && r.steamboat.moved, 'the pirogue and the steamboat wait for Leo, then carry him off: ' + JSON.stringify(r));
-    check(r.streetcar && r.looks, 'the streetcar carries Leo, and the Quarter has streetcars and Mardi Gras floats: ' + JSON.stringify(r));
-    check(r.crawfish.gulf && r.crawfish.stomped, 'a crawfish can be stomped: ' + JSON.stringify(r.crawfish));
-    check(r.swamp, 'the swamps have dragonflies and gator backs, and the Atchafalaya is dark: ' + JSON.stringify(r));
-    check(r.map, 'the Gulf Coast levels are in World 4 (the Music South) on the map; the Atchafalaya and the Sabine River are kept but off the map: ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-gulf.png');
+    await p.evaluate(() => { pause(); [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /Title/.test(b.textContent)).click(); });
+    const title = await p.evaluate(() => ({ state, shown: !document.getElementById('title').classList.contains('hidden') }));
+    check(labels.some(l => /map/.test(l)) && labels.some(l => /New game/.test(l)) && again.state === 'level' && again.id === 'plimoth' && !again.menu, 'menu: start the level again: ' + JSON.stringify({ labels, again }));
+    check(/1-2 Plimoth Plantation · 1621/.test(pauseShows.sub) && ['map', 'again', 'Unlock all', 'heroes', 'New game'].every(w => pauseShows.labels.some(l => l.includes(w))), 'the pause screen says where you are, with the game\'s own menu: ' + JSON.stringify(pauseShows));
+    check(map.state === 'map' && !map.paused && !map.pause, 'pause screen: back to the map: ' + JSON.stringify(map));
+    check(unlocked.all && !unlocked.paused && relocked, 'unlock all levels from the pause menu, and lock them again: ' + JSON.stringify({ unlocked, relocked }));
+    check(fresh.at === 'voyage' && fresh.cleared === 0 && fresh.info === 0 && fresh.best === 1234 && fresh.state === 'map', 'a new game starts over on the Mayflower, keeping the best score: ' + JSON.stringify(fresh));
+    check(title.state === 'title' && title.shown, 'pause on the map: back to the title: ' + JSON.stringify(title));
+    await done(p);
   });
 
   await test('Manifest Destiny music: every level has a tune, and the orchestra (whimsical, epic, tender and swing) plays out loud and clear without clipping', async () => {
@@ -3529,305 +3497,147 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
   await test('Manifest Destiny starts where you left off: the same spot on the map, with the same power-up, after the page is closed and opened again', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const fresh = await p.evaluate(() => { localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; save.at = null; save.keep = null; startGame(); return mapLeo.at; });
-    await p.evaluate(() => { for (const id of ['canal', 'cranberry', 'mayflower', 'shore']) save.cleared[id] = true; keep = { form: 2, mount: false, laser: false }; goMap('lighthouse'); });
+    await p.evaluate(() => { for (const id of ['voyage', 'plimoth', 'cranberry']) save.cleared[id] = true; keep = { form: 2, mount: false, laser: false }; goMap('boston'); });
     await p.reload(); await p.waitForTimeout(500);
     const back = await p.evaluate(() => { startGame(); return { at: mapLeo.at, form: keep.form, state }; });
     // a spot that isn't open (an old save, say) falls back to the start
-    await p.evaluate(() => { save.at = 'sabine'; persist(); });
+    await p.evaluate(() => { save.at = 'spike'; persist(); });
     await p.reload(); await p.waitForTimeout(500);
     const locked = await p.evaluate(() => { startGame(); return mapLeo.at; });
     check(fresh === 'voyage', 'a brand-new game starts on the Mayflower: ' + fresh);
-    check(back.at === 'lighthouse' && back.form === 2 && back.state === 'map', 'after closing and opening the page, Leo is back at Portland Head Light with his rainbow flower: ' + JSON.stringify(back));
+    check(back.at === 'boston' && back.form === 2 && back.state === 'map', 'after closing and opening the page, the hero is back at Boston with his apples: ' + JSON.stringify(back));
     check(locked === 'voyage', 'a saved spot that is not open falls back to the start: ' + locked);
     await done(p);
   });
 
-  await test('Manifest Destiny: the Grumble Gang: every boss takes three hits, and each hit sets off a new trick from where he is', async () => {
+  await test('Manifest Destiny map: the whole story on one map (Canada and Mexico next door) in nine regions; signposts are walked past; the next region opens after its quiz; zoom; Unlock All; the title scene', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
       const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
-      paused = true; startGame(); lives = 99;
-      const seen = (id, hp, check) => { startLevel(id); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const b = ents.find(e => e.k === 'boss');
-        player.x = 172 * 16; player.y = 11 * 16 - 14; player.inv = 999; run(20); b.hp = hp; b.act = 0; b.throwT = 0.1; let hit = false;
-        for (let i = 0; i < 60 * 6 && !hit; i++) { player.x = 160 * 16; player.inv = 999; step(1 / 60); hit = check(b); } return { hit, hp: b.maxHp, who: b.who }; };
-      const shot = k => ents.some(e => e.k === 'acorn' && e.kind === k);
-      return {
-        pinchCalm: seen('ptown', 3, () => shot('bubble')).hit === false,
-        pinchBubbles: seen('ptown', 2, () => shot('bubble')).hit,
-        yetiIcicles: seen('fort', 1, () => shot('icicle')).hit,
-        sherlockVanishes: seen('castle', 2, b => b.ghost > 0).hit,
-        libertyFire: seen('liberty', 2, () => shot('fire')).hit,
-        libertyTaxi: seen('liberty', 1, () => ents.some(e => e.k === 'taxi')).hit,
-        chompsWallCannon: seen('castillo', 2, () => ents.some(e => e.k === 'acorn' && e.kind === 'cannonball' && e.x < 155 * 16)).hit,
-        chompsCharge: seen('castillo', 1, b => b.cst === 'rush').hit,
-        rocketFlies: seen('canaveral', 2, b => b.flying && b.y < 8 * 16).hit,
-        rocketIceCream: seen('canaveral', 1, () => shot('icecream')).hit,
-        cowboyTumble: seen('sabine', 2, () => shot('tumble')).hit,
-        cowboyCharge: seen('sabine', 1, b => b.cst === 'rush').hit,
-        lobsterTea: seen('midnight', 3, () => shot('tea')).hit,
-        lobsterLanterns: seen('midnight', 2, () => lvl.lanterns > 0).hit,
-        lobsterSkyTea: seen('midnight', 1, () => ents.some(e => e.k === 'acorn' && e.kind === 'tea' && e.vx === 0)).hit,
-        threeHits: ['midnight', 'ptown', 'fort', 'castle', 'liberty', 'castillo', 'canaveral', 'sabine'].map(id => LEVELS[id].ents.find(e => e.k === 'boss')).every(e => !e.hp) && Object.values(BOSS_CAST).every(c => c.hits.length === 2 && c.intro && c.done),
-      };
-    });
-    check(r.pinchCalm && r.pinchBubbles, 'Captain Pinch only blows bubbles once his cap is gone: ' + JSON.stringify(r));
-    check(r.yetiIcicles && r.sherlockVanishes && r.libertyFire && r.libertyTaxi, 'the Yeti shakes down icicles, Sherlock vanishes, Lady Liberty throws fire and calls a taxi: ' + JSON.stringify(r));
-    check(r.chompsWallCannon && r.chompsCharge && r.rocketFlies && r.rocketIceCream && r.cowboyTumble && r.cowboyCharge, 'Chomps calls cannons and charges, the rocket flies and drops ice cream, the cowboy rolls tumbleweeds and charges: ' + JSON.stringify(r));
-    check(r.lobsterTea && r.lobsterLanterns && r.lobsterSkyTea, 'General Lobsterback throws tea chests, lights the lanterns after the first hit, and drops tea from the sky after the second: ' + JSON.stringify(r));
-    check(r.threeHits, 'every boss takes three hits and has a line for each one: ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p);
-  });
-
-  await test('Manifest Destiny secret exits in every world: a spring bounces Leo up to a sky ledge, its golden flag opens a shortcut, and the map shows a star until it is found', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
-      paused = true; startGame(); lives = 99;
-      const out = {};
-      for (const [id, to] of [['shore', 'snow'], ['orchard', 'glades'], ['glades', 'canaveral'], ['mobile', 'quarter']]) {
-        delete save.secrets[id]; for (const k in save.cleared) delete save.cleared[k]; save.cleared[id] = false;
-        const starBefore = hasSecretExit(id) && !save.secrets[id];
-        startLevel(id); ents = ents.filter(e => !isEnemy(e)); player.inv = 999;
-        const flag = ents.find(e => e.k === 'sflag'), spring = ents.filter(e => e.k === 'spring').sort((a, b) => Math.abs(a.x - flag.x) - Math.abs(b.x - flag.x))[0];
-        player.x = spring.x; player.y = spring.y - 40; player.vy = 60; player.ground = false; keys.jump = true; let top = 999;
-        run(30, () => {}); for (let i = 0; i < 40; i++) { step(1 / 60); top = Math.min(top, player.y); if (player.vy < 0) keys.right = true; }
-        keys.jump = false; for (let i = 0; i < 60 * 8 && phase === 'play'; i++) { player.inv = 999; step(1 / 60); }
-        keys.right = false; const secret = lvl.secretExit === true; run(60 * 5);
-        out[id] = { starBefore, top: Math.round(top), secret, shortcut: state === 'map' && nodeOpen(node(to)), found: !!save.secrets[id] };
-      }
-      return out;
-    });
-    for (const [id, v] of Object.entries(r)) check(v.starBefore && v.secret && v.shortcut && v.found, `${id}: the spring reaches the sky ledge and its flag opens the golden shortcut: ` + JSON.stringify(v));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p);
-  });
-
-  await test('Manifest Destiny World 1 (New England): every level is built, each with its own look; syrup slows Leo, gusts on Mount Washington push him back, the cog railway and waterwheels carry him, and General Lobsterback\'s lanterns warn by land or by sea', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true; startGame(); lives = 99;
-      const out = {};
-      out.levels = WORLDS[0].map(id => { startLevel(id); run(20); return [id, lvl.id === id && phase === 'play' && !!SCENERY[lvl.theme] && !!SKIES[lvl.theme] && !!THEMES[lvl.theme] && !!SONGS[lvl.music] && FACTS[id].length === 10]; });
-      out.ownLook = ['mayflower', 'lighthouse', 'cog', 'maple', 'mystic', 'newport', 'slater', 'midnight'].every(id => !['pier', 'fort', 'castle'].includes(LEVELS[id].theme));
-      // maple syrup: slow walking, a small hop
-      const speedIn = sticky => { startLevel('maple'); ents = ents.filter(e => !isEnemy(e)); const sy = ents.find(e => e.k === 'syrup'); player.x = sticky ? sy.x + 4 : 2 * 16; player.y = 11 * 16 - player.h; player.vy = 0; run(10); keys.right = true; run(40); keys.right = false; return player.vx; };   // (his speed once he's settled)
-      out.syrup = { inside: Math.round(speedIn(true)), outside: Math.round(speedIn(false)) };
-      // a gust on Mount Washington pushes Leo back
-      startLevel('cog'); ents = ents.filter(e => !isEnemy(e)); player.x = 10 * 16; player.vx = 0; clock = 6.5 * 0.775; run(1); out.windNow = windNow(); const x0 = player.x; run(20, () => { clock = 6.5 * 0.775; }); out.pushed = Math.round(x0 - player.x);
-      // the cog railway climbs as it goes right, and carries Leo
-      const car = ents.find(e => e.k === 'plat' && e.look === 'cogcar'); let lo = null, hi = null;
-      for (let i = 0; i < 400; i++) { step(1 / 60); if (!lo || car.x < lo.x) lo = { x: car.x, y: car.y }; if (!hi || car.x > hi.x) hi = { x: car.x, y: car.y }; }
-      out.train = { climbs: hi.y < lo.y - 40 && hi.x > lo.x + 120 };
-      player.x = car.x + 10; player.y = car.y - player.h - 1; player.vy = 0; run(2); const ridY = player.y; run(30); out.train.carried = player.ride === car && Math.abs(player.y - ridY) > 3;
-      // the waterwheel's paddles go round in a circle, and carry Leo round with them
-      startLevel('slater'); ents = ents.filter(e => !isEnemy(e)); const paddles = ents.filter(e => e.k === 'plat' && e.hub === 'w1'); run(30);
-      const hub = { x: 35 * 16, y: 8 * 16 }, radii = paddles.map(pd => Math.round(Math.hypot((pd.x - hub.x) / 48, (pd.y - hub.y) / 48) * 100) / 100);
-      out.wheel = { n: paddles.length, round: radii.every(v => Math.abs(v - 1) < 0.02) };
-      const pd = paddles[0]; player.x = pd.x + 4; player.y = pd.y - player.h - 1; player.vy = 0; run(2); const sx = player.x, sy2 = player.y; run(20); out.wheel.carried = player.ride === pd && Math.hypot(player.x - sx, player.y - sy2) > 6;
-      // General Lobsterback's lanterns: one, and he charges; two, and a wave rolls in
-      const lanterns = n => { startLevel('midnight'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const b = ents.find(e => e.k === 'boss'); player.x = 168 * 16; player.inv = 9999; run(30);
-        b.hp = 2; b.lt = 99; b.cst = 'walk'; const rnd = Math.random; Math.random = () => n === 1 ? 0.2 : 0.8; let rush = false, wave = false, lit = 0;
-        try { run(150, () => { player.inv = 9999; lit = Math.max(lit, lvl.lanterns || 0); if (b.cst === 'rush') rush = true; if (ents.some(e => e.k === 'acorn' && e.kind === 'wave')) wave = true; }); } finally { Math.random = rnd; }
-        return { lit, rush, wave }; };
-      out.land = lanterns(1); out.sea = lanterns(2);
-      // the Old North Church steeple is behind the square, and the castle ends World 1
-      out.steeple = LEVELS.midnight.decor.some(d => d[0] === 'steeple') && LEVELS.midnight.boss && !!WORLD_ENDS.midnight;
-      paused = false; return out;
-    });
-    check(r.levels.every(([, ok]) => ok), 'every World 1 level starts, with its own scenery, sky, ground, music and ten facts: ' + JSON.stringify(r.levels));
-    check(r.ownLook, 'the new levels each have their own look: ' + JSON.stringify(r.ownLook));
-    check(r.syrup.inside < r.syrup.outside * 0.6, 'maple syrup slows Leo down: ' + JSON.stringify(r.syrup));
-    check(r.windNow > 0.3 && r.pushed > 4, 'a gust on Mount Washington pushes Leo back: ' + JSON.stringify(r));
-    check(r.train.climbs && r.train.carried, 'the cog railway climbs as it goes right, and carries Leo: ' + JSON.stringify(r.train));
-    check(r.wheel.n === 4 && r.wheel.round && r.wheel.carried, 'the waterwheel\'s four paddles go round in a circle and carry Leo: ' + JSON.stringify(r.wheel));
-    check(r.land.lit === 1 && r.land.rush && !r.land.wave && r.sea.lit === 2 && r.sea.wave && !r.sea.rush, 'one lantern: Lobsterback charges by land; two: a wave comes by sea: ' + JSON.stringify({ land: r.land, sea: r.sea }));
-    check(r.steeple, 'the Old North Church stands behind the square, and the Midnight Ride ends World 1: ' + JSON.stringify(r.steeple));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-world1.png');
-  });
-
-  await test('Manifest Destiny retired levels: the old levels are in a list that scrolls, any of them can be played, and finishing one goes back to the list; an old save keeps its progress', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    // a save from before World 1 was rebuilt: Provincetown Pier, the Frost Fortress and Gillette Castle were beaten
-    await p.evaluate(() => { localStorage.setItem('md_save', JSON.stringify({ cleared: { canal: true, cranberry: true, ptown: true, shore: true, fort: true }, at: 'fort' })); });
-    await p.reload(); await p.waitForTimeout(500);
-    const r = await p.evaluate(() => {
-      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
-      const old = { mayflower: !!save.cleared.mayflower, lighthouse: !!save.cleared.lighthouse, at: save.at };
-      startGame(); old.startAt = mapLeo.at; old.snow = nodeOpen(node('snow'));
-      document.getElementById('bRetired').click();
-      const list = [...document.querySelectorAll('#rlist button')].map(b => b.dataset.id), shown = !document.getElementById('retired').classList.contains('hidden') && state === 'retired';
-      const box = document.getElementById('retired'), scrolls = box.scrollHeight > box.clientHeight;
-      document.querySelector('#rlist button[data-id="whale"]').click(); const playing = state === 'level' && lvl.id === 'whale' && document.getElementById('retired').classList.contains('hidden');
-      player.x = 194 * 16; player.y = 100; run(1); reachGoal(); run(60 * 5); const back = state === 'retired' && !document.getElementById('retired').classList.contains('hidden') && !!save.cleared.whale;
-      const tick = document.querySelector('#rlist button[data-id="whale"] .rdone').textContent;
-      document.getElementById('btnRetiredBack').click(); const toMap = state === 'map';
-      return { old, list, shown, scrolls, playing, back, tick, toMap, retired: RETIRED.slice() };
-    });
-    check(r.old.mayflower && r.old.lighthouse && r.old.at === 'lighthouse' && r.old.startAt === 'lighthouse' && r.old.snow, 'an old save\'s progress carries over to the new levels in the same places: ' + JSON.stringify(r.old));
-    check(r.shown && r.list.length === r.retired.length && r.list.length >= 19 && ['ptown', 'fort', 'castle', 'whale', 'sabine'].every(id => r.list.includes(id)), 'the 🗃️ button shows every retired level, including the old bosses: ' + JSON.stringify(r.list));
-    check(r.scrolls, 'the list scrolls');
-    check(r.playing && r.back && r.tick === '✔' && r.toMap, 'a retired level plays, finishing it goes back to the list (ticked), and Back goes to the map: ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-retired.png');
-  });
-
-  await test('Manifest Destiny map: one map of the whole country in nine regional worlds; levels still being built are signposts Leo walks past; worlds not reached yet are grey; zoom out to see it all; Unlock All', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
-      localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k]; save.unlockAll = false; save.key = false;
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info']) save[k] = {}; save.unlockAll = false;
+      // the title scene: the Mayflower sailing west (drawn on the canvas behind the title)
+      let titleDrew = true; try { render(); } catch (e) { titleDrew = e.message; }
       startGame();
-      const start = { at: mapLeo.at, tag: levelTag('voyage'), plimoth: nodeOpen(node('plimoth')), cranberry: nodeOpen(node('cranberry')), shore: nodeOpen(node('shore')), w1: worldOpen(0), w2: worldOpen(1), buttons: !document.getElementById('mapBtns').classList.contains('hidden') };
-      for (const k in save.cleared) delete save.cleared[k];
-      // the worlds: every state is in one, every built level is on the map once, and the worlds are about the same size
-      const shape = { worlds: WORLDS.length, sizes: WORLDS.map(w => w.length), names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length,
-        everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
-        built: ORDER.every(id => node(id) && LEVELS[id]) && NODES.filter(n => LEVELS[n.id]).every(n => ORDER.includes(n.id)),
-        retired: RETIRED.every(id => LEVELS[id] && !node(id)), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]),
-        dc: NODES.some(n => /Washington, D\.C\./.test(n.region)), goldRush: node('sutter').region === 'California' && WORLDS[8][WORLDS[8].length - 1] === 'sutter' };
-      // World 1 is built, one level after another; beating the Midnight Ride opens the boat to New York: World 2 isn't grey any more
-      WORLDS[0].slice(0, -1).forEach(id => { save.cleared[id] = true; });
-      const boat = { w1Built: WORLDS[0].every(id => LEVELS[id] && !node(id).soon), midnight: nodeOpen(node('midnight')), w2Before: worldOpen(1) };
-      save.cleared.midnight = true; Object.assign(boat, { w2After: worldOpen(1), liberty: nodeOpen(node('liberty')), sea: SEA_PATHS.has('midnight|liberty'), w3: worldOpen(2) });
-      // a signpost is walked past: beating the Empire State Building opens the World 2 signposts, and the Peach Orchard far beyond them
-      save.cleared.liberty = true;
-      const signs = { city: nodeOpen(node('city')), edisonBefore: nodeOpen(node('edison')), orchardBefore: nodeOpen(node('orchard')) };
-      save.cleared.city = true; Object.assign(signs, { edison: nodeOpen(node('edison')), smithsonian: nodeOpen(node('smithsonian')), orchard: nodeOpen(node('orchard')), castillo: nodeOpen(node('castillo')) });
-      goMap('edison', true); enterLevel(); signs.notStarted = state === 'map';
-      // zoom out to the whole country and back in (the X button, Shift or M)
-      goMap('caves', true); run(90); const z1 = mapCam.z;
+      const start = { at: mapLeo.at, tag: levelTag('voyage'), plimoth: nodeOpen(node('plimoth')), w1: worldOpen(0), w2: worldOpen(1), area: mapArea(), atSea: node('voyage').x > node('plimoth').x, buttons: !document.getElementById('mapBtns').classList.contains('hidden') };
+      const shape = { worlds: WORLDS.length, names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length, everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
+        built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id)),
+        years: WORLDS.flat().every(id => node(id).year), spike: WORLDS[8][WORLDS[8].length - 1] === 'spike', neighbours: NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 };
+      // signposts are walked past: beating the Connecticut River opens World 1's signposts up to the Midnight Ride; World 2 waits for the quiz
+      ORDER.forEach(id => { save.cleared[id] = true; });
+      const signs = { gulfmaine: nodeOpen(node('gulfmaine')), lexington: nodeOpen(node('lexington')), saratogaBefore: nodeOpen(node('saratoga')) };
+      save.quiz[0] = true; signs.saratogaAfter = nodeOpen(node('saratoga')); delete save.quiz[0];
+      goMap('gulfmaine', true); enterLevel(); signs.notStarted = state === 'map';
+      // zoom out to the whole country and back in
+      goMap('ctriver', true); run(90); const z1 = mapCam.z;
       mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
       pressed.run = true; step(1 / 60); run(90); zoom.backIn = !mapWhole && Math.abs(mapCam.z - z1) < 0.02;
-      // the camera follows Leo into the next world, by boat from Boston to New York
-      save.unlockAll = true; goMap('midnight', true); const areaA = mapArea(); mapMove([-1, 0]); if (mapLeo.to !== 'liberty') { mapLeo.to = 'liberty'; } run(400); const follow = { areaA, at: mapLeo.at, areaB: mapArea(), z: mapCam.z };
-      save.unlockAll = false;
-      // the Unlock All button opens every level and path (for building and testing), and turns back off
-      goMap('caves', true);
-      const lockedBefore = !worldOpen(8) && !nodeOpen(node('sutter')) && !nodeOpen(node('bonus'));
-      document.getElementById('bUnlock').click();
-      const unlocked = save.unlockAll && worldOpen(8) && nodeOpen(node('sutter')) && nodeOpen(node('bonus')) && pathOpen(PATHS.find(([a, b]) => a === 'canal' && b === 'vineyard')) && WORLDS.every((w, i) => worldOpen(i));
-      document.getElementById('bUnlock').click();
-      const relocked = !save.unlockAll && !nodeOpen(node('sutter')) && JSON.parse(localStorage.getItem('md_save')).unlockAll === false;
-      // the castle at the end of World 1, and at the end of World 3
-      startLevel('midnight'); winGame(); const mid = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
-      document.getElementById('btnMapAgain').click(); mid.liberty = nodeOpen(node('liberty')); mid.state = state; mid.at = mapLeo.at;
-      ['luray', 'jamestown', 'kittyhawk', 'blackbeard', 'rainbowrow', 'sweetgrass', 'savannah', 'orchard', 'castillo', 'glades', 'reef'].forEach(id => { save.cleared[id] = true; });
-      startLevel('canaveral'); winGame(); const end = { title: document.querySelector('#ending h1').textContent, btn: document.getElementById('btnMapAgain').textContent };
-      document.getElementById('btnMapAgain').click(); end.mobile = nodeOpen(node('mobile')) && worldOpen(3); end.space = nodeOpen(node('space'));
-      // every view draws: each world, Alaska and Hawaii, and the whole country
+      // Unlock All (the map button) opens everything, and turns back off
+      const lockedBefore = !worldOpen(8) && !nodeOpen(node('spike'));
+      document.getElementById('bUnlock').click(); const unlocked = save.unlockAll && WORLDS.every((w, i) => worldOpen(i)) && nodeOpen(node('klondike'));
+      document.getElementById('bUnlock').click(); const relocked = !save.unlockAll && !nodeOpen(node('spike')) && JSON.parse(localStorage.getItem('md_save')).unlockAll === false;
+      // every view draws: each world, Alaska, and the whole country
       let drew = true;
-      for (const id of ['canal', 'liberty', 'canaveral', 'quarter', 'hodag', 'badlands', 'pikes', 'et', 'iditarod', 'waves', 'sutter']) { save.unlockAll = true; goMap(id, true); run(5); try { drawMap(); } catch (e) { drew = e.message; } }
+      save.unlockAll = true; for (const w of WORLDS) { goMap(w[0], true); run(5); try { drawMap(); } catch (e) { drew = e.message; } }
+      goMap('klondike', true); run(5); try { drawMap(); } catch (e) { drew = e.message; }
       mapZoom(true); run(5); try { drawMap(); } catch (e) { drew = e.message; } save.unlockAll = false;
-      goMap('canal', true); startLevel('canal'); const hiddenInLevel = document.getElementById('mapBtns').classList.contains('hidden') || (render(), document.getElementById('mapBtns').classList.contains('hidden'));
-      return { start, shape, signs, boat, zoom, follow, lockedBefore, unlocked, relocked, mid, end, drew, hiddenInLevel };
+      goMap('voyage', true); startLevel('voyage'); const hiddenInLevel = document.getElementById('mapBtns').classList.contains('hidden') || (render(), document.getElementById('mapBtns').classList.contains('hidden'));
+      return { titleDrew, start, shape, signs, zoom, lockedBefore, unlocked, relocked, drew, hiddenInLevel };
     });
-    check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && !r.start.cranberry && !r.start.shore && r.start.w1 && !r.start.w2, 'a new game starts on the Mayflower (1-1), with the rest of the trip still locked: ' + JSON.stringify(r.start));
-    check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.sizes.every(n => n >= 10 && n <= 15) && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific', 'nine regional worlds of 10 to 15 levels, and every state (and D.C.) is in one: ' + JSON.stringify(r.shape));
-    check(r.shape.built && r.shape.retired && r.shape.soon && r.shape.dc && r.shape.goldRush, 'every built level is on the map once, the retired ones are kept off it, signposts mark the rest, Washington D.C. is a stop and the Gold Rush is the end: ' + JSON.stringify(r.shape));
-    check(r.signs.city && !r.signs.edisonBefore && !r.signs.orchardBefore && r.signs.edison && r.signs.smithsonian && r.signs.orchard && !r.signs.castillo && r.signs.notStarted, 'signposts are walked past: beating the Empire State Building opens the way past World 2\'s signposts to the Peach Orchard, and a signpost doesn\'t start a level: ' + JSON.stringify(r.signs));
-    check(r.boat.w1Built && r.boat.midnight && !r.boat.w2Before && r.boat.w2After && r.boat.liberty && r.boat.sea && !r.boat.w3, 'World 1 is all built; beating the Midnight Ride opens the boat to New York (World 2): ' + JSON.stringify(r.boat));
+    check(r.titleDrew === true, 'the title scene draws: ' + r.titleDrew);
+    check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && r.start.w1 && !r.start.w2 && r.start.area === '1' && r.start.atSea, 'a new game starts out at sea on the Mayflower (1-1), in New England, with the rest of the story still locked: ' + JSON.stringify(r.start));
+    check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific' && r.shape.neighbours, 'nine regions, every state (and D.C.) in one, Canada and Mexico next door: ' + JSON.stringify(r.shape));
+    check(r.shape.built && r.shape.soon && r.shape.onlyStory && r.shape.years && r.shape.spike, 'the built levels are on the map, signposts mark the rest, there are no levels outside the story, every stop has a year, and the Golden Spike is the end: ' + JSON.stringify(r.shape));
+    check(r.signs.gulfmaine && r.signs.lexington && !r.signs.saratogaBefore && r.signs.saratogaAfter && r.signs.notStarted, 'signposts are walked past, and the next region opens once the quiz is passed: ' + JSON.stringify(r.signs));
     check(r.zoom.whole && r.zoom.z2 < r.zoom.z1 * 0.6 && r.zoom.backIn, 'zoom out to the whole country and back in: ' + JSON.stringify(r.zoom));
-    check(r.follow.areaA === '1' && r.follow.at === 'liberty' && r.follow.areaB === '2', 'the camera follows Leo by boat from Boston into World 2: ' + JSON.stringify(r.follow));
     check(r.lockedBefore && r.unlocked && r.relocked, 'Unlock All opens every level and path, and turns back off (and is saved): ' + JSON.stringify(r));
-    check(/WORLD 1/.test(r.mid.title) && /World 2/.test(r.mid.btn) && r.mid.liberty && r.mid.state === 'map' && r.mid.at === 'midnight', 'the Midnight Ride ends World 1 and opens World 2: ' + JSON.stringify(r.mid));
-    check(/WORLD 3/.test(r.end.title) && /World 4/.test(r.end.btn) && r.end.mobile && r.end.space, 'Cape Canaveral ends World 3 and opens World 4 and Outer Space: ' + JSON.stringify(r.end));
-    check(r.drew === true && r.hiddenInLevel, 'every world, Alaska, Hawaii and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
+    check(r.drew === true && r.hiddenInLevel, 'every region, Alaska and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'manifest-destiny-map.png');
   });
 
-  await test('Manifest Destiny history facts: every level on the map has ten, a "Did you know?" card shows one after each win, and winning again shows the next', async () => {
+  await test('Manifest Destiny info boxes and the quiz: bump an i box and its fact pops up (the game waits), the info meter fills and is saved; at a region\'s end, five questions from its info boxes, all five right to go on', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
-      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
-      localStorage.removeItem('md_save'); save.facts = {}; startGame();
-      const lists = ORDER.map(id => [id, (FACTS[id] || []).length, new Set(FACTS[id] || []).size, Math.max(...(FACTS[id] || ['']).map(f => f.length))]);
-      const card = () => ({ open: factOpen && !document.getElementById('fact').classList.contains('hidden'), text: document.querySelector('#fact .ftxt').textContent, src: document.querySelector('#fact .fsrc').textContent });
-      startLevel('canal'); finishLevel(); const first = card();
-      const at = mapLeo.at; pressed.right = true; step(1 / 60); const blocked = !mapLeo.to && mapLeo.at === at;
-      pressed.jump = true; step(1 / 60); const closed = !factOpen && document.getElementById('fact').classList.contains('hidden');
-      startLevel('canal'); finishLevel(); const second = card(); closeFact();
-      save.facts.canal = 10; startLevel('canal'); finishLevel(); const wrapped = card(); closeFact();
-      const kept = JSON.parse(localStorage.getItem('md_save')).facts.canal;
-      startLevel('canaveral'); winGame(); const ending = document.getElementById('endFact').textContent;
-      return { lists, first, blocked, closed, second, wrapped, kept, ending, canal: FACTS.canal.slice(0, 2), canaveral: FACTS.canaveral[0] };
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info']) save[k] = {}; paused = true; startGame();
+      out.data = ORDER.map(id => [id, INFO[id].length, INFO[id].every(q => q.f.length <= 190 && q.q && q.a.length === 3 && new Set(q.a).size === 3)]);
+      // bump the first info box in Plimoth Plantation
+      startLevel('plimoth'); ents = ents.filter(e => !isEnemy(e)); const [tx, ty] = [Math.floor(lvl.infoAt[0] / 100), lvl.infoAt[0] % 100];
+      player.x = tx * 16 + 2; player.y = (ty + 1) * 16 + 1; player.vx = 0; player.vy = -260; player.ground = false; run(20);
+      const card = () => ({ open: factOpen && !document.getElementById('fact').classList.contains('hidden'), head: document.querySelector('#fact .fhead').textContent, text: document.querySelector('#fact .ftxt').textContent, src: document.querySelector('#fact .fsrc').textContent });
+      out.first = card(); out.read = tileAt(tx, ty) === T.INFOREAD && (save.info.plimoth || [])[0] === true && JSON.parse(localStorage.getItem('md_save')).info.plimoth[0] === true;
+      const px = player.x, py = player.y; keys.right = true; run(30); keys.right = false; out.waits = player.x === px && player.y === py;
+      pressed.jump = true; step(1 / 60); out.closed = !factOpen;
+      // bump it again: "Remember?"
+      run(60); player.x = tx * 16 + 2; player.y = (ty + 1) * 16 + 1; player.vy = -260; player.ground = false; run(20); out.again = card(); closeFact();
+      // the quiz: five questions from World 1's info boxes
+      const pool = regionQuestions(0).length;
+      startQuiz(0, () => { out.passed = true; });
+      const ask = () => ({ q: document.getElementById('quizQ').textContent, n: document.querySelectorAll('#quizA button').length });
+      out.q1 = ask(); out.fromRegion = regionQuestions(0).some(q => q.q === out.q1.q);
+      // a wrong answer: the right one is shown, and a new quiz is offered
+      document.querySelector('#quizA [data-right="0"]').click(); out.wrong = /Not quite/.test(document.getElementById('quizMsg').textContent) && !!document.querySelector('#quizA .right');
+      document.getElementById('quizAgain').click(); out.restarted = quiz.i === 0;
+      // five right answers: passed, saved, and the next region opens
+      return new Promise(res => {
+        let n = 0; const next = () => { if (!quiz) { out.n = n; out.saved = !!save.quiz[0]; res(out); return; } n++; document.querySelector('#quizA [data-right="1"]').click(); setTimeout(next, 700); };
+        out.pool = pool; next();
+      });
     });
-    check(r.lists.every(([, n, u, len]) => n === 10 && u === 10 && len <= 170), 'each level on the map has ten different, short facts: ' + JSON.stringify(r.lists.filter(([, n, u, len]) => n !== 10 || u !== 10 || len > 170)));
-    check(r.first.open && r.first.text === r.canal[0] && /Bourne Bridge · fact 1 of 10/.test(r.first.src), 'the first win shows fact 1: ' + JSON.stringify(r.first));
-    check(r.blocked && r.closed, 'the map waits while the card is up, and jump closes it: ' + JSON.stringify(r));
-    check(r.second.text === r.canal[1] && /fact 2 of 10/.test(r.second.src), 'winning again shows the next fact: ' + JSON.stringify(r.second));
-    check(/fact 1 of 10/.test(r.wrapped.src) && r.kept === 1, 'after the tenth, it starts over (and is saved): ' + JSON.stringify(r.wrapped));
-    check(r.ending.includes(r.canaveral), 'the world-clear screen has a fact too: ' + r.ending);
+    check(r.data.every(([, n, ok]) => n >= 3 && n <= 5 && ok), 'every level has 3 to 5 short facts, each with a question and three different answers: ' + JSON.stringify(r.data));
+    check(r.first.open && /Did you know/.test(r.first.head) && /Patuxet/.test(r.first.text) && /Plimoth Plantation · 1 of 5 · 1621/.test(r.first.src) && r.read, 'an info box pops up its fact, and the meter is filled in and saved: ' + JSON.stringify(r));
+    check(r.waits && r.closed, 'the game waits while the fact is up, and jump closes it: ' + JSON.stringify(r));
+    check(/Remember/.test(r.again.head), 'bumping it again says "Remember?": ' + JSON.stringify(r.again));
+    check(r.pool >= 25 && r.q1.n === 3 && r.fromRegion, 'the quiz asks questions from the region\'s info boxes, with three answers: ' + JSON.stringify(r));
+    check(r.wrong && r.restarted, 'a wrong answer shows the right one and offers a new quiz: ' + JSON.stringify(r));
+    check(r.passed && r.n === 5 && r.saved, 'five right answers pass the quiz (and it is saved): ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-fact.png');
+    await done(p, 'manifest-destiny-info.png');
   });
 
-  await test('Manifest Destiny: carry a spring to a new spot; Shamrock the unicorn comes down a rainbow, can be ridden (higher jump, float, stomp spiky, open-mouth gulp, eye laser with the prism), comes along to the next level, and a hit only knocks Leo off', async () => {
+  await test('Manifest Destiny 1-3 to 1-6: Cranberry Bog (bog mats sink, a mishoon to ride, water never hurts), Boston (ride the cows on the Common), Providence in the snow, and the Connecticut River (the raft sails, sturgeon leap); new power-ups', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true; startGame(); lives = 9;
-      // a spring: hold run and walk into it, carry it 3 tiles, put it down, and it still bounces
-      startLevel('hills'); const sp = ents.find(e => e.k === 'spring'); ents = ents.filter(e => !isEnemy(e));
-      player.x = sp.x - 30; player.y = sp.y + sp.h - player.h; run(5);
-      const x0 = sp.x; keys.run = true; keys.right = true; run(28); keys.right = false; out.carried = player.carry === sp; keys.run = false; run(30);
-      out.moved = sp.x - x0; out.onGround = Math.abs(sp.y + sp.h - 12 * 16) < 1;
-      player.x = sp.x; player.y = sp.y - 40; player.vy = 100; player.ground = false; run(10); out.bounce = player.vy < -200;
-      // the special block calls a cloud that shines a rainbow down, and Shamrock appears; walk into him to ride
-      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); player.x = 149 * 16 + 2; run(10); keys.jump = true; pressed.jump = true; run(25); keys.jump = false;
-      out.cloud = ents.some(e => e.k === 'summon'); run(100);
-      const u = ents.find(e => e.k === 'unicorn'); out.hatched = !!u && out.cloud;
-      player.x = u.x - 20; player.y = u.y + u.h - player.h; keys.right = true; run(30); keys.right = false; run(20);
-      out.riding = !!player.mount;
-      player.x = 154 * 16; run(20);   // out from under the blocks
-      // a higher jump than on foot
-      const jumpH = () => { const y0 = player.y; let top = y0; pressed.jump = true; keys.jump = true; run(16, () => { top = Math.min(top, player.y); }); keys.jump = false; run(90, () => { top = Math.min(top, player.y); }); return y0 - top; };
-      out.rideJump = jumpH();
-      // floating: holding jump keeps Shamrock in the air longer
-      const airTime = hold => { pressed.jump = true; keys.jump = true; let n = 0; run(200, i => { if (!hold && i > 16) keys.jump = false; if (!player.ground) n++; }); keys.jump = false; run(20); return n; };
-      out.floatAir = airTime(true); out.plainAir = airTime(false);
-      // stomp a spiky hedgehog safely
-      const th = mk('thorny', player.x, player.y - 60 + player.h, { dir: -1, w: 14, h: 13 }); th.y = player.y + player.h - 13; ents.push(th);
-      player.y -= 50; player.vy = 150; player.ground = false; run(20); out.spiky = !!th.flip && !!player.mount;
-      // no prism: run makes Shamrock open wide and gulp the goblin in front of him; three gulps, then a poop
-      run(30); let eaten = 0;
-      for (let i = 0; i < 3; i++) { const g2 = mk('grumblin', player.x + player.w / 2 + player.face * 24 - 7, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(g2); pressed.run = true; run(1); out.mouth = out.mouth || player.mount.mouth > 0; run(30); if (g2.gone && player.mount) eaten++; }
-      out.noLaserYet = !player.mount.beam;
-      run(100); const poo = ents.find(e => e.k === 'poop'); out.ate = eaten === 3 && !!poo && !!player.mount;
-      if (poo) { player.x = poo.x - 30; player.face = 1; keys.right = true; run(40); keys.right = false; out.smoosh = poo.smooshed === true && ents.some(e => e.k === 'smudge'); }
-      // the rainbow prism (from a power block while riding) gives the eye laser: it reaches a goblin well ahead and turns it into a coin
-      run(30); const prism = mk('prism', player.x, player.y, { w: 14, h: 14, rise: 0 }); ents.push(prism); touchPlayerAs(prism); out.prism = player.laser === true;
-      const gob = mk('grumblin', player.x + player.face * 60, player.y + player.h - 14, { dir: -1, w: 14, h: 14 }); ents.push(gob);
-      const c0 = coins; pressed.run = true; run(1); out.zap = gob.gone && coins > c0 && !!player.mount.beam;
-      // the laser doesn't reach right across the screen
-      const farGob = mk('grumblin', player.x + player.face * 120, player.y + player.h - 14, { dir: 0, w: 14, h: 14 }); ents.push(farGob); run(30); pressed.run = true; run(1); out.shortLaser = !farGob.gone; farGob.gone = true;
-      // finishing the level: Shamrock and the power come along to the next one
-      setForm(1); reachGoal(); startLevel('woods'); out.kept = !!player.mount && player.form === 1 && player.h === RIDE_H;
-      // a hit: Leo falls off unhurt, Shamrock runs off; ↓ + jump hops off on purpose
-      const form = player.form; hurtPlayer(); out.fell = !player.mount && player.form === form && phase === 'play' && ents.some(e => e.k === 'unicorn' && e.st === 'flee');
+      localStorage.removeItem('md_save'); paused = true; startGame();
+      out.starts = ['cranberry', 'boston', 'providence', 'ctriver'].map(id => { startLevel(id); const story = bannerT > 0 && /1[0-9]{3}/.test(bannerText[0]); run(30); let drew = true; try { render(); } catch (e) { drew = e.message; } return [id, state === 'level' && player.y > 0 && phase === 'play', story, drew]; });
+      // water never hurts: the hero swims, and a stroke takes him up
+      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); player.x = 50 * 16 + 2; player.y = 150; player.vy = 0; run(80);
+      out.swims = player.swim === true && phase === 'play'; pressed.jump = true; run(1); out.stroke = player.vy < -150; run(90); out.alive = phase === 'play' && lives === 5;
+      // a bog mat sinks while he stands on it, and bobs back up when he leaves
+      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); const mat = ents.find(e => e.k === 'sponge');
+      player.x = mat.x + 16; player.y = mat.y - player.h - 2; player.vy = 0; run(60); out.sank = mat.y > mat.y0 + 6 && player.ride === mat;
+      player.x = 2 * 16; player.y = 100; run(200); out.rose = mat.y < mat.y0 + 1;
+      // a cow on Boston Common carries him along
+      startLevel('boston'); ents = ents.filter(e => !isEnemy(e)); const cow = ents.find(e => e.look === 'cow'); player.x = cow.x + 4; player.y = cow.y - player.h - 2; player.vy = 0; run(10); const cx = player.x; run(60);
+      out.cow = player.ride === cow && Math.abs(player.x - cx) > 10;
+      // the raft sails down the Connecticut once he's aboard; a sturgeon leaps out ahead of him
+      startLevel('ctriver'); ents = ents.filter(e => !isEnemy(e) || e.look === 'sturgeon'); const raft = ents.find(e => e.k === 'boat'), rx = raft.x;
+      player.x = 21 * 16; keys.right = true; run(200, () => { if (player.ride === raft && player.x > raft.x + 30) keys.right = false; }); keys.right = false; run(120);
+      out.raft = player.ride === raft && raft.x > rx + 60;
+      const st = ents.find(e => e.look === 'sturgeon' && e.x > player.x); if (st) { st.cool = 0; st.x0 = st.x = player.x + 100; } run(10); out.sturgeon = !!st && st.st === 'leap' && isEnemy(st);
+      // the power-ups: a pumpkin grows him, the apples are thrown
+      startLevel('plimoth'); ents = ents.filter(e => !isEnemy(e)); setForm(0); const pk = mk('clover', player.x, player.y, { dir: 0 }); ents.push(pk); run(2); out.pumpkin = player.form === 1;
+      const ap = mk('flower', player.x, player.y); ents.push(ap); run(2); out.apples = player.form === 2 && /APPLES/.test(bannerText[0]);
+      player.sparkCD = 0; pressed.run = true; keys.run = true; run(2); keys.run = false; out.thrownApple = ents.some(e => e.k === 'spark');
       paused = false; return out;
     });
-    check(r.carried && r.moved > 25 && r.onGround && r.bounce, 'carry a spring and it still works where you put it: ' + JSON.stringify(r));
-    check(r.hatched && r.riding, 'the egg should hatch Shamrock and Leo should ride him: ' + JSON.stringify(r));
-    check(r.rideJump > 66 && r.floatAir > r.plainAir + 15, 'riding: a higher jump and a float: ' + JSON.stringify(r));
-    check(r.spiky && r.mouth && r.noLaserYet && r.prism && r.zap, 'riding: stomp spiky hedgehogs, chomp with no prism, and the prism gives the eye laser: ' + JSON.stringify(r));
-    check(r.kept, 'Shamrock and power-ups should come along to the next level: ' + JSON.stringify(r));
-    check(r.ate && r.smoosh && r.shortLaser, 'Shamrock eats three enemies and poops, the poop smooshes, and the laser is short: ' + JSON.stringify(r));
-    check(r.fell, 'a hit should only knock Leo off: ' + JSON.stringify(r));
-    await done(p);
+    check(r.starts.every(([, ok, story, drew]) => ok && story && drew === true), 'each new level starts with its story card and draws: ' + JSON.stringify(r.starts));
+    check(r.swims && r.stroke && r.alive, 'water: the hero swims instead of getting hurt: ' + JSON.stringify(r));
+    check(r.sank && r.rose, 'bog mats sink when stood on and bob back up: ' + JSON.stringify(r));
+    check(r.cow, 'a cow on Boston Common carries the hero: ' + JSON.stringify(r));
+    check(r.raft && r.sturgeon, 'the raft sails with the hero aboard, and a sturgeon leaps: ' + JSON.stringify(r));
+    check(r.pumpkin && r.apples && r.thrownApple, 'a pumpkin grows the hero; the basket of apples lets him throw apples: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-new-levels.png');
   });
 
-  await test('Manifest Destiny: the hat throw is the magic hat power-up, wall kicks, and King Grumbles is hurt by thrown shells, sparks, the hat and the laser (not springs)', async () => {
+  await test('Manifest Destiny: the hat throw is the hat power-up, and wall kicks', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(MD_PRACTICE);
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
       paused = true; startGame(); keep = { form: 0, mount: false }; startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); run(20);
@@ -3848,55 +3658,40 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.slide = player.slide === 1 && player.vy <= 75;
       keys.right = false; const x0 = player.x; pressed.jump = true; run(1); out.kickV = [Math.round(player.vx), Math.round(player.vy)];
       run(12); out.kick = player.vx < -100 && player.x < x0 - 20 && player.y < 3 * 16;
-      // King Grumbles on the Statue of Liberty (six hits)
-      startLevel('liberty'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss');
-      const boss = ents.find(e => e.k === 'boss'); player.x = 168 * 16; run(30); boss.hp = boss.maxHp = 9;
-      const hold = () => { boss.hurt = 0; boss.vy = 0; boss.jumpT = 9; boss.throwT = 9; boss.y = 12 * 16 - boss.h; boss.x = 178 * 16; boss.dir = 1; ents = ents.filter(e => e.k !== 'acorn'); };
-      const hits = {};
-      hold(); let hp = boss.hp; ents.push(mk('spring', boss.x + 4, boss.y + boss.h - 16, { w: 16, h: 16, squash: 0 })); run(2); hits.spring = boss.hp === hp;
-      ents = ents.filter(e => e.k !== 'spring');
-      hold(); hp = boss.hp; ents.push(mk('spark', boss.x + 8, boss.y + 10, { vx: 230, vy: 0, w: 6, h: 6 })); run(1); hits.spark = boss.hp === hp - 1;
-      hold(); hp = boss.hp; ents.push(mk('shell', boss.x - 16, boss.y + boss.h - 14, { vx: 240, w: 14, h: 14 })); run(6); hits.shell = boss.hp === hp - 1;
-      hold(); hp = boss.hp; setForm(3); player.hatless = true; ents.push(mk('cap', boss.x + 8, boss.y + 10, { vx: 200, w: 12, h: 9, st: 'out', dir: 1 })); run(1); hits.hat = boss.hp === hp - 1;
-      hold(); hp = boss.hp; ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; mount({}); player.laser = true; player.x = boss.x - 60; player.y = 12 * 16 - player.h; player.face = 1; player.vy = 0; run(1); boss.x = player.x + 60; boss.hurt = 0; player.mount.zapCD = 0; pressed.run = true; run(1); hits.laser = boss.hp === hp - 1;
-      out.hits = hits; out.hpLeft = boss.hp;
-      // stomping King Grumbles again and again, landing back on him even while he still flashes from the last hit: never hurts Leo,
-      // and he goes down; walking into his side still does
-      const realHurt = hurtPlayer; let hurts = 0; hurtPlayer = () => { hurts++; };
-      const stompAll = id => {
-        startLevel(id); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); setForm(1); const bs = ents.find(e => e.k === 'boss'); run(30);
-        player.x = bs.x + bs.w / 2 - player.w / 2; player.y = bs.y - 70; player.vy = 100;
-        for (let i = 0; i < 60 * 30 && bs.hp > 0; i++) {
-          ents = ents.filter(e => e.k !== 'acorn');
-          const cx = player.x + player.w / 2, bx = bs.x + bs.w / 2; keys.left = cx > bx + 2; keys.right = cx < bx - 2; keys.run = true;
-          if (player.ground) { player.x = bx - player.w / 2; player.y = bs.y - 70; player.vy = 100; player.ground = false; }
-          run(1);
-        }
-        keys.left = keys.right = keys.run = false; return bs.hp;
-      };
-      out.stomps = {}; for (const id of ['midnight', 'castle', 'fort', 'ptown', 'liberty', 'castillo', 'canaveral', 'sabine']) out.stomps[id] = stompAll(id); out.stomps.hurts = hurts;
-      startLevel('castle'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); const side = ents.find(e => e.k === 'boss'); run(5);
-      hurts = 0; side.jumpT = side.throwT = 9; player.inv = 0; player.x = side.x - player.w + 4; player.y = side.y + side.h - player.h; player.vy = 0; run(1); out.sideHurts = hurts > 0;
-      hurtPlayer = realHurt;
       paused = false; return out;
     });
     check(r.noThrow, 'without the magic hat, Leo keeps his hat on: ' + JSON.stringify(r));
     check(r.sprouted && r.form === 3 && r.throws, 'the magic hat block gives the hat throw: ' + JSON.stringify(r));
     check(r.afterHit === 1 && r.noThrowAfter, 'a hit takes the magic hat away: ' + JSON.stringify(r));
     check(r.slide && r.kick, 'a wall slide and wall kick: ' + JSON.stringify(r));
-    check(r.hits.spring && r.hits.spark && r.hits.shell && r.hits.hat && r.hits.laser && r.hpLeft === 5, 'King Grumbles: hurt by sparks, a shell, the hat and the laser, not a spring: ' + JSON.stringify(r));
-    check(Object.entries(r.stomps).every(([k, v]) => v === 0) && r.sideHurts, 'every boss: stomping him again and again (even while he flashes) never hurts Leo and beats him in every world; walking into his side does hurt: ' + JSON.stringify(r));
     await done(p, 'manifest-destiny-magic-hat.png');
   });
 
-  await test('Manifest Destiny 1-1 and 1-2: the Mayflower sails with the Pilgrim aboard (yards to climb, rats on deck, storm waves, a rope for anyone overboard) to Provincetown; at Plimoth, turkeys charge and Tisquantum shares his corn; ears of corn to find; a story card and facts', async () => {
+  await test('Manifest Destiny: controller settings in the pause menu; inverted sticks never apply here (only flying games and 3D cameras offer them)', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    await p.evaluate(MD_PRACTICE);
+    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, inverts: { 'manifest-destiny.html': { LY: true, LX: true } } }); startGame(); startLevel('hills'); pause(); });
+    const r1 = await p.evaluate(() => ({ ly: RB.pad.inv('LY'), lx: RB.pad.inv('invLX'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
+    await p.evaluate(() => [...document.querySelectorAll('.rb-pause button')].find(b => /Controller/.test(b.textContent)).click());
+    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), rows: document.querySelectorAll('[data-inv]').length, cam: !!document.querySelector('[data-k="camSpeed"]') }));
+    await p.evaluate(() => document.querySelector('#padDone').click());
+    const back = await p.evaluate(() => ({ pause: !!document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display !== 'none', screen: !!document.querySelector('.rb-padscreen') }));
+    await p.evaluate(() => RB.pad.setConfig({ ...RB.pad.DEFAULTS }));
+    check(!r1.ly && !r1.lx, 'inverted sticks are ignored in Lucky Leo, even if saved: ' + JSON.stringify(r1));
+    check(!!r1.btn, 'the pause menu has a controller settings button: ' + JSON.stringify(r1));
+    check(screen.open && screen.note && !screen.rows && !screen.cam, 'the controller screen explains there is nothing to invert here: ' + JSON.stringify(screen));
+    check(back.pause && !back.screen, 'Done goes back to the pause menu: ' + JSON.stringify(back));
+    await done(p);
+  });
+
+  await test('Manifest Destiny 1-1 and 1-2: the Mayflower sails with the Pilgrim aboard (yards to climb, rats on deck, storm waves, a rope for anyone overboard) to Provincetown; at Plimoth, turkeys charge and Tisquantum shares his corn; ears of corn and info boxes; a story card', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
       const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
       localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
       paused = true; startGame();
-      out.route = WORLDS[0].slice(0, 2).join() === 'voyage,plimoth' && START === 'voyage' && RETIRED.includes('mayflower') && levelTag('plimoth') === '1-2';
+      out.route = WORLDS[0].slice(0, 2).join() === 'voyage,plimoth' && START === 'voyage' && !LEVELS.mayflower && levelTag('plimoth') === '1-2';
       startLevel('voyage');
       out.story = bannerT > 0 && /1620/.test(bannerText[0]);
       out.cast = LEVELS.voyage.cast.grumblin === 'rat' && LEVELS.plimoth.cast.snaily === 'turtle' && LEVELS.plimoth.collect === 'corn';
@@ -3932,14 +3727,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       out.friend = player.form === 1 && /TISQUANTUM/.test(bannerText[0]) && !isEnemy(fr);
       // the ears of corn: five to find, on the HUD too
       out.corn = LEVELS.plimoth.ents.filter(e => e.k === 'gem').length === 5 && collectIcon() === drawCornEar;
-      out.facts = FACTS.voyage.length === 10 && FACTS.plimoth.length === 10;
+      out.facts = INFO.voyage.length === 5 && INFO.plimoth.length === 5;
       // the Pilgrim's on the map, and Canada and Mexico are land
       goMap('plimoth', true); run(5); let drew = true; try { drawMap(); } catch (e) { drew = e.message; }
       out.map = drew === true && NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 && LAKES.length >= 5;
-      showHeroes(); out.heroes = document.querySelectorAll('#hlist button').length === 9 && document.querySelectorAll('#hlist button:disabled').length === 8; hideHeroes();
+      showHeroes(); out.heroes = document.querySelectorAll('#hlist button').length === 9 && document.querySelectorAll('#hlist button:disabled').length === 8 && /Wrestling Brewster/.test(document.getElementById('hlist').textContent); hideHeroes();
       paused = false; return out;
     });
-    check(r.route, 'World 1 starts with the Mayflower and Plimoth Plantation (the old Mayflower Landing is retired): ' + JSON.stringify(r));
+    check(r.route, 'World 1 starts with the Mayflower and Plimoth Plantation: ' + JSON.stringify(r));
     check(r.story && r.cast, 'the level opens with its story card, and the new animals play the parts: ' + JSON.stringify(r));
     check(r.parts && r.sails && r.ratsAboard, 'the Mayflower sails off with the Pilgrim aboard, her yards and rats carried along: ' + JSON.stringify(r));
     check(r.yard, 'a yard carries the Pilgrim along with the ship: ' + JSON.stringify(r));
@@ -3948,298 +3743,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.secret && r.plimothOpen, "the secret exit opens the sea lane to Nantucket (and beating 1-1 opens Plimoth): " + JSON.stringify(r));
     check(r.turkey, 'a turkey fans its tail and charges: ' + JSON.stringify(r));
     check(r.friend, 'Tisquantum shares his corn and is never an enemy: ' + JSON.stringify(r));
-    check(r.corn && r.facts, 'five ears of corn to find, and ten facts for each level: ' + JSON.stringify(r));
-    check(r.map && r.heroes, 'the map draws (with Canada and Mexico), and the Hart family lists nine heroes, eight still to come: ' + JSON.stringify(r));
+    check(r.corn && r.facts, 'five ears of corn to find, and five info boxes in each level: ' + JSON.stringify(r));
+    check(r.map && r.heroes, 'the map draws (with Canada and Mexico), and the heroes screen lists nine, starting with Wrestling Brewster, eight still to come: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'manifest-destiny-mayflower.png');
-  });
-
-  await test('Manifest Destiny Cape Cod: the whale-watch boat sails with Leo aboard, sharks leap, a whale spout shoots him up (Whale Watch is kept, off the map), and secret exits open Martha\'s Vineyard and Nantucket', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
-      paused = true; startGame();
-      out.islandsHidden = !nodeOpen(node('vineyard')) && !nodeOpen(node('nantucket'));
-      startLevel('whale'); ents = ents.filter(e => e.k !== 'shark'); run(20);
-      const boat = ents.find(e => e.k === 'boat'), bx0 = boat.x;
-      keys.right = true; run(200, () => { if (player.ride === boat && player.x > boat.x + 30) keys.right = false; }); keys.right = false;
-      run(120); out.boat = player.ride === boat && boat.x > bx0 + 60 && phase === 'play';
-      // a shark ahead leaps out of the sea
-      const sh = mk('shark', player.x + 120, LH + 40, { x0: player.x + 120, w: 26, h: 12, st: 'swim', cool: 0 }); ents.push(sh);
-      run(10); out.leap = sh.st === 'leap' && isEnemy(sh);
-      sh.gone = true;
-      // into a whale's spout: up he goes
-      const wh = ents.find(e => e.k === 'whale'); wh.cyc = 1.4; run(1); player.x = wh.bx - 6; player.y = 11 * 16 - player.h; player.vy = 0; run(2);
-      out.spout = player.vy < -380;
-      // the secret flag on the cloud: a secret exit that opens Nantucket
-      startLevel('whale'); const fl = ents.find(e => e.k === 'sflag'); touchPlayerAs(fl); out.secretPhase = phase === 'clear' && lvl.secretExit;
-      run(300); out.whaleSecret = state === 'retired' && !!save.secrets.whale;   // (a retired level goes back to the list)
-      save.cleared.cranberry = true; save.secrets.cranberry = true; goMap('cranberry', true); out.nantucket = nodeOpen(node('nantucket'));   // (Cranberry Bog's flag is under the bog: its own test finds it)
-      startLevel('canal'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.vineyard = state === 'map' && nodeOpen(node('vineyard'));
-      // the island levels and the boat level all start
-      out.starts = ['vineyard', 'nantucket', 'whale'].map(id => { startLevel(id); run(30); return state === 'level' && player.y > 0 && phase === 'play'; });
-      out.path = PATHS.some(([a, b, s2]) => a === 'cranberry' && b === 'nantucket' && s2) && SEA_PATHS.has('cranberry|nantucket') && RETIRED.includes('whale') && !node('whale');
-      paused = false; return out;
-    });
-    check(r.islandsHidden, 'the secret islands should start hidden: ' + JSON.stringify(r));
-    check(r.boat, 'the boat should sail off with Leo aboard: ' + JSON.stringify(r));
-    check(r.leap, 'a great white should leap out ahead of Leo: ' + JSON.stringify(r));
-    check(r.spout, "a whale's spout should shoot Leo up: " + JSON.stringify(r));
-    check(r.secretPhase && r.whaleSecret && r.nantucket, 'the golden flag on Whale Watch is still a secret exit, and the one in Cranberry Bog opens the ferry to Nantucket: ' + JSON.stringify(r));
-    check(r.vineyard, "the golden flag on Bourne Bridge should open Martha's Vineyard: " + JSON.stringify(r));
-    check(r.starts.every(Boolean) && r.path, 'the island levels and Whale Watch start, and the secret ferry to Nantucket leaves from Cranberry Bog: ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-cape.png');
-  });
-
-  await test('Manifest Destiny: a rainbow block grows a long curved rainbow into the sky; Leo rides it up to a secret cloud area with power-ups and a rainbow gem, and slides back down further along', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true; startGame(); startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); run(10);
-      out.gemUpThere = !ents.some(e => e.k === 'gem' && e.idx === 3);
-      out.block = tileAt(23, 8) === T.QBOW;
-      player.x = 23 * 16 + 2; player.vx = 0; run(10); keys.jump = true; pressed.jump = true; run(20); keys.jump = false;
-      const bow = ents.find(e => e.k === 'bowup'); out.grows = !!bow;
-      run(100); out.grown = bow && bow.grow === 1;
-      player.x = 23 * 16 + 2; player.y = 8 * 16 - player.h; player.vy = 0; run(2); out.riding = phase === 'bow';
-      let top = 999; run(400, () => { if (lvl.id === 'hills') top = Math.min(top, player.y); }); out.wentUp = top < -100;
-      out.room = lvl.id; out.cloudStuff = ents.some(e => e.k === 'skyexit') && QBLOCKS.has(tileAt(9, 8));
-      const gem = ents.find(e => e.k === 'gem' && e.idx === 3); out.gemHere = !!gem; if (gem) touchPlayerAs(gem); out.gemGot = levelGems[3];
-      const ex = ents.find(e => e.k === 'skyexit'); player.x = ex.x + 10; player.y = ex.y + 8; player.vy = 0; run(1); out.back = lvl.id === 'hills' && Math.abs(player.x / 16 - 115) < 2;
-      run(150); out.landed = player.ground && phase === 'play';
-      out.used = ents.find(e => e.k === 'bowup').used === true;
-      out.levels = ['hills', 'shore', 'night', 'dunes'].every(id => LEVELS[id].skyRoom && LEVELS[LEVELS[id].skyRoom] && LEVELS[id].t.includes(T.QBOW));
-      paused = false; return out;
-    });
-    check(r.block && r.gemUpThere, 'Clover Hills has a rainbow block, and one gem waits up in the clouds: ' + JSON.stringify(r));
-    check(r.grows && r.grown, 'bumping it grows the rainbow: ' + JSON.stringify(r));
-    check(r.riding && r.wentUp && r.room === 'hillsSky' && r.cloudStuff, 'touching the rainbow rides Leo up into the cloud area: ' + JSON.stringify(r));
-    check(r.gemHere && r.gemGot, "the cloud area holds the level's rainbow gem: " + JSON.stringify(r));
-    check(r.back && r.landed && r.used, 'the rainbow slide drops Leo back into the level further along: ' + JSON.stringify(r));
-    check(r.levels, 'four levels have a rainbow block and a cloud area: ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-rainbow.png');
-  });
-
-  await test('Manifest Destiny: riding Shamrock, spiky things are no trouble: stomp hedgehogs and snapping plants, walk over spikes; map trails curve and Leo follows them', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true; startGame(); startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); mount({}); run(10);
-      const drop = k => { const e = mk(k, player.x + (k === 'snapper' ? 200 : -1), 11 * 16 - 14, k === 'snapper' ? { w: 12, h: 18, up: 22, cyc: 0, pipeY: 12 } : { dir: 0, w: 14, h: 13 }); ents.push(e); if (k === 'snapper') { step(1 / 60); e.x = player.x - 1; }
-        player.y = e.y - player.h - 4; player.vy = 120; player.ground = false; run(4); return { gone: !!e.flip || e.dead, safe: !!player.mount && phase === 'play' }; };
-      out.thorny = drop('thorny'); run(30); out.snapper = drop('snapper'); run(30);
-      setTile(Math.floor((player.x + 6) / 16) + 2, 11, T.SPIKES); keys.right = true; run(40); keys.right = false; out.spikes = !!player.mount && player.inv === 0 && phase === 'play';
-      // the map: Leo walks along a curved trail (off the straight line between the two levels)
-      goMap('canaveral'); save.cleared.canaveral = true; mapLeo.to = 'mobile'; mapLeo.at = 'canaveral'; let off = 0;
-      const a = node('canaveral'), b = node('mobile');
-      run(20, () => { const ax = b.x - a.x, ay = b.y - a.y, d = Math.hypot(ax, ay); off = Math.max(off, Math.abs((mapLeo.x - a.x) * ay - (mapLeo.y - a.y) * ax) / d); });
-      run(240); out.curved = off > 3; out.arrived = mapLeo.at === 'mobile' && !mapLeo.to;
-      paused = false; return out;
-    });
-    check(r.thorny.gone && r.thorny.safe && r.snapper.gone && r.snapper.safe, 'Shamrock stomps spiky hedgehogs and snapping plants: ' + JSON.stringify(r));
-    check(r.spikes, 'Shamrock walks over spikes unhurt: ' + JSON.stringify(r));
-    check(r.curved && r.arrived, 'map trails curve and Leo walks along them: ' + JSON.stringify(r));
-    await done(p, 'manifest-destiny-ride.png');
-  });
-
-  await test('Manifest Destiny: controller settings in the pause menu; inverted sticks never apply here (only flying games and 3D cameras offer them)', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    await p.evaluate(() => { localStorage.removeItem('rb_pad'); RB.pad.setConfig({ ...RB.pad.DEFAULTS, inverts: { 'manifest-destiny.html': { LY: true, LX: true } } }); startGame(); startLevel('hills'); pause(); });
-    const r1 = await p.evaluate(() => ({ ly: RB.pad.inv('LY'), lx: RB.pad.inv('invLX'), btn: [...document.querySelectorAll('.rb-pause button')].map(b => b.textContent).find(t => /Controller/.test(t)) || null }));
-    await p.evaluate(() => [...document.querySelectorAll('.rb-pause button')].find(b => /Controller/.test(b.textContent)).click());
-    const screen = await p.evaluate(() => ({ open: !!document.querySelector('.rb-padscreen'), note: !!document.querySelector('.pad-flat'), rows: document.querySelectorAll('[data-inv]').length, cam: !!document.querySelector('[data-k="camSpeed"]') }));
-    await p.evaluate(() => document.querySelector('#padDone').click());
-    const back = await p.evaluate(() => ({ pause: !!document.querySelector('.rb-pause') && document.querySelector('.rb-pause').style.display !== 'none', screen: !!document.querySelector('.rb-padscreen') }));
-    await p.evaluate(() => RB.pad.setConfig({ ...RB.pad.DEFAULTS }));
-    check(!r1.ly && !r1.lx, 'inverted sticks are ignored in Lucky Leo, even if saved: ' + JSON.stringify(r1));
-    check(!!r1.btn, 'the pause menu has a controller settings button: ' + JSON.stringify(r1));
-    check(screen.open && screen.note && !screen.rows && !screen.cam, 'the controller screen explains there is nothing to invert here: ' + JSON.stringify(screen));
-    check(back.pause && !back.screen, 'Done goes back to the pause menu: ' + JSON.stringify(back));
-    await done(p);
-  });
-
-  await test('Manifest Destiny on the map shows his power-up and Shamrock when he has them; S + jump (or F) hops off Shamrock', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
-      paused = true; startGame(); save.cleared.canal = true; startLevel('canal'); ents = ents.filter(e => !isEnemy(e)); setForm(3);
-      const u = mk('unicorn', player.x, player.y, { w: 16, h: 22, st: 'wait', t: 1 }); mount(u); run(5);
-      const told = /hop off/.test(bannerText[1]);
-      reachGoal(); run(300);
-      const onMap = state === 'map' && keep.mount && keep.form === 3;
-      // what gets drawn on the map: Leo riding Shamrock, with the magic hat
-      const calls = []; const dU = drawUnicorn, dL = drawHero;
-      drawUnicorn = (...a) => { calls.push('unicorn'); return dU(...a); }; drawHero = (...a) => { calls.push('leo:' + a[2] + ':' + a[3]); return dL(...a); };
-      try { drawMap(); } finally { drawUnicorn = dU; drawHero = dL; }
-      // ↓ + jump hops off
-      startLevel('woods'); run(10); const rode = !!player.mount; keys.down = true; downFrom = 'KeyS'; pressed.jump = true; run(2); keys.down = false; run(60);
-      const off = !player.mount;
-      // walk away and come back: on again
-      keys.right = true; run(30); keys.right = false; keys.left = true; run(60); keys.left = false; const back = !!player.mount;
-      paused = false; return { told, onMap, calls, rode, off, back };
-    });
-    check(r.told, 'climbing on Shamrock the first time says how to hop off: ' + JSON.stringify(r));
-    check(r.onMap && r.calls.includes('unicorn') && r.calls.includes('leo:3:ride'), 'on the map Leo rides Shamrock with his magic hat: ' + JSON.stringify(r));
-    check(r.rode && r.off && r.back, '↓ + jump hops off Shamrock (and he stays off until Leo walks back to him): ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p);
-  });
-
-  await test('Manifest Destiny: water never hurts (Leo swims); Cranberry Bog mats sink when stood on; the dark mat dives under the bog to a world of frogs and tadpoles with a secret exit', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      localStorage.removeItem('md_save'); for (const k in save.cleared) delete save.cleared[k]; for (const k in save.secrets) delete save.secrets[k];
-      paused = true; startGame(); save.cleared.cranberry = false;
-      // water: drop Leo into the canal; he swims, a stroke takes him up, and at the surface a jump leaps him out
-      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); player.x = 60 * 16 + 2; player.y = 150; player.vy = 0; run(80);
-      out.swims = player.swim === true && phase === 'play'; const y0 = player.y; pressed.jump = true; run(1); out.stroke = player.vy < -150;
-      run(90); out.alive = phase === 'play' && lives === 5;
-      // a bog mat sinks while Leo stands on it, and bobs back up when he leaves
-      startLevel('cranberry'); ents = ents.filter(e => !isEnemy(e)); const mat = ents.find(e => e.k === 'sponge' && !e.deep);
-      player.x = mat.x + 16; player.y = mat.y - player.h - 2; player.vy = 0; run(60); out.sank = mat.y > mat.y0 + 6 && player.ride === mat;
-      player.x = 2 * 16; player.y = 100; run(200); out.rose = mat.y < mat.y0 + 1;
-      // the dark mat: it keeps sinking, the camera pans down, and Leo arrives under the bog
-      const deep = ents.find(e => e.k === 'sponge' && e.deep); player.x = deep.x + 16; player.y = deep.y - player.h - 2; player.vy = 0;
-      let panned = 0; run(500, () => { panned = Math.max(panned, camY); });
-      out.panned = panned > 100; out.room = lvl.id; out.critters = ['frog', 'tadpoles', 'turtle', 'minnows'].every(k => ents.some(e => e.k === k));
-      run(120); out.camBack = Math.abs(camY) < 5; out.swimDeep = player.swim && phase === 'play';
-      const gem = ents.find(e => e.k === 'gem'); out.gem = !!gem && gem.idx === 4;
-      // the secret exit at the far end
-      touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300);
-      out.secret = state === 'map' && !!save.secrets.cranberry && !!save.cleared.cranberry && pathOpen(PATHS.find(([a, b, s2]) => a === 'cranberry' && b === 'nantucket' && s2));
-      paused = false; return out;
-    });
-    check(r.swims && r.stroke && r.alive, 'water: Leo swims instead of dying: ' + JSON.stringify(r));
-    check(r.sank && r.rose, 'bog mats sink when stood on and bob back up: ' + JSON.stringify(r));
-    check(r.panned && r.room === 'cranberryDeep' && r.critters && r.camBack && r.swimDeep, 'the dark mat dives under the bog, the camera pans down, frogs and tadpoles live there: ' + JSON.stringify(r));
-    check(r.gem, 'one of the bog gems is down there: ' + JSON.stringify(r));
-    check(r.secret, 'the secret exit under the bog opens a golden road along the Cape to Nauset Dunes: ' + JSON.stringify(r));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-bog.png');
-  });
-
-  await test('Manifest Destiny World 4 extras: taxis, falling apples and crabs; a wall-jump tower up to a gem; and a more forgiving Shamrock gulp', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      paused = true; startGame();
-      // a taxi drives along the bridge; stomping it knocks it out
-      startLevel('bridge'); const taxi = ents.find(e => e.k === 'taxi'); player.x = taxi.x - 120; run(30); const tx0 = taxi.x; run(20); out.taxiDrives = Math.abs(taxi.x - tx0) > 10;
-      player.x = taxi.x + 6; player.y = taxi.y - player.h - 4; player.vy = 100; player.ground = false; run(4); out.taxiStomp = !!taxi.flip && phase === 'play';
-      // apples drop from the orchard branches when Leo walks underneath
-      startLevel('orchard'); const tree = ents.find(e => e.k === 'appletree'); player.x = tree.x - 10; tree.cool = 0; run(3); out.apple = ents.some(e => e.k === 'applefall');
-      // crabs scuttle at Niagara
-      startLevel('niagara'); const crab = ents.find(e => e.k === 'crab'); player.x = crab.x - 150; run(20); const cx0 = crab.x; run(30); out.crab = Math.abs(crab.x - cx0) > 8;
-      // the wall-jump tower on the rooftops: jump into the gap and kick back and forth to reach the gem at the top
-      startLevel('city'); ents = ents.filter(e => !isEnemy(e)); player.x = 188 * 16 + 4; player.y = 12 * 16 - player.h; player.vy = 0; run(5);
-      keys.jump = true; pressed.jump = true; let dir = 1, top = 999, kicks = 0;
-      run(240, () => { keys.right = dir > 0; keys.left = dir < 0; top = Math.min(top, player.y); if (player.slide && player.vy >= 0) { pressed.jump = true; dir = -dir; kicks++; } });
-      keys.jump = keys.right = keys.left = false;
-      out.tower = { top: Math.round(top), kicks, gem: levelGems[4] };
-      // like Mario, between two walls: after the first kick, just keep tapping jump (no turning the stick round each time)
-      startLevel('city'); ents = ents.filter(e => !isEnemy(e)); player.x = 188 * 16 + 4; player.y = 12 * 16 - player.h; player.vy = 0; player.vx = 0; run(5);
-      let top2 = 999, kicks2 = 0, k0 = 0;
-      run(300, i => { keys.right = i < 40; keys.jump = i % 8 < 3; pressed.jump = i % 8 === 0; top2 = Math.min(top2, player.y); if (player.chainT > 0.58 && !k0) { kicks2++; k0 = 1; } if (player.chainT < 0.5) k0 = 0; });
-      keys.jump = keys.right = keys.left = false;
-      out.mash = { top: Math.round(top2), kicks: kicks2 };
-      // Shamrock's gulp reaches a goblin a little ahead and a little above
-      startLevel('hills'); ents = ents.filter(e => !isEnemy(e)); mount({}); run(10);
-      const gob = mk('grumblin', player.x + player.w / 2 + 34, player.y + player.h - 30, { dir: 0, w: 14, h: 14 }); ents.push(gob); gob.vy = 0;
-      pressed.run = true; run(1); out.gulp = gob.gone === true;
-      // gulps 2, 3 (a poop) and 4: the fourth powers Shamrock up with the rainbow eye laser
-      out.eyes = [];
-      for (let n = 2; n <= 4; n++) {
-        run(30); const g = mk('grumblin', player.x + player.w / 2 + player.face * 30, player.y + player.h - 20, { dir: 0, w: 14, h: 14 }); ents.push(g); g.vy = 0;
-        pressed.run = true; run(1); out.eyes.push({ n, ate: g.gone === true, laser: !!player.laser });
-      }
-      run(100); out.poop = ents.filter(e => e.k === 'poop').length;
-      paused = false; return out;
-    });
-    check(r.taxiDrives && r.taxiStomp, 'taxis drive along and can be stomped: ' + JSON.stringify(r));
-    check(r.apple && r.crab, 'apples drop in the orchard and crabs scuttle: ' + JSON.stringify(r));
-    check(r.tower.top < 40 && r.tower.kicks >= 2 && r.tower.gem, 'wall-kicking back and forth up the rooftop gap reaches the gem: ' + JSON.stringify(r));
-    check(r.mash.top < 40 && r.mash.kicks >= 3, 'tapping jump between two walls kicks back and forth to the top, like Mario: ' + JSON.stringify(r.mash));
-    check(r.gulp, "Shamrock's gulp is forgiving: " + JSON.stringify(r));
-    check(r.eyes.every(x => x.ate) && !r.eyes[1].laser && r.eyes[2].laser && r.poop === 1, 'poop after 3 gulps, laser eyes after the 4th: ' + JSON.stringify({ eyes: r.eyes, poop: r.poop }));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p);
-  });
-
-  await test('Manifest Destiny World 5 (Florida): herons (walk under their legs, mind the beak), gators and gator backs, snakes, roosters, race cars, jellyfish, puffer fish, tarpon, mermaids, manatees, cannons, coconuts, the airboat, low gravity in space, and a flight to Alaska on the one big map', async () => {
-    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
-    const errors = []; p.on('pageerror', e => errors.push(e.message));
-    const r = await p.evaluate(() => {
-      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
-      const only = (...ks) => { ents = ents.filter(e => !isEnemy(e) || ks.includes(e)); };
-      paused = true; startGame();
-      // a heron: small Leo walks right under its long legs; its beak jabs when he's in front; stomping its back knocks it out
-      startLevel('glades'); let h = ents.find(e => e.k === 'heron'); only(h); h.jabCD = 99; h.pause = 99;
-      player.x = h.x + 1; player.y = h.y + h.h - player.h; player.vy = 0; player.inv = 0; run(2); out.underLegs = { lives, form: player.form, phase };
-      startLevel('glades'); h = ents.find(e => e.k === 'heron'); only(h); h.pause = 99; h.dir = 1; h.face = 1; h.jabCD = 0; setForm(1); player.inv = 0;
-      player.x = h.x + h.w + 8; player.y = h.y + h.h - player.h; player.vy = 0; run(20); out.jab = { form: player.form, jabbed: h.jabCD > 0 };
-      startLevel('glades'); h = ents.find(e => e.k === 'heron'); only(h); h.pause = 99; h.jabCD = 99; player.x = h.x + 1; player.y = h.y - player.h - 6; player.vy = 120; player.ground = false; run(4); out.heronStomp = !!h.flip;
-      // the snake, the gator and (in Key West) a rooster can all be stomped
-      for (const [lv, k] of [['glades', 'snake'], ['glades', 'gator'], ['keywest', 'rooster'], ['daytona', 'racer']]) {
-        startLevel(lv); const e = ents.find(q => q.k === k); only(e); run(10); player.x = e.x + e.w / 2 - 6; player.y = e.y - player.h - 4; player.vy = 120; player.ground = false; player.inv = 0; run(4); out[k] = !!e.flip;
-      }
-      // race cars are fast
-      startLevel('daytona'); const car = ents.find(e => e.k === 'racer'); player.x = car.x - 200; run(10); const c0 = car.x; run(30); out.raceSpeed = Math.round(Math.abs(car.x - c0) * 2);
-      // gator backs in the Everglades sink under Leo's feet; the airboat sails once he's aboard
-      startLevel('glades'); ents = ents.filter(e => !isEnemy(e)); const gb = ents.find(e => e.k === 'sponge'); player.x = gb.x + 8; player.y = gb.y - player.h - 2; player.vy = 0; run(40); out.gatorBackSinks = gb.y > gb.y0 + 3;
-      startLevel('glades'); ents = ents.filter(e => !isEnemy(e)); const boat = ents.find(e => e.k === 'boat'); player.x = boat.x + 30; player.y = boat.y - player.h - 2; player.vy = 0; run(120); out.airboat = { go: boat.go, moved: Math.round(boat.x - boat.x0), riding: player.ride === boat };
-      // a puffer fish: stomp it while it's flat and it's knocked out; puffed up, it's spiky
-      startLevel('reef'); let pf = ents.find(e => e.k === 'puffer'); only(pf); pf.puff = 0; pf.kick = 9; player.x = pf.x + 1; player.y = pf.y - player.h - 30; player.vy = 0; run(1); pf.puff = 0;
-      player.y = pf.y - player.h - 2; player.vy = 70; player.inv = 0; player.form = 0; run(3); out.pufferFlat = !!pf.flip;
-      startLevel('reef'); pf = ents.find(e => e.k === 'puffer'); only(pf); pf.kick = 9; player.x = pf.x - 30; player.y = pf.y; run(30); out.puffs = pf.puff > 0.5;
-      setForm(1); player.inv = 0; player.x = pf.x + 1; player.y = pf.y - player.h - 2; player.vy = 70; run(3); out.pufferSpiky = { flipped: !!pf.flip, form: player.form };
-      // jellyfish drift, and can be stomped
-      startLevel('reef'); const jl = ents.find(e => e.k === 'jelly'); only(jl); run(30); const j0 = { x: jl.x, y: jl.y }; run(30); out.jellyDrifts = Math.hypot(jl.x - j0.x, jl.y - j0.y) > 2;
-      // a manatee carries Leo along
-      startLevel('reef'); ents = ents.filter(e => !isEnemy(e)); const man = ents.find(e => e.look === 'manatee'); run(5); player.x = man.x + 16; player.y = man.y - player.h - 1; player.vy = 30; run(3); const m0 = player.x; run(40); out.manatee = { riding: player.ride === man, moved: Math.round(Math.abs(player.x - m0)) };
-      // a mermaid gives Leo five coins
-      startLevel('springs'); const mm = ents.find(e => e.k === 'mermaid'); const coins0 = coins; player.x = mm.x + 2; player.y = mm.y + 4; run(2); out.mermaid = { gave: !!mm.gave, coins: coins - coins0 };
-      // the tarpon leap out of the water across the gaps in Key West
-      startLevel('keywest'); const tp = ents.find(e => e.k === 'shark' && e.look === 'tarpon'); player.x = tp.x0 - 100; tp.cool = 0; run(20); out.tarpon = tp.st === 'leap';
-      // palm trees drop coconuts
-      startLevel('keywest'); const palm = ents.find(e => e.k === 'appletree' && e.palm); player.x = palm.x - 10; palm.cool = 0; run(3); out.coconut = ents.some(e => e.k === 'applefall' && e.coconut);
-      // the fort's cannons fire along the ground (a cannonball can be stomped)
-      startLevel('castillo'); const cn = ents.find(e => e.k === 'cannon'); player.x = cn.x + 120; cn.cool = 0; run(3); const ball = ents.find(e => e.k === 'acorn' && e.kind === 'cannonball'); out.cannon = !!ball && ball.vx > 0;
-      // Captain Chomps guards a treasure chest: grabbing it clears the level and opens Daytona Beach (no ending screen)
-      startLevel('castillo'); const cb = ents.find(e => e.k === 'boss'); player.x = 170 * 16; player.y = 11 * 16 - 14; run(30);
-      for (let k = 0, n = cb.hp; k < n; k++) { player.inv = 9; run(100); player.x = cb.x + 8; player.y = cb.y - 30; player.vy = 150; run(8); }
-      run(60 * 3); const chest = ents.find(e => e.k === 'pot'); if (chest) { player.x = chest.x; player.y = chest.y; run(3); } run(60 * 5);
-      out.chomps = { hp: cb.hp, state, glades: nodeOpen(node('glades')), cleared: !!save.cleared.castillo };
-      // out in space Leo jumps much higher
-      const jumpHeight = id => { startLevel(id); ents = ents.filter(e => !isEnemy(e)); run(20); const y0 = player.y; let top = y0; keys.jump = true; pressed.jump = true; run(90, () => { top = Math.min(top, player.y); }); keys.jump = false; return y0 - top; };
-      out.jump = { hills: Math.round(jumpHeight('hills')), space: Math.round(jumpHeight('space')) };
-      // the map: from the Space Needle, Leo flies a little plane down to Alaska, and the camera follows him into its box
-      save.unlockAll = true; goMap('needle'); const v0 = mapArea(); mapMove([0, 1]); const flyTo = mapLeo.to; run(60); const flying = !!mapLeo.flying; run(150);
-      out.flight = { v0, flyTo, flying, at: mapLeo.at, v1: mapArea() }; save.unlockAll = false;
-      paused = false; return out;
-    });
-    check(r.underLegs.lives === 5 && r.underLegs.form === 0 && r.underLegs.phase === 'play', 'small Leo walks right under a heron\'s legs: ' + JSON.stringify(r.underLegs));
-    check(r.jab.jabbed && r.jab.form === 0, 'a heron jabs Leo when he stands in front of it: ' + JSON.stringify(r.jab));
-    check(r.heronStomp && r.snake && r.gator && r.rooster && r.racer, 'herons, snakes, gators, roosters and race cars can be stomped: ' + JSON.stringify(r));
-    check(r.raceSpeed > 90, 'race cars are fast: ' + r.raceSpeed);
-    check(r.gatorBackSinks && r.airboat.go && r.airboat.moved > 60 && r.airboat.riding, 'gator backs sink and the airboat sails with Leo aboard: ' + JSON.stringify(r));
-    check(r.pufferFlat && r.puffs && !r.pufferSpiky.flipped && r.pufferSpiky.form === 0, 'a puffer fish can be stomped when flat but is spiky when puffed up: ' + JSON.stringify(r));
-    check(r.jellyDrifts && r.manatee.riding && r.manatee.moved > 4, 'jellyfish drift and a manatee gives Leo a ride: ' + JSON.stringify(r));
-    check(r.mermaid.gave && r.mermaid.coins === 5, 'a mermaid gives Leo five coins: ' + JSON.stringify(r.mermaid));
-    check(r.tarpon && r.coconut && r.cannon, 'tarpon leap, coconuts drop and cannons fire: ' + JSON.stringify(r));
-    check(r.chomps.hp === 0 && r.chomps.state === 'map' && r.chomps.glades && r.chomps.cleared, 'beating Captain Chomps and grabbing the treasure opens the Everglades: ' + JSON.stringify(r.chomps));
-    check(r.jump.space > r.jump.hills * 1.5, 'low gravity in space: much higher jumps: ' + JSON.stringify(r.jump));
-    check(r.flight.v0 === '9' && r.flight.flyTo === 'iditarod' && r.flight.flying && r.flight.at === 'iditarod' && r.flight.v1 === '9ak', 'Leo flies from Seattle to Alaska, and the camera follows: ' + JSON.stringify(r.flight));
-    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
-    await done(p, 'manifest-destiny-florida.png');
   });
 
   await test('Manifest Destiny with a controller (Ⓐ jumps, Ⓧ runs) and on a phone (◀ ▶ A B buttons, tap a level on the map)', async () => {
