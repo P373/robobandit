@@ -104,7 +104,7 @@ close.
 
 | World | Creatures and hazards |
 |---|---|
-| 1 New England | **turkeys** ✅, wolves ✅, crows in the cornfields ✅, porcupines (spiky: ground pound only) ✅, box turtles (kick the shell) ✅, ship rats ✅, seagulls, crabs, lobsters; storm waves ✅, snowdrifts; redcoats at the end |
+| 1 New England | **turkeys** ✅, wolves ✅, crows in the cornfields ✅, porcupines (spiky: ground pound only) ✅, box turtles (kick the shell) ✅, ship rats ✅, seagulls, crabs, lobsters; storm waves ✅, snowdrifts; redcoats ✅ (on patrol in Boston, and the redcoat major at the end) |
 | 2 Mid-Atlantic | **turkeys**, raccoons, groundhogs that pop up, blue crabs and horseshoe crabs, hornets; redcoat drummers (bonk their hats off) |
 | 3 Atlantic South | **turkeys**, alligators, snakes, wild hogs, mosquitoes, pelicans, Blackbeard's pirate crew; hurricanes |
 | 4 Frontier South | **turkeys**, black bears, skunks, bobcats, possums, catfish; river snags and floods |
@@ -145,13 +145,15 @@ Southwest and the Pacific. Every world's card says whose homelands it crosses.
 4. **A City upon a Hill** (1630): the Puritans build Boston; the cows on the Common ✅ built
 5. **Providence** (1636): Roger Williams, the Narragansett, freedom of religion ✅ built
 6. **The Connecticut River** (1639): Thomas Hooker, the Dutch post, the Fundamental Orders ✅ built
-7. **The Gulf of Maine** (cod fishing, the coast of Maine)
-8. **Maple Sugarhouse** (the Abenaki taught settlers to make maple sugar)
-9. **The Boston Tea Party** (1773)
-10. **The Midnight Ride and Lexington and Concord** (1775) 🏰 boss: the redcoats, then the World 1 quiz · unlocks
-    **Liberty the horse**
+7. **Maple Sugaring** (1650): the Abenaki homeland in the Green Mountains, the Sugar Moon, birch-bark buckets ✅ built
+8. **The Gulf of Maine** (1700): Pemaquid, cod, fish flakes and shallops ✅ built
+9. **The Boston Tea Party** (1773): the streets of Boston, redcoats, the three tea ships and their tea chests ✅ built
+10. **The Midnight Ride and Lexington and Concord** (1775) 🏰 boss: the redcoat major (one if by land, two if by
+    sea), then the World 1 quiz ✅ built · still to come: **Liberty the horse**
 
-*Secret-only levels (whaling and islands):* Martha's Vineyard (Noepe), Nantucket (the whaling capital).
+*Secret-only levels (whaling and islands):* Martha's Vineyard (Noepe, from a golden flag over the Cranberry Bog) ✅,
+Nantucket (the whaling capital, from the Mayflower's main top) ✅. Their facts are a bonus: the quiz asks only about
+the main road's levels.
 *Railroad depot:* the Granite Railway, Quincy (1826, America's first commercial railroad).
 
 ### World 2: The Mid-Atlantic, a new nation (1775 to 1830)
@@ -308,8 +310,9 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
 2. ✅ The old road-trip levels removed (Lucky Leo keeps them); every stop of the story on the map as a signpost;
    the new power-ups (pumpkin, apples, horseshoe); info boxes and the region quiz; the game's own pause menu (new
    game, unlock all levels); the title scene; and 1-3 to 1-6 (Cranberry Bog, Boston, Providence, the Connecticut River).
-3. The rest of World 1 (the Gulf of Maine, the Maple Sugarhouse, the Tea Party), the redcoat boss and Liberty the
-   horse, the secret-only islands, and a mid-gate and goal for each level that fit its story.
+3. ✅ The rest of World 1 (Maple Sugaring, the Gulf of Maine, the Tea Party, the Midnight Ride and the redcoat major),
+   the secret-only islands, the end of the region, and a mid-gate and goal for each level that fit its story.
+   Still to do: Liberty the horse.
 4. The hero picker. Sybil Ludington and World 2.
 5. The railroad: depots, golden spikes, the train between depots, the first Railroad Challenge.
 6. Worlds 3 to 9, one at a time, each with its hero, its creatures, its secret-only levels and its depot.

@@ -158,7 +158,7 @@
     <details class="howto"><summary>📖 How to play</summary>
     <ol>
       <li><b>Run and jump:</b> <span class="key-only"><kbd>A</kbd> <kbd>D</kbd> to walk, <kbd>Space</kbd> to jump. Hold <kbd>Shift</kbd> to run.</span><span class="touch-only">◀ ▶ to walk, <b>A</b> to jump, hold <b>B</b> to run.</span> 🎮 <b data-pad="A">A</b> jumps, <b data-pad="X">X</b> runs. Hold jump to go higher!</li>
-      <li>🦃 <b>Stomp</b> the animals in your way: <b>wild turkeys</b> (watch out: they fan their tails and charge!), wolves, crows and the Mayflower's rats. Stomp a <b>box turtle</b> and <b>kick its shell</b>, or <b>hold run</b> to pick the shell up and throw it. <b>Porcupines</b> are prickly: only a <b>ground pound</b> works on them.</li>
+      <li>🦃 <b>Stomp</b> the animals in your way: <b>wild turkeys</b> (watch out: they fan their tails and charge!), wolves, crows, the Mayflower's rats and the redcoats. Stomp a <b>box turtle</b> and <b>kick its shell</b>, or <b>hold run</b> to pick the shell up and throw it. <b>Porcupines</b> are prickly: only a <b>ground pound</b> works on them.</li>
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> and jump. 🌀 <b>Spin:</b> press jump again in the air. 🧱 <b>Wall kick:</b> slide down a wall and jump off it.</li>
       <li>🎩 Find the <b>hat with the red band</b> and you can <b>throw your hat</b> like a boomerang (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · 🎩 button</span>). Keep holding the button and it hovers: jump on it for an extra boost!</li>
       <li><b>Bump the <span style="font-family:Bungee">?</span> blocks</b> from below for coins and power-ups: a 🎃 <b>pumpkin</b> makes you big, a 🍎 <b>basket of apples</b> lets you throw apples (<span class="key-only"><kbd>Shift</kbd></span><span class="touch-only"><b>B</b></span> · 🎮 <b data-pad="X">X</b>), and a <b>lucky horseshoe</b> makes you unstoppable for a few seconds. 100 coins (Pine Tree shillings!) is an extra life.</li>
@@ -340,6 +340,7 @@ LEVELS.cranberry = builder('cranberry', 'Cranberry Bog', 'bog1622', 210)
   .at(31, 8, 'B?B').e('heron', 35, 11).at(38, 8, 'I').e('snaily', 42, 11)
   .e('plat', 46, 10, { w: 3, dx: 4, sp: 0.9, look: 'mishoon' }).e('sponge', 55, 12, { w: 3 })
   .at(63, 8, '---').at(66, 5, 'C').e('buzzer', 68, 5).at(71, 8, 'I')   // the hat, up where you climb for it
+  .at(69, 3, '---').e('sflag', 70, 2)   // the secret: a golden flag up over the hat, where the herons fly (a mishoon trail to Noepe)
   .e('sponge', 76, 12, { w: 3 }).e('sponge', 80, 12, { w: 3 }).e('sponge', 84, 12, { w: 3 }).e('sponge', 88, 12, { w: 3 })
   .e('mid', 96, 11).at(98, 8, '?P?').e('heron', 103, 11).e('turkey', 107, 11)
   .e('plat', 112, 10, { w: 3, dx: 5, sp: 0.8, look: 'mishoon' })
@@ -400,8 +401,121 @@ LEVELS.ctriver = builder('ctriver', 'The Connecticut River', 'ctriver', 216)
     story: ['1636 TO 1639', 'Thomas Hooker leads 100 settlers, and their cows, west to the Connecticut River.'],
     decor: [['goodhope', 112, 12], ['house', 184.5, 12], ['house', 190.5, 12, { h: 96 }]] });
 
-// the levels that are built, in story order (the map has signposts for the rest)
-const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver'];
+// 1-7. Maple Sugaring, spring 1650: the Green Mountains, the Abenaki homeland ("the Dawn Land"). In the Sugar Moon, when
+// the nights still freeze and the days are warm, families tap the maples, catch the sap in birch-bark buckets and boil it
+// down with red-hot stones. Snowy slopes, a meltwater brook, sticky puddles of syrup, wolves and porcupines.
+LEVELS.maple = builder('maple', 'Maple Sugaring', 'maple', 212)
+  .ground(0, 28).ground(29, 44, 10).ground(45, 62).ground(67, 84).ground(85, 98, 9).ground(99, 112).ground(116, 138).ground(139, 152, 10).ground(153, 170, 8).ground(171, 211)
+  .fill(63, 66, 13, 13, T.GROUND).fill(63, 66, 12, 12, T.WATER)   // a meltwater brook, shallow enough to wade
+  .at(7, 8, '?P?').at(12, 8, 'I').e('turkey', 18, 11).e('grumblin', 24, 11)
+  .at(32, 6, 'B?B').e('thorny', 38, 9).e('buzzer', 42, 5)
+  .e('syrup', 48, 12, { w: 3 }).at(52, 8, 'I').e('grumblin', 57, 11)
+  .at(70, 8, '?C?').e('turkey', 76, 11).e('buzzer', 80, 5)   // the hat, partway along
+  .at(88, 5, 'I').e('grumblin', 92, 8).e('mid', 101, 11)
+  .e('syrup', 104, 12, { w: 4 }).at(106, 8, 'B?B')
+  .e('plat', 112.5, 11.5, { w: 3, look: 'raftlog' })   // a fallen log over the gully
+  .e('thorny', 122, 11).at(126, 8, '?S?').e('grumblin', 132, 11)
+  .at(142, 6, 'H').e('turkey', 146, 9).at(156, 4, 'I').e('buzzer', 160, 3).e('thorny', 164, 7)
+  .e('syrup', 174, 12, { w: 3 }).e('grumblin', 180, 11).at(184, 8, 'I').e('turkey', 188, 11).stairs(191, 4)
+  .gems(8, 5, 34, 3, 65, 9, 114, 8, 166, 4)
+  .done({ gate: { mid: 'tap', goal: 'birch' }, goal: 200, music: 'maple', collect: 'corn', cast: { grumblin: 'wolf', thorny: 'porcupine', buzzer: 'crow' },
+    story: ['SPRING 1650', 'In the Green Mountains, Abenaki families tap the maple trees and boil the sweet sap into sugar.'],
+    decor: [['wetu', 3, 12], ['fire', 9, 12], ['bucket', 20, 12], ['bucket', 49, 12], ['bucket', 74, 12], ['bucket', 124, 12], ['wetu', 175, 12], ['fire', 181, 12], ['bucket', 196, 12]] });
+
+// 1-8. The Gulf of Maine, 1700: the rocky coast at Pemaquid. Cod by the million offshore; fishermen dry it on wooden racks
+// (fish flakes) and row their shallops out over the swells. Hop the granite ledges and tide pools, ride the shallops,
+// let a whale's spout throw you up high; watch out for crabs and gulls.
+LEVELS.gulfmaine = builder('gulfmaine', 'The Gulf of Maine', 'pemaquid', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 24).ground(25, 38, 10).ground(39, 50).ground(62, 90).ground(91, 102, 10).ground(103, 114).ground(130, 156).ground(170, 213)
+  .fill(74, 78, 12, 12, T.WATER)   // a tide pool in the granite
+  .at(7, 8, '?P?').at(12, 8, 'I').e('crab', 17, 11).e('buzzer', 21, 6)
+  .at(29, 6, 'B?B').e('crab', 34, 9).at(42, 8, 'I').e('crab', 47, 11)
+  .e('plat', 54, 10, { w: 3, dx: 3, sp: 0.9, look: 'shallop' }).e('whale', 58, 12)
+  .at(65, 8, '?C?').e('buzzer', 70, 5).e('crab', 82, 11).at(86, 8, 'I')   // the hat, partway along
+  .at(93, 6, '----').coins(93, 5, 4).e('crab', 98, 9)
+  .e('mid', 106, 11).at(109, 8, 'B?B')
+  .e('plat', 120, 10, { w: 3, dx: 5, sp: 0.8, look: 'shallop' }).e('whale', 125, 12)
+  .at(134, 8, '?S?').e('crab', 140, 11).at(145, 8, 'I').e('buzzer', 148, 5).at(152, 8, 'H')
+  .e('plat', 161, 10, { w: 3, dx: 4, sp: 1, look: 'shallop' })
+  .e('crab', 178, 11).at(182, 8, '?P?').at(186, 8, 'I').e('buzzer', 188, 5).e('crab', 191, 11).stairs(194, 4)
+  .gems(8, 5, 31, 3, 58, 6, 95, 3, 125, 6)
+  .done({ gate: { mid: 'flake', goal: 'spruce' }, goal: 204, music: 'lighthouse', collect: 'corn', cast: { buzzer: 'gull' },
+    story: ['1700', 'On the rocky coast of Maine, fishermen catch cod and dry it in the sun on wooden racks.'],
+    decor: [['flakes', 3, 12], ['flakes', 43, 12], ['flakes', 64, 12, { n: 3 }], ['flakes', 131, 12], ['flakes', 174, 12, { n: 3 }]] });
+
+// 1-9. The Boston Tea Party, the night of December 16, 1773. Up the streets from the Old South Meeting House (redcoats on
+// patrol, rats in the alleys), down to Griffin's Wharf and aboard the three tea ships: bust open the chests of tea and hop
+// across the floating ones to the next ship.
+LEVELS.teaparty = builder('teaparty', 'The Boston Tea Party', 'boston', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 46).ground(47, 58, 10).ground(59, 84).ground(186, 213)
+  .at(7, 8, '?P?').at(12, 8, 'I').e('grumblin', 18, 11).e('grumblin', 24, 11, { as: 'rat' }).at(28, 8, 'B?B').e('grumblin', 36, 11).at(40, 8, 'I')
+  .e('grumblin', 51, 9).at(54, 6, '?C?')   // the hat, up over the hill
+  .e('grumblin', 63, 11, { as: 'rat' }).at(68, 8, 'I').e('grumblin', 74, 11).e('mid', 80, 11)
+  // Griffin's Wharf and the tea ships: the Dartmouth, the Eleanor and the Beaver. Their decks, stacked with chests of tea
+  .at(88, 9, '-------------------------').at(94, 8, 'BB').at(95, 7, 'B').at(100, 5, 'B?B').e('grumblin', 106, 8)
+  .at(114, 11, '=').at(119, 10, '=').e('plat', 116, 9, { w: 2, dx: 1, sp: 1, look: 'crate' })
+  .at(122, 9, '-------------------------').at(126, 8, 'BBB').e('grumblin', 131, 8).at(134, 5, 'I').at(138, 8, 'BB').at(139, 7, 'B').e('grumblin', 143, 8, { as: 'rat' })
+  .at(148, 11, '=').e('plat', 150, 9, { w: 2, dx: 1, sp: 1.1, look: 'crate' }).at(153, 10, '=')
+  .at(156, 9, '-------------------------').at(160, 5, '?S?').e('grumblin', 164, 8).at(168, 5, 'I').at(172, 8, 'BB').at(176, 5, 'BHB')
+  .at(182, 11, '=').at(184, 10, '=')
+  .e('grumblin', 192, 11).stairs(196, 4)
+  .gems(8, 5, 55, 3, 101, 2, 151, 6, 177, 3)
+  .done({ gate: { mid: 'lamp', goal: 'wharf' }, goal: 206, music: 'midnight', collect: 'corn', cast: { grumblin: 'redcoat' },
+    story: ['DECEMBER 16, 1773', 'Colonists are angry about a tax on tea. Tonight they will dump the tea into Boston Harbor!'],
+    decor: [['oldsouth', 30, 12],
+      ['hull', 88, 9, { w: 25, name: 'DARTMOUTH' }], ['mast', 96, 9, { h: 8 }], ['mast', 106, 9, { h: 9 }],
+      ['hull', 122, 9, { w: 25, name: 'ELEANOR' }], ['mast', 130, 9, { h: 8 }], ['mast', 140, 9, { h: 9 }],
+      ['hull', 156, 9, { w: 25, name: 'BEAVER' }], ['mast', 164, 9, { h: 8 }], ['mast', 174, 9, { h: 9 }]] });
+
+// 1-10. The Midnight Ride, April 18 and 19, 1775: row across the Charles River under the guns of the warship Somerset, run
+// through the moonlit farms toward Lexington, and face the redcoat major at the meetinghouse, where the lanterns warn where
+// he'll strike: one if by land, two if by sea. Then New England's quiz.
+LEVELS.lexington = builder('lexington', 'The Midnight Ride', 'midnight', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 18).ground(44, 104).ground(110, 199)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 15, 11)
+  .e('boat', 19, 12, { w: 5, to: 38, sp: 40, look: 'rowboat' })   // Paul Revere's rowboat
+  .coins(24, 8, 4).at(31, 8, 'I').coins(36, 8, 4)
+  .e('grumblin', 50, 11).at(53, 8, 'I').e('thorny', 56, 11).at(60, 8, 'B?B').e('grumblin', 66, 11).at(70, 8, '?C?')   // the hat, partway along
+  .e('grumblin', 76, 11).e('mid', 82, 11).at(86, 8, '?S?').e('thorny', 92, 11).at(95, 8, '-----').at(98, 5, '-----').at(100, 2, 'I')
+  .e('fall', 106, 10, { w: 3 }).e('grumblin', 116, 11).at(120, 8, 'I').e('grumblin', 128, 11).at(132, 8, '?P?').e('thorny', 138, 11).at(144, 8, 'H')
+  // the meetinghouse green: stone walls, and the redcoat major
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { kind: 'lobster', who: 'lobsterback' })
+  .gems(8, 5, 26, 6, 87, 5, 101, 0, 141, 5)
+  .done({ goal: 0, boss: true, gate: { mid: 'milestone' }, prize: 'chest', music: 'midnight', collect: 'corn', cast: { grumblin: 'redcoat', thorny: 'porcupine' },
+    story: ['APRIL 18, 1775', 'The British are coming! Paul Revere rows across the river to ride and warn the countryside.'],
+    decor: [['steeple', 174, 3]] });
+
+// ★ Nantucket (a secret: the Mayflower's golden flag, out past the shoals), the 1700s: the whaling island. Cobbled Main
+// Street, the wharves and the whaleships, and the open sea where the whales spout.
+LEVELS.nantucket = builder('nantucket', 'Nantucket', 'nantucket', 196)
+  .fill(0, 195, 12, 13, T.WATER).ground(0, 60).ground(61, 72, 10).ground(73, 96).ground(106, 109, 11).ground(120, 140).ground(150, 153, 11).ground(164, 195)   // (rocks out in the harbour, to rest on)
+  .at(8, 8, '?P?').at(13, 8, 'I').e('buzzer', 18, 6).e('crab', 22, 11).at(28, 8, 'B?B').e('grumblin', 34, 11).at(40, 8, '?C?').e('crab', 48, 11)
+  .at(64, 6, 'I').e('grumblin', 68, 9).e('mid', 80, 11).at(84, 8, '?P?').e('crab', 90, 11)
+  .e('plat', 99, 10, { w: 3, dx: 2, sp: 0.9, look: 'shallop' }).e('whale', 103, 12).e('plat', 112, 10, { w: 3, dx: 2, sp: 1, look: 'shallop' }).e('whale', 117, 12)
+  .at(124, 8, '?S?').e('crab', 130, 11).at(136, 8, 'I').e('buzzer', 138, 5)
+  .e('plat', 143, 10, { w: 3, dx: 2, sp: 0.8, look: 'shallop' }).e('whale', 147, 12).e('plat', 156, 10, { w: 3, dx: 2, sp: 1.1, look: 'shallop' }).e('whale', 161, 12)
+  .e('crab', 170, 11).at(174, 8, 'BHB').stairs(178, 4)
+  .gems(9, 5, 41, 5, 66, 3, 107, 8, 151, 8)
+  .done({ gate: { mid: 'anchor', goal: 'shingle' }, goal: 188, music: 'nantucket', collect: 'corn', cast: { grumblin: 'rat', buzzer: 'gull' },
+    story: ['THE 1700s', 'On the faraway island of Nantucket, ships sail out to hunt whales for the oil that lights lamps.'] });
+
+// ★ Martha's Vineyard (a secret: a golden flag high over the Cranberry Bog), the 1660s: Noepe, the Wampanoag island.
+// Beaches and the striped clay cliffs of Aquinnah, mishoons to ride, and herons in the ponds.
+LEVELS.vineyard = builder('vineyard', "Martha's Vineyard", 'aquinnah', 196)
+  .fill(0, 195, 12, 13, T.WATER).ground(0, 34).ground(35, 50, 10).ground(51, 66, 8).ground(67, 80).ground(96, 124).ground(125, 138, 10).ground(139, 150).ground(166, 195)
+  .at(8, 8, '?P?').at(13, 8, 'I').e('turkey', 20, 11).e('heron', 28, 11).at(38, 6, 'B?B').e('snaily', 44, 9)
+  .at(56, 4, '?C?').e('buzzer', 60, 3).e('turkey', 64, 7).at(72, 8, 'I')
+  .e('plat', 84, 10, { w: 3, dx: 4, sp: 0.9, look: 'mishoon' })
+  .e('mid', 100, 11).e('heron', 106, 11).at(110, 8, '?S?').e('turkey', 118, 11).at(128, 6, 'I').e('snaily', 134, 9).at(144, 8, 'H')
+  .e('plat', 155, 10, { w: 3, dx: 5, sp: 0.8, look: 'mishoon' })
+  .e('heron', 172, 11).at(176, 8, 'B?B').stairs(180, 4)
+  .gems(9, 5, 40, 3, 88, 6, 130, 3, 160, 6)
+  .done({ gate: { mid: 'pot', goal: 'clay' }, goal: 190, music: 'vineyard', collect: 'corn', cast: { snaily: 'turtle', buzzer: 'gull' },
+    story: ['THE 1660s', "On Noepe, the island the English call Martha's Vineyard, Wampanoag families fish, farm and gather clay."],
+    decor: [['wetu', 4, 12], ['fire', 10, 12], ['canoe', 31, 12], ['wetu', 170, 12], ['wetu', 186, 12, { s: 0.85 }]] });
+
+// the levels that are built, in story order (the map has signposts for the rest), then the secret-only ones
+const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington', 'nantucket', 'vineyard'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -1439,7 +1553,7 @@ function drawPoop(e, t) {
   g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
 }
 
-const CAPE = new Set(['atlantic', 'plimoth', 'bog1622', 'shawmut', 'ctriver', 'snow', 'canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor']);   // (seagulls, and blue water)
+const CAPE = new Set(['atlantic', 'plimoth', 'bog1622', 'shawmut', 'ctriver', 'snow', 'canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor', 'pemaquid', 'aquinnah']);   // (seagulls, and blue water)
 const BIGCITY = new Set(['gwb', 'city', 'quarter']);   // (pigeons)
 function drawPigeon(x, y, t, face) {   // a New York pigeon: grey, with a shimmery green-purple neck
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
@@ -1518,6 +1632,25 @@ function drawWolf(x, y, t, face, flat, e = {}) {   // a grey wolf: long legs, a 
   g.beginPath(); g.arc(11.2, -9.7, 0.8, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
   for (const ex of [3.6, 5.4]) { g.beginPath(); g.moveTo(ex - 1.2, -12.4); g.lineTo(ex - 0.2, -15.6); g.lineTo(ex + 1, -12.4); g.closePath(); g.fillStyle = '#6e727c'; g.fill(); }
   g.beginPath(); g.arc(6.4, -11.2, 0.8 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#ffc21a'; g.fill(); g.beginPath(); g.arc(6.6, -11.2, 0.4, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  g.restore();
+}
+// a British redcoat on patrol: a black tricorn hat, a red coat with white crossbelts, white breeches and black gaiters,
+// marching stiffly (squashed flat when he's stomped)
+function drawRedcoat(x, y, t, face, flat, e = {}) {
+  const s = Math.sin(t * 9);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  for (const [lx, k] of [[-1.8, 1], [1.8, -1]]) { g.save(); g.translate(lx, -6); g.rotate(s * k * 0.3); rrect(-1.3, 0, 2.6, 4, 1); g.fillStyle = '#f2ece0'; g.fill(); rrect(-1.4, 3, 2.8, 3.2, 1); g.fillStyle = '#1e1a20'; g.fill(); g.restore(); }   // breeches and gaiters
+  rrect(-4, -13.4, 8, 8.6, 2.4); g.fillStyle = '#c81e28'; g.fill();                                    // the red coat
+  g.beginPath(); g.moveTo(-4, -6.6); g.lineTo(-5, -4.6); g.lineTo(-1, -5.4); g.closePath(); g.moveTo(4, -6.6); g.lineTo(5, -4.6); g.lineTo(1, -5.4); g.closePath(); g.fill();   // its tails
+  g.strokeStyle = '#ffffff'; g.lineWidth = 1.1; g.beginPath(); g.moveTo(-3.6, -12.8); g.lineTo(3, -6.2); g.moveTo(3.6, -12.8); g.lineTo(-3, -6.2); g.stroke();   // the crossbelts
+  g.fillStyle = '#23324a'; g.fillRect(2.2, -13, 1.8, 6);                                               // the blue facings
+  g.save(); g.translate(3.4, -11.4); g.rotate(-0.25 + s * 0.15); rrect(-1.1, 0, 2.2, 5, 1); g.fillStyle = '#b01a22'; g.fill(); g.restore();   // a swinging arm
+  g.beginPath(); g.arc(0.6, -15.6, 3.2, 0, TAU); g.fillStyle = '#f2c8a0'; g.fill();                    // the face
+  g.beginPath(); g.arc(2, -16, 0.6 * (e.spook > 0 ? 1.5 : 1), 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  g.beginPath(); g.moveTo(1.2, -14.2); g.lineTo(3, -14.4); g.lineWidth = 0.6; g.strokeStyle = '#8a4a3a'; g.stroke();   // a stern little mouth
+  g.beginPath(); g.arc(-2.6, -15, 1.4, 0, TAU); g.fillStyle = '#e8e4dc'; g.fill();                    // a powdered wig, tied at the back
+  g.beginPath(); g.moveTo(-5, -17.4); g.quadraticCurveTo(0.6, -16, 6, -17.4); g.lineTo(3.6, -20.4); g.quadraticCurveTo(0.6, -21.6, -2.6, -20.4); g.closePath(); g.fillStyle = '#1a1a24'; g.fill();   // the tricorn
+  g.fillStyle = '#e8e4dc'; g.fillRect(-4.6, -17.6, 10.2, 0.7);
   g.restore();
 }
 function drawCrow(x, y, t, face) {   // a black crow after the corn, flapping
@@ -1635,6 +1768,14 @@ function drawRaft(e, t) {   // a settlers' raft on the Connecticut River: logs l
   g.strokeStyle = '#6a4424'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(x + 6, y - 24); g.lineTo(x - 2, y + 14); g.stroke();
   if (e.go && e.x < e.x1) for (let k = 0; k < 3; k++) { g.globalAlpha = 0.5; g.beginPath(); g.arc(x - 3 - k * 5, y + 9, 2 - k * 0.4, Math.PI, 0); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
 }
+function drawRowboat(e, t) {   // Paul Revere's rowboat: a small wooden boat, its oars muffled (wrapped in cloth) to cross quietly
+  const x = e.x, y = e.y, w = e.w, row = e.go && e.x < e.x1 ? Math.sin(t * 5) : 0;
+  g.beginPath(); g.moveTo(x - 6, y - 2); g.lineTo(x + w + 6, y - 2); g.quadraticCurveTo(x + w + 2, y + 9, x + w - 8, y + 10); g.lineTo(x + 6, y + 10); g.quadraticCurveTo(x - 4, y + 8, x - 6, y - 2); g.closePath();
+  paint(vgrad(y - 2, y + 10, '#8a5a32', '#4a2e18'), 1, '#2a180a');
+  g.fillStyle = '#c8a060'; g.fillRect(x - 5, y - 2, w + 10, 1.6); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x - 2, y + 3, w + 4, 0.8);
+  for (const ox of [w * 0.3, w * 0.7]) { g.save(); g.translate(x + ox, y); g.rotate(0.5 + row * 0.35); g.fillStyle = '#c8a060'; g.fillRect(-0.8, 0, 1.6, 16); ell(0, 15, 1.8, 3); g.fillStyle = '#d8d0c0'; g.fill(); g.restore(); }   // the oars, wrapped in cloth
+  if (row) for (let k = 0; k < 3; k++) { g.globalAlpha = 0.45; g.beginPath(); g.arc(x - 8 - k * 5, y + 9, 2 - k * 0.4, Math.PI, 0); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
+}
 function drawSturgeon(e, t) {   // an Atlantic sturgeon: a huge old river fish with a pointed snout and bony plates, famous for leaping right out of the water
   if (e.st !== 'leap') { if (e.y > LH) { g.globalAlpha = 0.4; ell(e.x + 13, 12 * TS + 3, 10, 1.6); g.fillStyle = '#2a4a5a'; g.fill(); g.globalAlpha = 1; } return; }
   g.save(); g.translate(e.x + 13, e.y + 6); g.scale(-1, 1); g.rotate(Math.atan2(e.vy, 70) * -0.6);
@@ -1693,6 +1834,44 @@ function drawMidGate(kind, e, t) {
     rrect(x - 3, base - 48, 6, 8, 1); g.fillStyle = '#2a2a32'; g.fill(); rrect(x - 2, base - 47, 4, 6, 1); g.fillStyle = on ? '#ffe48a' : '#5a5a4a'; g.fill(); if (on) glow(x, base - 44, 14, 'rgba(255,220,120,1)', 0.6);
     return;
   }
+  if (kind === 'tap') {   // a maple trunk with a birch-bark bucket on its spout; once you pass, the sap starts to drip
+    rrect(x - 5, base - 46, 10, 46, 3); g.fillStyle = vgrad(base - 46, base, '#7a5a3e', '#5a3e28'); g.fill();
+    g.strokeStyle = 'rgba(40,24,10,.4)'; g.lineWidth = 0.7; for (let k = 0; k < 5; k++) { g.beginPath(); g.moveTo(x - 3 + k * 1.6, base - 44 + k * 7); g.lineTo(x - 2 + k * 1.6, base - 36 + k * 7); g.stroke(); }
+    g.beginPath(); g.arc(x, base - 50, 15, 0, TAU); g.fillStyle = 'rgba(200,80,40,.85)'; g.fill(); g.beginPath(); g.arc(x - 8, base - 45, 8, 0, TAU); g.arc(x + 9, base - 46, 7, 0, TAU); g.fill();   // the first red buds of spring
+    g.fillStyle = '#8a8a90'; g.fillRect(x + 4, base - 24, 4, 1.6);                                     // the spout
+    rrect(x + 4, base - 21, 9, 9, 1.5); g.fillStyle = '#f2ead8'; g.fill(); g.fillStyle = 'rgba(58,42,30,.55)'; for (const by of [-18, -15]) g.fillRect(x + 4.4, base + by, 8.2, 0.7);   // the birch-bark bucket
+    if (on) { const ph = (t * 1.6) % 1; g.beginPath(); g.arc(x + 8, base - 22.4 + ph * 3.4, 0.9, 0, TAU); g.fillStyle = '#ffd27a'; g.fill(); }
+    return;
+  }
+  if (kind === 'flake') {   // a fish flake (a rack for drying cod) with a cod hung on it; a gull lands on top as you pass
+    g.fillStyle = '#7a6a54'; for (const dx of [-11, 11]) g.fillRect(x + dx - 1.2, base - 30, 2.4, 30);
+    g.fillRect(x - 13, base - 30, 26, 2.4); g.fillStyle = '#a89878'; g.fillRect(x - 13, base - 28, 26, 1);
+    for (const dx of [-6, 1, 7]) { g.save(); g.translate(x + dx, base - 28); g.rotate(Math.sin(t * 2 + dx) * 0.08); ell(0, 7, 2.4, 6.4); g.fillStyle = '#d8ccae'; g.fill(); g.beginPath(); g.moveTo(-2.4, 13); g.lineTo(0, 11); g.lineTo(2.4, 13); g.fillStyle = '#b8a888'; g.fill(); g.restore(); }   // split cod, drying
+    if (on) { ell(x + 10, base - 33, 4, 2.6); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(x + 13, base - 35, 1.8, 0, TAU); g.fill(); g.fillStyle = '#e8b830'; g.fillRect(x + 14.4, base - 35.4, 2, 0.8); ell(x + 8.6, base - 33.6, 2.6, 1.2); g.fillStyle = '#8a929a'; g.fill(); }
+    return;
+  }
+  if (kind === 'lamp') {   // a Boston street lamp on an iron post; its candle is lit as you pass
+    g.fillStyle = '#2a2a32'; g.fillRect(x - 1.4, base - 40, 2.8, 40); g.fillRect(x - 5, base - 3, 10, 3); g.fillRect(x - 6, base - 30, 12, 1.6);
+    g.beginPath(); g.moveTo(x - 5, base - 40); g.lineTo(x + 5, base - 40); g.lineTo(x + 3.6, base - 52); g.lineTo(x - 3.6, base - 52); g.closePath(); g.fillStyle = on ? '#ffe48a' : '#3a3a48'; g.fill(); g.lineWidth = 1; g.strokeStyle = '#2a2a32'; g.stroke();
+    g.beginPath(); g.moveTo(x - 5.4, base - 52); g.lineTo(x, base - 57); g.lineTo(x + 5.4, base - 52); g.closePath(); g.fillStyle = '#2a2a32'; g.fill();
+    if (on) glow(x, base - 46, 22, 'rgba(255,220,120,1)', 0.75 + 0.1 * Math.sin(t * 9));
+    return;
+  }
+  if (kind === 'milestone') {   // a granite milestone by the road to Lexington; a lantern is set on it as you pass
+    rrect(x - 7, base - 22, 14, 22, [6, 6, 1, 1]); g.fillStyle = vgrad(base - 22, base, '#b8b4a8', '#8a867c'); g.fill();
+    g.font = 'bold 4.4px Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#3a3830'; g.fillText('LEXINGTON', x, base - 14); g.font = 'bold 6px Georgia, serif'; g.fillText('11 MI', x, base - 7);
+    if (on) { rrect(x - 3, base - 31, 6, 9, 1); g.fillStyle = '#2a2a32'; g.fill(); rrect(x - 2, base - 30, 4, 6, 1); g.fillStyle = '#ffe48a'; g.fill(); g.fillStyle = '#2a2a32'; g.fillRect(x - 0.6, base - 34, 1.2, 3); glow(x, base - 27, 16, 'rgba(255,220,120,1)', 0.7); }
+    return;
+  }
+  if (kind === 'anchor') {   // a big ship's anchor on the wharf; its flag runs up as you pass
+    g.strokeStyle = '#3a3a44'; g.lineWidth = 3; g.lineCap = 'round';
+    g.beginPath(); g.moveTo(x, base - 30); g.lineTo(x, base - 4); g.moveTo(x - 9, base - 27); g.lineTo(x + 9, base - 27); g.stroke();
+    g.beginPath(); g.arc(x, base - 12, 10, 0.15 * Math.PI, 0.85 * Math.PI); g.stroke(); g.lineCap = 'butt';
+    g.beginPath(); g.arc(x, base - 33, 3, 0, TAU); g.lineWidth = 1.6; g.stroke();
+    const fh = on ? Math.min(1, (clock - e.lit) * 2) : 0; g.fillStyle = '#6a4424'; g.fillRect(x + 12, base - 48, 1.4, 48);
+    g.fillStyle = '#d8302a'; g.beginPath(); g.moveTo(x + 13.4, base - 14 - fh * 32); g.lineTo(x + 22, base - 11 - fh * 32 + Math.sin(t * 6)); g.lineTo(x + 13.4, base - 8 - fh * 32); g.fill();
+    return;
+  }
   if (kind === 'mooring') {   // a mooring post by the river with a coil of rope; a little flag goes up as you pass
     rrect(x - 4, base - 28, 8, 28, 2); g.fillStyle = vgrad(base - 28, base, '#8a6a44', '#5a3a1e'); g.fill(); ell(x, base - 28, 4, 1.4); g.fillStyle = '#b08a5a'; g.fill();
     g.strokeStyle = '#d8b880'; g.lineWidth = 1.4; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(x, base - 12 + k * 2.2, 6, 2, 0, 0, TAU); g.stroke(); }
@@ -1708,6 +1887,11 @@ const GATE_POSTS = {
   fence: { post: ['#9a7a54', '#6a5434'], rope: '#c8a060', top: 'rails' },
   snowtimber: { post: ['#7a5a3a', '#4a3420'], rope: '#c8a060', top: 'snow' },
   timber: { post: ['#8a6a44', '#5a3e22'], rope: '#c8a060', top: 'flag' },
+  birch: { post: ['#f2eee4', '#c8c2b4'], rope: '#c8a060', top: 'snow' },
+  spruce: { post: ['#8a7a64', '#5e5240'], rope: '#c8a868', top: 'net' },
+  wharf: { post: ['#7a6248', '#4e3c2a'], rope: '#c8a060', top: 'chests' },
+  shingle: { post: ['#9a9a9e', '#6e6e74'], rope: '#c8a868', top: 'rails' },
+  clay: { post: ['#e8e0c8', '#c8b898'], rope: '#c8a060', top: 'mats' },
 };
 function drawGoalGate(kind, gx, t) {
   const st = GATE_POSTS[kind] || GATE_POSTS.timber, ground = groundTopAt((gx + 18) / TS), top = 30, broken = phase === 'clear' && lvl.tapeBroken, since = phase === 'clear' ? phaseT : 0;
@@ -1717,10 +1901,19 @@ function drawGoalGate(kind, gx, t) {
     g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(px + 2.4, top + 2, 1.4, ground - top - 4);
     g.strokeStyle = 'rgba(40,24,10,.35)'; g.lineWidth = 0.7; for (let yy = top + 10; yy < ground; yy += 13) { g.beginPath(); g.moveTo(px + 2, yy); g.lineTo(px + 8, yy + 3); g.stroke(); }
     ell(px + 6, ground, 9, 2.4); g.fillStyle = 'rgba(0,0,0,.18)'; g.fill();
-    if (kind === 'palisade' || kind === 'snowtimber') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
-    if (kind === 'snowtimber') { ell(px + 6, top - 1, 8, 3); g.fillStyle = '#ffffff'; g.fill(); }
+    if (kind === 'palisade' || kind === 'snowtimber' || kind === 'birch') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
+    if (kind === 'snowtimber' || kind === 'birch') { ell(px + 6, top - 1, 8, 3); g.fillStyle = '#ffffff'; g.fill(); }
+    if (kind === 'birch') { g.fillStyle = '#2a2420'; for (let yy = top + 8; yy < ground - 4; yy += 11) { g.fillRect(px + 2 + (yy % 3), yy, 5, 1.4); g.fillRect(px + 6 - (yy % 4), yy + 5, 3, 1); } }   // birch bark's black marks
+    if (kind === 'clay') for (let b = 0; b < 8; b++) { g.fillStyle = ['#d8583a', '#f2c890', '#b84a32', '#9a9aa0'][b % 4]; g.fillRect(px + 0.5, top + 12 + b * ((ground - top - 16) / 8), 11, 4); }   // striped like the Aquinnah cliffs
     if (kind === 'driftwood') { ell(px + 6, top + 1, 6, 2.4); g.fillStyle = st.post[1]; g.fill(); ell(px + 6, top + 1, 3.4, 1.2); g.fillStyle = st.post[0]; g.fill(); }
   }
+  if (st.top === 'net') {   // a fishing net strung between the posts, with cork floats
+    g.strokeStyle = 'rgba(200,180,130,.8)'; g.lineWidth = 0.6;
+    for (let k = 0; k <= 8; k++) { g.beginPath(); g.moveTo(gx - 4 + k * 5.5, top); g.lineTo(gx - 4 + k * 5.5 + 3, top + 18); g.stroke(); }
+    for (let r = 0; r < 4; r++) { g.beginPath(); g.moveTo(gx - 4, top + r * 6); g.quadraticCurveTo(gx + 18, top + r * 6 + 4, gx + 41, top + r * 6); g.stroke(); }
+    for (let k = 0; k < 5; k++) { ell(gx - 2 + k * 10, top + 1, 2.2, 1.6); g.fillStyle = '#d8a040'; g.fill(); }
+  }
+  if (st.top === 'chests') for (const px of [gx - 11, gx + 31]) { rrect(px, top - 13, 14, 13, 1); paint(vgrad(top - 13, top, '#c8945a', '#8a5a32'), 0.8, '#3a2414'); g.font = 'bold 4px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#2a180a'; g.fillText('TEA', px + 7, top - 5); }   // a chest of tea on each piling
   if (st.top === 'beam' || st.top === 'rails' || st.top === 'snow' || st.top === 'mats') {   // a crossbeam over the top
     rrect(gx - 13, top - 3, 62, 9, 2.5); g.fillStyle = st.post[0]; g.fill(); g.fillStyle = st.post[1]; g.fillRect(gx - 13, top + 3, 62, 3);
     if (st.top === 'snow') { g.fillStyle = '#ffffff'; rrect(gx - 11, top - 5, 58, 4, 2); g.fill(); g.fillStyle = '#2e6a3a'; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(gx + 4 + k * 4, top + 5); g.lineTo(gx + 6 + k * 4, top + 12); g.lineTo(gx + 8 + k * 4, top + 5); g.fill(); } }   // a pine bough
@@ -1924,15 +2117,15 @@ function drawCrusher(x, y, angry, t) {
   rrect(6, 20, 12, 4.2, 2); paint('#2a2a34', 1); g.fillStyle = '#fff'; for (let i = 0; i < 4; i++) g.fillRect(7 + i * 2.8, 20, 1.6, 1.8);
   g.restore();
 }
-const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!', lobster: 'GENERAL LOBSTERBACK!' };
-const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps', lobster: 'General Lobsterback' };
+const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!', lobster: 'THE REDCOAT MAJOR!' };
+const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps', lobster: 'The redcoat major' };
 // The Grumble Gang: King Grumbles and his crew, each guarding a bag of Leo's gold somewhere in America, each dressed for
 // where they are. They all take three hits, and every hit makes them try something new (and a bit tougher) that belongs
 // to that place. Later bosses start out quicker, so the gang gets harder world by world.
 const BOSS_CAST = {
-  lobsterback: { intro: 'The redcoat general, guarding the tea!', speed: 40,
-    hits: ['The Old North Church lanterns are lit! One if by land: he charges. Two if by sea: a wave rolls in!', 'He calls the whole fife-and-drum band! Tea chests from the sky, and faster marching!'],
-    done: 'He hangs up his red coat (colonists called redcoats "lobsterbacks") and hands over the gold!' },
+  lobsterback: { intro: "The British are marching to Concord, and he's still cross about the tea!", speed: 40,
+    hits: ['The lanterns are lit! One if by land: he charges. Two if by sea: a wave rolls in!', 'The fife and drums play! Tea chests from the sky, and faster marching!'],
+    done: 'The redcoats march back to Boston. The minutemen stood up for their rights: the Revolution has begun!' },
   pinch: { intro: "King Grumbles' crabby first mate, guarding the Cape Cod gold!", speed: 50,
     hits: ["His sailor cap blew into the bay! Now he's steamed... and blowing bubbles!", 'Red as a boiled lobster! Double-time scuttling!'],
     done: 'Captain Pinch scuttles off to sulk in a tide pool.' },
@@ -2018,30 +2211,30 @@ function drawCrabBoss(x, y, t, face, hurt, cap = true) {
   g.beginPath(); g.moveTo(-4, -8); g.quadraticCurveTo(0, -5, 4, -8); g.lineWidth = 1; g.strokeStyle = '#5a1a12'; g.stroke();
   g.restore();
 }
-// General Lobsterback: a big red lobster standing up in a British redcoat (the colonists' nickname for the soldiers),
-// with white crossbelts, gold buttons, two huge claws and a black tricorn hat (it flies off at the first hit)
-function drawLobsterBoss(x, y, t, face, hurt, hat = true) {
+// The redcoat major: a big British officer in a red coat with white crossbelts, gold buttons and epaulettes, a powdered
+// wig, a sword at his side and a black tricorn hat (it flies off at the first hit). He marches stiffly, and blusters.
+function drawRedcoatBoss(x, y, t, face, hurt, hat = true) {
   g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
-  const red = hurt ? '#ffb0a0' : '#d8302a', dark = hurt ? '#e08070' : '#9a1a14', coat = hurt ? '#ff8a8a' : '#c81e28', march = Math.sin(t * 8);
-  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 5, -6); g.rotate(sx * march * 0.25); rrect(-2.5, 0, 5, 7, 2); paint(dark); rrect(-3.5, 5.5, 7, 2.4, 1); paint('#1a1a22'); g.restore(); }   // marching legs and black boots
-  ell(0, -4, 10, 4); g.fillStyle = red; g.fill();   // the tail, curled under
-  rrect(-10, -22, 20, 18, 5); paint(coat, 1, '#5a0a10');   // the red coat
-  g.strokeStyle = '#ffffff'; g.lineWidth = 2.2; g.beginPath(); g.moveTo(-9, -21); g.lineTo(8, -6); g.moveTo(9, -21); g.lineTo(-8, -6); g.stroke();   // the white crossbelts
-  for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(0, -19 + k * 5, 1, 0, TAU); g.fillStyle = C.gold; g.fill(); }
-  for (const sx of [-1, 1]) { rrect(sx * 10 - 3, -23, 6, 3, 1.2); paint(C.gold); }   // gold epaulettes
-  for (const sx of [-1, 1]) {   // the claws, held up
-    const snap = Math.abs(Math.sin(t * 6 + sx));
-    g.save(); g.translate(sx * 13, -22); g.rotate(sx * -0.6);
-    rrect(-2, 0, 4, 8, 2); paint(red, 0.8, dark);
-    ell(0, -5, 6, 5); paint(red, 0.8, dark); g.beginPath(); g.moveTo(sx * 1, -8); g.lineTo(sx * 7, -13 - snap * 3); g.lineTo(sx * 5, -6); g.closePath(); paint(dark);
-    g.restore();
+  const coat = hurt ? '#ff8a8a' : '#c81e28', coatDk = hurt ? '#e86a6a' : '#8a1018', skin = hurt ? '#ffd0c0' : '#f2c8a0', march = Math.sin(t * 8);
+  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 4.5, -12); g.rotate(sx * march * 0.22); rrect(-3, 0, 6, 7, 2); paint('#f2ece0'); rrect(-3.2, 6, 6.4, 6.4, 1.5); paint('#1a1a22'); g.restore(); }   // white breeches, black boots
+  g.beginPath(); g.moveTo(-11, -13); g.lineTo(-12.5, -6); g.lineTo(-3, -9); g.closePath(); g.moveTo(11, -13); g.lineTo(12.5, -6); g.lineTo(3, -9); g.closePath(); paint(coatDk);   // the coat's tails
+  rrect(-11, -34, 22, 23, 6); paint(coat, 1, '#5a0a10');                                              // the red coat
+  g.fillStyle = '#23324a'; g.fillRect(-3, -33, 6, 20);                                                // blue facings down the front
+  g.strokeStyle = '#ffffff'; g.lineWidth = 2.2; g.beginPath(); g.moveTo(-10, -32); g.lineTo(9, -14); g.moveTo(10, -32); g.lineTo(-9, -14); g.stroke();   // the white crossbelts
+  for (let k = 0; k < 4; k++) { g.beginPath(); g.arc(0, -30 + k * 5, 1, 0, TAU); g.fillStyle = C.gold; g.fill(); }
+  for (const sx of [-1, 1]) { rrect(sx * 11 - 4, -35, 8, 3.4, 1.4); paint(C.gold); for (let k = 0; k < 3; k++) { g.fillStyle = C.gold; g.fillRect(sx * 11 - 3 + k * 2.6, -31.6, 1, 3); } }   // gold epaulettes with fringe
+  g.save(); g.translate(-9, -14); g.rotate(0.5); rrect(-1.2, 0, 2.4, 14, 1); paint('#c8ccd8', 0.6, '#5a5e6a'); g.fillStyle = C.gold; g.fillRect(-3, -1, 6, 2); g.restore();   // his sword, in its scabbard
+  for (const sx of [-1, 1]) {   // arms: swinging as he marches (and waving about when he's cross)
+    g.save(); g.translate(sx * 11, -31); g.rotate(sx * (0.25 + march * 0.25 * sx)); rrect(-2.6, 0, 5.2, 13, 2.4); paint(coat, 0.8, '#5a0a10'); g.fillStyle = '#f2ece0'; g.fillRect(-2.6, 10, 5.2, 2); g.beginPath(); g.arc(0, 14.4, 2.4, 0, TAU); paint(skin); g.restore();
   }
-  ell(0, -28, 7, 6); paint(red, 0.8, dark);   // the head
-  if (hat) { g.beginPath(); g.moveTo(-11, -33); g.quadraticCurveTo(0, -29, 11, -33); g.lineTo(7, -39); g.quadraticCurveTo(0, -42, -7, -39); g.closePath(); paint('#1a1a24', 0.8, '#000'); g.fillStyle = C.gold; g.fillRect(-10, -34, 20, 1.2); }   // the tricorn
-  for (const ex of [-3, 3]) { g.fillStyle = dark; g.fillRect(ex - 0.6, -44, 1.2, 10); g.beginPath(); g.arc(ex, -44.5, 2.2, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex + 0.6, -44.5, 1.1, 0, TAU); g.fillStyle = INK; g.fill(); }
-  g.strokeStyle = dark; g.lineWidth = 0.8; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(sx * 2, -33); g.quadraticCurveTo(sx * 14, -48, sx * 22, -40 + Math.sin(t * 3 + sx) * 3); g.stroke(); }   // long feelers
-  g.beginPath(); g.moveTo(-3, -25); g.quadraticCurveTo(0, -23, 3, -25); g.lineWidth = 1; g.strokeStyle = '#4a0a08'; g.stroke();   // a stern little mouth
-
+  ell(0, -40, 7.4, 7); paint(skin, 0.8, '#b8805a');                                                   // the head
+  for (const sx of [-1, 1]) { g.beginPath(); g.arc(sx * 6.4, -38.6, 2.6, 0, TAU); paint('#eeeae2'); }   // the powdered wig's side curls
+  g.beginPath(); g.arc(3, -41.4, 1.2, 0, TAU); g.fillStyle = INK; g.fill();
+  g.strokeStyle = INK; g.lineWidth = 1.1; g.beginPath(); g.moveTo(0.4, -44.6); g.lineTo(5.2, -43.4); g.stroke();   // a cross eyebrow
+  ell(5.6, -39.4, 1.8, 1.6); paint(hurt ? '#ffb0a0' : '#e8907a');                                     // a red nose
+  g.beginPath(); g.moveTo(1, -36.2); g.quadraticCurveTo(3.4, -37.4, 5.6, -36.2); g.lineWidth = 1; g.strokeStyle = '#6a2a1a'; g.stroke();   // a frown
+  if (hat) { g.beginPath(); g.moveTo(-11, -45); g.quadraticCurveTo(0, -41.4, 11, -45); g.lineTo(7, -51.6); g.quadraticCurveTo(0, -54.6, -7, -51.6); g.closePath(); paint('#1a1a24', 0.8, '#000'); g.fillStyle = C.gold; g.fillRect(-10, -46, 20, 1.2); g.beginPath(); g.arc(6, -47, 1.8, 0, TAU); paint('#1a1a24', 0.6, '#ffffff'); }   // the tricorn, with a cockade
+  else { ell(0, -46, 6.8, 2.6); paint('#eeeae2'); }                                                   // (no hat: just his wig)
   g.restore();
 }
 // ---- World 5's characters (Florida) ----
@@ -2425,9 +2618,25 @@ function drawDecor(d, t) {
       for (let k = 0; k < 5; k++) { const ph = (t * 0.4 + k * 0.2) % 1; g.globalAlpha = 0.5 * (1 - ph); g.beginPath(); g.arc(x + 35 + Math.sin(ph * 6 + k) * 6, y - 34 - ph * 50, 6 + ph * 10, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1;
       break;
     }
-    case 'bucket': {   // a sap bucket hanging on a maple tree's trunk
+    case 'bucket': {   // a maple tree, tapped, with a birch-bark bucket catching the sap
       g.fillStyle = '#7a5434'; g.fillRect(x + 4, y - 40, 8, 56); g.beginPath(); g.arc(x + 8, y - 46, 20, 0, TAU); g.fillStyle = 'rgba(210,90,40,.85)'; g.fill();
-      rrect(x + 8, y - 8, 8, 9, 1.5); paint('#b8c0c8', 0.6, '#5a6068'); g.fillStyle = '#5a6068'; g.fillRect(x + 7, y - 9, 10, 1.4);
+      g.fillStyle = '#8a7a64'; g.fillRect(x + 10, y - 11, 4, 1.4);
+      rrect(x + 9, y - 8, 9, 9, 1.5); paint('#f2ead8', 0.6, '#8a7a64'); g.fillStyle = 'rgba(58,42,30,.55)'; g.fillRect(x + 9.4, y - 5.4, 8.2, 0.7); g.fillRect(x + 9.4, y - 2.4, 8.2, 0.7); g.fillStyle = '#8a7a64'; g.fillRect(x + 9.4, y - 8, 8.2, 1.2);
+      break;
+    }
+    case 'flakes': {   // fish flakes: low wooden racks of split cod drying in the sun
+      const n = o.n || 2;
+      for (let k = 0; k < n; k++) { const fx = x + k * 26;
+        g.fillStyle = '#7a6a54'; for (const dx of [0, 22]) g.fillRect(fx + dx, y - 14, 2, 14); g.fillRect(fx - 1, y - 15, 25, 2);
+        for (let c = 0; c < 4; c++) { ell(fx + 4 + c * 5, y - 16, 2.2, 1.4); g.fillStyle = '#e0d4b4'; g.fill(); }
+      }
+      break;
+    }
+    case 'oldsouth': {   // the Old South Meeting House, where the Tea Party began: red brick, with a tall white steeple
+      g.fillStyle = '#7a3a2a'; g.fillRect(x - 30, y - 70, 60, 70); g.fillStyle = '#4a2418'; g.beginPath(); g.moveTo(x - 33, y - 68); g.lineTo(x, y - 86); g.lineTo(x + 33, y - 68); g.closePath(); g.fill();
+      for (let r = 0; r < 2; r++) for (let c = 0; c < 4; c++) { rrect(x - 24 + c * 14, y - 60 + r * 28, 7, 16, [3.5, 3.5, 0, 0]); g.fillStyle = '#ffd27a'; g.fill(); }
+      g.fillStyle = '#f2ece0'; g.fillRect(x + 20, y - 110, 16, 110); g.beginPath(); g.moveTo(x + 19, y - 110); g.lineTo(x + 28, y - 150); g.lineTo(x + 37, y - 110); g.closePath(); g.fill();
+      rrect(x + 24, y - 100, 8, 12, [4, 4, 0, 0]); g.fillStyle = '#3a3a48'; g.fill();
       break;
     }
   }
@@ -2441,6 +2650,13 @@ function drawPlatLook(e, t) {   // the special moving platforms: a canoe, a plan
     return true;
   }
   if (e.look === 'plank') { rrect(x, y, w, 6, 1.5); paint(vgrad(y, y + 6, '#b0804a', '#7a5028')); g.fillStyle = 'rgba(60,36,14,.5)'; g.fillRect(x + w / 2, y, 0.8, 6); return true; }
+  if (e.look === 'shallop') {   // a fishing shallop: a small open boat with a stubby mast, riding the swells
+    g.beginPath(); g.moveTo(x - 5, y - 1); g.lineTo(x + w + 5, y - 1); g.quadraticCurveTo(x + w + 1, y + 8, x + w - 6, y + 9); g.lineTo(x + 5, y + 9); g.quadraticCurveTo(x - 3, y + 7, x - 5, y - 1); g.closePath();
+    paint(vgrad(y - 1, y + 9, '#5a7a8a', '#2e4a5a'), 0.8, '#1a2a34'); g.fillStyle = '#e8d8b0'; g.fillRect(x - 4, y - 1, w + 8, 1.4);
+    g.fillStyle = '#6a4424'; g.fillRect(x + w * 0.4, y - 22, 1.6, 21); g.beginPath(); g.moveTo(x + w * 0.4 + 1.6, y - 21); g.quadraticCurveTo(x + w * 0.4 + 10, y - 14, x + w * 0.4 + 1.6, y - 4); g.closePath(); g.fillStyle = '#e8dcc0'; g.fill();
+    if (e.my || e.mx) for (let k = 0; k < 2; k++) { g.globalAlpha = 0.5; g.beginPath(); g.arc(x + w / 2 + (k - 0.5) * w * 0.9, y + 10, 2, 0, Math.PI); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
+    return;
+  }
   if (e.look === 'raftlog') {   // logs lashed together, floating down the river
     for (let k = 0; k < Math.round(w / 8); k++) { rrect(x + k * 8, y, 8, 8, 4); paint(vgrad(y, y + 8, '#9a6a3a', '#5a3818')); ell(x + k * 8 + 2, y + 4, 1.4, 3); g.fillStyle = '#c89a62'; g.fill(); }
     g.fillStyle = '#d8c090'; g.fillRect(x + 2, y + 2, w - 4, 1); g.fillRect(x + 2, y + 5, w - 4, 1);
@@ -2914,7 +3130,10 @@ const THEMES = {
   mystic: { top: '#c8945a', topDk: '#9a6a3a', dirt: '#6a4424', dirtDk: '#4a2e18', edge: '#2a180a' },      // wooden docks, and the ships' dark hulls
   newport: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#9a9488', dirtDk: '#76716a', edge: '#3e3a34' },     // the Cliff Walk's lawns over grey rock
   slater: { top: '#7ab85a', topDk: '#4a8a3a', dirt: '#a85a3a', dirtDk: '#7a3e26', edge: '#3a1e12' },      // the riverbank, and the mill's brick
-  boston: { top: '#a8a094', topDk: '#7a746a', dirt: '#8a5a3a', dirtDk: '#6a4228', edge: '#2a180e' },      // cobblestones on Boston's old brick
+  boston: { top: '#a8a094', topDk: '#7a746a', dirt: '#8a5a3a', dirtDk: '#6a4228', edge: '#2a180e' },
+  pemaquid: { top: '#6ab85a', topDk: '#3a8a3a', dirt: '#8a8a94', dirtDk: '#6a6a74', edge: '#34343c' },   // grass on Maine's granite
+  midnight: { top: '#3a8a5a', topDk: '#22603e', dirt: '#5a4a44', dirtDk: '#43362f', edge: '#221a16' },  // moonlit fields
+  aquinnah: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },  // the red clay of the cliffs      // cobblestones on Boston's old brick
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -2950,7 +3169,7 @@ function drawTile(tile, tx, ty, x, y, th, t) {
       break;
     }
     case T.STONE: put(theme + 'S', () => stoneTile(theme)); break;
-    case T.BRICK: case T.MULTI: put('B', brickTile); break;
+    case T.BRICK: case T.MULTI: if (theme === 'boston') put('bostonS', () => stoneTile(theme)); else put('B', brickTile); break;   // (in Boston, chests of tea to bust open)
     case T.USED: put('U', usedTile); break;
     case T.QINFO: case T.INFOREAD: put(tile === T.QINFO ? 'INFO' : 'INFOR', () => infoTile(tile === T.INFOREAD)); break;
     case T.QCOIN: case T.QPOWER: case T.QSTAR: case T.QONEUP: case T.QRIDE: case T.QHAT: case T.QBOW: {
@@ -3173,7 +3392,7 @@ function onewayTile(theme, L, Rt, alt) {
     g.strokeStyle = '#2a2a32'; g.lineWidth = 0.7; for (let k = 1; k < 16; k += 3) { g.beginPath(); g.moveTo(k, 3); g.lineTo(k, 8); g.stroke(); }
     g.beginPath(); g.moveTo(-0.5, 8); g.lineTo(16.5, 8); g.stroke(); g.beginPath(); g.arc(8, 5.5, 1.6, 0, TAU); g.stroke();
     if (alt) { ell(8, 9.5, 3, 1.6); g.fillStyle = '#3a8a3a'; g.fill(); }   // a hanging fern
-  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys' || SWAMP.has(theme)) {   // boardwalk planks on posts
+  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys' || SWAMP.has(theme) || theme === 'boston' || theme === 'pemaquid' || theme === 'midnight' || theme === 'nantucket') {   // boardwalk planks on posts (and ships' decks, and fish flakes)
     rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 6, [L ? 2 : 0, Rt ? 2 : 0, Rt ? 2 : 0, L ? 2 : 0]); paint(vgrad(0, 6, '#dcae70', '#9a6a3a'), 1, '#5a3a1a');
     g.fillStyle = 'rgba(80,50,20,.45)'; g.fillRect(alt ? 7 : 3, 0.5, 0.8, 5); g.fillRect(alt ? 13 : 10, 0.5, 0.8, 5);
     g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(L ? 2 : 0, 0.8, 12, 0.8);
@@ -3960,13 +4179,12 @@ SCENERY.maple = [
     g.fillStyle = 'rgba(255,255,255,.85)'; for (let x = 0; x <= BG_W; x += 48) { const y = 130 - Math.abs(Math.sin(x * 0.01)) * 36; g.beginPath(); g.moveTo(x - 10, y + 8); g.lineTo(x, y); g.lineTo(x + 10, y + 8); g.fill(); }
   } },
   { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 40 + (i % 2) * 20, 0.9); } },
-  { sp: 0.32, draw() {   // a sugarbush: maple trunks with sap buckets, sap lines between them, and patches of snow
+  { sp: 0.32, draw() {   // a sugarbush: maple trunks with birch-bark buckets catching the sap, and patches of snow
     g.fillStyle = '#eef4fa'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 186 + Math.sin(x / 26) * 4); g.lineTo(BG_W, 224); g.fill();
     for (let i = 0; i < 8; i++) { const x = 20 + i * 60 + rndB(i, 1) * 16; g.fillStyle = '#6a4a30'; g.fillRect(x - 3, 110, 6, 80);
       g.strokeStyle = '#6a4a30'; g.lineWidth = 2; for (const s2 of [-1, 1]) { g.beginPath(); g.moveTo(x, 130); g.lineTo(x + s2 * 18, 104); g.stroke(); }
       g.fillStyle = 'rgba(200,90,50,.35)'; g.beginPath(); g.arc(x, 104, 24, 0, TAU); g.fill();
-      rrect(x + 3, 158, 6, 7, 1); g.fillStyle = '#b8c0c8'; g.fill(); }
-    g.strokeStyle = 'rgba(60,140,200,.7)'; g.lineWidth = 1; g.beginPath(); for (let i = 0; i < 8; i++) { const x = 20 + i * 60 + rndB(i, 1) * 16; i ? g.lineTo(x, 150 + (i % 2) * 4) : g.moveTo(x, 150); } g.stroke();   // the blue sap lines
+      rrect(x + 3, 158, 6, 7, 1); g.fillStyle = '#efe6d2'; g.fill(); g.fillStyle = 'rgba(58,42,30,.4)'; g.fillRect(x + 3, 161, 6, 0.7); }
   } },
 ];
 SCENERY.mystic = [
@@ -4077,6 +4295,40 @@ SCENERY.boston = [
       for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) { const lit = rndB(i * 7 + r * 3 + c, 5) < 0.6; g.fillStyle = lit ? '#ffd27a' : '#2a2a3a'; g.fillRect(x + 8 + c * 17, 196 - h + r * 20, 8, 10); } }
   } },
 ];
+SCENERY.pemaquid = [
+  SCENERY.lighthouse[0], SCENERY.lighthouse[1],
+  { sp: 0.34, draw() {   // granite ledges with surf breaking white, dark spruce, and the fishing stage: fish flakes and a little shed
+    g.fillStyle = '#7a7a84'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 12) g.lineTo(x, 176 + Math.sin(x / 40) * 8 + rndB(x, 2) * 6); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 10; i++) { const x = rndB(i, 6) * BG_W; g.globalAlpha = 0.8; g.beginPath(); g.arc(x, 182 + Math.sin(x / 40) * 8, 6 + rndB(i, 7) * 6, Math.PI, 0); g.fillStyle = '#ffffff'; g.fill(); g.globalAlpha = 1; }
+    for (let i = 0; i < 6; i++) { const x = 20 + i * 76 + rndB(i, 8) * 20; g.fillStyle = '#2a5a3a'; g.beginPath(); g.moveTo(x - 9, 178); g.lineTo(x, 142); g.lineTo(x + 9, 178); g.fill(); }
+    g.fillStyle = '#6a5a48'; g.fillRect(300, 152, 40, 24); g.beginPath(); g.moveTo(296, 154); g.lineTo(320, 138); g.lineTo(344, 154); g.closePath(); g.fillStyle = '#4a3e32'; g.fill();
+    for (let k = 0; k < 3; k++) { const fx = 350 + k * 30; g.fillStyle = '#6a5a48'; g.fillRect(fx, 164, 2, 12); g.fillRect(fx + 22, 164, 2, 12); g.fillRect(fx - 1, 163, 26, 2); g.fillStyle = '#e0d4b4'; for (let c = 0; c < 4; c++) g.fillRect(fx + 2 + c * 5, 160, 3, 3); }
+  } },
+];
+SCENERY.midnight = [
+  SCENERY.boston[0],
+  { sp: 0.16, draw() {   // dark rolling hills, with a farmhouse candle here and there (the whole countryside waking up)
+    g.fillStyle = '#16203e'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 12) g.lineTo(x, 150 - Math.sin(x / BG_W * TAU * 2) * 14 - Math.sin(x / 50) * 4); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 6; i++) { const x = 30 + i * 80, y = 150 - Math.sin(x / BG_W * TAU * 2) * 14; g.fillStyle = '#0e1428'; g.fillRect(x, y - 8, 14, 10); g.beginPath(); g.moveTo(x - 2, y - 7); g.lineTo(x + 7, y - 14); g.lineTo(x + 16, y - 7); g.fill(); g.fillStyle = rndB(i, 4) < 0.7 ? '#ffd27a' : '#2a2a3a'; g.fillRect(x + 4, y - 5, 3, 3); }
+  } },
+  { sp: 0.34, draw() {   // stone walls along the fields, and bare April trees
+    g.fillStyle = '#1e2a3e'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 10) g.lineTo(x, 186 + Math.sin(x / 34) * 4); g.lineTo(BG_W, 224); g.fill();
+    for (let x = 0; x < BG_W; x += 7) { ell(x, 184 + Math.sin(x / 34) * 4, 4, 2.6); g.fillStyle = (x / 7) % 2 ? '#4a4e5e' : '#5a5e6e'; g.fill(); }
+    g.strokeStyle = '#141a2a'; g.lineCap = 'round';
+    for (let i = 0; i < 5; i++) { const x = 40 + i * 100; g.lineWidth = 4; g.beginPath(); g.moveTo(x, 188); g.lineTo(x, 130); g.stroke(); g.lineWidth = 1.6; for (const [a, l] of [[-0.7, 26], [0.6, 22], [-0.3, 16], [0.9, 14]]) { g.beginPath(); g.moveTo(x, 150 - l * 0.4); g.lineTo(x + Math.sin(a) * l, 150 - l * 0.4 - Math.cos(a) * l); g.stroke(); } }
+    g.lineCap = 'butt';
+  } },
+];
+SCENERY.aquinnah = [
+  SCENERY.cliffs[0], SCENERY.cliffs[1],
+  { sp: 0.3, draw() {   // the striped clay cliffs of Aquinnah (red, cream, orange and grey bands), with the Wampanoag's wetus on top
+    const top = x => 120 - Math.sin(x / BG_W * TAU * 2) * 10 - Math.sin(x / BG_W * TAU * 5 + 1) * 4;
+    const bands = ['#5aa84a', '#e8e0c8', '#d8583a', '#f2c890', '#b84a32', '#9a9aa0', '#e89a5a', '#7a5a4a'];
+    for (let b = 0; b < bands.length; b++) { g.fillStyle = bands[b]; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 6) g.lineTo(x, top(x) + b * 9 + Math.sin(x / BG_W * TAU * 8 + b) * 2); g.lineTo(BG_W, 224); g.fill(); }
+    for (const wx of [90, 300]) { const wy = top(wx) + 2; g.beginPath(); g.ellipse(wx, wy, 12, 10, 0, Math.PI, 0); g.fillStyle = '#b89a6a'; g.fill(); g.strokeStyle = 'rgba(90,60,30,.5)'; g.lineWidth = 0.8; for (let k = -1; k <= 1; k++) { g.beginPath(); g.moveTo(wx + k * 6, wy); g.lineTo(wx + k * 4, wy - 9); g.stroke(); } }
+    g.fillStyle = '#e8d8a8'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 196 + Math.sin(x / 30) * 2); g.lineTo(BG_W, 224); g.fill();   // the beach below
+  } },
+];
 const SKIES = {
   hills: ['#5ab8f5', '#bfeaff'], woods: ['#7ac88a', '#d8f0c8'], caves: ['#0a0c1c', '#1c1f3c'], sky: ['#3a9aec', '#e8f6ff'],
   bog: ['#56664a', '#b4c49a'], castle: ['#1a0a14', '#40141f'], rainbow: ['#ff9ad8', '#fff2b8'],
@@ -4091,6 +4343,7 @@ const SKIES = {
   atlantic: ['#8aaac6', '#e8eef0'], plimoth: ['#7ec2f0', '#f6ecd6'],
   mayflower: ['#7ac0f0', '#ffe8c8'], lighthouse: ['#5aa8e8', '#e8f4ff'], summit: ['#7aa0cc', '#e6ecf4'], maple: ['#8ac0e8', '#f6eedc'],
   mystic: ['#5ab0e8', '#eaf6ff'], newport: ['#4aa8f0', '#fff4dc'], slater: ['#7ab0d0', '#f2eadc'], boston: ['#070c26', '#24305e'],
+  pemaquid: ['#6aaee6', '#eef4f6'], midnight: ['#060a22', '#1e2a58'], aquinnah: ['#5ab0f0', '#fff0dc'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -5260,7 +5513,9 @@ function afterDeath() {
 }
 let endFrom = 'castle';
 // what happens after each world's boss (the bosses are still being built)
-const WORLD_ENDS = {};
+const WORLD_ENDS = {
+  lexington: { title: 'NEW ENGLAND <span>CLEAR!</span>', sub: '🔔 "The shot heard round the world": the American Revolution has begun! Next stop, the Mid-Atlantic, where Sybil Ludington will join you.', btn: '🗺️ On to the Mid-Atlantic', toast: '🏮 The Mid-Atlantic is still being built. Check back soon!' },
+};
 const BOSS_BEATEN = {};
 const LAST_BOSS = 'spike';   // (the Golden Spike, 1869: the end of the story)
 const WORLD_BOSS = {};
@@ -5280,7 +5535,7 @@ function winGame() {
 }
 // ---- the quiz at the end of each region: five questions picked at random from all its info boxes ----
 const quizEl = document.getElementById('quiz');
-const regionQuestions = w => NODES.filter(n => worldOf(n.id) === w && INFO[n.id]).flatMap(n => INFO[n.id].map(q => ({ ...q, where: n.name })));
+const regionQuestions = w => WORLDS[w].filter(id => INFO[id]).flatMap(id => INFO[id].map(q => ({ ...q, where: node(id).name })));   // (only the main road's levels: the secret ones are a bonus)
 const shuffle = a => { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; };
 let quiz = null;
 function startQuiz(w, onPass) {
@@ -5564,7 +5819,7 @@ function drawEnt0(e, t) {
   const tt = t + (e.x % 7);   // so enemies don't all move in step
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
-    case 'grumblin': { const c = lvl.cast && lvl.cast.grumblin; (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
+    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
     case 'turkey': drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
     case 'snaily': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
     case 'shell': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
@@ -5623,7 +5878,7 @@ function drawEnt0(e, t) {
       g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
       g.restore(); break;
     }
-    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (e.look === 'raft') drawRaft(e, t); else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
+    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (e.look === 'raft') drawRaft(e, t); else if (e.look === 'rowboat') drawRowboat(e, t); else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
     case 'heron': drawHeron(e, tt, FLAMINGOS.has(lvl.theme)); break;
     case 'snake': drawSnake(e, tt); break;
     case 'gator': drawGator(x, y, tt, face, e.w + 2); break;
@@ -5743,17 +5998,17 @@ function drawEnt0(e, t) {
       else if (e.kind === 'pepper') { g.save(); g.translate(x + 5, y + 5); g.rotate(t * 6); ell(0, 0, 5, 2.4); g.fillStyle = '#e8302a'; g.fill(); g.fillStyle = '#3a9a3a'; g.fillRect(-6, -1, 2, 2); g.restore(); }
       else if (e.kind === 'icecream') { g.beginPath(); g.moveTo(x + 2, y + 4); g.lineTo(x + 8, y + 4); g.lineTo(x + 5, y + 12); g.closePath(); g.fillStyle = '#e8b86a'; g.fill(); g.beginPath(); g.arc(x + 5, y + 3, 3.6, 0, TAU); g.fillStyle = ['#ffb8d8', '#fff4d8', '#b8f0d0'][Math.floor(e.x) % 3]; g.fill(); }
       else drawAcorn(x, y, t); break;
-    case 'pot': if (lvl.midBoss) drawChest(x, y, t); else drawPot(x, y, t); break;
+    case 'pot': if (lvl.midBoss || lvl.prize === 'chest') drawChest(x, y, t); else drawPot(x, y, t); break;
     case 'boss': {
       const hurtBlink = e.hurt > 0 && Math.floor(t * 16) % 2 === 0;
       const ph = (e.maxHp || 3) - e.hp, fade = e.ghost > 0 ? Math.max(0, e.ghost / 0.5) : e.appear > 0 ? 1 - e.appear / 0.45 : 1;
       g.globalAlpha = fade;
-      if (e.kind === 'lobster') drawLobsterBoss(x - 2, y, tt, face, hurtBlink, ph === 0);
+      if (e.kind === 'lobster') drawRedcoatBoss(x - 2, y, tt, face, hurtBlink, ph === 0);
       else if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink, ph === 0); else if (e.kind === 'gator') drawGatorBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
       drawBossCostume(e, x - 2, y, tt, face, ph);
       g.globalAlpha = 1;
       if (lvl.theme === 'cape' && e.kind === 'grumbles') { g.beginPath(); g.arc(x + 14, y + 7 - Math.abs(Math.sin(tt * 6)) * 1.5, 17, 0, TAU); g.fillStyle = 'rgba(200,240,255,.22)'; g.fill(); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.8)'; g.stroke(); ell(x + 8, y - 1, 4, 2.4, -0.6); g.fillStyle = 'rgba(255,255,255,.55)'; g.fill(); }   // King Grumbles in a space helmet
-      if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - (e.kind === 'lobster' ? 26 : 16), 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
+      if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - (e.kind === 'lobster' ? 32 : 16), 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
       break;
     }
   }
@@ -5770,7 +6025,9 @@ function drawEnt0(e, t) {
 // the Pacific, the part of it) Leo is in, and glides and zooms as he crosses into the next one. Press X (Shift, or M),
 // the 🗺️ button, scroll or pinch to zoom out and see the whole country. Levels that aren't built yet are on the map
 // already, as signposts Leo walks past ("coming soon"), so the levels that are built can all be played in order.
-const US_SHAPES = {AL:'6416,3840 476,-43 133,473 71,129 -37,102 49,187 -501,52 -4,30 48,39 12,55 -26,37 -85,19 39,-18 -57,-85 -18,85 -51,-7 -43,-345 15,-688',AK:'991,5699 31,-40 13,11 12,21|933,5754 38,-10 19,-37 41,-1 7,43 -78,55 15,-33 -21,25|442,5475 53,-8 14,18 1,27 -26,8|313,6008 79,-40 -12,21 20,-1 -34,21|507,5045 132,-50 18,2 -5,42 91,-2 -46,-55 29,37 6,-43 -67,-20 -71,-112 21,-36 80,-8 58,-86 114,-33 26,-30 32,10 -10,25 25,-23 22,29 52,-5 10,31 65,-10 127,30 44,-21 69,27 144,727 72,-20 91,97 58,-89 222,197 85,10 23,93 -21,19 -35,-76 13,49 -37,-14 -3,-30 -13,30 -6,-49 -11,30 -19,-13 12,-33 -72,-37 -18,-39 22,4 -52,-42 -22,10 -59,-72 44,81 -76,-43 -14,9 46,31 -23,19 -150,-72 4,-42 -24,34 -104,-13 -66,34 18,-22 -35,-27 -35,-7 -35,28 31,-28 -36,-8 19,-11 -19,-19 -56,31 -2,-21 13,49 0,40 -14,-15 -40,26 -2,-21 -10,39 -79,42 29,-51 -35,3 15,-77 38,-27 50,10 -39,-20 23,-25 -45,15 -132,157 -2,28 36,12 -38,58 -181,126 -10,39 -126,39 -15,-22 -20,38 -28,-20 -1,27 -29,-10 4,31 -85,7 19,-32 56,6 78,-70 45,-6 -2,23 24,0 -1,-39 78,-37 45,-59 35,-103 -48,19 -12,-32 -20,48 -54,-59 -63,34 -9,-130 -72,16 -40,-60 21,-38 -29,-70 78,-99 47,19 32,-30 40,3 15,-20 -20,-54 27,-21 -12,-17 -60,40 -9,-26 -104,-13 -13,-47 20,-7|344,5178 9,-17 41,18 45,56 -31,10|1849,5731 1,-33 50,20 58,75 -33,-3 -29,-15 24,38|1803,5672 51,-29 33,24 -23,12 -25,6 -5,47|1746,5559 59,48 -14,53|1739,5648 33,-14 29,89|1691,5614 24,-36 44,26 12,23 -34,-5 1,26',AZ:'1451,4070 52,-19 -1,-43 -32,-22 5,-47 49,-48 15,-86 89,-69 -39,-43 -21,-131 27,-248 71,1 34,34 26,-34 34,-182 886,147 -178,1283 -386,-58 -659,-388',CO:'2771,2372 843,93 339,25 -14,229 -42,688 -172,-13 -1079,-114',FL:'7937,6042 68,-65 46,24|7108,4688 34,62 516,-35 15,45 24,-4 3,-107 101,12 69,202 176,247 20,109 155,271 17,255 -20,-8 -11,93 33,-52 -2,25 -74,129 33,-71 -142,28 -49,-111 -87,-24 -54,-112 -35,-29 -16,13 -22,-42 18,1 -6,-65 -31,58 -121,-169 18,1 36,-91 -27,16 -32,-37 27,45 -23,49 -32,-58 -12,-73 20,34 9,-88 -17,-105 -30,-51 -49,10 -147,-162 -71,-32 -48,7 -10,48 -146,58 24,19 59,-39 -64,48 -63,-10 -17,-62 -169,-74 -104,-1 -147,40 26,-37 -12,-55 -48,-39 4,-30',GA:'6892,3797 235,-29 222,-31 -32,78 94,39 72,108 230,182 101,190 47,12 -47,77 -1,121 -30,58 16,-3 2,62 -101,-12 -3,107 -24,4 -15,-45 -516,35 -34,-62 -49,-187 37,-102 -71,-129',IN:'6403,2298 46,16 70,-38 339,-22 67,589 10,73 -106,25 7,41 -65,69 -30,77 -59,-49 -38,82 -47,-25 -44,51 -86,-37 0,33 -54,-16 -19,30 0,-94 74,-137 -33,-87 15,-43',KS:'3939,2719 1160,33 66,25 8,37 -38,44 50,74 41,12 2,494 -1331,-31',ME:'9102,1501 -66,-66 -127,-411 39,7 -5,-38 30,-5 -21,-25 48,-102 -23,-64 14,-122 68,-199 29,-1 37,48 72,-64 100,38 90,302 59,0 15,71 34,27 25,-16 43,45 -13,68 -35,2 -13,60 -34,-13 -30,60 -24,-6 8,33 -33,7 -8,-40 -27,16 19,85 -63,-97 -25,25 17,103 -31,36 -23,-17 -4,30 -93,63',MA:'9183,1883 30,-39 25,16|8710,1676 131,-28 188,-41 66,-59 17,37 31,-1 -37,38 -6,64 50,4 67,87 71,-26 -26,-51 -26,0 31,-3 43,71 -4,30 -9,-22 -50,23 -86,77 39,-43 -21,-39 -51,70 -23,-36 -7,-7 -43,-61 -67,20 -276,60',MN:'4795,707 313,1 -1,-86 30,3 49,140 121,23 8,25 122,-28 54,17 -11,18 31,2 23,51 15,-31 32,-2 77,67 102,-50 21,32 195,6 -205,116 -182,183 13,17 -43,12 5,133 -88,84 -1,33 38,26 -20,160 230,163 40,111 -857,19 2,-409 -64,-70 47,-74',NJ:'8492,2458 5,-14 11,-30 98,-106 -107,-100 16,-47 -19,-23 54,-98 151,50 -9,74 -3,8 -23,42 49,1 17,158 -88,213 -18,4 3,-52 -43,5 -82,-48 -10,-32',NC:'7555,3340 1033,-181 96,158 -116,-148 55,95 -30,-34 7,17 -21,-1 -35,-18 29,28 -72,8 32,12 -34,30 -31,-3 -13,-52 -5,32 24,44 106,-35 19,74 20,-79 30,32 2,54 -54,70 -63,4 -25,-27 22,-15 -30,16 15,26 -86,-13 112,37 -46,79 -34,-3 43,11 45,-44 37,7 -28,82 -22,-20 -6,19 30,7 68,-109 -68,124 -30,-18 -63,20 -88,79 -46,136 -106,20 -247,-177 -205,31 -1,-27 -34,-34 -17,17 -4,-24 -248,23 -123,67 -222,31 -1,-54 47,-22 19,-54 154,-79 55,-76 17,24 43,-48 46,-4 17,-44 33,-13',ND:'3769,657 1026,50 96,692 -1180,-56',OK:'3725,3394 172,13 1331,31 2,115 38,252 -4,402 -140,-72 -10,19 -153,7 -45,37 -45,-46 -33,14 -44,-29 -33,48 -7,-41 -41,22 -48,-39 -34,31 -46,-71 -68,19 -130,-38 -34,-57 -4,18 -55,-3 -55,-43 19,-444 -542,-31',PA:'7561,2090 114,-87 11,61 723,-143 54,32 34,71 53,16 -54,98 19,23 -16,47 107,100 -98,106 -59,32 -626,123 -178,30 -34,-207',SD:'3691,1557 20,-214 1180,56 -47,74 64,70 -2,409 -24,0 26,87 -33,80 31,64 -127,-82 -101,-7 -35,23 -75,-55 -915,-52',TX:'3716,3508 542,31 -19,444 55,43 55,3 4,-18 34,57 130,38 68,-19 46,71 34,-31 48,39 41,-22 7,41 33,-48 44,29 33,-14 45,46 45,-37 153,-7 10,-19 140,72 84,18 2,122 5,232 43,51 -2,40 65,129 -40,111 10,111 -42,54 17,29 -184,78 55,-38 -56,-1 4,-57 -41,19 15,89 -53,45 85,-51 -453,323 -78,191 42,220 -41,-107 3,-179 58,-126 128,-113 -47,23 -18,-21 -32,64 -21,-15 -36,22 38,-5 -33,65 -61,-15 47,43 -33,85 -20,10 -1,-20 -23,27 42,-3 -7,146 59,148 -62,23 -41,-39 -123,-14 -169,-78 -70,-144 -8,-122 -72,-56 -9,-41 -70,-72 -69,-191 -136,-154 -181,-37 -10,23 -60,6 -44,106 -52,55 -61,-18 -194,-145 -69,-234 -86,-65 -195,-233 -12,-51 678,63',WY:'3691,1557 -38,453 -39,455 -843,-93 -336,-50 37,-226 88,-557 18,-119',CT:'8712,1840 276,-60 29,155 -170,49 -106,99 -18,-23 34,-34',MO:'5020,2619 689,-23 56,51 -13,58 29,90 116,104 30,86 22,-24 61,23 -34,148 157,111 21,67 -16,24 29,55 45,10 0,73 -43,41 -13,2 -12,-18 3,18 4,52 -29,6 20,28 -23,30 -117,9 50,-67 -16,-51 -806,31 -2,-115 -2,-494 -41,-12 -50,-74 38,-44 -8,-37 -66,-25',WV:'7332,2948 47,-13 35,-140 26,32 20,-14 4,-82 34,-37 39,0 51,-64 21,-164 -20,-56 22,-18 34,207 178,-30 18,116 56,-71 26,2 19,-49 62,16 41,-49 63,10 31,59 -10,46 -103,-58 3,69 -63,106 -26,-16 -37,109 -65,-30 -78,222 6,42 -28,24 -68,10 -3,27 -54,27 -28,-19 -51,39 -63,-69 -62,-21 -45,-55 -32,-49',IL:'5765,2647 0,-38 47,-31 24,-60 -29,-71 9,-39 97,-31 42,-67 0,-72 -85,-84 472,-30 -2,44 63,130 47,538 -15,43 33,87 -74,137 0,94 -21,34 17,42 -68,25 9,71 -100,-27 -19,57 -45,-10 -29,-55 16,-24 -21,-67 -157,-111 34,-148 -61,-23 -22,24 -30,-86 -116,-104 -29,-90',NM:'2646,3280 1079,114 -9,114 -87,1025 -678,-63 12,51 -321,-39 -13,102 -161,-21',AR:'5230,3553 806,-31 16,51 -50,67 117,-9 18,21 -53,42 8,51 -22,-7 -1,33 -21,-3 23,64 -43,35 12,20 -42,8 7,29 -21,6 20,13 -23,2 5,59 -63,48 22,6 -25,12 14,24 -37,14 21,43 -29,15 22,11 -37,1 19,18 -17,36 33,1 -15,98 -544,16 -2,-122 -84,-18 4,-402',CA:'566,3550 70,28 -41,8|326,1600 679,192 -172,663 735,1107 21,131 39,43 -89,69 -15,86 -49,48 -5,47 32,22 1,43 -52,19 -456,-53 -30,-194 -86,-113 -58,-17 -4,-68 -107,-44 -60,-88 -162,-50 -23,-38 33,-124 -34,-24 5,-56 -53,-68 -68,-172 3,-62 30,-9 11,-63 -41,-17 -37,-67 19,-135 20,-1 -6,50 46,46 -35,-131 31,-25 -32,-10 -25,62 -70,-64 23,-57 -84,-180 39,-206 -55,-120 4,-41 88,-114',DE:'8449,2446 59,-32 -11,30 -4,49 75,114 45,20 24,76 -111,22',DC:'8259,2670 11,-17 27,19 -18,27',HI:'3054,5845 48,-53 -5,-67 125,58 80,99 17,21 -146,78 -35,50 -54,-46 7,-48|2916,5579 23,-25 25,31 52,-8 52,47 -83,32 -18,-45|2916,5667 27,-17 5,20|2839,5583 35,-3 13,34 -28,7|2786,5538 10,-26 105,9 -23,29|2581,5430 66,-30 67,94 -99,-1|2261,5326 49,-44 44,4 11,24 -32,53|2163,5366 29,-33 6,23 -27,26',IA:'4906,1952 857,-19 29,54 -18,29 25,89 57,19 14,30 85,84 0,72 -42,67 -97,31 -9,39 29,71 -24,60 -47,31 0,38 -56,-51 -689,23 -21,-34 -6,-166 -29,-20 -5,-97 -53,-119 -31,-64 33,-80 -26,-87',KY:'6212,3399 19,-57 100,27 -9,-71 68,-25 -17,-42 21,-34 19,-30 54,16 0,-33 86,37 44,-51 47,25 38,-82 59,49 30,-77 65,-69 -7,-41 106,-25 -10,-73 60,-11 54,66 100,29 23,-21 44,18 64,-45 62,69 0,59 32,49 45,55 62,21 -181,210 -92,45 -790,67 6,41 -245,18 43,-41',MD:'7823,2569 626,-123 77,279 111,-22 -12,102 -70,33 -39,15 -14,-99 -41,38 -47,-51 11,-34 39,6 -48,-29 -13,14 13,-59 -26,24 4,-46 25,5 -26,-29 36,-60 -3,-44 -34,56 -9,-21 2,34 -17,-18 -5,48 -28,-10 45,49 -18,61 76,154 -108,-52 8,23 -16,-6 -23,-31 -38,22 10,-60 8,-39 18,-27 -27,-19 -11,17 -120,-67 -31,-59 -63,-10 -41,49 -62,-16 -19,49 -26,-2 -56,71',MI:'6519,2276 79,-174 -9,-122 -65,-137 25,-246 99,-125 -9,87 11,13 13,-52 -2,56 12,-121 69,-36 -37,-36 12,-45 37,-11 213,72 46,71 -29,2 38,67 2,86 -80,107 7,56 44,10 29,-77 75,-44 53,47 63,188 -6,86 -24,24 6,-35 -28,7 -80,223 -225,37|6014,924 103,-75 19,-5 -22,25 -48,48|5853,1231 216,-112 82,-91 66,-30 42,13 -73,50 -30,105 45,-51 -19,32 58,-22 91,83 87,8 100,-64 148,-37 34,-5 -2,66 67,7 69,-35 10,67 -19,15 65,33 4,-25 38,-2 16,35 -136,17 -47,-22 -8,50 -45,-33 -83,-10 -25,32 -91,14 -45,81 -18,-16 23,-49 -37,10 -22,40 -15,-31 -75,176 -25,-15 3,-50 -29,5 9,-68 -51,-21 -4,-31 -324,-70',MS:'5894,4331 15,-98 -33,-1 17,-36 -19,-18 37,-1 -22,-11 29,-15 -21,-43 37,-14 -14,-24 25,-12 -22,-6 63,-48 -5,-59 23,-2 -20,-13 21,-6 -7,-29 42,-8 -12,-20 388,-27 21,22 -15,688 43,345 -174,28 -6,-16 -37,47 -72,-105 20,-77 -370,20 -4,-61 24,-3 -13,-28 20,7 -9,-37 20,-10 -22,-9 81,-96 -17,-9 28,-24 -30,-7 50,-33 -45,-33 25,-4 -9,-34 -24,3 17,-21 -20,-3 15,-34 -4,-20 -23,12',MT:'1981,390 864,158 924,109 -58,686 -20,214 -1113,-137 -18,119 -45,-72 -24,45 -124,-27 -21,24 -61,-19 -15,26 -29,-101 -47,-30 -25,-175 -23,-28 -65,44 -29,-29 82,-234 -66,-25 -60,-141 -55,-54 17,-1 -2,-55 -35,-72',NH:'8861,1105 -3,-51 51,-30 127,411 66,66 -7,47 -66,59 -188,41 -24,-31 -11,-159 25,-128 -13,-51 61,-58',NY:'7675,2003 128,-142 -55,-101 90,-43 160,2 116,-41 82,-79 -27,-55 24,-19 -46,-22 3,-39 136,-185 58,-48 232,-53 63,319 17,-14 15,20 39,173 2,164 45,186 -34,34 18,23 -11,47 41,-45 138,-43 56,-55 -9,19 39,12 36,-23 -197,149 -117,49 -25,-29 9,-74 -151,-50 -53,-16 -34,-71 -54,-32 -723,143',OH:'6858,2254 225,-37 173,57 119,-42 67,-73 119,-69 50,302 -22,18 20,56 -21,164 -51,64 -39,0 -34,37 -4,82 -20,14 -26,-32 -35,140 -47,13 -62,-69 -64,45 -44,-18 -23,21 -100,-29 -54,-66 -60,11',OR:'710,702 85,67 -5,99 59,43 89,-12 73,20 17,28 92,-8 33,20 234,-11 318,76 52,99 -183,243 43,67 -38,72 -90,402 -484,-115 -679,-192 2,-201 126,-192 129,-311 55,-207 19,22',TN:'6119,3631 23,-30 -20,-28 29,-6 -4,-52 9,0 13,-2 245,-18 -6,-41 790,-67 357,-47 2,58 -33,13 -17,44 -46,4 -43,48 -17,-24 -55,76 -154,79 -19,54 -47,22 1,54 -235,29 -476,43 -388,27 43,-35 -23,-64 21,3 1,-33 22,7 -8,-51 53,-42',UT:'1977,2011 495,85 -37,226 336,50 -125,908 -886,-147',VA:'8555,2838 70,-33 -83,237 -16,-76|7471,3132 63,69 51,-39 28,19 54,-27 3,-27 68,-10 28,-24 -6,-42 78,-222 65,30 37,-109 26,16 63,-106 -3,-69 103,58 10,-46 120,67 20,29 -8,39 -20,2 7,69 38,-22 23,39 63,3 77,44 -8,67 -111,-62 82,68 42,3 16,55 -29,-15 18,26 -24,11 41,20 4,29 -17,12 -54,-49 -53,8 47,-2 50,61 81,-25 44,79 -1033,181 -357,47 92,-45',WA:'950,310 35,-33 8,29 -35,10 13,50 12,-15 12,36 -28,-11|910,212 30,17 19,-30 10,25 -22,41|1836,359 -135,582 4,83 -318,-76 -234,11 -33,-20 -92,8 -17,-28 -73,-20 -89,12 -59,-43 5,-99 -85,-67 -80,-26 25,-78 1,60 41,-68 -38,-18 4,-36 44,3 -32,-32 -17,22 16,-338 95,80 120,36 31,49 26,-27 7,62 -115,91 39,4 -31,-10 120,-86 -42,134 -12,12 -11,-30 -10,46 0,-51 -15,12 18,44 34,-40 33,2 4,-71 50,-61 -10,-61 -5,37 -18,-22 27,-37 -34,-40 34,6 15,-26 -5,-42 -23,3 4,-61',WI:'5602,1211 181,-65 14,15 -27,67 32,-23 51,26 50,49 324,70 4,31 51,21 -9,68 29,-5 -3,50 25,15 -55,91 -7,35 19,5 45,-72 32,-8 21,-72 26,-31 13,16 -93,314 -17,145 34,171 -472,30 -14,-30 -57,-19 -25,-89 18,-29 -29,-54 -40,-111 -230,-163 20,-160 -38,-26 1,-33 88,-84 -5,-133',NE:'3653,2010 915,52 75,55 35,-23 101,7 127,82 53,119 5,97 29,20 6,166 21,34 79,133 -1160,-33 14,-229 -339,-25',SC:'7349,3737 123,-67 248,-23 4,24 17,-17 34,34 1,27 205,-31 247,177 -65,61 -53,157 -41,7 -63,104 -84,39 8,40 -56,15 21,14 -34,48 -47,-12 -101,-190 -230,-182 -72,-108 -94,-39',ID:'1705,1024 -4,-83 135,-582 145,31 -48,225 35,72 2,55 -17,1 55,54 60,141 66,25 -82,234 29,29 65,-44 23,28 25,175 47,30 29,101 15,-26 61,19 21,-24 124,27 24,-45 45,72 -88,557 -495,-85 -488,-104 90,-402 38,-72 -43,-67 183,-243',NV:'1005,1792 484,115 488,104 -217,1122 -34,182 -26,34 -34,-34 -71,-1 -27,248 -735,-1107',VT:'8576,1178 285,-73 18,116 -61,58 13,51 -25,128 11,159 24,31 -131,28 -39,-173 -15,-20 -17,14',LA:'5350,4347 544,-16 -8,17 23,-12 4,20 -15,34 20,3 -17,21 24,-3 9,34 -25,4 45,33 -50,33 30,7 -28,24 17,9 -81,96 22,9 -20,10 9,37 -20,-7 13,28 -24,3 4,61 370,-20 -20,77 72,105 -58,57 48,12 19,-47 25,37 29,-16 -31,33 17,17 -72,49 141,77 -24,45 -24,-19 -30,37 23,-59 -25,14 -88,-38 -72,58 -45,-57 -82,71 -20,-27 -64,-12 1,-26 30,23 -3,-20 -41,-9 -6,-27 -19,10 -35,-58 -51,7 9,-27 -72,20 33,37 -55,15 -170,-49 -130,22 -17,-29 42,-54 -10,-111 40,-111 -65,-129 2,-40 -43,-51',RI:'9017,1935 -29,-155 67,-20 43,61 -5,19 -26,-28 9,95'};
+// (Massachusetts' coast, round Boston, Cape Cod and Buzzards Bay, and its islands, are from Natural Earth's 1:10m outline:
+// the simplified outline's Cape was only a rough blob)
+const US_SHAPES = {AL:'6416,3840 476,-43 133,473 71,129 -37,102 49,187 -501,52 -4,30 48,39 12,55 -26,37 -85,19 39,-18 -57,-85 -18,85 -51,-7 -43,-345 15,-688',AK:'991,5699 31,-40 13,11 12,21|933,5754 38,-10 19,-37 41,-1 7,43 -78,55 15,-33 -21,25|442,5475 53,-8 14,18 1,27 -26,8|313,6008 79,-40 -12,21 20,-1 -34,21|507,5045 132,-50 18,2 -5,42 91,-2 -46,-55 29,37 6,-43 -67,-20 -71,-112 21,-36 80,-8 58,-86 114,-33 26,-30 32,10 -10,25 25,-23 22,29 52,-5 10,31 65,-10 127,30 44,-21 69,27 144,727 72,-20 91,97 58,-89 222,197 85,10 23,93 -21,19 -35,-76 13,49 -37,-14 -3,-30 -13,30 -6,-49 -11,30 -19,-13 12,-33 -72,-37 -18,-39 22,4 -52,-42 -22,10 -59,-72 44,81 -76,-43 -14,9 46,31 -23,19 -150,-72 4,-42 -24,34 -104,-13 -66,34 18,-22 -35,-27 -35,-7 -35,28 31,-28 -36,-8 19,-11 -19,-19 -56,31 -2,-21 13,49 0,40 -14,-15 -40,26 -2,-21 -10,39 -79,42 29,-51 -35,3 15,-77 38,-27 50,10 -39,-20 23,-25 -45,15 -132,157 -2,28 36,12 -38,58 -181,126 -10,39 -126,39 -15,-22 -20,38 -28,-20 -1,27 -29,-10 4,31 -85,7 19,-32 56,6 78,-70 45,-6 -2,23 24,0 -1,-39 78,-37 45,-59 35,-103 -48,19 -12,-32 -20,48 -54,-59 -63,34 -9,-130 -72,16 -40,-60 21,-38 -29,-70 78,-99 47,19 32,-30 40,3 15,-20 -20,-54 27,-21 -12,-17 -60,40 -9,-26 -104,-13 -13,-47 20,-7|344,5178 9,-17 41,18 45,56 -31,10|1849,5731 1,-33 50,20 58,75 -33,-3 -29,-15 24,38|1803,5672 51,-29 33,24 -23,12 -25,6 -5,47|1746,5559 59,48 -14,53|1739,5648 33,-14 29,89|1691,5614 24,-36 44,26 12,23 -34,-5 1,26',AZ:'1451,4070 52,-19 -1,-43 -32,-22 5,-47 49,-48 15,-86 89,-69 -39,-43 -21,-131 27,-248 71,1 34,34 26,-34 34,-182 886,147 -178,1283 -386,-58 -659,-388',CO:'2771,2372 843,93 339,25 -14,229 -42,688 -172,-13 -1079,-114',FL:'7937,6042 68,-65 46,24|7108,4688 34,62 516,-35 15,45 24,-4 3,-107 101,12 69,202 176,247 20,109 155,271 17,255 -20,-8 -11,93 33,-52 -2,25 -74,129 33,-71 -142,28 -49,-111 -87,-24 -54,-112 -35,-29 -16,13 -22,-42 18,1 -6,-65 -31,58 -121,-169 18,1 36,-91 -27,16 -32,-37 27,45 -23,49 -32,-58 -12,-73 20,34 9,-88 -17,-105 -30,-51 -49,10 -147,-162 -71,-32 -48,7 -10,48 -146,58 24,19 59,-39 -64,48 -63,-10 -17,-62 -169,-74 -104,-1 -147,40 26,-37 -12,-55 -48,-39 4,-30',GA:'6892,3797 235,-29 222,-31 -32,78 94,39 72,108 230,182 101,190 47,12 -47,77 -1,121 -30,58 16,-3 2,62 -101,-12 -3,107 -24,4 -15,-45 -516,35 -34,-62 -49,-187 37,-102 -71,-129',IN:'6403,2298 46,16 70,-38 339,-22 67,589 10,73 -106,25 7,41 -65,69 -30,77 -59,-49 -38,82 -47,-25 -44,51 -86,-37 0,33 -54,-16 -19,30 0,-94 74,-137 -33,-87 15,-43',KS:'3939,2719 1160,33 66,25 8,37 -38,44 50,74 41,12 2,494 -1331,-31',ME:'9102,1501 -66,-66 -127,-411 39,7 -5,-38 30,-5 -21,-25 48,-102 -23,-64 14,-122 68,-199 29,-1 37,48 72,-64 100,38 90,302 59,0 15,71 34,27 25,-16 43,45 -13,68 -35,2 -13,60 -34,-13 -30,60 -24,-6 8,33 -33,7 -8,-40 -27,16 19,85 -63,-97 -25,25 17,103 -31,36 -23,-17 -4,30 -93,63',MA:'8710,1676 131,-28 188,-41 66,-59 4,9 -9,3 12,4 9,16 -1,2 -9,-7 3,6 14,5 -4,3 3,3 10,-1 4,4 -2,-8 6,-8 2,4 5,1 2,6 -6,9 -5,0 -3,8 -25,17 0,8 5,-6 4,5 -12,11 3,4 5,3 -4,2 -6,-4 -2,2 -1,6 7,11 -9,-2 0,2 3,2 -8,-1 -2,4 7,3 -4,2 2,5 4,1 3,-3 1,6 6,-1 2,3 -1,4 3,1 7,-7 3,3 2,-4 -8,-11 14,8 16,3 6,5 3,8 18,14 2,7 9,8 -2,3 -6,1 3,-3 -7,-9 0,13 -3,-1 -4,5 12,7 14,-3 5,2 7,15 2,12 19,9 28,-3 -8,3 -1,3 10,-2 30,-22 6,-6 2,-6 -4,-15 -5,-4 5,-5 -9,-2 -2,12 -14,-30 -13,-3 -3,4 5,4 -3,3 -12,-7 2,-5 6,-3 19,1 15,10 24,32 -8,1 2,10 3,-3 4,2 7,26 -7,0 -32,14 -8,7 -3,8 0,-8 -17,8 -3,4 -6,-4 -6,18 -17,10 -8,9 -5,-1 2,-11 -7,-24 3,-11 -4,-2 -1,5 -10,-3 0,8 3,5 -5,1 -3,11 -4,-2 0,4 -7,5 3,8 -13,-8 0,14 2,7 -16,14 -5,-1 3,-5 -5,-5 0,6 -6,0 3,4 -3,4 -9,-20 -2,-13 -11,0 -7,-7 -43,-61 -67,20 -276,60|9308,1839 2,-1 2,2 19,21 0,6 -5,4 -23,4 -22,-4 -5,-3 1,-1 6,1 25,-4 6,-6 3,-10 -8,10 3,-10 0,-5|9235,1859 5,-10 3,4 2,10 0,2 -2,0|9221,1855 5,2 5,-1 5,11 -30,10 -7,7 -3,7 -6,0 -8,-6 -1,-1 11,-3 3,-6 3,-12 7,-10 8,-7 2,0 0,6 4,-7 2,0 4,5|9305,1778 2,1 1,3 -1,6 -1,14 -3,1|9189,1904 3,-2 2,1 1,2 -4,0|9172,1866 1,-3 3,3 -1,1 -11,6 -1,2 -2,0 3,-4|9192,1843 1,-2 6,1 -11,11 -1,4 -3,3 -6,3 -2,-1 2,-2 2,0',MN:'4795,707 313,1 -1,-86 30,3 49,140 121,23 8,25 122,-28 54,17 -11,18 31,2 23,51 15,-31 32,-2 77,67 102,-50 21,32 195,6 -205,116 -182,183 13,17 -43,12 5,133 -88,84 -1,33 38,26 -20,160 230,163 40,111 -857,19 2,-409 -64,-70 47,-74',NJ:'8492,2458 5,-14 11,-30 98,-106 -107,-100 16,-47 -19,-23 54,-98 151,50 -9,74 -3,8 -23,42 49,1 17,158 -88,213 -18,4 3,-52 -43,5 -82,-48 -10,-32',NC:'7555,3340 1033,-181 96,158 -116,-148 55,95 -30,-34 7,17 -21,-1 -35,-18 29,28 -72,8 32,12 -34,30 -31,-3 -13,-52 -5,32 24,44 106,-35 19,74 20,-79 30,32 2,54 -54,70 -63,4 -25,-27 22,-15 -30,16 15,26 -86,-13 112,37 -46,79 -34,-3 43,11 45,-44 37,7 -28,82 -22,-20 -6,19 30,7 68,-109 -68,124 -30,-18 -63,20 -88,79 -46,136 -106,20 -247,-177 -205,31 -1,-27 -34,-34 -17,17 -4,-24 -248,23 -123,67 -222,31 -1,-54 47,-22 19,-54 154,-79 55,-76 17,24 43,-48 46,-4 17,-44 33,-13',ND:'3769,657 1026,50 96,692 -1180,-56',OK:'3725,3394 172,13 1331,31 2,115 38,252 -4,402 -140,-72 -10,19 -153,7 -45,37 -45,-46 -33,14 -44,-29 -33,48 -7,-41 -41,22 -48,-39 -34,31 -46,-71 -68,19 -130,-38 -34,-57 -4,18 -55,-3 -55,-43 19,-444 -542,-31',PA:'7561,2090 114,-87 11,61 723,-143 54,32 34,71 53,16 -54,98 19,23 -16,47 107,100 -98,106 -59,32 -626,123 -178,30 -34,-207',SD:'3691,1557 20,-214 1180,56 -47,74 64,70 -2,409 -24,0 26,87 -33,80 31,64 -127,-82 -101,-7 -35,23 -75,-55 -915,-52',TX:'3716,3508 542,31 -19,444 55,43 55,3 4,-18 34,57 130,38 68,-19 46,71 34,-31 48,39 41,-22 7,41 33,-48 44,29 33,-14 45,46 45,-37 153,-7 10,-19 140,72 84,18 2,122 5,232 43,51 -2,40 65,129 -40,111 10,111 -42,54 17,29 -184,78 55,-38 -56,-1 4,-57 -41,19 15,89 -53,45 85,-51 -453,323 -78,191 42,220 -41,-107 3,-179 58,-126 128,-113 -47,23 -18,-21 -32,64 -21,-15 -36,22 38,-5 -33,65 -61,-15 47,43 -33,85 -20,10 -1,-20 -23,27 42,-3 -7,146 59,148 -62,23 -41,-39 -123,-14 -169,-78 -70,-144 -8,-122 -72,-56 -9,-41 -70,-72 -69,-191 -136,-154 -181,-37 -10,23 -60,6 -44,106 -52,55 -61,-18 -194,-145 -69,-234 -86,-65 -195,-233 -12,-51 678,63',WY:'3691,1557 -38,453 -39,455 -843,-93 -336,-50 37,-226 88,-557 18,-119',CT:'8712,1840 276,-60 29,155 -170,49 -106,99 -18,-23 34,-34',MO:'5020,2619 689,-23 56,51 -13,58 29,90 116,104 30,86 22,-24 61,23 -34,148 157,111 21,67 -16,24 29,55 45,10 0,73 -43,41 -13,2 -12,-18 3,18 4,52 -29,6 20,28 -23,30 -117,9 50,-67 -16,-51 -806,31 -2,-115 -2,-494 -41,-12 -50,-74 38,-44 -8,-37 -66,-25',WV:'7332,2948 47,-13 35,-140 26,32 20,-14 4,-82 34,-37 39,0 51,-64 21,-164 -20,-56 22,-18 34,207 178,-30 18,116 56,-71 26,2 19,-49 62,16 41,-49 63,10 31,59 -10,46 -103,-58 3,69 -63,106 -26,-16 -37,109 -65,-30 -78,222 6,42 -28,24 -68,10 -3,27 -54,27 -28,-19 -51,39 -63,-69 -62,-21 -45,-55 -32,-49',IL:'5765,2647 0,-38 47,-31 24,-60 -29,-71 9,-39 97,-31 42,-67 0,-72 -85,-84 472,-30 -2,44 63,130 47,538 -15,43 33,87 -74,137 0,94 -21,34 17,42 -68,25 9,71 -100,-27 -19,57 -45,-10 -29,-55 16,-24 -21,-67 -157,-111 34,-148 -61,-23 -22,24 -30,-86 -116,-104 -29,-90',NM:'2646,3280 1079,114 -9,114 -87,1025 -678,-63 12,51 -321,-39 -13,102 -161,-21',AR:'5230,3553 806,-31 16,51 -50,67 117,-9 18,21 -53,42 8,51 -22,-7 -1,33 -21,-3 23,64 -43,35 12,20 -42,8 7,29 -21,6 20,13 -23,2 5,59 -63,48 22,6 -25,12 14,24 -37,14 21,43 -29,15 22,11 -37,1 19,18 -17,36 33,1 -15,98 -544,16 -2,-122 -84,-18 4,-402',CA:'566,3550 70,28 -41,8|326,1600 679,192 -172,663 735,1107 21,131 39,43 -89,69 -15,86 -49,48 -5,47 32,22 1,43 -52,19 -456,-53 -30,-194 -86,-113 -58,-17 -4,-68 -107,-44 -60,-88 -162,-50 -23,-38 33,-124 -34,-24 5,-56 -53,-68 -68,-172 3,-62 30,-9 11,-63 -41,-17 -37,-67 19,-135 20,-1 -6,50 46,46 -35,-131 31,-25 -32,-10 -25,62 -70,-64 23,-57 -84,-180 39,-206 -55,-120 4,-41 88,-114',DE:'8449,2446 59,-32 -11,30 -4,49 75,114 45,20 24,76 -111,22',DC:'8259,2670 11,-17 27,19 -18,27',HI:'3054,5845 48,-53 -5,-67 125,58 80,99 17,21 -146,78 -35,50 -54,-46 7,-48|2916,5579 23,-25 25,31 52,-8 52,47 -83,32 -18,-45|2916,5667 27,-17 5,20|2839,5583 35,-3 13,34 -28,7|2786,5538 10,-26 105,9 -23,29|2581,5430 66,-30 67,94 -99,-1|2261,5326 49,-44 44,4 11,24 -32,53|2163,5366 29,-33 6,23 -27,26',IA:'4906,1952 857,-19 29,54 -18,29 25,89 57,19 14,30 85,84 0,72 -42,67 -97,31 -9,39 29,71 -24,60 -47,31 0,38 -56,-51 -689,23 -21,-34 -6,-166 -29,-20 -5,-97 -53,-119 -31,-64 33,-80 -26,-87',KY:'6212,3399 19,-57 100,27 -9,-71 68,-25 -17,-42 21,-34 19,-30 54,16 0,-33 86,37 44,-51 47,25 38,-82 59,49 30,-77 65,-69 -7,-41 106,-25 -10,-73 60,-11 54,66 100,29 23,-21 44,18 64,-45 62,69 0,59 32,49 45,55 62,21 -181,210 -92,45 -790,67 6,41 -245,18 43,-41',MD:'7823,2569 626,-123 77,279 111,-22 -12,102 -70,33 -39,15 -14,-99 -41,38 -47,-51 11,-34 39,6 -48,-29 -13,14 13,-59 -26,24 4,-46 25,5 -26,-29 36,-60 -3,-44 -34,56 -9,-21 2,34 -17,-18 -5,48 -28,-10 45,49 -18,61 76,154 -108,-52 8,23 -16,-6 -23,-31 -38,22 10,-60 8,-39 18,-27 -27,-19 -11,17 -120,-67 -31,-59 -63,-10 -41,49 -62,-16 -19,49 -26,-2 -56,71',MI:'6519,2276 79,-174 -9,-122 -65,-137 25,-246 99,-125 -9,87 11,13 13,-52 -2,56 12,-121 69,-36 -37,-36 12,-45 37,-11 213,72 46,71 -29,2 38,67 2,86 -80,107 7,56 44,10 29,-77 75,-44 53,47 63,188 -6,86 -24,24 6,-35 -28,7 -80,223 -225,37|6014,924 103,-75 19,-5 -22,25 -48,48|5853,1231 216,-112 82,-91 66,-30 42,13 -73,50 -30,105 45,-51 -19,32 58,-22 91,83 87,8 100,-64 148,-37 34,-5 -2,66 67,7 69,-35 10,67 -19,15 65,33 4,-25 38,-2 16,35 -136,17 -47,-22 -8,50 -45,-33 -83,-10 -25,32 -91,14 -45,81 -18,-16 23,-49 -37,10 -22,40 -15,-31 -75,176 -25,-15 3,-50 -29,5 9,-68 -51,-21 -4,-31 -324,-70',MS:'5894,4331 15,-98 -33,-1 17,-36 -19,-18 37,-1 -22,-11 29,-15 -21,-43 37,-14 -14,-24 25,-12 -22,-6 63,-48 -5,-59 23,-2 -20,-13 21,-6 -7,-29 42,-8 -12,-20 388,-27 21,22 -15,688 43,345 -174,28 -6,-16 -37,47 -72,-105 20,-77 -370,20 -4,-61 24,-3 -13,-28 20,7 -9,-37 20,-10 -22,-9 81,-96 -17,-9 28,-24 -30,-7 50,-33 -45,-33 25,-4 -9,-34 -24,3 17,-21 -20,-3 15,-34 -4,-20 -23,12',MT:'1981,390 864,158 924,109 -58,686 -20,214 -1113,-137 -18,119 -45,-72 -24,45 -124,-27 -21,24 -61,-19 -15,26 -29,-101 -47,-30 -25,-175 -23,-28 -65,44 -29,-29 82,-234 -66,-25 -60,-141 -55,-54 17,-1 -2,-55 -35,-72',NH:'8861,1105 -3,-51 51,-30 127,411 66,66 -7,47 -66,59 -188,41 -24,-31 -11,-159 25,-128 -13,-51 61,-58',NY:'7675,2003 128,-142 -55,-101 90,-43 160,2 116,-41 82,-79 -27,-55 24,-19 -46,-22 3,-39 136,-185 58,-48 232,-53 63,319 17,-14 15,20 39,173 2,164 45,186 -34,34 18,23 -11,47 41,-45 138,-43 56,-55 -9,19 39,12 36,-23 -197,149 -117,49 -25,-29 9,-74 -151,-50 -53,-16 -34,-71 -54,-32 -723,143',OH:'6858,2254 225,-37 173,57 119,-42 67,-73 119,-69 50,302 -22,18 20,56 -21,164 -51,64 -39,0 -34,37 -4,82 -20,14 -26,-32 -35,140 -47,13 -62,-69 -64,45 -44,-18 -23,21 -100,-29 -54,-66 -60,11',OR:'710,702 85,67 -5,99 59,43 89,-12 73,20 17,28 92,-8 33,20 234,-11 318,76 52,99 -183,243 43,67 -38,72 -90,402 -484,-115 -679,-192 2,-201 126,-192 129,-311 55,-207 19,22',TN:'6119,3631 23,-30 -20,-28 29,-6 -4,-52 9,0 13,-2 245,-18 -6,-41 790,-67 357,-47 2,58 -33,13 -17,44 -46,4 -43,48 -17,-24 -55,76 -154,79 -19,54 -47,22 1,54 -235,29 -476,43 -388,27 43,-35 -23,-64 21,3 1,-33 22,7 -8,-51 53,-42',UT:'1977,2011 495,85 -37,226 336,50 -125,908 -886,-147',VA:'8555,2838 70,-33 -83,237 -16,-76|7471,3132 63,69 51,-39 28,19 54,-27 3,-27 68,-10 28,-24 -6,-42 78,-222 65,30 37,-109 26,16 63,-106 -3,-69 103,58 10,-46 120,67 20,29 -8,39 -20,2 7,69 38,-22 23,39 63,3 77,44 -8,67 -111,-62 82,68 42,3 16,55 -29,-15 18,26 -24,11 41,20 4,29 -17,12 -54,-49 -53,8 47,-2 50,61 81,-25 44,79 -1033,181 -357,47 92,-45',WA:'950,310 35,-33 8,29 -35,10 13,50 12,-15 12,36 -28,-11|910,212 30,17 19,-30 10,25 -22,41|1836,359 -135,582 4,83 -318,-76 -234,11 -33,-20 -92,8 -17,-28 -73,-20 -89,12 -59,-43 5,-99 -85,-67 -80,-26 25,-78 1,60 41,-68 -38,-18 4,-36 44,3 -32,-32 -17,22 16,-338 95,80 120,36 31,49 26,-27 7,62 -115,91 39,4 -31,-10 120,-86 -42,134 -12,12 -11,-30 -10,46 0,-51 -15,12 18,44 34,-40 33,2 4,-71 50,-61 -10,-61 -5,37 -18,-22 27,-37 -34,-40 34,6 15,-26 -5,-42 -23,3 4,-61',WI:'5602,1211 181,-65 14,15 -27,67 32,-23 51,26 50,49 324,70 4,31 51,21 -9,68 29,-5 -3,50 25,15 -55,91 -7,35 19,5 45,-72 32,-8 21,-72 26,-31 13,16 -93,314 -17,145 34,171 -472,30 -14,-30 -57,-19 -25,-89 18,-29 -29,-54 -40,-111 -230,-163 20,-160 -38,-26 1,-33 88,-84 -5,-133',NE:'3653,2010 915,52 75,55 35,-23 101,7 127,82 53,119 5,97 29,20 6,166 21,34 79,133 -1160,-33 14,-229 -339,-25',SC:'7349,3737 123,-67 248,-23 4,24 17,-17 34,34 1,27 205,-31 247,177 -65,61 -53,157 -41,7 -63,104 -84,39 8,40 -56,15 21,14 -34,48 -47,-12 -101,-190 -230,-182 -72,-108 -94,-39',ID:'1705,1024 -4,-83 135,-582 145,31 -48,225 35,72 2,55 -17,1 55,54 60,141 66,25 -82,234 29,29 65,-44 23,28 25,175 47,30 29,101 15,-26 61,19 21,-24 124,27 24,-45 45,72 -88,557 -495,-85 -488,-104 90,-402 38,-72 -43,-67 183,-243',NV:'1005,1792 484,115 488,104 -217,1122 -34,182 -26,34 -34,-34 -71,-1 -27,248 -735,-1107',VT:'8576,1178 285,-73 18,116 -61,58 13,51 -25,128 11,159 24,31 -131,28 -39,-173 -15,-20 -17,14',LA:'5350,4347 544,-16 -8,17 23,-12 4,20 -15,34 20,3 -17,21 24,-3 9,34 -25,4 45,33 -50,33 30,7 -28,24 17,9 -81,96 22,9 -20,10 9,37 -20,-7 13,28 -24,3 4,61 370,-20 -20,77 72,105 -58,57 48,12 19,-47 25,37 29,-16 -31,33 17,17 -72,49 141,77 -24,45 -24,-19 -30,37 23,-59 -25,14 -88,-38 -72,58 -45,-57 -82,71 -20,-27 -64,-12 1,-26 30,23 -3,-20 -41,-9 -6,-27 -19,10 -35,-58 -51,7 9,-27 -72,20 33,37 -55,15 -170,-49 -130,22 -17,-29 42,-54 -10,-111 40,-111 -65,-129 2,-40 -43,-51',RI:'9017,1935 -29,-155 67,-20 43,61 -5,19 -26,-28 9,95'};
 const US_POLYS = {};   // each state: rings of [x, y] (each ring is stored as differences from the point before, in tenths)
 for (const [k, v] of Object.entries(US_SHAPES)) US_POLYS[k] = v.split('|').map(r => { let x = 0, y = 0; return r.split(' ').map(p => { const [a, b] = p.split(','); x += +a; y += +b; return [x / 10, y / 10]; }); });
 // the neighbours, Canada and Mexico, as land (from Natural Earth via world-atlas, in the same projection, stored the same way), and the
@@ -5816,10 +6073,6 @@ for (const [k, rings] of Object.entries(US_POLYS)) {
 Object.assign(STATE_AT, { MA: US(-72.1, 42.45), FL: US(-81.6, 27.6), MI: US(-84.8, 43.4), LA: US(-92.4, 31.1), NY: US(-75.3, 42.75), VA: US(-79.2, 37.45), NH: US(-71.6, 43.1),
   VT: US(-72.75, 43.95), CT: US(-72.75, 41.65), RI: US(-71.15, 41.85), NJ: US(-74.45, 40.15), DE: US(-75.45, 38.95), MD: US(-76.9, 39.55), DC: US(-77.35, 38.75), KY: US(-84.7, 37.6), TN: US(-87.8, 35.8) });
 
-// Cape Cod is where it really is, just drawn bigger (a bold hook curling out into the sea) so its levels fit
-const CB = US(-70.6, 41.74);
-const CAPEXY = (dx, dy) => [CB[0] + dx * 0.6, CB[1] + dy * 0.6];
-const CAPE_ARM = [[-3, 0], [14, 2.5], [32, 3], [50, 0], [55, -14], [52, -30], [42, -42], [28, -44], [19, -38]];   // the bent arm: elbow at Chatham, fist at Provincetown
 const at = (id, xy, name, region, more = {}) => ({ id, x: xy[0], y: xy[1], name, region, ...more });
 const soon = { soon: true };   // a level that isn't built yet: a signpost on the map
 // Every level of the story, world by world, in the order it happened. The ones that aren't built yet are signposts.
@@ -5827,18 +6080,18 @@ const NODES = [
   // World 1: New England, the colonies (1620 to 1775). The Mayflower sails into Provincetown, across Cape Cod Bay to
   // Plymouth, then the Wampanoag homeland, the Puritans' Boston, Providence, the Connecticut River, the coast of Maine,
   // Vermont's maple woods, and back to Boston for the Tea Party and the Midnight Ride
-  at('voyage', CAPEXY(92, -40), 'The Mayflower', 'across the Atlantic to Provincetown', { year: 1620 }),   // (out at sea, heading west for Cape Cod)
+  at('voyage', US(-69.45, 42.12), 'The Mayflower', 'across the Atlantic to Provincetown', { year: 1620 }),   // (out at sea, heading west for Cape Cod)
   at('plimoth', US(-70.6, 42.05), 'Plimoth Plantation', 'Plymouth, Massachusetts', { year: 1621 }),   // (the stops round Massachusetts Bay are spread out a little, so the road is easy to follow)
   at('cranberry', US(-71.0, 41.7), 'Cranberry Bog', 'the Wampanoag homeland, near Plymouth', { year: 1622 }),   // (inland, where the bogs are, so the road doesn't double back)
   at('boston', US(-71.05, 42.45), 'A City upon a Hill', 'Boston, Massachusetts', { year: 1630 }),
   at('providence', US(-71.6, 41.92), 'Providence', 'Rhode Island', { year: 1636 }),
   at('ctriver', US(-72.68, 41.76), 'The Connecticut River', 'Hartford, Connecticut', { year: 1639 }),
-  at('maple', US(-72.7, 44.3), 'Maple Sugarhouse', 'Vermont, the Abenaki homeland', { year: 1650, soon: true }),
-  at('gulfmaine', US(-69.5, 43.95), 'The Gulf of Maine', 'Pemaquid, Maine', { year: 1700, soon: true }),
-  at('teaparty', US(-70.75, 42.62), 'The Boston Tea Party', 'Boston Harbor', { year: 1773, soon: true }),
-  at('lexington', US(-71.45, 42.62), 'The Midnight Ride', 'Lexington and Concord, Massachusetts', { year: 1775, soon: true, boss: 'castle' }),
-  at('nantucket', CAPEXY(46, 23), 'Nantucket', 'the whaling island', { island: true, soon: true }),   // secret-only islands
-  at('vineyard', CAPEXY(3, 21), "Martha's Vineyard", 'Noepe, the Wampanoag island', { island: true, soon: true }),
+  at('maple', US(-72.7, 44.3), 'Maple Sugaring', 'Vermont, the Abenaki homeland', { year: 1650 }),
+  at('gulfmaine', US(-69.5, 43.95), 'The Gulf of Maine', 'Pemaquid, Maine', { year: 1700 }),
+  at('teaparty', US(-70.75, 42.62), 'The Boston Tea Party', 'Boston Harbor', { year: 1773 }),
+  at('lexington', US(-71.45, 42.62), 'The Midnight Ride', 'Lexington and Concord, Massachusetts', { year: 1775, boss: 'castle' }),
+  at('nantucket', US(-70.08, 41.27), 'Nantucket', 'the whaling island', { island: true }),   // secret-only islands
+  at('vineyard', US(-70.62, 41.39), "Martha's Vineyard", 'Noepe, the Wampanoag island', { island: true }),
   // World 2: the Mid-Atlantic, a new nation (1775 to 1830)
   at('saratoga', US(-73.65, 43.0), 'Saratoga', 'New York', { year: 1777, soon: true }),
   at('delaware', US(-74.87, 40.3), 'Crossing the Delaware', 'New Jersey', { year: 1776, soon: true }),
@@ -5939,8 +6192,8 @@ const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vine
 // a few trails are bent by hand: the boats keep to the sea
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
-bend('voyage|plimoth', CAPEXY(30, -78)); bend('voyage|nantucket', CAPEXY(90, 10));   // (round the tip of the Cape, past Provincetown, and into the bay)
-bend('cranberry|vineyard', US(-70.85, 41.45)); bend('plimoth|cranberry', US(-70.75, 41.8)); bend('cranberry|boston', US(-71.1, 42.1)); bend('boston|providence', US(-71.4, 42.25));
+bend('voyage|plimoth', US(-69.95, 42.4)); bend('voyage|nantucket', US(-69.55, 41.55));   // (round the tip of the Cape, past Provincetown, and into the bay)
+bend('cranberry|vineyard', US(-70.95, 41.5)); bend('plimoth|cranberry', US(-70.75, 41.8)); bend('cranberry|boston', US(-71.1, 42.1)); bend('boston|providence', US(-71.4, 42.25));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -6021,6 +6274,44 @@ const INFO = {
     { f: 'Before the English came, Dutch traders from New Netherland built a trading post called the House of Good Hope, where Hartford is now (1633).', q: 'Who built a trading post at Hartford before the English came?', a: ['Dutch traders', 'Spanish soldiers', 'Vikings'] },
     { f: 'In 1639, Connecticut wrote the Fundamental Orders, one of the first written plans for a government. That\'s why it\'s called the Constitution State.', q: 'What is Connecticut\'s nickname?', a: ['The Constitution State', 'The Sunshine State', 'The Lone Star State'] },
   ],
+  maple: [
+    { f: 'The Abenaki have lived in the land that is now Vermont, New Hampshire and Maine for thousands of years. Their name means "People of the Dawn Land."', q: 'What does the name "Abenaki" mean?', a: ['People of the Dawn Land', 'People of the Desert', 'Tall trees'] },
+    { f: 'Sap runs inside maple trees in early spring, when the nights still freeze and the days are warm. The Abenaki call it the Sugar Moon.', q: 'When does maple sap run?', a: ['In early spring', 'In the middle of summer', 'On the first day of winter'] },
+    { f: 'Sap was caught in buckets made of birch bark. To boil it, people dropped red-hot stones from the fire right into the sap!', q: 'How did the Abenaki boil maple sap long ago?', a: ['By dropping hot stones into it', 'In an electric oven', 'By leaving it in the snow'] },
+    { f: 'It takes about 40 buckets of sap to make just 1 bucket of maple syrup. The rest is water, boiled away into steam.', q: 'About how much sap does it take to make 1 bucket of syrup?', a: ['About 40 buckets', '1 bucket', 'Half a bucket'] },
+    { f: 'Settlers learned maple sugaring from Native peoples. Today Vermont makes more maple syrup than any other state.', q: 'Which state makes the most maple syrup?', a: ['Vermont', 'Florida', 'Arizona'] },
+  ],
+  gulfmaine: [
+    { f: 'The sea off Maine was so full of cod that sailors joked you could walk across the water on their backs!', q: 'What fish filled the sea off the coast of Maine?', a: ['Cod', 'Goldfish', 'Piranhas'] },
+    { f: 'Fishermen split and salted their cod and dried it on wooden racks called fish flakes. Dried cod kept for months and was shipped all over the world.', q: 'What were "fish flakes"?', a: ['Wooden racks for drying fish', 'Snow that fell on the fish', 'A breakfast cereal'] },
+    { f: 'Fishermen rowed and sailed small open boats called shallops out to the fishing grounds.', q: 'What was a shallop?', a: ['A small open fishing boat', 'A kind of shellfish', 'A sailor\'s hat'] },
+    { f: 'The Wabanaki peoples fished and hunted along the Maine coast long before Europeans came. They paddled light birch-bark canoes.', q: 'What did the Wabanaki people paddle along the coast?', a: ['Birch-bark canoes', 'Steamboats', 'Covered wagons'] },
+    { f: 'For a long time Maine was part of Massachusetts. It became a state of its own in 1820.', q: 'Before it became a state in 1820, Maine was part of...', a: ['Massachusetts', 'Texas', 'Mexico'] },
+  ],
+  teaparty: [
+    { f: 'Britain made the colonists pay a tax on tea, but the colonists had no vote in Britain\'s Parliament. "No taxation without representation!" they said.', q: 'What did the colonists say about the tea tax?', a: ['No taxation without representation!', 'More tea, please!', 'Hooray for taxes!'] },
+    { f: 'On the night of December 16, 1773, a group called the Sons of Liberty dumped 342 chests of tea into Boston Harbor.', q: 'How many chests of tea went into Boston Harbor?', a: ['342', '3', '1 million'] },
+    { f: 'The tea was on three ships tied up at Griffin\'s Wharf: the Dartmouth, the Eleanor and the Beaver.', q: 'Where were the tea ships tied up?', a: ['Griffin\'s Wharf in Boston', 'London Bridge', 'Plymouth Rock'] },
+    { f: 'Samuel Adams was a leader of the Sons of Liberty. Paul Revere, a silversmith who made spoons and teapots, was one of them too.', q: 'What was Paul Revere\'s job?', a: ['Silversmith', 'King', 'Fisherman'] },
+    { f: 'To punish Boston, Britain closed its harbor until the tea was paid for, and sent more soldiers, called redcoats.', q: 'How did Britain punish Boston after the Tea Party?', a: ['It closed the harbor', 'It gave everyone free tea', 'It moved Boston to England'] },
+  ],
+  lexington: [
+    { f: 'On April 18, 1775, two lanterns were hung in Boston\'s Old North Church: "one if by land, two if by sea." Two meant the British were coming by boat.', q: 'What did two lanterns in the Old North Church mean?', a: ['The British were coming by sea', 'Time for bed', 'The British were coming by land'] },
+    { f: 'Paul Revere rowed quietly across the Charles River, then rode a borrowed horse through the night to warn that the British soldiers were coming.', q: 'How did Paul Revere spread the warning?', a: ['He rode a horse through the night', 'He sent a letter by ship', 'He rang a bell in London'] },
+    { f: 'Paul Revere was not alone! William Dawes and Samuel Prescott rode too, and Prescott was the one who got through to Concord.', q: 'Who else rode to warn the colonists that night?', a: ['William Dawes and Samuel Prescott', 'The Pilgrims', 'Tisquantum'] },
+    { f: 'Minutemen were colonists who promised to be ready to fight at a minute\'s notice.', q: 'Why were they called minutemen?', a: ['They were ready at a minute\'s notice', 'They were very small', 'They fought for one minute'] },
+    { f: 'The first battles of the American Revolution were fought at Lexington and Concord on April 19, 1775. A poet called it "the shot heard round the world."', q: 'Where were the first battles of the American Revolution?', a: ['Lexington and Concord', 'California', 'London'] },
+  ],
+  nantucket: [
+    { f: 'Nantucket is a Wampanoag name that may mean "faraway island." The Wampanoag lived there long before English settlers came in 1659.', q: 'What may the name "Nantucket" mean?', a: ['Faraway island', 'Big city', 'Cold mountain'] },
+    { f: 'Nantucket became the whaling capital of the world. Oil from whales burned in lamps and lit homes and streets before there was electricity.', q: 'What was whale oil used for?', a: ['Lighting lamps', 'Making pancakes', 'Painting houses'] },
+    { f: 'A whaling voyage could last three or four years! Families watched for the ships from rooftop platforms called widow\'s walks.', q: 'How long could a whaling voyage last?', a: ['Three or four years', 'One afternoon', 'One week'] },
+  ],
+  vineyard: [
+    { f: 'The Wampanoag name for Martha\'s Vineyard is Noepe, which means "land amid the streams."', q: 'What is the Wampanoag name for Martha\'s Vineyard?', a: ['Noepe', 'Shawmut', 'Patuxet'] },
+    { f: 'The clay cliffs at Aquinnah are striped red, white, orange and gray. The Wampanoag have lived beside them for thousands of years.', q: 'What makes the cliffs at Aquinnah special?', a: ['Stripes of colored clay', 'They are made of ice', 'They are made of gold'] },
+    { f: 'Caleb Cheeshahteaumuck, a Wampanoag from Martha\'s Vineyard, finished Harvard College in 1665: the first Native American to do so.', q: 'Who was the first Native American to finish Harvard College?', a: ['Caleb Cheeshahteaumuck', 'Paul Revere', 'John Winthrop'] },
+  ],
 };
 // the info box pop-up (the game waits; tap it, or press jump, to carry on)
 const factEl = document.getElementById('fact');
@@ -6097,6 +6388,7 @@ function rememberSpot() { save.at = mapLeo.at; save.keep = keep; persist(); }
 let secretJustFound = null;   // (a secret exit is announced the first time it's found)
 const SECRET_TOASTS = {
   voyage: '🧭 Secret exit! The Mayflower first tried to sail south for the Hudson River. A golden sea lane now runs past the shoals to Nantucket',
+  cranberry: "🛶 Secret exit! A mishoon trail now crosses the sound to Noepe, Martha's Vineyard",
 };
 // which levels hide a secret exit (the map shows a little star by them: grey until it's found, then gold, like Super Mario World's red dots)
 const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LEVELS[id] && LEVELS[id].secretGoal);
@@ -6288,24 +6580,20 @@ function drawMapLand() {
   const ring = r => { g.beginPath(); r.forEach(([x, y], i) => i ? g.lineTo(x, y) : g.moveTo(x, y)); g.closePath(); };
   const all = Object.entries(US_POLYS);
   // Canada and Mexico: land, but quiet (the trip only crosses into them now and then), then the lakes cut out of them
-  for (const rings of Object.values(NEIGHBOURS)) for (const r of rings) { ring(r); g.lineWidth = 6; g.strokeStyle = 'rgba(140,220,255,.4)'; g.stroke(); }
-  for (const rings of Object.values(NEIGHBOURS)) for (const r of rings) { ring(r); g.lineWidth = 2; g.strokeStyle = '#e6d8a8'; g.stroke(); }
+  for (const rings of Object.values(NEIGHBOURS)) for (const r of rings) { ring(r); g.lineWidth = clamp(5 / z, 1.6, 6); g.strokeStyle = 'rgba(140,220,255,.4)'; g.stroke(); }
+  for (const rings of Object.values(NEIGHBOURS)) for (const r of rings) { ring(r); g.lineWidth = clamp(2 / z, 0.7, 2); g.strokeStyle = '#e6d8a8'; g.stroke(); }
   for (const [k, rings] of Object.entries(NEIGHBOURS)) { g.fillStyle = k === 'CAN' ? '#c4d0bc' : '#d8c8a8'; for (const r of rings) { ring(r); g.fill(); } }
   for (const r of LAKES) { ring(r); g.fillStyle = '#3488da'; g.fill(); g.lineWidth = 0.8; g.strokeStyle = 'rgba(140,220,255,.6)'; g.stroke(); }
   // the insets' frames (Alaska and Hawaii, as on a classroom map)
   for (const b of INSETS) { rrect(b[0] - 2, b[1] - 2, b[2] - b[0] + 4, b[3] - b[1] + 4, 8); g.fillStyle = '#2f80d0'; g.fill(); g.fillStyle = 'rgba(255,255,255,.07)'; g.fill(); g.setLineDash([4, 3]); g.lineWidth = 1.2 / z; g.strokeStyle = 'rgba(255,255,255,.55)'; g.stroke(); g.setLineDash([]); }
-  for (const [, rings] of all) for (const r of rings) { ring(r); g.lineWidth = 6; g.strokeStyle = 'rgba(140,220,255,.45)'; g.stroke(); }
-  for (const [, rings] of all) for (const r of rings) { ring(r); g.lineWidth = 2.4; g.strokeStyle = '#f6e2a0'; g.stroke(); }
+  // (the shallow water and the beach are the same width on screen at any zoom, so close up the coast stays crisp)
+  const shallow = clamp(5 / z, 1.6, 6), beach = clamp(2.2 / z, 0.7, 2.4);
+  for (const [, rings] of all) for (const r of rings) { ring(r); g.lineWidth = shallow; g.strokeStyle = 'rgba(140,220,255,.45)'; g.stroke(); }
+  for (const [, rings] of all) for (const r of rings) { ring(r); g.lineWidth = beach; g.strokeStyle = '#f6e2a0'; g.stroke(); }
   for (const [st, rings] of all) { g.fillStyle = stateFill(st); for (const r of rings) { ring(r); g.fill(); } }
   g.setLineDash([2.2 / z, 2.2 / z]); g.lineWidth = Math.max(0.5, 0.9 / z); g.strokeStyle = 'rgba(255,255,255,.8)';
   for (const [, rings] of all) for (const r of rings) { ring(r); g.stroke(); }
   g.setLineDash([]);
-  // Cape Cod: one bold bent arm (drawn bigger than life) from the canal out into the sea, and the two islands to the south
-  const arm = () => { g.beginPath(); CAPE_ARM.forEach(([dx, dy], i) => { const [x, y] = CAPEXY(dx, dy); i ? g.lineTo(x, y) : g.moveTo(x, y); }); };
-  arm(); g.lineWidth = 9; g.strokeStyle = 'rgba(140,220,255,.5)'; g.stroke();
-  arm(); g.lineWidth = 6; g.strokeStyle = '#f6e2a0'; g.stroke();
-  arm(); g.lineWidth = 4; g.strokeStyle = stateFill('MA'); g.stroke();
-  for (const [dx, dy, rx, ry] of [[3, 21, 6, 2.3], [46, 23, 4.8, 1.8]]) { const [x, y] = CAPEXY(dx, dy); ell(x, y, rx + 1.6, ry + 1.6); g.fillStyle = 'rgba(140,220,255,.5)'; g.fill(); ell(x, y, rx + 0.9, ry + 0.9); g.fillStyle = '#f6e2a0'; g.fill(); ell(x, y, rx, ry); g.fillStyle = stateFill('MA'); g.fill(); }
   g.restore();
   const onScreen = mapOnScreen;
   // trees, mountains and cactuses (not when zoomed right out: there the worlds' names are clearer)

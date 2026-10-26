@@ -3269,6 +3269,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       check(v.infos >= 3 && v.infos <= 5 && v.infos === v.info && v.infoReach, `${id}: 3 to 5 info boxes, one for each fact, all within reach: ` + JSON.stringify(v));
     }
     check(r.voyage.flag === true, 'the secret exit at the Mayflower\'s main top should be reachable');
+    check(r.cranberry.flag === true, 'the secret exit over the Cranberry Bog (to Martha\'s Vineyard) should be reachable');
     await done(p);
   });
 
@@ -3523,11 +3524,12 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const shape = { worlds: WORLDS.length, names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length, everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
         built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id)),
         years: WORLDS.flat().every(id => node(id).year), spike: WORLDS[8][WORLDS[8].length - 1] === 'spike', neighbours: NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 };
-      // signposts are walked past: beating the Connecticut River opens World 1's signposts up to the Midnight Ride; World 2 waits for the quiz
+      // World 1 is all built: beating it (up to the Midnight Ride) leaves World 2 shut until the quiz is passed; then its signposts are walked past
+      const w1Built = WORLDS[0].every(id => LEVELS[id] && !node(id).soon) && ['nantucket', 'vineyard'].every(id => LEVELS[id]);
       ORDER.forEach(id => { save.cleared[id] = true; });
-      const signs = { gulfmaine: nodeOpen(node('gulfmaine')), lexington: nodeOpen(node('lexington')), saratogaBefore: nodeOpen(node('saratoga')) };
-      save.quiz[0] = true; signs.saratogaAfter = nodeOpen(node('saratoga')); delete save.quiz[0];
-      goMap('gulfmaine', true); enterLevel(); signs.notStarted = state === 'map';
+      const signs = { w1Built, lexington: nodeOpen(node('lexington')), saratogaBefore: nodeOpen(node('saratoga')), delawareBefore: nodeOpen(node('delaware')) };
+      save.quiz[0] = true; signs.saratogaAfter = nodeOpen(node('saratoga')); signs.delawareAfter = nodeOpen(node('delaware'));
+      goMap('delaware', true); enterLevel(); signs.notStarted = state === 'map'; delete save.quiz[0];
       // zoom out to the whole country and back in
       goMap('ctriver', true); run(90); const z1 = mapCam.z;
       mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
@@ -3548,7 +3550,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && r.start.w1 && !r.start.w2 && r.start.area === '1' && r.start.atSea, 'a new game starts out at sea on the Mayflower (1-1), in New England, with the rest of the story still locked: ' + JSON.stringify(r.start));
     check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific' && r.shape.neighbours, 'nine regions, every state (and D.C.) in one, Canada and Mexico next door: ' + JSON.stringify(r.shape));
     check(r.shape.built && r.shape.soon && r.shape.onlyStory && r.shape.years && r.shape.spike, 'the built levels are on the map, signposts mark the rest, there are no levels outside the story, every stop has a year, and the Golden Spike is the end: ' + JSON.stringify(r.shape));
-    check(r.signs.gulfmaine && r.signs.lexington && !r.signs.saratogaBefore && r.signs.saratogaAfter && r.signs.notStarted, 'signposts are walked past, and the next region opens once the quiz is passed: ' + JSON.stringify(r.signs));
+    check(r.signs.w1Built && r.signs.lexington && !r.signs.saratogaBefore && !r.signs.delawareBefore && r.signs.saratogaAfter && r.signs.delawareAfter && r.signs.notStarted, 'World 1 is built; the next region opens once the quiz is passed, and its signposts are walked past: ' + JSON.stringify(r.signs));
     check(r.zoom.whole && r.zoom.z2 < r.zoom.z1 * 0.6 && r.zoom.backIn, 'zoom out to the whole country and back in: ' + JSON.stringify(r.zoom));
     check(r.lockedBefore && r.unlocked && r.relocked, 'Unlock All opens every level and path, and turns back off (and is saved): ' + JSON.stringify(r));
     check(r.drew === true && r.hiddenInLevel, 'every region, Alaska and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
@@ -3633,6 +3635,43 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.pumpkin && r.apples && r.thrownApple, 'a pumpkin grows the hero; the basket of apples lets him throw apples: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'manifest-destiny-new-levels.png');
+  });
+
+  await test('Manifest Destiny 1-7 to 1-10 and the secret islands: maple sugaring, the Gulf of Maine, the Tea Party (bust the tea chests), the Midnight Ride (the redcoat major: one if by land, two if by sea), then New England\'s quiz and the end of the region', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info']) save[k] = {}; paused = true; startGame();
+      out.starts = ['maple', 'gulfmaine', 'teaparty', 'lexington', 'nantucket', 'vineyard'].map(id => { startLevel(id); const story = bannerT > 0 && /1[0-9]{3}/.test(bannerText[0]); run(30); let drew = true; try { render(); } catch (e) { drew = e.message; } return [id, state === 'level' && player.y > 0 && phase === 'play', story, drew]; });
+      out.tags = WORLDS[0].map(levelTag).join(' ') + ' | ' + levelTag('nantucket') + levelTag('vineyard');
+      // the secret islands open from their levels' golden flags
+      out.secrets = ['nantucket', 'vineyard'].map(id => { const pth = PATHS.find(([a, b, sec]) => b === id && sec); return pth && LEVELS[pth[0]].ents.some(e => e.k === 'sflag'); });
+      // redcoats on patrol in Boston; the tea chests on the ships break open
+      startLevel('teaparty'); out.redcoats = lvl.cast.grumblin === 'redcoat' && ents.filter(e => e.k === 'grumblin' && !e.as).length >= 5;
+      out.chests = lvl.t.filter(v => v === T.BRICK).length >= 10;
+      // the redcoat major: three hits, the lanterns, and a chest to win; then the quiz, and the end of New England
+      startLevel('lexington'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); player.x = 170 * 16; run(60);
+      const boss = ents.find(e => e.k === 'boss'); out.awake = boss.awake && /REDCOAT/.test(bannerText[0]);
+      boss.hurt = 0; bossHit(boss); run(400, () => { boss.hurt = 0; player.star = 1; }); out.lanterns = lvl.lanterns > 0 || /IF BY/.test(bannerText[0]) || boss.cst !== 'walk';
+      for (let k = 0; k < 2; k++) { boss.hurt = 0; bossHit(boss); run(100); } run(200);
+      const chest = ents.find(e => e.k === 'pot'); out.chest = !!chest && lvl.prize === 'chest';
+      if (chest) { player.x = chest.x; player.y = chest.y; player.vy = 0; run(5); }
+      out.quiz = state === 'quiz' && quiz && quiz.w === 0;
+      return new Promise(res => {
+        const next = () => { if (quiz) { document.querySelector('#quizA [data-right="1"]').click(); setTimeout(next, 700); return; }
+          out.ending = state === 'ending' && /NEW ENGLAND/.test(document.querySelector('#ending h1').textContent) && /Mid-Atlantic/.test(document.getElementById('btnMapAgain').textContent);
+          out.w2 = worldOpen(1) && nodeOpen(node('saratoga')); paused = false; res(out); };
+        next();
+      });
+    });
+    check(r.starts.every(([, ok, story, drew]) => ok && story && drew === true), 'each level starts with its story card and draws: ' + JSON.stringify(r.starts));
+    check(r.tags === '1-1 1-2 1-3 1-4 1-5 1-6 1-7 1-8 1-9 1-10 | ★★' && r.secrets.every(Boolean), 'World 1 runs 1-1 to 1-10, and two secret islands open from golden flags: ' + JSON.stringify(r));
+    check(r.redcoats && r.chests, 'redcoats patrol Boston, and the ships are stacked with tea chests to bust: ' + JSON.stringify(r));
+    check(r.awake && r.lanterns && r.chest, 'the redcoat major wakes, the lanterns warn of his attacks, and three hits win a chest: ' + JSON.stringify(r));
+    check(r.quiz && r.ending && r.w2, 'the chest leads to New England\'s quiz; passing it ends the region and opens the Mid-Atlantic: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-world1.png');
   });
 
   await test('Manifest Destiny: the hat throw is the hat power-up, and wall kicks', async () => {
