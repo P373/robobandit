@@ -152,6 +152,7 @@
   .grown ul { max-width: 640px; margin: 12px auto 0; padding: 0; list-style: none; text-align: left; display: grid; gap: 8px; color: var(--muted); font-size: 14px; }
   footer { margin-top: 26px; font-size: 13px; color: var(--muted); text-align: center; }
   footer a { color: var(--soft); text-underline-offset: 3px; }
+  #build { white-space: nowrap; }
 
   @media (max-width: 720px) {
     .hero { grid-template-columns: 1fr; margin-bottom: 34px; }
@@ -297,9 +298,32 @@
       </ul>
     </details>
   </section>
-  <footer>Made by RoboBandit · <a href="share.html">Share RoboBandit</a></footer>
+  <footer>Made by RoboBandit · <a href="share.html">Share RoboBandit</a><span id="build"></span></footer>
 </main>
 <script>
+// The build that's live: GitHub Pages' latest deployment of this (public) repo, its commit and when it went out.
+// Asked once every 10 minutes at most (kept in this browser), and left out quietly if GitHub can't be reached.
+(() => {
+  const show = d => {
+    const el = document.getElementById('build'); if (!el || !d || !d.sha) return;
+    const when = new Date(d.at).toLocaleString(undefined, { year: 'numeric', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+    el.innerHTML = ` · Build <a href="https://github.com/P373/robobandit/commit/${d.sha}">${d.sha.slice(0, 7)}</a>, ${when}`;
+  };
+  let cached = null;
+  try { cached = JSON.parse(localStorage.getItem('rb_build') || 'null'); } catch (e) { /* no storage */ }
+  if (cached) show(cached);
+  if (cached && Date.now() - cached.t < 10 * 60 * 1000) return;
+  if (location.protocol === 'file:') return;
+  fetch('https://api.github.com/repos/P373/robobandit/deployments?environment=github-pages&per_page=1')
+    .then(r => r.ok ? r.json() : null)
+    .then(list => {
+      const dep = list && list[0]; if (!dep) return;
+      const d = { sha: dep.sha, at: dep.created_at, t: Date.now() };
+      try { localStorage.setItem('rb_build', JSON.stringify(d)); } catch (e) { /* no storage */ }
+      show(d);
+    })
+    .catch(() => {});
+})();
 // Add one entry per new game, oldest first: the newest is "Today's game", every game gets a DAY number.
 // After changing this list run  node tools/build-index.js  (it writes the cards into the page for search engines).
 //   blurb: one short line for the card (90 characters or less) · about: the longer pitch for "Today's game"
