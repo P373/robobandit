@@ -101,23 +101,34 @@
   .rlist small { grid-column: 2; color: #4a6a54; }
   .rlist .rdone { grid-row: span 2; color: #2fae4a; font-weight: 800; }
   /* the "Did you know?" card after a win */
-  /* the info box pop-up: a parchment card with a big round blue "i" badge on top */
-  #fact { position: fixed; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -46%); width: min(92vw, 540px); box-sizing: border-box;
-    color: #3a2410; background: linear-gradient(#fff6dc, #f4e2b4); border: 4px solid #6a4424; border-radius: 22px; box-shadow: 0 7px 0 #6a4424, 0 0 0 6px rgba(255,246,220,.5), 0 12px 40px rgba(0,0,0,.35);
-    padding: 34px 22px 16px; text-align: center; cursor: pointer; animation: factIn .28s cubic-bezier(.2,1.4,.4,1); }
-  @keyframes factIn { from { transform: translate(-50%, -40%) scale(.7); opacity: 0; } }
-  #fact::before { content: 'i'; position: absolute; left: 50%; top: -30px; transform: translateX(-50%); width: 56px; height: 56px; border-radius: 50%;
-    display: grid; place-items: center; font: italic bold 38px Georgia, 'Times New Roman', serif; color: #fff; background: radial-gradient(circle at 35% 30%, #7ac8ff, #2a6ad8 70%);
-    border: 4px solid #123a7a; box-shadow: 0 4px 0 #123a7a; }
-  #fact .fhead { font: 18px 'Bungee', system-ui, sans-serif; color: #2a6ad8; letter-spacing: .5px; }
-  #fact .ftxt { font-size: 21px; line-height: 1.4; font-weight: 800; margin: 8px 0 8px; }
+  /* the info box pop-up: the hero you're playing pops up at the bottom and tells you, in a speech bubble (the level stays in view) */
+  #fact { position: fixed; z-index: 6; left: 0; right: 0; margin: 0 auto; bottom: max(12px, env(safe-area-inset-bottom)); width: min(calc(100vw - 24px), 760px);
+    display: flex; align-items: flex-end; gap: 14px; cursor: pointer; animation: factIn .3s cubic-bezier(.2,1.3,.4,1); }
+  @keyframes factIn { from { transform: translateY(40px); opacity: 0; } }
+  @media (prefers-reduced-motion: reduce) { #fact { animation: none; } }
+  #fact .fface { flex: none; width: clamp(76px, 15vw, 116px); aspect-ratio: 1; border-radius: 50%; overflow: hidden; background: radial-gradient(circle at 50% 40%, #fff6dc, #f1dfae);
+    border: 4px solid #10301c; box-shadow: 0 5px 0 rgba(16,48,28,.55); }
+  #fact .fface canvas { position: static; inset: auto; width: 100%; height: 100%; display: block; }
+  #fact .fbubble { position: relative; flex: 1; min-width: 0; margin-bottom: 22px; padding: 12px 18px 12px; background: #fffbe8; color: #10301c;
+    border: 4px solid #10301c; border-radius: 22px; box-shadow: 0 5px 0 rgba(16,48,28,.55); display: grid; gap: 4px; }
+  #fact .fbubble::before { content: ''; position: absolute; left: -22px; bottom: 16px; border: 12px solid transparent; border-right: 18px solid #10301c; border-left: 0; }
+  #fact .fbubble::after { content: ''; position: absolute; left: -14px; bottom: 19px; border: 9px solid transparent; border-right: 13px solid #fffbe8; border-left: 0; }
+  #fact .fhead { font: 15px 'Bungee', system-ui, sans-serif; color: #2a7ae0; letter-spacing: .5px; }
+  #fact .fhead span { color: #8a6a44; }
+  #fact .ftxt { font-size: 19px; line-height: 1.38; font-weight: 800; }
+  #fact .frow { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
   #fact .fsrc { font-size: 13px; font-weight: 700; color: #8a6a44; }
-  #fact .fok { margin-top: 10px; font: 18px 'Bungee', system-ui, sans-serif; padding: 8px 26px; border-radius: 14px; border: 3px solid #123a7a; background: #ffc21a; color: #123a7a; box-shadow: 0 4px 0 #123a7a; cursor: pointer; }
-  @media (max-width: 520px) { #fact .ftxt { font-size: 18px; } }
+  #fact .fok { font: 14px 'Bungee', system-ui, sans-serif; padding: 5px 14px; border-radius: 12px; border: 3px solid #10301c; background: #ffc21a; color: #10301c; box-shadow: 0 3px 0 #10301c; cursor: pointer; }
+  @media (max-width: 520px) { #fact .ftxt { font-size: 16px; } #fact .fhead { font-size: 13px; } }
+  /* the ☰ menu: a small round button in the corner */
+  .rb-topbar.rb-minimal .rb-menubtn { width: 38px; height: 38px; padding: 0; border-radius: 50%; font-size: 17px; color: #10301c; background: rgba(255,251,232,.94);
+    border: 3px solid #10301c; box-shadow: 0 3px 0 rgba(16,48,28,.5); }
+  .rb-topbar.rb-minimal .rb-menubtn span { display: none; }
+  .rb-topbar.rb-minimal .rb-menubtn:hover { background: #fff; }
   .panel .fact { margin: 4px auto 6px; max-width: 520px; padding: 10px 14px; border-radius: 14px; background: #eef8e8; font-size: 16px; line-height: 1.4; text-align: left; }
   .panel .fact:empty { display: none; }
   .panel .fact b { color: #2fae4a; }
-  #mapBtns { position: fixed; z-index: 4; right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 54px); display: flex; flex-direction: column; gap: 8px; }
+  #mapBtns { position: fixed; z-index: 4; right: max(10px, env(safe-area-inset-right)); top: calc(max(10px, env(safe-area-inset-top)) + 48px); display: flex; flex-direction: column; gap: 8px; }
   #mapBtns button { width: 44px; height: 44px; padding: 0; border: 0; border-radius: 12px; cursor: pointer; font-size: 20px; line-height: 1;
     background: rgba(255,255,255,.85); box-shadow: 0 3px 0 rgba(0,0,0,.25); -webkit-tap-highlight-color: transparent; }
   #mapBtns button.on { background: #ffd84a; }
@@ -145,10 +156,12 @@
 </div>
 
 <div id="fact" class="hidden" role="dialog" aria-label="Did you know?">
-  <div class="fhead">Did you know?</div>
-  <div class="ftxt"></div>
-  <div class="fsrc"></div>
-  <button class="fok">Got it! 📜</button>
+  <div class="fface"><canvas id="factFace" width="160" height="160"></canvas></div>
+  <div class="fbubble">
+    <div class="fhead">Did you know?</div>
+    <div class="ftxt"></div>
+    <div class="frow"><div class="fsrc"></div><button class="fok">Got it! ▶</button></div>
+  </div>
 </div>
 
 <div id="title" class="screen">
@@ -1185,7 +1198,7 @@ canvas.addEventListener('pointerdown', e => {
   if (state === 'map') { pinch.set(e.pointerId, [e.clientX, e.clientY]); if (pinch.size === 1) mapTap(e.clientX, e.clientY); else pinch.d0 = pinchDist(); return; }
   // tap the box at the top to drop the saved power-up
   const r = canvas.getBoundingClientRect(), px = (e.clientX - r.left) * canvas.width / r.width, py = (e.clientY - r.top) * canvas.height / r.height - offY;
-  if (state === 'level' && !paused && px > scale * 95 && px < scale * 119 && py > 0 && py < scale * 28) recallReserve();   // (the crate in the HUD)
+  if (state === 'level' && !paused && Math.abs(px - canvas.width / 2) < scale * 13 && py > 0 && py < scale * 28) recallReserve();   // (the crate in the middle of the HUD)
 });
 // on the map, pinch (or scroll) to zoom out to the whole country, and spread (or scroll back) to zoom in again
 const pinch = new Map();
@@ -6965,14 +6978,23 @@ function openInfo(tx, ty) {
   if (!f) return;
   const read = save.info[id] || (save.info[id] = []), first = !read[i];
   read[i] = true; persist();
-  factEl.querySelector('.fhead').textContent = first ? 'Did you know?' : 'Remember?';
+  const who = heroNow() === 'sybil' ? 'Sybil' : 'Wrestling';
+  factEl.querySelector('.fhead').innerHTML = `<span>${who.toUpperCase()}:</span> ${first ? 'Did you know?' : 'Remember?'}`;
+  drawFactFace();
   factEl.querySelector('.ftxt').textContent = f.f;
   factEl.querySelector('.fsrc').textContent = `${lvl.name} · ${i + 1} of ${INFO[id].length}${node(id) && node(id).year ? ' · ' + node(id).year : ''}`;
-  factEl.classList.remove('hidden'); factOpen = true; factWait = 0.4; shake = 0;   // (a ground pound onto the box shakes the screen: not while the fact is up)
+  const dpr = canvas.width / innerWidth, tall = canvas.width / canvas.height < 1.15;   // (on a tall phone: just under the game, above the touch buttons)
+  factEl.style.top = tall ? Math.round((offY + LH * scale) / dpr + 10) + 'px' : ''; factEl.style.bottom = tall ? 'auto' : '';
+  factEl.classList.remove('hidden'); touchEl.classList.add('hidden'); factOpen = true; factWait = 0.4; shake = 0;   // (a ground pound onto the box shakes the screen: not while the fact is up)
   for (const k in keys) keys[k] = false;
   sfx.mid(); if (first) addScore(500, tx * TS, ty * TS);
 }
-function closeFact() { factEl.classList.add('hidden'); factOpen = false; }
+function closeFact() { factEl.classList.add('hidden'); factOpen = false; showTouch(); }   // (the touch buttons hide while it's up: tap anywhere to go on)
+function drawFactFace() {   // the hero you're playing, big, in the round portrait beside the speech bubble
+  const c = document.getElementById('factFace'), cx = c.getContext('2d'), old = g;
+  cx.setTransform(1, 0, 0, 1, 0, 0); cx.clearRect(0, 0, c.width, c.height); cx.setTransform(c.width / 18, 0, 0, c.width / 18, 0, 0);
+  g = cx; try { drawHero(1, 5.2, 0, 'stand', 1, clock, null, { look: 0 }); } finally { g = old; }
+}
 factEl.addEventListener('click', e => { e.preventDefault(); RB.audio(); closeFact(); });
 
 // ---- the camera ----
@@ -7586,33 +7608,36 @@ function drawHUD() {
   }
   if (state !== 'level') return;
   tHatBtn.classList.toggle('off', !(player && player.form === 3));   // the 🎩 button only works with the magic hat
-  // the HUD: cream "game card" panels with a dark outline (like the title and quiz), chunky dark numbers and the game's own
-  // art: hats (lives), coins, the saved power-up in a little wooden crate, the corn meter and the info meter
+  // the HUD, like a storybook strip: no panels, just the game's own art with bold outlined numbers right on the scene.
+  // Lives and coins at the top left; the saved power-up in its little wooden crate in the middle; the treasures and the
+  // info meter at the top right, beside the small round ☰ menu.
   const ink = (str, x, y, size, color = '#fff', align = 'left') => { ctx.font = font(size); ctx.textAlign = align; ctx.lineJoin = 'round'; ctx.lineWidth = s * 1.6; ctx.strokeStyle = '#14202e'; ctx.strokeText(str, x, y); ctx.fillStyle = color; ctx.fillText(str, x, y); };
   const icon = (fn, x, y, k = 0.95) => { ctx.save(); ctx.setTransform(s * k, 0, 0, s * k, x, y + offY); const old = g; g = ctx; try { fn(); } finally { g = old; ctx.restore(); } };
-  const card = (x, y, w, h, fill = '#fffbe8') => { rrectOn(ctx, x + s * 0.8, y + s * 1.4, w, h, s * 6); ctx.fillStyle = 'rgba(16,48,28,.45)'; ctx.fill(); rrectOn(ctx, x, y, w, h, s * 6); ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = s * 1.3; ctx.strokeStyle = '#10301c'; ctx.stroke(); };
-  const num = (str, x, y, size, color = '#10301c', align = 'left') => { ctx.font = font(size); ctx.textAlign = align; ctx.fillStyle = color; ctx.fillText(str, x, y); };
-  const Y = s * 5, H = s * 18, nInfo = (lvl.infoAt || []).length, readI = save.info[lvl.parent || lvl.id] || [];
-  card(s * 5, Y, s * 40, H);
-  icon(() => { g.save(); g.translate(8, 12); ell(0, 0, 7.4, 1.9); paint(PILGRIM.hatDk); g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.4, -9.6); g.quadraticCurveTo(0, -11, 3.4, -9.6); g.lineTo(4.4, -0.4); g.closePath(); paint('#3a3a44'); rrect(-4.2, -3.4, 8.4, 2, 0.5); paint(PILGRIM.band); g.restore(); }, s * 6, s * 6);
-  num('×' + lives, s * 23, s * 8.4, 12);
-  card(s * 49, Y, s * 44, H);
-  icon(() => drawCoin(0, 0, 0), s * 51, s * 6); num(String(coins).padStart(2, '0'), s * 68, s * 8.4, 12, '#a86a08');
-  // the saved power-up: a little wooden crate (tap it, or press E, to drop what's in it)
-  const bx = s * 97, by = s * 4;
-  card(bx, by, s * 20, s * 20, '#c8945a'); ctx.fillStyle = 'rgba(90,56,22,.45)'; ctx.fillRect(bx + s * 2, by + s * 6.4, s * 16, s * 1); ctx.fillRect(bx + s * 2, by + s * 13, s * 16, s * 1);
-  if (reserve) icon(() => (reserve === 'clover' ? drawClover : reserve === 'magichat' ? drawMagicHat : drawFlower)(0, 0, 0), bx + s * 1.5, by + s * 1, 1.1);
-  // the corn meter: grey corn until each ear is found
-  card(s * 121, Y, s * 66, H);
-  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.22; icon(() => collectIcon()(0, 0, 0.2), s * (122 + i * 12.4), s * 5.4, 0.78); }
+  const nInfo = (lvl.infoAt || []).length, readI = save.info[lvl.parent || lvl.id] || [], dpr = canvas.width / innerWidth;
+  const R = W - 58 * dpr;   // (the right edge, clear of the ☰ button)
+  icon(() => { g.save(); g.translate(8, 12); ell(0, 0, 7.4, 1.9); paint(PILGRIM.hatDk); g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.4, -9.6); g.quadraticCurveTo(0, -11, 3.4, -9.6); g.lineTo(4.4, -0.4); g.closePath(); paint('#3a3a44'); rrect(-4.2, -3.4, 8.4, 2, 0.5); paint(PILGRIM.band); g.restore(); }, s * 6, s * 4);
+  ink('×' + lives, s * 23, s * 7, 12);
+  icon(() => drawCoin(0, 0, 0), s * 6, s * 20); ink(String(coins).padStart(2, '0'), s * 23, s * 22.4, 12, '#ffe680');
+  // the saved power-up: a little wooden crate in the middle (tap it, or press E, to drop what's in it)
+  const bx = W / 2 - s * 11, by = s * 3, bw = s * 22;
+  rrectOn(ctx, bx + s * 0.6, by + s * 1.2, bw, bw, s * 3); ctx.fillStyle = 'rgba(16,48,28,.45)'; ctx.fill();
+  rrectOn(ctx, bx, by, bw, bw, s * 3); const cg = ctx.createLinearGradient(0, by, 0, by + bw); cg.addColorStop(0, '#b07a44'); cg.addColorStop(1, '#7a4a26'); ctx.fillStyle = cg; ctx.fill(); ctx.lineWidth = s * 1.2; ctx.strokeStyle = '#3a2410'; ctx.stroke();
+  rrectOn(ctx, bx + s * 2, by + s * 2, bw - s * 4, bw - s * 4, s * 2); ctx.fillStyle = 'rgba(40,20,6,.35)'; ctx.fill();
+  if (reserve) icon(() => (reserve === 'clover' ? drawClover : reserve === 'magichat' ? drawMagicHat : drawFlower)(0, 0, 0), bx + s * 2.5, by + s * 2, 1.1);
+  // the treasures: five, grey until each one is found
+  const cw = s * 10.6;
+  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.3; icon(() => collectIcon()(0, 0, 0.2), R - cw * (5 - i) - s * 2, s * 2.4, 0.72); }
   ctx.globalAlpha = 1;
-  // the info meter: an i badge for each info box in the level, blue once it's been read
-  if (nInfo && W > s * (196 + nInfo * 12) + s * 60) {
-    card(s * 191, Y, s * (6 + nInfo * 12), H);
-    for (let i = 0; i < nInfo; i++) icon(() => { g.beginPath(); g.arc(8, 8, 5.6, 0, TAU); if (readI[i]) { g.fillStyle = '#2a7ae0'; g.fill(); } else { g.setLineDash([1.6, 1.4]); g.lineWidth = 1; g.strokeStyle = 'rgba(16,48,28,.45)'; g.stroke(); g.setLineDash([]); } g.font = 'italic bold 8.5px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = readI[i] ? '#ffffff' : 'rgba(16,48,28,.35)'; g.fillText('i', 8.3, 8.4); }, s * (192 + i * 12), s * 5.6, 0.82);
+  // the info meter: a little round i for each info box in the level, filled in blue once it's been read
+  for (let i = 0; i < nInfo; i++) {
+    const cx = R - s * (5.5 + (nInfo - 1 - i) * 11), cy = s * 24.5, r = s * 4.2;
+    ctx.beginPath(); ctx.arc(cx, cy, r + s * 0.9, 0, TAU); ctx.fillStyle = '#14202e'; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, r, 0, TAU); ctx.fillStyle = readI[i] ? '#2a7ae0' : 'rgba(255,255,255,.18)'; ctx.fill();
+    ctx.lineWidth = s * 0.9; ctx.strokeStyle = '#ffffff'; if (!readI[i]) ctx.setLineDash([s * 1.4, s * 1.1]); ctx.stroke(); ctx.setLineDash([]);
+    ctx.font = `italic bold ${Math.round(s * 6.4)}px Georgia, serif`; ctx.textAlign = 'center'; ctx.textBaseline = 'middle'; ctx.fillStyle = readI[i] ? '#ffffff' : 'rgba(255,255,255,.85)'; ctx.fillText('i', cx, cy + s * 0.4); ctx.textBaseline = 'top';
   }
   shownScore = shownScore > score ? score : shownScore + Math.ceil((score - shownScore) * 0.2);   // the score counts up
-  ink(String(shownScore).padStart(6, '0'), W - s * 8, s * 30, 11, '#ffffff', 'right');
+  ink(String(shownScore).padStart(6, '0'), s * 6, s * 34, 9, '#ffffff');   // (the score, small, under the coins)
   if (!RB.touch) text(lvl.name.toUpperCase(), W - s * 8, LH * s - s * 14, 9, 'rgba(255,255,255,.75)', 'right');
   if (gotKey) ink('🗝️', W / 2 + s * 16, s * 6, 12);
   // floating score numbers

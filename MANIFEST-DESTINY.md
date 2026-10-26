@@ -313,6 +313,9 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
 
 - **Story cards** at the start of each level (year, place, one or two sentences). ✅
 - **Info boxes**: 3 to 5 per level, each a fact with a quiz question; an info meter on screen and on the map. ✅
+- **The screen** (a storybook strip, no panels): lives and coins at the top left, the saved power-up in its crate in
+  the middle, the treasures and the info meter at the top right beside a small round ☰ menu. An info box's fact is
+  told by the hero you're playing, in a speech bubble at the bottom, with the level still in view. ✅
 - **The region quiz** after each region's boss: five questions from its info boxes, all five right to go on. ✅
 - **History Journal**: every info box you've found, level by level, to read again any time.
 - **Timeline** strip on the map screen, with a marker for where (and when) you are.
