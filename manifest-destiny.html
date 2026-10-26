@@ -162,10 +162,11 @@
       <li>⬇️ <b>Ground pound:</b> press <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> (🎮 <b data-pad="LT">LT</b>) in the air. <b>High jump:</b> hold <span class="key-only"><kbd>S</kbd></span><span class="touch-only">▼</span> and jump. 🌀 <b>Spin:</b> press jump again in the air. 🧱 <b>Wall kick:</b> slide down a wall and jump off it.</li>
       <li>🎩 Find the <b>hat with the red band</b> and you can <b>throw your hat</b> like a boomerang (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · 🎩 button</span>). Keep holding the button and it hovers: jump on it for an extra boost!</li>
       <li><b>Bump the <span style="font-family:Bungee">?</span> blocks</b> from below for coins and power-ups: a 🎃 <b>pumpkin</b> makes you big, a 🍎 <b>basket of apples</b> lets you throw apples (<span class="key-only"><kbd>Shift</kbd></span><span class="touch-only"><b>B</b></span> · 🎮 <b data-pad="X">X</b>), and a <b>lucky horseshoe</b> makes you unstoppable for a few seconds. 100 coins (Pine Tree shillings!) is an extra life.</li>
-      <li>🌽 Find the <b>5 ears of corn</b> hidden in every New England level. Corn kept the Pilgrims alive! Each region has its own treasures to find.</li>
+      <li>🌽 Find the <b>5 ears of corn</b> hidden in every New England level. Corn kept the Pilgrims alive! Each region has its own treasures: in the Mid-Atlantic, 🪶 <b>quill pens</b>, like the ones the Declaration of Independence was written with.</li>
       <li>📜 Every level starts with a bit of the story, and every win ends with a <b>"Did you know?"</b> fact. Win again for a new one.</li>
       <li>🗺️ <b>The map is the whole United States</b>, with Canada and Mexico next door. Press <span class="key-only"><kbd>M</kbd> · </span>🎮 <b data-pad="X">X</b><span class="touch-only"> · the 🗺️ button, or pinch</span> to see it all. Signposts 🚧 mark levels still being built. Look for <b>secret exits</b>: they lead to places you can't reach any other way. 🤫</li>
-      <li>👪 <b>The heroes:</b> you're <b>Wrestling Brewster</b>, a real Pilgrim boy who sailed on the Mayflower when he was about six. A new real-life hero, with a new skill, joins you in every region.</li>
+      <li>👪 <b>The heroes:</b> you're <b>Wrestling Brewster</b>, a real Pilgrim boy who sailed on the Mayflower when he was about six. A new real-life hero, with a new skill, joins you in every region: after New England, <b>Sybil Ludington</b>, the fastest runner and the best rider on <b>Star</b> the horse. Pick your hero in 👪 The heroes.</li>
+      <li>🚂 <b>The railroad:</b> find a region's hidden <b>golden spike</b> and its railroad depot opens. Ride the train between open depots, and try each depot's <b>Railroad Challenge</b>: the hardest levels in the game!</li>
     </ol>
     </details>
     <div class="stats" id="titleBest"></div>
@@ -180,6 +181,15 @@
     <div class="sub">Real young people from America's story. A new one joins you in every region, each with a skill of their own time.</div>
     <div class="rlist" id="hlist"></div>
     <button class="big-btn alt" id="btnHeroesBack">⬅️ Back</button>
+  </div>
+</div>
+
+<div id="station" class="screen hidden" role="dialog" aria-label="Railroad depot">
+  <div class="panel">
+    <h1>🚂 <span>ALL ABOARD!</span></h1>
+    <div class="sub" id="stHead"></div>
+    <div class="rlist" id="stList"></div>
+    <button class="big-btn alt" id="btnStBack">⬅️ Back to the map</button>
   </div>
 </div>
 
@@ -491,7 +501,7 @@ LEVELS.nantucket = builder('nantucket', 'Nantucket', 'nantucket', 196)
   .fill(0, 195, 12, 13, T.WATER).ground(0, 60).ground(61, 72, 10).ground(73, 96).ground(106, 109, 11).ground(120, 140).ground(150, 153, 11).ground(164, 195)   // (rocks out in the harbour, to rest on)
   .at(8, 8, '?P?').at(13, 8, 'I').e('buzzer', 18, 6).e('crab', 22, 11).at(28, 8, 'B?B').e('grumblin', 34, 11).at(40, 8, '?C?').e('crab', 48, 11)
   .at(64, 6, 'I').e('grumblin', 68, 9).e('mid', 80, 11).at(84, 8, '?P?').e('crab', 90, 11)
-  .e('plat', 99, 10, { w: 3, dx: 2, sp: 0.9, look: 'shallop' }).e('whale', 103, 12).e('plat', 112, 10, { w: 3, dx: 2, sp: 1, look: 'shallop' }).e('whale', 117, 12)
+  .e('plat', 99, 10, { w: 3, dx: 2, sp: 0.9, look: 'shallop' }).e('whale', 103, 12).e('plat', 112, 10, { w: 3, dx: 2, sp: 1, look: 'shallop' }).e('whale', 117, 12).e('goldspike', 117, 2)   // the golden spike, up where only the whale's spout can throw you
   .at(124, 8, '?S?').e('crab', 130, 11).at(136, 8, 'I').e('buzzer', 138, 5)
   .e('plat', 143, 10, { w: 3, dx: 2, sp: 0.8, look: 'shallop' }).e('whale', 147, 12).e('plat', 156, 10, { w: 3, dx: 2, sp: 1.1, look: 'shallop' }).e('whale', 161, 12)
   .e('crab', 170, 11).at(174, 8, 'BHB').stairs(178, 4)
@@ -514,8 +524,165 @@ LEVELS.vineyard = builder('vineyard', "Martha's Vineyard", 'aquinnah', 196)
     story: ['THE 1660s', "On Noepe, the island the English call Martha's Vineyard, Wampanoag families fish, farm and gather clay."],
     decor: [['wetu', 4, 12], ['fire', 10, 12], ['canoe', 31, 12], ['wetu', 170, 12], ['wetu', 186, 12, { s: 0.85 }]] });
 
+// 🚂 Railroad Challenge: The Granite Railway, Quincy, 1826 (its depot opens with New England's golden spike, hidden on
+// Nantucket). One of America's first railroads: horses pulled wagons of granite from the quarry down to the river, for
+// the Bunker Hill Monument. Short and hard: ride the granite cars over the quarry pits, dodge the blocks swinging down
+// from the derricks, and hop the crumbling ledges.
+LEVELS.quincy = builder('quincy', 'The Granite Railway', 'granite', 184)
+  .ground(0, 14).ground(23, 34, 10).ground(45, 60, 8).ground(77, 92, 10).ground(93, 99, 12).ground(113, 130).ground(147, 183)
+  .at(6, 8, '?P?').at(10, 8, 'I').e('grumblin', 12, 11)
+  .e('plat', 16, 10, { w: 3, dx: 2, sp: 1.2, look: 'railcar' })                                   // a granite car over the first pit
+  .e('crusher', 28, 1).at(31, 6, 'B?B').e('buzzer', 33, 5)
+  .e('fall', 36, 9, { w: 2 }).e('fall', 40, 8, { w: 2 })                                          // crumbling ledges
+  .e('crusher', 49, 0).at(52, 4, 'I').e('crusher', 55, 0).e('thorny', 58, 7).e('mid', 59, 7)
+  .e('plat', 63, 9, { w: 3, dx: 3, sp: 1.4, look: 'railcar' }).e('plat', 71, 9, { w: 3, dx: 2, sp: 1.7, ph0: 1.6, look: 'railcar' })
+  .at(82, 6, 'C').e('grumblin', 86, 9).at(89, 6, '?B?')                                            // the hat, up over the yard
+  .e('fall', 101, 10, { w: 2 }).e('fall', 105, 9, { w: 2 }).e('fall', 109, 10, { w: 2 })
+  .e('crusher', 117, 1).at(120, 8, 'I').e('crusher', 123, 1).e('thorny', 127, 11).at(129, 8, 'H')
+  .e('plat', 134, 10, { w: 3, dx: 3, sp: 1.5, look: 'railcar' }).e('fall', 143, 9, { w: 2 })
+  .e('grumblin', 152, 11).at(156, 8, '?S?').e('buzzer', 160, 5).stairs(164, 4)
+  .gems(7, 5, 38, 5, 53, 1, 73, 6, 107, 6)
+  .done({ gate: { mid: 'derrick', goal: 'granite' }, goal: 174, music: 'cog', collect: 'corn', cast: { grumblin: 'rat', thorny: 'porcupine', buzzer: 'crow' }, challenge: true,
+    story: ['1826', "Horses pull wagons of granite along the Granite Railway, one of America's very first railroads."] });
+
+// ===================== World 2: the Mid-Atlantic, a new nation (1776 to 1814) =====================
+// Sybil Ludington joins after New England. The treasure is quill pens; the creatures are turkeys, raccoons, groundhogs,
+// hornets and blue crabs, with redcoats and Hessian soldiers (who only lose their hats).
+
+// 2-1. Crossing the Delaware, Christmas night 1776: Washington's army rows across the icy river in a snowstorm, lands in
+// New Jersey and marches through the night to surprise the Hessian soldiers at Trenton.
+LEVELS.delaware = builder('delaware', 'Crossing the Delaware', 'delaware', 214)
+  .fill(0, 213, 12, 13, T.WATER).ground(0, 30).ground(99, 120).ground(121, 134, 10).ground(135, 160).ground(165, 213)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 17, 11, { as: 'raccoon' }).e('thorny', 24, 11)
+  .e('boat', 31, 12, { w: 7, to: 90, sp: 36, look: 'durham' })   // a Durham boat, across the river
+  .e('plat', 40, 8, { w: 2, dx: 1, sp: 0.6, look: 'ice' }).at(46, 7, 'C').at(54, 7, 'I').e('plat', 62, 8, { w: 2, dx: 1, sp: 0.7, look: 'ice' }).coins(66, 6, 4).at(76, 7, 'I').e('plat', 84, 8, { w: 2, dx: 1, sp: 0.6, look: 'ice' })
+  .e('grumblin', 104, 11).at(108, 8, 'B?B').e('mid', 116, 11).e('grumblin', 126, 9).at(129, 6, 'I')
+  .e('thorny', 140, 11).at(144, 8, '?S?').e('grumblin', 150, 11).e('grumblin', 156, 11, { as: 'raccoon' })
+  .fill(161, 164, 13, 13, T.GROUND).fill(161, 164, 12, 12, T.WATER)   // a frozen brook (shallow)
+  .e('grumblin', 170, 11).at(174, 8, 'I').e('grumblin', 180, 11).at(184, 8, 'BHB').stairs(190, 4)
+  .gems(7, 5, 41, 5, 63, 5, 130, 3, 175, 5)
+  .done({ gate: { mid: 'drum', goal: 'trenton' }, goal: 202, music: 'night', collect: 'quill', cast: { grumblin: 'hessian', thorny: 'porcupine' },
+    story: ['DECEMBER 25, 1776', "On a freezing Christmas night, George Washington's army rows across the icy Delaware River."] });
+
+// 2-2. Sybil's Ride, the night of April 26, 1777: British soldiers are burning Danbury, and 16-year-old Sybil Ludington
+// rides about 40 miles through the rain on her horse, Star, knocking on doors to call out her father's militia.
+LEVELS.ludington = builder('ludington', "Sybil's Ride", 'ludington', 226)
+  .ground(0, 34).ground(38, 62).ground(63, 74, 10).ground(75, 96).ground(101, 124).ground(125, 140, 9).ground(141, 166).ground(171, 225)
+  .fill(35, 37, 13, 13, T.GROUND).fill(35, 37, 12, 12, T.WATER).fill(97, 100, 13, 13, T.GROUND).fill(97, 100, 12, 12, T.WATER).fill(167, 170, 13, 13, T.GROUND).fill(167, 170, 12, 12, T.WATER)   // rain-swollen brooks
+  .at(6, 8, '?Y?').at(12, 8, 'I').e('grumblin', 22, 11).at(27, 11, '=').e('grumblin', 31, 11, { as: 'redcoat' })   // Star the horse is waiting in the first block
+  .at(44, 11, '=').at(45, 10, '=').e('grumblin', 50, 11).at(54, 8, '?C?').e('grumblin', 59, 11)   // stone walls to leap; the hat
+  .at(66, 6, 'I').e('grumblin', 70, 9).at(80, 11, '==').e('grumblin', 86, 11, { as: 'redcoat' }).e('mid', 92, 11)
+  .at(104, 8, 'B?B').e('grumblin', 110, 11).at(116, 11, '=').at(116, 10, '=').e('grumblin', 120, 11, { as: 'redcoat' })
+  .at(130, 5, 'I').e('grumblin', 134, 8).at(138, 6, '?P?').at(134, 3, '---').e('sflag', 135, 2)   // the secret: a spy's message, up on the dark roofline (to the Culper Ring)
+  .at(146, 11, '=').e('grumblin', 152, 11).at(156, 8, '?S?').e('grumblin', 162, 11, { as: 'redcoat' })
+  .at(176, 8, 'I').e('grumblin', 182, 11).at(186, 11, '==').at(187, 10, '=').e('grumblin', 194, 11).at(191, 8, 'I').at(198, 8, 'BHB').stairs(204, 4)
+  .gems(7, 5, 45, 7, 99, 9, 139, 3, 177, 5)
+  .done({ gate: { mid: 'farmbell', goal: 'farmgate' }, goal: 214, music: 'midnight', collect: 'quill', cast: { grumblin: 'raccoon' },
+    story: ['APRIL 26, 1777', "British soldiers are burning Danbury! Sybil Ludington, 16, rides all night in the rain to call out the militia."],
+    decor: [['farmhouse', 2, 12, { lit: true }], ['farmhouse', 76, 12, { c: '#8a6a54', lit: true }], ['farmhouse', 142, 12, { lit: true }], ['farmhouse', 172, 12, { c: '#9a6a54', lit: true }]] });
+
+// 2-3. Saratoga, October 1777: the Americans' great victory in the autumn woods of New York, and the reason France joined
+// the war. Turkeys, raccoons, hornets and groundhogs, a British cannon, and the redoubts the soldiers built.
+LEVELS.saratoga = builder('saratoga', 'Saratoga', 'saratoga', 214)
+  .ground(0, 40).ground(41, 54, 10).ground(55, 80).ground(85, 110).ground(111, 124, 9).ground(125, 150).ground(155, 213)
+  .fill(81, 84, 13, 13, T.GROUND).fill(81, 84, 12, 12, T.WATER).fill(151, 154, 13, 13, T.GROUND).fill(151, 154, 12, 12, T.WATER)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('turkey', 18, 11).e('snapper', 25, 12).e('buzzer', 30, 6).e('grumblin', 36, 11)
+  .at(44, 6, 'B?B').e('turkey', 50, 9).at(60, 8, 'I').e('snapper', 64, 12).e('grumblin', 70, 11).at(74, 8, '?C?')
+  .e('buzzer', 82, 5).e('turkey', 90, 11).e('cannon', 96, 11).e('mid', 104, 11).at(116, 5, 'I').e('grumblin', 118, 8, { as: 'redcoat' })
+  .e('snapper', 130, 12).at(134, 8, '?S?').e('turkey', 140, 11).e('buzzer', 146, 5)
+  .at(160, 8, 'I').e('grumblin', 166, 11, { as: 'redcoat' }).e('snapper', 172, 12).at(176, 8, 'BHB').e('turkey', 182, 11).stairs(190, 4)
+  .gems(7, 5, 45, 3, 83, 9, 117, 2, 177, 5)
+  .done({ gate: { mid: 'fieldgun', goal: 'redoubt' }, goal: 202, music: 'woods', collect: 'quill', cast: { grumblin: 'raccoon', buzzer: 'hornet', snapper: 'groundhog' },
+    story: ['OCTOBER 1777', 'At Saratoga the Americans win a great victory, and France decides to help the new country.'] });
+
+// 2-4. Valley Forge, the winter of 1777 to 1778: the army's camp of log huts in the snow. Hop along the hut roofs; wolves
+// and turkeys in the woods.
+LEVELS.valleyforge = builder('valleyforge', 'Valley Forge', 'valleyforge', 210)
+  .ground(0, 46).ground(47, 60, 10).ground(61, 90).ground(95, 130).ground(131, 144, 9).ground(145, 209)
+  .fill(91, 94, 13, 13, T.GROUND).fill(91, 94, 12, 12, T.WATER)   // the frozen Schuylkill, shallow at the ford
+  .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 18, 11).at(22, 9, '------').at(30, 9, '------').e('turkey', 34, 11)   // hut roofs
+  .at(40, 6, 'I').e('grumblin', 44, 11).at(50, 6, '?C?').e('turkey', 56, 9).at(66, 9, '------').at(68, 5, 'B?B').e('grumblin', 74, 11)
+  .at(80, 9, '------').e('turkey', 86, 11).e('mid', 100, 11).at(106, 9, '------').at(108, 5, 'I').e('grumblin', 114, 11).at(120, 9, '------')
+  .e('turkey', 126, 11).at(136, 5, '?S?').e('grumblin', 140, 8).at(150, 9, '------').e('grumblin', 156, 11).at(160, 6, 'I')
+  .at(166, 9, '------').e('turkey', 172, 11).at(176, 8, 'BHB').e('grumblin', 182, 11).stairs(188, 4)
+  .gems(7, 5, 32, 7, 92, 9, 137, 2, 168, 7)
+  .done({ gate: { mid: 'hut', goal: 'vforge' }, goal: 198, music: 'snow', collect: 'quill', cast: { grumblin: 'wolf' },
+    story: ['WINTER 1777 TO 1778', "Washington's army camps at Valley Forge. It is cold and hungry, but the soldiers keep going."],
+    decor: [['hut', 22, 12], ['hut', 30, 12], ['hut', 66, 12], ['hut', 80, 12], ['hut', 106, 12], ['hut', 120, 12], ['hut', 150, 12], ['hut', 166, 12]] });
+
+// 2-5. Independence Hall, Philadelphia: where the Declaration of Independence was signed in 1776 and the Constitution was
+// written in 1787. Brick sidewalks and rooftops, the Liberty Bell, and rats and raccoons in the alleys.
+LEVELS.independence = builder('independence', 'Independence Hall', 'philly', 214)
+  .ground(0, 50).ground(51, 64, 10).ground(65, 100).ground(105, 140).ground(141, 156, 8).ground(157, 213)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 18, 11).at(22, 8, 'I').e('buzzer', 24, 6).at(28, 8, '----').at(32, 5, '----').e('grumblin', 40, 11, { as: 'raccoon' })
+  .at(46, 8, 'I').e('grumblin', 56, 9).at(60, 6, '?C?').e('buzzer', 68, 5).e('grumblin', 74, 11).at(80, 8, 'B?B').e('grumblin', 88, 11, { as: 'raccoon' })
+  .e('plat', 101, 10, { w: 2, dx: 1, sp: 1, look: 'plank' }).e('mid', 110, 11).at(114, 8, 'I').e('grumblin', 120, 11).at(126, 8, '----').at(129, 5, '----').e('buzzer', 134, 3)
+  .at(146, 4, '?S?').e('grumblin', 150, 7).at(160, 8, 'I').e('grumblin', 166, 11, { as: 'raccoon' }).at(172, 8, 'BHB').e('grumblin', 178, 11).stairs(186, 4)
+  .gems(7, 5, 33, 2, 102, 7, 147, 1, 174, 5)
+  .done({ gate: { mid: 'libertybell', goal: 'hall' }, goal: 198, music: 'newport', collect: 'quill', cast: { grumblin: 'rat', buzzer: 'hornet' },
+    story: ['1787', 'In the State House in Philadelphia, leaders write the Constitution: the plan for how the country is run.'] });
+
+// 2-6. The New Capital, 1800: the government moves to Washington, D.C., a brand-new city of mud, tree stumps and
+// half-built buildings. Climb the scaffolding and the stacks of building stone; groundhogs and turkeys everywhere.
+LEVELS.capital = builder('capital', 'The New Capital', 'capital', 214)
+  .ground(0, 40).ground(45, 70).ground(71, 84, 10).ground(85, 120).ground(121, 134, 8).ground(135, 213)
+  .fill(41, 44, 13, 13, T.GROUND).fill(41, 44, 12, 12, T.WATER)   // Tiber Creek, muddy and shallow
+  .at(6, 8, '?P?').at(11, 8, 'I').e('turkey', 18, 11).e('snapper', 24, 12).at(28, 11, '===').at(29, 10, '==').e('buzzer', 34, 5)
+  .e('turkey', 50, 11).at(54, 8, '?C?').e('snapper', 62, 12).at(66, 8, 'I').at(74, 6, 'I').e('turkey', 80, 9).at(88, 8, '-----').at(91, 5, '-----').e('buzzer', 96, 3)
+  .e('mid', 104, 11).e('snapper', 110, 12).at(114, 8, 'B?B').e('turkey', 118, 11).at(126, 4, 'I').e('grumblin', 130, 7)
+  .at(140, 11, '===').at(141, 10, '==').e('snapper', 148, 12).at(152, 8, '?S?').e('turkey', 158, 11).at(164, 8, 'I').e('buzzer', 168, 5).at(174, 8, 'BHB').e('turkey', 180, 11).stairs(186, 4)
+  .gems(7, 5, 42, 9, 92, 2, 127, 1, 175, 5)
+  .done({ gate: { mid: 'transit', goal: 'marble' }, goal: 198, music: 'orchard', collect: 'quill', cast: { grumblin: 'raccoon', buzzer: 'hornet', snapper: 'groundhog' },
+    story: ['1800', 'The government moves to a brand-new capital, Washington, D.C. It is still mostly mud and tree stumps!'] });
+
+// 2-7. Fort McHenry, September 13 and 14, 1814: the British fleet bombards Baltimore's star-shaped fort all night. Run
+// the ramparts past the cannons, then face the British admiral under the great flag. Then the Mid-Atlantic's quiz.
+LEVELS.mchenry = builder('mchenry', 'Fort McHenry', 'mchenry', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 24).ground(29, 60).ground(61, 74, 9).ground(75, 104).ground(110, 199)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 17, 11).e('plat', 25, 10, { w: 2, dx: 1, sp: 1, look: 'plank' })
+  .at(30, 8, 'I').e('grumblin', 34, 11).at(38, 8, 'B?B').e('cannon', 44, 11).at(50, 8, '?C?').e('grumblin', 56, 11, { as: 'raccoon' })
+  .at(66, 5, 'I').e('grumblin', 70, 8).e('cannon', 80, 11).e('mid', 86, 11).at(90, 8, '?S?').e('grumblin', 96, 11).at(99, 8, '-----').at(100, 5, 'I')
+  .e('fall', 106, 10, { w: 3 }).e('grumblin', 116, 11).at(120, 8, 'I').e('grumblin', 128, 11, { as: 'raccoon' }).at(132, 8, '?P?').at(144, 8, 'H')
+  // the fort's parade ground: brick walls, the great flag, and the British admiral
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { kind: 'admiral', who: 'admiral' })
+  .gems(7, 5, 26, 7, 67, 2, 101, 2, 141, 5)
+  .done({ goal: 0, boss: true, gate: { mid: 'flagpole' }, prize: 'chest', music: 'castle', collect: 'quill', cast: { grumblin: 'redcoat' },
+    story: ['SEPTEMBER 13, 1814', 'British ships bombard Fort McHenry all night. Will the great flag still be flying at dawn?'],
+    decor: [['bigflag', 172, 12]] });
+
+// ★ The Culper Ring (a secret: a spy's message high over Sybil's ride), Long Island, 1778: Washington's spies passed
+// messages in invisible ink, and Anna Strong hung a black petticoat on her clothesline to say one was ready. The Mid-
+// Atlantic's golden spike is hidden here: it opens the Baltimore and Ohio's depot.
+LEVELS.culper = builder('culper', 'The Culper Ring', 'culper', 196)
+  .fill(0, 195, 12, 13, T.WATER).ground(0, 44).ground(45, 58, 10).ground(59, 80).ground(96, 130).ground(131, 144, 9).ground(145, 195)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('crab', 18, 11).e('buzzer', 22, 6).e('grumblin', 30, 11, { as: 'redcoat' }).at(36, 8, '?C?')
+  .e('crab', 50, 9).at(54, 6, 'I').e('grumblin', 64, 11, { as: 'redcoat' }).at(70, 8, 'B?B').e('crab', 76, 11)
+  .e('plat', 84, 10, { w: 3, dx: 4, sp: 0.9, look: 'mishoon' }).e('goldspike', 88, 3)   // the golden spike, out over the water: jump from the boat
+  .e('mid', 100, 11).e('crab', 106, 11).at(110, 8, '?S?').e('buzzer', 116, 5).at(122, 8, 'I').e('grumblin', 136, 8, { as: 'redcoat' })
+  .e('crab', 150, 11).at(156, 8, 'BHB').e('buzzer', 162, 5).stairs(168, 4)
+  .gems(7, 5, 37, 5, 55, 3, 92, 6, 157, 5)
+  .done({ gate: { mid: 'clothesline', goal: 'driftwood' }, goal: 186, music: 'shore', collect: 'quill', cast: { buzzer: 'gull', crab: 'blue' },
+    story: ['1778', 'On Long Island, a secret ring of spies sends messages to General Washington in invisible ink.'] });
+
+// 🚂 Railroad Challenge: Tom Thumb's Race, the Baltimore and Ohio, 1830. A tiny steam engine called Tom Thumb raced a horse
+// pulling a rail car, up the Patapsco valley. Short and hard: rail cars over the gorge, crumbling ledges, hornets.
+LEVELS.baltimore = builder('baltimore', "Tom Thumb's Race", 'bando', 184)
+  .ground(0, 14).ground(24, 36, 10).ground(48, 62, 8).ground(78, 92, 10).ground(108, 124).ground(140, 183)
+  .at(6, 8, '?P?').at(10, 8, 'I').e('grumblin', 12, 11)
+  .e('plat', 16, 10, { w: 3, dx: 2, sp: 1.4, look: 'railcar' }).e('buzzer', 30, 6).at(32, 6, 'B?B')
+  .e('fall', 38, 9, { w: 2 }).e('fall', 42, 8, { w: 2 }).e('buzzer', 44, 4).at(53, 4, 'I').e('thorny', 58, 7).e('mid', 60, 7)
+  .e('plat', 65, 9, { w: 3, dx: 3, sp: 1.6, look: 'railcar' }).e('buzzer', 72, 5).at(84, 6, 'C').e('grumblin', 88, 9)
+  .e('fall', 95, 10, { w: 2 }).e('fall', 99, 9, { w: 2 }).e('fall', 103, 10, { w: 2 }).e('buzzer', 100, 5)
+  .e('thorny', 114, 11).at(118, 8, 'I').at(122, 8, 'H')
+  .e('plat', 128, 10, { w: 3, dx: 3, sp: 1.7, look: 'railcar' }).e('buzzer', 134, 5)
+  .e('grumblin', 148, 11).at(152, 8, '?S?').stairs(160, 4)
+  .gems(7, 5, 40, 5, 54, 1, 70, 6, 101, 6)
+  .done({ gate: { mid: 'watertank', goal: 'station' }, goal: 172, music: 'canal', collect: 'quill', cast: { grumblin: 'raccoon', thorny: 'porcupine', buzzer: 'hornet' }, challenge: true,
+    story: ['1830', 'A little steam engine called Tom Thumb races a horse on the new Baltimore and Ohio Railroad!'] });
+
 // the levels that are built, in story order (the map has signposts for the rest), then the secret-only ones
-const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington', 'nantucket', 'vineyard'];
+const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington', 'nantucket', 'vineyard', 'quincy',
+  'delaware', 'ludington', 'saratoga', 'valleyforge', 'independence', 'capital', 'mchenry', 'culper', 'baltimore'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -912,7 +1079,7 @@ const save = (() => {
   try { s = JSON.parse(RB.store.get('md_save') || 'null'); } catch (e) { /* fresh start */ }
   s = s && typeof s === 'object' ? s : {};
   return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6,
-    unlockAll: !!s.unlockAll, facts: s.facts && typeof s.facts === 'object' ? s.facts : {}, info: s.info && typeof s.info === 'object' ? s.info : {}, quiz: s.quiz && typeof s.quiz === 'object' ? s.quiz : {},   // (Unlock All, while we build; and which history fact each level shows next)
+    unlockAll: !!s.unlockAll, facts: s.facts && typeof s.facts === 'object' ? s.facts : {}, info: s.info && typeof s.info === 'object' ? s.info : {}, quiz: s.quiz && typeof s.quiz === 'object' ? s.quiz : {}, spikes: s.spikes && typeof s.spikes === 'object' ? s.spikes : {}, hero: typeof s.hero === 'string' ? s.hero : 'wrestling',   // (Unlock All, while we build; and which history fact each level shows next)
     at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
 })();
 for (const [old, now] of [['mayflower', 'voyage'], ['canal', 'plimoth']]) {   // (levels that moved off the map: their place goes to the level there now)
@@ -949,7 +1116,7 @@ if (RB.setControls) RB.setControls({ name: 'Manifest Destiny', camera: false, ro
   { act: 'Crouch · high jump · ground pound', keys: 'S', pad: '{LT}', touch: '▼' },
   { act: 'Throw the magic hat', keys: 'J', pad: '{Y} / {RB}', touch: '🎩' },
   { act: 'Drop the saved power-up', keys: 'E', pad: '{LB}', touch: 'tap the box at the top' },
-  { act: 'Hop off Shamrock', keys: 'F (or S + Space)', pad: '{LT} + {A}', touch: 'hold ▼, tap A' },
+  { act: 'Hop off Star', keys: 'F (or S + Space)', pad: '{LT} + {A}', touch: 'hold ▼, tap A' },
   { act: 'Map: move / enter a level', keys: 'W A S D / Space or Enter', pad: '{DPAD} / {A}', touch: 'tap a level, tap again' },
   { act: 'Map: zoom out to the whole country (and back)', keys: 'M or Shift', pad: '{X}', touch: '🗺️ button, or pinch' },
 ] });
@@ -1199,7 +1366,7 @@ function eatEnemy(e) {
   if (m.eaten >= 3) { m.eaten = 0; m.digest = 1.3; }
   if (m.gulps === 4 && !player.laser) {
     player.laser = true; m.eye = 1.2; sfx.power(); addScore(1000, e.x, e.y); sparkle(player.x + player.w / 2, player.y + 6, '#ff9ad0', 14);
-    banner('RAINBOW EYES!', 'Four gulps powered Shamrock up: ' + runText() + ' to fire his eye laser', 2.6);
+    banner('STAR SHINES!', 'Four gulps powered Star up: ' + runText() + ' to fire his eye laser', 2.6);
   }
 }
 function dropPoop() {
@@ -1286,8 +1453,8 @@ function setUnlockAll(on) {
   if (state === 'map' && !nodeOpen(node(mapLeo.at))) goMap(START, true);
 }
 function newGame() {   // a fresh start: progress, secrets, facts seen and the saved spot are cleared (the best score stays)
-  for (const k of ['cleared', 'gems', 'secrets', 'facts', 'info', 'quiz']) save[k] = {};
-  save.at = null; save.keep = null; save.unlockAll = false; save.key = false; openCache = null;
+  for (const k of ['cleared', 'gems', 'secrets', 'facts', 'info', 'quiz', 'spikes']) save[k] = {};
+  save.hero = 'wrestling'; save.at = null; save.keep = null; save.unlockAll = false; save.key = false; openCache = null;
   lives = 5; coins = 0; score = 0; keep = { form: 0, mount: false };
   persist(); goMap(START, true);
   RB.toast('✨ A new game! The Mayflower is waiting at Plymouth, England.', 2600);
@@ -1365,6 +1532,12 @@ const AIR = {
   bog: { n: 14, c: ['#e8ff8a'], kind: 'mote', vx: 3, vy: -4 },
   shore: { n: 14, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -6 },
   snow: { n: 26, c: ['#ffffff'], kind: 'snow', vx: -8, vy: 22 },
+  delaware: { n: 40, c: ['#ffffff'], kind: 'snow', vx: -34, vy: 30 },   // the nor'easter blowing down the river
+  valleyforge: { n: 26, c: ['#ffffff'], kind: 'snow', vx: -6, vy: 18 },
+  ludington: { n: 34, c: ['rgba(200,220,255,.7)'], kind: 'rain', vx: -40, vy: 180 },
+  saratoga: { n: 14, c: ['#e8a040', '#d84a2a', '#f0c040'], kind: 'leaf', vx: -12, vy: 14 },
+  mchenry: { n: 14, c: ['#ffb04a', '#ff6a3a'], kind: 'mote', vx: -4, vy: -10 },
+  culper: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -6 },
   night: { n: 16, c: ['#e8ff8a'], kind: 'mote', vx: 2, vy: -3 },
   canal: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -16, vy: -4 },
   cranberry: { n: 12, c: ['#e8a040', '#c83040', '#f0c060'], kind: 'leaf', vx: -12, vy: 12 },
@@ -1404,6 +1577,7 @@ function drawAirborne(cx, t) {
     if (a.kind === 'mote') { glow(x, y, 5, c, 0.35 + 0.3 * Math.sin(t * 3 + i)); g.beginPath(); g.arc(x, y, 0.9, 0, TAU); g.fillStyle = c; g.fill(); }
     else if (a.kind === 'snow') { g.beginPath(); g.arc(x, y, 0.8 + r1 * 1.2, 0, TAU); g.fillStyle = 'rgba(255,255,255,.85)'; g.fill(); }
     else if (a.kind === 'wisp') { g.globalAlpha = 0.25; ell(x, y, 14 + r1 * 10, 1.6); g.fillStyle = c; g.fill(); g.globalAlpha = 1; }
+    else if (a.kind === 'rain') { g.strokeStyle = c; g.lineWidth = 0.6; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 1.6, y + 6); g.stroke(); }
     else if (a.kind === 'spray') { g.globalAlpha = 0.5; g.beginPath(); g.arc(x, y, 0.7 + r1, 0, TAU); g.fillStyle = c; g.fill(); g.globalAlpha = 1; }
     else { g.save(); g.translate(x, y); g.rotate(t * (1 + r1) + i); ell(0, 0, a.kind === 'leaf' ? 2.2 : 1.6, a.kind === 'leaf' ? 1 : 0.9); g.fillStyle = c; g.globalAlpha = 0.85; g.fill(); g.restore(); g.globalAlpha = 1; }
   }
@@ -1416,11 +1590,19 @@ function drawAirborne(cx, t) {
 // doublet with a wide white collar, breeches, grey stockings, plain shoes, and a tall black capotain hat.
 const PILGRIM = { coat: '#a8643a', coatDk: '#824628', breeches: '#4e5a3c', breechesDk: '#3a4430', hose: '#9a9a96', shoe: '#2e2620',
   hat: '#2e2e36', hatDk: '#1c1c22', band: '#6a4a2e', hair: '#7a4a24', hairDk: '#5a3418' };
+// Sybil Ludington (1777): a blue riding jacket, a long brown skirt and riding boots, auburn hair in a long braid, and a
+// low round black hat with a wide brim (what a girl would wear to ride in the 1770s)
+const SYBIL = { coat: '#3a5a8a', coatDk: '#2a426a', breeches: '#6a4a34', breechesDk: '#4e3626', hose: '#4a3a30', shoe: '#2a2018',
+  hat: '#2a2a30', hatDk: '#18181e', band: '#8a6a3a', hair: '#9a4a24', hairDk: '#6e3216' };
+// which hero you're playing: Wrestling, or Sybil once she's joined (after New England's quiz)
+const HERO_IDS = ['wrestling', 'sybil'];
+const heroJoined = i => i === 0 || (i === 1 && (!!save.quiz[0] || !!save.unlockAll));
+const heroNow = () => { const i = HERO_IDS.indexOf(save.hero); return i > 0 && heroJoined(i) ? save.hero : 'wrestling'; };
 function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
-  const P = PILGRIM, big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Wrestling is round and chubby
+  const SY = heroNow() === 'sybil', P = SY ? SYBIL : PILGRIM, big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Wrestling is round and chubby
   const sq = fx.squash || 0, swing = fx.swing || 0;
-  let coat = P.coat, coatDk = P.coatDk, hat = P.hat, hatDk = P.hatDk, band = P.band;
-  if (form === 2) { coat = '#4a8a3a'; coatDk = '#346a2a'; }                    // the apple-throwing power: a green doublet
+  let coat = P.coat, coatDk = P.coatDk, hat = P.hat, hatDk = P.hatDk, band = P.band, skirt = P.breeches;
+  if (form === 2) { coat = '#4a8a3a'; coatDk = '#346a2a'; }                    // the apple-throwing power: a green doublet (or jacket)
   if (form === 3) { band = '#d8302a'; }                                         // his throwing hat: a bright red band
   if (flash === 'star') { const h = (t * 420) % 360; coat = `hsl(${h},85%,58%)`; coatDk = `hsl(${h},75%,45%)`; band = `hsl(${(h + 150) % 360},85%,55%)`; }
   g.save();
@@ -1433,6 +1615,7 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
   const fill = c => { g.fillStyle = c; g.fill(); };
   const leg = (hx, ang, back) => {
     g.save(); g.translate(hx, -8.5); g.rotate(ang);
+    if (SY) { rrect(-1.6, 1, 3.2, 4.4, 1.2); fill(back ? '#3a2a20' : P.hose); ell(1.4, 6, 3.4, 2.1); fill(back ? '#140e0a' : P.shoe); ell(1, 5.2, 1.4, 0.6); fill('rgba(255,255,255,.22)'); g.restore(); return; }   // (Sybil: riding boots, under her skirt)
     rrect(-2.2, -0.5, 4.4, 3.4, 1.6); fill(back ? P.breechesDk : P.breeches);   // breeches to the knee
     rrect(-1.6, 2.4, 3.2, 3, 1.2); fill(back ? '#7a7a76' : P.hose);              // stockings
     ell(1.4, 6, 3.4, 2.1); fill(back ? '#1a1612' : P.shoe);                     // plain shoes, tied with a lace
@@ -1452,13 +1635,19 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
   ell(0, -11.5, 7, 6.6); fill(coat);
   g.save(); ell(0, -11.5, 7, 6.6); g.clip(); g.fillStyle = coatDk; g.fillRect(-8, -8.6, 16, 6); g.restore();
   rrect(-7, -10.2, 14, 2, 1); fill('#4a2e18');
-  for (const by of [-15, -13]) { g.beginPath(); g.arc(3.6, by, 0.7, 0, TAU); fill('#5a3a1e'); }
+  for (const by of [-15, -13]) { g.beginPath(); g.arc(3.6, by, 0.7, 0, TAU); fill(SY ? C.gold : '#5a3a1e'); }
+  if (SY) {   // her long skirt, swinging as she runs (and flaring when she jumps)
+    const fl = air ? 2.4 : ride ? 3 : 0, sw = swing * 1.2;
+    g.beginPath(); g.moveTo(-6.4, -10); g.lineTo(6.4, -10); g.lineTo(7.4 + fl + sw, -2); g.quadraticCurveTo(0.5 + sw, 0, -7.4 - fl + sw, -2); g.closePath(); fill(skirt);
+    g.beginPath(); g.moveTo(-6.4 + 9, -10); g.lineTo(6.4, -10); g.lineTo(7.4 + fl + sw, -2); g.lineTo(3 + sw, -1.2); g.closePath(); fill('rgba(0,0,0,.14)');
+  }
   leg(1.8, ride ? -1.15 : air ? 0.8 : legA, false);
   // the wide white collar (a "falling band")
   ell(1, -16.6, 6.6, 2.4); fill('#f6f2e8'); ell(1, -15.9, 5.6, 1.2); fill('#e2dccc');
   // a big round head: brown hair cut to the ears, rosy cheeks, a little nose
   g.beginPath(); g.arc(0.6, -22.5, 7, 0, TAU); fill(C.skin);
   ell(-4.6, -22.6, 2.6, 4.2); fill(P.hair);                                       // hair at the back, down to his collar
+  if (SY) { for (let k = 0; k < 4; k++) { ell(-6.4 - k * 0.5 + Math.sin(t * 6 + k) * 0.3 * (air ? 2 : 1), -19 + k * 2.6, 1.9 - k * 0.2, 1.6); fill(k % 2 ? P.hairDk : P.hair); } }   // (Sybil's long braid)
   ell(-1.4, -27.2, 6, 2.2); fill(P.hair);                                         // and a fringe under the hat
   g.beginPath(); g.arc(1.4, -19.8, 1.7, 0, TAU); fill('rgba(255,120,120,.4)');      // rosy cheek
   g.beginPath(); g.arc(6.9, -21.6, 1.5, 0, TAU); fill('#f8b898');                 // a little nose
@@ -1470,6 +1659,12 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
   rrect(1.8, -27.4 + (fx.look < 0 ? -0.7 : 0), 3.8, 1, 0.5); fill(P.hairDk);         // eyebrow (up when he looks up)
   // the tall capotain hat: a flat brim, a tapering crown with a rounded top, and a plain band (unless it's off being thrown)
   if (fx.hatless) { ell(0.4, -28.4, 6.6, 3); fill(P.hair); g.beginPath(); g.arc(2.4, -30.4, 1.8, 0, TAU); fill(P.hair); }
+  else if (SY) {   // a low round riding hat with a wide brim
+    ell(0.8, -28.6, 10.4, 2.4); fill(hatDk);
+    rrect(-4.4, -34.6, 10.4, 6.2, [4.4, 4.4, 0.6, 0.6]); fill(hat); rrect(-4.4, -30.8, 10.4, 1.8, 0.4); fill(band);
+    if (form === 3 && t % 0.9 < 0.3) star(6 + Math.sin(t * 7), -36, 1.2, '#ffffff');
+    rrect(-2.4, -33.6, 1.2, 3, 0.6); fill('rgba(255,255,255,.18)');
+  }
   else {
     ell(0.8, -28.6, 9, 2.2); fill(hatDk);
     g.beginPath(); g.moveTo(-4.6, -29); g.lineTo(-3.4, -39.4); g.quadraticCurveTo(1, -41.6, 5.4, -39.4); g.lineTo(6.4, -29); g.closePath(); fill(hat);
@@ -1487,13 +1682,14 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
 const UNI_S = 1.22;   // Shamrock is drawn a bit bigger than his box, about as tall as Leo, like Yoshi
 function drawUnicorn(cx, by, face, t, gait = 0, zap = 0, chew = 0, full = 0, mouth = 0, laser = false) {
   g.save(); g.translate(cx, by); g.scale(face * UNI_S, UNI_S);
-  const fill = c => { g.fillStyle = c; g.fill(); }, RAIN = ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'];
+  const fill = c => { g.fillStyle = c; g.fill(); }, RAIN = ['#3a2418', '#4e3020', '#3a2418', '#4e3020', '#3a2418', '#4e3020'];   // (Star's mane and tail: dark brown)
+  const COAT = '#b06a3a', SHADE = '#8e5230';
   const bob = Math.abs(Math.sin(t * 14)) * 0.7 * gait;
   // legs: slim, with round lilac hooves; the far pair a little shaded
   const leg = (x, ph, back) => {
     g.save(); g.translate(x, -8.2); g.rotate(Math.sin(ph) * 0.6 * gait);
-    rrect(-1.5, 0, 3, 6.6, 1.4); fill(back ? '#e4ddef' : '#ffffff');
-    rrect(-1.8, 5.6, 3.6, 2.4, [0.6, 0.6, 1.2, 1.2]); fill(back ? '#b08ad0' : '#c8a0e8');
+    rrect(-1.5, 0, 3, 6.6, 1.4); fill(back ? SHADE : COAT); rrect(-1.6, 4, 3.2, 2, 0.6); fill(back ? '#d8d0c4' : '#f4ece0');   // white socks
+    rrect(-1.8, 5.6, 3.6, 2.4, [0.6, 0.6, 1.2, 1.2]); fill(back ? '#2a2018' : '#3a2a20');
     g.restore();
   };
   leg(-6, t * 14 + Math.PI, true); leg(4.2, t * 14, true);
@@ -1501,31 +1697,30 @@ function drawUnicorn(cx, by, face, t, gait = 0, zap = 0, chew = 0, full = 0, mou
   // a flowing rainbow tail
   RAIN.forEach((c, i) => { const w = Math.sin(t * 7 + i * 0.6) * 1.2; g.beginPath(); g.moveTo(-9, -14.4 + i * 0.7); g.bezierCurveTo(-14, -16 + i, -17 + w, -10 + i, -14.5 + w, -4.5 + i * 0.9); g.lineWidth = 1.5; g.strokeStyle = c; g.lineCap = 'round'; g.stroke(); });
   // the body: a round white barrel with a soft lilac shade underneath (rounder while digesting)
-  ell(0, -12.2 + full * 0.5, 10 + full * 1.4, 5.8 + full * 1.1); fill('#ffffff');
-  g.save(); ell(0, -12.2 + full * 0.5, 10 + full * 1.4, 5.8 + full * 1.1); g.clip(); ell(0, -7 + full, 11 + full, 3.4); fill('#ece4f6'); g.restore();
+  ell(0, -12.2 + full * 0.5, 10 + full * 1.4, 5.8 + full * 1.1); fill(COAT);
+  g.save(); ell(0, -12.2 + full * 0.5, 10 + full * 1.4, 5.8 + full * 1.1); g.clip(); ell(0, -7 + full, 11 + full, 3.4); fill(SHADE); g.restore();
   // the neck, curving up and forward
-  g.beginPath(); g.moveTo(4, -16.6); g.quadraticCurveTo(7.5, -22, 9.6, -26.4); g.lineTo(14.2, -24.6); g.quadraticCurveTo(12, -19, 10, -11); g.closePath(); fill('#ffffff');
+  g.beginPath(); g.moveTo(4, -16.6); g.quadraticCurveTo(7.5, -22, 9.6, -26.4); g.lineTo(14.2, -24.6); g.quadraticCurveTo(12, -19, 10, -11); g.closePath(); fill(COAT);
   // a green saddle with a gold shamrock and a strap round the tummy
-  rrect(-5.2, -18.6, 9.6, 3.6, 1.8); fill('#2fbf4f'); rrect(-5.2, -16, 9.6, 1, 0.5); fill('#1f9a3c');
-  shamrock(-0.4, -17, 1.3, C.gold);
+  rrect(-5.2, -18.6, 9.6, 3.6, 1.8); fill('#6a3a1e'); rrect(-5.2, -16, 9.6, 1, 0.5); fill('#4a2614');   // a brown leather saddle
+  rrect(-6, -16.4, 2.4, 2.4, 0.6); fill('#c8402a');   // and a red saddle blanket
   leg(-4.2, t * 14, false); leg(6, t * 14 + Math.PI, false);
   // the head: rounded, with a soft pink muzzle (cheeks puff out while he chews)
   const munch = chew > 0 ? Math.abs(Math.sin(chew * 30)) : 0;
-  ell(13.2, -26.2, 4.8 + munch * 0.7, 3.9 + munch * 0.7, 0.25); fill('#ffffff');
-  ell(16.8, -24.4 + munch * 0.4, 2.7, 2.3 + munch * 0.5, 0.2); fill('#ffe2ee');
-  g.beginPath(); g.arc(17.8, -24.8, 0.45, 0, TAU); fill('#d888a8');                         // nostril
+  ell(13.2, -26.2, 4.8 + munch * 0.7, 3.9 + munch * 0.7, 0.25); fill(COAT);
+  ell(16.8, -24.4 + munch * 0.4, 2.7, 2.3 + munch * 0.5, 0.2); fill('#c88a62');
+  g.beginPath(); g.arc(17.8, -24.8, 0.45, 0, TAU); fill('#3a2418');                         // nostril
   if (mouth > 0) {   // a big open mouth, chomping
     const o = Math.sin(Math.min(1, mouth / 0.32) * Math.PI) * 3.4;
     ell(17.2, -22.8 + o * 0.45, 2.9, 0.6 + o * 0.62); fill('#8a2a4a'); ell(17, -22.4 + o * 0.7, 1.6, 0.4 + o * 0.25); fill('#ff8ab0');
     ell(16.4, -21.4 + o, 2.8, 1.3); fill('#ffffff');
   }
-  ell(12.4, -24, 1.5, 0.9); fill('rgba(255,140,180,.45)');                                  // rosy cheek
-  g.beginPath(); g.moveTo(10, -28.4); g.lineTo(10.4, -32.6); g.lineTo(12.4, -29.2); fill('#ffffff');   // ear
-  g.beginPath(); g.moveTo(10.6, -29); g.lineTo(10.8, -31.4); g.lineTo(11.8, -29.4); fill('#ffd0e4');
-  // the golden spiral horn
-  if (laser) glow(15, -34, 7, `hsla(${(t * 300) % 360},100%,70%,1)`, 0.8);   // with the rainbow prism his horn shimmers
-  g.beginPath(); g.moveTo(12.6, -29.6); g.lineTo(16.6, -37.4); g.lineTo(15, -29); g.closePath(); fill(laser ? `hsl(${(t * 300) % 360},90%,72%)` : C.gold);
-  g.strokeStyle = '#d89a1a'; g.lineWidth = 0.5; for (let k = 1; k < 4; k++) { const y0 = -29.6 - k * 2, x0 = 12.9 + k * 0.85; g.beginPath(); g.moveTo(x0, y0); g.lineTo(x0 + 1.6 - k * 0.25, y0 + 0.7); g.stroke(); }
+  ell(12.4, -24, 1.5, 0.9); fill('rgba(255,150,120,.25)');                                  // rosy cheek
+  g.beginPath(); g.moveTo(10, -28.4); g.lineTo(10.4, -32.6); g.lineTo(12.4, -29.2); fill(COAT);   // ear
+  g.beginPath(); g.moveTo(10.6, -29); g.lineTo(10.8, -31.4); g.lineTo(11.8, -29.4); fill(SHADE);
+  // the white star on his forehead (that's how he got his name); with the prism it shines
+  if (laser) glow(14.6, -29.4, 7, `hsla(${(t * 300) % 360},100%,70%,1)`, 0.8);
+  star(14.6, -29.2, 1.5, laser ? `hsl(${(t * 300) % 360},90%,80%)` : '#ffffff');
   // the eye: big and friendly, or glowing red while he fires his laser
   if (zap > 0) { const a = Math.min(1, zap / 0.2); glow(13.8, -26.4, 4 + 5 * a, 'rgba(255,40,40,1)', 0.9 * a + 0.1); ell(13.8, -26.4, 1.4, 1.7); fill('#ff2a2a'); g.beginPath(); g.arc(14, -26.8, 0.55, 0, TAU); fill('#ffd0d0'); }
   else {
@@ -1636,21 +1831,57 @@ function drawWolf(x, y, t, face, flat, e = {}) {   // a grey wolf: long legs, a 
 }
 // a British redcoat on patrol: a black tricorn hat, a red coat with white crossbelts, white breeches and black gaiters,
 // marching stiffly (squashed flat when he's stomped)
-function drawRedcoat(x, y, t, face, flat, e = {}) {
+function drawRedcoat(x, y, t, face, flat, e = {}, hessian = false) {
   const s = Math.sin(t * 9);
   g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
   for (const [lx, k] of [[-1.8, 1], [1.8, -1]]) { g.save(); g.translate(lx, -6); g.rotate(s * k * 0.3); rrect(-1.3, 0, 2.6, 4, 1); g.fillStyle = '#f2ece0'; g.fill(); rrect(-1.4, 3, 2.8, 3.2, 1); g.fillStyle = '#1e1a20'; g.fill(); g.restore(); }   // breeches and gaiters
-  rrect(-4, -13.4, 8, 8.6, 2.4); g.fillStyle = '#c81e28'; g.fill();                                    // the red coat
+  rrect(-4, -13.4, 8, 8.6, 2.4); g.fillStyle = hessian ? '#2a3a6a' : '#c81e28'; g.fill();                                    // the red coat (a Hessian's is blue)
   g.beginPath(); g.moveTo(-4, -6.6); g.lineTo(-5, -4.6); g.lineTo(-1, -5.4); g.closePath(); g.moveTo(4, -6.6); g.lineTo(5, -4.6); g.lineTo(1, -5.4); g.closePath(); g.fill();   // its tails
   g.strokeStyle = '#ffffff'; g.lineWidth = 1.1; g.beginPath(); g.moveTo(-3.6, -12.8); g.lineTo(3, -6.2); g.moveTo(3.6, -12.8); g.lineTo(-3, -6.2); g.stroke();   // the crossbelts
-  g.fillStyle = '#23324a'; g.fillRect(2.2, -13, 1.8, 6);                                               // the blue facings
-  g.save(); g.translate(3.4, -11.4); g.rotate(-0.25 + s * 0.15); rrect(-1.1, 0, 2.2, 5, 1); g.fillStyle = '#b01a22'; g.fill(); g.restore();   // a swinging arm
+  g.fillStyle = hessian ? '#c8302a' : '#23324a'; g.fillRect(2.2, -13, 1.8, 6);                                               // the facings
+  g.save(); g.translate(3.4, -11.4); g.rotate(-0.25 + s * 0.15); rrect(-1.1, 0, 2.2, 5, 1); g.fillStyle = hessian ? '#1e2a50' : '#b01a22'; g.fill(); g.restore();   // a swinging arm
   g.beginPath(); g.arc(0.6, -15.6, 3.2, 0, TAU); g.fillStyle = '#f2c8a0'; g.fill();                    // the face
   g.beginPath(); g.arc(2, -16, 0.6 * (e.spook > 0 ? 1.5 : 1), 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
   g.beginPath(); g.moveTo(1.2, -14.2); g.lineTo(3, -14.4); g.lineWidth = 0.6; g.strokeStyle = '#8a4a3a'; g.stroke();   // a stern little mouth
   g.beginPath(); g.arc(-2.6, -15, 1.4, 0, TAU); g.fillStyle = '#e8e4dc'; g.fill();                    // a powdered wig, tied at the back
-  g.beginPath(); g.moveTo(-5, -17.4); g.quadraticCurveTo(0.6, -16, 6, -17.4); g.lineTo(3.6, -20.4); g.quadraticCurveTo(0.6, -21.6, -2.6, -20.4); g.closePath(); g.fillStyle = '#1a1a24'; g.fill();   // the tricorn
-  g.fillStyle = '#e8e4dc'; g.fillRect(-4.6, -17.6, 10.2, 0.7);
+  if (hessian) { g.beginPath(); g.moveTo(-2.4, -17.2); g.lineTo(3.6, -17.2); g.lineTo(0.8, -24); g.closePath(); g.fillStyle = '#d8a83a'; g.fill(); g.beginPath(); g.arc(0.8, -24.4, 0.9, 0, TAU); g.fill(); }   // a tall brass mitre cap
+  else {
+    g.beginPath(); g.moveTo(-5, -17.4); g.quadraticCurveTo(0.6, -16, 6, -17.4); g.lineTo(3.6, -20.4); g.quadraticCurveTo(0.6, -21.6, -2.6, -20.4); g.closePath(); g.fillStyle = '#1a1a24'; g.fill();   // the tricorn
+    g.fillStyle = '#e8e4dc'; g.fillRect(-4.6, -17.6, 10.2, 0.7);
+  }
+  g.restore();
+}
+function drawHessian(x, y, t, face, flat, e = {}) { drawRedcoat(x, y, t, face, flat, e, true); }   // (a Hessian soldier, hired from Germany: a blue coat and a tall brass cap)
+// a raccoon: grey and round, with a black robber's mask round its eyes and a ringed bushy tail
+function drawRaccoon(x, y, t, face, flat, e = {}) {
+  const s2 = Math.sin(t * 12);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  g.save(); g.translate(-6, -6); g.rotate(-0.6 + s2 * 0.12); for (let k = 0; k < 4; k++) { ell(-2 - k * 1.8, -k * 0.6, 2, 1.8); g.fillStyle = k % 2 ? '#3a3a40' : '#9a9aa0'; g.fill(); } g.restore();   // the ringed tail
+  for (const [lx, k] of [[-3.6, 1], [-1.6, -1], [2, -1], [4, 1]]) { rrect(lx - 0.9 + s2 * k * 0.4, -4, 1.8, 4, 0.8); g.fillStyle = '#3a3a40'; g.fill(); }
+  ell(-0.4, -6.4, 6, 4); g.fillStyle = vgrad(-10, -3, '#a8a8ae', '#76767e'); g.fill();
+  ell(4.6, -9, 3.4, 3); g.fillStyle = '#b4b4ba'; g.fill();                                   // the head
+  ell(5.4, -9.4, 3, 1.3); g.fillStyle = '#1e1e24'; g.fill();                                // the mask
+  g.beginPath(); g.moveTo(6.6, -8.4); g.lineTo(9.4, -7.6); g.lineTo(6.6, -6.8); g.closePath(); g.fillStyle = '#e8e8ec'; g.fill(); g.beginPath(); g.arc(9.2, -7.6, 0.7, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  for (const ex of [3.2, 5.2]) { g.beginPath(); g.moveTo(ex - 1, -11.4); g.lineTo(ex, -13.6); g.lineTo(ex + 1, -11.4); g.closePath(); g.fillStyle = '#76767e'; g.fill(); }
+  g.beginPath(); g.arc(5.6, -9.5, 0.8 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(5.8, -9.5, 0.4, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  g.restore();
+}
+// a hornet: yellow and black stripes, a stinger and buzzing wings
+function drawHornet(x, y, t, face) {
+  g.save(); g.translate(x + 8, y + 8 + Math.sin(t * 6) * 1.2); g.scale(face, 1);
+  for (const k of [-1, 1]) { g.globalAlpha = 0.6; ell(-1 + k * 0.6, -4 - Math.abs(Math.sin(t * 40)) * 1.4, 3.4, 1.6, k * 0.4); g.fillStyle = '#e8f4ff'; g.fill(); g.globalAlpha = 1; }
+  ell(-2, 0.6, 4.6, 3); g.fillStyle = '#ffc21a'; g.fill(); g.fillStyle = '#1e1a20'; for (const sx of [-4, -1.4]) g.fillRect(sx, -2.2, 1.4, 5.6);
+  g.beginPath(); g.moveTo(-6.4, 0.4); g.lineTo(-9, 1.2); g.lineTo(-6.2, 1.8); g.fill();                                     // the stinger
+  g.beginPath(); g.arc(3.6, -0.4, 2.6, 0, TAU); g.fillStyle = '#2a2420'; g.fill(); g.beginPath(); g.arc(4.4, -1, 0.9, 0, TAU); g.fillStyle = '#ffffff'; g.fill();
+  g.restore();
+}
+// a groundhog (a woodchuck), popping up out of its burrow
+function drawGroundhog(x, y, t) {
+  g.save(); g.translate(x + 8, y + 18);
+  ell(0, 0, 6.4, 9); g.fillStyle = vgrad(-9, 9, '#a87a4a', '#7a5432'); g.fill(); ell(0, 2, 4, 6); g.fillStyle = '#c8a070'; g.fill();
+  for (const sx of [-1, 1]) { ell(sx * 3.6, -7.6, 1.4, 1.2); g.fillStyle = '#6a4428'; g.fill(); ell(sx * 3, 1, 1.6, 1.2); g.fillStyle = '#5a3a20'; g.fill(); }   // ears and little paws
+  for (const ex of [-2.2, 2.2]) { g.beginPath(); g.arc(ex, -4.6, 1, 0, TAU); g.fillStyle = '#1e1a20'; g.fill(); g.beginPath(); g.arc(ex + 0.3, -4.9, 0.35, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); }
+  ell(0, -2.6, 1.4, 1); g.fillStyle = '#3a2418'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(-0.9, -1.6, 0.8, 1.2); g.fillRect(0.1, -1.6, 0.8, 1.2);   // nose and buck teeth
   g.restore();
 }
 function drawCrow(x, y, t, face) {   // a black crow after the corn, flapping
@@ -1770,6 +2001,10 @@ function drawRaft(e, t) {   // a settlers' raft on the Connecticut River: logs l
 }
 function drawRowboat(e, t) {   // Paul Revere's rowboat: a small wooden boat, its oars muffled (wrapped in cloth) to cross quietly
   const x = e.x, y = e.y, w = e.w, row = e.go && e.x < e.x1 ? Math.sin(t * 5) : 0;
+  if (e.look === 'durham') {   // a Durham boat, long and black, as Washington's army used to cross the Delaware; the 13-star flag at the bow
+    g.fillStyle = '#6a4424'; g.fillRect(x + w - 6, y - 26, 1.6, 26); drawStarFlag(x + w - 4.4, y - 26, 12, 8, Math.sin(t * 5));
+    for (let k = 0; k < 3; k++) { const sx = x + 10 + k * (w - 24) / 2; ell(sx, y - 6, 3.4, 5.4); g.fillStyle = '#2a3a6a'; g.fill(); g.beginPath(); g.arc(sx, y - 13, 2.6, 0, TAU); g.fillStyle = '#f2c8a0'; g.fill(); g.beginPath(); g.moveTo(sx - 4, y - 14); g.lineTo(sx, y - 18); g.lineTo(sx + 4, y - 14); g.closePath(); g.fillStyle = '#1a1a24'; g.fill(); }   // soldiers aboard
+  }
   g.beginPath(); g.moveTo(x - 6, y - 2); g.lineTo(x + w + 6, y - 2); g.quadraticCurveTo(x + w + 2, y + 9, x + w - 8, y + 10); g.lineTo(x + 6, y + 10); g.quadraticCurveTo(x - 4, y + 8, x - 6, y - 2); g.closePath();
   paint(vgrad(y - 2, y + 10, '#8a5a32', '#4a2e18'), 1, '#2a180a');
   g.fillStyle = '#c8a060'; g.fillRect(x - 5, y - 2, w + 10, 1.6); g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(x - 2, y + 3, w + 4, 0.8);
@@ -1872,6 +2107,69 @@ function drawMidGate(kind, e, t) {
     g.fillStyle = '#d8302a'; g.beginPath(); g.moveTo(x + 13.4, base - 14 - fh * 32); g.lineTo(x + 22, base - 11 - fh * 32 + Math.sin(t * 6)); g.lineTo(x + 13.4, base - 8 - fh * 32); g.fill();
     return;
   }
+  if (kind === 'derrick') {   // a quarry derrick: a mast and boom with a granite block on its chain; the block is lowered as you pass
+    g.strokeStyle = '#6a4a2a'; g.lineWidth = 2.6; g.beginPath(); g.moveTo(x - 6, base); g.lineTo(x - 6, base - 46); g.stroke();
+    g.lineWidth = 1.8; g.beginPath(); g.moveTo(x - 6, base - 4); g.lineTo(x + 14, base - 38); g.stroke();
+    g.strokeStyle = 'rgba(60,40,20,.6)'; g.lineWidth = 0.7; g.beginPath(); g.moveTo(x - 6, base - 46); g.lineTo(x + 14, base - 38); g.stroke();
+    const drop = on ? Math.min(1, (clock - e.lit) * 1.5) : 0, by = base - 30 + drop * 20;
+    g.strokeStyle = '#3a3a44'; g.lineWidth = 0.9; g.beginPath(); g.moveTo(x + 12, base - 36); g.lineTo(x + 12, by); g.stroke();
+    rrect(x + 6, by, 12, 9, 1); paint(vgrad(by, by + 9, '#d0ccc4', '#9a968e'), 0.6, '#5a5650');
+    return;
+  }
+  if (kind === 'drum') {   // a Continental Army drum in the snow; its sticks beat a roll as you pass
+    rrect(x - 7, base - 13, 14, 12, 2); g.fillStyle = '#2a4a8a'; g.fill(); g.strokeStyle = '#f4f0e6'; g.lineWidth = 0.8; g.beginPath(); for (let k = 0; k < 4; k++) { g.moveTo(x - 7 + k * 4.6, base - 12); g.lineTo(x - 4.6 + k * 4.6, base - 2); } g.stroke();
+    ell(x, base - 13, 7, 2); g.fillStyle = '#f4ead4'; g.fill(); g.fillStyle = '#c8302a'; g.fillRect(x - 7, base - 13, 14, 1.4); g.fillRect(x - 7, base - 3, 14, 1.4);
+    const beat = on && clock - e.lit < 3 ? Math.sin(t * 30) * 0.4 : 0;
+    for (const sx of [-1, 1]) { g.save(); g.translate(x + sx * 2, base - 14); g.rotate(sx * (0.6 + beat * sx)); g.fillStyle = '#c8a060'; g.fillRect(-0.6, -9, 1.2, 9); g.restore(); }
+    ell(x, base, 9, 2); g.fillStyle = 'rgba(255,255,255,.7)'; g.fill();
+    return;
+  }
+  if (kind === 'farmbell') {   // a farm bell on a post (the Ludingtons' farm); it rings as you pass
+    g.fillStyle = '#6a4a2a'; g.fillRect(x - 1.6, base - 40, 3.2, 40); g.fillRect(x - 8, base - 40, 16, 2.4);
+    g.save(); g.translate(x, base - 37); g.rotate(on && clock - e.lit < 3 ? Math.sin(t * 14) * 0.5 : 0); g.fillStyle = '#3a3a44'; g.beginPath(); g.moveTo(-3, 0); g.lineTo(3, 0); g.quadraticCurveTo(4, 6, 6, 9); g.lineTo(-6, 9); g.quadraticCurveTo(-4, 6, -3, 0); g.fill(); g.restore();
+    return;
+  }
+  if (kind === 'fieldgun') {   // a small field cannon on wooden wheels; a puff of smoke as you pass
+    rrect(x - 10, base - 12, 18, 5, 2); g.fillStyle = '#3a3a44'; g.fill(); g.fillStyle = '#6a4a2a'; g.fillRect(x - 6, base - 9, 12, 4);
+    g.beginPath(); g.arc(x - 2, base - 5, 5, 0, TAU); g.strokeStyle = '#5a3a1e'; g.lineWidth = 1.6; g.stroke(); for (let k = 0; k < 4; k++) { const a = k * Math.PI / 4; g.beginPath(); g.moveTo(x - 2 - Math.cos(a) * 5, base - 5 - Math.sin(a) * 5); g.lineTo(x - 2 + Math.cos(a) * 5, base - 5 + Math.sin(a) * 5); g.lineWidth = 0.8; g.stroke(); }
+    if (on && clock - e.lit < 1.5) { const k = (clock - e.lit) / 1.5; g.globalAlpha = 0.7 * (1 - k); g.beginPath(); g.arc(x - 14 - k * 10, base - 11 - k * 8, 3 + k * 8, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.globalAlpha = 1; }
+    return;
+  }
+  if (kind === 'hut') {   // a soldiers' log hut at Valley Forge; its chimney starts to smoke as you pass
+    g.fillStyle = '#7a5434'; g.fillRect(x - 12, base - 16, 24, 16); g.fillStyle = 'rgba(40,24,10,.4)'; for (let k = 0; k < 4; k++) g.fillRect(x - 12, base - 13 + k * 3.6, 24, 1);
+    g.fillStyle = '#f4f8ff'; g.beginPath(); g.moveTo(x - 15, base - 15); g.lineTo(x, base - 26); g.lineTo(x + 15, base - 15); g.closePath(); g.fill(); g.fillStyle = '#3a2418'; g.fillRect(x - 3, base - 10, 6, 10); g.fillStyle = '#5a4030'; g.fillRect(x + 6, base - 30, 4, 10);
+    if (on) for (let i = 0; i < 3; i++) { const ph = (t * 0.6 + i / 3) % 1; g.globalAlpha = 0.5 * (1 - ph); g.beginPath(); g.arc(x + 8 + Math.sin(ph * 6 + i) * 2, base - 32 - ph * 22, 2 + ph * 4, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1;
+    return;
+  }
+  if (kind === 'libertybell') {   // the Liberty Bell (with its crack) on a wooden yoke; it swings and rings as you pass
+    g.fillStyle = '#6a4a2a'; g.fillRect(x - 12, base - 34, 3, 34); g.fillRect(x + 9, base - 34, 3, 34); g.fillRect(x - 13, base - 36, 26, 4);
+    g.save(); g.translate(x, base - 32); g.rotate(on && clock - e.lit < 3 ? Math.sin(t * 9) * 0.35 : 0);
+    g.beginPath(); g.moveTo(-4, 0); g.lineTo(4, 0); g.quadraticCurveTo(5, 9, 9, 15); g.lineTo(-9, 15); g.quadraticCurveTo(-5, 9, -4, 0); g.fillStyle = '#9a7a3a'; g.fill(); g.fillStyle = '#7a5a2a'; g.fillRect(-9, 13, 18, 2);
+    g.strokeStyle = '#2a1a0a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(1, 15); g.lineTo(0, 11); g.lineTo(1.6, 8); g.lineTo(0.6, 4); g.stroke(); g.restore();   // the crack
+    return;
+  }
+  if (kind === 'transit') {   // a surveyor's instrument on its tripod (Benjamin Banneker helped survey the new capital); it turns as you pass
+    g.strokeStyle = '#6a4a2a'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(x, base - 22); g.lineTo(x - 7, base); g.moveTo(x, base - 22); g.lineTo(x + 7, base); g.moveTo(x, base - 22); g.lineTo(x, base); g.stroke();
+    g.save(); g.translate(x, base - 25); g.rotate(on ? Math.sin(t * 2) * 0.3 : 0); rrect(-7, -2.4, 14, 4.8, 2); g.fillStyle = '#c8a040'; g.fill(); g.beginPath(); g.arc(7, 0, 2, 0, TAU); g.fillStyle = '#7ab0d8'; g.fill(); g.restore();
+    return;
+  }
+  if (kind === 'flagpole') {   // a flagpole by the fort: the flag runs up as you pass
+    g.fillStyle = '#8a8a90'; g.fillRect(x - 0.8, base - 50, 1.6, 50); const fh = on ? Math.min(1, (clock - e.lit) * 1.2) : 0, fy = base - 14 - fh * 34, wv = Math.sin(t * 5) * 1.2;
+    drawStarFlag(x + 0.8, fy, 14, 9, wv);
+    return;
+  }
+  if (kind === 'clothesline') {   // Anna Strong's clothesline: a black petticoat goes up when a spy's message is ready
+    g.fillStyle = '#6a4a2a'; g.fillRect(x - 12, base - 30, 2, 30); g.fillRect(x + 10, base - 30, 2, 30);
+    g.strokeStyle = '#d8d0c0'; g.lineWidth = 0.6; g.beginPath(); g.moveTo(x - 11, base - 28); g.quadraticCurveTo(x, base - 25, x + 11, base - 28); g.stroke();
+    g.fillStyle = '#f4f0e6'; g.fillRect(x - 8, base - 27, 6, 7); if (on) { g.fillStyle = '#1e1e24'; g.beginPath(); g.moveTo(x + 1, base - 26.4); g.lineTo(x + 8, base - 26.4); g.lineTo(x + 9.6, base - 16); g.lineTo(x - 0.6, base - 16); g.closePath(); g.fill(); }
+    return;
+  }
+  if (kind === 'watertank') {   // a railroad water tank on stilts; it spills a splash as you pass
+    g.fillStyle = '#6a4a2a'; for (const dx of [-8, 8]) g.fillRect(x + dx - 1, base - 26, 2, 26); g.fillRect(x - 9, base - 14, 18, 1.6);
+    rrect(x - 10, base - 42, 20, 16, 2); g.fillStyle = '#8a5a34'; g.fill(); g.fillStyle = 'rgba(40,24,10,.4)'; for (let k = 0; k < 3; k++) g.fillRect(x - 10, base - 38 + k * 5, 20, 1); g.beginPath(); g.moveTo(x - 11, base - 42); g.lineTo(x, base - 48); g.lineTo(x + 11, base - 42); g.closePath(); g.fillStyle = '#5a3a20'; g.fill();
+    if (on && clock - e.lit < 2) { g.fillStyle = 'rgba(160,210,255,.8)'; g.fillRect(x + 10, base - 30, 2, 30 * Math.min(1, (clock - e.lit) * 3)); }
+    return;
+  }
   if (kind === 'mooring') {   // a mooring post by the river with a coil of rope; a little flag goes up as you pass
     rrect(x - 4, base - 28, 8, 28, 2); g.fillStyle = vgrad(base - 28, base, '#8a6a44', '#5a3a1e'); g.fill(); ell(x, base - 28, 4, 1.4); g.fillStyle = '#b08a5a'; g.fill();
     g.strokeStyle = '#d8b880'; g.lineWidth = 1.4; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(x, base - 12 + k * 2.2, 6, 2, 0, 0, TAU); g.stroke(); }
@@ -1892,7 +2190,21 @@ const GATE_POSTS = {
   wharf: { post: ['#7a6248', '#4e3c2a'], rope: '#c8a060', top: 'chests' },
   shingle: { post: ['#9a9a9e', '#6e6e74'], rope: '#c8a868', top: 'rails' },
   clay: { post: ['#e8e0c8', '#c8b898'], rope: '#c8a060', top: 'mats' },
+  granite: { post: ['#c0bcb4', '#8a867e'], rope: '#c8a060', top: 'beam' },
+  trenton: { post: ['#7a5a3a', '#4a3420'], rope: '#c8a060', top: '13' },
+  farmgate: { post: ['#8a7a64', '#5e5240'], rope: '#c8a868', top: 'rails' },
+  redoubt: { post: ['#8a6a44', '#5a3e22'], rope: '#c8a060', top: 'beam' },
+  vforge: { post: ['#7a5a3a', '#4a3420'], rope: '#c8a060', top: '13' },
+  hall: { post: ['#f4f0e6', '#c8c2b4'], rope: '#c8a060', top: 'beam' },
+  marble: { post: ['#f8f6f0', '#d0ccc4'], rope: '#c8a060', top: '13' },
+  station: { post: ['#9a6a44', '#6a4628'], rope: '#c8a060', top: 'beam' },
 };
+// the 13-star flag of the United States (1777): thirteen red and white stripes and a circle of stars on blue
+function drawStarFlag(x, y, w, h, wv = 0) {
+  for (let k = 0; k < 7; k++) { g.fillStyle = k % 2 ? '#ffffff' : '#c8302a'; g.beginPath(); const y0 = y + k * h / 7, y1 = y + (k + 1) * h / 7; g.moveTo(x, y0); g.quadraticCurveTo(x + w / 2, y0 + wv, x + w, y0); g.lineTo(x + w, y1); g.quadraticCurveTo(x + w / 2, y1 + wv, x, y1); g.closePath(); g.fill(); }
+  g.fillStyle = '#23324a'; g.fillRect(x, y, w * 0.42, h * 0.55);
+  g.fillStyle = '#ffffff'; for (let k = 0; k < 13; k++) { const a = k * TAU / 13; g.fillRect(x + w * 0.21 + Math.cos(a) * w * 0.13 - 0.3, y + h * 0.275 + Math.sin(a) * h * 0.2 - 0.3, 0.7, 0.7); }
+}
 function drawGoalGate(kind, gx, t) {
   const st = GATE_POSTS[kind] || GATE_POSTS.timber, ground = groundTopAt((gx + 18) / TS), top = 30, broken = phase === 'clear' && lvl.tapeBroken, since = phase === 'clear' ? phaseT : 0;
   for (const px of [gx - 9, gx + 33]) {   // two stout posts, a little wider at the foot
@@ -1901,8 +2213,8 @@ function drawGoalGate(kind, gx, t) {
     g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(px + 2.4, top + 2, 1.4, ground - top - 4);
     g.strokeStyle = 'rgba(40,24,10,.35)'; g.lineWidth = 0.7; for (let yy = top + 10; yy < ground; yy += 13) { g.beginPath(); g.moveTo(px + 2, yy); g.lineTo(px + 8, yy + 3); g.stroke(); }
     ell(px + 6, ground, 9, 2.4); g.fillStyle = 'rgba(0,0,0,.18)'; g.fill();
-    if (kind === 'palisade' || kind === 'snowtimber' || kind === 'birch') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
-    if (kind === 'snowtimber' || kind === 'birch') { ell(px + 6, top - 1, 8, 3); g.fillStyle = '#ffffff'; g.fill(); }
+    if (kind === 'palisade' || kind === 'snowtimber' || kind === 'birch' || kind === 'trenton' || kind === 'vforge') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
+    if (kind === 'snowtimber' || kind === 'birch' || kind === 'trenton' || kind === 'vforge') { ell(px + 6, top - 1, 8, 3); g.fillStyle = '#ffffff'; g.fill(); }
     if (kind === 'birch') { g.fillStyle = '#2a2420'; for (let yy = top + 8; yy < ground - 4; yy += 11) { g.fillRect(px + 2 + (yy % 3), yy, 5, 1.4); g.fillRect(px + 6 - (yy % 4), yy + 5, 3, 1); } }   // birch bark's black marks
     if (kind === 'clay') for (let b = 0; b < 8; b++) { g.fillStyle = ['#d8583a', '#f2c890', '#b84a32', '#9a9aa0'][b % 4]; g.fillRect(px + 0.5, top + 12 + b * ((ground - top - 16) / 8), 11, 4); }   // striped like the Aquinnah cliffs
     if (kind === 'driftwood') { ell(px + 6, top + 1, 6, 2.4); g.fillStyle = st.post[1]; g.fill(); ell(px + 6, top + 1, 3.4, 1.2); g.fillStyle = st.post[0]; g.fill(); }
@@ -1924,6 +2236,7 @@ function drawGoalGate(kind, gx, t) {
     g.save(); g.translate(gx + 18, top + 5); g.rotate(phase === 'clear' ? Math.sin(since * 12) * 0.6 * Math.max(0, 1 - since / 3) : 0);
     g.fillStyle = '#c89a3a'; g.beginPath(); g.moveTo(-4, 0); g.lineTo(4, 0); g.quadraticCurveTo(5, 8, 7, 11); g.lineTo(-7, 11); g.quadraticCurveTo(-5, 8, -4, 0); g.fill(); g.beginPath(); g.arc(0, 12, 1.6, 0, TAU); g.fillStyle = '#5a3a1a'; g.fill(); g.restore();
   }
+  if (st.top === '13') { g.fillStyle = st.post[1]; g.fillRect(gx + 37, top - 26, 2, 26); drawStarFlag(gx + 39, top - 26, 18, 12, Math.sin(t * 5) * 1.4); }   // the new country's flag, with 13 stars and 13 stripes
   if (st.top === 'flag') {   // Connecticut's banner on the right-hand post
     g.fillStyle = '#5a3e22'; g.fillRect(gx + 37, top - 26, 2, 26); const wv = Math.sin(t * 5) * 1.4;
     g.beginPath(); g.moveTo(gx + 39, top - 26); g.quadraticCurveTo(gx + 47, top - 25 + wv, gx + 55, top - 24); g.lineTo(gx + 55, top - 14); g.quadraticCurveTo(gx + 47, top - 15 + wv, gx + 39, top - 16); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
@@ -1996,7 +2309,21 @@ function drawCornEar(x, y, t) {
   if (t % 1.6 < 0.5) star(-4, -6, 2 * Math.sin((t % 1.6) / 0.5 * Math.PI), '#fff');
   g.restore();
 }
-const collectIcon = () => lvl && lvl.collect === 'corn' ? drawCornEar : drawGem;
+// The Mid-Atlantic's treasure: quill pens, like the ones the Declaration of Independence and the Constitution were
+// written with in Philadelphia (a goose feather, its tip cut into a nib and dipped in ink)
+function drawQuill(x, y, t) {
+  const bob = Math.sin(t * 3) * 1.2;
+  g.save(); g.translate(x + 8, y + 9 + bob); g.rotate(0.55);
+  glow(0, 0, 14, 'rgba(255,240,180,1)', 0.45);
+  g.beginPath(); g.moveTo(0, 8); g.quadraticCurveTo(-5.4, 0, -1.6, -8.4); g.quadraticCurveTo(0.4, -9.6, 1.4, -8); g.quadraticCurveTo(4.6, -1, 0, 8); g.closePath(); g.fillStyle = '#fffaf0'; g.fill(); g.lineWidth = 0.7; g.strokeStyle = '#c8bca8'; g.stroke();
+  g.strokeStyle = 'rgba(160,150,130,.7)'; g.lineWidth = 0.5; for (let k = 0; k < 5; k++) { g.beginPath(); g.moveTo(0, 5 - k * 2.6); g.lineTo(-2.6 + k * 0.2, 3 - k * 2.6); g.moveTo(0, 5 - k * 2.6); g.lineTo(2 - k * 0.1, 3.4 - k * 2.6); g.stroke(); }
+  g.beginPath(); g.moveTo(0.4, -9); g.quadraticCurveTo(0, 0, 0, 10); g.lineWidth = 0.8; g.strokeStyle = '#a89878'; g.stroke();   // the shaft
+  g.beginPath(); g.moveTo(-0.9, 8); g.lineTo(0, 12.6); g.lineTo(0.9, 8); g.closePath(); g.fillStyle = '#1e2a4a'; g.fill();   // the inky nib
+  g.restore();
+}
+const COLLECT = { corn: { draw: drawCornEar, emoji: '🌽', name: 'ears of corn' }, quill: { draw: drawQuill, emoji: '🪶', name: 'quill pens' } };
+const collectOf = l => COLLECT[l && l.collect] || COLLECT.corn;
+const collectIcon = () => collectOf(lvl).draw;
 
 // the magic cloud: it puffs up, shines a rainbow down to the ground, and Shamrock appears where the rainbow lands
 function drawSummon(e, t) {
@@ -2004,7 +2331,7 @@ function drawSummon(e, t) {
   const beam = clamp((k - 0.4) / 0.8, 0, 1), cx = e.x, cy = e.y, bottom = cy + (e.gy - cy) * beam;
   if (beam > 0) {
     g.globalAlpha = fade * 0.85;
-    ['#ff6a8a', '#ffb23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b48aff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(cx - 9 + i * 3, cy + 4, 3, bottom - cy - 4); });
+    ['#fff6c8', '#ffe8a0', '#ffd870', '#ffd870', '#ffe8a0', '#fff6c8'].forEach((c, i) => { g.fillStyle = c; g.fillRect(cx - 9 + i * 3, cy + 4, 3, bottom - cy - 4); });   // (a beam of golden light)
     glow(cx, bottom, 22, 'rgba(255,255,230,1)', 0.7 * fade);
     g.globalAlpha = 1;
   }
@@ -2108,6 +2435,14 @@ function drawSnapper(x, y, t) {
   g.restore();
 }
 function drawCrusher(x, y, angry, t) {
+  if (lvl && lvl.theme === 'granite') {   // a block of granite swinging down from a derrick's chain
+    g.strokeStyle = '#3a3a44'; g.lineWidth = 1.4; g.setLineDash([2, 1.4]); g.beginPath(); g.moveTo(x + 12, y - 260); g.lineTo(x + 12, y); g.stroke(); g.setLineDash([]);
+    g.beginPath(); g.moveTo(x + 4, y + 2); g.lineTo(x + 12, y - 6); g.lineTo(x + 20, y + 2); g.lineWidth = 1.2; g.stroke();
+    rrect(x, y, 24, 30, 2); paint(vgrad(y, y + 30, '#d0ccc4', '#9a968e'), 1, '#5a5650');
+    g.fillStyle = 'rgba(70,66,60,.35)'; for (const [a, b] of [[5, 6], [15, 12], [8, 20], [18, 24]]) g.fillRect(x + a, y + b, 3, 1);
+    if (angry) { g.fillStyle = 'rgba(255,255,255,.5)'; g.fillRect(x + 2, y + 2, 20, 1.4); }
+    return;
+  }
   g.save(); g.translate(x, y); g.lineJoin = 'round';
   rrect(0, 0, 24, 30, 5); paint(vgrad(0, 30, '#b4b4c2', '#6a6a7a'), 1.3);
   for (const [a, b] of [[4, 4], [20, 4], [4, 26], [20, 26]]) { g.beginPath(); g.arc(a, b, 1.3, 0, TAU); paint('#5a5a68'); }
@@ -2117,12 +2452,15 @@ function drawCrusher(x, y, angry, t) {
   rrect(6, 20, 12, 4.2, 2); paint('#2a2a34', 1); g.fillStyle = '#fff'; for (let i = 0; i < 4; i++) g.fillRect(7 + i * 2.8, 20, 1.6, 1.8);
   g.restore();
 }
-const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!', lobster: 'THE REDCOAT MAJOR!' };
-const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps', lobster: 'The redcoat major' };
+const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!', lobster: 'THE REDCOAT MAJOR!', admiral: 'THE BRITISH ADMIRAL!' };
+const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps', lobster: 'The redcoat major', admiral: 'The British admiral' };
 // The Grumble Gang: King Grumbles and his crew, each guarding a bag of Leo's gold somewhere in America, each dressed for
 // where they are. They all take three hits, and every hit makes them try something new (and a bit tougher) that belongs
 // to that place. Later bosses start out quicker, so the gang gets harder world by world.
 const BOSS_CAST = {
+  admiral: { intro: 'The British fleet is bombarding Fort McHenry!', speed: 42,
+    hits: ["The rockets' red glare! Rockets streak along the ground: jump them!", 'Bombs bursting in air! Watch for their shadows!'],
+    done: 'The fleet sails away. At dawn the great flag is still flying over the fort!' },
   lobsterback: { intro: "The British are marching to Concord, and he's still cross about the tea!", speed: 40,
     hits: ['The lanterns are lit! One if by land: he charges. Two if by sea: a wave rolls in!', 'The fife and drums play! Tea chests from the sky, and faster marching!'],
     done: 'The redcoats march back to Boston. The minutemen stood up for their rights: the Revolution has begun!' },
@@ -2235,6 +2573,32 @@ function drawRedcoatBoss(x, y, t, face, hurt, hat = true) {
   g.beginPath(); g.moveTo(1, -36.2); g.quadraticCurveTo(3.4, -37.4, 5.6, -36.2); g.lineWidth = 1; g.strokeStyle = '#6a2a1a'; g.stroke();   // a frown
   if (hat) { g.beginPath(); g.moveTo(-11, -45); g.quadraticCurveTo(0, -41.4, 11, -45); g.lineTo(7, -51.6); g.quadraticCurveTo(0, -54.6, -7, -51.6); g.closePath(); paint('#1a1a24', 0.8, '#000'); g.fillStyle = C.gold; g.fillRect(-10, -46, 20, 1.2); g.beginPath(); g.arc(6, -47, 1.8, 0, TAU); paint('#1a1a24', 0.6, '#ffffff'); }   // the tricorn, with a cockade
   else { ell(0, -46, 6.8, 2.6); paint('#eeeae2'); }                                                   // (no hat: just his wig)
+  g.restore();
+}
+// The British admiral at Fort McHenry (1814): a dark blue naval coat with gold lace and epaulettes, white breeches, a
+// spyglass under his arm and a big black bicorne hat worn side to side (it flies off at the first hit)
+function drawAdmiralBoss(x, y, t, face, hurt, hat = true) {
+  g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
+  const coat = hurt ? '#8a9ae0' : '#1e2a50', coatDk = hurt ? '#6a7ac0' : '#121a36', skin = hurt ? '#ffd0c0' : '#f2c8a0', step = Math.sin(t * 6);
+  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 4.5, -12); g.rotate(sx * step * 0.2); rrect(-3, 0, 6, 7, 2); paint('#f4f0e6'); rrect(-3.2, 6, 6.4, 6.4, 1.5); paint('#1a1a22'); g.restore(); }
+  g.beginPath(); g.moveTo(-11, -13); g.lineTo(-12.5, -5); g.lineTo(-3, -9); g.closePath(); g.moveTo(11, -13); g.lineTo(12.5, -5); g.lineTo(3, -9); g.closePath(); paint(coatDk);
+  rrect(-11, -34, 22, 23, 6); paint(coat, 1, '#0a1020');
+  g.fillStyle = '#f4f0e6'; g.fillRect(-3.4, -33, 6.8, 21);                                          // a white waistcoat
+  g.strokeStyle = C.gold; g.lineWidth = 1.2; for (const sx of [-1, 1]) { g.beginPath(); g.moveTo(sx * 3.8, -33); g.lineTo(sx * 3.8, -12); g.stroke(); }   // gold lace down the front
+  for (let k = 0; k < 4; k++) for (const sx of [-1, 1]) { g.beginPath(); g.arc(sx * 5.4, -30 + k * 5, 0.9, 0, TAU); g.fillStyle = C.gold; g.fill(); }
+  for (const sx of [-1, 1]) { rrect(sx * 11 - 4.4, -35.4, 8.8, 3.6, 1.6); paint(C.gold); for (let k = 0; k < 4; k++) { g.fillStyle = C.gold; g.fillRect(sx * 11 - 3.6 + k * 2.2, -32, 1, 3.4); } }
+  g.save(); g.translate(-11, -31); g.rotate(0.2 + step * 0.1); rrect(-2.6, 0, 5.2, 13, 2.4); paint(coat, 0.8, '#0a1020'); g.fillStyle = C.gold; g.fillRect(-2.6, 10, 5.2, 1.6); g.beginPath(); g.arc(0, 14.4, 2.4, 0, TAU); paint(skin);
+  rrect(-1.6, 9, 3.2, 12, 1.4); paint('#c8a040', 0.6, '#6a4a1a'); g.restore();   // a brass spyglass
+  g.save(); g.translate(11, -31); g.rotate(-0.4 - step * 0.2); rrect(-2.6, 0, 5.2, 13, 2.4); paint(coat, 0.8, '#0a1020'); g.fillStyle = C.gold; g.fillRect(-2.6, 10, 5.2, 1.6); g.beginPath(); g.arc(0, 14.4, 2.4, 0, TAU); paint(skin); g.restore();
+  ell(0, -40, 7.4, 7); paint(skin, 0.8, '#b8805a');
+  for (const sx of [-1, 1]) { ell(sx * 6.6, -40, 2.2, 3.2); paint('#8a8a90'); }                       // grey side whiskers
+  g.beginPath(); g.arc(3, -41.4, 1.2, 0, TAU); g.fillStyle = INK; g.fill();
+  g.strokeStyle = '#6a6a70'; g.lineWidth = 1.3; g.beginPath(); g.moveTo(0.4, -44.8); g.lineTo(5.4, -43.6); g.stroke();
+  ell(5.8, -39.4, 1.8, 1.6); paint(hurt ? '#ffb0a0' : '#e8907a');
+  g.beginPath(); g.moveTo(1, -36.4); g.quadraticCurveTo(3.4, -37.6, 5.6, -36.4); g.lineWidth = 1; g.strokeStyle = '#6a2a1a'; g.stroke();
+  if (hat) { g.beginPath(); g.moveTo(-14, -45); g.quadraticCurveTo(-6, -58, 0, -56); g.quadraticCurveTo(6, -58, 14, -45); g.quadraticCurveTo(0, -48, -14, -45); g.closePath(); paint('#1a1a24', 0.8, '#000');
+    g.strokeStyle = C.gold; g.lineWidth = 1; g.beginPath(); g.moveTo(-13, -45.6); g.quadraticCurveTo(0, -48.4, 13, -45.6); g.stroke(); g.beginPath(); g.arc(0, -51, 1.8, 0, TAU); paint('#1a1a24', 0.6, C.gold); }   // the bicorne
+  else { ell(0, -46.4, 6.4, 2.6); paint('#c8c4bc'); }
   g.restore();
 }
 // ---- World 5's characters (Florida) ----
@@ -2624,6 +2988,29 @@ function drawDecor(d, t) {
       rrect(x + 9, y - 8, 9, 9, 1.5); paint('#f2ead8', 0.6, '#8a7a64'); g.fillStyle = 'rgba(58,42,30,.55)'; g.fillRect(x + 9.4, y - 5.4, 8.2, 0.7); g.fillRect(x + 9.4, y - 2.4, 8.2, 0.7); g.fillStyle = '#8a7a64'; g.fillRect(x + 9.4, y - 8, 8.2, 1.2);
       break;
     }
+    case 'hut': {   // a soldiers' log hut at Valley Forge (its roof is the ledge above), with a chimney and a little door
+      const w = (o.w || 6) * TS;
+      g.fillStyle = '#7a5434'; g.fillRect(x + 4, y - 40, w - 8, 40); g.fillStyle = 'rgba(40,24,10,.4)'; for (let k = 0; k < 8; k++) g.fillRect(x + 4, y - 37 + k * 5, w - 8, 1.2);
+      for (const ex of [x + 4, x + w - 8]) for (let k = 0; k < 8; k++) { ell(ex + 2, y - 37 + k * 5, 2.4, 2); g.fillStyle = '#9a7048'; g.fill(); }   // the log ends
+      g.fillStyle = '#3a2418'; g.fillRect(x + w / 2 - 6, y - 22, 12, 22); g.fillStyle = '#6a5040'; g.fillRect(x + w - 22, y - 62, 8, 26);
+      for (let i = 0; i < 3; i++) { const ph = (t * 0.5 + i / 3) % 1; g.globalAlpha = 0.4 * (1 - ph); g.beginPath(); g.arc(x + w - 18 + Math.sin(ph * 6 + i) * 3, y - 66 - ph * 26, 3 + ph * 5, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1;
+      break;
+    }
+    case 'farmhouse': {   // a saltbox farmhouse (a long roof down the back), a candle in the window
+      g.fillStyle = o.c || '#8a8a90'; g.fillRect(x, y - 34, 46, 34); g.fillStyle = 'rgba(0,0,0,.12)'; for (let k = 0; k < 34; k += 4) g.fillRect(x, y - 34 + k, 46, 1);
+      g.beginPath(); g.moveTo(x - 3, y - 32); g.lineTo(x + 16, y - 50); g.lineTo(x + 50, y - 18); g.lineTo(x + 50, y - 14); g.closePath(); g.fillStyle = '#4a3a34'; g.fill(); g.fillStyle = '#5a3a2a'; g.fillRect(x + 10, y - 56, 6, 10);
+      g.fillStyle = o.lit ? '#ffd27a' : '#e8eef4'; g.fillRect(x + 6, y - 26, 8, 9); g.fillRect(x + 30, y - 26, 8, 9); if (o.lit) glow(x + 10, y - 22, 12, 'rgba(255,210,120,1)', 0.5);
+      g.fillStyle = '#3a2418'; g.fillRect(x + 19, y - 18, 8, 18);
+      break;
+    }
+    case 'bigflag': {   // Fort McHenry's huge garrison flag (15 stars and 15 stripes, sewn by Mary Pickersgill), on a tall pole
+      g.fillStyle = '#8a8a90'; g.fillRect(x, y - 150, 3, 150); g.beginPath(); g.arc(x + 1.5, y - 151, 2.6, 0, TAU); g.fillStyle = C.gold; g.fill();
+      const w = 76, h = 46, wv = Math.sin(t * 2) * 3;
+      for (let k = 0; k < 15; k++) { g.fillStyle = k % 2 ? '#ffffff' : '#c8302a'; g.beginPath(); const y0 = y - 148 + k * h / 15, y1 = y0 + h / 15 + 0.4; g.moveTo(x + 3, y0); g.quadraticCurveTo(x + 3 + w / 2, y0 + wv, x + 3 + w, y0 + wv * 0.3); g.lineTo(x + 3 + w, y1 + wv * 0.3); g.quadraticCurveTo(x + 3 + w / 2, y1 + wv, x + 3, y1); g.closePath(); g.fill(); }
+      g.fillStyle = '#23324a'; g.fillRect(x + 3, y - 148, w * 0.4, h * 8 / 15);
+      g.fillStyle = '#ffffff'; for (let r = 0; r < 3; r++) for (let c = 0; c < 5; c++) star(x + 7 + c * 5.6, y - 143 + r * 7, 1.1, '#ffffff');
+      break;
+    }
     case 'flakes': {   // fish flakes: low wooden racks of split cod drying in the sun
       const n = o.n || 2;
       for (let k = 0; k < n; k++) { const fx = x + k * 26;
@@ -2650,12 +3037,24 @@ function drawPlatLook(e, t) {   // the special moving platforms: a canoe, a plan
     return true;
   }
   if (e.look === 'plank') { rrect(x, y, w, 6, 1.5); paint(vgrad(y, y + 6, '#b0804a', '#7a5028')); g.fillStyle = 'rgba(60,36,14,.5)'; g.fillRect(x + w / 2, y, 0.8, 6); return true; }
+  if (e.look === 'ice') {   // a slab of river ice, bobbing
+    rrect(x - 1, y, w + 2, 7, 3); paint(vgrad(y, y + 7, '#ffffff', '#b8d4ec'), 0.8, '#7aa0c8'); g.fillStyle = 'rgba(255,255,255,.8)'; g.fillRect(x + 3, y + 1.4, w * 0.4, 1);
+    return true;
+  }
+  if (e.look === 'railcar') {   // a Granite Railway car: a low wooden wagon with iron wheels, loaded with a block of granite, on its rails
+    g.strokeStyle = '#4a4a54'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(e.x0 - e.dx - 6, y + 13); g.lineTo(e.x0 + e.dx + w + 6, y + 13); g.stroke();
+    g.strokeStyle = '#6a4424'; g.lineWidth = 1.6; for (let rx = e.x0 - e.dx - 4; rx < e.x0 + e.dx + w + 6; rx += 7) { g.beginPath(); g.moveTo(rx, y + 13); g.lineTo(rx, y + 16); g.stroke(); }   // the rails on their posts
+    rrect(x - 1, y + 3, w + 2, 5, 1); paint(vgrad(y + 3, y + 8, '#9a6a3a', '#5a3a1e'), 0.8, '#2a180a');   // the wooden car
+    for (const wx of [x + 5, x + w - 5]) { g.beginPath(); g.arc(wx, y + 10, 3.6, 0, TAU); paint('#3a3a44'); g.beginPath(); g.arc(wx, y + 10, 1.2, 0, TAU); paint('#8a8a98'); }
+    rrect(x + 1, y - 1, w - 2, 5, 1); paint(vgrad(y - 1, y + 4, '#d0ccc4', '#a8a49c'), 0.6, '#6a6660'); g.fillStyle = 'rgba(80,76,70,.3)'; g.fillRect(x + w * 0.3, y + 0.5, 1, 2.4); g.fillRect(x + w * 0.7, y + 0.5, 1, 2.4);   // its load: a slab of granite
+    return true;
+  }
   if (e.look === 'shallop') {   // a fishing shallop: a small open boat with a stubby mast, riding the swells
     g.beginPath(); g.moveTo(x - 5, y - 1); g.lineTo(x + w + 5, y - 1); g.quadraticCurveTo(x + w + 1, y + 8, x + w - 6, y + 9); g.lineTo(x + 5, y + 9); g.quadraticCurveTo(x - 3, y + 7, x - 5, y - 1); g.closePath();
     paint(vgrad(y - 1, y + 9, '#5a7a8a', '#2e4a5a'), 0.8, '#1a2a34'); g.fillStyle = '#e8d8b0'; g.fillRect(x - 4, y - 1, w + 8, 1.4);
     g.fillStyle = '#6a4424'; g.fillRect(x + w * 0.4, y - 22, 1.6, 21); g.beginPath(); g.moveTo(x + w * 0.4 + 1.6, y - 21); g.quadraticCurveTo(x + w * 0.4 + 10, y - 14, x + w * 0.4 + 1.6, y - 4); g.closePath(); g.fillStyle = '#e8dcc0'; g.fill();
     if (e.my || e.mx) for (let k = 0; k < 2; k++) { g.globalAlpha = 0.5; g.beginPath(); g.arc(x + w / 2 + (k - 0.5) * w * 0.9, y + 10, 2, 0, Math.PI); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
-    return;
+    return true;
   }
   if (e.look === 'raftlog') {   // logs lashed together, floating down the river
     for (let k = 0; k < Math.round(w / 8); k++) { rrect(x + k * 8, y, 8, 8, 4); paint(vgrad(y, y + 8, '#9a6a3a', '#5a3818')); ell(x + k * 8 + 2, y + 4, 1.4, 3); g.fillStyle = '#c89a62'; g.fill(); }
@@ -3133,6 +3532,16 @@ const THEMES = {
   boston: { top: '#a8a094', topDk: '#7a746a', dirt: '#8a5a3a', dirtDk: '#6a4228', edge: '#2a180e' },
   pemaquid: { top: '#6ab85a', topDk: '#3a8a3a', dirt: '#8a8a94', dirtDk: '#6a6a74', edge: '#34343c' },   // grass on Maine's granite
   midnight: { top: '#3a8a5a', topDk: '#22603e', dirt: '#5a4a44', dirtDk: '#43362f', edge: '#221a16' },  // moonlit fields
+  delaware: { top: '#f4f8ff', topDk: '#c8d8ec', dirt: '#5a4a44', dirtDk: '#43362f', edge: '#221a16' },    // snow on the riverbank, at night
+  ludington: { top: '#3a7a4a', topDk: '#22583a', dirt: '#5a4434', dirtDk: '#433226', edge: '#221812' },   // wet fields in the rain
+  saratoga: { top: '#8ab44a', topDk: '#5a8a32', dirt: '#9a6a40', dirtDk: '#6e4828', edge: '#4a2e18' },
+  valleyforge: { top: '#ffffff', topDk: '#cfe0f2', dirt: '#7a5a40', dirtDk: '#5a4030', edge: '#3a2414' },
+  philly: { top: '#c8bca8', topDk: '#9a8e7a', dirt: '#a8503a', dirtDk: '#7a3a28', edge: '#3a1a10' },      // brick sidewalks
+  capital: { top: '#7ab04a', topDk: '#4a8a3a', dirt: '#a87a4a', dirtDk: '#7a5432', edge: '#4a2e18' },
+  mchenry: { top: '#3a7a4a', topDk: '#22583a', dirt: '#7a6a5a', dirtDk: '#5a4e40', edge: '#2a221a' },      // the fort's earthworks
+  culper: { top: '#ead494', topDk: '#c8aa60', dirt: '#d8bc80', dirtDk: '#b89a60', edge: '#7a6030' },
+  bando: { top: '#7ab04a', topDk: '#4a8a3a', dirt: '#8a6a4a', dirtDk: '#6a4e34', edge: '#3a2414' },
+  granite: { top: '#8ac86a', topDk: '#5a9a4a', dirt: '#a8a49c', dirtDk: '#86827a', edge: '#4a4842' },   // the quarry's grey granite
   aquinnah: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },  // the red clay of the cliffs      // cobblestones on Boston's old brick
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
@@ -3392,7 +3801,7 @@ function onewayTile(theme, L, Rt, alt) {
     g.strokeStyle = '#2a2a32'; g.lineWidth = 0.7; for (let k = 1; k < 16; k += 3) { g.beginPath(); g.moveTo(k, 3); g.lineTo(k, 8); g.stroke(); }
     g.beginPath(); g.moveTo(-0.5, 8); g.lineTo(16.5, 8); g.stroke(); g.beginPath(); g.arc(8, 5.5, 1.6, 0, TAU); g.stroke();
     if (alt) { ell(8, 9.5, 3, 1.6); g.fillStyle = '#3a8a3a'; g.fill(); }   // a hanging fern
-  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys' || SWAMP.has(theme) || theme === 'boston' || theme === 'pemaquid' || theme === 'midnight' || theme === 'nantucket') {   // boardwalk planks on posts (and ships' decks, and fish flakes)
+  } else if (theme === 'daytona' || theme === 'stpete' || theme === 'deco' || theme === 'keys' || SWAMP.has(theme) || theme === 'boston' || theme === 'pemaquid' || theme === 'midnight' || theme === 'nantucket' || theme === 'valleyforge' || theme === 'philly' || theme === 'capital' || theme === 'mchenry') {   // boardwalk planks on posts (and ships' decks, and fish flakes)
     rrect(L ? 0.5 : -0.5, 0, 16 - (L ? 0.5 : -0.5) - (Rt ? 0.5 : -0.5), 6, [L ? 2 : 0, Rt ? 2 : 0, Rt ? 2 : 0, L ? 2 : 0]); paint(vgrad(0, 6, '#dcae70', '#9a6a3a'), 1, '#5a3a1a');
     g.fillStyle = 'rgba(80,50,20,.45)'; g.fillRect(alt ? 7 : 3, 0.5, 0.8, 5); g.fillRect(alt ? 13 : 10, 0.5, 0.8, 5);
     g.fillStyle = 'rgba(255,255,255,.3)'; g.fillRect(L ? 2 : 0, 0.8, 12, 0.8);
@@ -4319,6 +4728,124 @@ SCENERY.midnight = [
     g.lineCap = 'butt';
   } },
 ];
+SCENERY.granite = [
+  { sp: 0.04, draw() {   // far off across the river, Charlestown, and the Bunker Hill Monument going up inside its scaffolding
+    g.fillStyle = '#a8b8c4'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 16) g.lineTo(x, 160 - Math.sin(x / 60) * 6); g.lineTo(BG_W, 224); g.fill();
+    g.fillStyle = '#c8c4bc'; g.beginPath(); g.moveTo(330, 160); g.lineTo(334, 104); g.lineTo(344, 104); g.lineTo(348, 160); g.closePath(); g.fill();
+    g.strokeStyle = 'rgba(120,90,60,.6)'; g.lineWidth = 0.8; for (let k = 0; k < 5; k++) { g.beginPath(); g.moveTo(326, 160 - k * 12); g.lineTo(352, 160 - k * 12); g.stroke(); } g.beginPath(); g.moveTo(326, 160); g.lineTo(326, 98); g.moveTo(352, 160); g.lineTo(352, 98); g.stroke();
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 36 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // the quarry: grey granite walls cut in steps, drill marks down their faces, and wooden derricks
+    g.fillStyle = '#9a968e'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 40) { const h = 130 + rndB(x, 3) * 30; g.lineTo(x, h); g.lineTo(x + 40, h); } g.lineTo(BG_W, 224); g.fill();
+    g.strokeStyle = 'rgba(70,66,60,.35)'; g.lineWidth = 1; for (let x = 6; x < BG_W; x += 9) { g.beginPath(); g.moveTo(x, 140 + rndB(x, 5) * 20); g.lineTo(x, 175 + rndB(x, 6) * 20); g.stroke(); }
+    g.fillStyle = '#7a7670'; g.fillRect(0, 186, BG_W, 40);
+    for (const dx of [80, 300]) { g.strokeStyle = '#6a4a2a'; g.lineWidth = 3; g.beginPath(); g.moveTo(dx, 186); g.lineTo(dx, 96); g.stroke(); g.lineWidth = 2; g.beginPath(); g.moveTo(dx, 180); g.lineTo(dx + 60, 112); g.stroke();
+      g.strokeStyle = 'rgba(60,40,20,.6)'; g.lineWidth = 0.7; g.beginPath(); g.moveTo(dx, 96); g.lineTo(dx + 60, 112); g.moveTo(dx + 56, 116); g.lineTo(dx + 56, 140); g.stroke(); g.fillStyle = '#b8b4ac'; g.fillRect(dx + 49, 140, 14, 10); }
+  } },
+];
+// ---- World 2's places ----
+const colonialRow = (base, n, step, cols, lit) => {   // a row of brick houses with white trim, their windows lit or not
+  for (let i = 0; i < n; i++) { const x = i * step, h = 46 + (i % 3) * 12; g.fillStyle = cols[i % cols.length]; g.fillRect(x, base - h, step - 8, h + 40);
+    g.fillStyle = '#3a2420'; g.beginPath(); g.moveTo(x - 3, base - h + 2); g.lineTo(x + (step - 8) / 2, base - h - 14); g.lineTo(x + step - 5, base - h + 2); g.closePath(); g.fill();
+    for (let r = 0; r < 2; r++) for (let c = 0; c < 3; c++) { g.fillStyle = lit && rndB(i * 7 + r * 3 + c, 5) < 0.6 ? '#ffd27a' : lit ? '#2a2a3a' : '#e8eef4'; g.fillRect(x + 8 + c * ((step - 22) / 2), base - h + 10 + r * 18, 7, 10); g.fillStyle = '#f4f0e6'; g.fillRect(x + 7 + c * ((step - 22) / 2), base - h + 9 + r * 18, 9, 1.2); } }
+};
+SCENERY.delaware = [
+  SCENERY.boston[0],
+  { sp: 0.16, draw() {   // the icy Delaware River at night, with ice floes, and the far bank in New Jersey
+    g.fillStyle = vgrad(160, 224, '#1e2e50', '#0e1830'); g.fillRect(-1, 160, BG_W + 2, 64);
+    for (let i = 0; i < 9; i++) { const x = rndB(i, 3) * BG_W, y = 172 + rndB(i, 4) * 40; g.fillStyle = 'rgba(230,240,255,.75)'; g.beginPath(); g.ellipse(x, y, 14 + rndB(i, 5) * 12, 3, 0, 0, TAU); g.fill(); }
+    g.fillStyle = '#e8eef8'; g.beginPath(); g.moveTo(0, 162); for (let x = 0; x <= BG_W; x += 12) g.lineTo(x, 152 - Math.sin(x / 50) * 5); g.lineTo(BG_W, 162); g.fill();
+    for (let i = 0; i < 12; i++) { const x = 10 + i * 40; g.fillStyle = '#1a2a3a'; g.beginPath(); g.moveTo(x - 6, 154); g.lineTo(x, 132 - (i % 3) * 6); g.lineTo(x + 6, 154); g.fill(); }
+  } },
+  { sp: 0.34, draw() {   // snowy bare trees and the soldiers' campfires on the near bank
+    g.fillStyle = '#dfe8f4'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 190 + Math.sin(x / 30) * 4); g.lineTo(BG_W, 224); g.fill();
+    g.strokeStyle = '#1e2636'; g.lineCap = 'round'; for (let i = 0; i < 5; i++) { const x = 30 + i * 96; g.lineWidth = 3.4; g.beginPath(); g.moveTo(x, 194); g.lineTo(x, 136); g.stroke(); g.lineWidth = 1.4; for (const [a, l] of [[-0.7, 24], [0.6, 20], [-0.2, 14]]) { g.beginPath(); g.moveTo(x, 158 - l * 0.3); g.lineTo(x + Math.sin(a) * l, 158 - l * 0.3 - Math.cos(a) * l); g.stroke(); } } g.lineCap = 'butt';
+    for (const x of [120, 340]) { glow(x, 186, 20, 'rgba(255,170,70,1)', 0.6); g.beginPath(); g.moveTo(x - 4, 190); g.quadraticCurveTo(x, 178, x + 4, 190); g.fillStyle = '#ffa23a'; g.fill(); }
+  } },
+];
+SCENERY.ludington = [
+  { sp: 0.03, draw() { g.fillStyle = 'rgba(40,50,80,.6)'; for (let i = 0; i < 5; i++) { g.beginPath(); g.ellipse(60 + i * 100, 40 + (i % 2) * 20, 70, 20, 0, 0, TAU); g.fill(); } } },   // heavy rain clouds, no moon
+  SCENERY.midnight[1], SCENERY.midnight[2],
+];
+SCENERY.saratoga = [
+  { sp: 0.04, draw() {   // the Hudson valley in October: hills in red, orange and gold
+    for (let r = 0; r < 2; r++) { g.fillStyle = r ? '#c8783a' : '#b89a6a'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 14) g.lineTo(x, 140 + r * 18 - Math.sin(x / 70 + r) * 14); g.lineTo(BG_W, 224); g.fill(); }
+    g.fillStyle = '#7ab0d8'; g.fillRect(0, 186, BG_W, 6);   // the river
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 36 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // autumn woods: round trees in red, orange and yellow, and a split-rail fence
+    for (let i = 0; i < 12; i++) { const x = 10 + i * 42 + rndB(i, 2) * 12, r = 16 + rndB(i, 3) * 8; g.fillStyle = '#5a3a24'; g.fillRect(x - 2, 170, 4, 30); g.beginPath(); g.arc(x, 162, r, 0, TAU); g.fillStyle = ['#d84a2a', '#e88a2a', '#f0c040', '#c8602a'][i % 4]; g.fill(); }
+    g.fillStyle = '#8a6a44'; for (let x = 0; x < BG_W; x += 30) { g.fillRect(x, 192, 2.4, 14); } g.fillRect(0, 195, BG_W, 2); g.fillRect(0, 201, BG_W, 2);
+  } },
+];
+SCENERY.valleyforge = [
+  { sp: 0.04, draw() { g.fillStyle = '#b8c4d4'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 16) g.lineTo(x, 140 - Math.sin(x / 80) * 12); g.lineTo(BG_W, 224); g.fill(); } },
+  { sp: 0.14, draw() { for (let i = 0; i < 4; i++) cloudPuff(40 + i * 120, 40 + (i % 2) * 20, 1, '#f4f6fa', 'rgba(170,185,205,.7)'); } },
+  { sp: 0.32, draw() {   // the winter camp: rows of little log huts with smoking chimneys, in the snow
+    g.fillStyle = '#eef2f8'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 184 + Math.sin(x / 40) * 3); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 8; i++) { const x = 10 + i * 60, y = 168 + (i % 2) * 6; g.fillStyle = '#7a5434'; g.fillRect(x, y, 34, 18); g.fillStyle = 'rgba(40,24,10,.4)'; for (let k = 0; k < 4; k++) g.fillRect(x, y + 3 + k * 4.4, 34, 1);
+      g.fillStyle = '#f4f8ff'; g.beginPath(); g.moveTo(x - 3, y + 1); g.lineTo(x + 17, y - 10); g.lineTo(x + 37, y + 1); g.closePath(); g.fill(); g.fillStyle = '#5a4030'; g.fillRect(x + 26, y - 12, 5, 9); g.fillStyle = '#3a2418'; g.fillRect(x + 13, y + 8, 7, 10);
+      for (let k = 0; k < 3; k++) { g.globalAlpha = 0.35 - k * 0.1; g.beginPath(); g.arc(x + 28.5 - k * 3, y - 16 - k * 7, 3 + k * 1.6, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1; }
+  } },
+];
+SCENERY.philly = [
+  { sp: 0.04, draw() {   // Independence Hall's tower over the city (the State House, where the Declaration was signed)
+    const x = 300; g.fillStyle = '#9a5a44'; g.fillRect(x - 60, 120, 120, 70); g.fillRect(x - 12, 70, 24, 60);
+    g.fillStyle = '#f4f0e6'; g.fillRect(x - 9, 48, 18, 24); g.beginPath(); g.moveTo(x - 6, 48); g.lineTo(x, 26); g.lineTo(x + 6, 48); g.closePath(); g.fill(); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x, 82, 5, 0, TAU); g.fill();
+    for (let c = 0; c < 6; c++) { g.fillStyle = '#e8eef4'; g.fillRect(x - 54 + c * 19, 132, 8, 12); g.fillRect(x - 54 + c * 19, 156, 8, 12); }
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 30 + (i % 2) * 22, 0.9); } },
+  { sp: 0.34, draw() { colonialRow(196, 9, 56, ['#a8503a', '#9a4632', '#b45a40'], false); } },
+];
+SCENERY.capital = [
+  { sp: 0.04, draw() {   // the new Capitol on its hill, still being built, and the President's House
+    g.fillStyle = '#a8c08a'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 16) g.lineTo(x, 160 - Math.sin(x / 90) * 8); g.lineTo(BG_W, 224); g.fill();
+    g.fillStyle = '#f2ece0'; g.fillRect(250, 116, 120, 40); g.fillRect(286, 100, 48, 18);
+    g.strokeStyle = 'rgba(120,90,60,.7)'; g.lineWidth = 1; for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(240, 156 - k * 12); g.lineTo(380, 156 - k * 12); g.stroke(); } for (const sx of [240, 280, 340, 380]) { g.beginPath(); g.moveTo(sx, 156); g.lineTo(sx, 96); g.stroke(); }   // scaffolding
+    g.fillStyle = '#f8f6f0'; g.fillRect(60, 130, 70, 28); g.beginPath(); g.moveTo(84, 130); g.lineTo(95, 120); g.lineTo(106, 130); g.closePath(); g.fill();
+  } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 34 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // muddy fields, tree stumps and stacks of building stone: a whole new city going up
+    g.fillStyle = '#8aa85a'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 188 + Math.sin(x / 36) * 3); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 7; i++) { const x = 20 + i * 70; g.fillStyle = '#7a5434'; g.fillRect(x, 182, 10, 8); ell(x + 5, 182, 5, 1.6); g.fillStyle = '#b08a5a'; g.fill(); }
+    for (const x of [140, 380]) { g.fillStyle = '#e0dcd0'; for (let r = 0; r < 3; r++) for (let c = 0; c < 4 - r; c++) g.fillRect(x + c * 12 + r * 6, 182 - r * 7, 11, 6); }
+  } },
+];
+SCENERY.mchenry = [
+  { sp: 0.03, draw() {   // night over Baltimore harbour, lit by rockets and bursting bombs
+    for (let i = 0; i < 30; i++) { g.globalAlpha = 0.4 + rndB(i, 2) * 0.5; g.fillStyle = '#ffffff'; g.fillRect(rndB(i, 1) * BG_W, rndB(i, 3) * 100, 1.2, 1.2); } g.globalAlpha = 1;
+    for (const [x, y] of [[80, 60], [260, 40], [400, 80]]) { glow(x, y, 30, 'rgba(255,150,60,1)', 0.45); for (let k = 0; k < 8; k++) { const a = k * TAU / 8; g.strokeStyle = 'rgba(255,200,120,.7)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + Math.cos(a) * 6, y + Math.sin(a) * 6); g.lineTo(x + Math.cos(a) * 14, y + Math.sin(a) * 14); g.stroke(); } }
+  } },
+  { sp: 0.16, draw() {   // the British fleet out in the harbour
+    g.fillStyle = vgrad(170, 224, '#1e2440', '#0e1226'); g.fillRect(-1, 172, BG_W + 2, 52);
+    for (let i = 0; i < 4; i++) { const x = 40 + i * 120; g.fillStyle = '#14121e'; g.beginPath(); g.moveTo(x, 170); g.lineTo(x + 60, 170); g.lineTo(x + 52, 178); g.lineTo(x + 8, 178); g.closePath(); g.fill(); for (let m = 0; m < 2; m++) g.fillRect(x + 18 + m * 22, 124, 2, 46);
+      g.strokeStyle = 'rgba(255,120,60,.6)'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 30, 160); g.quadraticCurveTo(x + 10, 100, x - 30, 90); g.stroke(); }   // rockets' trails
+  } },
+  { sp: 0.34, draw() {   // the star-shaped fort's brick walls
+    g.fillStyle = '#5a3a2e'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 60) { g.lineTo(x, 184); g.lineTo(x + 30, 176); } g.lineTo(BG_W, 184); g.lineTo(BG_W, 224); g.fill();
+    g.fillStyle = 'rgba(0,0,0,.25)'; for (let x = 0; x < BG_W; x += 12) g.fillRect(x, 190, 6, 2);
+  } },
+];
+SCENERY.culper = [
+  SCENERY.cliffs[0], SCENERY.cliffs[1],
+  { sp: 0.34, draw() {   // the Long Island shore: dunes and beach grass, a farmhouse, and Anna Strong's clothesline (a black petticoat meant "a message is ready")
+    g.fillStyle = '#e8d8a8'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 182 + Math.sin(x / 40) * 6); g.lineTo(BG_W, 224); g.fill();
+    g.strokeStyle = '#7a9a4a'; g.lineWidth = 1; for (let i = 0; i < 40; i++) { const x = rndB(i, 4) * BG_W, y = 184 + Math.sin(x / 40) * 6; g.beginPath(); g.moveTo(x, y); g.lineTo(x - 3, y - 8); g.moveTo(x, y); g.lineTo(x + 2, y - 9); g.stroke(); }
+    g.fillStyle = '#9a9a9e'; g.fillRect(60, 150, 50, 30); g.beginPath(); g.moveTo(56, 152); g.lineTo(85, 132); g.lineTo(114, 152); g.closePath(); g.fillStyle = '#5a5a62'; g.fill();
+    g.strokeStyle = '#6a4a2a'; g.lineWidth = 1.6; g.beginPath(); g.moveTo(140, 182); g.lineTo(140, 150); g.moveTo(220, 182); g.lineTo(220, 150); g.stroke(); g.lineWidth = 0.6; g.beginPath(); g.moveTo(140, 152); g.quadraticCurveTo(180, 158, 220, 152); g.stroke();
+    for (const [x, c] of [[154, '#1e1e24'], [174, '#f4f0e6'], [190, '#f4f0e6'], [204, '#c8302a']]) { g.fillStyle = c; g.fillRect(x, 154, 10, 12); }
+  } },
+];
+SCENERY.bando = [
+  { sp: 0.04, draw() { g.fillStyle = '#a8c098'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 16) g.lineTo(x, 150 - Math.sin(x / 60) * 10); g.lineTo(BG_W, 224); g.fill(); } },
+  { sp: 0.16, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 34 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // the Patapsco valley: the B&O's stone viaduct and the mills at Ellicott's Mills
+    g.fillStyle = '#c8bca8'; g.fillRect(40, 150, 220, 12); for (let k = 0; k < 6; k++) { g.beginPath(); g.moveTo(44 + k * 36, 200); g.lineTo(44 + k * 36, 166); g.arc(62 + k * 36, 166, 18, Math.PI, 0); g.lineTo(80 + k * 36, 200); g.fillStyle = '#c8bca8'; g.fill(); }
+    g.fillStyle = '#8a8478'; for (let k = 0; k < 6; k++) { g.beginPath(); g.arc(62 + k * 36, 170, 13, Math.PI, 0); g.lineTo(75 + k * 36, 200); g.lineTo(49 + k * 36, 200); g.fill(); }
+    g.fillStyle = '#9a6a4a'; g.fillRect(330, 140, 70, 54); g.beginPath(); g.moveTo(326, 142); g.lineTo(365, 118); g.lineTo(404, 142); g.closePath(); g.fillStyle = '#5a3a28'; g.fill();
+    g.fillStyle = '#8aa85a'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 8) g.lineTo(x, 196 + Math.sin(x / 30) * 3); g.lineTo(BG_W, 224); g.fill();
+  } },
+];
 SCENERY.aquinnah = [
   SCENERY.cliffs[0], SCENERY.cliffs[1],
   { sp: 0.3, draw() {   // the striped clay cliffs of Aquinnah (red, cream, orange and grey bands), with the Wampanoag's wetus on top
@@ -4343,7 +4870,9 @@ const SKIES = {
   atlantic: ['#8aaac6', '#e8eef0'], plimoth: ['#7ec2f0', '#f6ecd6'],
   mayflower: ['#7ac0f0', '#ffe8c8'], lighthouse: ['#5aa8e8', '#e8f4ff'], summit: ['#7aa0cc', '#e6ecf4'], maple: ['#8ac0e8', '#f6eedc'],
   mystic: ['#5ab0e8', '#eaf6ff'], newport: ['#4aa8f0', '#fff4dc'], slater: ['#7ab0d0', '#f2eadc'], boston: ['#070c26', '#24305e'],
-  pemaquid: ['#6aaee6', '#eef4f6'], midnight: ['#060a22', '#1e2a58'], aquinnah: ['#5ab0f0', '#fff0dc'],
+  pemaquid: ['#6aaee6', '#eef4f6'], granite: ['#7ab4e6', '#f2ece0'],
+  delaware: ['#0a1430', '#3a4a70'], ludington: ['#0a0e22', '#262e4a'], saratoga: ['#7ab4e6', '#f6e6c8'], valleyforge: ['#9ab0c8', '#eef2f6'],
+  philly: ['#6ab4ec', '#f2ecd8'], capital: ['#7ab8ec', '#f6eedc'], mchenry: ['#100818', '#5a2a30'], culper: ['#6ab4ec', '#fff0d8'], bando: ['#80b8e8', '#f4ead4'], midnight: ['#060a22', '#1e2a58'], aquinnah: ['#5ab0f0', '#fff0dc'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -4516,7 +5045,7 @@ function mk(k, x, y, o = {}) { return { k, x, y, w: 14, h: 14, vx: 0, vy: 0, dir
 function spawnFromSpec(e) {
   const x = e.x * TS, y = e.y * TS;
   switch (e.k) {
-    case 'grumblin': ents.push(mk('grumblin', x + 1, y + 2, { dir: -1, w: 14, h: 14 })); break;
+    case 'grumblin': ents.push(mk('grumblin', x + 1, y + 2, { dir: -1, w: 14, h: 14, as: e.as })); break;
     case 'snaily': ents.push(mk('snaily', x + 1, y, { dir: -1, w: 14, h: 16 })); break;
     case 'thorny': ents.push(mk('thorny', x + 1, y + 3, { dir: -1, w: 14, h: 13 })); break;
     case 'buzzer': ents.push(mk('buzzer', x, y, { y0: y, x0: x, w: 14, h: 12, as: e.as })); break;
@@ -4561,6 +5090,7 @@ function spawnFromSpec(e) {
     case 'palm': ents.push(mk('appletree', x, 0, { w: 0, h: 0, cool: rand(0.3, 1.5), palm: true })); break;   // a palm tree that drops coconuts
     case 'hint': ents.push(mk('hint', x - 16, y - 3 * TS, { w: 48, h: 4 * TS })); break;
     case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
+    case 'goldspike': ents.push(mk('goldspike', x, y, { w: 14, h: 16 })); break;   // a region's golden spike: it opens the railroad depot
     case 'sponge': ents.push(mk('sponge', x, 12 * TS - 7, { x0: x, y0: 12 * TS - 7, w: (e.w || 3) * TS, h: 9, deep: !!e.deep, mx: 0, my: 0, sq: 0 })); break;
     case 'frog': ents.push(mk('frog', x, y, { w: 14, h: 12, kick: rand(0.3, 1.2), face: -1 })); break;
     case 'tadpoles': case 'turtle': case 'minnows': ents.push(mk(e.k, x, y, { x0: x, y0: y, w: 0, h: 0, ph: rand(0, 6) })); break;
@@ -4703,7 +5233,8 @@ function updatePlayer(dt) {
   if (p.swim && !wasSwim) { p.vy *= 0.3; p.pound = null; p.twirl = 0; p.slide = 0; sfx.splash(); for (let i = 0; i < 8; i++) particle(p.x + p.w / 2, p.y + p.h - 4, rand(-60, 60), rand(-160, -40), '#d8f0ff', 0.6, rand(1.5, 3)); }
   if (p.swim && Math.random() < 0.05) bubble(p.x + p.w / 2 + p.face * 6, p.y + 4);
   p.sticky = p.ground && inSyrup(p);   // maple syrup: slow going, and only a little hop
-  const run = inp.run, maxV = (p.swim ? 72 : run ? 165 : 92) * (p.sticky ? 0.4 : 1), acc = p.ground ? 520 : p.swim ? 300 : 380;
+  const run = inp.run, maxV = (p.swim ? 72 : run ? 165 : 92) * (p.sticky ? 0.4 : 1) * (heroNow() === 'sybil' && !p.swim ? 1.12 : 1),   // (Sybil is the fastest runner)
+    acc = p.ground ? 520 : p.swim ? 300 : 380;
   // crouching (S or LT on the ground): Leo ducks and stops; jump from a crouch for a big backflip
   p.crouch = inp.down && p.ground && !p.pound && !p.mount;
   let dir = p.crouch || p.pound ? 0 : (inp.right ? 1 : 0) - (inp.left ? 1 : 0);
@@ -5273,11 +5804,18 @@ function touchPlayer(e) {
     case 'prism':   // the rainbow prism: Shamrock's eye laser
       if (e.rise > 0) break;
       e.gone = true; p.laser = true; sfx.power(); addScore(1000, e.x, e.y); sparkle(e.x + 8, e.y + 8, '#ffffff', 14);
-      banner('RAINBOW PRISM!', p.mount ? "Shamrock's eye laser: " + runText() + ' to fire' : "Hop on Shamrock to fire his eye laser", 2.6);
+      banner('STAR SHINES!', p.mount ? "The star on Star's forehead shines a beam: " + runText() + ' to fire it' : 'Hop on Star the horse to fire his beam', 2.6);
       break;
     case 'sflag':   // a secret exit
       reachGoal(true);
       break;
+    case 'goldspike': {   // the golden spike: the region's railroad depot opens (saved at once)
+      e.gone = true; const d = DEPOTS.find(o => o.spikeIn === (lvl.parent || lvl.id));
+      if (d && !save.spikes[d.w]) { save.spikes[d.w] = true; persist(); openCache = null; }
+      sfx.oneUp(); addScore(5000, e.x, e.y); sparkle(e.x + 7, e.y + 8, '#ffe14a', 18);
+      banner('GOLDEN SPIKE!', d ? `🚂 The railroad depot at ${d.region.split(',')[0]} is open! Find it on the map.` : '🚂 The railroad is coming!', 3.4);
+      break;
+    }
     case 'skyexit':
       if (outside && outside.sky != null) leaveClouds();
       break;
@@ -5422,6 +5960,11 @@ function updateBoss(e, dt) {
       if (ph >= 1) { e.throwT = gap * 0.8; bossShot('cannonball', 152 * TS + 4, (Math.random() < 0.5 ? 10 : 8.5) * TS, 150, -70, { grav: 300 }); }   // and a cannon on the wall joins in
     }
     else if (who === 'rocket') bossShot('acorn', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+    else if (who === 'admiral') {   // cannonballs from his ships; after a hit, rockets along the ground; after two, bombs bursting from the sky too
+      if (ph === 0) bossShot('cannonball', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+      else { const fromR = p.x < 172 * TS; bossShot('rocket', (fromR ? 194 : 153) * TS, ARENA_FLOOR - 9, fromR ? -170 - ph * 20 : 170 + ph * 20, 0, { w: 14, h: 7, grav: 0.001 }); }
+      if (ph === 2) bossShot('bomb', clamp(p.x + rand(-24, 24), 153 * TS, 192 * TS), -6, 0, 0, { w: 10, h: 10, grav: 520, wait: 0.8 });
+    }
     else if (who === 'lobsterback') {   // chests of tea, lobbed across the square (and, with the band playing, dropping from the sky too)
       bossShot('tea', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
       if (ph === 2) bossShot('tea', clamp(p.x + rand(-30, 30), 153 * TS, 190 * TS), -10, 0, 0, { grav: 500 });
@@ -5514,7 +6057,8 @@ function afterDeath() {
 let endFrom = 'castle';
 // what happens after each world's boss (the bosses are still being built)
 const WORLD_ENDS = {
-  lexington: { title: 'NEW ENGLAND <span>CLEAR!</span>', sub: '🔔 "The shot heard round the world": the American Revolution has begun! Next stop, the Mid-Atlantic, where Sybil Ludington will join you.', btn: '🗺️ On to the Mid-Atlantic', toast: '🏮 The Mid-Atlantic is still being built. Check back soon!' },
+  mchenry: { title: 'MID-ATLANTIC <span>CLEAR!</span>', sub: '🇺🇸 "Our flag was still there!" Francis Scott Key wrote a poem about that night: "The Star-Spangled Banner." Next: the Atlantic South, with James Forten.', btn: '🗺️ On to the Atlantic South', toast: '⚓ The Atlantic South is still being built. Check back soon!' },
+  lexington: { title: 'NEW ENGLAND <span>CLEAR!</span>', sub: '🔔 "The shot heard round the world": the American Revolution has begun! 🏮 <b>Sybil Ludington</b> joins you for the Mid-Atlantic: the fastest runner and the best rider. (Switch heroes any time in 👪 The heroes.)', btn: '🗺️ On to the Mid-Atlantic', toast: '🏮 Sybil Ludington has joined you! On to the Mid-Atlantic.' },
 };
 const BOSS_BEATEN = {};
 const LAST_BOSS = 'spike';   // (the Golden Spike, 1869: the end of the story)
@@ -5571,6 +6115,7 @@ function quizAnswer(b) {
   }
 }
 function quizDone() {
+  if (quiz.w === 0 && !save.quiz[0]) save.hero = 'sybil';   // Sybil Ludington joins (and you play as her; Wrestling is a tap away in the heroes screen)
   save.quiz[quiz.w] = true; persist(); openCache = null;
   quizEl.classList.add('hidden'); sfx.key();
   const done = quiz.onPass; quiz = null; done();
@@ -5819,13 +6364,14 @@ function drawEnt0(e, t) {
   const tt = t + (e.x % 7);   // so enemies don't all move in step
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
-    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
+    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : c === 'hessian' ? drawHessian : c === 'raccoon' ? drawRaccoon : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
     case 'turkey': drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
     case 'snaily': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
     case 'shell': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': (lvl.cast && lvl.cast.thorny === 'porcupine' ? drawPorcupine : drawThorny)(x - 1, y - 3 - spookHop(e), tt, face, e); break;
-    case 'buzzer': if (e.as === 'gull') drawGull(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'crow') drawCrow(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'gull') drawGull(x - 1, y - 2, tt, face); else if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
-    case 'snapper': if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40); g.clip(); drawSnapper(x - 2, y - 2, tt); g.restore(); } break;
+    case 'buzzer': if (e.as === 'gull') drawGull(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'crow') drawCrow(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'hornet') drawHornet(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'gull') drawGull(x - 1, y - 2, tt, face); else if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'snapper': { const hog = lvl.cast && lvl.cast.snapper === 'groundhog'; if (hog) { ell(x + 4, e.pipeY * TS, 10, 3.4); g.fillStyle = '#7a5434'; g.fill(); ell(x + 4, e.pipeY * TS - 0.6, 5, 1.6); g.fillStyle = '#2a180a'; g.fill(); }   // (a groundhog's burrow)
+      if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40 - (hog ? 1 : 0)); g.clip(); (hog ? drawGroundhog : drawSnapper)(x - 2, y - 2, tt); g.restore(); } break; }
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
     case 'firebar': for (let i = 0; i <= e.len; i++) drawFireball(x + Math.cos(e.ang) * i * 8, y + Math.sin(e.ang) * i * 8, t + i * 0.05); break;
     case 'spring': drawSpring(x, y, e.squash); break;
@@ -5878,7 +6424,7 @@ function drawEnt0(e, t) {
       g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
       g.restore(); break;
     }
-    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (e.look === 'raft') drawRaft(e, t); else if (e.look === 'rowboat') drawRowboat(e, t); else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
+    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (e.look === 'raft') drawRaft(e, t); else if (e.look === 'rowboat' || e.look === 'durham') drawRowboat(e, t); else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river') drawSteamboat(e, t); else drawBoat(e, t); break;
     case 'heron': drawHeron(e, tt, FLAMINGOS.has(lvl.theme)); break;
     case 'snake': drawSnake(e, tt); break;
     case 'gator': drawGator(x, y, tt, face, e.w + 2); break;
@@ -5947,12 +6493,13 @@ function drawEnt0(e, t) {
     }
     case 'crab': {   // a little red crab, scuttling sideways and snapping its claws (on the Gulf Coast, a crawfish)
       if (GULF.has(lvl.theme)) { drawCrawfish(x, y, e.t, e.dir || -1); break; }
+      const blue = lvl.cast && lvl.cast.crab === 'blue', SH = blue ? '#4a7ab8' : '#e84a32', DK = blue ? '#2a4a7a' : '#b83222';   // (a Chesapeake blue crab: blue, with red-tipped claws)
       g.save(); g.translate(x + 8, y + 12);
       const sn = Math.abs(Math.sin(e.t * 9));
-      for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) { g.save(); g.translate(sx * (2 + i * 2), -3); g.rotate(sx * (0.7 + Math.sin(e.t * 16 + i) * 0.3)); g.fillStyle = '#b83222'; g.fillRect(-0.5, 0, 1, 4); g.restore(); }
-      ell(0, -5, 7, 4.2); g.fillStyle = '#e84a32'; g.fill();
-      for (const sx of [-1, 1]) { ell(sx * 8, -8, 2.8, 2.2); g.fillStyle = '#e84a32'; g.fill(); g.beginPath(); g.moveTo(sx * 9, -9); g.lineTo(sx * 11.5, -11 - sn * 1.5); g.lineTo(sx * 10.5, -8); g.fillStyle = '#b83222'; g.fill(); }
-      for (const ex of [-2, 2]) { g.fillStyle = '#b83222'; g.fillRect(ex - 0.4, -11, 0.8, 3); g.beginPath(); g.arc(ex, -11.4, 1.2, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex, -11.4, 0.6, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }
+      for (let i = 0; i < 3; i++) for (const sx of [-1, 1]) { g.save(); g.translate(sx * (2 + i * 2), -3); g.rotate(sx * (0.7 + Math.sin(e.t * 16 + i) * 0.3)); g.fillStyle = DK; g.fillRect(-0.5, 0, 1, 4); g.restore(); }
+      ell(0, -5, 7, 4.2); g.fillStyle = SH; g.fill();
+      for (const sx of [-1, 1]) { ell(sx * 8, -8, 2.8, 2.2); g.fillStyle = SH; g.fill(); g.beginPath(); g.moveTo(sx * 9, -9); g.lineTo(sx * 11.5, -11 - sn * 1.5); g.lineTo(sx * 10.5, -8); g.fillStyle = blue ? '#e8402a' : DK; g.fill(); }
+      for (const ex of [-2, 2]) { g.fillStyle = DK; g.fillRect(ex - 0.4, -11, 0.8, 3); g.beginPath(); g.arc(ex, -11.4, 1.2, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.beginPath(); g.arc(ex, -11.4, 0.6, 0, TAU); g.fillStyle = '#1e2a3a'; g.fill(); }
       g.restore(); break;
     }
     case 'hint': {   // up arrows in the wall-jump gap
@@ -5973,6 +6520,7 @@ function drawEnt0(e, t) {
     case 'shark': if (e.look === 'sturgeon') drawSturgeon(e, t); else if (e.look === 'tarpon') drawTarpon(e, t); else drawShark(e, t); break;
     case 'whale': drawWhale(e, t); break;
     case 'sealhead': drawSealHead(x, y, tt); break;
+    case 'goldspike': { const d = DEPOTS.find(o => o.spikeIn === (lvl.parent || lvl.id)), got = d && save.spikes[d.w]; g.globalAlpha = got ? 0.45 : 1; drawSpikeIcon(x + 7, y + 7 + Math.sin(t * 3) * 1.5, 1.6, true); g.globalAlpha = 1; break; }
     case 'sflag': {   // a golden flag with a star: a secret way out
       rrect(x + 6, y, 3, e.h, 1.5); paint(C.gold, 0.8);
       const wv = Math.sin(t * 5) * 1.5; g.beginPath(); g.moveTo(x + 9, y + 2); g.quadraticCurveTo(x + 16, y + 4 + wv, x + 22, y + 6); g.lineTo(x + 9, y + 12); g.closePath(); paint('#ffe14a', 0.8);
@@ -5988,6 +6536,16 @@ function drawEnt0(e, t) {
     case 'unicorn': drawUnicorn(x + 8, y + 22, e.face || 1, t, e.st === 'flee' ? 1 : 0); break;
     case 'acorn': if (e.kind === 'tea') { g.save(); g.translate(x + 5, y + 5); g.rotate(e.t * 5 * Math.sign(e.vx || 1)); rrect(-6, -5, 12, 10, 1); paint(vgrad(-5, 5, '#c8945a', '#8a5a32'), 0.8, '#3a2414'); g.font = 'bold 3.6px sans-serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#2a180a'; g.fillText('TEA', 0, 0.4); g.restore(); }
       else if (e.kind === 'wave') { g.beginPath(); g.moveTo(x - 4, y + e.h); g.quadraticCurveTo(x + 2, y - 8, x + e.w + 4, y + 2); g.quadraticCurveTo(x + e.w - 2, y + 6, x + e.w + 2, y + e.h); g.closePath(); paint(vgrad(y - 6, y + e.h, '#cfeaff', '#2a7ad8'), 0.8, '#ffffff'); for (let k = 0; k < 3; k++) { g.beginPath(); g.arc(x + 2 + k * 5, y - 2 + Math.sin(e.t * 9 + k) * 1.5, 1.6, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } }
+      else if (e.kind === 'rocket') {   // a Congreve rocket: a red-and-black tube on a long stick, trailing sparks
+        const d = Math.sign(e.vx || 1); g.save(); g.translate(x + 7, y + 3.5); g.scale(d, 1);
+        for (let k = 0; k < 4; k++) { g.globalAlpha = 0.7 - k * 0.15; g.beginPath(); g.arc(-10 - k * 4 + Math.random() * 2, Math.random() * 2 - 1, 2.4 - k * 0.4, 0, TAU); g.fillStyle = k % 2 ? '#ffd23a' : '#ff6a2a'; g.fill(); } g.globalAlpha = 1;
+        glow(-8, 0, 10, 'rgba(255,120,40,1)', 0.6); g.fillStyle = '#6a4424'; g.fillRect(-14, -0.6, 10, 1.2);
+        rrect(-6, -2.6, 10, 5.2, 1.6); paint('#c8302a', 0.6, '#5a1a10'); g.beginPath(); g.moveTo(4, -2.6); g.lineTo(8, 0); g.lineTo(4, 2.6); g.closePath(); paint('#2a2a32');
+        g.restore(); }
+      else if (e.kind === 'bomb') {   // a mortar bomb: its shadow warns where it'll land, then down it comes, fuse fizzing
+        const gy = ARENA_FLOOR; if (e.wait > 0 || e.y < gy - 30) { g.globalAlpha = 0.35; ell(x + 5, gy - 1, 7, 2); g.fillStyle = '#000'; g.fill(); g.globalAlpha = 1; }
+        g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); paint('#2a2a32'); g.beginPath(); g.arc(x + 3.4, y + 3.4, 1.4, 0, TAU); g.fillStyle = 'rgba(255,255,255,.4)'; g.fill();
+        g.strokeStyle = '#8a6a44'; g.lineWidth = 1; g.beginPath(); g.moveTo(x + 5, y); g.lineTo(x + 7, y - 3); g.stroke(); glow(x + 7, y - 3.5, 5, 'rgba(255,200,80,1)', 0.8 + Math.random() * 0.2); }
       else if (e.kind === 'cannonball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); g.fillStyle = '#2a2a32'; g.fill(); g.beginPath(); g.arc(x + 3.4, y + 3.4, 1.6, 0, TAU); g.fillStyle = 'rgba(255,255,255,.45)'; g.fill(); }
       else if (e.kind === 'snowball') { g.beginPath(); g.arc(x + 5, y + 5, 5, 0, TAU); paint('#ffffff', 0.8, '#9ab8dc'); g.beginPath(); g.arc(x + 3.5, y + 3.5, 1.6, 0, TAU); paint('rgba(200,225,255,.9)'); }
       else if (e.kind === 'bubble') { g.globalAlpha = 0.8; g.beginPath(); g.arc(x + 5, y + 5, 5.5, 0, TAU); g.fillStyle = 'rgba(180,230,255,.35)'; g.fill(); g.lineWidth = 0.9; g.strokeStyle = '#e8f8ff'; g.stroke(); g.beginPath(); g.arc(x + 3, y + 3, 1.4, 0, TAU); g.fillStyle = '#fff'; g.fill(); g.globalAlpha = 1; }
@@ -6004,11 +6562,12 @@ function drawEnt0(e, t) {
       const ph = (e.maxHp || 3) - e.hp, fade = e.ghost > 0 ? Math.max(0, e.ghost / 0.5) : e.appear > 0 ? 1 - e.appear / 0.45 : 1;
       g.globalAlpha = fade;
       if (e.kind === 'lobster') drawRedcoatBoss(x - 2, y, tt, face, hurtBlink, ph === 0);
+      else if (e.kind === 'admiral') drawAdmiralBoss(x - 2, y, tt, face, hurtBlink, ph === 0);
       else if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink, ph === 0); else if (e.kind === 'gator') drawGatorBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
       drawBossCostume(e, x - 2, y, tt, face, ph);
       g.globalAlpha = 1;
       if (lvl.theme === 'cape' && e.kind === 'grumbles') { g.beginPath(); g.arc(x + 14, y + 7 - Math.abs(Math.sin(tt * 6)) * 1.5, 17, 0, TAU); g.fillStyle = 'rgba(200,240,255,.22)'; g.fill(); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.8)'; g.stroke(); ell(x + 8, y - 1, 4, 2.4, -0.6); g.fillStyle = 'rgba(255,255,255,.55)'; g.fill(); }   // King Grumbles in a space helmet
-      if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - (e.kind === 'lobster' ? 32 : 16), 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
+      if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - (e.kind === 'lobster' || e.kind === 'admiral' ? 32 : 16), 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
       break;
     }
   }
@@ -6092,15 +6651,16 @@ const NODES = [
   at('lexington', US(-71.45, 42.62), 'The Midnight Ride', 'Lexington and Concord, Massachusetts', { year: 1775, boss: 'castle' }),
   at('nantucket', US(-70.08, 41.27), 'Nantucket', 'the whaling island', { island: true }),   // secret-only islands
   at('vineyard', US(-70.62, 41.39), "Martha's Vineyard", 'Noepe, the Wampanoag island', { island: true }),
-  // World 2: the Mid-Atlantic, a new nation (1775 to 1830)
-  at('saratoga', US(-73.65, 43.0), 'Saratoga', 'New York', { year: 1777, soon: true }),
-  at('delaware', US(-74.87, 40.3), 'Crossing the Delaware', 'New Jersey', { year: 1776, soon: true }),
-  at('valleyforge', US(-75.45, 40.1), 'Valley Forge', 'Pennsylvania', { year: 1777, soon: true }),
-  at('independence', US(-75.15, 39.7), 'Independence Hall', 'Philadelphia, Pennsylvania', { year: 1787, soon: true }),
-  at('eriecanal', US(-76.2, 43.05), 'The Erie Canal', 'New York', { year: 1825, soon: true }),
-  at('mchenry', US(-76.58, 39.27), 'Fort McHenry', 'Baltimore, Maryland', { year: 1814, soon: true }),
-  at('capital', US(-77.3, 38.85), 'The New Capital', 'Washington, D.C.', { year: 1800, soon: true, boss: 'castle' }),
-  at('culper', US(-73.1, 40.95), 'The Culper Ring', 'Long Island, New York', { island: true, soon: true }),
+  // World 2: the Mid-Atlantic, a new nation (1776 to 1814): across the Delaware, Sybil's ride in New York, Saratoga, the
+  // winter at Valley Forge, Philadelphia, the new capital, and Fort McHenry in Baltimore
+  at('delaware', US(-74.85, 40.28), 'Crossing the Delaware', 'Trenton, New Jersey', { year: 1776 }),
+  at('ludington', US(-73.62, 41.45), "Sybil's Ride", 'Putnam County, New York', { year: 1777 }),
+  at('saratoga', US(-73.65, 43.0), 'Saratoga', 'New York', { year: 1777 }),
+  at('valleyforge', US(-75.6, 40.42), 'Valley Forge', 'Pennsylvania', { year: 1777 }),
+  at('independence', US(-75.15, 39.95), 'Independence Hall', 'Philadelphia, Pennsylvania', { year: 1787 }),
+  at('capital', US(-77.3, 38.85), 'The New Capital', 'Washington, D.C.', { year: 1800 }),
+  at('mchenry', US(-76.58, 39.27), 'Fort McHenry', 'Baltimore, Maryland', { year: 1814, boss: 'castle' }),
+  at('culper', US(-73.1, 40.95), 'The Culper Ring', 'Long Island, New York', { island: true }),   // secret-only
   // World 3: the Atlantic South (1565 to 1830s)
   at('staugustine', US(-81.31, 29.9), 'St. Augustine', 'Florida', { year: 1565, soon: true }),
   at('jamestown', US(-76.78, 37.21), 'Jamestown', 'Virginia', { year: 1607, soon: true }),
@@ -6123,7 +6683,7 @@ const NODES = [
   at('mackinac', US(-84.62, 45.85), 'Fort Mackinac', 'Michigan', { year: 1780, soon: true }),
   at('detroit', US(-83.05, 42.33), 'Fort Detroit', 'Michigan', { year: 1796, soon: true }),
   at('prophetstown', US(-86.87, 40.5), 'Prophetstown', 'Indiana, Tecumseh and the Shawnee', { year: 1808, soon: true }),
-  at('lakeerie', US(-81.7, 41.6), 'Lake Erie', 'Ohio', { year: 1825, soon: true }),
+  at('lakeerie', US(-81.7, 41.6), 'The Erie Canal to Lake Erie', 'New York and Ohio', { year: 1825, soon: true }),
   at('greenbay', US(-88.0, 44.5), 'The Fur Post', 'Green Bay, Wisconsin', { year: 1820, soon: true }),
   at('chicago', US(-87.63, 41.88), 'Chicago', 'Illinois', { year: 1833, soon: true }),
   at('newsalem', US(-89.84, 40.0), "Lincoln's New Salem", 'Illinois', { year: 1831, soon: true, boss: 'castle' }),
@@ -6166,11 +6726,32 @@ const NODES = [
   at('spike', US(-112.55, 41.62), 'The Golden Spike', 'Promontory Summit, Utah', { year: 1869, soon: true, boss: 'castle' }),
   at('klondike', US(-139.4, 64.06), 'The Klondike', 'the Yukon, Canada', { island: true, soon: true, area: 'ak' }),
 ];
+// ---- the railroad, the game's "Star Road" ----
+// Every region has a railroad depot, a little station near one of its levels. A region's golden spike (hidden in one of its
+// levels) opens its depot; then the train takes you between any two open depots in seconds, and each depot has its own
+// Railroad Challenge level, short and hard, from the railroad age (1826 to 1869). The track runs coast to coast, like the
+// real railroads that joined the country; the parts still being built are drawn faint, with "coming soon" stations.
+const DEPOTS = [
+  { id: 'quincy', w: 0, from: 'boston', xy: US(-70.93, 42.24), name: 'The Granite Railway', region: 'Quincy, Massachusetts', year: 1826, spikeIn: 'nantucket' },
+  { id: 'baltimore', w: 1, from: 'mchenry', xy: US(-76.95, 39.5), name: "Tom Thumb's Race", region: 'Baltimore, Maryland', year: 1830, spikeIn: 'culper' },
+  { id: 'bestfriend', w: 2, from: 'charleston', xy: US(-80.4, 33.15), name: 'The Best Friend of Charleston', region: 'Charleston, South Carolina', year: 1830 },
+  { id: 'chattanooga', w: 3, from: 'newechota', xy: US(-85.31, 35.05), name: 'Chattanooga Station', region: 'Chattanooga, Tennessee', year: 1850 },
+  { id: 'chicagorail', w: 4, from: 'chicago', xy: US(-87.95, 41.55), name: 'The Pioneer Engine', region: 'Chicago, Illinois', year: 1848 },
+  { id: 'omaha', w: 5, from: 'pony', xy: US(-95.94, 41.26), name: 'The Union Pacific', region: 'Omaha, Nebraska', year: 1865 },
+  { id: 'cheyenne', w: 6, from: 'pikes', xy: US(-104.82, 41.14), name: 'Over Sherman Hill', region: 'Cheyenne, Wyoming', year: 1867 },
+  { id: 'santaferail', w: 7, from: 'santafe', xy: US(-106.35, 35.25), name: 'The Santa Fe Line', region: 'New Mexico', year: 1869 },
+  { id: 'sacramento', w: 8, from: 'sutter', xy: US(-121.49, 38.58), name: 'The Central Pacific', region: 'Sacramento, California', year: 1863 },
+];
+const DEPOT = Object.fromEntries(DEPOTS.map(d => [d.id, d]));
+for (const d of DEPOTS) NODES.push(at(d.id, d.xy, d.name, d.region, { year: d.year, depot: true, soon: !LEVELS[d.id] }));
+// the track: east to west along the main line, with a branch south from Baltimore and one down to Santa Fe
+const RAIL_TRACK = [['quincy', 'baltimore'], ['baltimore', 'bestfriend'], ['bestfriend', 'chattanooga'], ['baltimore', 'chicagorail'],
+  ['chicagorail', 'omaha'], ['omaha', 'cheyenne'], ['cheyenne', 'sacramento'], ['omaha', 'santaferail']];
 const node = id => NODES.find(n => n.id === id);
 const START = 'voyage';   // the story starts on the Mayflower, coming into Provincetown Harbor in 1620
 const WORLDS = [
   ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington'],
-  ['saratoga', 'delaware', 'valleyforge', 'independence', 'eriecanal', 'mchenry', 'capital'],
+  ['delaware', 'ludington', 'saratoga', 'valleyforge', 'independence', 'capital', 'mchenry'],
   ['staugustine', 'jamestown', 'blackbeard', 'charleston', 'savannah', 'monticello', 'yorktown'],
   ['cumberland', 'boonesborough', 'mammoth', 'nashville', 'newechota', 'steamboat', 'neworleans'],
   ['mackinac', 'detroit', 'prophetstown', 'lakeerie', 'greenbay', 'chicago', 'newsalem'],
@@ -6179,16 +6760,17 @@ const WORLDS = [
   ['mesaverde', 'santafe', 'santafetrail', 'alamo', 'riogrande', 'chisholm', 'grandcanyon', 'rattlesnake'],
   ['oregoncity', 'columbia', 'sutter', 'sanfrancisco', 'sierra', 'spike']];
 const worldOf = id => { const w = WORLDS.findIndex(w => w.includes(id)); if (w >= 0) return w; const p = PATHS.find(([a, b]) => b === id); return p ? worldOf(p[0]) : -1; };   // (secret levels belong to the world they open from)
-const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return '★'; };   // (secret levels get a star)
+const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WORLDS[w].indexOf(id); if (i >= 0) return `${w + 1}-${i + 1}`; } return DEPOT[id] ? '🚂' : '★'; };   // (secret levels get a star; railroad depots a train)
 // the road: each level to the next, in story order, and the secret paths (opened by secret exits) to the secret-only levels
 const ROUTE = WORLDS.flat();
 const PATHS = [...ROUTE.slice(1).map((id, i) => [ROUTE[i], id]),
-  ['voyage', 'nantucket', 'secret'], ['cranberry', 'vineyard', 'secret'], ['independence', 'culper', 'secret'], ['blackbeard', 'cove', 'secret'], ['mammoth', 'longhunter', 'secret'],
-  ['mackinac', 'portage', 'secret'], ['pony', 'relay', 'secret'], ['rendezvous', 'hiddenvalley', 'secret'], ['santafe', 'camino', 'secret'], ['sutter', 'klondike', 'secret']];
-const pathReady = ([a, b, sec]) => save.unlockAll ? true : sec ? !!save.secrets[a] : worldOf(a) === worldOf(b) || worldOf(a) < 0 || !!save.quiz[worldOf(a)];   // (into the next region: once its quiz is passed)
+  ['voyage', 'nantucket', 'secret'], ['cranberry', 'vineyard', 'secret'], ['ludington', 'culper', 'secret'], ['blackbeard', 'cove', 'secret'], ['mammoth', 'longhunter', 'secret'],
+  ['mackinac', 'portage', 'secret'], ['pony', 'relay', 'secret'], ['rendezvous', 'hiddenvalley', 'secret'], ['santafe', 'camino', 'secret'], ['sutter', 'klondike', 'secret'],
+  ...DEPOTS.map(d => [d.from, d.id, 'rail'])];   // (a spur out to each region's railroad depot, open once its golden spike is found)
+const pathReady = ([a, b, sec]) => save.unlockAll ? true : sec === 'rail' ? !!save.spikes[DEPOT[b].w] : sec ? !!save.secrets[a] : worldOf(a) === worldOf(b) || worldOf(a) < 0 || !!save.quiz[worldOf(a)];   // (into the next region: once its quiz is passed)
 // most of the trip is on foot; a few legs are by boat, and the far north by plane (for now)
 const FLIGHT_PATHS = new Set(['sutter|klondike']);
-const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'independence|culper', 'blackbeard|cove', 'mackinac|portage', 'yorktown|cumberland']);
+const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'ludington|culper', 'blackbeard|cove', 'mackinac|portage', 'yorktown|cumberland']);
 // a few trails are bent by hand: the boats keep to the sea
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
@@ -6206,7 +6788,7 @@ const pathBetween = (x, y) => PATHS.find(([a, b]) => (a === x && b === y) || (a 
 // you can walk past), and again only when something's been beaten or found. Unlock All opens everything, while we build.
 let openCache = null, openKey = '';
 function openSet() {
-  const key = Object.keys(save.cleared).length + '|' + Object.keys(save.secrets).length + '|' + Object.keys(save.quiz).length + '|' + save.key + '|' + !!save.unlockAll;
+  const key = Object.keys(save.cleared).length + '|' + Object.keys(save.secrets).length + '|' + Object.keys(save.quiz).length + '|' + Object.keys(save.spikes).length + '|' + save.key + '|' + !!save.unlockAll;
   if (openCache && key === openKey) return openCache;
   const open = new Set(save.unlockAll ? NODES.map(n => n.id) : [START]);
   for (const id in save.cleared) if (save.cleared[id] && node(id)) open.add(id);
@@ -6307,6 +6889,68 @@ const INFO = {
     { f: 'Nantucket became the whaling capital of the world. Oil from whales burned in lamps and lit homes and streets before there was electricity.', q: 'What was whale oil used for?', a: ['Lighting lamps', 'Making pancakes', 'Painting houses'] },
     { f: 'A whaling voyage could last three or four years! Families watched for the ships from rooftop platforms called widow\'s walks.', q: 'How long could a whaling voyage last?', a: ['Three or four years', 'One afternoon', 'One week'] },
   ],
+  quincy: [
+    { f: 'The Granite Railway in Quincy, Massachusetts, opened in 1826. It was one of the very first railroads in America.', q: "Where was one of America's first railroads?", a: ['Quincy, Massachusetts', 'Los Angeles', 'Paris'] },
+    { f: 'Its cars were not pulled by steam engines. Horses pulled wagons of granite along wooden rails topped with iron!', q: 'What pulled the cars on the Granite Railway?', a: ['Horses', 'Steam engines', 'Elephants'] },
+    { f: 'The granite went to build the Bunker Hill Monument, a tall stone tower in Charlestown that remembers a battle of 1775.', q: "What was built with the Granite Railway's stone?", a: ['The Bunker Hill Monument', 'The Statue of Liberty', 'The Golden Gate Bridge'] },
+  ],
+  delaware: [
+    { f: 'On Christmas night, 1776, George Washington led his army across the icy Delaware River in boats, through a snowstorm.', q: 'What did Washington\'s army cross on Christmas night, 1776?', a: ['The icy Delaware River', 'The Pacific Ocean', 'The Grand Canyon'] },
+    { f: 'They crossed in long, flat Durham boats, usually used to carry iron ore and grain down the river.', q: 'What kind of boats carried Washington\'s army across?', a: ['Durham boats', 'Steamboats', 'Canoes made of ice'] },
+    { f: 'At dawn they surprised the Hessians at Trenton: German soldiers paid by Britain to fight in America.', q: 'Who were the Hessians?', a: ['German soldiers paid by Britain', 'American farmers', 'French sailors'] },
+    { f: 'The surprise win at Trenton gave the Americans hope, just when many thought the war was lost.', q: 'Why was the win at Trenton important?', a: ['It gave the Americans hope', 'It ended the war', 'It made Washington king'] },
+    { f: 'Many of Washington\'s soldiers had no proper boots, and some left bloody footprints in the snow.', q: 'What did many of Washington\'s soldiers not have?', a: ['Proper boots', 'Names', 'Hats with feathers'] },
+  ],
+  ludington: [
+    { f: 'On April 26, 1777, 16-year-old Sybil Ludington rode about 40 miles through the rainy night to call out her father\'s militia.', q: 'How old was Sybil Ludington on her ride?', a: ['16', '6', '60'] },
+    { f: 'British soldiers had raided the town of Danbury, Connecticut, and set fire to the army\'s supplies stored there.', q: 'What town did the British raid that night?', a: ['Danbury, Connecticut', 'London, England', 'Plymouth'] },
+    { f: 'Sybil\'s father, Colonel Henry Ludington, led the local militia: farmers ready to fight when called.', q: 'What was a militia?', a: ['Neighbors ready to fight when called', 'A kind of horse', 'A secret code'] },
+    { f: 'People say Sybil rode a horse named Star, and banged on doors with a stick to wake people up.', q: 'What was Sybil\'s horse called, people say?', a: ['Star', 'Liberty', 'Thunder'] },
+    { f: 'Sybil rode more than twice as far as Paul Revere did on his famous ride two years before.', q: 'Who rode farther: Sybil Ludington or Paul Revere?', a: ['Sybil Ludington', 'Paul Revere', 'They rode the same'] },
+  ],
+  saratoga: [
+    { f: 'In October 1777, the Americans beat a big British army at Saratoga, New York. Its general, John Burgoyne, surrendered.', q: 'Where did the Americans win a great battle in 1777?', a: ['Saratoga, New York', 'Paris, France', 'San Francisco'] },
+    { f: 'Saratoga is called the turning point of the war: after it, France agreed to help America with soldiers, ships and money.', q: 'Which country joined America\'s side after Saratoga?', a: ['France', 'Japan', 'Mexico'] },
+    { f: 'The soldiers built forts of logs and earth called redoubts on the hills around the battlefield.', q: 'What were redoubts?', a: ['Small forts of logs and earth', 'Kinds of boats', 'Fancy hats'] },
+    { f: 'Wild turkeys lived in the woods of New York. Ben Franklin said the turkey was a "much more respectable bird" than the bald eagle!', q: 'Which bird did Ben Franklin call "more respectable" than the eagle?', a: ['The turkey', 'The pigeon', 'The penguin'] },
+  ],
+  valleyforge: [
+    { f: 'In the winter of 1777, Washington\'s army camped at Valley Forge, Pennsylvania. The soldiers built about 2,000 log huts.', q: 'Where did Washington\'s army spend the winter of 1777?', a: ['Valley Forge', 'Florida', 'Hawaii'] },
+    { f: 'Each hut was about 14 feet by 16 feet, with a fireplace, and twelve soldiers slept in it.', q: 'About how many soldiers slept in each hut at Valley Forge?', a: ['Twelve', 'One', 'A thousand'] },
+    { f: 'Food and clothes were scarce. Many soldiers got sick, but the army held together through the winter.', q: 'What was hard about Valley Forge?', a: ['Food and clothes were scarce', 'It was too hot', 'There was too much candy'] },
+    { f: 'Baron von Steuben, from Prussia (Germany), drilled the soldiers until they marched and fought like a real army.', q: 'Who trained the soldiers at Valley Forge?', a: ['Baron von Steuben', 'Paul Revere', 'King George'] },
+  ],
+  independence: [
+    { f: 'On July 4, 1776, in this building in Philadelphia, America declared its independence from Britain.', q: 'What happened on July 4, 1776?', a: ['America declared independence', 'The Pilgrims landed', 'The railroad was finished'] },
+    { f: 'Thomas Jefferson wrote most of the Declaration of Independence. It says that "all men are created equal."', q: 'Who wrote most of the Declaration of Independence?', a: ['Thomas Jefferson', 'Sybil Ludington', 'Paul Revere'] },
+    { f: 'In 1787, leaders met here again to write the Constitution: the plan for how the United States is governed.', q: 'What is the Constitution?', a: ['The plan for how the country is governed', 'A ship', 'A kind of bell'] },
+    { f: 'Benjamin Franklin, a printer, inventor and scientist, was 81 years old at the Constitutional Convention: the oldest one there.', q: 'Who was the oldest leader at the Constitutional Convention?', a: ['Benjamin Franklin', 'George Washington', 'Wrestling Brewster'] },
+    { f: 'The Liberty Bell hung in the State House tower. It has a big crack, and it hasn\'t been rung since the 1840s.', q: 'What is the Liberty Bell famous for?', a: ['Its big crack', 'Being made of gold', 'Ringing every morning'] },
+  ],
+  capital: [
+    { f: 'In 1800 the government moved to a brand-new capital city: Washington, D.C., on the Potomac River.', q: 'Where did the government move in 1800?', a: ['Washington, D.C.', 'New York City', 'Boston'] },
+    { f: 'Benjamin Banneker, a free Black astronomer and mathematician, helped survey the land for the new capital.', q: 'Who helped survey the land for Washington, D.C.?', a: ['Benjamin Banneker', 'Blackbeard', 'Tisquantum'] },
+    { f: 'John Adams was the first president to live in the President\'s House, later called the White House.', q: 'Who was the first president to live in the White House?', a: ['John Adams', 'George Washington', 'Abraham Lincoln'] },
+    { f: 'Much of the work building the White House and the Capitol was done by enslaved people, who were never paid.', q: 'Who did much of the work building the White House and the Capitol?', a: ['Enslaved people', 'Robots', 'Pilgrims'] },
+    { f: 'In 1800 the new city was still mostly mud, tree stumps and half-built buildings!', q: 'What was Washington, D.C., like in 1800?', a: ['Muddy and half-built', 'Full of skyscrapers', 'Under the sea'] },
+  ],
+  mchenry: [
+    { f: 'In the War of 1812, Britain and America fought again. In 1814, British ships bombarded Fort McHenry in Baltimore all night.', q: 'Which fort did British ships bombard in 1814?', a: ['Fort McHenry', 'Fort Knox', 'Plymouth Rock'] },
+    { f: 'Francis Scott Key watched the attack from a ship. At dawn he saw the American flag still flying, and wrote a poem about it.', q: 'What did Francis Scott Key see at dawn?', a: ['The flag still flying', 'A whale', 'A rainbow'] },
+    { f: 'Key\'s poem became "The Star-Spangled Banner," the national anthem of the United States.', q: 'What is the national anthem called?', a: ['"The Star-Spangled Banner"', '"Yankee Doodle"', '"Happy Birthday"'] },
+    { f: 'The fort\'s giant flag was sewn by Mary Pickersgill, her daughter and helpers. It had 15 stars and 15 stripes.', q: 'Who sewed the giant flag for Fort McHenry?', a: ['Mary Pickersgill', 'Betsy Ross', 'Sybil Ludington'] },
+    { f: '"The rockets\' red glare" in the song was real: the British fired rockets at the fort all night.', q: 'What is "the rockets\' red glare" in the anthem?', a: ['Real rockets fired at the fort', 'Fireworks for a party', 'The sunrise'] },
+  ],
+  culper: [
+    { f: 'The Culper Ring was a secret group of spies on Long Island, New York, who sent messages to General Washington.', q: 'What was the Culper Ring?', a: ['A group of secret spies', 'A gold ring', 'A ship'] },
+    { f: 'The spies wrote with invisible ink. A special liquid made the hidden words appear!', q: 'How did the Culper spies hide their messages?', a: ['Invisible ink', 'Smoke signals', 'Carrier turtles'] },
+    { f: 'Anna Strong hung a black petticoat on her clothesline to tell the spies a message was ready.', q: 'What did Anna Strong use to signal the spies?', a: ['A black petticoat on her clothesline', 'A lighthouse', 'A trumpet'] },
+  ],
+  baltimore: [
+    { f: 'The Baltimore and Ohio, begun in 1828, was the first railroad in America built to carry passengers and freight.', q: 'What was special about the Baltimore and Ohio Railroad?', a: ['It was the first to carry passengers and freight', 'It went to the Moon', 'It was underwater'] },
+    { f: 'In 1830 a little steam engine named Tom Thumb raced a horse pulling a rail car. The horse won when Tom Thumb broke down!', q: 'Who won the race between Tom Thumb and the horse?', a: ['The horse', 'Tom Thumb', 'Nobody raced'] },
+    { f: 'Even though it lost the race, Tom Thumb showed that steam engines could pull trains. Soon they replaced horses.', q: 'What did Tom Thumb show?', a: ['Steam engines could pull trains', 'Horses can fly', 'Trains need sails'] },
+  ],
   vineyard: [
     { f: 'The Wampanoag name for Martha\'s Vineyard is Noepe, which means "land amid the streams."', q: 'What is the Wampanoag name for Martha\'s Vineyard?', a: ['Noepe', 'Shawmut', 'Patuxet'] },
     { f: 'The clay cliffs at Aquinnah are striped red, white, orange and gray. The Wampanoag have lived beside them for thousands of years.', q: 'What makes the cliffs at Aquinnah special?', a: ['Stripes of colored clay', 'They are made of ice', 'They are made of gold'] },
@@ -6389,6 +7033,7 @@ let secretJustFound = null;   // (a secret exit is announced the first time it's
 const SECRET_TOASTS = {
   voyage: '🧭 Secret exit! The Mayflower first tried to sail south for the Hudson River. A golden sea lane now runs past the shoals to Nantucket',
   cranberry: "🛶 Secret exit! A mishoon trail now crosses the sound to Noepe, Martha's Vineyard",
+  ludington: '🕵️ Secret exit! A spy\'s message: a path opens to the Culper Ring on Long Island',
 };
 // which levels hide a secret exit (the map shows a little star by them: grey until it's found, then gold, like Super Mario World's red dots)
 const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LEVELS[id] && LEVELS[id].secretGoal);
@@ -6396,7 +7041,7 @@ const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LE
 // others come as their worlds are built). Where history doesn't record a name, the hero is a young person of that time.
 const HEROES = [
   ['🎩', 'Wrestling Brewster, Pilgrim', 1620, 'New England', 'About 6 when he sailed on the Mayflower with his father, Elder William Brewster. Throws his tall hat like a boomerang.'],
-  ['🏮', 'Sybil Ludington, Patriot rider', 1777, 'the Mid-Atlantic', 'At 16 she rode 40 miles through the night to call out the militia. The fastest runner and the best rider.'],
+  ['🏮', 'Sybil Ludington, Patriot rider', 1777, 'the Mid-Atlantic', 'At 16 she rode about 40 miles through a rainy night to call out the militia. The fastest runner, and the best rider on Star the horse.'],
   ['⚓', 'James Forten, powder boy', 1781, 'the Atlantic South', 'Went to sea at 14 in the Revolution, and later fought to end slavery. A grappling hook to swing from rigging.'],
   ['🪓', 'Jemima Boone, frontier girl', 1776, 'over the mountains', "Daniel Boone's daughter, who grew up on the Kentucky frontier. Climbs trees and cliffs, and walks quietly."],
   ['🛶', 'A young voyageur', 1790, 'the Great Lakes', "Paddled the fur traders' canoes thousands of miles. Canoes through the water levels; snowshoes on deep snow."],
@@ -6408,13 +7053,17 @@ const HEROES = [
 const heroesEl = document.getElementById('heroes');
 let heroesFrom = 'title';
 function showHeroes() {
-  if (state === 'map' && mapLeo.to) return;
+  if (state === 'map' && (mapLeo.to || mapLeo.train)) return;
   closeFact(); heroesFrom = state; state = 'heroes'; showTouch();
   document.getElementById('title').classList.add('hidden');
-  document.getElementById('hlist').innerHTML = HEROES.map(([icon, name, year, where, skill], i) => {
-    const here = i === 0;   // (Wrestling is the only one so far: the others join when their regions are built)
-    return `<button type="button" ${here ? '' : 'disabled'}><span class="ri">${here ? icon : '🔒'}</span><b>${name}</b><span class="rdone">${here ? '✔' : year}</span><small>${here ? skill : `Joins in World ${i + 1}, ${where}. ${skill}`}</small></button>`;
-  }).join('');
+  const list = () => {   // the heroes who've joined can be picked (tap one to play as them); the rest join in their regions
+    document.getElementById('hlist').innerHTML = HEROES.map(([icon, name, year, where, skill], i) => {
+      const here = heroJoined(i) && HERO_IDS[i], playing = here && heroNow() === HERO_IDS[i];
+      return `<button type="button" ${here ? '' : 'disabled'} data-hero="${HERO_IDS[i] || ''}"><span class="ri">${here ? icon : '🔒'}</span><b>${name}</b><span class="rdone">${playing ? '✔ Playing' : here ? 'Pick' : year}</span><small>${here ? skill : `Joins in World ${i + 1}, ${where}. ${skill}`}</small></button>`;
+    }).join('');
+    document.querySelectorAll('#hlist button[data-hero]:not([disabled])').forEach(b => b.addEventListener('click', () => { RB.audio(); save.hero = b.dataset.hero; persist(); sfx.power(); list(); }));
+  };
+  list();
   heroesEl.classList.remove('hidden'); heroesEl.scrollTop = 0;
 }
 function hideHeroes() {
@@ -6457,6 +7106,7 @@ function mapMove(dir) {
 }
 // a tap: on the whole map, zoom in on that world; on a world, walk to the level tapped (tap it again to go in)
 function mapTap(cxp, cyp) {
+  if (mapLeo.train || state !== 'map') return;
   if (factOpen) { closeFact(); return; }
   const dpr = canvas.width / innerWidth, lx = cxp * dpr / scale, ly = (cyp * dpr - offY) / scale;
   if (mapWhole) {
@@ -6481,15 +7131,67 @@ function mapTap(cxp, cyp) {
   if (!mapLeo.to && route.length) mapLeo.to = mapLeo.path.shift();
 }
 function enterLevel() {
-  if (mapLeo.to) return;
+  if (mapLeo.to || mapLeo.train) return;
   if (mapWhole) { mapZoom(false); return; }   // (on the whole map, jump zooms back in)
   const n = node(mapLeo.at);
+  if (n.depot) { showStation(n.id); return; }
   if (n.soon || !LEVELS[n.id]) { RB.toast(`🚧 ${n.name} is still being built. Coming soon!`, 2200); sfx.bump(); return; }
   sfx.enter(); hideTouchBriefly(); startLevel(mapLeo.at);
+}
+// ---- a railroad depot: play its Railroad Challenge, or ride the train to another open depot ----
+const stationEl = document.getElementById('station');
+function showStation(id) {
+  const d = DEPOT[id], n = node(id);
+  state = 'station'; showTouch(); sfx.enter();
+  document.getElementById('stHead').textContent = `${d.region}, ${d.year}. Ride the train to any open depot, or try this depot's Railroad Challenge: the hardest levels in the game!`;
+  const row = (icon, title, sub, ok, act) => `<button type="button" ${ok ? '' : 'disabled'} data-act="${act}"><span class="ri">${icon}</span><b>${title}</b><span class="rdone">${ok ? '▶' : ''}</span><small>${sub}</small></button>`;
+  const rows = [row('🏁', `Railroad Challenge: ${d.name}`, n.soon ? '🚧 Still being built. Coming soon!' : `${save.cleared[id] ? '✔ Cleared! ' : ''}A short, hard level from ${d.year}.`, !n.soon && !!LEVELS[id], 'play')];
+  for (const o of DEPOTS) {
+    if (o.id === id) continue;
+    const ok = depotOpen(o.id);
+    rows.push(row(ok ? '🚂' : node(o.id).soon ? '🚧' : '🔒', `To ${o.region}`, ok ? `World ${o.w + 1}: ${WORLD_NAMES[o.w]}` : node(o.id).soon ? `World ${o.w + 1}: ${WORLD_NAMES[o.w]}. Coming soon!` : `Find World ${o.w + 1}'s golden spike to open this depot.`, ok, 'ride:' + o.id));
+  }
+  const list = document.getElementById('stList'); list.innerHTML = rows.join('');
+  list.querySelectorAll('button').forEach(b => b.addEventListener('click', () => {
+    RB.audio(); const act = b.dataset.act; stationEl.classList.add('hidden');
+    if (act === 'play') { state = 'map'; sfx.enter(); hideTouchBriefly(); startLevel(id); }
+    else { state = 'map'; rideTrain(id, act.slice(5)); }
+  }));
+  stationEl.classList.remove('hidden'); stationEl.scrollTop = 0;
+  const first = list.querySelector('button:not([disabled])') || document.getElementById('btnStBack'); first.focus({ preventScroll: true });
+}
+function hideStation() { stationEl.classList.add('hidden'); goMap(mapLeo.at, true); }
+document.getElementById('btnStBack').addEventListener('click', () => { RB.audio(); hideStation(); });
+// the train: along the track from depot to depot (breadth-first through the line), with the whole country in view
+function railRoute(a, b) {
+  const prev = { [a]: null }, q = [a];
+  while (q.length) { const c = q.shift(); for (const [x, y] of RAIL_TRACK) { const o = x === c ? y : y === c ? x : null; if (o && !(o in prev)) { prev[o] = c; q.push(o); } } }
+  if (!(b in prev)) return null;
+  const r = []; for (let c = b; c; c = prev[c]) r.unshift(c); return r;
+}
+function rideTrain(from, to) {
+  const r = railRoute(from, to); if (!r) return;
+  const pts = r.map(id => ({ x: node(id).x, y: node(id).y }));
+  let len = 0; for (let i = 1; i < pts.length; i++) len += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+  mapLeo.train = { pts, len, d: 0, to, ang: 0 }; mapLeo.to = null; mapLeo.path = []; mapWhole = true; mapLook = null;
+  sfx.oneUp(); RB.toast(`🚂 All aboard for ${DEPOT[to].region}!`, 2000);
+}
+function updateTrain(dt) {
+  const tr = mapLeo.train, sp = clamp(tr.len / 4, 80, 220);   // (a long ride takes about four seconds)
+  tr.d = Math.min(tr.len, tr.d + sp * dt);
+  let left = tr.d;
+  for (let i = 1; i < tr.pts.length; i++) {
+    const A = tr.pts[i - 1], B = tr.pts[i], L = Math.hypot(B.x - A.x, B.y - A.y);
+    if (left <= L || i === tr.pts.length - 1) { const u = L ? Math.min(1, left / L) : 1; mapLeo.x = A.x + (B.x - A.x) * u; mapLeo.y = A.y + (B.y - A.y) * u; tr.ang = Math.atan2(B.y - A.y, B.x - A.x); break; }
+    left -= L;
+  }
+  if (Math.random() < dt * 3) sfx.step();
+  if (tr.d >= tr.len) { mapLeo.train = null; sfx.key(); goMap(tr.to, true); }
 }
 function updateMap(dt) {
   clock += dt;
   if (factOpen) { if (pressed.jump || pressed.start) closeFact(); return; }
+  if (mapLeo.train) { updateTrain(dt); const want = mapWant(), k = Math.min(1, dt * 4); mapCam.x += (want.x - mapCam.x) * k; mapCam.y += (want.y - mapCam.y) * k; mapCam.z *= Math.pow(want.z / mapCam.z, k); return; }
   if (pressed.run || pressed.zoom) mapZoom();
   if (!mapLeo.to) {
     if (pressed.left) mapMove([-1, 0]); else if (pressed.right) mapMove([1, 0]);
@@ -6659,14 +7361,16 @@ function drawMap() {
   // haven't beaten marches with gold dots; secret trails are gold with a twinkle; boat lanes are dashed with a little
   // sailboat, flights are dashed arcs with a plane; locked trails are faint grey dots until they open.
   const pf = clamp(0.55 + z * 0.4, 0.7, 1.1);
+  drawRailroad(pf);
   if (mapWhole) for (const n of NODES) {   // the whole map: just a dot for each level (gold to play, red once beaten)
-    if (n.soon || !worldOpen(worldOf(n.id)) || !nodeOpen(n)) continue;
+    if (n.depot || n.soon || !worldOpen(worldOf(n.id)) || !nodeOpen(n)) continue;
     const [x, y] = mapS(n.x, n.y); g.beginPath(); g.arc(x, y, 1.6, 0, TAU); paint(save.cleared[n.id] ? '#e8453a' : '#ffd23a', 0.6, 'rgba(0,0,0,.4)');
   }
   else for (const pth of PATHS) {
     const a = node(pth[0]), b = node(pth[1]), w = worldOf(b.id);
     if (!worldOpen(w) && !worldOpen(worldOf(a.id))) continue;
     if (!pathOpen(pth) && (b.secret || b.island || b.bonus || pth[2])) continue;
+    if (pth[2] === 'rail') { if (onScreen(a.x, a.y) || onScreen(b.x, b.y)) drawRails(mapS(a.x, a.y), mapS(b.x, b.y), true, pf, 0.6); continue; }   // (the spur out to the depot)
     if (!onScreen(a.x, a.y) && !onScreen(b.x, b.y) && !onScreen(pathCtrl(pth).x, pathCtrl(pth).y)) continue;
     const c = pathCtrl(pth), key = pth[0] + '|' + pth[1], open = pathOpen(pth), sea = SEA_PATHS.has(key);
     const P = u => { const q = qbez(a, c, b, u), [x, y] = mapS(q.x, q.y); return { x, y }; };
@@ -6694,7 +7398,7 @@ function drawMap() {
   }
   // level badges (and signposts for the levels still being built)
   if (!mapWhole) for (const n of NODES) {
-    if (!worldOpen(worldOf(n.id)) || !onScreen(n.x, n.y)) continue;
+    if (n.depot || !worldOpen(worldOf(n.id)) || !onScreen(n.x, n.y)) continue;
     if (n.secret && !nodeOpen(n)) continue;
     if ((n.bonus || n.island) && !nodeOpen(n)) continue;   // (Outer Space appears once the rocket's ready; a secret island once its secret exit is found)
     const open = nodeOpen(n), done = save.cleared[n.id], here = mapLeo.at === n.id && !mapLeo.to, [x, y] = mapS(n.x, n.y);
@@ -6719,6 +7423,7 @@ function drawMap() {
   }
   // the hero, hopping along the paths (or flying, in a little plane, or sailing: out on the Atlantic at the start, and along the sea lanes)
   const [lx, ly] = mapS(mapLeo.x, mapLeo.y), ls = mapWhole ? 0.6 : 1;
+  if (mapLeo.train) { drawTrainIcon(lx, ly, mapLeo.train.ang, 1.4); return; }
   if (mapLeo.flying) { drawPlane(lx, ly, mapLeo.flying, 2.2 * ls); return; }
   const sailing = mapLeo.to ? SEA_PATHS.has(mapLeo.at + '|' + mapLeo.to) || SEA_PATHS.has(mapLeo.to + '|' + mapLeo.at) : mapLeo.at === 'voyage' && !save.cleared.voyage;
   if (sailing) { drawShipIcon(lx, ly - 2, mapLeo.to ? (mapLeo.face || 1) : -1, 1.4 * ls); return; }
@@ -6772,6 +7477,69 @@ function drawShipIcon(x, y, face = -1, s = 1) {   // the map's Mayflower: a litt
   for (let k = 0; k < 3; k++) { g.globalAlpha = 0.6; g.beginPath(); g.arc(9 - k * 3, 3.2, 1.4 - k * 0.3, Math.PI, 0); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1;   // white water at her bow
   g.restore();
 }
+// ---- the railroad on the map ----
+// rails: two steel lines on wooden ties; a track still being built is faint and dashed
+function drawRails(A, B, open, pf, k = 1) {
+  const [ax, ay] = A, [bx, by] = B, d = Math.hypot(bx - ax, by - ay) || 1, nx = -(by - ay) / d, ny = (bx - ax) / d, w = 1.3 * pf * k;
+  g.lineCap = 'butt';
+  if (open) {
+    g.strokeStyle = '#6a4424'; g.lineWidth = 0.9 * pf * k;
+    for (let u = 2 * pf; u < d - 1; u += 2.6 * pf * k) { const x = ax + (bx - ax) * u / d, y = ay + (by - ay) * u / d; g.beginPath(); g.moveTo(x - nx * w * 1.6, y - ny * w * 1.6); g.lineTo(x + nx * w * 1.6, y + ny * w * 1.6); g.stroke(); }   // the ties
+    g.strokeStyle = '#3a3a44'; g.lineWidth = 0.6 * pf * k;
+    for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(ax + nx * w * sd, ay + ny * w * sd); g.lineTo(bx + nx * w * sd, by + ny * w * sd); g.stroke(); }
+  } else {
+    g.setLineDash([2.4 * pf, 2.4 * pf]); g.strokeStyle = 'rgba(70,50,40,.45)'; g.lineWidth = 0.8 * pf * k;
+    for (const sd of [-1, 1]) { g.beginPath(); g.moveTo(ax + nx * w * sd, ay + ny * w * sd); g.lineTo(bx + nx * w * sd, by + ny * w * sd); g.stroke(); }
+    g.setLineDash([]);
+  }
+  g.lineCap = 'round';
+}
+const depotOpen = id => nodeOpen(node(id)) && (save.unlockAll || !!save.spikes[DEPOT[id].w]);
+// the whole line, coast to coast, and a station at every depot: open ones in colour (with a puff of steam), the rest
+// grey, with a golden spike to find or a "coming soon" sign
+function drawRailroad(pf) {
+  const k = mapWhole ? 0.7 : 1;
+  for (const [a, b] of RAIL_TRACK) {
+    const A = node(a), B = node(b);
+    if (!mapOnScreen(A.x, A.y) && !mapOnScreen(B.x, B.y) && !mapOnScreen((A.x + B.x) / 2, (A.y + B.y) / 2)) continue;
+    drawRails(mapS(A.x, A.y), mapS(B.x, B.y), depotOpen(a) && depotOpen(b), pf, k);
+  }
+  for (const d of DEPOTS) {
+    const n = node(d.id); if (!mapOnScreen(n.x, n.y)) continue;
+    const [x, y] = mapS(n.x, n.y), open = depotOpen(d.id), here = mapLeo.at === d.id && !mapLeo.to && !mapLeo.train;
+    g.save(); g.translate(x, y); g.scale(pf * k, pf * k);
+    if (open && !here) glow(0, -3, 10 + Math.sin(clock * 4) * 2, 'rgba(255,230,120,1)', 0.45);
+    ell(0, 1.4, 6.4, 1.8); g.fillStyle = 'rgba(0,0,0,.22)'; g.fill();
+    rrect(-5, -6, 10, 7, 0.8); paint(open ? '#e8c890' : '#c8c2b8', 0.7, open ? '#6a4424' : '#8a847a');   // the station
+    g.beginPath(); g.moveTo(-6.4, -5.6); g.lineTo(0, -10); g.lineTo(6.4, -5.6); g.closePath(); paint(open ? '#c8402a' : '#9a948a');
+    g.fillStyle = open ? '#5a3a1e' : '#7a746a'; g.fillRect(-1.2, -3.6, 2.4, 4.6); g.fillStyle = open ? '#fff2b0' : '#e0dcd4'; g.fillRect(-4, -4, 2, 2); g.fillRect(2, -4, 2, 2);
+    if (open) { for (let i = 0; i < 3; i++) { const ph = (clock * 0.5 + i / 3) % 1; g.globalAlpha = 0.6 * (1 - ph); g.beginPath(); g.arc(4 + ph * 3, -10 - ph * 8, 1 + ph * 1.6, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1; }
+    else if (n.soon) { g.fillStyle = '#ffd23a'; g.fillRect(-4.4, 1.6, 8.8, 2.2); g.fillStyle = '#2a2a32'; for (let i = 0; i < 4; i++) g.fillRect(-4 + i * 2.4, 1.6, 1.1, 2.2); }   // a "still being built" barrier
+    else drawSpikeIcon(0, -14, 0.8, false);   // a golden spike to find first
+    if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(clock * 6); g.beginPath(); g.ellipse(0, -3, 9, 8, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
+    g.restore();
+  }
+  // the level that hides a region's golden spike gets a little spike beside it: grey until it's found
+  if (!mapWhole) for (const d of DEPOTS) if (d.spikeIn && worldOpen(d.w) && nodeOpen(node(d.spikeIn))) { const n = node(d.spikeIn), [x, y] = mapS(n.x, n.y); drawSpikeIcon(x - 7 * pf, y - 4 * pf, 0.55 * pf, !!save.spikes[d.w]); }
+}
+function drawSpikeIcon(x, y, s, gold = true) {   // a railroad spike: a square shank with a pointed tip and a wide head
+  g.save(); g.translate(x, y); g.scale(s, s); g.rotate(0.35);
+  if (gold) glow(0, 0, 9, 'rgba(255,220,90,1)', 0.5);
+  const c = gold ? '#ffd23a' : '#b8b4ac', dk = gold ? '#c8901a' : '#8a867c';
+  rrect(-4, -6, 8, 2.6, 0.8); paint(c, 0.6, dk);
+  g.beginPath(); g.moveTo(-1.5, -3.6); g.lineTo(1.5, -3.6); g.lineTo(1.5, 4); g.lineTo(0, 7); g.lineTo(-1.5, 4); g.closePath(); paint(c, 0.6, dk);
+  g.restore();
+}
+function drawTrainIcon(x, y, ang = 0, s = 1) {   // a little steam engine (a puff of smoke from its stack) and a red coach
+  g.save(); g.translate(x, y); const flip = Math.cos(ang) < 0; g.scale(flip ? -s : s, s);
+  rrect(-12, -5, 7, 5, 1); paint('#c8402a', 0.5, '#5a1a10'); g.fillStyle = '#fff2b0'; g.fillRect(-11, -4, 2, 1.6); g.fillRect(-8, -4, 2, 1.6);   // the coach
+  rrect(-4, -4.4, 8, 4.4, 1.6); paint('#2a2a34'); rrect(-4, -7.6, 3.6, 3.4, 0.6); paint('#3a3a48');   // the boiler and the cab
+  g.fillStyle = '#2a2a34'; g.fillRect(1.6, -7.6, 1.6, 3.4); g.fillStyle = C.gold; g.fillRect(-4, -2.6, 8, 0.8);
+  g.beginPath(); g.moveTo(4, -1); g.lineTo(6.4, 0.6); g.lineTo(4, 0.6); g.closePath(); paint('#c8402a');   // the cowcatcher
+  for (const wx of [-10.5, -6.5, -2, 2]) { g.beginPath(); g.arc(wx, 0.6, 1.3, 0, TAU); paint('#5a5a64'); }
+  for (let i = 0; i < 3; i++) { const ph = (clock * 1.4 + i / 3) % 1; g.globalAlpha = 0.7 * (1 - ph); g.beginPath(); g.arc(2.4 - ph * 6, -9 - ph * 5, 1 + ph * 1.8, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); } g.globalAlpha = 1;
+  g.restore();
+}
 function drawPlane(x, y, ang, s = 1) {   // a little white plane with a red stripe
   g.save(); g.translate(x, y); g.rotate(ang); g.scale(s, Math.abs(ang) > Math.PI / 2 ? -s : s);
   ell(0, 0, 5, 1.4); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.moveTo(-1, 0); g.lineTo(-3, -4); g.lineTo(1, 0); g.lineTo(-3, 4); g.closePath(); g.fill(); g.beginPath(); g.moveTo(-4, 0); g.lineTo(-5.4, -2); g.lineTo(-3.6, 0); g.fill(); g.fillStyle = '#e8453a'; g.fillRect(-2, -0.4, 4, 0.8);
@@ -6810,7 +7578,7 @@ function drawHUD() {
     const n = node(mapLeo.to || mapLeo.at), gems = save.gems[n.id] || [], wi = worldOf(n.id);
     text(wi >= 0 ? `WORLD ${wi + 1}: ${WORLD_NAMES[wi].toUpperCase()}` : 'MANIFEST DESTINY', s * 8, s * 6, 12, '#ffd23a');
     text(`${levelTag(n.id)}  ${n.name.toUpperCase()}`, s * 8, s * 20, 12, '#ffffff');
-    text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${n.soon ? '🚧 COMING SOON' : `${save.cleared[n.id] ? '✔ CLEARED  ' : ''}${LEVELS[n.id] && LEVELS[n.id].collect === 'corn' ? '🌽' : '🌈'} ${gems.filter(Boolean).length}/5${INFO[n.id] ? `  ℹ️ ${(save.info[n.id] || []).filter(Boolean).length}/${INFO[n.id].length}` : ''}`}`, s * 8, s * 31, 9, '#fff2c0');
+    text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${n.soon ? '🚧 COMING SOON' : `${save.cleared[n.id] ? '✔ CLEARED  ' : ''}${collectOf(LEVELS[n.id]).emoji} ${gems.filter(Boolean).length}/5${INFO[n.id] ? `  ℹ️ ${(save.info[n.id] || []).filter(Boolean).length}/${INFO[n.id].length}` : ''}`}`, s * 8, s * 31, 9, '#fff2c0');
     text(`🎩 × ${lives}   🌽 ${gemCount()}${save.unlockAll ? (LW >= 400 ? '   🔓 ALL UNLOCKED' : '  🔓') : ''}`, s * 8, LH * s - s * 18, 12);
     const hint = RB.touch ? 'TAP A LEVEL · TAP AGAIN TO PLAY' : RB.pad.connected ? RB.padText('{DPAD} MOVE · {A} PLAY · {X} WHOLE MAP') : 'W A S D MOVE · SPACE PLAY · M WHOLE MAP';
     if (!RB.touch && LW >= 400) text(hint, W - s * 8, LH * s - s * 18, 10, '#ffffff', 'right');
@@ -6859,7 +7627,7 @@ function drawHUD() {
     }
   }
   if (phase === 'clear' && phaseT > 1.2) {
-    text(`🪙 ${coins}   ${lvl.collect === 'corn' ? '🌽' : '🌈'} ${levelGems.filter(Boolean).length}/5   ⭐ ${lvl.stars || 0}`, W / 2, LH * s * 0.28 + s * 44, 12, '#ffffff', 'center');
+    text(`🪙 ${coins}   ${collectOf(lvl).emoji} ${levelGems.filter(Boolean).length}/5   ⭐ ${lvl.stars || 0}`, W / 2, LH * s * 0.28 + s * 44, 12, '#ffffff', 'center');
   }
 }
 

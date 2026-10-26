@@ -3270,6 +3270,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     }
     check(r.voyage.flag === true, 'the secret exit at the Mayflower\'s main top should be reachable');
     check(r.cranberry.flag === true, 'the secret exit over the Cranberry Bog (to Martha\'s Vineyard) should be reachable');
+    check(r.ludington.flag === true, 'the secret exit on Sybil\'s ride (to the Culper Ring) should be reachable');
     await done(p);
   });
 
@@ -3524,12 +3525,15 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const shape = { worlds: WORLDS.length, names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length, everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
         built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id)),
         years: WORLDS.flat().every(id => node(id).year), spike: WORLDS[8][WORLDS[8].length - 1] === 'spike', neighbours: NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 };
-      // World 1 is all built: beating it (up to the Midnight Ride) leaves World 2 shut until the quiz is passed; then its signposts are walked past
-      const w1Built = WORLDS[0].every(id => LEVELS[id] && !node(id).soon) && ['nantucket', 'vineyard'].every(id => LEVELS[id]);
-      ORDER.forEach(id => { save.cleared[id] = true; });
-      const signs = { w1Built, lexington: nodeOpen(node('lexington')), saratogaBefore: nodeOpen(node('saratoga')), delawareBefore: nodeOpen(node('delaware')) };
-      save.quiz[0] = true; signs.saratogaAfter = nodeOpen(node('saratoga')); signs.delawareAfter = nodeOpen(node('delaware'));
-      goMap('delaware', true); enterLevel(); signs.notStarted = state === 'map'; delete save.quiz[0];
+      // Worlds 1 and 2 are built: beating World 1 leaves World 2 shut until New England's quiz is passed; beating World 2
+      // leaves World 3 shut until its quiz, and then World 3's signposts are walked past
+      const w1Built = [0, 1].every(w => WORLDS[w].every(id => LEVELS[id] && !node(id).soon)) && ['nantucket', 'vineyard', 'culper'].every(id => LEVELS[id]);
+      WORLDS[0].forEach(id => { save.cleared[id] = true; });
+      const signs = { w1Built, lexington: nodeOpen(node('lexington')), delawareBefore: nodeOpen(node('delaware')) };
+      save.quiz[0] = true; signs.delawareAfter = nodeOpen(node('delaware'));
+      ORDER.forEach(id => { save.cleared[id] = true; }); signs.staugBefore = nodeOpen(node('staugustine'));
+      save.quiz[1] = true; signs.staugAfter = nodeOpen(node('staugustine')); signs.jamestownAfter = nodeOpen(node('jamestown'));
+      goMap('staugustine', true); enterLevel(); signs.notStarted = state === 'map'; delete save.quiz[0]; delete save.quiz[1];
       // zoom out to the whole country and back in
       goMap('ctriver', true); run(90); const z1 = mapCam.z;
       mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
@@ -3550,7 +3554,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && r.start.w1 && !r.start.w2 && r.start.area === '1' && r.start.atSea, 'a new game starts out at sea on the Mayflower (1-1), in New England, with the rest of the story still locked: ' + JSON.stringify(r.start));
     check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific' && r.shape.neighbours, 'nine regions, every state (and D.C.) in one, Canada and Mexico next door: ' + JSON.stringify(r.shape));
     check(r.shape.built && r.shape.soon && r.shape.onlyStory && r.shape.years && r.shape.spike, 'the built levels are on the map, signposts mark the rest, there are no levels outside the story, every stop has a year, and the Golden Spike is the end: ' + JSON.stringify(r.shape));
-    check(r.signs.w1Built && r.signs.lexington && !r.signs.saratogaBefore && !r.signs.delawareBefore && r.signs.saratogaAfter && r.signs.delawareAfter && r.signs.notStarted, 'World 1 is built; the next region opens once the quiz is passed, and its signposts are walked past: ' + JSON.stringify(r.signs));
+    check(r.signs.w1Built && r.signs.lexington && !r.signs.delawareBefore && r.signs.delawareAfter && !r.signs.staugBefore && r.signs.staugAfter && r.signs.jamestownAfter && r.signs.notStarted, 'Worlds 1 and 2 are built; each next region opens once the quiz is passed, and signposts are walked past: ' + JSON.stringify(r.signs));
     check(r.zoom.whole && r.zoom.z2 < r.zoom.z1 * 0.6 && r.zoom.backIn, 'zoom out to the whole country and back in: ' + JSON.stringify(r.zoom));
     check(r.lockedBefore && r.unlocked && r.relocked, 'Unlock All opens every level and path, and turns back off (and is saved): ' + JSON.stringify(r));
     check(r.drew === true && r.hiddenInLevel, 'every region, Alaska and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
@@ -3653,7 +3657,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // the redcoat major: three hits, the lanterns, and a chest to win; then the quiz, and the end of New England
       startLevel('lexington'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); player.x = 170 * 16; run(60);
       const boss = ents.find(e => e.k === 'boss'); out.awake = boss.awake && /REDCOAT/.test(bannerText[0]);
-      boss.hurt = 0; bossHit(boss); run(400, () => { boss.hurt = 0; player.star = 1; }); out.lanterns = lvl.lanterns > 0 || /IF BY/.test(bannerText[0]) || boss.cst !== 'walk';
+      boss.hurt = 0; bossHit(boss); out.lanterns = false; run(600, () => { boss.hurt = 0; player.star = 1; if (lvl.lanterns > 0 || /IF BY/.test(bannerText[0])) out.lanterns = true; });
       for (let k = 0; k < 2; k++) { boss.hurt = 0; bossHit(boss); run(100); } run(200);
       const chest = ents.find(e => e.k === 'pot'); out.chest = !!chest && lvl.prize === 'chest';
       if (chest) { player.x = chest.x; player.y = chest.y; player.vy = 0; run(5); }
@@ -3661,7 +3665,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       return new Promise(res => {
         const next = () => { if (quiz) { document.querySelector('#quizA [data-right="1"]').click(); setTimeout(next, 700); return; }
           out.ending = state === 'ending' && /NEW ENGLAND/.test(document.querySelector('#ending h1').textContent) && /Mid-Atlantic/.test(document.getElementById('btnMapAgain').textContent);
-          out.w2 = worldOpen(1) && nodeOpen(node('saratoga')); paused = false; res(out); };
+          out.w2 = worldOpen(1) && nodeOpen(node('delaware')) && heroNow() === 'sybil'; paused = false; res(out); };
         next();
       });
     });
@@ -3672,6 +3676,81 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.quiz && r.ending && r.w2, 'the chest leads to New England\'s quiz; passing it ends the region and opens the Mid-Atlantic: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'manifest-destiny-world1.png');
+  });
+
+  await test('Manifest Destiny World 2, the Mid-Atlantic: Sybil Ludington joins and can be picked, Star the horse, quill pens, raccoons, Hessians, hornets, groundhogs and blue crabs; the British admiral at Fort McHenry (rockets and bombs), then its quiz', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes']) save[k] = {}; save.hero = 'wrestling'; paused = true; startGame();
+      out.order = WORLDS[1].map(id => levelTag(id) + ' ' + node(id).year).join(', ');
+      out.starts = [...WORLDS[1], 'culper'].map(id => { startLevel(id); const story = bannerT > 0 && /1[0-9]{3}/.test(bannerText[0]); run(30); let drew = true; try { render(); } catch (e) { drew = e.message; } return [id, state === 'level' && player.y > 0 && phase === 'play', story, drew, lvl.collect]; });
+      // Sybil only joins after New England's quiz; then she can be picked in the heroes screen, and she's faster
+      out.lockedFirst = heroNow() === 'wrestling' && !heroJoined(1);
+      save.quiz[0] = true; showHeroes(); const pick = document.querySelector('#hlist [data-hero="sybil"]'); out.canPick = !!pick && !pick.disabled; pick.click(); out.playing = heroNow() === 'sybil' && save.hero === 'sybil' && /Playing/.test(document.querySelector('#hlist [data-hero="sybil"]').textContent); hideHeroes();
+      const speed = hero => { save.hero = hero; startLevel('saratoga'); ents = ents.filter(e => !isEnemy(e)); player.x = 2 * 16; keys.right = true; keys.run = true; run(120); keys.right = keys.run = false; return player.x; };
+      out.faster = speed('sybil') > speed('wrestling') + 10; save.hero = 'sybil';
+      // the creatures and the horse
+      startLevel('ludington'); out.horseBlock = lvl.t.includes(T.QRIDE);
+      const kinds = id => { startLevel(id); return [lvl.cast, ents.filter(e => e.k === 'grumblin').map(e => e.as || lvl.cast.grumblin)]; };
+      out.cast = { delaware: kinds('delaware'), saratoga: kinds('saratoga')[0], culper: kinds('culper')[0] };
+      // the British admiral: rockets after one hit, bombs after two, a chest after three, then the quiz and the end of the region
+      startLevel('mchenry'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); player.x = 170 * 16; run(60);
+      const boss = ents.find(e => e.k === 'boss'); out.awake = boss.awake && /ADMIRAL/.test(bannerText[0]);
+      const shots = new Set(); boss.hurt = 0; bossHit(boss); run(400, () => { boss.hurt = 0; player.star = 1; player.inv = 1; for (const e of ents) if (e.k === 'acorn') shots.add(e.kind); });
+      boss.hurt = 0; bossHit(boss); run(400, () => { boss.hurt = 0; player.star = 1; player.inv = 1; for (const e of ents) if (e.k === 'acorn') shots.add(e.kind); });
+      out.shots = [...shots]; boss.hurt = 0; bossHit(boss); run(300);
+      const chest = ents.find(e => e.k === 'pot'); out.chest = !!chest; if (chest) { player.x = chest.x; player.y = chest.y; player.vy = 0; run(5); }
+      out.quiz = state === 'quiz' && quiz && quiz.w === 1 && regionQuestions(1).length >= 25;
+      return new Promise(res => {
+        const next = () => { if (quiz) { document.querySelector('#quizA [data-right="1"]').click(); setTimeout(next, 700); return; }
+          out.ending = state === 'ending' && /MID-ATLANTIC/.test(document.querySelector('#ending h1').textContent); paused = false; res(out); };
+        next();
+      });
+    });
+    check(r.order === '2-1 1776, 2-2 1777, 2-3 1777, 2-4 1777, 2-5 1787, 2-6 1800, 2-7 1814', 'World 2 runs in history order: ' + r.order);
+    check(r.starts.every(([, ok, story, drew, c]) => ok && story && drew === true && c === 'quill'), 'each level starts with its story card, draws, and hides quill pens: ' + JSON.stringify(r.starts));
+    check(r.lockedFirst && r.canPick && r.playing && r.faster, 'Sybil joins after New England, can be picked, and runs faster: ' + JSON.stringify(r));
+    check(r.horseBlock && r.cast.delaware[0].grumblin === 'hessian' && r.cast.delaware[1].includes('raccoon') && r.cast.saratoga.buzzer === 'hornet' && r.cast.saratoga.snapper === 'groundhog' && r.cast.culper.crab === 'blue', 'Star the horse on Sybil\'s ride; Hessians, raccoons, hornets, groundhogs and blue crabs: ' + JSON.stringify(r.cast));
+    check(r.awake && r.shots.includes('rocket') && r.shots.includes('bomb') && r.chest, 'the British admiral fires rockets, then bombs too, and three hits win a chest: ' + JSON.stringify(r));
+    check(r.quiz && r.ending, 'the chest leads to the Mid-Atlantic\'s quiz, and passing it ends the region: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-world2.png');
+  });
+
+  await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes']) save[k] = {}; save.unlockAll = false; paused = true; startGame();
+      out.depots = DEPOTS.length; out.track = RAIL_TRACK.every(([a, b]) => DEPOT[a] && DEPOT[b]) && DEPOTS.every(d => railRoute('quincy', d.id));
+      out.built = DEPOTS.filter(d => LEVELS[d.id]).map(d => d.id).join(',');
+      let drew = true; try { mapZoom(true); run(30); drawMap(); } catch (e) { drew = e.message; } out.drew = drew; mapZoom(false);
+      // the depot is shut until the golden spike is found (it's on Nantucket, up where a whale's spout throws you)
+      WORLDS[0].forEach(id => { save.cleared[id] = true; }); save.cleared.nantucket = true; openCache = null;
+      out.shutBefore = !depotOpen('quincy');
+      startLevel('nantucket'); const spike = ents.find(e => e.k === 'goldspike'); player.x = spike.x; player.y = spike.y; player.vy = 0; run(3);
+      out.spike = !!save.spikes[0] && /GOLDEN SPIKE/.test(bannerText[0]) && JSON.parse(localStorage.getItem('md_save')).spikes[0] === true;
+      openCache = null; out.openAfter = depotOpen('quincy') && pathOpen(['boston', 'quincy', 'rail']);
+      // the station: its Railroad Challenge, and the train to other depots (shut, or still being built)
+      goMap('quincy', true); enterLevel(); const rows = [...document.querySelectorAll('#stList button')];
+      out.station = state === 'station' && rows.length === DEPOTS.length && !rows[0].disabled && rows.slice(1).every(b => b.disabled);
+      rows[0].click(); out.challenge = state === 'level' && lvl.id === 'quincy' && lvl.challenge && levelTag('quincy') === '🚂';
+      // the train: with World 2's spike (in the Culper Ring) the Baltimore depot opens too, and the train runs between them
+      save.spikes[1] = true; save.cleared.mchenry = true; openCache = null; out.baltimore = depotOpen('baltimore');
+      goMap('quincy', true); enterLevel(); document.querySelector('#stList [data-act="ride:baltimore"]').click(); run(30); out.riding = !!mapLeo.train && mapWhole;
+      run(600); out.arrived = mapLeo.at === 'baltimore' && !mapLeo.train && state === 'map';
+      paused = false; return out;
+    });
+    check(r.depots === 9 && r.track && r.drew === true, 'nine depots joined by one track across the country, and the whole map draws: ' + JSON.stringify(r));
+    check(r.built === 'quincy,baltimore', 'the Quincy and Baltimore Railroad Challenges are built (the rest say coming soon): ' + r.built);
+    check(r.shutBefore && r.spike && r.openAfter, 'the golden spike on Nantucket opens the Quincy depot (and is saved): ' + JSON.stringify(r));
+    check(r.station && r.challenge, 'the station offers its Railroad Challenge (and shows the other depots, shut for now): ' + JSON.stringify(r));
+    check(r.baltimore && r.riding && r.arrived, 'the train rides from Quincy to Baltimore, with the whole country in view: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-railroad.png');
   });
 
   await test('Manifest Destiny: the hat throw is the hat power-up, and wall kicks', async () => {

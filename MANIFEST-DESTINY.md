@@ -64,7 +64,7 @@ older players have a reason to go back.
 | World | Treasure | Why |
 |---|---|---|
 | 1 New England | **ears of corn** ✅ | Corn kept the Pilgrims alive: Tisquantum showed them how to grow it, and the 1621 harvest is the one they celebrated |
-| 2 Mid-Atlantic | **quill pens** | the Declaration of Independence and the Constitution were written with them in Philadelphia |
+| 2 Mid-Atlantic | **quill pens** ✅ | the Declaration of Independence and the Constitution were written with them in Philadelphia |
 | 3 Atlantic South | **pieces of eight** | the Spanish silver coins of pirates, ports and St. Augustine |
 | 4 Frontier South | **apple seeds** | Johnny Appleseed planted orchards along the frontier |
 | 5 Great Lakes | **beaver pelts** | the fur trade's money: prices were counted in "made beaver" |
@@ -75,7 +75,7 @@ older players have a reason to go back.
 
 **Animal friends and rides** (replacing Shamrock the unicorn):
 
-- **Liberty the horse** is unlocked at the end of World 1 (the Midnight Ride, 1775). Ride him for higher, longer
+- **Star the horse** ✅ (Sybil Ludington's horse; the old unicorn in new clothes) comes out of the ? blocks marked for a ride. Ride him for higher, longer
   jumps. A hit knocks you off instead of hurting you (as Shamrock did).
 - Later rides: a birchbark canoe (World 5), a covered wagon (World 6), a pack mule in the mines (World 7), a
   railroad handcar (the railroad).
@@ -149,20 +149,34 @@ Southwest and the Pacific. Every world's card says whose homelands it crosses.
 8. **The Gulf of Maine** (1700): Pemaquid, cod, fish flakes and shallops ✅ built
 9. **The Boston Tea Party** (1773): the streets of Boston, redcoats, the three tea ships and their tea chests ✅ built
 10. **The Midnight Ride and Lexington and Concord** (1775) 🏰 boss: the redcoat major (one if by land, two if by
-    sea), then the World 1 quiz ✅ built · still to come: **Liberty the horse**
+    sea), then the World 1 quiz ✅ built
 
 *Secret-only levels (whaling and islands):* Martha's Vineyard (Noepe, from a golden flag over the Cranberry Bog) ✅,
 Nantucket (the whaling capital, from the Mayflower's main top) ✅. Their facts are a bonus: the quiz asks only about
 the main road's levels.
-*Railroad depot:* the Granite Railway, Quincy (1826, America's first commercial railroad).
+*Railroad depot:* the Granite Railway, Quincy (1826, one of America's first railroads) ✅, with its Railroad
+Challenge level; New England's golden spike is hidden on Nantucket.
 
-### World 2: The Mid-Atlantic, a new nation (1775 to 1830)
+### World 2: The Mid-Atlantic, a new nation (1776 to 1814) ✅ built
 *Lenape, Haudenosaunee (Iroquois), Susquehannock, Nanticoke and Piscataway homelands*
-Washington crossing the Delaware (1776), Independence Hall (the Declaration in 1776, the Constitution in 1787),
-Valley Forge (1777), Slater Mill (1793, the start of factories), the Erie Canal (1825), Fort McHenry (1814, the
-Star-Spangled Banner), Washington, D.C. Hero: **Patience, Patriot messenger**.
-*Secret theme:* the Culper Spy Ring (invisible-ink clues on Long Island, 1778).
-*Railroad depot:* Baltimore and Ohio, Baltimore (1828).
+Hero: **Sybil Ludington** (joins after New England's quiz; the fastest runner, and the best rider on Star the horse).
+Treasure: **quill pens**. Creatures: turkeys, raccoons, groundhogs that pop up, hornets, wolves, blue crabs; redcoats
+and Hessian soldiers (who just lose their hats).
+
+1. **Crossing the Delaware** (Christmas night, 1776): row a Durham boat across the icy river to Trenton ✅
+2. **Sybil's Ride** (April 26, 1777): ride Star through the rain to call out the militia ✅ (secret exit: a spy's
+   message, up on the dark roofline)
+3. **Saratoga** (October 1777): the turning point, in the autumn woods ✅
+4. **Valley Forge** (winter 1777 to 1778): the camp of log huts in the snow ✅
+5. **Independence Hall** (1787): Philadelphia, the Declaration, the Constitution and the Liberty Bell ✅
+6. **The New Capital** (1800): Washington, D.C., still mud and tree stumps; Benjamin Banneker's survey ✅
+7. **Fort McHenry** (1814) 🏰 boss: **the British admiral** (cannonballs; after one hit, "the rockets' red glare"
+   along the ground; after two, bombs bursting in air), then the World 2 quiz ✅
+
+*Secret-only level:* **the Culper Ring** (Long Island, 1778: invisible ink, Anna Strong's clothesline) ✅, which
+also hides World 2's golden spike.
+*Railroad depot:* the Baltimore and Ohio, with its Railroad Challenge **Tom Thumb's Race** (1830) ✅.
+(The Erie Canal, 1825, moves to World 5, where it led: Lake Erie and the Great Lakes.)
 
 ### World 3: The Atlantic South (1607 to 1830s)
 *Powhatan, Cherokee, Catawba, Muscogee (Creek), Timucua and Seminole homelands*
@@ -255,6 +269,10 @@ the country together.
   and the "Iron Horse" ending.
 - The track on the map is drawn in as you open depots, so by the end there's a line across the whole country,
   like the real transcontinental railroad.
+- ✅ Built: all nine depots and the track are on the map (faint and dashed where it isn't open yet, with
+  "coming soon" stations); a station screen to play the depot's Railroad Challenge or ride the train; the Quincy
+  and Baltimore depots and their challenges. The main line runs Quincy, Baltimore, Chicago, Omaha, Cheyenne,
+  Sacramento, with branches south to Charleston and Chattanooga and down to Santa Fe.
 
 ---
 
@@ -312,7 +330,6 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
    game, unlock all levels); the title scene; and 1-3 to 1-6 (Cranberry Bog, Boston, Providence, the Connecticut River).
 3. ✅ The rest of World 1 (Maple Sugaring, the Gulf of Maine, the Tea Party, the Midnight Ride and the redcoat major),
    the secret-only islands, the end of the region, and a mid-gate and goal for each level that fit its story.
-   Still to do: Liberty the horse.
-4. The hero picker. Sybil Ludington and World 2.
-5. The railroad: depots, golden spikes, the train between depots, the first Railroad Challenge.
+4. ✅ The hero picker; Sybil Ludington and World 2; Star the horse (the old unicorn, in new clothes).
+5. ✅ The railroad: depots, golden spikes, the train between depots, the first two Railroad Challenges.
 6. Worlds 3 to 9, one at a time, each with its hero, its creatures, its secret-only levels and its depot.
