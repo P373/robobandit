@@ -98,7 +98,7 @@ const RB = (() => {
 
   // ---------- Corner buttons: 🏠 ⏸ 🔊 🔗 ----------
   // home / homeTitle: where 🏠 goes (pages inside a folder point it at that folder's index.html).
-  function topbar({ onPause, shareInfo, home = 'index.html', homeTitle = 'All RoboBandit games' } = {}) {
+  function topbar({ onPause, shareInfo, home = 'index.html', homeTitle = 'All RoboBandit games', minimal = false } = {}) {   // minimal: just ☰ (home, sound and share are in the menu)
     let bar = document.getElementById('topbar');
     if (!bar) { bar = document.createElement('div'); bar.id = 'topbar'; document.body.appendChild(bar); }
     bar.className = 'rb-topbar';
@@ -114,6 +114,8 @@ const RB = (() => {
       return el;
     };
     menuButton(bar);
+    menuShare = shareInfo || null;
+    if (minimal) { bar.classList.add('rb-minimal'); return bar; }
     add('a', 'btnHome', '🏠', homeTitle);
     if (onPause) add('button', 'btnPause', '⏸\uFE0F', 'Pause (Esc)', onPause);
     add('button', 'btnMute', muted ? '🔇' : '🔊', 'Sound on/off (N)', () => { audio(); setMuted(!muted); });

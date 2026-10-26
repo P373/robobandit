@@ -3532,10 +3532,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       goMap('ctriver', true); run(90); const z1 = mapCam.z;
       mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
       pressed.run = true; step(1 / 60); run(90); zoom.backIn = !mapWhole && Math.abs(mapCam.z - z1) < 0.02;
-      // Unlock All (the map button) opens everything, and turns back off
+      // Unlock All (in the pause menu) opens everything, and turns back off
       const lockedBefore = !worldOpen(8) && !nodeOpen(node('spike'));
-      document.getElementById('bUnlock').click(); const unlocked = save.unlockAll && WORLDS.every((w, i) => worldOpen(i)) && nodeOpen(node('klondike'));
-      document.getElementById('bUnlock').click(); const relocked = !save.unlockAll && !nodeOpen(node('spike')) && JSON.parse(localStorage.getItem('md_save')).unlockAll === false;
+      setUnlockAll(true); const unlocked = save.unlockAll && WORLDS.every((w, i) => worldOpen(i)) && nodeOpen(node('klondike'));
+      setUnlockAll(false); const relocked = !save.unlockAll && !nodeOpen(node('spike')) && JSON.parse(localStorage.getItem('md_save')).unlockAll === false;
       // every view draws: each world, Alaska, and the whole country
       let drew = true;
       save.unlockAll = true; for (const w of WORLDS) { goMap(w[0], true); run(5); try { drawMap(); } catch (e) { drew = e.message; } }
@@ -4044,7 +4044,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       await p.goto(url(f));
       await p.waitForTimeout(300);
       check(await p.evaluate(() => RB.muted), f + ' is not muted');
-      check((await p.textContent('#btnMute')) === '🔇', f + ' mute button shows sound on');
+      if (await p.$('#btnMute')) check((await p.textContent('#btnMute')) === '🔇', f + ' mute button shows sound on');
+      else { await p.click('#btnMenu'); await p.waitForTimeout(100); check(/off/.test(await p.textContent('.rb-menu [data-m="sound"]')), f + ' (menu only) the menu shows the sound is off'); }
     }
     await ctx.close();
   });

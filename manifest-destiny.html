@@ -101,12 +101,19 @@
   .rlist small { grid-column: 2; color: #4a6a54; }
   .rlist .rdone { grid-row: span 2; color: #2fae4a; font-weight: 800; }
   /* the "Did you know?" card after a win */
-  #fact { position: fixed; z-index: 6; left: 50%; bottom: calc(max(16px, env(safe-area-inset-bottom)) + 70px); transform: translateX(-50%); width: min(92vw, 520px); box-sizing: border-box;
-    color: #10301c; background: #fffbe8; border: 4px solid #10301c; border-radius: 18px; box-shadow: 0 6px 0 #10301c; padding: 12px 16px 14px; text-align: center; cursor: pointer; }
-  #fact .fhead { font: 16px 'Bungee', system-ui, sans-serif; color: #2fae4a; }
-  #fact .ftxt { font-size: 18px; line-height: 1.4; font-weight: 700; margin: 6px 0; }
-  #fact .fsrc { font-size: 13px; color: #5a6a5e; }
-  #fact .fok { margin-top: 8px; font: 16px 'Bungee', system-ui, sans-serif; padding: 6px 18px; border-radius: 12px; border: 3px solid #10301c; background: #ffc21a; color: #10301c; cursor: pointer; }
+  /* the info box pop-up: a parchment card with a big round blue "i" badge on top */
+  #fact { position: fixed; z-index: 6; left: 50%; top: 50%; transform: translate(-50%, -46%); width: min(92vw, 540px); box-sizing: border-box;
+    color: #3a2410; background: linear-gradient(#fff6dc, #f4e2b4); border: 4px solid #6a4424; border-radius: 22px; box-shadow: 0 7px 0 #6a4424, 0 0 0 6px rgba(255,246,220,.5), 0 12px 40px rgba(0,0,0,.35);
+    padding: 34px 22px 16px; text-align: center; cursor: pointer; animation: factIn .28s cubic-bezier(.2,1.4,.4,1); }
+  @keyframes factIn { from { transform: translate(-50%, -40%) scale(.7); opacity: 0; } }
+  #fact::before { content: 'i'; position: absolute; left: 50%; top: -30px; transform: translateX(-50%); width: 56px; height: 56px; border-radius: 50%;
+    display: grid; place-items: center; font: italic bold 38px Georgia, 'Times New Roman', serif; color: #fff; background: radial-gradient(circle at 35% 30%, #7ac8ff, #2a6ad8 70%);
+    border: 4px solid #123a7a; box-shadow: 0 4px 0 #123a7a; }
+  #fact .fhead { font: 18px 'Bungee', system-ui, sans-serif; color: #2a6ad8; letter-spacing: .5px; }
+  #fact .ftxt { font-size: 21px; line-height: 1.4; font-weight: 800; margin: 8px 0 8px; }
+  #fact .fsrc { font-size: 13px; font-weight: 700; color: #8a6a44; }
+  #fact .fok { margin-top: 10px; font: 18px 'Bungee', system-ui, sans-serif; padding: 8px 26px; border-radius: 14px; border: 3px solid #123a7a; background: #ffc21a; color: #123a7a; box-shadow: 0 4px 0 #123a7a; cursor: pointer; }
+  @media (max-width: 520px) { #fact .ftxt { font-size: 18px; } }
   .panel .fact { margin: 4px auto 6px; max-width: 520px; padding: 10px 14px; border-radius: 14px; background: #eef8e8; font-size: 16px; line-height: 1.4; text-align: left; }
   .panel .fact:empty { display: none; }
   .panel .fact b { color: #2fae4a; }
@@ -117,7 +124,7 @@
   #mapBtns button:active { transform: translateY(2px); box-shadow: 0 1px 0 rgba(0,0,0,.25); }
   #tJump { right: max(14px, env(safe-area-inset-right)); bottom: calc(max(18px, env(safe-area-inset-bottom)) + 34px) !important; width: 90px !important; height: 90px !important; background: rgba(47,174,74,.6) !important; }
 </style>
-<link rel="stylesheet" href="common.css?v=20261026-0055">
+<link rel="stylesheet" href="common.css?v=20261026-0146">
 </head>
 <body>
 <canvas id="game"></canvas>
@@ -135,12 +142,10 @@
 
 <div id="mapBtns" class="hidden">
   <button id="bZoom" aria-label="Zoom out to the whole country" title="The whole country (M)">🗺️</button>
-  <button id="bUnlock" aria-label="Unlock every level" title="Unlock all (while we build)">🔓</button>
-  <button id="bHeroes" aria-label="The heroes" title="The heroes">👪</button>
 </div>
 
 <div id="fact" class="hidden" role="dialog" aria-label="Did you know?">
-  <div class="fhead">ℹ️ Did you know?</div>
+  <div class="fhead">Did you know?</div>
   <div class="ftxt"></div>
   <div class="fsrc"></div>
   <button class="fok">Got it! 📜</button>
@@ -199,7 +204,7 @@
   </div>
 </div>
 
-<script src="common.js?v=20261026-0055"></script>
+<script src="common.js?v=20261026-0146"></script>
 <script>
 'use strict';
 // ===================== Manifest Destiny =====================
@@ -299,7 +304,7 @@ LEVELS.voyage = builder('voyage', 'The Mayflower', 'atlantic', 220)
   .e('crab', 176, 9).at(180, 6, '?P?').e('turkey', 186, 9).at(190, 7, '----').coins(190, 6, 4).e('turkey', 196, 9).e('buzzer', 198, 6, { as: 'gull' })
   .at(30, 6, 'I').at(68, 6, 'I').at(90, 6, 'I').at(128, 6, 'I').at(184, 6, 'I')   // info boxes: leaving England, 66 days, John Howland, Oceanus, the Compact
   .gems(6, 3, 34, 0, 76, 1, 104, 3, 192, 4)
-  .done({ goal: 206, music: 'mayflower', ship: true, storm: [56, 112], decor: [['quay', 0, 10, { to: 11 }], ['capeshore', 168, 10, { to: 220 }]], collect: 'corn', cast: { grumblin: 'rat' },
+  .done({ gate: { mid: 'buoy', goal: 'driftwood' }, goal: 206, music: 'mayflower', ship: true, storm: [56, 112], decor: [['quay', 0, 10, { to: 11 }], ['capeshore', 168, 10, { to: 220 }]], collect: 'corn', cast: { grumblin: 'rat' },
     story: ['SEPTEMBER 1620', '102 passengers set sail from Plymouth, England, for America. Climb aboard the Mayflower!'] });
 
 // 1-2. Plimoth Plantation, 1621: from the shore up through the Wampanoag homesite by Town Brook, where Tisquantum shows
@@ -321,7 +326,7 @@ LEVELS.plimoth = builder('plimoth', 'Plimoth Plantation', 'plimoth', 222)
   .e('thorny', 194, 8)
   .at(13, 8, 'I').at(36, 8, 'I').at(49, 8, 'I').at(88, 7, 'I').at(170, 6, 'I')   // info boxes: Patuxet, the first winter, Tisquantum, the Three Sisters, the harvest feast
   .gems(9, 5, 27, 6, 64, 6, 136, 3, 184, 1)
-  .done({ goal: 208, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
+  .done({ gate: { mid: 'scarecrow', goal: 'palisade' }, goal: 208, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
     story: ['DECEMBER 1620', 'The Pilgrims build their homes at Plymouth. Their first winter is cold and hard.'],
     decor: [['rock', 5, 12], ['wetu', 38, 12], ['fire', 48, 12], ['wetu', 58, 12, { s: 0.85 }], ['canoe', 31, 12], ['corn', 74, 11, { n: 18 }], ['palisade', 125, 11, { to: 205 }],
       ['house', 130.5, 11], ['house', 136.5, 11, { h: 96 }], ['house', 156.5, 10], ['house', 162.5, 10, { h: 96 }], ['house', 178.5, 9], ['house', 184.5, 9, { h: 96 }], ['fort', 201, 9]] });
@@ -342,7 +347,7 @@ LEVELS.cranberry = builder('cranberry', 'Cranberry Bog', 'bog1622', 210)
   .e('sponge', 142, 12, { w: 3 }).e('sponge', 147, 12, { w: 3 }).e('sponge', 152, 12, { w: 3 })
   .at(166, 8, 'I').e('turkey', 172, 11).at(176, 8, '?S?').e('buzzer', 178, 5).e('snaily', 182, 11).e('turkey', 186, 11).stairs(190, 5)
   .gems(9, 5, 25, 7, 55, 7, 104, 5, 150, 7)
-  .done({ goal: 198, music: 'cranberry', collect: 'corn', cast: { snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
+  .done({ gate: { mid: 'pot', goal: 'cedar' }, goal: 198, music: 'cranberry', collect: 'corn', cast: { snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
     story: ['AUTUMN 1622', 'In the Wampanoag homeland, families gather cranberries in the bogs, as they have for thousands of years.'],
     decor: [['wetu', 5, 12], ['fire', 11, 12], ['wetu', 16, 12, { s: 0.8 }], ['canoe', 27, 12], ['wetu', 162, 12], ['wetu', 170, 12, { s: 0.85 }]] });
 
@@ -359,7 +364,7 @@ LEVELS.boston = builder('boston', 'A City upon a Hill', 'shawmut', 214)
   .at(140, 6, 'H').e('grumblin', 142, 9).at(152, 4, 'I').e('thorny', 156, 7).e('buzzer', 158, 3)
   .at(165, 2, '?P?').e('turkey', 170, 5).e('grumblin', 178, 5).stairs(182, 4, true, 5)
   .gems(10, 4, 25, 6, 66, 1, 116, 6, 166, 0)
-  .done({ goal: 196, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
+  .done({ gate: { mid: 'cowbell', goal: 'fence' }, goal: 196, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
     story: ['1630', 'A thousand Puritans arrive with John Winthrop and build a new town on the hills of Shawmut: Boston.'],
     decor: [['house', 8.5, 11], ['house', 16.5, 11, { h: 96 }], ['house', 35.5, 12], ['school', 150, 8], ['house', 174.5, 6], ['beacon', 190, 6]] });
 
@@ -375,7 +380,7 @@ LEVELS.providence = builder('providence', 'Providence', 'snow', 214)
   .at(126, 8, 'H').e('turkey', 130, 11).at(134, 8, '?S?').e('grumblin', 142, 11).e('buzzer', 146, 5)
   .at(156, 6, 'I').e('thorny', 160, 9).e('turkey', 170, 11).e('grumblin', 178, 11).stairs(186, 5)
   .gems(9, 5, 43, 7, 77, 1, 110, 6, 160, 3)
-  .done({ goal: 200, music: 'snow', collect: 'corn', cast: { grumblin: 'wolf', thorny: 'porcupine', buzzer: 'crow' },
+  .done({ gate: { mid: 'sign', goal: 'snowtimber' }, goal: 200, music: 'snow', collect: 'corn', cast: { grumblin: 'wolf', thorny: 'porcupine', buzzer: 'crow' },
     story: ['WINTER 1636', 'Sent away from Massachusetts for his ideas, Roger Williams walks south through the snow.'],
     decor: [['house', 172.5, 12], ['house', 180.5, 12, { h: 96 }]] });
 
@@ -391,7 +396,7 @@ LEVELS.ctriver = builder('ctriver', 'The Connecticut River', 'ctriver', 216)
   .e('plat', 142, 10, { w: 3, dx: 2, sp: 1.1, look: 'raftlog' }).e('sturgeon', 146, 12)
   .e('grumblin', 158, 11).at(164, 8, '?S?').at(170, 8, 'I').e('buzzer', 172, 5).e('grumblin', 176, 11).at(180, 8, 'H').e('turkey', 186, 11).stairs(196, 5)
   .gems(12, 5, 50, 6, 84, 6, 130, 6, 176, 4)
-  .done({ goal: 206, music: 'canal', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', buzzer: 'crow' },
+  .done({ gate: { mid: 'mooring', goal: 'timber' }, goal: 206, music: 'canal', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', buzzer: 'crow' },
     story: ['1636 TO 1639', 'Thomas Hooker leads 100 settlers, and their cows, west to the Connecticut River.'],
     decor: [['goodhope', 112, 12], ['house', 184.5, 12], ['house', 190.5, 12, { h: 96 }]] });
 
@@ -899,7 +904,7 @@ canvas.addEventListener('pointerdown', e => {
   if (state === 'map') { pinch.set(e.pointerId, [e.clientX, e.clientY]); if (pinch.size === 1) mapTap(e.clientX, e.clientY); else pinch.d0 = pinchDist(); return; }
   // tap the box at the top to drop the saved power-up
   const r = canvas.getBoundingClientRect(), px = (e.clientX - r.left) * canvas.width / r.width, py = (e.clientY - r.top) * canvas.height / r.height - offY;
-  if (state === 'level' && !paused && Math.abs(px - canvas.width / 2) < scale * 18 && py > 0 && py < scale * 32) recallReserve();
+  if (state === 'level' && !paused && px > scale * 95 && px < scale * 119 && py > 0 && py < scale * 28) recallReserve();   // (the crate in the HUD)
 });
 // on the map, pinch (or scroll) to zoom out to the whole country, and spread (or scroll back) to zoom in again
 const pinch = new Map();
@@ -1176,8 +1181,9 @@ function newGame() {   // a fresh start: progress, secrets, facts seen and the s
 if (RB.setMenuItems) RB.setMenuItems(gameMenu);
 function resume() { paused = false; RB.hidePause(); last = performance.now(); }
 RB.topbar({
+  minimal: true,   // just ☰: sound, sharing, controller settings and all the games are in the menu, so the screen stays clear
   onPause: () => (paused ? resume() : pause()),
-  shareInfo: { title: 'Manifest Destiny | RoboBandit', text: 'A road trip across America, from the Pilgrims to the Gold Rush! Run, jump and learn history in every state 🗺️☘️' },
+  shareInfo: { title: 'Manifest Destiny | RoboBandit', text: "America's story, from the Mayflower west! Run, jump and learn history in every state 🗺️⛵" },
 });
 RB.onHide(pause);
 
@@ -1638,6 +1644,116 @@ function drawSturgeon(e, t) {   // an Atlantic sturgeon: a huge old river fish w
   g.fillStyle = '#e8e4d0'; for (let k = 0; k < 6; k++) { g.beginPath(); g.moveTo(-9 + k * 3.6, -4); g.lineTo(-7.6 + k * 3.6, -6); g.lineTo(-6.2 + k * 3.6, -4); g.fill(); }
   g.beginPath(); g.arc(10, -1.4, 0.8, 0, TAU); g.fillStyle = '#111'; g.fill();
   g.restore();
+}
+// ---- each level's own halfway marker and goal ----
+// The halfway marker (x, y: the top of its 3-tile-tall box, its base on the ground) reacts once it's passed. The goal is
+// two posts with a rope between them sliding up and down; once broken, the two halves hang down and the gate celebrates.
+function drawMidGate(kind, e, t) {
+  const x = e.x + 8, base = e.y + e.h, on = !!e.lit, since = on ? clock - e.lit : 0;
+  if (on && since < 1.2 && since >= 0) glow(x, base - 30, 30, 'rgba(255,240,170,1)', 0.6 * (1 - since / 1.2));
+  if (kind === 'buoy') {   // a bell buoy with a lantern on top, bobbing in the sea; the lantern lights as you pass
+    const bob = Math.sin(t * 2) * 1.5, wy = 12 * TS + bob;
+    g.fillStyle = '#c8302a'; g.beginPath(); g.moveTo(x - 7, wy + 4); g.lineTo(x + 7, wy + 4); g.lineTo(x + 5, wy - 6); g.lineTo(x - 5, wy - 6); g.closePath(); g.fill();
+    g.fillStyle = '#5a3418'; g.fillRect(x - 1.2, base - 40 + bob, 2.4, wy - base + 34);
+    g.save(); g.translate(x, base - 40 + bob); g.rotate(Math.sin(t * 2.6) * 0.15); g.fillStyle = '#c89a3a'; g.beginPath(); g.arc(0, 12, 3.4, Math.PI, 0); g.lineTo(3.4, 15); g.lineTo(-3.4, 15); g.fill(); g.restore();
+    rrect(x - 4, base - 50 + bob, 8, 10, 1.5); g.fillStyle = '#2a2a32'; g.fill(); rrect(x - 2.6, base - 48.6 + bob, 5.2, 7, 1); g.fillStyle = on ? '#ffe48a' : '#6a6a5a'; g.fill();
+    if (on) glow(x, base - 45 + bob, 18, 'rgba(255,220,120,1)', 0.7 + 0.15 * Math.sin(t * 8));
+    return;
+  }
+  if (kind === 'scarecrow') {   // a scarecrow in the cornfield: an old coat on a cross of sticks; it waves its arms as you pass
+    const wave = on ? Math.sin(t * 8) * 0.5 : 0;
+    g.fillStyle = '#7a5428'; g.fillRect(x - 1.4, base - 40, 2.8, 40); g.fillRect(x - 12, base - 30, 24, 2.4);
+    g.save(); g.translate(x - 12, base - 29); g.rotate(-wave); g.fillStyle = '#6a5a8a'; rrect(-3, -2, 9, 5, 2); g.fill(); g.fillStyle = '#e8c868'; g.fillRect(-5, -1, 3, 3); g.restore();
+    g.save(); g.translate(x + 12, base - 29); g.rotate(wave); g.fillStyle = '#6a5a8a'; rrect(-6, -2, 9, 5, 2); g.fill(); g.fillStyle = '#e8c868'; g.fillRect(2, -1, 3, 3); g.restore();
+    rrect(x - 6, base - 31, 12, 15, 3); g.fillStyle = '#6a5a8a'; g.fill(); g.fillStyle = '#4a3a6a'; g.fillRect(x - 6, base - 22, 12, 2);
+    g.beginPath(); g.arc(x, base - 36, 5, 0, TAU); g.fillStyle = '#e8d090'; g.fill();
+    g.fillStyle = '#2a2a32'; g.beginPath(); g.arc(x - 1.8, base - 37, 0.8, 0, TAU); g.arc(x + 1.8, base - 37, 0.8, 0, TAU); g.fill();
+    ell(x, base - 41, 8, 2); g.fillStyle = '#3a2a1e'; g.fill(); rrect(x - 4, base - 47, 8, 6, [2, 2, 0, 0]); g.fill();
+    return;
+  }
+  if (kind === 'pot') {   // a clay cooking pot on a tripod over a little fire; once you pass, it steams
+    g.strokeStyle = '#6a4424'; g.lineWidth = 2; g.beginPath(); g.moveTo(x - 12, base); g.lineTo(x, base - 34); g.lineTo(x + 12, base); g.moveTo(x, base - 34); g.lineTo(x, base); g.stroke();
+    g.strokeStyle = '#3a2a1a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(x, base - 34); g.lineTo(x, base - 22); g.stroke();
+    ell(x, base - 16, 7, 6.4); g.fillStyle = '#9a5a34'; g.fill(); ell(x, base - 21.6, 5, 1.4); g.fillStyle = '#4a2a18'; g.fill();
+    glow(x, base - 4, 10, 'rgba(255,150,50,1)', 0.5); g.beginPath(); g.moveTo(x - 4, base); g.quadraticCurveTo(x, base - 9 + Math.sin(t * 13), x + 4, base); g.fillStyle = '#ff9a2a'; g.fill();
+    if (on) for (let i = 0; i < 3; i++) { const ph = (t * 0.6 + i / 3) % 1; g.globalAlpha = 0.5 * (1 - ph); g.beginPath(); g.arc(x + Math.sin(ph * 6 + i) * 3, base - 24 - ph * 26, 2 + ph * 4, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.globalAlpha = 1; }
+    return;
+  }
+  if (kind === 'cowbell') {   // a fence post on the Common with a cowbell; it rings (swings) once you pass
+    g.fillStyle = '#8a6a44'; g.fillRect(x - 2.4, base - 36, 4.8, 36); g.fillRect(x - 10, base - 22, 20, 2.4); g.fillRect(x - 10, base - 12, 20, 2.4);
+    g.save(); g.translate(x, base - 34); g.rotate(on && clock - e.lit < 3 ? Math.sin(t * 14) * 0.5 : 0);
+    g.fillStyle = '#c89a3a'; g.beginPath(); g.moveTo(-3, 0); g.lineTo(3, 0); g.lineTo(5, 9); g.lineTo(-5, 9); g.closePath(); g.fill(); g.beginPath(); g.arc(0, 10, 1.4, 0, TAU); g.fillStyle = '#5a3a1a'; g.fill(); g.restore();
+    return;
+  }
+  if (kind === 'sign') {   // a snowy signpost pointing the way to Providence; its little lantern lights as you pass
+    g.fillStyle = '#6a4a2a'; g.fillRect(x - 1.6, base - 40, 3.2, 40);
+    g.beginPath(); g.moveTo(x - 14, base - 36); g.lineTo(x + 12, base - 36); g.lineTo(x + 17, base - 31); g.lineTo(x + 12, base - 26); g.lineTo(x - 14, base - 26); g.closePath(); g.fillStyle = '#a8784a'; g.fill();
+    g.fillStyle = '#ffffff'; rrect(x - 15, base - 38, 30, 3, 1.5); g.fill();
+    g.font = 'bold 5px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#3a2410'; g.fillText('PROVIDENCE', x + 1, base - 29.4);
+    rrect(x - 3, base - 48, 6, 8, 1); g.fillStyle = '#2a2a32'; g.fill(); rrect(x - 2, base - 47, 4, 6, 1); g.fillStyle = on ? '#ffe48a' : '#5a5a4a'; g.fill(); if (on) glow(x, base - 44, 14, 'rgba(255,220,120,1)', 0.6);
+    return;
+  }
+  if (kind === 'mooring') {   // a mooring post by the river with a coil of rope; a little flag goes up as you pass
+    rrect(x - 4, base - 28, 8, 28, 2); g.fillStyle = vgrad(base - 28, base, '#8a6a44', '#5a3a1e'); g.fill(); ell(x, base - 28, 4, 1.4); g.fillStyle = '#b08a5a'; g.fill();
+    g.strokeStyle = '#d8b880'; g.lineWidth = 1.4; for (let k = 0; k < 3; k++) { g.beginPath(); g.ellipse(x, base - 12 + k * 2.2, 6, 2, 0, 0, TAU); g.stroke(); }
+    const fh = on ? Math.min(1, (clock - e.lit) * 2) : 0; g.fillStyle = '#6a4424'; g.fillRect(x - 0.6, base - 44, 1.2, 16);
+    g.fillStyle = '#2a6ad8'; g.beginPath(); g.moveTo(x + 0.6, base - 30 - fh * 13); g.lineTo(x + 9, base - 27 - fh * 13 + Math.sin(t * 6)); g.lineTo(x + 0.6, base - 24 - fh * 13); g.fill();
+    return;
+  }
+}
+const GATE_POSTS = {
+  driftwood: { post: ['#b8a07a', '#8a7454'], rope: '#c8a868', top: null },
+  palisade: { post: ['#8a6a44', '#5a3e22'], rope: '#c8a060', top: 'beam' },
+  cedar: { post: ['#9a5a3a', '#6a3a22'], rope: '#c83040', top: 'mats' },
+  fence: { post: ['#9a7a54', '#6a5434'], rope: '#c8a060', top: 'rails' },
+  snowtimber: { post: ['#7a5a3a', '#4a3420'], rope: '#c8a060', top: 'snow' },
+  timber: { post: ['#8a6a44', '#5a3e22'], rope: '#c8a060', top: 'flag' },
+};
+function drawGoalGate(kind, gx, t) {
+  const st = GATE_POSTS[kind] || GATE_POSTS.timber, ground = groundTopAt((gx + 18) / TS), top = 30, broken = phase === 'clear' && lvl.tapeBroken, since = phase === 'clear' ? phaseT : 0;
+  for (const px of [gx - 9, gx + 33]) {   // two stout posts, a little wider at the foot
+    g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 11, top); g.lineTo(px + 12.5, ground); g.lineTo(px - 0.5, ground); g.closePath(); g.fillStyle = st.post[0]; g.fill();
+    g.fillStyle = st.post[1]; g.beginPath(); g.moveTo(px + 8, top); g.lineTo(px + 11, top); g.lineTo(px + 12.5, ground); g.lineTo(px + 9, ground); g.fill();
+    g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(px + 2.4, top + 2, 1.4, ground - top - 4);
+    g.strokeStyle = 'rgba(40,24,10,.35)'; g.lineWidth = 0.7; for (let yy = top + 10; yy < ground; yy += 13) { g.beginPath(); g.moveTo(px + 2, yy); g.lineTo(px + 8, yy + 3); g.stroke(); }
+    ell(px + 6, ground, 9, 2.4); g.fillStyle = 'rgba(0,0,0,.18)'; g.fill();
+    if (kind === 'palisade' || kind === 'snowtimber') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
+    if (kind === 'snowtimber') { ell(px + 6, top - 1, 8, 3); g.fillStyle = '#ffffff'; g.fill(); }
+    if (kind === 'driftwood') { ell(px + 6, top + 1, 6, 2.4); g.fillStyle = st.post[1]; g.fill(); ell(px + 6, top + 1, 3.4, 1.2); g.fillStyle = st.post[0]; g.fill(); }
+  }
+  if (st.top === 'beam' || st.top === 'rails' || st.top === 'snow' || st.top === 'mats') {   // a crossbeam over the top
+    rrect(gx - 13, top - 3, 62, 9, 2.5); g.fillStyle = st.post[0]; g.fill(); g.fillStyle = st.post[1]; g.fillRect(gx - 13, top + 3, 62, 3);
+    if (st.top === 'snow') { g.fillStyle = '#ffffff'; rrect(gx - 11, top - 5, 58, 4, 2); g.fill(); g.fillStyle = '#2e6a3a'; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(gx + 4 + k * 4, top + 5); g.lineTo(gx + 6 + k * 4, top + 12); g.lineTo(gx + 8 + k * 4, top + 5); g.fill(); } }   // a pine bough
+    if (st.top === 'mats') for (const mx of [gx - 4, gx + 32]) { rrect(mx, top + 5, 10, 22, 1); g.fillStyle = '#c8aa6a'; g.fill(); g.strokeStyle = 'rgba(110,80,40,.6)'; g.lineWidth = 0.6; for (let k = 0; k < 6; k++) { g.beginPath(); g.moveTo(mx, top + 8 + k * 3.6); g.lineTo(mx + 10, top + 8 + k * 3.6); g.stroke(); } }   // woven reed mats
+    if (st.top === 'rails') for (const ry of [ground - 30, ground - 16]) { g.fillStyle = st.post[0]; g.fillRect(gx - 26, ry, 20, 3); g.fillRect(gx + 42, ry, 20, 3); }
+  }
+  if (st.top === 'beam') {   // the palisade gate's bell: it rings once you're through
+    g.save(); g.translate(gx + 18, top + 5); g.rotate(phase === 'clear' ? Math.sin(since * 12) * 0.6 * Math.max(0, 1 - since / 3) : 0);
+    g.fillStyle = '#c89a3a'; g.beginPath(); g.moveTo(-4, 0); g.lineTo(4, 0); g.quadraticCurveTo(5, 8, 7, 11); g.lineTo(-7, 11); g.quadraticCurveTo(-5, 8, -4, 0); g.fill(); g.beginPath(); g.arc(0, 12, 1.6, 0, TAU); g.fillStyle = '#5a3a1a'; g.fill(); g.restore();
+  }
+  if (st.top === 'flag') {   // Connecticut's banner on the right-hand post
+    g.fillStyle = '#5a3e22'; g.fillRect(gx + 37, top - 26, 2, 26); const wv = Math.sin(t * 5) * 1.4;
+    g.beginPath(); g.moveTo(gx + 39, top - 26); g.quadraticCurveTo(gx + 47, top - 25 + wv, gx + 55, top - 24); g.lineTo(gx + 55, top - 14); g.quadraticCurveTo(gx + 47, top - 15 + wv, gx + 39, top - 16); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+    g.fillStyle = '#7a5a2a'; g.beginPath(); g.arc(gx + 47, top - 20 + wv * 0.5, 2.6, 0, TAU); g.fill();   // (grapevines, on its shield)
+  }
+  // the rope: sliding up and down until it's broken; then its two halves hang from the posts
+  if (!broken) {
+    const ty = Math.min(goalTapeY(), ground - 12);
+    glow(gx + 18, ty + 2, 22, 'rgba(255,250,210,1)', 0.35);
+    g.strokeStyle = st.rope; g.lineWidth = 2.4; g.beginPath(); g.moveTo(gx + 2, ty); g.quadraticCurveTo(gx + 18, ty + 4, gx + 34, ty); g.stroke();
+    g.strokeStyle = 'rgba(90,60,20,.5)'; g.lineWidth = 0.6; for (let k = 4; k < 32; k += 3) { g.beginPath(); g.moveTo(gx + k, ty - 1); g.lineTo(gx + k + 1.6, ty + 1.4); g.stroke(); }
+    if (kind === 'cedar') for (let k = 6; k < 32; k += 5) { g.beginPath(); g.arc(gx + k, ty + 1.6, 1.6, 0, TAU); g.fillStyle = '#c8303a'; g.fill(); }   // a garland of cranberries
+  } else {
+    const ty = lvl.ropeY || (lvl.ropeY = goalTapeY());
+    g.strokeStyle = st.rope; g.lineWidth = 2.4;
+    for (const [px, d] of [[gx + 2, 1], [gx + 34, -1]]) { g.beginPath(); g.moveTo(px, ty); g.quadraticCurveTo(px + d * 4, ty + 10, px + d * 1 + Math.sin(since * 6) * 2, ty + 16); g.stroke(); }
+    if (kind === 'driftwood' && since > 0.3) {   // the Mayflower Compact unrolls above the gate
+      const k = Math.min(1, (since - 0.3) * 1.5), w = 40, h = 30 * k, cx = gx + 18, cy = top - 12;
+      rrect(cx - w / 2, cy, w, h, 2); g.fillStyle = '#f4e8c8'; g.fill(); g.strokeStyle = '#a8884a'; g.lineWidth = 0.8; g.stroke();
+      for (const yy of [cy - 1, cy + h - 1]) { rrect(cx - w / 2 - 3, yy, w + 6, 4, 2); g.fillStyle = '#c8a868'; g.fill(); }
+      if (k > 0.8) { g.font = 'bold 4.4px Georgia, serif'; g.textAlign = 'center'; g.fillStyle = '#4a3418'; g.fillText('THE COMPACT', cx, cy + 9); g.fillStyle = 'rgba(70,50,20,.5)'; for (let l = 0; l < 4; l++) g.fillRect(cx - 14, cy + 13 + l * 3.4, 28 - (l % 2) * 6, 1); }
+    }
+  }
 }
 // Tisquantum (Squanto) of the Patuxet Wampanoag, who lived with the Pilgrims and showed them how to plant corn and where
 // to fish. Drawn plainly, in the deerskin clothes of his time: a mantle over one shoulder, leggings and moccasins.
@@ -4118,7 +4234,7 @@ function startLevel(id, fromCheck = false) {
   for (const e of src.ents) {
     if (e.k === 'gem') { const i = gi++; if (!levelGems[i] && !e.sky) ents.push(mk('gem', e.x * TS, e.y * TS, { idx: i, h: 18 })); continue; }
     if (e.k === 'key' && (gotKey || save.key)) continue;   // already found
-    if (e.k === 'mid' && checkpoint) continue;
+    if (e.k === 'mid' && checkpoint && !lvl.gate) continue;
     spawnFromSpec(e);
   }
   const startX = checkpoint ? checkpoint.x : 3 * TS;
@@ -4158,7 +4274,7 @@ function spawnFromSpec(e) {
     case 'plat': ents.push(mk('plat', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, dx: (e.dx || 0) * TS, dy: (e.dy || 0) * TS, sp: e.sp || 1, ph: e.ph0 || 0, orbit: !!e.orbit, rise: !!e.rise, hub: e.hub, look: e.look })); break;   // (an orbiting one goes round in a circle: a waterwheel's paddle)
     case 'syrup': lvl.syrup = true; ents.push(mk('syrup', x, y - 3, { w: (e.w || 3) * TS, h: 6 })); break;   // a sticky puddle of maple syrup on the ground (y is the ground's top row)
     case 'fall': ents.push(mk('fall', x, y, { x0: x, y0: y, w: (e.w || 3) * TS, h: 8, st: 'wait', cyc: 0 })); break;
-    case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
+    case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS, lit: checkpoint && lvl.gate ? -9 : 0 })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: 3, maxHp: 3, kind: e.kind || 'grumbles', who: e.who || 'sherlock', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3, act: 0, cst: 'walk' })); break;
     case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
@@ -4843,7 +4959,8 @@ function touchPlayer(e) {
       banner('GOLDEN KEY!', 'A secret level opens on the map 🌈');
       break;
     case 'mid':
-      e.gone = true; checkpoint = { x: e.x }; sfx.mid(); if (p.form === 0) setForm(1); sparkle(e.x + 8, e.y + 20, '#ffffff', 16);
+      if (e.lit) break;
+      e.lit = clock; if (!lvl.gate) e.gone = true; checkpoint = { x: e.x }; sfx.mid(); if (p.form === 0) setForm(1); sparkle(e.x + 8, e.y + 20, '#ffffff', 16);
       break;
     case 'clover': case 'flower': case 'horseshoe': case 'hat': case 'magichat':
       if (e.rise > 0) break;
@@ -5326,8 +5443,9 @@ function drawLevel() {
   }
   // a secret exit up on the roof: a golden star glints in the rock below it (a hint for sharp eyes)
   if (lvl.secretGoal) { const sx = lvl.secretGoal * TS + 8; glow(sx, 16, 20, 'rgba(255,220,90,1)', 0.45 + 0.2 * Math.sin(t * 3)); star(sx, 16, 6, '#ffe14a'); }
-  // the goal: two striped posts and a rainbow tape sliding up and down
-  if (lvl.goal) {
+  // the goal: each level's own gateposts and a rope sliding up and down (the higher you break it, the more stars)
+  if (lvl.goal && lvl.gate) drawGoalGate(lvl.gate.goal, lvl.goal * TS, t);
+  else if (lvl.goal) {
     const gx = lvl.goal * TS;
     for (const px of [gx - 4, gx + 34]) {
       rrect(px, 14, 6, 11 * TS - 12, 3); paint(vgrad(0, 0, '#fff', '#fff'), 1);
@@ -5477,7 +5595,8 @@ function drawEnt0(e, t) {
       }
       break;
     }
-    case 'mid': {   // the halfway ribbon
+    case 'mid': {   // the halfway marker: each level has its own (see drawMidGate); otherwise a ribbon
+      if (lvl.gate) { drawMidGate(lvl.gate.mid, e, t); break; }
       for (const px of [x, x + 13]) { rrect(px, y, 3, e.h, 1.5); paint('#fff', 0.8); }
       const yy = y + 20 + Math.sin(t * 3) * 3;
       ['#ff5a5a', '#ffe14a', '#5ad06a', '#5ab0ff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(x + 3, yy + i * 1.2, 10, 1.3); });
@@ -5709,13 +5828,13 @@ const NODES = [
   // Plymouth, then the Wampanoag homeland, the Puritans' Boston, Providence, the Connecticut River, the coast of Maine,
   // Vermont's maple woods, and back to Boston for the Tea Party and the Midnight Ride
   at('voyage', CAPEXY(92, -40), 'The Mayflower', 'across the Atlantic to Provincetown', { year: 1620 }),   // (out at sea, heading west for Cape Cod)
-  at('plimoth', US(-70.78, 42.12), 'Plimoth Plantation', 'Plymouth, Massachusetts', { year: 1621 }),
-  at('cranberry', CAPEXY(25, 3), 'Cranberry Bog', 'the Wampanoag homeland, Cape Cod', { year: 1622 }),
-  at('boston', US(-71.1, 42.4), 'A City upon a Hill', 'Boston, Massachusetts', { year: 1630 }),
-  at('providence', US(-71.41, 41.82), 'Providence', 'Rhode Island', { year: 1636 }),
+  at('plimoth', US(-70.6, 42.05), 'Plimoth Plantation', 'Plymouth, Massachusetts', { year: 1621 }),   // (the stops round Massachusetts Bay are spread out a little, so the road is easy to follow)
+  at('cranberry', US(-71.0, 41.7), 'Cranberry Bog', 'the Wampanoag homeland, near Plymouth', { year: 1622 }),   // (inland, where the bogs are, so the road doesn't double back)
+  at('boston', US(-71.05, 42.45), 'A City upon a Hill', 'Boston, Massachusetts', { year: 1630 }),
+  at('providence', US(-71.6, 41.92), 'Providence', 'Rhode Island', { year: 1636 }),
   at('ctriver', US(-72.68, 41.76), 'The Connecticut River', 'Hartford, Connecticut', { year: 1639 }),
-  at('gulfmaine', US(-69.5, 43.95), 'The Gulf of Maine', 'Pemaquid, Maine', { year: 1650, soon: true }),
-  at('maple', US(-72.7, 44.3), 'Maple Sugarhouse', 'Vermont, the Abenaki homeland', { year: 1700, soon: true }),
+  at('maple', US(-72.7, 44.3), 'Maple Sugarhouse', 'Vermont, the Abenaki homeland', { year: 1650, soon: true }),
+  at('gulfmaine', US(-69.5, 43.95), 'The Gulf of Maine', 'Pemaquid, Maine', { year: 1700, soon: true }),
   at('teaparty', US(-70.75, 42.62), 'The Boston Tea Party', 'Boston Harbor', { year: 1773, soon: true }),
   at('lexington', US(-71.45, 42.62), 'The Midnight Ride', 'Lexington and Concord, Massachusetts', { year: 1775, soon: true, boss: 'castle' }),
   at('nantucket', CAPEXY(46, 23), 'Nantucket', 'the whaling island', { island: true, soon: true }),   // secret-only islands
@@ -5797,7 +5916,7 @@ const NODES = [
 const node = id => NODES.find(n => n.id === id);
 const START = 'voyage';   // the story starts on the Mayflower, coming into Provincetown Harbor in 1620
 const WORLDS = [
-  ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'gulfmaine', 'maple', 'teaparty', 'lexington'],
+  ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington'],
   ['saratoga', 'delaware', 'valleyforge', 'independence', 'eriecanal', 'mchenry', 'capital'],
   ['staugustine', 'jamestown', 'blackbeard', 'charleston', 'savannah', 'monticello', 'yorktown'],
   ['cumberland', 'boonesborough', 'mammoth', 'nashville', 'newechota', 'steamboat', 'neworleans'],
@@ -5820,7 +5939,8 @@ const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vine
 // a few trails are bent by hand: the boats keep to the sea
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
-bend('voyage|plimoth', CAPEXY(30, -78)); bend('voyage|nantucket', CAPEXY(90, 10));   // (round the tip of the Cape, past Provincetown, and into the bay) bend('cranberry|vineyard', CAPEXY(12, 16)); bend('plimoth|cranberry', CAPEXY(6, -8));
+bend('voyage|plimoth', CAPEXY(30, -78)); bend('voyage|nantucket', CAPEXY(90, 10));   // (round the tip of the Cape, past Provincetown, and into the bay)
+bend('cranberry|vineyard', US(-70.85, 41.45)); bend('plimoth|cranberry', US(-70.75, 41.8)); bend('cranberry|boston', US(-71.1, 42.1)); bend('boston|providence', US(-71.4, 42.25));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -5910,10 +6030,10 @@ function openInfo(tx, ty) {
   if (!f) return;
   const read = save.info[id] || (save.info[id] = []), first = !read[i];
   read[i] = true; persist();
-  factEl.querySelector('.fhead').textContent = first ? 'ℹ️ Did you know?' : 'ℹ️ Remember?';
+  factEl.querySelector('.fhead').textContent = first ? 'Did you know?' : 'Remember?';
   factEl.querySelector('.ftxt').textContent = f.f;
   factEl.querySelector('.fsrc').textContent = `${lvl.name} · ${i + 1} of ${INFO[id].length}${node(id) && node(id).year ? ' · ' + node(id).year : ''}`;
-  factEl.classList.remove('hidden'); factOpen = true; factWait = 0.4;
+  factEl.classList.remove('hidden'); factOpen = true; factWait = 0.4; shake = 0;   // (a ground pound onto the box shakes the screen: not while the fact is up)
   for (const k in keys) keys[k] = false;
   sfx.mid(); if (first) addScore(500, tx * TS, ty * TS);
 }
@@ -5949,10 +6069,20 @@ function mapArea() {   // the part of the map Leo is in (halfway along a trail, 
 }
 function mapFit(box) {
   const w = box[2] - box[0], h = box[3] - box[1];
-  const z = clamp(Math.min((LW - 16) / w, (LH - MAP_TOP - MAP_BOTTOM) / h), 0.2, 1.9);
+  const z = clamp(Math.min((LW - 16) / w, (LH - MAP_TOP - MAP_BOTTOM) / h), 0.2, 3.2);
   return { x: (box[0] + box[2]) / 2, y: (box[1] + box[3]) / 2, z };
 }
-const mapWant = () => mapFit(mapWhole ? MAP_ALL : AREAS[mapLook || mapArea()]);
+// Close in on where the hero is: the stop he's at (or heading to), the one before and the next two along the road, so the
+// trail between them is easy to follow; looking at another world (or the whole country) fits that instead
+function nearBox() {
+  const at = mapLeo.to && (mapLeo.u || 0) >= 0.5 ? mapLeo.to : mapLeo.at, i = ROUTE.indexOf(at);
+  const ids = i < 0 ? [at] : ROUTE.slice(Math.max(0, i - 1), i + 3).filter(id => worldOf(id) === worldOf(at) || id === at);
+  const b = [1e9, 1e9, -1e9, -1e9];
+  for (const id of ids) { const n = node(id); b[0] = Math.min(b[0], n.x - 14); b[1] = Math.min(b[1], n.y - 20); b[2] = Math.max(b[2], n.x + 14); b[3] = Math.max(b[3], n.y + 12); }
+  const cx = (b[0] + b[2]) / 2, cy = (b[1] + b[3]) / 2, w = Math.max(70, b[2] - b[0]), h = Math.max(50, b[3] - b[1]);
+  return [cx - w / 2, cy - h / 2, cx + w / 2, cy + h / 2];
+}
+const mapWant = () => mapFit(mapWhole ? MAP_ALL : mapLook ? AREAS[mapLook] : nearBox());
 const MAP_CY = () => MAP_TOP + (LH - MAP_TOP - MAP_BOTTOM) / 2;
 const mapS = (x, y) => [(x - mapCam.x) * mapCam.z + LW / 2, (y - mapCam.y) * mapCam.z + MAP_CY()];   // map → screen
 function mapSnap() { Object.assign(mapCam, mapWant()); }
@@ -6400,26 +6530,33 @@ function drawHUD() {
   }
   if (state !== 'level') return;
   tHatBtn.classList.toggle('off', !(player && player.form === 3));   // the 🎩 button only works with the magic hat
-  // the game's own clover, coin and gem art on soft pills, outlined numbers, and a rounded item box
+  // the HUD: cream "game card" panels with a dark outline (like the title and quiz), chunky dark numbers and the game's own
+  // art: hats (lives), coins, the saved power-up in a little wooden crate, the corn meter and the info meter
   const ink = (str, x, y, size, color = '#fff', align = 'left') => { ctx.font = font(size); ctx.textAlign = align; ctx.lineJoin = 'round'; ctx.lineWidth = s * 1.6; ctx.strokeStyle = '#14202e'; ctx.strokeText(str, x, y); ctx.fillStyle = color; ctx.fillText(str, x, y); };
-  const pill = (x, y, w, h, r = h / 2) => { rrectOn(ctx, x, y, w, h, r); ctx.fillStyle = 'rgba(14,24,40,.42)'; ctx.fill(); };
   const icon = (fn, x, y, k = 0.95) => { ctx.save(); ctx.setTransform(s * k, 0, 0, s * k, x, y + offY); const old = g; g = ctx; try { fn(); } finally { g = old; ctx.restore(); } };
-  pill(s * 5, s * 5, s * 40, s * 16); pill(s * 49, s * 5, s * 44, s * 16); pill(s * 97, s * 5, s * 64, s * 16);
-  icon(() => { g.save(); g.translate(8, 12); ell(0, 0, 7.4, 1.9); paint(PILGRIM.hatDk); g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.4, -9.6); g.quadraticCurveTo(0, -11, 3.4, -9.6); g.lineTo(4.4, -0.4); g.closePath(); paint('#3a3a44'); rrect(-4.2, -3.4, 8.4, 2, 0.5); paint(PILGRIM.band); g.restore(); }, s * 6, s * 5); ink(String(lives), s * 24, s * 7, 12);
-  icon(() => drawCoin(0, 0, 0), s * 51, s * 5); ink(String(coins).padStart(2, '0'), s * 68, s * 7, 12, '#ffd23a');
-  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.3; icon(() => collectIcon()(0, 0, 0.2), s * (98 + i * 12), s * 4.5, 0.75); }
+  const card = (x, y, w, h, fill = '#fffbe8') => { rrectOn(ctx, x + s * 0.8, y + s * 1.4, w, h, s * 6); ctx.fillStyle = 'rgba(16,48,28,.45)'; ctx.fill(); rrectOn(ctx, x, y, w, h, s * 6); ctx.fillStyle = fill; ctx.fill(); ctx.lineWidth = s * 1.3; ctx.strokeStyle = '#10301c'; ctx.stroke(); };
+  const num = (str, x, y, size, color = '#10301c', align = 'left') => { ctx.font = font(size); ctx.textAlign = align; ctx.fillStyle = color; ctx.fillText(str, x, y); };
+  const Y = s * 5, H = s * 18, nInfo = (lvl.infoAt || []).length, readI = save.info[lvl.parent || lvl.id] || [];
+  card(s * 5, Y, s * 40, H);
+  icon(() => { g.save(); g.translate(8, 12); ell(0, 0, 7.4, 1.9); paint(PILGRIM.hatDk); g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.4, -9.6); g.quadraticCurveTo(0, -11, 3.4, -9.6); g.lineTo(4.4, -0.4); g.closePath(); paint('#3a3a44'); rrect(-4.2, -3.4, 8.4, 2, 0.5); paint(PILGRIM.band); g.restore(); }, s * 6, s * 6);
+  num('×' + lives, s * 23, s * 8.4, 12);
+  card(s * 49, Y, s * 44, H);
+  icon(() => drawCoin(0, 0, 0), s * 51, s * 6); num(String(coins).padStart(2, '0'), s * 68, s * 8.4, 12, '#a86a08');
+  // the saved power-up: a little wooden crate (tap it, or press E, to drop what's in it)
+  const bx = s * 97, by = s * 4;
+  card(bx, by, s * 20, s * 20, '#c8945a'); ctx.fillStyle = 'rgba(90,56,22,.45)'; ctx.fillRect(bx + s * 2, by + s * 6.4, s * 16, s * 1); ctx.fillRect(bx + s * 2, by + s * 13, s * 16, s * 1);
+  if (reserve) icon(() => (reserve === 'clover' ? drawClover : reserve === 'magichat' ? drawMagicHat : drawFlower)(0, 0, 0), bx + s * 1.5, by + s * 1, 1.1);
+  // the corn meter: grey corn until each ear is found
+  card(s * 121, Y, s * 66, H);
+  for (let i = 0; i < 5; i++) { ctx.globalAlpha = levelGems[i] ? 1 : 0.22; icon(() => collectIcon()(0, 0, 0.2), s * (122 + i * 12.4), s * 5.4, 0.78); }
   ctx.globalAlpha = 1;
-  // the info meter: one dot for each info box in the level, filled in once it's been read
-  const nInfo = (lvl.infoAt || []).length, readI = save.info[lvl.parent || lvl.id] || [];
-  if (nInfo && W > s * (170 + nInfo * 11) + s * 120) {
-    pill(s * 165, s * 5, s * (6 + nInfo * 11), s * 16);
-    for (let i = 0; i < nInfo; i++) icon(() => { g.beginPath(); g.arc(8, 8, 5.2, 0, TAU); g.fillStyle = readI[i] ? '#3a8ae8' : 'rgba(255,255,255,.22)'; g.fill(); g.font = 'italic bold 8px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = readI[i] ? '#ffffff' : 'rgba(255,255,255,.55)'; g.fillText('i', 8.3, 8.4); }, s * (166 + i * 11), s * 5, 0.75);
+  // the info meter: an i badge for each info box in the level, blue once it's been read
+  if (nInfo && W > s * (196 + nInfo * 12) + s * 60) {
+    card(s * 191, Y, s * (6 + nInfo * 12), H);
+    for (let i = 0; i < nInfo; i++) icon(() => { g.beginPath(); g.arc(8, 8, 5.6, 0, TAU); if (readI[i]) { g.fillStyle = '#2a7ae0'; g.fill(); } else { g.setLineDash([1.6, 1.4]); g.lineWidth = 1; g.strokeStyle = 'rgba(16,48,28,.45)'; g.stroke(); g.setLineDash([]); } g.font = 'italic bold 8.5px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = readI[i] ? '#ffffff' : 'rgba(16,48,28,.35)'; g.fillText('i', 8.3, 8.4); }, s * (192 + i * 12), s * 5.6, 0.82);
   }
   shownScore = shownScore > score ? score : shownScore + Math.ceil((score - shownScore) * 0.2);   // the score counts up
   ink(String(shownScore).padStart(6, '0'), W - s * 8, s * 30, 11, '#ffffff', 'right');
-  const bx = W / 2 - s * 11, by = s * 4;
-  pill(bx, by, s * 22, s * 22, s * 6); ctx.lineWidth = s * 1.4; ctx.strokeStyle = 'rgba(255,255,255,.9)'; ctx.stroke();
-  if (reserve) icon(() => (reserve === 'clover' ? drawClover : reserve === 'magichat' ? drawMagicHat : drawFlower)(0, 0, 0), W / 2 - s * 9.5, by + s * 1.5, 1.2);
   if (!RB.touch) text(lvl.name.toUpperCase(), W - s * 8, LH * s - s * 14, 9, 'rgba(255,255,255,.75)', 'right');
   if (gotKey) ink('🗝️', W / 2 + s * 16, s * 6, 12);
   // floating score numbers
@@ -6441,17 +6578,14 @@ function drawHUD() {
 // ---------- Screens and touch buttons ----------
 function showTouch() { touchEl.classList.toggle('hidden', !(RB.touch && (state === 'level' || state === 'map'))); }
 // the map's own buttons: 🗺️ zoom out to the whole country (🔍 back in), and 🔓 Unlock All (every level and path open, while we build)
-const mapBtns = document.getElementById('mapBtns'), bZoom = document.getElementById('bZoom'), bUnlock = document.getElementById('bUnlock');
+const mapBtns = document.getElementById('mapBtns'), bZoom = document.getElementById('bZoom');
 bZoom.addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); mapZoom(); });
-document.getElementById('bHeroes').addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); showHeroes(); });
-bUnlock.addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); setUnlockAll(!save.unlockAll); });
 function mapButtons() {
   const on = state === 'map';
   if (mapBtns.classList.contains('hidden') === on) mapBtns.classList.toggle('hidden', !on);
   if (!on) return;
   const zt = mapWhole ? '🔍' : '🗺️';
   if (bZoom.textContent !== zt) { bZoom.textContent = zt; bZoom.setAttribute('aria-label', mapWhole ? 'Zoom back in' : 'Zoom out to the whole country'); }
-  bUnlock.classList.toggle('on', !!save.unlockAll);
 }
 function hideTouchBriefly() { fingers.clear(); touchUpdate(); }
 function showBest() {
@@ -6485,7 +6619,8 @@ function frame(now) {
   } catch (e) { if (!frame.warned) { frame.warned = true; console.error(e); } }
 }
 function step(dt) {
-  if (factOpen && state === 'level') {   // an info box is open: everything waits; jump (or Enter) closes it
+  if (factOpen && state === 'level') {   // an info box is open: everything waits (but a shake still dies away); jump (or Enter) closes it
+    shake = 0;
     factWait -= dt; if (factWait <= 0 && (pressed.jump || pressed.start)) closeFact();   // (not straight away: the jump that bumped the box doesn't close it)
     for (const k in pressed) pressed[k] = false; return;
   }
