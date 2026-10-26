@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Max Revenue Group</title>
+<meta name="description" content="A simpler one-page take on maxrevenuegroup.com: the Max Revenue Letter, The Max Revenue Show and the Producer Playbook.">
+<!-- unlisted: a preview for Trey, not linked from anywhere on the site, and kept out of search results -->
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#0f1a2b">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800;900&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0f1a2b; --ink-2: #1a2940; --text: #1b2230; --soft: #5a6577; --line: #e4e7ed;
+    --paper: #fbfaf7; --green: #17a65b; --green-dark: #0f7f44; --gold: #f2b134;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--paper); color: var(--text); font: 400 17px/1.65 'Inter', system-ui, sans-serif; }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 0 20px; }
+  h1, h2, h3 { font-family: 'Archivo', 'Inter', sans-serif; line-height: 1.08; margin: 0 0 .45em; letter-spacing: -.01em; }
+  h1 { font-weight: 900; font-size: clamp(38px, 6.2vw, 68px); }
+  h2 { font-weight: 800; font-size: clamp(28px, 3.8vw, 40px); }
+  h3 { font-weight: 800; font-size: 21px; }
+  p { margin: 0 0 1em; }
+  a { color: var(--green-dark); }
+  section { padding: 72px 0; }
+  .kicker { font-weight: 700; font-size: 13px; letter-spacing: .14em; text-transform: uppercase; color: var(--green-dark); margin-bottom: 12px; }
+  .muted { color: var(--soft); }
+
+  .preview { background: var(--gold); color: var(--ink); text-align: center; font-size: 14px; font-weight: 600; padding: 8px 16px; }
+
+  /* Top bar */
+  .top { background: var(--ink); }
+  .top .wrap { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 18px; padding-bottom: 18px; }
+  .logo { font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 20px; color: #fff; text-decoration: none; letter-spacing: .02em; }
+  .logo span { color: var(--green); }
+  .top nav { display: flex; gap: 22px; align-items: center; }
+  .top nav a { color: #c9d3e3; text-decoration: none; font-size: 15px; font-weight: 500; }
+  .top nav a:hover { color: #fff; }
+
+  .btn { display: inline-block; background: var(--green); color: #fff; font-weight: 700; text-decoration: none; padding: 14px 24px; border-radius: 8px; border: 0; font-size: 16px; font-family: inherit; cursor: pointer; }
+  .btn:hover { background: var(--green-dark); }
+  .btn.ghost { background: transparent; color: #fff; box-shadow: inset 0 0 0 2px rgba(255,255,255,.35); }
+  .btn.ghost:hover { box-shadow: inset 0 0 0 2px #fff; }
+  .btn.small { padding: 9px 16px; font-size: 14px; }
+
+  /* Hero */
+  .hero { background: linear-gradient(180deg, var(--ink) 0%, var(--ink-2) 100%); color: #fff; padding: 84px 0 96px; }
+  .hero h1 em { font-style: normal; color: var(--green); }
+  .hero .lede { font-size: clamp(18px, 2.2vw, 21px); color: #c9d3e3; max-width: 640px; margin-bottom: 32px; }
+  .signup { display: flex; gap: 10px; max-width: 520px; flex-wrap: wrap; }
+  .signup input { flex: 1 1 240px; min-width: 0; padding: 14px 16px; border-radius: 8px; border: 0; font: inherit; font-size: 16px; }
+  .hero .fine { font-size: 14px; color: #8e9bb2; margin-top: 12px; }
+
+  /* Three things */
+  .cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-top: 36px; }
+  .card { background: #fff; border: 1px solid var(--line); border-radius: 12px; padding: 28px; display: flex; flex-direction: column; }
+  .card .tag { font-size: 12px; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: var(--soft); margin-bottom: 8px; }
+  .card p { color: var(--soft); flex: 1; }
+  .card a.more { font-weight: 700; text-decoration: none; }
+  .card a.more:hover { text-decoration: underline; }
+
+  /* Hosts */
+  .hosts { background: #fff; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
+  .host-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 28px; margin-top: 32px; }
+  .host { display: flex; gap: 18px; align-items: flex-start; }
+  .avatar { flex: 0 0 64px; height: 64px; border-radius: 50%; background: var(--ink); color: var(--green); display: grid; place-items: center; font-family: 'Archivo', sans-serif; font-weight: 900; font-size: 22px; }
+  .host p { color: var(--soft); margin: 0; }
+
+  /* Recent issues */
+  .issues { list-style: none; padding: 0; margin: 28px 0 0; border-top: 1px solid var(--line); }
+  .issues li { border-bottom: 1px solid var(--line); }
+  .issues a { display: flex; gap: 16px; align-items: baseline; padding: 18px 4px; text-decoration: none; color: var(--text); font-weight: 600; }
+  .issues a:hover { color: var(--green-dark); }
+  .issues .num { font-family: 'Archivo', sans-serif; font-weight: 800; color: var(--soft); font-size: 14px; flex: 0 0 64px; }
+
+  /* Closing CTA */
+  .cta { background: var(--ink); color: #fff; text-align: center; }
+  .cta p { color: #c9d3e3; max-width: 560px; margin: 0 auto 28px; }
+
+  footer { background: var(--ink); color: #8e9bb2; font-size: 14px; border-top: 1px solid rgba(255,255,255,.08); }
+  footer .wrap { display: flex; justify-content: space-between; gap: 16px; flex-wrap: wrap; padding-top: 24px; padding-bottom: 24px; }
+  footer a { color: #c9d3e3; text-decoration: none; margin-left: 18px; }
+  footer a:first-child { margin-left: 0; }
+
+  @media (max-width: 820px) {
+    .cards, .host-grid { grid-template-columns: 1fr; }
+    .top nav a:not(.btn) { display: none; }
+    section { padding: 56px 0; }
+    .hero { padding: 60px 0 72px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="preview">Preview draft for Trey: a simpler take on maxrevenuegroup.com, not the live site.</div>
+
+<div class="top">
+  <div class="wrap">
+    <a class="logo" href="#">MAX<span>REVENUE</span></a>
+    <nav>
+      <a href="#letter">Newsletter</a>
+      <a href="#show">Podcast</a>
+      <a href="#playbook">Playbook</a>
+      <a class="btn small" href="https://www.maxrevenuegroup.com/subscribe">Subscribe</a>
+    </nav>
+  </div>
+</div>
+
+<header class="hero">
+  <div class="wrap">
+    <div class="kicker" style="color: var(--green)">For commercial insurance producers</div>
+    <h1>Build your book.<br><em>Max</em> your revenue.</h1>
+    <p class="lede">Prospecting, sales and productivity for producers building a book of business from scratch. One email a week. Free.</p>
+    <form class="signup" action="https://www.maxrevenuegroup.com/subscribe" method="get">
+      <input type="email" name="email" placeholder="you@agency.com" aria-label="Email address" required>
+      <button class="btn" type="submit">Get the Letter</button>
+    </form>
+    <p class="fine">Every Monday. Unsubscribe anytime.</p>
+  </div>
+</header>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">What we do</div>
+    <h2>Three ways to get better at selling insurance</h2>
+    <div class="cards">
+      <div class="card" id="letter">
+        <div class="tag">Weekly email</div>
+        <h3>The Max Revenue Letter</h3>
+        <p>The week's industry news, trends and lessons from top producers, boiled down to what a mid-market producer can use on Monday morning.</p>
+        <a class="more" href="https://www.maxrevenuegroup.com/subscribe">Subscribe free →</a>
+      </div>
+      <div class="card" id="show">
+        <div class="tag">Podcast</div>
+        <h3>The Max Revenue Show</h3>
+        <p>Trey and Micah talk prospecting, cold calling and closing, including Trey's own deals as he builds his book in public.</p>
+        <a class="more" href="https://creators.spotify.com/pod/profile/themaxrevenueshow/">Listen now →</a>
+      </div>
+      <div class="card" id="playbook">
+        <div class="tag">Guide</div>
+        <h3>The Producer Playbook</h3>
+        <p>Micah's step-by-step system for building a book of business from zero through cold prospecting. The whole process, in order.</p>
+        <a class="more" href="https://www.maxrevenuegroup.com/">Get the Playbook →</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="hosts">
+  <div class="wrap">
+    <div class="kicker">Who's behind it</div>
+    <h2>Expertise, turned into a playbook</h2>
+    <div class="host-grid">
+      <div class="host">
+        <div class="avatar">MS</div>
+        <div>
+          <h3>Micah Salas</h3>
+          <p>Commercial insurance producer. Brings the experience and the system: how to prospect, run meetings and close.</p>
+        </div>
+      </div>
+      <div class="host">
+        <div class="avatar">TS</div>
+        <div>
+          <h3>Trey Shields</h3>
+          <p>Writes the Letter and runs the show. Turns Micah's know-how into content, and tests it himself as a newer producer.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker">From the Letter</div>
+    <h2>Recent issues</h2>
+    <ul class="issues">
+      <li><a href="https://www.maxrevenuegroup.com/p/mrl-143"><span class="num">#143</span>This Mental Framework Will Change Your Life (And Career)</a></li>
+      <li><a href="https://www.maxrevenuegroup.com/p/mrl-137"><span class="num">#137</span>Producer Q&amp;A</a></li>
+      <li><a href="https://www.maxrevenuegroup.com/p/mrl-107"><span class="num">#107</span>How To Build Authority Online In Less Than 10 Minutes A Day</a></li>
+      <li><a href="https://www.maxrevenuegroup.com/p/not-hard"><span class="num">#052</span>Selling Insurance Isn't Hard, You're Just Soft (A Rant)</a></li>
+    </ul>
+  </div>
+</section>
+
+<section class="cta">
+  <div class="wrap">
+    <h2>Your next client is a cold call away</h2>
+    <p>Join the producers who start their week with the Max Revenue Letter.</p>
+    <a class="btn" href="https://www.maxrevenuegroup.com/subscribe">Subscribe free</a>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <span>© Max Revenue Group</span>
+    <span><a href="#letter">Newsletter</a><a href="#show">Podcast</a><a href="#playbook">Playbook</a><a href="https://www.maxrevenuegroup.com/">Current site</a></span>
+  </div>
+</footer>
+
+</body>
+</html>
