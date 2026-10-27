@@ -3562,6 +3562,47 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'manifest-destiny-map.png');
   });
 
+  await test('Manifest Destiny map with a controller: every trail from every stop has its own direction on the D-pad (never two the same way), the D-pad alone walks the whole story, and the built regions\' trails never cross', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); };
+      save.unlockAll = true; openCache = null; paused = true; startGame();
+      // each stop: its trails each get a different direction
+      const bad = [];
+      for (const n of NODES) { const nb = PATHS.filter(q => q[0] === n.id || q[1] === n.id).map(q => q[0] === n.id ? q[1] : q[0]), d = exitDirs(n.id); if (nb.length > 4 || nb.some(o => !d.includes(o)) || new Set(d.filter(Boolean)).size !== d.filter(Boolean).length) bad.push(n.id); }
+      // walk the built story from the Mayflower to Fort McHenry with the D-pad only (a press of the direction the arrow shows)
+      const route = [...WORLDS[0], ...WORLDS[1]]; goMap(route[0], true); let walked = 0;
+      for (let i = 1; i < route.length; i++) {
+        const k = exitDirs(mapLeo.at).indexOf(route[i]); if (k < 0) break;
+        pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false;
+        run(400); if (mapLeo.at !== route[i]) break; walked++;
+      }
+      // the built regions' trails don't cross each other (only the one trail between the regions has to cross one)
+      const poly = q => { const a = node(q[0]), b = node(q[1]), c = pathCtrl(q), pts = []; for (let k = 0; k <= 30; k++) pts.push(qbez(a, c, b, k / 30)); return pts; };
+      const segX = (p1, p2, p3, p4) => { const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x); if (!d) return false; const u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d, v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d; return u > 0 && u < 1 && v > 0 && v < 1; };
+      const crosses = [];
+      for (const w of [0, 1]) {
+        const P = PATHS.filter(([a, b]) => worldOf(a) === w && worldOf(b) === w);
+        for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
+          if (P[i].slice(0, 2).some(x => P[j].slice(0, 2).includes(x))) continue;
+          const A = poly(P[i]), B = poly(P[j]); let hit = false;
+          for (let m = 0; m < 30 && !hit; m++) for (let n = 0; n < 30 && !hit; n++) if (segX(A[m], A[m + 1], B[n], B[n + 1])) hit = true;
+          if (hit) crosses.push(P[i].slice(0, 2).join('-') + ' x ' + P[j].slice(0, 2).join('-'));
+        }
+      }
+      let drew = true; try { goMap('ludington', true); run(30); drawMap(); } catch (e) { drew = e.message; }
+      save.unlockAll = false; paused = false;
+      return { bad, walked, need: route.length - 1, crosses, drew };
+    });
+    check(r.bad.length === 0, 'every stop gives each of its trails a different D-pad direction: ' + r.bad.join(', '));
+    check(r.walked === r.need, `the D-pad alone walks the whole story (${r.walked} of ${r.need} steps)`);
+    check(r.crosses.length === 0, 'the trails inside a region never cross: ' + r.crosses.join(', '));
+    check(r.drew === true, 'the map (with its direction arrows) draws: ' + r.drew);
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
   await test('Manifest Destiny info boxes and the quiz: bump an i box and its fact pops up (the game waits), the info meter fills and is saved; at a region\'s end, five questions from its info boxes, all five right to go on', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));

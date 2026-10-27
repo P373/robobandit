@@ -6671,27 +6671,27 @@ const NODES = [
   // Plymouth, then the Wampanoag homeland, the Puritans' Boston, Providence, the Connecticut River, the coast of Maine,
   // Vermont's maple woods, and back to Boston for the Tea Party and the Midnight Ride
   at('voyage', US(-69.45, 42.12), 'The Mayflower', 'across the Atlantic to Provincetown', { year: 1620 }),   // (out at sea, heading west for Cape Cod)
-  at('plimoth', US(-70.6, 42.05), 'Plimoth Plantation', 'Plymouth, Massachusetts', { year: 1621 }),   // (the stops round Massachusetts Bay are spread out a little, so the road is easy to follow)
-  at('cranberry', US(-71.0, 41.7), 'Cranberry Bog', 'the Wampanoag homeland, near Plymouth', { year: 1622 }),   // (inland, where the bogs are, so the road doesn't double back)
-  at('boston', US(-71.05, 42.45), 'A City upon a Hill', 'Boston, Massachusetts', { year: 1630 }),
-  at('providence', US(-71.6, 41.92), 'Providence', 'Rhode Island', { year: 1636 }),
+  at('plimoth', US(-70.5, 41.88), 'Plimoth Plantation', 'Plymouth, Massachusetts', { year: 1621 }),   // (the stops round Massachusetts Bay are spread out a little, so the road is easy to follow)
+  at('cranberry', US(-71.0, 41.62), 'Cranberry Bog', 'the Wampanoag homeland, near Plymouth', { year: 1622 }),   // (inland, where the bogs are, so the road doesn't double back)
+  at('boston', US(-71.15, 42.33), 'A City upon a Hill', 'Boston, Massachusetts', { year: 1630 }),
+  at('providence', US(-71.4, 41.82), 'Providence', 'Rhode Island', { year: 1636 }),
   at('ctriver', US(-72.68, 41.76), 'The Connecticut River', 'Hartford, Connecticut', { year: 1639 }),
   at('maple', US(-72.7, 44.3), 'Maple Sugaring', 'Vermont, the Abenaki homeland', { year: 1650 }),
   at('gulfmaine', US(-69.5, 43.95), 'The Gulf of Maine', 'Pemaquid, Maine', { year: 1700 }),
   at('teaparty', US(-70.75, 42.62), 'The Boston Tea Party', 'Boston Harbor', { year: 1773 }),
-  at('lexington', US(-71.45, 42.62), 'The Midnight Ride', 'Lexington and Concord, Massachusetts', { year: 1775, boss: 'castle' }),
+  at('lexington', US(-71.62, 42.62), 'The Midnight Ride', 'Lexington and Concord, Massachusetts', { year: 1775, boss: 'castle' }),
   at('nantucket', US(-70.08, 41.27), 'Nantucket', 'the whaling island', { island: true }),   // secret-only islands
   at('vineyard', US(-70.62, 41.39), "Martha's Vineyard", 'Noepe, the Wampanoag island', { island: true }),
   // World 2: the Mid-Atlantic, a new nation (1776 to 1814): across the Delaware, Sybil's ride in New York, Saratoga, the
   // winter at Valley Forge, Philadelphia, the new capital, and Fort McHenry in Baltimore
-  at('delaware', US(-74.85, 40.28), 'Crossing the Delaware', 'Trenton, New Jersey', { year: 1776 }),
-  at('ludington', US(-73.62, 41.45), "Sybil's Ride", 'Putnam County, New York', { year: 1777 }),
-  at('saratoga', US(-73.65, 43.0), 'Saratoga', 'New York', { year: 1777 }),
-  at('valleyforge', US(-75.6, 40.42), 'Valley Forge', 'Pennsylvania', { year: 1777 }),
-  at('independence', US(-75.15, 39.95), 'Independence Hall', 'Philadelphia, Pennsylvania', { year: 1787 }),
-  at('capital', US(-77.3, 38.85), 'The New Capital', 'Washington, D.C.', { year: 1800 }),
-  at('mchenry', US(-76.58, 39.27), 'Fort McHenry', 'Baltimore, Maryland', { year: 1814, boss: 'castle' }),
-  at('culper', US(-73.1, 40.95), 'The Culper Ring', 'Long Island, New York', { island: true }),   // secret-only
+  at('delaware', US(-74.82, 40.35), 'Crossing the Delaware', 'Trenton, New Jersey', { year: 1776 }),
+  at('ludington', US(-73.72, 41.5), "Sybil's Ride", 'Putnam County, New York', { year: 1777 }),
+  at('saratoga', US(-73.7, 43.05), 'Saratoga', 'New York', { year: 1777 }),
+  at('valleyforge', US(-75.75, 40.62), 'Valley Forge', 'Pennsylvania', { year: 1777 }),
+  at('independence', US(-75.25, 39.85), 'Independence Hall', 'Philadelphia, Pennsylvania', { year: 1787 }),
+  at('capital', US(-77.05, 38.85), 'The New Capital', 'Washington, D.C.', { year: 1800 }),
+  at('mchenry', US(-76.5, 39.28), 'Fort McHenry', 'Baltimore, Maryland', { year: 1814, boss: 'castle' }),
+  at('culper', US(-73.1, 40.93), 'The Culper Ring', 'Long Island, New York', { island: true }),   // secret-only
   // World 3: the Atlantic South (1565 to 1830s)
   at('staugustine', US(-81.31, 29.9), 'St. Augustine', 'Florida', { year: 1565, soon: true }),
   at('jamestown', US(-76.78, 37.21), 'Jamestown', 'Virginia', { year: 1607, soon: true }),
@@ -6763,8 +6763,8 @@ const NODES = [
 // Railroad Challenge level, short and hard, from the railroad age (1826 to 1869). The track runs coast to coast, like the
 // real railroads that joined the country; the parts still being built are drawn faint, with "coming soon" stations.
 const DEPOTS = [
-  { id: 'quincy', w: 0, from: 'boston', xy: US(-70.93, 42.24), name: 'The Granite Railway', region: 'Quincy, Massachusetts', year: 1826, spikeIn: 'nantucket' },
-  { id: 'baltimore', w: 1, from: 'mchenry', xy: US(-76.95, 39.5), name: "Tom Thumb's Race", region: 'Baltimore, Maryland', year: 1830, spikeIn: 'culper' },
+  { id: 'quincy', w: 0, from: 'boston', xy: US(-70.85, 42.16), name: 'The Granite Railway', region: 'Quincy, Massachusetts', year: 1826, spikeIn: 'nantucket' },
+  { id: 'baltimore', w: 1, from: 'mchenry', xy: US(-76.1, 39.45), name: "Tom Thumb's Race", region: 'Baltimore, Maryland', year: 1830, spikeIn: 'culper' },
   { id: 'bestfriend', w: 2, from: 'charleston', xy: US(-80.4, 33.15), name: 'The Best Friend of Charleston', region: 'Charleston, South Carolina', year: 1830 },
   { id: 'chattanooga', w: 3, from: 'newechota', xy: US(-85.31, 35.05), name: 'Chattanooga Station', region: 'Chattanooga, Tennessee', year: 1850 },
   { id: 'chicagorail', w: 4, from: 'chicago', xy: US(-87.95, 41.55), name: 'The Pioneer Engine', region: 'Chicago, Illinois', year: 1848 },
@@ -6801,12 +6801,22 @@ const PATHS = [...ROUTE.slice(1).map((id, i) => [ROUTE[i], id]),
 const pathReady = ([a, b, sec]) => save.unlockAll ? true : sec === 'rail' ? !!save.spikes[DEPOT[b].w] : sec ? !!save.secrets[a] : worldOf(a) === worldOf(b) || worldOf(a) < 0 || !!save.quiz[worldOf(a)];   // (into the next region: once its quiz is passed)
 // most of the trip is on foot; a few legs are by boat, and the far north by plane (for now)
 const FLIGHT_PATHS = new Set(['sutter|klondike']);
-const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'ludington|culper', 'blackbeard|cove', 'mackinac|portage', 'yorktown|cumberland']);
+const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'ludington|culper', 'lexington|delaware', 'mchenry|staugustine', 'blackbeard|cove', 'mackinac|portage', 'yorktown|cumberland']);
 // a few trails are bent by hand: the boats keep to the sea
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
-bend('voyage|plimoth', US(-69.95, 42.4)); bend('voyage|nantucket', US(-69.55, 41.55));   // (round the tip of the Cape, past Provincetown, and into the bay)
-bend('cranberry|vineyard', US(-70.95, 41.5)); bend('plimoth|cranberry', US(-70.75, 41.8)); bend('cranberry|boston', US(-71.1, 42.1)); bend('boston|providence', US(-71.4, 42.25));
+bend('voyage|plimoth', US(-69.95, 42.4));
+bend('voyage|nantucket', US(-69.55, 41.55));
+bend('cranberry|vineyard', US(-70.95, 41.5));
+bend('plimoth|cranberry', US(-70.8, 41.66));
+bend('cranberry|boston', US(-71.2, 42.0));
+bend('teaparty|lexington', US(-71.2, 42.8));
+bend('gulfmaine|teaparty', US(-70.2, 43.3));
+bend('lexington|delaware', US(-72.0, 40.0));
+bend('delaware|ludington', US(-74.5, 41.1));
+bend('saratoga|valleyforge', US(-75.9, 42.4));
+bend('independence|capital', US(-76.1, 40.85));
+bend('mchenry|staugustine', US(-74.5, 33.0));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -7131,18 +7141,35 @@ function goMap(from, quiet = false) {
     secretJustFound = null;
   }
 }
+// Every trail out of a stop gets its own direction on the D-pad (left, right, up or down), so a controller can always
+// reach every stop: no two trails from the same stop share a direction. The four directions are handed out to the
+// trails once, the way that best matches where each trail heads as it leaves (the arrows on the map show them).
+const DIR4 = [[-1, 0], [1, 0], [0, -1], [0, 1]];
+const exitDirCache = {};
+function exitDirs(id) {
+  if (exitDirCache[id]) return exitDirCache[id];
+  const here = node(id), out = [null, null, null, null];
+  const nb = PATHS.filter(p => p[0] === id || p[1] === id).map(p => {
+    const o = p[0] === id ? p[1] : p[0], fwd = p[0] === id, c = pathCtrl(p);
+    const q = qbez(fwd ? here : node(o), c, fwd ? node(o) : here, fwd ? 0.25 : 0.75), there = node(o);
+    let vx = q.x - here.x, vy = q.y - here.y, d = Math.hypot(vx, vy) || 1; vx /= d; vy /= d;   // which way the trail sets off
+    let wx = there.x - here.x, wy = there.y - here.y, e = Math.hypot(wx, wy) || 1; wx /= e; wy /= e;   // and where it ends up
+    const ux = vx + wx, uy = vy + wy, f = Math.hypot(ux, uy) || 1;
+    return { to: o, v: [ux / f, uy / f], main: !p[2] };
+  });
+  let best = -1e9, pick = null;
+  const go = (i, used, score, got) => {   // (at most four trails from a stop: try every way of giving them a direction each)
+    if (i === nb.length) { if (score > best) { best = score; pick = got.slice(); } return; }
+    for (let k = 0; k < 4; k++) if (!used[k]) { used[k] = true; got[i] = k; go(i + 1, used, score + (nb[i].v[0] * DIR4[k][0] + nb[i].v[1] * DIR4[k][1]) * (nb[i].main ? 1.15 : 1), got); used[k] = false; }
+  };
+  go(0, [false, false, false, false], 0, []);
+  if (pick) nb.forEach((n, i) => { out[pick[i]] = n.to; });
+  return (exitDirCache[id] = out);
+}
 function mapMove(dir) {
   if (mapLeo.to) return;
-  const here = node(mapLeo.at);
-  // the neighbour that's most in the direction pressed
-  let best = null, bestScore = 0.3;
-  for (const pth of PATHS) {
-    if (!pth.includes(here.id) || !pathOpen(pth)) continue;
-    const o = node(pth[0] === here.id ? pth[1] : pth[0]);
-    const dx = o.x - here.x, dy = o.y - here.y, d = Math.hypot(dx, dy), s = (dx * dir[0] + dy * dir[1]) / d;
-    if (s > bestScore) { bestScore = s; best = o; }
-  }
-  if (best) { mapLeo.to = best.id; mapLook = null; sfx.step(); }
+  const k = DIR4.findIndex(d => d[0] === dir[0] && d[1] === dir[1]), to = k >= 0 ? exitDirs(mapLeo.at)[k] : null, pth = to && pathBetween(mapLeo.at, to);
+  if (to && pathOpen(pth)) { mapLeo.to = to; mapLook = null; sfx.step(); }
 }
 // a tap: on the whole map, zoom in on that world; on a world, walk to the level tapped (tap it again to go in)
 function mapTap(cxp, cyp) {
@@ -7461,6 +7488,19 @@ function drawMap() {
     if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(0, 0, 9, 6.6, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
     g.restore();
   }
+  // at the stop you're standing on: a little arrow on each open trail, showing which way to press to take it
+  if (!mapWhole && !mapLeo.to && !mapLeo.train && state === 'map') {
+    const here = node(mapLeo.at), dirs = exitDirs(here.id);
+    dirs.forEach((to, k) => {
+      if (!to) return; const pth = pathBetween(here.id, to); if (!pathOpen(pth)) return;
+      const fwd = pth[0] === here.id, c = pathCtrl(pth), A = mapS(here.x, here.y), B = mapS(node(to).x, node(to).y), C = mapS(c.x, c.y);
+      const len = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, u = clamp(17 * pf / len, 0.08, 0.45), q = qbez({ x: A[0], y: A[1] }, { x: C[0], y: C[1] }, { x: B[0], y: B[1] }, u);
+      const bob = Math.sin(t * 5) * 0.8, [dx, dy] = DIR4[k], x = q.x + dx * bob, y = q.y + dy * bob, r = 4.4 * pf;
+      g.beginPath(); g.arc(x, y + 0.7, r + 0.6, 0, TAU); g.fillStyle = 'rgba(16,48,28,.45)'; g.fill();
+      g.beginPath(); g.arc(x, y, r, 0, TAU); paint('#fffbe8', 1, '#10301c');
+      g.save(); g.translate(x, y); g.rotate(Math.atan2(dy, dx)); g.beginPath(); g.moveTo(2.6 * pf, 0); g.lineTo(-1.6 * pf, -2.2 * pf); g.lineTo(-1.6 * pf, 2.2 * pf); g.closePath(); g.fillStyle = '#10301c'; g.fill(); g.restore();
+    });
+  }
   // the hero, hopping along the paths (or flying, in a little plane, or sailing: out on the Atlantic at the start, and along the sea lanes)
   const [lx, ly] = mapS(mapLeo.x, mapLeo.y), ls = mapWhole ? 0.6 : 1;
   if (mapLeo.train) { drawTrainIcon(lx, ly, mapLeo.train.ang, 1.4); return; }
@@ -7542,7 +7582,9 @@ function drawRailroad(pf) {
   for (const [a, b] of RAIL_TRACK) {
     const A = node(a), B = node(b);
     if (!mapOnScreen(A.x, A.y) && !mapOnScreen(B.x, B.y) && !mapOnScreen((A.x + B.x) / 2, (A.y + B.y) / 2)) continue;
+    g.globalAlpha = mapWhole || mapLeo.train || DEPOT[mapLeo.at] ? 1 : 0.5;   // (in close-up, the track stays in the background, behind the trails)
     drawRails(mapS(A.x, A.y), mapS(B.x, B.y), depotOpen(a) && depotOpen(b), pf, k);
+    g.globalAlpha = 1;
   }
   for (const d of DEPOTS) {
     const n = node(d.id); if (!mapOnScreen(n.x, n.y)) continue;
