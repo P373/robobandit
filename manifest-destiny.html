@@ -176,7 +176,7 @@
       <li>🎩 Find the <b>hat with the red band</b> and you can <b>throw your hat</b> like a boomerang (<span class="key-only"><kbd>J</kbd> · </span>🎮 <b data-pad="Y">Y</b><span class="touch-only"> · 🎩 button</span>). Keep holding the button and it hovers: jump on it for an extra boost!</li>
       <li><b>Bump the <span style="font-family:Bungee">?</span> blocks</b> from below for coins and power-ups: a 🎃 <b>pumpkin</b> makes you big, a 🍎 <b>basket of apples</b> lets you throw apples (<span class="key-only"><kbd>Shift</kbd></span><span class="touch-only"><b>B</b></span> · 🎮 <b data-pad="X">X</b>), and a <b>lucky horseshoe</b> makes you unstoppable for a few seconds. 100 coins (Pine Tree shillings!) is an extra life.</li>
       <li>🌽 Find the <b>5 ears of corn</b> hidden in every New England level. Corn kept the Pilgrims alive! Each region has its own treasures: in the Mid-Atlantic, 🪶 <b>quill pens</b>, like the ones the Declaration of Independence was written with.</li>
-      <li>📜 Every level starts with a bit of the story, and every win ends with a <b>"Did you know?"</b> fact. Win again for a new one.</li>
+      <li>📜 Every level starts with a bit of the story. <b>Bump the info boxes</b> (a 📖 book in New England, a 📰 bundle of newspapers from the Mid-Atlantic on) and your hero tells you a piece of history. After each region's boss comes a <b>quiz</b> on what you learned!</li>
       <li>🗺️ <b>The map is the whole United States</b>, with Canada and Mexico next door. Press <span class="key-only"><kbd>M</kbd> · </span>🎮 <b data-pad="X">X</b><span class="touch-only"> · the 🗺️ button, or pinch</span> to see it all. Signposts 🚧 mark levels still being built. Look for <b>secret exits</b>: they lead to places you can't reach any other way. 🤫</li>
       <li>👪 <b>The heroes:</b> you're <b>Wrestling Brewster</b>, a real Pilgrim boy who sailed on the Mayflower when he was about six. A new real-life hero, with a new skill, joins you in every region: after New England, <b>Sybil Ludington</b>, the fastest runner and the best rider on <b>Star</b> the horse. Pick your hero in 👪 The heroes.</li>
       <li>🚂 <b>The railroad:</b> find a region's hidden <b>golden spike</b> and its railroad depot opens. Ride the train between open depots, and try each depot's <b>Railroad Challenge</b>: the hardest levels in the game!</li>
@@ -3593,7 +3593,7 @@ function drawTile(tile, tx, ty, x, y, th, t) {
     case T.STONE: put(theme + 'S', () => stoneTile(theme)); break;
     case T.BRICK: case T.MULTI: if (theme === 'boston') put('bostonS', () => stoneTile(theme)); else put('B', brickTile); break;   // (in Boston, chests of tea to bust open)
     case T.USED: put('U', usedTile); break;
-    case T.QINFO: case T.INFOREAD: put(tile === T.QINFO ? 'INFO' : 'INFOR', () => infoTile(tile === T.INFOREAD)); break;
+    case T.QINFO: case T.INFOREAD: put((tile === T.QINFO ? 'INFO' : 'INFOR') + infoStyle(), () => infoTile(tile === T.INFOREAD)); break;
     case T.QCOIN: case T.QPOWER: case T.QSTAR: case T.QONEUP: case T.QRIDE: case T.QHAT: case T.QBOW: {
       if (t === T.QBOW) put('RB', bowTile); else put('Q', qTile);
       // a shine sweeping across now and then
@@ -3745,12 +3745,30 @@ function usedTile() {
   rrect(0.4, 0.4, 15.2, 15.2, 3.4); paint(vgrad(0, 16, '#b88a5a', '#82582e'), 1, '#4a3018');
   for (const [a, b] of [[3, 3], [13, 3], [3, 13], [13, 13]]) { g.beginPath(); g.arc(a, b, 1.1, 0, TAU); paint('#5a3a1a'); }
 }
-function infoTile(read) {   // an info box: bump it to learn a bit of history (blue, with an italic i; paler once it's been read)
-  rrect(0.4, 0.4, 15.2, 15.2, 3.4); paint(read ? vgrad(0, 16, '#b8d4f0', '#8ab0d8') : vgrad(0, 16, '#6ac0ff', '#2a74d8'), 1.1, '#123a7a');
-  g.fillStyle = 'rgba(255,255,255,.5)'; rrect(2, 1.5, 12, 1.6, 0.8); g.fill();
-  g.font = 'italic bold 12px Georgia, "Times New Roman", serif'; g.textAlign = 'center'; g.textBaseline = 'middle';
-  g.fillStyle = read ? '#5a7aa8' : '#0e3a8a'; g.fillText('i', 8.6, 9); g.fillStyle = '#ffffff'; g.fillText('i', 8, 8.2);
-  for (const [a, b] of [[2.6, 2.6], [13.4, 2.6], [2.6, 13.4], [13.4, 13.4]]) { g.beginPath(); g.arc(a, b, 0.8, 0, TAU); paint(read ? '#6a8ab8' : '#123a7a'); }
+// The info boxes, drawn for their time: in New England a leather-bound book (before America had newspapers: the first one
+// that lasted began in 1704); from the Mid-Atlantic on, a bundle of newspapers tied with string, with a wax seal. Both
+// keep the ? blocks' square shape, and both fade once they've been read.
+const infoStyle = () => lvl && worldOf(lvl.parent || lvl.id) >= 1 ? 'news' : 'book';
+function infoI(x, y, size, col, sh) { g.font = `italic bold ${size}px Georgia, "Times New Roman", serif`; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = sh; g.fillText('i', x + 0.6, y + 0.8); g.fillStyle = col; g.fillText('i', x, y); }
+function infoTile(read) {   // an info box: bump it to learn a bit of history
+  if (infoStyle() === 'news') {   // a bundle of folded Gazettes, tied with string, a red wax seal holding the i
+    for (let k = 2; k >= 0; k--) { rrect(0.4 + k * 0.5, 0.4 + k * 0.9, 15.2 - k, 15.2 - k * 0.9, 1); paint(k ? '#d8d0bc' : '#f2ecdc', 0.7, '#6a6050'); }
+    g.fillStyle = '#2a2420'; g.font = 'bold 2.2px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillText('GAZETTE', 8, 2.7); g.fillRect(1.6, 3.8, 12.8, 0.35);
+    g.fillStyle = 'rgba(60,50,40,.45)'; for (let k = 0; k < 4; k++) { g.fillRect(2, 5 + k * 1.4, 4.4 - (k % 3 === 2 ? 2 : 0), 0.5); g.fillRect(9.6, 5 + k * 1.4, 4.4 - (k % 3 === 2 ? 2 : 0), 0.5); }
+    g.strokeStyle = '#8a6a3a'; g.lineWidth = 0.7; g.beginPath(); g.moveTo(0.4, 10.8); g.lineTo(15.6, 10.8); g.moveTo(8, 4.2); g.lineTo(8, 15.6); g.stroke();   // the string
+    g.beginPath(); g.arc(8, 10.8, 3.4, 0, TAU); paint(vgrad(7.4, 14.2, '#e8584a', '#a8261a'), 0.6, '#5a100a');
+    infoI(8, 11, 6.5, '#fff2d0', '#5a100a');
+  } else {   // a leather-bound book, cover up: gold corners, a gold i, and the cream page edges showing at the side
+    rrect(2.2, 1.6, 13.4, 13.8, 1.2); paint('#f4ead0', 0.8, '#8a6a44');
+    g.fillStyle = 'rgba(140,110,70,.55)'; for (let k = 0; k < 6; k++) g.fillRect(14, 3 + k * 2, 1.4, 0.4);
+    rrect(0.4, 0.4, 13.8, 14.8, 1.4); paint(vgrad(0, 15, '#9a5230', '#5e2a14'), 1, '#2a1006');
+    g.fillStyle = 'rgba(0,0,0,.22)'; g.fillRect(0.6, 0.6, 2.2, 14.4);
+    g.strokeStyle = '#e8b840'; g.lineWidth = 0.5; g.strokeRect(3.6, 2.2, 8.8, 11.2);
+    for (const [a, b, sy] of [[14.2, 0.4, 1], [14.2, 15.2, -1]]) { g.beginPath(); g.moveTo(a, b); g.lineTo(a - 3, b); g.lineTo(a, b + sy * 3); g.closePath(); paint('#e8b840'); }
+    g.fillStyle = 'rgba(255,255,255,.28)'; rrect(3, 1.2, 9, 1, 0.5); g.fill();
+    infoI(8, 8.4, 10.5, '#ffd23a', '#3a1a08');
+  }
+  if (read) { g.save(); g.globalCompositeOperation = 'source-atop'; g.fillStyle = 'rgba(236,232,222,.55)'; g.fillRect(-2, -2, 20, 20); g.restore(); }   // (read: faded)
 }
 function qTile() {
   rrect(0.4, 0.4, 15.2, 15.2, 3.4); paint(vgrad(0, 16, '#ffe36a', '#f0a018'), 1.1, '#8a5208');

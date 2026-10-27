@@ -312,7 +312,9 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
 ## Learning features (to add as we go)
 
 - **Story cards** at the start of each level (year, place, one or two sentences). ✅
-- **Info boxes**: 3 to 5 per level, each a fact with a quiz question; an info meter on screen and on the map. ✅
+- **Info boxes**: 3 to 5 per level, each a fact with a quiz question; an info meter on screen and on the map. Drawn for
+  their time: a leather-bound book in New England (before America had newspapers), a bundle of Gazettes tied with
+  string from the Mid-Atlantic on. ✅
 - **The screen** (a storybook strip, no panels): lives and coins at the top left, the saved power-up in its crate in
   the middle, the treasures and the info meter at the top right beside a small round ☰ menu. An info box's fact is
   told by the hero you're playing, in a speech bubble at the bottom, with the level still in view. ✅
