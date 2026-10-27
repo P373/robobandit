@@ -3571,6 +3571,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       // each stop: its trails each get a different direction
       const bad = [];
       for (const n of NODES) { const nb = PATHS.filter(q => q[0] === n.id || q[1] === n.id).map(q => q[0] === n.id ? q[1] : q[0]), d = exitDirs(n.id); if (nb.length > 4 || nb.some(o => !d.includes(o)) || new Set(d.filter(Boolean)).size !== d.filter(Boolean).length) bad.push(n.id); }
+      // and in the built regions, the trails from a stop set off well apart, each the way its arrow points (so no two look the same)
+      const looks = [];
+      for (const id of [...WORLDS[0], ...WORLDS[1]]) {
+        const here = node(id), legs = PATHS.filter(q => q[0] === id || q[1] === id).map(q => { const o = q[0] === id ? q[1] : q[0], fwd = q[0] === id, pt = qbez(fwd ? here : node(o), pathCtrl(q), fwd ? node(o) : here, fwd ? 0.15 : 0.85); return { o, a: Math.atan2(pt.y - here.y, pt.x - here.x) * 180 / Math.PI }; });
+        const gap = (a, b) => { let x = Math.abs(a - b) % 360; return x > 180 ? 360 - x : x; };
+        for (let i = 0; i < legs.length; i++) for (let j = i + 1; j < legs.length; j++) if (gap(legs[i].a, legs[j].a) < 55) looks.push(`${id}: ${legs[i].o} / ${legs[j].o}`);
+        if (legs.length > 1) for (const L of legs) if (gap(L.a, [180, 0, -90, 90][exitDirs(id).indexOf(L.o)]) > 60) looks.push(`${id}: the arrow to ${L.o}`);
+      }
       // walk the built story from the Mayflower to Fort McHenry with the D-pad only (a press of the direction the arrow shows)
       const route = [...WORLDS[0], ...WORLDS[1]]; goMap(route[0], true); let walked = 0;
       for (let i = 1; i < route.length; i++) {
@@ -3593,9 +3601,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       }
       let drew = true; try { goMap('ludington', true); run(30); drawMap(); } catch (e) { drew = e.message; }
       save.unlockAll = false; paused = false;
-      return { bad, walked, need: route.length - 1, crosses, drew };
+      return { bad, looks, walked, need: route.length - 1, crosses, drew };
     });
     check(r.bad.length === 0, 'every stop gives each of its trails a different D-pad direction: ' + r.bad.join(', '));
+    check(r.looks.length === 0, 'the trails from each stop set off well apart, each the way its arrow points: ' + r.looks.join(', '));
     check(r.walked === r.need, `the D-pad alone walks the whole story (${r.walked} of ${r.need} steps)`);
     check(r.crosses.length === 0, 'the trails inside a region never cross: ' + r.crosses.join(', '));
     check(r.drew === true, 'the map (with its direction arrows) draws: ' + r.drew);

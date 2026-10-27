@@ -6687,7 +6687,7 @@ const NODES = [
   at('delaware', US(-74.82, 40.35), 'Crossing the Delaware', 'Trenton, New Jersey', { year: 1776 }),
   at('ludington', US(-73.72, 41.5), "Sybil's Ride", 'Putnam County, New York', { year: 1777 }),
   at('saratoga', US(-73.7, 43.05), 'Saratoga', 'New York', { year: 1777 }),
-  at('valleyforge', US(-75.75, 40.62), 'Valley Forge', 'Pennsylvania', { year: 1777 }),
+  at('valleyforge', US(-75.4, 40.7), 'Valley Forge', 'Pennsylvania', { year: 1777 }),
   at('independence', US(-75.25, 39.85), 'Independence Hall', 'Philadelphia, Pennsylvania', { year: 1787 }),
   at('capital', US(-77.05, 38.85), 'The New Capital', 'Washington, D.C.', { year: 1800 }),
   at('mchenry', US(-76.5, 39.28), 'Fort McHenry', 'Baltimore, Maryland', { year: 1814, boss: 'castle' }),
@@ -6764,7 +6764,7 @@ const NODES = [
 // real railroads that joined the country; the parts still being built are drawn faint, with "coming soon" stations.
 const DEPOTS = [
   { id: 'quincy', w: 0, from: 'boston', xy: US(-70.85, 42.16), name: 'The Granite Railway', region: 'Quincy, Massachusetts', year: 1826, spikeIn: 'nantucket' },
-  { id: 'baltimore', w: 1, from: 'mchenry', xy: US(-76.1, 39.45), name: "Tom Thumb's Race", region: 'Baltimore, Maryland', year: 1830, spikeIn: 'culper' },
+  { id: 'baltimore', w: 1, from: 'mchenry', xy: US(-76.78, 39.42), name: "Tom Thumb's Race", region: 'Baltimore, Maryland', year: 1830, spikeIn: 'culper' },
   { id: 'bestfriend', w: 2, from: 'charleston', xy: US(-80.4, 33.15), name: 'The Best Friend of Charleston', region: 'Charleston, South Carolina', year: 1830 },
   { id: 'chattanooga', w: 3, from: 'newechota', xy: US(-85.31, 35.05), name: 'Chattanooga Station', region: 'Chattanooga, Tennessee', year: 1850 },
   { id: 'chicagorail', w: 4, from: 'chicago', xy: US(-87.95, 41.55), name: 'The Pioneer Engine', region: 'Chicago, Illinois', year: 1848 },
@@ -6813,10 +6813,14 @@ bend('cranberry|boston', US(-71.2, 42.0));
 bend('teaparty|lexington', US(-71.2, 42.8));
 bend('gulfmaine|teaparty', US(-70.2, 43.3));
 bend('lexington|delaware', US(-72.0, 40.0));
-bend('delaware|ludington', US(-74.5, 41.1));
+bend('delaware|ludington', US(-74.6, 41.2));
 bend('saratoga|valleyforge', US(-75.9, 42.4));
-bend('independence|capital', US(-76.1, 40.85));
-bend('mchenry|staugustine', US(-74.5, 33.0));
+bend('independence|capital', US(-77.55, 39.95));
+bend('mchenry|staugustine', US(-72.0, 39.0));
+bend('ludington|culper', US(-72.85, 41.45));
+bend('boston|providence', US(-71.55, 42.25));
+bend('capital|mchenry', US(-76.6, 38.8));
+bend('mchenry|baltimore', US(-76.85, 39.24));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -7488,19 +7492,11 @@ function drawMap() {
     if (here) { g.globalAlpha = 0.5 + 0.5 * Math.sin(t * 6); g.beginPath(); g.ellipse(0, 0, 9, 6.6, 0, 0, TAU); g.lineWidth = 1.2; g.strokeStyle = '#fff'; g.stroke(); g.globalAlpha = 1; }
     g.restore();
   }
-  // at the stop you're standing on: a little arrow on each open trail, showing which way to press to take it
-  if (!mapWhole && !mapLeo.to && !mapLeo.train && state === 'map') {
-    const here = node(mapLeo.at), dirs = exitDirs(here.id);
-    dirs.forEach((to, k) => {
-      if (!to) return; const pth = pathBetween(here.id, to); if (!pathOpen(pth)) return;
-      const fwd = pth[0] === here.id, c = pathCtrl(pth), A = mapS(here.x, here.y), B = mapS(node(to).x, node(to).y), C = mapS(c.x, c.y);
-      const len = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, u = clamp(17 * pf / len, 0.08, 0.45), q = qbez({ x: A[0], y: A[1] }, { x: C[0], y: C[1] }, { x: B[0], y: B[1] }, u);
-      const bob = Math.sin(t * 5) * 0.8, [dx, dy] = DIR4[k], x = q.x + dx * bob, y = q.y + dy * bob, r = 4.4 * pf;
-      g.beginPath(); g.arc(x, y + 0.7, r + 0.6, 0, TAU); g.fillStyle = 'rgba(16,48,28,.45)'; g.fill();
-      g.beginPath(); g.arc(x, y, r, 0, TAU); paint('#fffbe8', 1, '#10301c');
-      g.save(); g.translate(x, y); g.rotate(Math.atan2(dy, dx)); g.beginPath(); g.moveTo(2.6 * pf, 0); g.lineTo(-1.6 * pf, -2.2 * pf); g.lineTo(-1.6 * pf, 2.2 * pf); g.closePath(); g.fillStyle = '#10301c'; g.fill(); g.restore();
-    });
-  }
+  drawMapHero(pf);
+  drawExitArrows(pf);
+}
+function drawMapHero(pf) {   // the hero on the map: walking, sailing, flying or on the train
+  const t = clock;
   // the hero, hopping along the paths (or flying, in a little plane, or sailing: out on the Atlantic at the start, and along the sea lanes)
   const [lx, ly] = mapS(mapLeo.x, mapLeo.y), ls = mapWhole ? 0.6 : 1;
   if (mapLeo.train) { drawTrainIcon(lx, ly, mapLeo.train.ang, 1.4); return; }
@@ -7524,6 +7520,23 @@ function drawMap() {
     g.restore();
   } else drawHero(-8, -16 - hop, 0, walking ? 'walk' : 'stand', mface, t, null, mfx);
   g.restore();
+}
+// at the stop you're standing on: a little arrow on each open trail (on top of the hero, a little way out along the
+// trail), showing which way to press to take it
+function drawExitArrows(pf) {
+  const t = clock;
+  if (!mapWhole && !mapLeo.to && !mapLeo.train && state === 'map') {
+    const here = node(mapLeo.at), dirs = exitDirs(here.id);
+    dirs.forEach((to, k) => {
+      if (!to) return; const pth = pathBetween(here.id, to); if (!pathOpen(pth)) return;
+      const fwd = pth[0] === here.id, c = pathCtrl(pth), A = mapS(here.x, here.y), B = mapS(node(to).x, node(to).y), C = mapS(c.x, c.y);
+      const len = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, u = clamp(24 * pf / len, 0.1, 0.5), q = qbez({ x: A[0], y: A[1] }, { x: C[0], y: C[1] }, { x: B[0], y: B[1] }, u);
+      const bob = Math.sin(t * 5) * 0.8, [dx, dy] = DIR4[k], x = q.x + dx * bob, y = q.y + dy * bob, r = 4.4 * pf;
+      g.beginPath(); g.arc(x, y + 0.7, r + 0.6, 0, TAU); g.fillStyle = 'rgba(16,48,28,.45)'; g.fill();
+      g.beginPath(); g.arc(x, y, r, 0, TAU); paint('#fffbe8', 1, '#10301c');
+      g.save(); g.translate(x, y); g.rotate(Math.atan2(dy, dx)); g.beginPath(); g.moveTo(2.6 * pf, 0); g.lineTo(-1.6 * pf, -2.2 * pf); g.lineTo(-1.6 * pf, 2.2 * pf); g.closePath(); g.fillStyle = '#10301c'; g.fill(); g.restore();
+    });
+  }
 }
 // The title screen: the Mayflower crossing the Atlantic at sunset, sailing to the New World
 const titleShip = { x: 0, y: 0, w: 20 * TS, go: true, x1: Infinity, look: 'mayflower' };
