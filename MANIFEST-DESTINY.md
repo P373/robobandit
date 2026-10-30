@@ -65,7 +65,7 @@ older players have a reason to go back.
 |---|---|---|
 | 1 New England | **ears of corn** ✅ | Corn kept the Pilgrims alive: Tisquantum showed them how to grow it, and the 1621 harvest is the one they celebrated |
 | 2 Mid-Atlantic | **quill pens** ✅ | the Declaration of Independence and the Constitution were written with them in Philadelphia |
-| 3 Atlantic South | **pieces of eight** | the Spanish silver coins of pirates, ports and St. Augustine |
+| 3 Atlantic South | **pieces of eight** ✅ | the Spanish silver coins of pirates, ports and St. Augustine |
 | 4 Frontier South | **apple seeds** | Johnny Appleseed planted orchards along the frontier |
 | 5 Great Lakes | **beaver pelts** | the fur trade's money: prices were counted in "made beaver" |
 | 6 Great Plains | **Pony Express letters** | mail carried 2,000 miles by relays of riders (1860) |
@@ -178,13 +178,25 @@ also hides World 2's golden spike.
 *Railroad depot:* the Baltimore and Ohio, with its Railroad Challenge **Tom Thumb's Race** (1830) ✅.
 (The Erie Canal, 1825, moves to World 5, where it led: Lake Erie and the Great Lakes.)
 
-### World 3: The Atlantic South (1607 to 1830s)
-*Powhatan, Cherokee, Catawba, Muscogee (Creek), Timucua and Seminole homelands*
-Jamestown (1607: thirteen years before Plimoth, a flashback level), Pocahontas (Matoaka), Williamsburg, Yorktown
-(1781, the end of the Revolution), Blackbeard's Outer Banks (1718), Charleston and Savannah, St. Augustine (1565,
-the oldest European-founded city in the U.S., Spanish). Hero: **Ben the sailor**.
-*Secret theme:* pirate coves and treasure maps.
-*Railroad depot:* Charleston (1830, the "Best Friend of Charleston," the first regularly scheduled steam train).
+### World 3: The Atlantic South (1565 to 1830) ✅ built
+*Timucua, Croatoan, Secotan, Powhatan, Kiawah and Gullah Geechee*
+Hero: **James Forten** (joins after the Mid-Atlantic's quiz; the best swimmer: fast in the water, and leaps high out
+of it). Treasure: **pieces of eight**. Creatures: wild hogs (the Spanish brought pigs), mosquitoes, pelicans,
+raccoons, turkeys, box turtles, alligators, snakes, crabs; Blackbeard's pirate crew.
+
+1. **St. Augustine** (1565): Spanish ships land among the Timucua; palm-thatched houses, a mission bell, a coquina
+   goal ✅ (secret exit: a treasure map, up over the blocks)
+2. **The Lost Colony** (Roanoke, 1587): John White's colonists, Virginia Dare, and the post carved CROATOAN ✅
+3. **Jamestown** (1607): the three ships, the triangle fort, the Starving Time and 1619 ✅
+4. **Werowocomoco** (1608): the Powhatan capital; yehakins, corn fields, Pocahontas (Amonute, Matoaka) ✅
+5. **Charles Town** (1670): palmettos, rice, the Gullah Geechee, the Kiawah ✅
+6. **Blackbeard's Outer Banks** (Ocracoke, 1718) 🏴‍☠️ boss: **Blackbeard** (cannonballs; after one hit, bombs from
+   the rigging too; after two, he charges), then the World 3 quiz ✅
+
+*Secret-only level:* **the Treasure Fleet** (Florida's Treasure Coast, 1715: the hurricane, pieces of eight), which
+also hides World 3's golden spike ✅.
+*Railroad depot:* Charleston, with its Railroad Challenge **the Best Friend of Charleston** (1830) ✅.
+(Williamsburg, Yorktown and Savannah are left for a later pass.)
 
 ### World 4: Over the mountains, the frontier South (1775 to 1840)
 *Cherokee, Shawnee, Chickasaw, Choctaw and Muscogee homelands*

@@ -178,7 +178,7 @@
       <li>🌽 Find the <b>5 ears of corn</b> hidden in every New England level. Corn kept the Pilgrims alive! Each region has its own treasures: in the Mid-Atlantic, 🪶 <b>quill pens</b>, like the ones the Declaration of Independence was written with.</li>
       <li>📜 Every level starts with a bit of the story. <b>Bump the info boxes</b> (a 📖 book in New England, a 📰 bundle of newspapers from the Mid-Atlantic on) and your hero tells you a piece of history. After each region's boss comes a <b>quiz</b> on what you learned!</li>
       <li>🗺️ <b>The map is the whole United States</b>, with Canada and Mexico next door. Press <span class="key-only"><kbd>M</kbd> · </span>🎮 <b data-pad="X">X</b><span class="touch-only"> · the 🗺️ button, or pinch</span> to see it all. Signposts 🚧 mark levels still being built. Look for <b>secret exits</b>: they lead to places you can't reach any other way. 🤫</li>
-      <li>👪 <b>The heroes:</b> you're <b>Wrestling Brewster</b>, a real Pilgrim boy who sailed on the Mayflower when he was about six. A new real-life hero, with a new skill, joins you in every region: after New England, <b>Sybil Ludington</b>, the fastest runner and the best rider on <b>Star</b> the horse. Pick your hero in 👪 The heroes.</li>
+      <li>👪 <b>The heroes:</b> you're <b>Wrestling Brewster</b>, a real Pilgrim boy who sailed on the Mayflower when he was about six. A new real-life hero, with a new skill, joins you in every region: after New England, <b>Sybil Ludington</b>, the fastest runner and the best rider on <b>Star</b> the horse; after the Mid-Atlantic, <b>James Forten</b>, the best swimmer. Pick your hero in 👪 The heroes.</li>
       <li>🚂 <b>The railroad:</b> find a region's hidden <b>golden spike</b> and its railroad depot opens. Ride the train between open depots, and try each depot's <b>Railroad Challenge</b>: the hardest levels in the game!</li>
     </ol>
     </details>
@@ -693,9 +693,141 @@ LEVELS.baltimore = builder('baltimore', "Tom Thumb's Race", 'bando', 184)
   .done({ gate: { mid: 'watertank', goal: 'station' }, goal: 172, music: 'canal', collect: 'quill', cast: { grumblin: 'raccoon', thorny: 'porcupine', buzzer: 'hornet' }, challenge: true,
     story: ['1830', 'A little steam engine called Tom Thumb races a horse on the new Baltimore and Ohio Railroad!'] });
 
+// ===================== World 3: the Atlantic South, from the beginning (1565 to 1718) =====================
+// James Forten joins after the Mid-Atlantic. The treasure is pieces of eight; the creatures are alligators, snakes, wild hogs,
+// mosquitoes, pelicans, herons and crabs, and Blackbeard's pirate crew (who just lose their bandanas).
+
+// 3-1. St. Augustine, September 1565: Spanish ships land in Florida and found the town, among the Timucua people. Sandy
+// beaches and dunes, a creek to cross by canoe, alligators and wild hogs.
+LEVELS.staugustine = builder('staugustine', 'St. Augustine', 'staug', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 32).ground(33, 46, 10).ground(47, 72).ground(81, 108).ground(109, 122, 9).ground(123, 150).ground(160, 209)
+  .fill(132, 135, 13, 13, T.GROUND).fill(132, 135, 12, 12, T.WATER)   // a tidal creek, shallow enough to wade
+  .at(6, 8, '?P?').at(11, 8, 'I').e('crab', 16, 11).e('grumblin', 22, 11).e('buzzer', 27, 6, { as: 'pelican' })
+  .at(36, 6, 'B?B').e('snake', 42, 9).at(50, 8, 'I').e('gator', 56, 11).at(60, 8, '?C?').e('grumblin', 66, 11)   // the hat, partway along
+  .e('plat', 75, 10, { w: 3, dx: 2, sp: 0.9, look: 'mishoon' })   // a Timucua dugout canoe
+  .at(86, 8, 'I').e('crab', 92, 11).e('mid', 100, 11).at(104, 8, 'B?B').e('snake', 112, 8).at(115, 5, 'I').e('buzzer', 118, 4)
+  .at(126, 8, '?S?').at(129, 4, '---').e('sflag', 130, 3)   // the secret: a treasure map, up over the blocks (to the sunken Treasure Fleet)
+  .e('heron', 139, 11).e('grumblin', 144, 11).at(147, 8, 'H')
+  .e('plat', 153, 10, { w: 3, dx: 2, sp: 1, look: 'mishoon' })
+  .e('gator', 166, 11).at(170, 8, 'I').e('grumblin', 176, 11).e('crab', 182, 11).stairs(188, 4)
+  .gems(7, 5, 37, 3, 76, 7, 127, 6, 163, 8)
+  .done({ gate: { mid: 'missionbell', goal: 'coquina' }, goal: 198, music: 'tropic', collect: 'eight', cast: { grumblin: 'hog', buzzer: 'mosquito' },
+    story: ['SEPTEMBER 1565', 'Spanish ships land in Florida and start St. Augustine, the oldest city founded by Europeans in the U.S.'],
+    decor: [['palmhut', 3, 12], ['palmhut', 10, 12, { s: 0.85 }], ['palmhut', 168, 12], ['palmhut', 176, 12, { s: 0.85 }]] });
+
+// 3-2. The Lost Colony, Roanoke Island, 1587: John White's colonists build their homes among the pines by the sound.
+// Marsh mats to hop, turkeys and raccoons in the woods, mosquitoes everywhere, and a mystery: CROATOAN.
+LEVELS.roanoke = builder('roanoke', 'The Lost Colony', 'roanoke', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 40).ground(41, 54, 10).ground(55, 90).ground(91, 104, 8).ground(105, 130).ground(139, 160).ground(161, 174, 10).ground(175, 209)
+  .fill(66, 69, 13, 13, T.GROUND).fill(66, 69, 12, 12, T.WATER)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('turkey', 18, 11).e('snake', 24, 11).e('grumblin', 30, 11)
+  .at(44, 6, 'B?B').e('buzzer', 48, 5).at(58, 8, 'I').at(62, 8, '?C?').e('turkey', 74, 11).e('snake', 82, 11)
+  .at(94, 4, 'I').e('grumblin', 98, 7).e('mid', 110, 11).at(118, 8, '?S?').e('turkey', 124, 11)
+  .e('sponge', 131, 12, { w: 3 }).e('sponge', 135, 12, { w: 3 })   // squishy marsh mats
+  .at(146, 8, 'I').e('grumblin', 152, 11).at(156, 8, 'H').e('snake', 166, 9).at(168, 6, 'B?B').e('turkey', 180, 11).at(186, 8, 'I').stairs(190, 4)
+  .gems(7, 5, 45, 3, 67, 9, 133, 8, 169, 3)
+  .done({ gate: { mid: 'croatoan', goal: 'pine' }, goal: 200, music: 'woods', collect: 'eight', cast: { grumblin: 'raccoon', buzzer: 'mosquito' },
+    story: ['1587', 'John White leads 117 English settlers to Roanoke Island. When he comes back three years later, they have vanished!'],
+    decor: [['house', 6.5, 12], ['house', 14.5, 12, { h: 96 }]] });
+
+// 3-3. Jamestown, May 1607: the English fort on the James River, triangle-shaped, its three ships at anchor. Marsh and
+// woods, the river to cross by shallop, turkeys, snakes and mosquitoes.
+LEVELS.jamestown = builder('jamestown', 'Jamestown', 'jamestown', 212)
+  .fill(0, 211, 12, 13, T.WATER).ground(0, 28).ground(29, 42, 10).ground(43, 70).ground(79, 110).ground(111, 124, 9).ground(125, 152).ground(158, 211)
+  .fill(136, 139, 13, 13, T.GROUND).fill(136, 139, 12, 12, T.WATER)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('turkey', 16, 11).e('grumblin', 22, 11).at(32, 6, 'B?B').e('snaily', 38, 9)
+  .at(46, 8, 'I').e('buzzer', 50, 6).at(56, 8, '?C?').e('turkey', 62, 11).e('snake', 67, 11)
+  .e('plat', 73, 10, { w: 3, dx: 2, sp: 0.9, look: 'shallop' })
+  .at(90, 8, 'I').e('mid', 96, 11).at(100, 8, 'B?B').e('grumblin', 104, 11).at(116, 5, 'I').e('snaily', 120, 8)
+  .at(128, 8, '?S?').e('turkey', 133, 11).at(144, 8, 'H').e('buzzer', 148, 5).e('plat', 154, 10, { w: 3, dx: 1, sp: 1, look: 'shallop' })
+  .e('turkey', 164, 11).at(170, 8, 'I').e('grumblin', 176, 11).stairs(190, 4)
+  .gems(7, 5, 33, 3, 74, 7, 129, 5, 171, 5)
+  .done({ gate: { mid: 'fieldgun', goal: 'stgeorge' }, goal: 200, music: 'mayflower', collect: 'eight', cast: { grumblin: 'raccoon', snaily: 'turtle', buzzer: 'mosquito' },
+    story: ['MAY 1607', '104 English men and boys sail up a river they name the James, and build a fort: Jamestown.'],
+    decor: [['palisade', 160, 12, { to: 199 }], ['house', 172.5, 12], ['house', 180.5, 12, { h: 96 }]] });
+
+// 3-4. Werowocomoco, 1608: the home town of the great chief Powhatan, beside the York River, where his daughter Pocahontas
+// grew up. Longhouses (yehakins), cornfields, canoes on the river, herons and turkeys.
+LEVELS.powhatan = builder('powhatan', 'Werowocomoco', 'powhatan', 210)
+  .fill(0, 209, 12, 13, T.WATER).ground(0, 36).ground(37, 50, 10).ground(51, 80).ground(90, 118).ground(119, 132, 8).ground(133, 160).ground(161, 209)
+  .fill(146, 149, 13, 13, T.GROUND).fill(146, 149, 12, 12, T.WATER)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('turkey', 17, 11).e('snake', 24, 11).e('grumblin', 30, 11)
+  .at(40, 6, 'B?B').at(54, 8, 'I').e('heron', 60, 11).at(64, 8, '?C?').e('turkey', 72, 11).e('buzzer', 76, 5)
+  .e('plat', 83, 10, { w: 3, dx: 2, sp: 0.9, look: 'mishoon' })
+  .e('mid', 96, 11).at(100, 8, 'I').e('snake', 108, 11).at(124, 4, 'I').e('grumblin', 128, 7).at(138, 8, '?S?').e('turkey', 144, 11)
+  .at(152, 8, 'H').e('heron', 156, 11).at(166, 8, 'I').e('grumblin', 172, 11).e('turkey', 180, 11).stairs(188, 4)
+  .gems(7, 5, 41, 3, 85, 7, 139, 5, 167, 5)
+  .done({ gate: { mid: 'pot', goal: 'yehakin' }, goal: 198, music: 'plimoth', collect: 'eight', cast: { grumblin: 'raccoon', buzzer: 'mosquito' },
+    story: ['1608', 'Werowocomoco is the home of the great chief Powhatan. His daughter Pocahontas is about twelve.'],
+    decor: [['yehakin', 2, 12], ['fire', 12, 12], ['corn', 58, 12, { n: 12 }], ['yehakin', 164, 12], ['yehakin', 176, 12], ['canoe', 92, 12]] });
+
+// 3-5. Charles Town, 1670: the English start a town on the Carolina coast. Palmettos and live oaks hung with moss, the
+// salt marsh (squishy mud mats), flooded rice fields, alligators, herons and crabs.
+LEVELS.charleston = builder('charleston', 'Charles Town', 'charlestown', 212)
+  .fill(0, 211, 12, 13, T.WATER).ground(0, 34).ground(35, 48, 10).ground(49, 76).ground(91, 118).ground(119, 132, 9).ground(133, 160).ground(165, 211)
+  .fill(140, 145, 13, 13, T.GROUND).fill(140, 145, 12, 12, T.WATER)   // a flooded rice field
+  .at(6, 8, '?P?').at(11, 8, 'I').e('crab', 16, 11).e('gator', 22, 11).e('buzzer', 28, 6, { as: 'pelican' })
+  .at(38, 6, 'B?B').e('snake', 44, 9).at(52, 8, 'I').at(58, 8, '?C?').e('grumblin', 64, 11).e('heron', 70, 11)
+  .e('sponge', 77, 12, { w: 3 }).e('sponge', 81, 12, { w: 3 }).e('sponge', 85, 12, { w: 3 })   // the marsh mud
+  .e('mid', 96, 11).at(100, 8, 'I').e('gator', 108, 11).at(122, 5, 'I').e('snake', 126, 8).at(136, 8, '?S?').e('heron', 150, 11).at(154, 8, 'H').e('buzzer', 158, 5)
+  .e('plat', 161, 10, { w: 3, dx: 1, sp: 1, look: 'mishoon' })
+  .at(170, 8, 'I').e('crab', 176, 11).e('grumblin', 182, 11).stairs(190, 4)
+  .gems(7, 5, 39, 3, 81, 8, 137, 5, 171, 5)
+  .done({ gate: { mid: 'palmetto', goal: 'oak' }, goal: 200, music: 'stpete', collect: 'eight', cast: { grumblin: 'hog', buzzer: 'mosquito' },
+    story: ['1670', 'English settlers start Charles Town on the Carolina coast, where two rivers meet the sea.'],
+    decor: [['house', 176.5, 12], ['house', 184.5, 12, { h: 96 }]] });
+
+// 3-6. Blackbeard, November 1718: the dunes and inlets of the Outer Banks, his pirate crew on the beach, their cannons, and
+// Blackbeard himself, with smoking fuses in his beard. Then the Atlantic South's quiz.
+LEVELS.blackbeard = builder('blackbeard', "Blackbeard's Outer Banks", 'pamlico', 200)
+  .fill(0, 199, 12, 13, T.WATER).ground(0, 24).ground(29, 60).ground(61, 74, 9).ground(75, 104).ground(110, 199)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 17, 11).e('plat', 25, 10, { w: 2, dx: 1, sp: 1, look: 'plank' })
+  .at(30, 8, 'I').e('grumblin', 34, 11).at(38, 8, 'B?B').e('cannon', 44, 11).at(50, 8, '?C?').e('crab', 56, 11)
+  .at(66, 5, 'I').e('grumblin', 70, 8).e('cannon', 80, 11).e('mid', 86, 11).at(90, 8, '?S?').e('grumblin', 96, 11).at(99, 8, '-----').at(100, 5, 'I')
+  .e('fall', 106, 10, { w: 3 }).e('grumblin', 116, 11).at(120, 8, 'I').e('crab', 128, 11).at(132, 8, '?P?').at(144, 8, 'H')
+  // the beach at Ocracoke: Blackbeard's sloop offshore, and the pirate himself
+  .fill(150, 151, 1, 8, T.STONE).fill(197, 199, 1, 11, T.STONE).e('boss', 184, 9, { kind: 'blackbeard', who: 'blackbeard' })
+  .gems(7, 5, 26, 7, 67, 2, 101, 2, 141, 5)
+  .done({ goal: 0, boss: true, gate: { mid: 'pirateflag' }, prize: 'chest', music: 'castle', collect: 'eight', cast: { grumblin: 'pirate', buzzer: 'pelican' },
+    story: ['NOVEMBER 1718', 'Blackbeard, the most feared pirate on the seas, is hiding in the inlets of North Carolina.'],
+    decor: [['hull', 160, 12, { w: 22, h: 2, name: 'ADVENTURE' }], ['mast', 168, 10, { h: 7 }], ['mast', 176, 10, { h: 8, flag: '#1a1a1a' }]] });
+
+// ★ The Treasure Fleet (a secret: a treasure map above St. Augustine), July 1715: a hurricane sank eleven Spanish ships off
+// Florida. Beaches strewn with wreck timbers, turquoise shallows, crabs and pelicans, and the Atlantic South's golden
+// spike, out over the water: it opens the depot of the Best Friend of Charleston.
+LEVELS.cove = builder('cove', 'The Treasure Fleet', 'treasure', 190)
+  .fill(0, 189, 12, 13, T.WATER).ground(0, 40).ground(41, 54, 10).ground(55, 78).ground(92, 120).ground(121, 134, 9).ground(135, 150).ground(162, 189)
+  .at(6, 8, '?P?').at(11, 8, 'I').e('crab', 16, 11).e('buzzer', 22, 6).at(30, 8, '?C?').e('crab', 36, 11).at(44, 6, 'B?B').e('crab', 50, 9)
+  .at(60, 8, 'I').e('buzzer', 66, 5).e('crab', 72, 11)
+  .e('plat', 83, 10, { w: 3, dx: 4, sp: 0.9, look: 'shallop' }).e('goldspike', 86, 4)   // the golden spike, out over the water: jump from the boat
+  .e('mid', 96, 11).at(100, 8, '?S?').e('crab', 108, 11).at(126, 5, 'I').e('crab', 130, 8).at(140, 8, 'H')
+  .e('plat', 154, 10, { w: 3, dx: 3, sp: 1, look: 'shallop' })
+  .e('crab', 168, 11).at(172, 8, 'B?B').stairs(176, 4)
+  .gems(7, 5, 45, 3, 87, 7, 127, 2, 157, 7)
+  .done({ gate: { mid: 'anchor', goal: 'driftwood' }, goal: 186, music: 'reef', collect: 'eight', cast: { buzzer: 'pelican' },
+    story: ['JULY 1715', 'A hurricane sinks eleven Spanish treasure ships off Florida. Their silver coins still wash up today!'],
+    decor: [['wreck', 20, 12], ['wreck', 112, 12], ['wreck', 166, 12]] });
+
+// 🚂 Railroad Challenge: the Best Friend of Charleston, 1830: America's first regular passenger train, steaming over the
+// Carolina pine flats. Short and hard: rail cars over the swamps, crumbling trestles, mosquitoes and wild hogs.
+LEVELS.bestfriend = builder('bestfriend', 'The Best Friend of Charleston', 'bestfriend', 184)
+  .ground(0, 14).ground(24, 36, 10).ground(48, 62, 8).ground(78, 92, 10).ground(108, 124).ground(140, 183)
+  .at(6, 8, '?P?').at(10, 8, 'I').e('grumblin', 12, 11)
+  .e('plat', 16, 10, { w: 3, dx: 2, sp: 1.5, look: 'railcar' }).e('buzzer', 30, 6).at(32, 6, 'B?B')
+  .e('fall', 38, 9, { w: 2 }).e('fall', 42, 8, { w: 2 }).e('buzzer', 44, 4).at(53, 4, 'I').e('grumblin', 58, 7).e('mid', 60, 7)
+  .e('plat', 65, 9, { w: 3, dx: 3, sp: 1.7, look: 'railcar' }).e('buzzer', 72, 5).at(84, 6, 'C').e('grumblin', 88, 9)
+  .e('fall', 95, 10, { w: 2 }).e('fall', 99, 9, { w: 2 }).e('fall', 103, 10, { w: 2 }).e('buzzer', 100, 5)
+  .e('grumblin', 114, 11).at(118, 8, 'I').at(122, 8, 'H')
+  .e('plat', 128, 10, { w: 3, dx: 3, sp: 1.8, look: 'railcar' }).e('buzzer', 134, 5)
+  .e('grumblin', 148, 11).at(152, 8, '?S?').stairs(160, 4)
+  .gems(7, 5, 40, 5, 54, 1, 70, 6, 101, 6)
+  .done({ gate: { mid: 'watertank', goal: 'station' }, goal: 172, music: 'cog', collect: 'eight', cast: { grumblin: 'hog', buzzer: 'mosquito' }, challenge: true,
+    story: ['1830', 'The Best Friend of Charleston pulls the first regular passenger train in America!'] });
+
 // the levels that are built, in story order (the map has signposts for the rest), then the secret-only ones
 const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington', 'nantucket', 'vineyard', 'quincy',
-  'delaware', 'ludington', 'saratoga', 'valleyforge', 'independence', 'capital', 'mchenry', 'culper', 'baltimore'];
+  'delaware', 'ludington', 'saratoga', 'valleyforge', 'independence', 'capital', 'mchenry', 'culper', 'baltimore',
+  'staugustine', 'roanoke', 'jamestown', 'powhatan', 'charleston', 'blackbeard', 'cove', 'bestfriend'];
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -1551,6 +1683,14 @@ const AIR = {
   saratoga: { n: 14, c: ['#e8a040', '#d84a2a', '#f0c040'], kind: 'leaf', vx: -12, vy: 14 },
   mchenry: { n: 14, c: ['#ffb04a', '#ff6a3a'], kind: 'mote', vx: -4, vy: -10 },
   culper: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -18, vy: -6 },
+  staug: { n: 10, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -16, vy: -4 },
+  roanoke: { n: 12, c: ['#c8a050', '#8a6a30'], kind: 'leaf', vx: -10, vy: 10 },        // falling pine needles
+  jamestown: { n: 14, c: ['#e8ff8a'], kind: 'mote', vx: 2, vy: -3 },                    // fireflies by the river
+  powhatan: { n: 12, c: ['#f0d060', '#8ac850', '#ffffff'], kind: 'petal', vx: -10, vy: 8 },   // dogwood and corn silk
+  charlestown: { n: 10, c: ['#ffffff'], kind: 'wisp', vx: -10, vy: 0 },                 // the warm haze off the marsh
+  pamlico: { n: 18, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -30, vy: -4 },
+  treasure: { n: 18, c: ['#e8f8ff'], kind: 'mote', vx: 0, vy: -14 },                     // bubbles
+  bestfriend: { n: 12, c: ['#ffffff', '#e8e8e8'], kind: 'wisp', vx: -22, vy: 0 },        // engine steam
   night: { n: 16, c: ['#e8ff8a'], kind: 'mote', vx: 2, vy: -3 },
   canal: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -16, vy: -4 },
   cranberry: { n: 12, c: ['#e8a040', '#c83040', '#f0c060'], kind: 'leaf', vx: -12, vy: 12 },
@@ -1607,12 +1747,16 @@ const PILGRIM = { coat: '#a8643a', coatDk: '#824628', breeches: '#4e5a3c', breec
 // low round black hat with a wide brim (what a girl would wear to ride in the 1770s)
 const SYBIL = { coat: '#3a5a8a', coatDk: '#2a426a', breeches: '#6a4a34', breechesDk: '#4e3626', hose: '#4a3a30', shoe: '#2a2018',
   hat: '#2a2a30', hatDk: '#18181e', band: '#8a6a3a', hair: '#9a4a24', hairDk: '#6e3216' };
-// which hero you're playing: Wrestling, or Sybil once she's joined (after New England's quiz)
-const HERO_IDS = ['wrestling', 'sybil'];
-const heroJoined = i => i === 0 || (i === 1 && (!!save.quiz[0] || !!save.unlockAll));
+// James Forten (1781): a sailor's short blue jacket, a red neckerchief, long white sailor's trousers, a low round
+// tarred hat with a ribbon, and short black hair; at 14 he went to sea as a powder boy in the Revolution
+const FORTEN = { coat: '#2a3a6a', coatDk: '#1c2850', breeches: '#eeeae0', breechesDk: '#c8c2b4', hose: '#eeeae0', shoe: '#2a2018',
+  hat: '#22222a', hatDk: '#141418', band: '#3a5aa8', hair: '#1e1612', hairDk: '#0e0a08', skin: '#8a5634', skinDk: '#6e4226' };
+// which hero you're playing: Wrestling, or a hero who has joined (Sybil after New England's quiz, James after the Mid-Atlantic's)
+const HERO_IDS = ['wrestling', 'sybil', 'forten'];
+const heroJoined = i => i === 0 || (i >= 1 && i < HERO_IDS.length && (!!save.quiz[i - 1] || !!save.unlockAll));
 const heroNow = () => { const i = HERO_IDS.indexOf(save.hero); return i > 0 && heroJoined(i) ? save.hero : 'wrestling'; };
 function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
-  const SY = heroNow() === 'sybil', P = SY ? SYBIL : PILGRIM, big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Wrestling is round and chubby
+  const SY = heroNow() === 'sybil', JF = heroNow() === 'forten', P = SY ? SYBIL : JF ? FORTEN : PILGRIM, skin = P.skin || C.skin, skinDk = P.skinDk || '#f0c098', big = form > 0, H = big ? 28 : 16, s = big ? 0.78 : 0.52, wide = big ? 1.1 : 1.28;   // small Wrestling is round and chubby
   const sq = fx.squash || 0, swing = fx.swing || 0;
   let coat = P.coat, coatDk = P.coatDk, hat = P.hat, hatDk = P.hatDk, band = P.band, skirt = P.breeches;
   if (form === 2) { coat = '#4a8a3a'; coatDk = '#346a2a'; }                    // the apple-throwing power: a green doublet (or jacket)
@@ -1629,6 +1773,7 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
   const leg = (hx, ang, back) => {
     g.save(); g.translate(hx, -8.5); g.rotate(ang);
     if (SY) { rrect(-1.6, 1, 3.2, 4.4, 1.2); fill(back ? '#3a2a20' : P.hose); ell(1.4, 6, 3.4, 2.1); fill(back ? '#140e0a' : P.shoe); ell(1, 5.2, 1.4, 0.6); fill('rgba(255,255,255,.22)'); g.restore(); return; }   // (Sybil: riding boots, under her skirt)
+    if (JF) { rrect(-2.2, -0.5, 4.4, 6.6, 1.6); fill(back ? P.breechesDk : P.breeches); ell(1.4, 6, 3.4, 2.1); fill(back ? '#140e0a' : P.shoe); ell(1, 5.2, 1.4, 0.6); fill('rgba(255,255,255,.22)'); g.restore(); return; }   // (James: long sailor's trousers)
     rrect(-2.2, -0.5, 4.4, 3.4, 1.6); fill(back ? P.breechesDk : P.breeches);   // breeches to the knee
     rrect(-1.6, 2.4, 3.2, 3, 1.2); fill(back ? '#7a7a76' : P.hose);              // stockings
     ell(1.4, 6, 3.4, 2.1); fill(back ? '#1a1612' : P.shoe);                     // plain shoes, tied with a lace
@@ -1639,7 +1784,7 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
     g.save(); g.translate(sx, sy); g.rotate(ang);
     rrect(-1.8, -0.6, 3.6, 5.2, 1.8); fill(back ? coatDk : coat);
     rrect(-2, 3.8, 4, 1.6, 0.8); fill(back ? '#d8d4c8' : '#f4f0e4');            // white cuffs
-    g.beginPath(); g.arc(0, 6.6, 2.1, 0, TAU); fill(back ? '#f0c098' : C.skin);  // round hands
+    g.beginPath(); g.arc(0, 6.6, 2.1, 0, TAU); fill(back ? skinDk : skin);  // round hands
     g.restore();
   };
   leg(-1.8, ride ? -1.35 : air ? -0.6 : -legA, true);
@@ -1655,15 +1800,16 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
     g.beginPath(); g.moveTo(-6.4 + 9, -10); g.lineTo(6.4, -10); g.lineTo(7.4 + fl + sw, -2); g.lineTo(3 + sw, -1.2); g.closePath(); fill('rgba(0,0,0,.14)');
   }
   leg(1.8, ride ? -1.15 : air ? 0.8 : legA, false);
-  // the wide white collar (a "falling band")
-  ell(1, -16.6, 6.6, 2.4); fill('#f6f2e8'); ell(1, -15.9, 5.6, 1.2); fill('#e2dccc');
+  // the wide white collar (a "falling band"), or James's red neckerchief
+  if (JF) { ell(1, -16.4, 5.6, 2.2); fill('#c8302a'); g.beginPath(); g.moveTo(1, -15); g.lineTo(3.4, -11.6); g.lineTo(-0.4, -12.6); g.closePath(); fill('#a82418'); }
+  else { ell(1, -16.6, 6.6, 2.4); fill('#f6f2e8'); ell(1, -15.9, 5.6, 1.2); fill('#e2dccc'); }
   // a big round head: brown hair cut to the ears, rosy cheeks, a little nose
-  g.beginPath(); g.arc(0.6, -22.5, 7, 0, TAU); fill(C.skin);
-  ell(-4.6, -22.6, 2.6, 4.2); fill(P.hair);                                       // hair at the back, down to his collar
+  g.beginPath(); g.arc(0.6, -22.5, 7, 0, TAU); fill(skin);
+  if (JF) { ell(-3.4, -24.4, 3.8, 3.6); fill(P.hair); } else { ell(-4.6, -22.6, 2.6, 4.2); fill(P.hair); }     // hair at the back (James's is short and close-cropped)
   if (SY) { for (let k = 0; k < 4; k++) { ell(-6.4 - k * 0.5 + Math.sin(t * 6 + k) * 0.3 * (air ? 2 : 1), -19 + k * 2.6, 1.9 - k * 0.2, 1.6); fill(k % 2 ? P.hairDk : P.hair); } }   // (Sybil's long braid)
   ell(-1.4, -27.2, 6, 2.2); fill(P.hair);                                         // and a fringe under the hat
-  g.beginPath(); g.arc(1.4, -19.8, 1.7, 0, TAU); fill('rgba(255,120,120,.4)');      // rosy cheek
-  g.beginPath(); g.arc(6.9, -21.6, 1.5, 0, TAU); fill('#f8b898');                 // a little nose
+  g.beginPath(); g.arc(1.4, -19.8, 1.7, 0, TAU); fill(JF ? 'rgba(200,90,70,.35)' : 'rgba(255,120,120,.4)');      // rosy cheek
+  g.beginPath(); g.arc(6.9, -21.6, 1.5, 0, TAU); fill(JF ? '#7a4a2a' : '#f8b898');                 // a little nose
   g.beginPath(); g.arc(4.6, -18.4, 1.6, 0.15, Math.PI - 0.6); g.lineWidth = 0.8; g.strokeStyle = '#a0503a'; g.stroke();   // a smile
   // one big friendly eye
   if (dead) { g.lineWidth = 1.3; g.strokeStyle = '#1e2a3a'; g.lineCap = 'round'; g.beginPath(); g.moveTo(2.4, -25.4); g.lineTo(5, -22.8); g.moveTo(5, -25.4); g.lineTo(2.4, -22.8); g.stroke(); }
@@ -1672,6 +1818,13 @@ function drawHero(x, y, form, pose, face, t, flash, fx = {}) {
   rrect(1.8, -27.4 + (fx.look < 0 ? -0.7 : 0), 3.8, 1, 0.5); fill(P.hairDk);         // eyebrow (up when he looks up)
   // the tall capotain hat: a flat brim, a tapering crown with a rounded top, and a plain band (unless it's off being thrown)
   if (fx.hatless) { ell(0.4, -28.4, 6.6, 3); fill(P.hair); g.beginPath(); g.arc(2.4, -30.4, 1.8, 0, TAU); fill(P.hair); }
+  else if (JF) {   // a sailor's low round hat, tarred black, with a blue ribbon trailing behind
+    ell(0.8, -28.6, 8.6, 2); fill(hatDk);
+    rrect(-3.8, -33, 9.4, 4.8, [3.6, 3.6, 0.6, 0.6]); fill(hat); rrect(-3.8, -30.2, 9.4, 1.4, 0.4); fill(band);
+    g.beginPath(); g.moveTo(-3.6, -29.6); g.quadraticCurveTo(-7, -28 + Math.sin(t * 8) * 1, -9, -26 + Math.sin(t * 8)); g.lineWidth = 1; g.strokeStyle = band; g.stroke();
+    if (form === 3 && t % 0.9 < 0.3) star(6 + Math.sin(t * 7), -34, 1.2, '#ffffff');
+    rrect(-2, -32.2, 1.2, 2.4, 0.6); fill('rgba(255,255,255,.18)');
+  }
   else if (SY) {   // a low round riding hat with a wide brim
     ell(0.8, -28.6, 10.4, 2.4); fill(hatDk);
     rrect(-4.4, -34.6, 10.4, 6.2, [4.4, 4.4, 0.6, 0.6]); fill(hat); rrect(-4.4, -30.8, 10.4, 1.8, 0.4); fill(band);
@@ -1761,7 +1914,7 @@ function drawPoop(e, t) {
   g.globalAlpha = 0.35; for (let i = -1; i <= 1; i++) { g.beginPath(); g.moveTo(cx + i * 3, by - 13); g.quadraticCurveTo(cx + i * 3 + 2, by - 16, cx + i * 3, by - 19 - Math.sin(t * 4 + i)); g.lineWidth = 0.8; g.strokeStyle = '#7a9a4a'; g.stroke(); } g.globalAlpha = 1;   // stink lines
 }
 
-const CAPE = new Set(['atlantic', 'plimoth', 'bog1622', 'shawmut', 'ctriver', 'snow', 'canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor', 'pemaquid', 'aquinnah']);   // (seagulls, and blue water)
+const CAPE = new Set(['roanoke', 'jamestown', 'powhatan', 'charlestown', 'pamlico', 'atlantic', 'plimoth', 'bog1622', 'shawmut', 'ctriver', 'snow', 'canal', 'cranberry', 'dunes', 'pier', 'sea', 'cliffs', 'nantucket', 'falls', 'harbor', 'pemaquid', 'aquinnah']);   // (seagulls, and blue water)
 const BIGCITY = new Set(['gwb', 'city', 'quarter']);   // (pigeons)
 function drawPigeon(x, y, t, face) {   // a New York pigeon: grey, with a shimmery green-purple neck
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
@@ -1895,6 +2048,46 @@ function drawGroundhog(x, y, t) {
   for (const sx of [-1, 1]) { ell(sx * 3.6, -7.6, 1.4, 1.2); g.fillStyle = '#6a4428'; g.fill(); ell(sx * 3, 1, 1.6, 1.2); g.fillStyle = '#5a3a20'; g.fill(); }   // ears and little paws
   for (const ex of [-2.2, 2.2]) { g.beginPath(); g.arc(ex, -4.6, 1, 0, TAU); g.fillStyle = '#1e1a20'; g.fill(); g.beginPath(); g.arc(ex + 0.3, -4.9, 0.35, 0, TAU); g.fillStyle = '#ffffff'; g.fill(); }
   ell(0, -2.6, 1.4, 1); g.fillStyle = '#3a2418'; g.fill(); g.fillStyle = '#ffffff'; g.fillRect(-0.9, -1.6, 0.8, 1.2); g.fillRect(0.1, -1.6, 0.8, 1.2);   // nose and buck teeth
+  g.restore();
+}
+// one of Blackbeard's pirate crew: a striped shirt, a red bandana, an eyepatch and a big moustache (he just loses his bandana)
+function drawPirate(x, y, t, face, flat, e = {}) {
+  const s = Math.sin(t * 10);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  for (const [lx, k] of [[-1.8, 1], [1.8, -1]]) { g.save(); g.translate(lx, -6); g.rotate(s * k * 0.35); rrect(-1.4, 0, 2.8, 4.4, 1); g.fillStyle = '#5a4a3a'; g.fill(); ell(0.6, 5, 1.8, 1); g.fillStyle = '#1e1a18'; g.fill(); g.restore(); }   // patched trousers, bare feet in boots
+  rrect(-4, -13.2, 8, 8, 2.4); g.fillStyle = '#f4f0e6'; g.fill(); g.fillStyle = '#c8302a'; for (let k = 0; k < 3; k++) g.fillRect(-4, -11.6 + k * 2.4, 8, 1);   // a striped shirt
+  rrect(-4.4, -6.4, 8.8, 1.6, 0.6); g.fillStyle = '#3a2a1a'; g.fill(); g.fillStyle = C.gold; g.fillRect(-0.8, -6.4, 1.6, 1.6);   // a belt with a brass buckle
+  g.save(); g.translate(3.4, -11.4); g.rotate(-0.4 + s * 0.2); rrect(-1.1, 0, 2.2, 5, 1); g.fillStyle = '#f4f0e6'; g.fill(); g.restore();
+  g.beginPath(); g.arc(0.6, -15.6, 3.3, 0, TAU); g.fillStyle = '#e8b48a'; g.fill();
+  g.beginPath(); g.moveTo(-0.6, -14.2); g.quadraticCurveTo(1.6, -15, 3.8, -14); g.quadraticCurveTo(1.6, -13.2, -0.6, -14.2); g.fillStyle = '#2a1a10'; g.fill();   // a big moustache
+  g.beginPath(); g.arc(2.2, -16.2, 1.1, 0, TAU); g.fillStyle = '#1e1a18'; g.fill(); g.strokeStyle = '#1e1a18'; g.lineWidth = 0.4; g.beginPath(); g.moveTo(-2.4, -18); g.lineTo(3.6, -15.6); g.stroke();   // an eyepatch
+  g.beginPath(); g.arc(0.4, -17.4, 3.5, Math.PI * 1.02, Math.PI * 1.98); g.lineTo(3.9, -17); g.lineTo(-3.1, -17); g.fillStyle = '#c8302a'; g.fill();   // the bandana
+  g.beginPath(); g.moveTo(-3, -17.4); g.lineTo(-5.4, -16 + s * 0.6); g.lineTo(-4.6, -18.4); g.closePath(); g.fill();
+  g.restore();
+}
+// a wild hog (the Spanish brought pigs to Florida in the 1500s, and their wild descendants still root about): bristly, with tusks
+function drawHog(x, y, t, face, flat, e = {}) {
+  const s = Math.sin(t * 12);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  for (const [lx, k] of [[-4.4, 1], [-2.2, -1], [2.4, -1], [4.4, 1]]) { rrect(lx - 0.9 + s * k * 0.4, -4, 1.8, 4, 0.6); g.fillStyle = '#3a2a24'; g.fill(); }
+  ell(-0.4, -6.8, 6.8, 4.2); g.fillStyle = vgrad(-11, -3, '#7a5a4a', '#4a3a30'); g.fill();
+  g.strokeStyle = '#2a1e18'; g.lineWidth = 0.6; for (let k = 0; k < 6; k++) { g.beginPath(); g.moveTo(-4 + k * 1.6, -10.6); g.lineTo(-4.6 + k * 1.6, -12.2); g.stroke(); }   // the bristly ridge
+  ell(5.6, -7.4, 3.4, 3); g.fillStyle = '#5a463a'; g.fill(); ell(8.4, -6.8, 1.6, 1.8); g.fillStyle = '#c89a8a'; g.fill();   // the snout
+  g.fillStyle = '#5a3a2a'; g.fillRect(8.4, -7.4, 0.5, 0.5); g.fillRect(8.4, -6.4, 0.5, 0.5);
+  g.beginPath(); g.moveTo(7, -5.2); g.quadraticCurveTo(8.4, -5, 8.6, -3.8); g.lineWidth = 0.8; g.strokeStyle = '#f4ecd8'; g.stroke();   // a tusk
+  g.beginPath(); g.moveTo(3.6, -9.6); g.lineTo(4.4, -12); g.lineTo(5.4, -9.8); g.closePath(); g.fillStyle = '#4a3a30'; g.fill();
+  g.beginPath(); g.arc(5.6, -8.4, 0.7 * (e.spook > 0 ? 1.5 : 1), 0, TAU); g.fillStyle = '#1e1a18'; g.fill();
+  g.beginPath(); g.moveTo(-7, -7); g.quadraticCurveTo(-9, -8.4, -8.4, -6); g.lineWidth = 0.7; g.strokeStyle = '#4a3a30'; g.stroke();   // a curly tail
+  g.restore();
+}
+// a mosquito: thin legs, long nose, striped body and blurry wings (the swamps of the South were full of them)
+function drawMosquito(x, y, t, face) {
+  g.save(); g.translate(x + 8, y + 8 + Math.sin(t * 9) * 1.4); g.scale(face, 1);
+  for (const k of [-1, 1]) { g.globalAlpha = 0.5; ell(-1 + k * 0.4, -3.4 - Math.abs(Math.sin(t * 50)) * 1.2, 3.6, 1.2, k * 0.3); g.fillStyle = '#e8f4ff'; g.fill(); g.globalAlpha = 1; }
+  g.strokeStyle = '#2a2a30'; g.lineWidth = 0.5; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(-1 + k * 1.2, 0.6); g.lineTo(-3 + k * 2.4, 4.4); g.stroke(); }
+  ell(-2.6, 0.2, 3.4, 1.3); g.fillStyle = '#5a5a64'; g.fill(); g.fillStyle = '#e8e8ec'; g.fillRect(-4, -0.4, 0.6, 1.2); g.fillRect(-2.4, -0.4, 0.6, 1.2);
+  g.beginPath(); g.arc(1.6, -0.4, 1.8, 0, TAU); g.fillStyle = '#3a3a44'; g.fill(); g.beginPath(); g.arc(2.2, -0.8, 0.7, 0, TAU); g.fillStyle = '#ff5a5a'; g.fill();
+  g.beginPath(); g.moveTo(3.2, -0.2); g.lineTo(7, 0.8); g.lineWidth = 0.5; g.strokeStyle = '#2a2a30'; g.stroke();   // the long nose
   g.restore();
 }
 function drawCrow(x, y, t, face) {   // a black crow after the corn, flapping
@@ -2177,6 +2370,32 @@ function drawMidGate(kind, e, t) {
     g.fillStyle = '#f4f0e6'; g.fillRect(x - 8, base - 27, 6, 7); if (on) { g.fillStyle = '#1e1e24'; g.beginPath(); g.moveTo(x + 1, base - 26.4); g.lineTo(x + 8, base - 26.4); g.lineTo(x + 9.6, base - 16); g.lineTo(x - 0.6, base - 16); g.closePath(); g.fill(); }
     return;
   }
+  if (kind === 'missionbell') {   // a Spanish mission bell hanging in a little whitewashed arch; it swings and rings as you pass
+    g.fillStyle = '#f2ead8'; g.fillRect(x - 12, base - 44, 5, 44); g.fillRect(x + 7, base - 44, 5, 44); g.beginPath(); g.moveTo(x - 12, base - 44); g.quadraticCurveTo(x, base - 60, x + 12, base - 44); g.lineTo(x + 7, base - 44); g.quadraticCurveTo(x, base - 54, x - 7, base - 44); g.fill();
+    g.fillStyle = '#5a3a20'; g.fillRect(x - 0.6, base - 60, 1.2, 6); g.fillRect(x - 3, base - 58, 6, 1.2);   // a little cross on top
+    g.save(); g.translate(x, base - 50); g.rotate(on ? Math.sin(since * 10) * 0.6 * Math.max(0.15, 1 - since / 3) : 0);
+    g.fillStyle = '#b8862a'; g.beginPath(); g.moveTo(-3.4, 2); g.lineTo(3.4, 2); g.quadraticCurveTo(4.6, 9, 6.6, 13); g.lineTo(-6.6, 13); g.quadraticCurveTo(-4.6, 9, -3.4, 2); g.fill(); g.beginPath(); g.arc(0, 14, 1.6, 0, TAU); g.fillStyle = '#5a3a1a'; g.fill(); g.restore();
+    return;
+  }
+  if (kind === 'croatoan') {   // the post where the colonists carved CROATOAN; the letters glow as you pass
+    rrect(x - 6, base - 46, 12, 46, 2); g.fillStyle = vgrad(base - 46, base, '#8a6a44', '#5a3e22'); g.fill();
+    g.save(); g.translate(x + 1.6, base - 42); g.rotate(Math.PI / 2); g.font = 'bold 6.4px Georgia, serif'; g.textAlign = 'left'; g.fillStyle = on ? '#ffe48a' : '#3a2412'; g.fillText('CROATOAN', 0, 0); g.restore();
+    if (on) glow(x, base - 24, 16, 'rgba(255,220,120,1)', 0.5);
+    return;
+  }
+  if (kind === 'palmetto') {   // a palmetto tree, South Carolina's tree; a little blue crescent flag runs up as you pass
+    g.fillStyle = '#8a7454'; g.fillRect(x - 2, base - 44, 4, 44); g.strokeStyle = 'rgba(60,40,20,.5)'; g.lineWidth = 0.6; for (let k = 4; k < 44; k += 4) { g.beginPath(); g.moveTo(x - 2, base - k); g.lineTo(x + 2, base - k - 2); g.stroke(); }
+    g.strokeStyle = '#3a8a3a'; g.lineWidth = 2.2; g.lineCap = 'round'; for (let i = 0; i < 9; i++) { const a = -Math.PI + i * Math.PI / 8 - 0.1; g.beginPath(); g.moveTo(x, base - 44); g.lineTo(x + Math.cos(a) * 15, base - 44 + Math.sin(a) * 12 + 5); g.stroke(); }
+    const fh = on ? Math.min(1, since * 2) : 0; g.fillStyle = '#1e3a8a'; g.fillRect(x + 3, base - 18 - fh * 14, 10, 7); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x + 6, base - 15.5 - fh * 14, 1.8, -1.2, 1.9); g.fill();
+    return;
+  }
+  if (kind === 'pirateflag') {   // a pirate flag on a spar stuck in the sand; once you pass, it's pulled down and a white flag goes up
+    g.fillStyle = '#6a4a2a'; g.fillRect(x - 1.2, base - 46, 2.4, 46); const wv = Math.sin(t * 5) * 1.4, dn = on ? Math.min(1, since * 1.5) : 0;
+    if (dn < 1) { const fy = base - 46 + dn * 30; g.fillStyle = '#141414'; g.beginPath(); g.moveTo(x + 1.2, fy); g.quadraticCurveTo(x + 8, fy + wv, x + 16, fy + 1); g.lineTo(x + 16, fy + 11); g.quadraticCurveTo(x + 8, fy + 11 + wv, x + 1.2, fy + 10); g.closePath(); g.fill();
+      g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x + 8.6, fy + 4.4, 2.2, 0, TAU); g.fill(); g.fillRect(x + 5.6, fy + 7.4, 6, 1); }
+    else { const fy = base - 46; g.fillStyle = '#ffffff'; g.beginPath(); g.moveTo(x + 1.2, fy); g.quadraticCurveTo(x + 8, fy + wv, x + 16, fy + 1); g.lineTo(x + 16, fy + 11); g.quadraticCurveTo(x + 8, fy + 11 + wv, x + 1.2, fy + 10); g.closePath(); g.fill(); }
+    return;
+  }
   if (kind === 'watertank') {   // a railroad water tank on stilts; it spills a splash as you pass
     g.fillStyle = '#6a4a2a'; for (const dx of [-8, 8]) g.fillRect(x + dx - 1, base - 26, 2, 26); g.fillRect(x - 9, base - 14, 18, 1.6);
     rrect(x - 10, base - 42, 20, 16, 2); g.fillStyle = '#8a5a34'; g.fill(); g.fillStyle = 'rgba(40,24,10,.4)'; for (let k = 0; k < 3; k++) g.fillRect(x - 10, base - 38 + k * 5, 20, 1); g.beginPath(); g.moveTo(x - 11, base - 42); g.lineTo(x, base - 48); g.lineTo(x + 11, base - 42); g.closePath(); g.fillStyle = '#5a3a20'; g.fill();
@@ -2211,6 +2430,11 @@ const GATE_POSTS = {
   hall: { post: ['#f4f0e6', '#c8c2b4'], rope: '#c8a060', top: 'beam' },
   marble: { post: ['#f8f6f0', '#d0ccc4'], rope: '#c8a060', top: '13' },
   station: { post: ['#9a6a44', '#6a4628'], rope: '#c8a060', top: 'beam' },
+  coquina: { post: ['#e8dab4', '#c4b088'], rope: '#c8a060', top: 'beam' },     // the Castillo's shell-stone
+  pine: { post: ['#8a6a44', '#5a3e22'], rope: '#c8a060', top: 'snow' },        // (a pine bough over the top, no snow)
+  stgeorge: { post: ['#7a5a3a', '#4a3420'], rope: '#c8a060', top: 'george' },
+  yehakin: { post: ['#9a7a4e', '#6a5232'], rope: '#c8a060', top: 'mats' },
+  oak: { post: ['#6a5640', '#4a3a2a'], rope: '#c8a060', top: 'moss' },
 };
 // the 13-star flag of the United States (1777): thirteen red and white stripes and a circle of stars on blue
 function drawStarFlag(x, y, w, h, wv = 0) {
@@ -2226,9 +2450,10 @@ function drawGoalGate(kind, gx, t) {
     g.fillStyle = 'rgba(255,255,255,.18)'; g.fillRect(px + 2.4, top + 2, 1.4, ground - top - 4);
     g.strokeStyle = 'rgba(40,24,10,.35)'; g.lineWidth = 0.7; for (let yy = top + 10; yy < ground; yy += 13) { g.beginPath(); g.moveTo(px + 2, yy); g.lineTo(px + 8, yy + 3); g.stroke(); }
     ell(px + 6, ground, 9, 2.4); g.fillStyle = 'rgba(0,0,0,.18)'; g.fill();
-    if (kind === 'palisade' || kind === 'snowtimber' || kind === 'birch' || kind === 'trenton' || kind === 'vforge') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
+    if (kind === 'palisade' || kind === 'snowtimber' || kind === 'birch' || kind === 'trenton' || kind === 'vforge' || kind === 'stgeorge' || kind === 'pine') { g.fillStyle = st.post[0]; g.beginPath(); g.moveTo(px + 1, top); g.lineTo(px + 6, top - 9); g.lineTo(px + 11, top); g.fill(); }
     if (kind === 'snowtimber' || kind === 'birch' || kind === 'trenton' || kind === 'vforge') { ell(px + 6, top - 1, 8, 3); g.fillStyle = '#ffffff'; g.fill(); }
     if (kind === 'birch') { g.fillStyle = '#2a2420'; for (let yy = top + 8; yy < ground - 4; yy += 11) { g.fillRect(px + 2 + (yy % 3), yy, 5, 1.4); g.fillRect(px + 6 - (yy % 4), yy + 5, 3, 1); } }   // birch bark's black marks
+    if (kind === 'coquina') { g.fillStyle = 'rgba(120,100,60,.35)'; for (let b = 0; b < 14; b++) g.fillRect(px + 1 + (b * 5) % 9, top + 6 + b * ((ground - top - 10) / 14), 2.4, 1.2); }   // speckled with tiny shells
     if (kind === 'clay') for (let b = 0; b < 8; b++) { g.fillStyle = ['#d8583a', '#f2c890', '#b84a32', '#9a9aa0'][b % 4]; g.fillRect(px + 0.5, top + 12 + b * ((ground - top - 16) / 8), 11, 4); }   // striped like the Aquinnah cliffs
     if (kind === 'driftwood') { ell(px + 6, top + 1, 6, 2.4); g.fillStyle = st.post[1]; g.fill(); ell(px + 6, top + 1, 3.4, 1.2); g.fillStyle = st.post[0]; g.fill(); }
   }
@@ -2239,16 +2464,20 @@ function drawGoalGate(kind, gx, t) {
     for (let k = 0; k < 5; k++) { ell(gx - 2 + k * 10, top + 1, 2.2, 1.6); g.fillStyle = '#d8a040'; g.fill(); }
   }
   if (st.top === 'chests') for (const px of [gx - 11, gx + 31]) { rrect(px, top - 13, 14, 13, 1); paint(vgrad(top - 13, top, '#c8945a', '#8a5a32'), 0.8, '#3a2414'); g.font = 'bold 4px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#2a180a'; g.fillText('TEA', px + 7, top - 5); }   // a chest of tea on each piling
-  if (st.top === 'beam' || st.top === 'rails' || st.top === 'snow' || st.top === 'mats') {   // a crossbeam over the top
+  if (st.top === 'beam' || st.top === 'rails' || st.top === 'snow' || st.top === 'mats' || st.top === 'moss') {   // a crossbeam over the top
     rrect(gx - 13, top - 3, 62, 9, 2.5); g.fillStyle = st.post[0]; g.fill(); g.fillStyle = st.post[1]; g.fillRect(gx - 13, top + 3, 62, 3);
-    if (st.top === 'snow') { g.fillStyle = '#ffffff'; rrect(gx - 11, top - 5, 58, 4, 2); g.fill(); g.fillStyle = '#2e6a3a'; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(gx + 4 + k * 4, top + 5); g.lineTo(gx + 6 + k * 4, top + 12); g.lineTo(gx + 8 + k * 4, top + 5); g.fill(); } }   // a pine bough
+    if (st.top === 'snow') { if (kind !== 'pine') { g.fillStyle = '#ffffff'; rrect(gx - 11, top - 5, 58, 4, 2); g.fill(); } g.fillStyle = '#2e6a3a'; for (let k = 0; k < 7; k++) { g.beginPath(); g.moveTo(gx + 4 + k * 4, top + 5); g.lineTo(gx + 6 + k * 4, top + 12); g.lineTo(gx + 8 + k * 4, top + 5); g.fill(); } }   // a pine bough
     if (st.top === 'mats') for (const mx of [gx - 4, gx + 32]) { rrect(mx, top + 5, 10, 22, 1); g.fillStyle = '#c8aa6a'; g.fill(); g.strokeStyle = 'rgba(110,80,40,.6)'; g.lineWidth = 0.6; for (let k = 0; k < 6; k++) { g.beginPath(); g.moveTo(mx, top + 8 + k * 3.6); g.lineTo(mx + 10, top + 8 + k * 3.6); g.stroke(); } }   // woven reed mats
+    if (st.top === 'moss') { g.strokeStyle = 'rgba(200,206,186,.9)'; g.lineWidth = 1; for (let k = 0; k < 12; k++) { const mx = gx - 10 + k * 5; g.beginPath(); g.moveTo(mx, top + 5); g.quadraticCurveTo(mx + 2, top + 12, mx + 0.5, top + 14 + (k % 3) * 5); g.stroke(); } }   // Spanish moss hanging down
     if (st.top === 'rails') for (const ry of [ground - 30, ground - 16]) { g.fillStyle = st.post[0]; g.fillRect(gx - 26, ry, 20, 3); g.fillRect(gx + 42, ry, 20, 3); }
   }
   if (st.top === 'beam') {   // the palisade gate's bell: it rings once you're through
     g.save(); g.translate(gx + 18, top + 5); g.rotate(phase === 'clear' ? Math.sin(since * 12) * 0.6 * Math.max(0, 1 - since / 3) : 0);
     g.fillStyle = '#c89a3a'; g.beginPath(); g.moveTo(-4, 0); g.lineTo(4, 0); g.quadraticCurveTo(5, 8, 7, 11); g.lineTo(-7, 11); g.quadraticCurveTo(-5, 8, -4, 0); g.fill(); g.beginPath(); g.arc(0, 12, 1.6, 0, TAU); g.fillStyle = '#5a3a1a'; g.fill(); g.restore();
   }
+  if (st.top === 'george') { g.fillStyle = st.post[1]; g.fillRect(gx + 37, top - 26, 2, 26); const wv = Math.sin(t * 5) * 1.4;   // England's flag: the red cross of St George
+    g.beginPath(); g.moveTo(gx + 39, top - 26); g.quadraticCurveTo(gx + 47, top - 25 + wv, gx + 55, top - 24); g.lineTo(gx + 55, top - 14); g.quadraticCurveTo(gx + 47, top - 15 + wv, gx + 39, top - 16); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+    g.fillStyle = '#c8202a'; g.fillRect(gx + 45.4, top - 25.6 + wv * 0.5, 2.6, 10); g.fillRect(gx + 39, top - 21.8 + wv * 0.5, 16, 2.4); }
   if (st.top === '13') { g.fillStyle = st.post[1]; g.fillRect(gx + 37, top - 26, 2, 26); drawStarFlag(gx + 39, top - 26, 18, 12, Math.sin(t * 5) * 1.4); }   // the new country's flag, with 13 stars and 13 stripes
   if (st.top === 'flag') {   // Connecticut's banner on the right-hand post
     g.fillStyle = '#5a3e22'; g.fillRect(gx + 37, top - 26, 2, 26); const wv = Math.sin(t * 5) * 1.4;
@@ -2334,7 +2563,19 @@ function drawQuill(x, y, t) {
   g.beginPath(); g.moveTo(-0.9, 8); g.lineTo(0, 12.6); g.lineTo(0.9, 8); g.closePath(); g.fillStyle = '#1e2a4a'; g.fill();   // the inky nib
   g.restore();
 }
-const COLLECT = { corn: { draw: drawCornEar, emoji: '🌽', name: 'ears of corn' }, quill: { draw: drawQuill, emoji: '🪶', name: 'quill pens' } };
+// The Atlantic South's treasure: pieces of eight, the Spanish silver dollars of pirates, ports and St. Augustine (worth
+// eight reales, and stamped with a cross; people really did cut them into pieces to make change)
+function drawEight(x, y, t) {
+  const spin = Math.cos(t * 3), w = Math.max(0.25, Math.abs(spin)), bob = Math.sin(t * 3) * 1.2;
+  g.save(); g.translate(x + 8, y + 8 + bob); glow(0, 0, 13, 'rgba(230,240,255,1)', 0.45); g.scale(w, 1);
+  g.beginPath(); g.arc(0, 0, 6.6, 0, TAU); paint(vgrad(-6, 6, '#f4f6fa', '#9aa4b4'), 0.8, '#5a6272');
+  g.beginPath(); g.arc(0, 0, 5, 0, TAU); g.lineWidth = 0.6; g.strokeStyle = 'rgba(80,90,110,.6)'; g.stroke();
+  if (spin > 0) { g.fillStyle = '#6a7282'; g.fillRect(-0.7, -3.6, 1.4, 7.2); g.fillRect(-3.6, -0.7, 7.2, 1.4); for (const [a, b] of [[-2.4, -2.4], [2.4, -2.4], [-2.4, 2.4], [2.4, 2.4]]) { g.beginPath(); g.arc(a, b, 0.7, 0, TAU); g.fill(); } }   // the cross
+  else { g.font = 'bold 7px Georgia, serif'; g.textAlign = 'center'; g.textBaseline = 'middle'; g.fillStyle = '#5a6272'; g.fillText('8', 0, 0.4); }
+  g.fillStyle = 'rgba(255,255,255,.6)'; g.fillRect(-3.4, -4.6, 2.4, 1);
+  g.restore();
+}
+const COLLECT = { corn: { draw: drawCornEar, emoji: '🌽', name: 'ears of corn' }, quill: { draw: drawQuill, emoji: '🪶', name: 'quill pens' }, eight: { draw: drawEight, emoji: '🪙', name: 'pieces of eight' } };
 const collectOf = l => COLLECT[l && l.collect] || COLLECT.corn;
 const collectIcon = () => collectOf(lvl).draw;
 
@@ -2465,12 +2706,15 @@ function drawCrusher(x, y, angry, t) {
   rrect(6, 20, 12, 4.2, 2); paint('#2a2a34', 1); g.fillStyle = '#fff'; for (let i = 0; i < 4; i++) g.fillRect(7 + i * 2.8, 20, 1.6, 1.8);
   g.restore();
 }
-const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!', lobster: 'THE REDCOAT MAJOR!', admiral: 'THE BRITISH ADMIRAL!' };
-const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps', lobster: 'The redcoat major', admiral: 'The British admiral' };
+const BOSS_NAMES = { grumbles: 'KING GRUMBLES!', yeti: 'THE FROST YETI!', crab: 'CAPTAIN PINCH!', gator: 'CAPTAIN CHOMPS!', lobster: 'THE REDCOAT MAJOR!', admiral: 'THE BRITISH ADMIRAL!', blackbeard: 'BLACKBEARD!' };
+const BOSS_WHO = { grumbles: 'King Grumbles', yeti: 'The Frost Yeti', crab: 'Captain Pinch', gator: 'Captain Chomps', lobster: 'The redcoat major', admiral: 'The British admiral', blackbeard: 'Blackbeard' };
 // The Grumble Gang: King Grumbles and his crew, each guarding a bag of Leo's gold somewhere in America, each dressed for
 // where they are. They all take three hits, and every hit makes them try something new (and a bit tougher) that belongs
 // to that place. Later bosses start out quicker, so the gang gets harder world by world.
 const BOSS_CAST = {
+  blackbeard: { intro: 'The most feared pirate of all, with smoking fuses in his beard!', speed: 44,
+    hits: ['Grenadoes! Bottles of powder fall from the rigging: watch for their shadows!', 'He draws his cutlass and charges across the beach!'],
+    done: 'Blackbeard is beaten! His treasure chest is yours, and the Carolina coast is safe at last.' },
   admiral: { intro: 'The British fleet is bombarding Fort McHenry!', speed: 42,
     hits: ["The rockets' red glare! Rockets streak along the ground: jump them!", 'Bombs bursting in air! Watch for their shadows!'],
     done: 'The fleet sails away. At dawn the great flag is still flying over the fort!' },
@@ -2614,12 +2858,33 @@ function drawAdmiralBoss(x, y, t, face, hurt, hat = true) {
   else { ell(0, -46.4, 6.4, 2.6); paint('#c8c4bc'); }
   g.restore();
 }
+// Blackbeard (Edward Teach, 1718): a huge black beard with slow-burning fuses tucked in it, smoking; a long dark coat with
+// a red sash, a cutlass at his side and a black tricorn (it flies off at the first hit)
+function drawBlackbeard(x, y, t, face, hurt, hat = true) {
+  g.save(); g.translate(x + 16, y + 32); g.scale(face, 1);
+  const coat = hurt ? '#6a6a8a' : '#2a2430', coatDk = hurt ? '#4a4a6a' : '#16121a', skin = hurt ? '#ffd0c0' : '#e8b48a', step = Math.sin(t * 7);
+  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 4.5, -12); g.rotate(sx * step * 0.25); rrect(-3, 0, 6, 7, 2); paint('#5a4a3a'); rrect(-3.4, 5.6, 6.8, 6.8, 1.5); paint('#1a1412'); g.restore(); }   // breeches and big boots
+  g.beginPath(); g.moveTo(-11, -14); g.lineTo(-13, -4); g.lineTo(-3, -9); g.closePath(); g.moveTo(11, -14); g.lineTo(13, -4); g.lineTo(3, -9); g.closePath(); paint(coatDk);
+  rrect(-11, -34, 22, 24, 6); paint(coat, 1, '#000');
+  rrect(-11, -18, 22, 4, 1.2); paint('#b8242a'); g.beginPath(); g.moveTo(8, -16); g.lineTo(11, -9); g.lineTo(6, -10); g.closePath(); paint('#9a1a20');   // the red sash
+  g.save(); g.translate(-9, -16); g.rotate(0.45); rrect(-1, 0, 2, 14, 0.6); paint('#c8ccd8', 0.6, '#5a5e6a'); g.beginPath(); g.arc(0, -0.6, 2.4, Math.PI, 0); g.lineWidth = 1; g.strokeStyle = C.gold; g.stroke(); g.restore();   // a cutlass
+  for (const sx of [-1, 1]) { g.save(); g.translate(sx * 11, -31); g.rotate(sx * (0.25 + step * 0.2 * sx)); rrect(-2.6, 0, 5.2, 13, 2.4); paint(coat, 0.8, '#000'); g.beginPath(); g.arc(0, 14.4, 2.4, 0, TAU); paint(skin); g.restore(); }
+  ell(0, -40, 7.4, 7); paint(skin, 0.8, '#b8805a');
+  g.beginPath(); g.moveTo(-7.4, -40); g.quadraticCurveTo(-8, -26, 0, -22); g.quadraticCurveTo(8, -26, 7.4, -40); g.quadraticCurveTo(4, -35, 0, -36); g.quadraticCurveTo(-4, -35, -7.4, -40); g.fillStyle = '#141014'; g.fill();   // the big black beard
+  g.strokeStyle = '#2a2026'; g.lineWidth = 0.6; for (let k = -2; k <= 2; k++) { g.beginPath(); g.moveTo(k * 2.4, -34); g.lineTo(k * 2.2, -24); g.stroke(); }   // its braids
+  for (const [fx, fy] of [[-6.6, -38], [6.8, -37.4], [-4, -27]]) { g.strokeStyle = '#8a6a44'; g.lineWidth = 0.7; g.beginPath(); g.moveTo(fx, fy); g.lineTo(fx + (fx < 0 ? -1.6 : 1.6), fy - 3); g.stroke(); glow(fx + (fx < 0 ? -1.6 : 1.6), fy - 3.4, 3.4, 'rgba(255,170,60,1)', 0.8);
+    for (let k = 0; k < 2; k++) { const ph = ((t * 0.8 + k * 0.5 + fx) % 1 + 1) % 1; g.globalAlpha = 0.45 * (1 - ph); g.beginPath(); g.arc(fx + (fx < 0 ? -2 : 2) - ph * 2, fy - 5 - ph * 9, 1.4 + ph * 2.4, 0, TAU); g.fillStyle = '#d8d8dc'; g.fill(); g.globalAlpha = 1; } }   // the smoking fuses
+  g.beginPath(); g.arc(3, -42.4, 1.2, 0, TAU); g.fillStyle = INK; g.fill(); g.strokeStyle = INK; g.lineWidth = 1.3; g.beginPath(); g.moveTo(0.2, -45.4); g.lineTo(5.6, -44.4); g.stroke();
+  if (hat) { g.beginPath(); g.moveTo(-12, -45); g.quadraticCurveTo(0, -41.4, 12, -45); g.lineTo(7.6, -52); g.quadraticCurveTo(0, -55.4, -7.6, -52); g.closePath(); paint('#141014', 0.8, '#000'); g.fillStyle = '#f4f0e6'; g.beginPath(); g.arc(0, -48.6, 1.8, 0, TAU); g.fill(); g.fillRect(-1.8, -46.8, 3.6, 0.8); }   // the tricorn, with a little skull
+  else { ell(0, -46.6, 6.6, 3); paint('#141014'); }
+  g.restore();
+}
 // ---- World 5's characters (Florida) ----
-const FL_SEA = new Set(['deco', 'keys', 'stpete', 'daytona', 'cape', 'castillo']);              // turquoise Florida water
+const FL_SEA = new Set(['staug', 'treasure', 'deco', 'keys', 'stpete', 'daytona', 'cape', 'castillo']);              // turquoise Florida water
 const PELICANS = new Set(['deco', 'keys', 'glades', 'stpete', 'castillo', 'daytona', 'cape', 'oaks', 'river', 'sabine']);   // brown pelicans instead of bees
 const GULF = new Set(['oaks', 'bayou', 'quarter', 'river', 'basin', 'sabine']);   // World 6: crawfish instead of crabs
 const SWAMP = new Set(['bayou', 'basin']);                                           // dragonflies instead of bees; gator backs to hop
-const HERMITS = new Set(['deco', 'keys', 'stpete', 'daytona', 'reef', 'castillo']);              // hermit crabs instead of snails
+const HERMITS = new Set(['staug', 'treasure', 'pamlico', 'deco', 'keys', 'stpete', 'daytona', 'reef', 'castillo']);              // hermit crabs instead of snails
 const FLAMINGOS = new Set(['deco', 'keys']);                                                     // the tall-legged birds are pink here
 function drawPelican(x, y, t, face) {   // a brown pelican: a big bill with a pouch, gliding on slow flaps
   g.save(); g.translate(x + 8, y + 8); g.scale(face, 1);
@@ -2872,6 +3137,33 @@ function drawDecor(d, t) {
       g.restore();
       rrect(x - 6 * k, y - 16 * k, 12 * k, 16 * k, [6 * k, 6 * k, 0, 0]); g.fillStyle = '#3a2a1a'; g.fill();   // the doorway
       for (let i = 0; i < 3; i++) { const ph = (t * 0.4 + i / 3) % 1; g.globalAlpha = 0.35 * (1 - ph); g.beginPath(); g.arc(x + Math.sin(ph * 6 + i) * 4, y - h * 1.3 - ph * 30, 3 + ph * 6, 0, TAU); g.fillStyle = '#e8e8e8'; g.fill(); g.globalAlpha = 1; }
+      break;
+    }
+    case 'palmhut': {   // a Timucua house: round, with a tall cone roof thatched with palmetto leaves
+      const k = o.s || 1, w = 24 * k;
+      g.fillStyle = '#8a6a44'; g.fillRect(x - w * 0.8, y - 18 * k, w * 1.6, 18 * k);
+      g.beginPath(); g.moveTo(x - w * 1.05, y - 16 * k); g.lineTo(x, y - 58 * k); g.lineTo(x + w * 1.05, y - 16 * k); g.closePath(); paint(vgrad(y - 58 * k, y - 16 * k, '#c8b06a', '#9a7e44'));
+      g.strokeStyle = 'rgba(90,70,30,.5)'; g.lineWidth = 0.8; for (let r = 1; r < 5; r++) { const yy = y - 16 * k - r * 8 * k, hw = w * 1.05 * (1 - r * 8 / 42); g.beginPath(); g.moveTo(x - hw, yy); g.lineTo(x + hw, yy); g.stroke(); }
+      rrect(x - 5 * k, y - 14 * k, 10 * k, 14 * k, [5 * k, 5 * k, 0, 0]); g.fillStyle = '#3a2a1a'; g.fill();
+      break;
+    }
+    case 'yehakin': {   // a Powhatan yehakin: a long house of bent saplings, covered in bark and woven reed mats
+      const k = o.s || 1, w = 40 * k, h = 30 * k;
+      g.beginPath(); g.moveTo(x - w, y); g.lineTo(x - w, y - h * 0.5); g.quadraticCurveTo(x - w, y - h * 1.2, x, y - h * 1.2); g.quadraticCurveTo(x + w, y - h * 1.2, x + w, y - h * 0.5); g.lineTo(x + w, y); g.closePath(); paint(vgrad(y - h, y, '#c8aa6a', '#8a6e42'));
+      g.save(); g.clip(); g.strokeStyle = 'rgba(90,64,30,.5)'; g.lineWidth = 0.8;
+      for (let r = 1; r < 6; r++) { g.beginPath(); g.moveTo(x - w, y - r * h * 0.2); g.lineTo(x + w, y - r * h * 0.2); g.stroke(); }
+      for (let c = -5; c <= 5; c++) { g.beginPath(); g.moveTo(x + c * w * 0.19, y); g.lineTo(x + c * w * 0.17, y - h * 1.2); g.stroke(); }
+      g.restore();
+      rrect(x - 6 * k, y - 18 * k, 12 * k, 18 * k, [6 * k, 6 * k, 0, 0]); g.fillStyle = '#3a2a1a'; g.fill();
+      break;
+    }
+    case 'wreck': {   // the broken ribs of a sunken Spanish ship, half buried in the sand, with a cannon and a chest
+      g.strokeStyle = '#5a3e26'; g.lineWidth = 3.4; g.lineCap = 'round';
+      for (let k = 0; k < 5; k++) { const rx = x - 26 + k * 13; g.beginPath(); g.moveTo(rx, y); g.quadraticCurveTo(rx - 4, y - 18 - (k % 2) * 6, rx + 2, y - 30 + (k === 4 ? 12 : 0)); g.stroke(); }
+      g.lineWidth = 4; g.beginPath(); g.moveTo(x - 32, y - 2); g.lineTo(x + 32, y - 4); g.stroke();
+      rrect(x + 14, y - 8, 22, 6, 3); g.fillStyle = '#3a4a44'; g.fill();   // a cannon, green with age
+      rrect(x - 40, y - 10, 14, 10, 1); paint(vgrad(y - 10, y, '#8a5a32', '#4a2e18')); g.fillStyle = '#c8a040'; g.fillRect(x - 40, y - 7, 14, 1.4);
+      for (let i = 0; i < 4; i++) { const a = t * 2 + i * 1.7, bx = x - 20 + i * 14, by = y - 30 - ((t * 10 + i * 13) % 40); g.globalAlpha = 0.45; g.beginPath(); g.arc(bx + Math.sin(a) * 2, by, 1.6, 0, TAU); g.strokeStyle = '#ffffff'; g.lineWidth = 0.6; g.stroke(); g.globalAlpha = 1; }   // bubbles
       break;
     }
     case 'fire': {   // a cooking fire in a ring of stones, with a clay pot
@@ -3555,7 +3847,15 @@ const THEMES = {
   culper: { top: '#ead494', topDk: '#c8aa60', dirt: '#d8bc80', dirtDk: '#b89a60', edge: '#7a6030' },
   bando: { top: '#7ab04a', topDk: '#4a8a3a', dirt: '#8a6a4a', dirtDk: '#6a4e34', edge: '#3a2414' },
   granite: { top: '#8ac86a', topDk: '#5a9a4a', dirt: '#a8a49c', dirtDk: '#86827a', edge: '#4a4842' },   // the quarry's grey granite
-  aquinnah: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },  // the red clay of the cliffs      // cobblestones on Boston's old brick
+  aquinnah: { top: '#6ac25a', topDk: '#3a8a3a', dirt: '#e8844e', dirtDk: '#c8583a', edge: '#7a3020' },
+  staug: { top: '#e8dab4', topDk: '#c8b48a', dirt: '#dcc8a0', dirtDk: '#bca67e', edge: '#7a6848' },          // Florida sand over coquina
+  roanoke: { top: '#7ab04a', topDk: '#4e8a3a', dirt: '#d8c49a', dirtDk: '#b8a074', edge: '#6a5434' },         // pine woods on sandy soil
+  jamestown: { top: '#6aa84a', topDk: '#40803a', dirt: '#9a6a44', dirtDk: '#744c2c', edge: '#3e2614' },       // the James River's muddy banks
+  powhatan: { top: '#7ab84a', topDk: '#4a8a32', dirt: '#a8784a', dirtDk: '#7e5634', edge: '#4a2e18' },
+  charlestown: { top: '#8ab84a', topDk: '#5a8a32', dirt: '#c8a87a', dirtDk: '#a08458', edge: '#5a4428' },     // Lowcountry marsh and sand
+  pamlico: { top: '#d8c898', topDk: '#b8a470', dirt: '#e4d4a8', dirtDk: '#c4b080', edge: '#7a6a44' },        // the Outer Banks' dunes
+  treasure: { top: '#f2e2b8', topDk: '#d4bc8a', dirt: '#e8d4a4', dirtDk: '#c8b07c', edge: '#7a6644' },       // the Treasure Coast's pale sand
+  bestfriend: { top: '#8ab44a', topDk: '#5a8a32', dirt: '#c86a3a', dirtDk: '#9a4a28', edge: '#4a2414' },     // South Carolina's red clay  // the red clay of the cliffs      // cobblestones on Boston's old brick
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -4408,6 +4708,131 @@ SCENERY.castillo = [
     const fx = 230; g.fillStyle = '#5a4a3a'; g.fillRect(fx, 60, 1.6, 66); g.fillStyle = '#ffffff'; g.fillRect(fx + 1.6, 60, 22, 14); g.strokeStyle = '#c8202a'; g.lineWidth = 1.8; g.beginPath(); g.moveTo(fx + 3, 61); g.lineTo(fx + 22, 73); g.moveTo(fx + 22, 61); g.lineTo(fx + 3, 73); g.stroke();
   } },
 ];
+// ---- World 3: the Atlantic South ----
+function galleon(x, base, s, flag) {   // a tall ship far off: a dark hull, three masts of square sails, a flag on top
+  g.fillStyle = '#4a2e1a'; g.beginPath(); g.moveTo(x - 22 * s, base - 8 * s); g.lineTo(x + 24 * s, base - 8 * s); g.lineTo(x + 18 * s, base); g.lineTo(x - 16 * s, base); g.closePath(); g.fill();
+  g.fillRect(x - 22 * s, base - 14 * s, 9 * s, 7 * s);   // the high stern castle
+  for (const [mx, h] of [[-10, 30], [3, 36], [15, 26]]) { g.fillStyle = '#3a2412'; g.fillRect(x + mx * s, base - (8 + h) * s, 1.2 * s, h * s);
+    g.fillStyle = '#f2e8d0'; g.fillRect(x + (mx - 6) * s, base - (6 + h * 0.9) * s, 13 * s, h * 0.36 * s); g.fillRect(x + (mx - 5) * s, base - (4 + h * 0.48) * s, 11 * s, h * 0.3 * s); }
+  if (flag) flag(x + 3.6 * s, base - 44 * s, s);
+}
+const burgundyFlag = (x, y, s) => { g.fillStyle = '#ffffff'; g.fillRect(x, y, 9 * s, 6 * s); g.strokeStyle = '#c8202a'; g.lineWidth = 1.2 * s; g.beginPath(); g.moveTo(x, y); g.lineTo(x + 9 * s, y + 6 * s); g.moveTo(x + 9 * s, y); g.lineTo(x, y + 6 * s); g.stroke(); };   // Spain's cross of Burgundy
+const georgeFlag = (x, y, s) => { g.fillStyle = '#ffffff'; g.fillRect(x, y, 9 * s, 6 * s); g.fillStyle = '#c8202a'; g.fillRect(x + 3.8 * s, y, 1.4 * s, 6 * s); g.fillRect(x, y + 2.3 * s, 9 * s, 1.4 * s); };   // England's cross of St George
+const jollyFlag = (x, y, s) => { g.fillStyle = '#141414'; g.fillRect(x, y, 9 * s, 6 * s); g.fillStyle = '#ffffff'; g.beginPath(); g.arc(x + 4.5 * s, y + 2.6 * s, 1.6 * s, 0, TAU); g.fill(); g.fillRect(x + 2.4 * s, y + 4.2 * s, 4.2 * s, 0.7 * s); };   // a pirate's flag
+function pineBG(x, base, h, c = '#2e5a32') {   // a tall Southern pine: a long bare trunk and a tufted crown up top
+  g.fillStyle = '#6a4a30'; g.fillRect(x - 1.6, base - h, 3.2, h);
+  for (const [dx, dy, r] of [[-6, 0, 8], [6, -3, 7], [0, -8, 8], [-3, 6, 6], [5, 5, 6]]) { ell(x + dx, base - h + dy, r, r * 0.6); g.fillStyle = c; g.fill(); }
+}
+function palmettoBG(x, base, h) {   // a cabbage palmetto: a straight trunk and a round, spiky head
+  g.fillStyle = '#8a7454'; g.fillRect(x - 2, base - h, 4, h); g.strokeStyle = '#3a7a3a'; g.lineWidth = 2; g.lineCap = 'round';
+  for (let i = 0; i < 9; i++) { const a = -Math.PI + i * Math.PI / 8 - 0.1; g.beginPath(); g.moveTo(x, base - h); g.lineTo(x + Math.cos(a) * 14, base - h + Math.sin(a) * 12 + 4); g.stroke(); }
+}
+function yehakinBG(x, base, w) {   // a Powhatan yehakin: a long arched house covered with bark and reed mats
+  g.fillStyle = '#b89a66'; g.beginPath(); g.moveTo(x, base); g.lineTo(x, base - 12); g.quadraticCurveTo(x + w / 2, base - 30, x + w, base - 12); g.lineTo(x + w, base); g.fill();
+  g.strokeStyle = 'rgba(90,64,30,.5)'; g.lineWidth = 0.8; for (let k = 1; k < 4; k++) { g.beginPath(); g.moveTo(x, base - k * 4); g.lineTo(x + w, base - k * 4); g.stroke(); }
+  g.fillStyle = '#4a3420'; g.fillRect(x + w / 2 - 3, base - 9, 6, 9);
+}
+SCENERY.staug = [
+  { sp: 0.03, draw() {   // Matanzas Bay in 1565: Pedro Menéndez's Spanish ships at anchor, flying the cross of Burgundy
+    g.fillStyle = vgrad(150, 224, '#3ab8d0', '#1a8ab0'); g.fillRect(0, 150, BG_W, 74);
+    galleon(120, 152, 1, burgundyFlag); galleon(250, 150, 0.7, burgundyFlag); galleon(380, 153, 0.85, burgundyFlag);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 34 + (i % 2) * 20, 0.9); } },
+  { sp: 0.32, draw() {   // white dunes with sea oats, palms, and the Timucua's round thatched houses
+    g.fillStyle = '#f2e6c4'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 10) g.lineTo(x, 188 - Math.sin(x / 50) * 8); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 7; i++) palmBG(20 + i * 70 + rndB(i, 1) * 20, 192, 44 + rndB(i, 2) * 16);
+    for (const hx of [110, 330]) { g.fillStyle = '#c8a86a'; g.beginPath(); g.moveTo(hx - 18, 196); g.quadraticCurveTo(hx, 160, hx + 18, 196); g.fill(); g.fillStyle = '#4a3420'; g.fillRect(hx - 3, 186, 6, 10); }
+  } },
+];
+SCENERY.roanoke = [
+  { sp: 0.03, draw() {   // Roanoke Sound, calm and grey-blue, with the low banks of the Outer Banks beyond
+    g.fillStyle = vgrad(156, 224, '#7aaac8', '#4a7a9a'); g.fillRect(0, 156, BG_W, 68); g.fillStyle = '#d8ccaa'; g.fillRect(0, 150, BG_W, 6);
+    galleon(380, 160, 0.6, georgeFlag);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 36 + (i % 2) * 20, 0.9); } },
+  { sp: 0.32, draw() {   // tall pines, and the colonists' little thatched cottages inside an earthen fort
+    for (let i = 0; i < 12; i++) pineBG(10 + i * 42 + rndB(i, 3) * 14, 200, 70 + rndB(i, 4) * 26);
+    for (const hx of [150, 220, 290]) { g.fillStyle = '#d8c8a4'; g.fillRect(hx, 176, 34, 22); g.fillStyle = '#c8a050'; g.beginPath(); g.moveTo(hx - 4, 178); g.lineTo(hx + 17, 160); g.lineTo(hx + 38, 178); g.fill(); g.fillStyle = '#4a3420'; g.fillRect(hx + 13, 186, 7, 12); }
+    g.fillStyle = '#8a7a54'; g.fillRect(130, 196, 210, 6);
+  } },
+];
+SCENERY.jamestown = [
+  { sp: 0.03, draw() {   // the James River, and the three ships that brought the settlers: Susan Constant, Godspeed and Discovery
+    g.fillStyle = vgrad(150, 224, '#6a9ab8', '#3a6a88'); g.fillRect(0, 150, BG_W, 74);
+    galleon(90, 152, 1, georgeFlag); galleon(210, 151, 0.8, georgeFlag); galleon(310, 152, 0.55, georgeFlag);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 36 + (i % 2) * 20, 0.9); } },
+  { sp: 0.32, draw() {   // James Fort: a triangle of tall log walls, with a round bulwark at each corner, a church and houses inside
+    g.fillStyle = '#5a8a3a'; g.fillRect(0, 196, BG_W, 28);
+    const fx = 120, fw = 240; g.fillStyle = '#7a5a3a'; for (let x = fx; x < fx + fw; x += 5) { g.fillRect(x, 160, 4.4, 40); g.beginPath(); g.moveTo(x, 160); g.lineTo(x + 2.2, 155); g.lineTo(x + 4.4, 160); g.fill(); }
+    for (const bx of [fx, fx + fw]) { g.fillStyle = '#6a4a2e'; g.beginPath(); g.arc(bx, 176, 18, Math.PI, 0); g.fill(); g.fillRect(bx - 18, 176, 36, 24); g.fillStyle = '#2a2a2a'; g.fillRect(bx - 3, 166, 10, 3); }
+    g.fillStyle = '#d8c8a4'; g.fillRect(fx + 100, 132, 40, 28); g.fillStyle = '#b89a5a'; g.beginPath(); g.moveTo(fx + 96, 134); g.lineTo(fx + 120, 116); g.lineTo(fx + 144, 134); g.fill();
+    g.fillStyle = '#5a3a20'; g.fillRect(fx + 118, 100, 2, 18); georgeFlag(fx + 120, 100, 1.4);
+    for (let i = 0; i < 4; i++) pineBG(20 + i * 30, 200, 60 + i * 6); for (let i = 0; i < 3; i++) pineBG(390 + i * 34, 200, 66);
+  } },
+];
+SCENERY.powhatan = [
+  { sp: 0.03, draw() {   // the wide Pamunkey (York) River and the green hills of Tsenacommacah
+    g.fillStyle = '#9ac080'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 16) g.lineTo(x, 150 - Math.sin(x / 70) * 10); g.lineTo(BG_W, 224); g.fill();
+    g.fillStyle = vgrad(170, 224, '#6aaad0', '#3a7aa8'); g.fillRect(0, 170, BG_W, 54);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 34 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // a town of yehakins among the trees, with fields of corn
+    g.fillStyle = '#6aa84a'; g.fillRect(0, 196, BG_W, 28);
+    for (let i = 0; i < 6; i++) { const x = 10 + i * 80, r = 18 + rndB(i, 5) * 8; g.fillStyle = '#5a3a24'; g.fillRect(x - 2, 176, 4, 24); g.beginPath(); g.arc(x, 168, r, 0, TAU); g.fillStyle = '#3e7a3a'; g.fill(); }
+    for (const [hx, w] of [[50, 60], [200, 70], [330, 56]]) yehakinBG(hx, 200, w);
+    g.strokeStyle = '#7aa83a'; g.lineWidth = 1.2; for (let x = 130; x < 190; x += 5) { g.beginPath(); g.moveTo(x, 200); g.lineTo(x + 1, 182); g.stroke(); } for (let x = 400; x < 470; x += 5) { g.beginPath(); g.moveTo(x, 200); g.lineTo(x + 1, 184); g.stroke(); }
+  } },
+];
+SCENERY.charlestown = [
+  { sp: 0.03, draw() {   // Charles Town's harbor between two rivers, with sailing ships at anchor
+    g.fillStyle = vgrad(152, 224, '#4aa0c8', '#2a78a0'); g.fillRect(0, 152, BG_W, 72);
+    galleon(150, 154, 0.7, georgeFlag); galleon(330, 155, 0.9, georgeFlag);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 34 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // the little walled town, palmettos, and green rice fields in the marsh
+    g.fillStyle = '#8ab85a'; g.fillRect(0, 192, BG_W, 32); g.strokeStyle = 'rgba(70,120,40,.6)'; g.lineWidth = 0.8; for (let x = 0; x < BG_W; x += 7) { g.beginPath(); g.moveTo(x, 200); g.lineTo(x + 2, 192); g.stroke(); }
+    for (let i = 0; i < 6; i++) { const x = 140 + i * 30, h = 26 + (i % 2) * 8; g.fillStyle = ['#f2e8d0', '#e8c8a8', '#d8e0c8', '#f0d8c0'][i % 4]; g.fillRect(x, 192 - h, 24, h); g.fillStyle = '#8a5a3a'; g.beginPath(); g.moveTo(x - 2, 192 - h); g.lineTo(x + 12, 180 - h); g.lineTo(x + 26, 192 - h); g.fill(); }
+    for (const x of [30, 80, 340, 400, 450]) palmettoBG(x, 196, 46);
+  } },
+];
+SCENERY.pamlico = [
+  { sp: 0.03, draw() {   // a stormy sunset over Pamlico Sound, and the Queen Anne's Revenge, flying the black flag
+    g.fillStyle = vgrad(150, 224, '#3a4a6a', '#1a2a44'); g.fillRect(0, 150, BG_W, 74);
+    galleon(300, 154, 1.3, jollyFlag);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 4; i++) cloudPuff(40 + i * 120, 30 + (i % 2) * 22, 1, '#7a6a8a', 'rgba(50,40,70,.7)'); } },
+  { sp: 0.32, draw() {   // Ocracoke's dunes, wind-bent live oaks and sea oats
+    g.fillStyle = '#d8c898'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 10) g.lineTo(x, 190 - Math.sin(x / 40) * 10); g.lineTo(BG_W, 224); g.fill();
+    g.strokeStyle = '#a89a5a'; g.lineWidth = 0.8; for (let x = 0; x < BG_W; x += 6) { g.beginPath(); g.moveTo(x, 196); g.quadraticCurveTo(x - 2, 186, x - 4, 180); g.stroke(); }
+    liveOak(90, 204, 50, false); liveOak(380, 204, 46, false);
+  } },
+];
+SCENERY.treasure = [
+  { sp: 0.03, draw() {   // bright turquoise water over the reef where the 1715 Treasure Fleet sank
+    g.fillStyle = vgrad(140, 224, '#3ad0e0', '#1a90c0'); g.fillRect(0, 140, BG_W, 84);
+    galleon(380, 142, 0.6, burgundyFlag);
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(60 + i * 160, 34 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // a wild beach: palms, sea grape bushes, and a salvagers' camp of palm-leaf shelters
+    g.fillStyle = '#f2e2b8'; g.beginPath(); g.moveTo(0, 224); for (let x = 0; x <= BG_W; x += 10) g.lineTo(x, 192 - Math.sin(x / 60) * 6); g.lineTo(BG_W, 224); g.fill();
+    for (let i = 0; i < 6; i++) palmBG(30 + i * 80 + rndB(i, 6) * 20, 194, 46 + rndB(i, 7) * 14);
+    for (let i = 0; i < 8; i++) { ell(20 + i * 60, 194, 14, 8); g.fillStyle = '#4a8a3a'; g.fill(); }
+    for (const hx of [160, 300]) { g.fillStyle = '#c8a86a'; g.beginPath(); g.moveTo(hx - 20, 186); g.lineTo(hx, 172); g.lineTo(hx + 20, 186); g.fill(); g.fillStyle = '#6a4a2a'; g.fillRect(hx - 18, 186, 2, 10); g.fillRect(hx + 16, 186, 2, 10); }
+  } },
+];
+SCENERY.bestfriend = [
+  { sp: 0.04, draw() {   // flat Lowcountry pine woods, and far off, Charleston's church steeples
+    g.fillStyle = '#9ab888'; g.fillRect(0, 160, BG_W, 64);
+    for (const sx of [60, 120]) { g.fillStyle = '#e8e4d8'; g.fillRect(sx, 112, 8, 48); g.beginPath(); g.moveTo(sx - 1, 112); g.lineTo(sx + 4, 88); g.lineTo(sx + 9, 112); g.fill(); }
+  } },
+  { sp: 0.14, draw() { for (let i = 0; i < 3; i++) cloudPuff(70 + i * 150, 34 + (i % 2) * 22, 0.9); } },
+  { sp: 0.32, draw() {   // longleaf pines, and bales of cotton waiting by the track
+    g.fillStyle = '#7ab04a'; g.fillRect(0, 196, BG_W, 28);
+    for (let i = 0; i < 12; i++) pineBG(10 + i * 42 + rndB(i, 8) * 12, 200, 74 + rndB(i, 9) * 22, '#3a6a36');
+    for (const bx of [140, 160, 300]) { rrect(bx, 186, 16, 12, 2); g.fillStyle = '#f2eee4'; g.fill(); g.fillStyle = '#8a6a44'; g.fillRect(bx + 4, 186, 1, 12); g.fillRect(bx + 11, 186, 1, 12); }
+  } },
+];
 SCENERY.daytona = [
   { sp: 0.03, draw() {   // the Atlantic, wide and blue
     g.fillStyle = vgrad(140, 224, '#3ab0e0', '#1a7ab8'); g.fillRect(0, 140, BG_W, 84);
@@ -4904,6 +5329,8 @@ const SKIES = {
   pemaquid: ['#6aaee6', '#eef4f6'], granite: ['#7ab4e6', '#f2ece0'],
   delaware: ['#0a1430', '#3a4a70'], ludington: ['#0a0e22', '#262e4a'], saratoga: ['#7ab4e6', '#f6e6c8'], valleyforge: ['#9ab0c8', '#eef2f6'],
   philly: ['#6ab4ec', '#f2ecd8'], capital: ['#7ab8ec', '#f6eedc'], mchenry: ['#100818', '#5a2a30'], culper: ['#6ab4ec', '#fff0d8'], bando: ['#80b8e8', '#f4ead4'], midnight: ['#060a22', '#1e2a58'], aquinnah: ['#5ab0f0', '#fff0dc'],
+  staug: ['#4ab0ec', '#f8ecd0'], roanoke: ['#7ab8e0', '#eef0dc'], jamestown: ['#86b8e0', '#f2ead4'], powhatan: ['#6ab4e8', '#f6eccc'],
+  charlestown: ['#5aacec', '#fff0d4'], pamlico: ['#3a3a5a', '#e88a5a'], treasure: ['#3ab0f0', '#e0f6ff'], bestfriend: ['#6ab0ec', '#fff2d8'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -5264,7 +5691,7 @@ function updatePlayer(dt) {
   if (p.swim && !wasSwim) { p.vy *= 0.3; p.pound = null; p.twirl = 0; p.slide = 0; sfx.splash(); for (let i = 0; i < 8; i++) particle(p.x + p.w / 2, p.y + p.h - 4, rand(-60, 60), rand(-160, -40), '#d8f0ff', 0.6, rand(1.5, 3)); }
   if (p.swim && Math.random() < 0.05) bubble(p.x + p.w / 2 + p.face * 6, p.y + 4);
   p.sticky = p.ground && inSyrup(p);   // maple syrup: slow going, and only a little hop
-  const run = inp.run, maxV = (p.swim ? 72 : run ? 165 : 92) * (p.sticky ? 0.4 : 1) * (heroNow() === 'sybil' && !p.swim ? 1.12 : 1),   // (Sybil is the fastest runner)
+  const run = inp.run, maxV = (p.swim ? (heroNow() === 'forten' ? 110 : 72) : run ? 165 : 92) * (p.sticky ? 0.4 : 1) * (heroNow() === 'sybil' && !p.swim ? 1.12 : 1),   // (Sybil is the fastest runner)
     acc = p.ground ? 520 : p.swim ? 300 : 380;
   // crouching (S or LT on the ground): Leo ducks and stops; jump from a crouch for a big backflip
   p.crouch = inp.down && p.ground && !p.pound && !p.mount;
@@ -5284,7 +5711,8 @@ function updatePlayer(dt) {
   if (p.mount && pressed.off) dismount(false);   // F: hop off Shamrock
   if (p.swim && pressed.jump && !p.ground) {   // a swimming stroke (or a leap out at the surface)
     const surface = !waterAt(p.x + p.w / 2, p.y - 3);
-    p.vy = surface ? -390 : -175; pressed.jump = false; p.buffer = 0; p.squash = -0.4; sfx.swim();
+    p.vy = surface ? (heroNow() === 'forten' ? -440 : -390) : (heroNow() === 'forten' ? -230 : -175); pressed.jump = false;   // (James, a sailor, swims faster and leaps higher out of the water)
+    p.buffer = 0; p.squash = -0.4; sfx.swim();
     for (let i = 0; i < 3; i++) bubble(p.x + p.w / 2 + rand(-4, 4), p.y + p.h);
   }
   if (pressed.jump) p.buffer = 0.12;
@@ -5955,7 +6383,7 @@ function updateBoss(e, dt) {
     if (e.cst === 'rush') { speed = 230; if (e.wall || e.x <= 152 * TS + 1) { e.cst = 'walk'; e.act = 0; e.lt = 0; lvl.lanterns = 0; shake = 0.2; } }
   }
   // the charge: Captain Chomps and the cowboy dig in, then rush right across the arena
-  if ((who === 'chomps' || who === 'cowboy') && ph === 2) {
+  if ((who === 'chomps' || who === 'cowboy' || who === 'blackbeard') && ph === 2) {
     if (e.cst === 'walk' && e.act > 2.2 && e.ground) { e.cst = 'wind'; e.act = 0; e.dir = p.x < e.x ? -1 : 1; }
     if (e.cst === 'wind') { speed = 0; if (Math.random() < 0.5) puff(e.x + 14 - e.dir * 12, e.y + 30, 1); if (e.act > 0.7) { e.cst = 'rush'; e.act = 0; sfx.kick(); } }
     if (e.cst === 'rush') { speed = 250; if (e.wall || e.x <= 152 * TS + 1) { e.cst = 'walk'; e.act = 0; shake = 0.2; } }
@@ -5991,6 +6419,10 @@ function updateBoss(e, dt) {
       if (ph >= 1) { e.throwT = gap * 0.8; bossShot('cannonball', 152 * TS + 4, (Math.random() < 0.5 ? 10 : 8.5) * TS, 150, -70, { grav: 300 }); }   // and a cannon on the wall joins in
     }
     else if (who === 'rocket') bossShot('acorn', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+    else if (who === 'blackbeard') {   // cannonballs from his ship; after a hit, "grenadoes" from the rigging too (and, after two, he charges)
+      bossShot('cannonball', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
+      if (ph >= 1) bossShot('bomb', clamp(p.x + rand(-24, 24), 153 * TS, 192 * TS), -6, 0, 0, { w: 10, h: 10, grav: 520, wait: 0.8 });
+    }
     else if (who === 'admiral') {   // cannonballs from his ships; after a hit, rockets along the ground; after two, bombs bursting from the sky too
       if (ph === 0) bossShot('cannonball', e.x + 10, e.y + 6, clamp(dx, -200, 200) * 0.9, -260);
       else { const fromR = p.x < 172 * TS; bossShot('rocket', (fromR ? 194 : 153) * TS, ARENA_FLOOR - 9, fromR ? -170 - ph * 20 : 170 + ph * 20, 0, { w: 14, h: 7, grav: 0.001 }); }
@@ -6088,7 +6520,8 @@ function afterDeath() {
 let endFrom = 'castle';
 // what happens after each world's boss (the bosses are still being built)
 const WORLD_ENDS = {
-  mchenry: { title: 'MID-ATLANTIC <span>CLEAR!</span>', sub: '🇺🇸 "Our flag was still there!" Francis Scott Key wrote a poem about that night: "The Star-Spangled Banner." Next: the Atlantic South, with James Forten.', btn: '🗺️ On to the Atlantic South', toast: '⚓ The Atlantic South is still being built. Check back soon!' },
+  blackbeard: { title: 'ATLANTIC SOUTH <span>CLEAR!</span>', sub: '🏴‍☠️ Blackbeard is beaten and the coast is safe! Next: over the mountains to the frontier, where Jemima Boone will join you.', btn: '🗺️ On to the frontier', toast: '🪓 The frontier South is still being built. Check back soon!' },
+  mchenry: { title: 'MID-ATLANTIC <span>CLEAR!</span>', sub: '🇺🇸 "Our flag was still there!" Francis Scott Key wrote a poem about that night: "The Star-Spangled Banner." ⚓ <b>James Forten</b> joins you for the Atlantic South: the best swimmer. (Switch heroes any time in 👪 The heroes.)', btn: '🗺️ Sail to the Atlantic South', toast: '⚓ James Forten has joined you! Sail south to St. Augustine.' },
   lexington: { title: 'NEW ENGLAND <span>CLEAR!</span>', sub: '🔔 "The shot heard round the world": the American Revolution has begun! 🏮 <b>Sybil Ludington</b> joins you for the Mid-Atlantic: the fastest runner and the best rider. (Switch heroes any time in 👪 The heroes.)', btn: '🗺️ On to the Mid-Atlantic', toast: '🏮 Sybil Ludington has joined you! On to the Mid-Atlantic.' },
 };
 const BOSS_BEATEN = {};
@@ -6146,7 +6579,7 @@ function quizAnswer(b) {
   }
 }
 function quizDone() {
-  if (quiz.w === 0 && !save.quiz[0]) save.hero = 'sybil';   // Sybil Ludington joins (and you play as her; Wrestling is a tap away in the heroes screen)
+  if (!save.quiz[quiz.w] && HERO_IDS[quiz.w + 1]) save.hero = HERO_IDS[quiz.w + 1];   // Sybil Ludington joins (and you play as her; Wrestling is a tap away in the heroes screen)
   save.quiz[quiz.w] = true; persist(); openCache = null;
   quizEl.classList.add('hidden'); sfx.key();
   const done = quiz.onPass; quiz = null; done();
@@ -6395,12 +6828,12 @@ function drawEnt0(e, t) {
   const tt = t + (e.x % 7);   // so enemies don't all move in step
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
-    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : c === 'hessian' ? drawHessian : c === 'raccoon' ? drawRaccoon : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
+    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : c === 'hessian' ? drawHessian : c === 'raccoon' ? drawRaccoon : c === 'pirate' ? drawPirate : c === 'hog' ? drawHog : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
     case 'turkey': drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
     case 'snaily': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
     case 'shell': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': (lvl.cast && lvl.cast.thorny === 'porcupine' ? drawPorcupine : drawThorny)(x - 1, y - 3 - spookHop(e), tt, face, e); break;
-    case 'buzzer': if (e.as === 'gull') drawGull(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'crow') drawCrow(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'hornet') drawHornet(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'gull') drawGull(x - 1, y - 2, tt, face); else if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
+    case 'buzzer': if (e.as === 'gull') drawGull(x - 1, y - 2, tt, face); else if (e.as === 'pelican' || (lvl.cast && lvl.cast.buzzer === 'pelican')) drawPelican(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'mosquito') drawMosquito(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'crow') drawCrow(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'hornet') drawHornet(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'gull') drawGull(x - 1, y - 2, tt, face); else if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': { const hog = lvl.cast && lvl.cast.snapper === 'groundhog'; if (hog) { ell(x + 4, e.pipeY * TS, 10, 3.4); g.fillStyle = '#7a5434'; g.fill(); ell(x + 4, e.pipeY * TS - 0.6, 5, 1.6); g.fillStyle = '#2a180a'; g.fill(); }   // (a groundhog's burrow)
       if (e.up > 1) { g.save(); g.beginPath(); g.rect(x - 10, -40, 32, e.pipeY * TS + 40 - (hog ? 1 : 0)); g.clip(); (hog ? drawGroundhog : drawSnapper)(x - 2, y - 2, tt); g.restore(); } break; }
     case 'crusher': drawCrusher(x, y, e.st !== 'wait', t); break;
@@ -6594,11 +7027,12 @@ function drawEnt0(e, t) {
       g.globalAlpha = fade;
       if (e.kind === 'lobster') drawRedcoatBoss(x - 2, y, tt, face, hurtBlink, ph === 0);
       else if (e.kind === 'admiral') drawAdmiralBoss(x - 2, y, tt, face, hurtBlink, ph === 0);
+      else if (e.kind === 'blackbeard') drawBlackbeard(x - 2, y, tt, face, hurtBlink, ph === 0);
       else if (e.kind === 'yeti') drawYeti(x - 2, y, tt, face, hurtBlink); else if (e.kind === 'crab') drawCrabBoss(x - 2, y, tt, face, hurtBlink, ph === 0); else if (e.kind === 'gator') drawGatorBoss(x - 2, y, tt, face, hurtBlink); else drawBoss(x - 2, y, tt, face, hurtBlink);
       drawBossCostume(e, x - 2, y, tt, face, ph);
       g.globalAlpha = 1;
       if (lvl.theme === 'cape' && e.kind === 'grumbles') { g.beginPath(); g.arc(x + 14, y + 7 - Math.abs(Math.sin(tt * 6)) * 1.5, 17, 0, TAU); g.fillStyle = 'rgba(200,240,255,.22)'; g.fill(); g.lineWidth = 1.2; g.strokeStyle = 'rgba(255,255,255,.8)'; g.stroke(); ell(x + 8, y - 1, 4, 2.4, -0.6); g.fillStyle = 'rgba(255,255,255,.55)'; g.fill(); }   // King Grumbles in a space helmet
-      if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - (e.kind === 'lobster' || e.kind === 'admiral' ? 32 : 16), 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
+      if (e.awake && e.hp > 0) for (let i = 0; i < (e.maxHp || 3); i++) { g.beginPath(); g.arc(x + 6 + i * 8, y - (e.kind === 'lobster' || e.kind === 'admiral' || e.kind === 'blackbeard' ? 32 : 16), 3, 0, TAU); paint(i < e.hp ? '#ff3a5a' : '#5a2a3a', 0.8); }
       break;
     }
   }
@@ -6692,15 +7126,16 @@ const NODES = [
   at('capital', US(-77.05, 38.85), 'The New Capital', 'Washington, D.C.', { year: 1800 }),
   at('mchenry', US(-76.5, 39.28), 'Fort McHenry', 'Baltimore, Maryland', { year: 1814, boss: 'castle' }),
   at('culper', US(-73.1, 40.93), 'The Culper Ring', 'Long Island, New York', { island: true }),   // secret-only
-  // World 3: the Atlantic South (1565 to 1830s)
-  at('staugustine', US(-81.31, 29.9), 'St. Augustine', 'Florida', { year: 1565, soon: true }),
-  at('jamestown', US(-76.78, 37.21), 'Jamestown', 'Virginia', { year: 1607, soon: true }),
-  at('blackbeard', US(-76.0, 35.1), "Blackbeard's Outer Banks", 'Ocracoke Island, North Carolina', { year: 1718, soon: true, boss: 'fort' }),
-  at('charleston', US(-79.93, 32.78), 'Charleston', 'South Carolina', { year: 1740, soon: true }),
-  at('savannah', US(-81.09, 32.08), 'Savannah', 'Georgia', { year: 1733, soon: true }),
-  at('monticello', US(-78.45, 38.01), 'Monticello', 'Virginia', { year: 1772, soon: true }),
-  at('yorktown', US(-76.3, 37.5), 'Yorktown', 'Virginia', { year: 1781, soon: true, boss: 'castle' }),
-  at('cove', US(-75.6, 35.6), "Blackbeard's Hidden Cove", 'the Outer Banks', { island: true, soon: true }),
+  // World 3: the Atlantic South, from the beginning (1565 to 1718): Spanish St. Augustine, by sea up the coast to Roanoke,
+  // Jamestown and the Powhatan homeland in Virginia, then inland and south to Charles Town, and out to the Outer Banks,
+  // where Blackbeard waits
+  at('staugustine', US(-81.31, 29.9), 'St. Augustine', 'Florida', { year: 1565 }),
+  at('roanoke', US(-75.7, 35.88), 'The Lost Colony', 'Roanoke Island, North Carolina', { year: 1587 }),
+  at('jamestown', US(-76.95, 37.12), 'Jamestown', 'Virginia', { year: 1607 }),
+  at('powhatan', US(-76.9, 37.68), 'Werowocomoco', 'the Powhatan homeland, Virginia', { year: 1608 }),
+  at('charleston', US(-79.93, 32.78), 'Charles Town', 'South Carolina', { year: 1670 }),
+  at('blackbeard', US(-76.81, 35.47), "Blackbeard's Outer Banks", 'Ocracoke Island, North Carolina', { year: 1718, boss: 'castle' }),
+  at('cove', US(-80.45, 27.85), 'The Treasure Fleet', "Florida's Treasure Coast", { island: true }),   // secret-only
   // World 4: over the mountains, the frontier South (1775 to 1840)
   at('cumberland', US(-83.67, 36.6), 'The Cumberland Gap', 'Kentucky, Virginia and Tennessee', { year: 1775, soon: true }),
   at('boonesborough', US(-84.26, 37.9), 'Boonesborough', 'Kentucky', { year: 1775, soon: true }),
@@ -6765,7 +7200,7 @@ const NODES = [
 const DEPOTS = [
   { id: 'quincy', w: 0, from: 'boston', xy: US(-70.85, 42.16), name: 'The Granite Railway', region: 'Quincy, Massachusetts', year: 1826, spikeIn: 'nantucket' },
   { id: 'baltimore', w: 1, from: 'mchenry', xy: US(-76.78, 39.42), name: "Tom Thumb's Race", region: 'Baltimore, Maryland', year: 1830, spikeIn: 'culper' },
-  { id: 'bestfriend', w: 2, from: 'charleston', xy: US(-80.4, 33.15), name: 'The Best Friend of Charleston', region: 'Charleston, South Carolina', year: 1830 },
+  { id: 'bestfriend', w: 2, from: 'charleston', xy: US(-80.75, 32.62), name: 'The Best Friend of Charleston', region: 'Charleston, South Carolina', year: 1830, spikeIn: 'cove' },
   { id: 'chattanooga', w: 3, from: 'newechota', xy: US(-85.31, 35.05), name: 'Chattanooga Station', region: 'Chattanooga, Tennessee', year: 1850 },
   { id: 'chicagorail', w: 4, from: 'chicago', xy: US(-87.95, 41.55), name: 'The Pioneer Engine', region: 'Chicago, Illinois', year: 1848 },
   { id: 'omaha', w: 5, from: 'pony', xy: US(-95.94, 41.26), name: 'The Union Pacific', region: 'Omaha, Nebraska', year: 1865 },
@@ -6783,7 +7218,7 @@ const START = 'voyage';   // the story starts on the Mayflower, coming into Prov
 const WORLDS = [
   ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington'],
   ['delaware', 'ludington', 'saratoga', 'valleyforge', 'independence', 'capital', 'mchenry'],
-  ['staugustine', 'jamestown', 'blackbeard', 'charleston', 'savannah', 'monticello', 'yorktown'],
+  ['staugustine', 'roanoke', 'jamestown', 'powhatan', 'charleston', 'blackbeard'],
   ['cumberland', 'boonesborough', 'mammoth', 'nashville', 'newechota', 'steamboat', 'neworleans'],
   ['mackinac', 'detroit', 'prophetstown', 'lakeerie', 'greenbay', 'chicago', 'newsalem'],
   ['stlouis', 'fortmandan', 'independencemo', 'pony', 'sodhouse', 'chimney', 'bison', 'twister'],
@@ -6795,16 +7230,18 @@ const levelTag = id => { for (let w = 0; w < WORLDS.length; w++) { const i = WOR
 // the road: each level to the next, in story order, and the secret paths (opened by secret exits) to the secret-only levels
 const ROUTE = WORLDS.flat();
 const PATHS = [...ROUTE.slice(1).map((id, i) => [ROUTE[i], id]),
-  ['voyage', 'nantucket', 'secret'], ['cranberry', 'vineyard', 'secret'], ['ludington', 'culper', 'secret'], ['blackbeard', 'cove', 'secret'], ['mammoth', 'longhunter', 'secret'],
+  ['voyage', 'nantucket', 'secret'], ['cranberry', 'vineyard', 'secret'], ['ludington', 'culper', 'secret'], ['staugustine', 'cove', 'secret'], ['mammoth', 'longhunter', 'secret'],
   ['mackinac', 'portage', 'secret'], ['pony', 'relay', 'secret'], ['rendezvous', 'hiddenvalley', 'secret'], ['santafe', 'camino', 'secret'], ['sutter', 'klondike', 'secret'],
   ...DEPOTS.map(d => [d.from, d.id, 'rail'])];   // (a spur out to each region's railroad depot, open once its golden spike is found)
 const pathReady = ([a, b, sec]) => save.unlockAll ? true : sec === 'rail' ? !!save.spikes[DEPOT[b].w] : sec ? !!save.secrets[a] : worldOf(a) === worldOf(b) || worldOf(a) < 0 || !!save.quiz[worldOf(a)];   // (into the next region: once its quiz is passed)
 // most of the trip is on foot; a few legs are by boat, and the far north by plane (for now)
 const FLIGHT_PATHS = new Set(['sutter|klondike']);
-const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'ludington|culper', 'lexington|delaware', 'mchenry|staugustine', 'blackbeard|cove', 'mackinac|portage', 'yorktown|cumberland']);
+const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'ludington|culper', 'lexington|delaware', 'mchenry|staugustine', 'staugustine|roanoke', 'mackinac|portage']);
 // a few trails are bent by hand: the boats keep to the sea
 const PATH_BEND = {};
 const bend = (k, xy) => { PATH_BEND[k] = { x: xy[0], y: xy[1] }; };
+const PATH_BEND2 = {};
+const bend2 = (k, c1, c2) => { PATH_BEND2[k] = [{ x: c1[0], y: c1[1] }, { x: c2[0], y: c2[1] }]; };
 bend('voyage|plimoth', US(-69.95, 42.4));
 bend('voyage|nantucket', US(-69.55, 41.55));
 bend('cranberry|vineyard', US(-70.95, 41.5));
@@ -6816,11 +7253,16 @@ bend('lexington|delaware', US(-72.0, 40.0));
 bend('delaware|ludington', US(-74.6, 41.2));
 bend('saratoga|valleyforge', US(-75.9, 42.4));
 bend('independence|capital', US(-77.55, 39.95));
-bend('mchenry|staugustine', US(-72.0, 39.0));
 bend('ludington|culper', US(-72.85, 41.45));
 bend('boston|providence', US(-71.55, 42.25));
 bend('capital|mchenry', US(-76.6, 38.8));
 bend('mchenry|baltimore', US(-76.85, 39.24));
+bend('staugustine|roanoke', US(-78.5, 32.6));
+bend('staugustine|cove', US(-82.0, 28.6));
+bend('powhatan|charleston', US(-81.0, 36.0));
+bend('boston|quincy', US(-70.75, 42.42));
+bend2('mchenry|staugustine', US(-72.5, 39.0), US(-73.5, 26.3));
+bend2('blackbeard|cumberland', US(-77.0, 36.9), US(-80.5, 37.4));
 const pathCtrl = pth => {
   if (PATH_BEND[pth[0] + '|' + pth[1]]) return PATH_BEND[pth[0] + '|' + pth[1]];
   const a = node(pth[0]), b = node(pth[1]), i = PATHS.indexOf(pth), dx = b.x - a.x, dy = b.y - a.y, d = Math.hypot(dx, dy) || 1;
@@ -6828,6 +7270,11 @@ const pathCtrl = pth => {
   return { x: (a.x + b.x) / 2 - dy / d * k, y: (a.y + b.y) / 2 + dx / d * k };
 };
 const qbez = (a, c, b, u) => ({ x: (1 - u) * (1 - u) * a.x + 2 * u * (1 - u) * c.x + u * u * b.x, y: (1 - u) * (1 - u) * a.y + 2 * u * (1 - u) * c.y + u * u * b.y });
+// a few long trails are shaped with two bends (so they can leave one stop and arrive at the next in the direction that keeps
+// the map clear): a cubic curve through two control points
+const cbez = (a, c1, c2, b, u) => { const v = 1 - u; return { x: v * v * v * a.x + 3 * v * v * u * c1.x + 3 * v * u * u * c2.x + u * u * u * b.x, y: v * v * v * a.y + 3 * v * v * u * c1.y + 3 * v * u * u * c2.y + u * u * u * b.y }; };
+// a point along a trail, u from 0 (its first stop) to 1 (its second)
+const pathPt = (pth, u) => { const a = node(pth[0]), b = node(pth[1]), c2 = PATH_BEND2[pth[0] + '|' + pth[1]]; return c2 ? cbez(a, c2[0], c2[1], b, u) : qbez(a, pathCtrl(pth), b, u); };
 const pathBetween = (x, y) => PATHS.find(([a, b]) => (a === x && b === y) || (a === y && b === x));
 // Which levels are open: worked out all at once (a level opens when the one before it is beaten, or is only a signpost
 // you can walk past), and again only when something's been beaten or found. Unlock All opens everything, while we build.
@@ -6991,6 +7438,58 @@ const INFO = {
     { f: 'The spies wrote with invisible ink. A special liquid made the hidden words appear!', q: 'How did the Culper spies hide their messages?', a: ['Invisible ink', 'Smoke signals', 'Carrier turtles'] },
     { f: 'Anna Strong hung a black petticoat on her clothesline to tell the spies a message was ready.', q: 'What did Anna Strong use to signal the spies?', a: ['A black petticoat on her clothesline', 'A lighthouse', 'A trumpet'] },
   ],
+  staugustine: [
+    { f: 'In September 1565, Pedro Menéndez de Avilés landed with Spanish soldiers and settlers and started St. Augustine, in Florida.', q: 'Who started St. Augustine?', a: ['Pedro Menéndez de Avilés', 'John Smith', 'Paul Revere'] },
+    { f: 'St. Augustine is the oldest city in the United States started by Europeans. It was founded 42 years before Jamestown!', q: 'What is special about St. Augustine?', a: ['It is the oldest city started by Europeans in the U.S.', 'It is the newest city', 'It is in Canada'] },
+    { f: 'The Timucua people lived in Florida long before the Spanish came. Their towns had round houses roofed with palmetto leaves.', q: 'Who lived in Florida before the Spanish came?', a: ['The Timucua', 'The Pilgrims', 'The Vikings'] },
+    { f: 'Later the Spanish built a big fort, the Castillo de San Marcos, out of coquina: a soft stone made of tiny seashells.', q: 'What is coquina made of?', a: ['Tiny seashells', 'Ice', 'Gold'] },
+    { f: 'The Spanish brought pigs, horses and cattle to Florida. Some pigs ran wild, and their wild hogs still live in the woods today.', q: 'Which animals did the Spanish bring to Florida?', a: ['Pigs, horses and cattle', 'Kangaroos', 'Penguins'] },
+  ],
+  roanoke: [
+    { f: 'In 1587, John White led 117 English men, women and children to Roanoke Island to start a colony.', q: 'Who led the colonists to Roanoke Island in 1587?', a: ['John White', 'Pocahontas', 'Blackbeard'] },
+    { f: 'John White\'s granddaughter, Virginia Dare, was born on Roanoke Island. She was the first English baby born in the Americas.', q: 'Who was Virginia Dare?', a: ['The first English baby born in the Americas', 'A ship', 'A pirate'] },
+    { f: 'John White sailed back to England for supplies. A war with Spain kept him away for three whole years.', q: 'Why did John White leave Roanoke?', a: ['To get supplies from England', 'To find gold', 'To go fishing'] },
+    { f: 'When White came back in 1590, everyone was gone. The only clue was a word carved on a post: CROATOAN.', q: 'What word was carved on a post at Roanoke?', a: ['CROATOAN', 'HELLO', 'GOLD'] },
+    { f: 'No one knows for sure what happened, so Roanoke is called "the Lost Colony." Maybe they went to live with the Croatoan people.', q: 'Why is Roanoke called "the Lost Colony"?', a: ['No one knows for sure what happened to the colonists', 'It sank into the sea', 'It was never built'] },
+  ],
+  jamestown: [
+    { f: 'In May 1607, 104 English men and boys landed by the James River and built Jamestown, the first English town to last in America.', q: 'What was Jamestown?', a: ['The first English town in America that lasted', 'A Spanish fort', 'A pirate ship'] },
+    { f: 'The settlers sailed on three ships: the Susan Constant, the Godspeed and the Discovery.', q: 'Which ships carried the Jamestown settlers?', a: ['Susan Constant, Godspeed and Discovery', 'The Mayflower', 'The Titanic'] },
+    { f: 'The settlers built James Fort in the shape of a triangle, with tall log walls and a round lookout at each corner.', q: 'What shape was James Fort?', a: ['A triangle', 'A circle', 'A star'] },
+    { f: 'The winter of 1609 was so hard that it is called "the Starving Time." Very few settlers lived through it.', q: 'What is the hard winter of 1609 at Jamestown called?', a: ['The Starving Time', 'The Snow Party', 'The Big Sleep'] },
+    { f: 'In 1619 the first enslaved Africans in English America were brought to Virginia. Slavery lasted here for over 240 years.', q: 'What sad event happened in Virginia in 1619?', a: ['The first enslaved Africans were brought there', 'A volcano erupted', 'The fort floated away'] },
+  ],
+  powhatan: [
+    { f: 'The Powhatan people called their land Tsenacommacah. It was ruled by a great chief, also named Powhatan.', q: 'What did the Powhatan people call their land?', a: ['Tsenacommacah', 'Florida', 'New England'] },
+    { f: 'Werowocomoco was Chief Powhatan\'s capital town. Its name means "place of the chiefs."', q: 'What does Werowocomoco mean?', a: ['Place of the chiefs', 'Big river', 'Corn field'] },
+    { f: 'Powhatan\'s daughter was called Pocahontas, which means "playful one." Her other names were Amonute and Matoaka.', q: 'What does the name Pocahontas mean?', a: ['Playful one', 'Brave warrior', 'Quiet river'] },
+    { f: 'Powhatan families lived in yehakins: long houses made of bent saplings, covered with bark and woven reed mats.', q: 'What is a yehakin?', a: ['A long house of saplings, bark and mats', 'A kind of canoe', 'A drum'] },
+    { f: 'The Powhatan grew corn, beans and squash. They traded corn to the hungry Jamestown settlers, which helped them survive.', q: 'How did the Powhatan help the Jamestown settlers?', a: ['They traded them corn', 'They built them ships', 'They gave them horses'] },
+  ],
+  charleston: [
+    { f: 'English settlers started Charles Town in 1670, named for King Charles II. Ten years later they moved it to where Charleston is now.', q: 'Who was Charles Town named for?', a: ['King Charles II', 'Charlie Brown', 'Charles Darwin'] },
+    { f: 'The Kiawah people lived near Charles Town and helped the first settlers by trading food.', q: 'Which people lived near Charles Town and traded food?', a: ['The Kiawah', 'The Vikings', 'The Romans'] },
+    { f: 'Rice made Charles Town rich. Enslaved Africans did the hard work, and many already knew how to grow rice back in Africa.', q: 'Who did the hard work of growing rice near Charles Town?', a: ['Enslaved Africans', 'Robots', 'The King'] },
+    { f: 'The Gullah Geechee people, whose families came from West Africa, still live on the Carolina coast. They kept their own language, stories and songs.', q: 'Who are the Gullah Geechee people?', a: ['People of the coast whose families came from West Africa', 'Pirates', 'Spanish soldiers'] },
+    { f: 'The palmetto is South Carolina\'s state tree. It is on the state flag, with a white crescent moon on blue.', q: 'Which tree is on South Carolina\'s flag?', a: ['The palmetto', 'The maple', 'The apple tree'] },
+  ],
+  blackbeard: [
+    { f: 'Blackbeard was a pirate named Edward Teach. He put lit fuses under his hat so smoke curled around his big black beard!', q: 'Why did smoke curl around Blackbeard\'s beard?', a: ['He put lit fuses under his hat', 'He was a dragon', 'He cooked breakfast there'] },
+    { f: 'In 1718 Blackbeard blocked Charles Town\'s harbor with his ships. All he asked for as ransom was a chest of medicine.', q: 'What did Blackbeard ask for when he blocked Charles Town\'s harbor?', a: ['A chest of medicine', 'A crown', 'A horse'] },
+    { f: 'Blackbeard\'s ship was the Queen Anne\'s Revenge. Divers found its wreck off North Carolina in 1996.', q: 'What was the name of Blackbeard\'s ship?', a: ['The Queen Anne\'s Revenge', 'The Mayflower', 'The Godspeed'] },
+    { f: 'In November 1718, sailors from Virginia caught up with Blackbeard at Ocracoke Island, and his pirate days were over.', q: 'Where did Blackbeard\'s pirate days end?', a: ['Ocracoke Island', 'London', 'The Moon'] },
+    { f: 'Pirate flags were meant to scare ships into giving up without a fight. Many showed a skull, bones or an hourglass.', q: 'Why did pirates fly scary flags?', a: ['To scare ships into giving up', 'For a parade', 'To find their way home'] },
+  ],
+  cove: [
+    { f: 'In July 1715, a hurricane sank eleven Spanish treasure ships off Florida. They were carrying silver and gold home to Spain.', q: 'What sank the Spanish Treasure Fleet in 1715?', a: ['A hurricane', 'A whale', 'An iceberg'] },
+    { f: 'A Spanish silver coin was called a piece of eight, because it was worth eight reales. People cut them into pieces, or "bits," to make change.', q: 'Why was it called a piece of eight?', a: ['It was worth eight reales', 'It had eight sides', 'It weighed eight pounds'] },
+    { f: 'Coins from the 1715 fleet still wash up on Florida beaches after storms. That\'s why this shore is called the Treasure Coast.', q: 'Why is part of Florida called the Treasure Coast?', a: ['Old Spanish coins still wash up there', 'It is made of gold sand', 'Pirates live there now'] },
+  ],
+  bestfriend: [
+    { f: 'On Christmas Day 1830, the Best Friend of Charleston pulled the first steam train with paying passengers in America.', q: 'What did the Best Friend of Charleston do on Christmas Day 1830?', a: ['Pulled America\'s first steam train with paying passengers', 'Sank in the harbor', 'Won a horse race'] },
+    { f: 'In 1831 the Best Friend\'s boiler blew up when a worker held down its safety valve. Later engines were built more safely.', q: 'What happened to the Best Friend in 1831?', a: ['Its boiler blew up', 'It flew away', 'It became a boat'] },
+    { f: 'By 1833 the railroad ran 136 miles from Charleston to Hamburg, South Carolina. It was the longest railroad in the world!', q: 'How long was the Charleston railroad by 1833?', a: ['136 miles, the longest in the world', '2 miles', 'All the way to China'] },
+  ],
   baltimore: [
     { f: 'The Baltimore and Ohio, begun in 1828, was the first railroad in America built to carry passengers and freight.', q: 'What was special about the Baltimore and Ohio Railroad?', a: ['It was the first to carry passengers and freight', 'It went to the Moon', 'It was underwater'] },
     { f: 'In 1830 a little steam engine named Tom Thumb raced a horse pulling a rail car. The horse won when Tom Thumb broke down!', q: 'Who won the race between Tom Thumb and the horse?', a: ['The horse', 'Tom Thumb', 'Nobody raced'] },
@@ -7010,7 +7509,7 @@ function openInfo(tx, ty) {
   if (!f) return;
   const read = save.info[id] || (save.info[id] = []), first = !read[i];
   read[i] = true; persist();
-  const who = heroNow() === 'sybil' ? 'Sybil' : 'Wrestling';
+  const who = { sybil: 'Sybil', forten: 'James' }[heroNow()] || 'Wrestling';
   factEl.querySelector('.fhead').innerHTML = `<span>${who.toUpperCase()}:</span> ${first ? 'Did you know?' : 'Remember?'}`;
   drawFactFace();
   factEl.querySelector('.ftxt').textContent = f.f;
@@ -7088,6 +7587,7 @@ const SECRET_TOASTS = {
   voyage: '🧭 Secret exit! The Mayflower first tried to sail south for the Hudson River. A golden sea lane now runs past the shoals to Nantucket',
   cranberry: "🛶 Secret exit! A mishoon trail now crosses the sound to Noepe, Martha's Vineyard",
   ludington: '🕵️ Secret exit! A spy\'s message: a path opens to the Culper Ring on Long Island',
+  staugustine: '🗺️ Secret exit! A treasure map: a path opens south to the sunken Treasure Fleet',
 };
 // which levels hide a secret exit (the map shows a little star by them: grey until it's found, then gold, like Super Mario World's red dots)
 const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LEVELS[id] && LEVELS[id].secretGoal);
@@ -7096,7 +7596,7 @@ const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LE
 const HEROES = [
   ['🎩', 'Wrestling Brewster, Pilgrim', 1620, 'New England', 'About 6 when he sailed on the Mayflower with his father, Elder William Brewster. Throws his tall hat like a boomerang.'],
   ['🏮', 'Sybil Ludington, Patriot rider', 1777, 'the Mid-Atlantic', 'At 16 she rode about 40 miles through a rainy night to call out the militia. The fastest runner, and the best rider on Star the horse.'],
-  ['⚓', 'James Forten, powder boy', 1781, 'the Atlantic South', 'Went to sea at 14 in the Revolution, and later fought to end slavery. A grappling hook to swing from rigging.'],
+  ['⚓', 'James Forten, powder boy', 1781, 'the Atlantic South', 'A free Black boy from Philadelphia who went to sea at 14 in the Revolution, and later fought to end slavery. The best swimmer: fast in the water, and leaps high out of it.'],
   ['🪓', 'Jemima Boone, frontier girl', 1776, 'over the mountains', "Daniel Boone's daughter, who grew up on the Kentucky frontier. Climbs trees and cliffs, and walks quietly."],
   ['🛶', 'A young voyageur', 1790, 'the Great Lakes', "Paddled the fur traders' canoes thousands of miles. Canoes through the water levels; snowshoes on deep snow."],
   ['🌾', 'Virginia Reed, pioneer', 1846, 'the Great Plains', 'At 12 she crossed the plains by wagon and wrote letters about it. Strong, and plants seeds that sprout into ledges.'],
@@ -7154,8 +7654,8 @@ function exitDirs(id) {
   if (exitDirCache[id]) return exitDirCache[id];
   const here = node(id), out = [null, null, null, null];
   const nb = PATHS.filter(p => p[0] === id || p[1] === id).map(p => {
-    const o = p[0] === id ? p[1] : p[0], fwd = p[0] === id, c = pathCtrl(p);
-    const q = qbez(fwd ? here : node(o), c, fwd ? node(o) : here, fwd ? 0.25 : 0.75), there = node(o);
+    const o = p[0] === id ? p[1] : p[0], fwd = p[0] === id;
+    const q = pathPt(p, fwd ? 0.25 : 0.75), there = node(o);
     let vx = q.x - here.x, vy = q.y - here.y, d = Math.hypot(vx, vy) || 1; vx /= d; vy /= d;   // which way the trail sets off
     let wx = there.x - here.x, wy = there.y - here.y, e = Math.hypot(wx, wy) || 1; wx /= e; wy /= e;   // and where it ends up
     const ux = vx + wx, uy = vy + wy, f = Math.hypot(ux, uy) || 1;
@@ -7279,8 +7779,8 @@ function updateMap(dt) {
       if (mapLeo.path.length) mapLeo.to = mapLeo.path.shift();
       else if (mapLeo.autoEnter) { mapLeo.autoEnter = false; }
     } else {
-      const fwd = pth && pth[0] === from.id, q = qbez(fwd ? from : n, c, fwd ? n : from, fwd ? mapLeo.u : 1 - mapLeo.u);
-      if (fly) { const q2 = qbez(fwd ? from : n, c, fwd ? n : from, clamp(fwd ? mapLeo.u + 0.02 : 1 - mapLeo.u - 0.02, 0, 1)); mapLeo.flying = Math.atan2(q2.y - q.y, q2.x - q.x) || 0.001; }
+      const fwd = pth && pth[0] === from.id, at = u => pth ? pathPt(pth, u) : qbez(from, c, n, u), q = at(fwd ? mapLeo.u : 1 - mapLeo.u);
+      if (fly) { const q2 = at(clamp(fwd ? mapLeo.u + 0.02 : 1 - mapLeo.u - 0.02, 0, 1)); mapLeo.flying = Math.atan2(q2.y - q.y, q2.x - q.x) || 0.001; }
       mapLeo.face = q.x >= mapLeo.x ? 1 : -1; mapLeo.x = q.x; mapLeo.y = q.y;
     }
   }
@@ -7442,9 +7942,9 @@ function drawMap() {
     if (!worldOpen(w) && !worldOpen(worldOf(a.id))) continue;
     if (!pathOpen(pth) && (b.secret || b.island || b.bonus || pth[2])) continue;
     if (pth[2] === 'rail') { if (onScreen(a.x, a.y) || onScreen(b.x, b.y)) drawRails(mapS(a.x, a.y), mapS(b.x, b.y), true, pf, 0.6); continue; }   // (the spur out to the depot)
-    if (!onScreen(a.x, a.y) && !onScreen(b.x, b.y) && !onScreen(pathCtrl(pth).x, pathCtrl(pth).y)) continue;
-    const c = pathCtrl(pth), key = pth[0] + '|' + pth[1], open = pathOpen(pth), sea = SEA_PATHS.has(key);
-    const P = u => { const q = qbez(a, c, b, u), [x, y] = mapS(q.x, q.y); return { x, y }; };
+    if (!onScreen(a.x, a.y) && !onScreen(b.x, b.y) && !onScreen(pathPt(pth, 0.5).x, pathPt(pth, 0.5).y)) continue;
+    const key = pth[0] + '|' + pth[1], open = pathOpen(pth), sea = SEA_PATHS.has(key);
+    const P = u => { const q = pathPt(pth, u), [x, y] = mapS(q.x, q.y); return { x, y }; };
     const A = P(0), B = P(1), d = Math.max(1, Math.hypot(B.x - A.x, B.y - A.y) + Math.hypot(P(0.5).x - (A.x + B.x) / 2, P(0.5).y - (A.y + B.y) / 2));
     const u0 = Math.min(0.45, 6.5 * pf / d), u1 = 1 - u0, curve = () => { g.beginPath(); const q0 = P(u0); g.moveTo(q0.x, q0.y); for (let k = 1; k <= 24; k++) { const q = P(u0 + (u1 - u0) * k / 24); g.lineTo(q.x, q.y); } };
     const next = open && (!save.cleared[pth[0]] || !save.cleared[pth[1]]) && !(a.soon && b.soon);   // a trail that leads somewhere new
@@ -7529,8 +8029,8 @@ function drawExitArrows(pf) {
     const here = node(mapLeo.at), dirs = exitDirs(here.id);
     dirs.forEach((to, k) => {
       if (!to) return; const pth = pathBetween(here.id, to); if (!pathOpen(pth)) return;
-      const fwd = pth[0] === here.id, c = pathCtrl(pth), A = mapS(here.x, here.y), B = mapS(node(to).x, node(to).y), C = mapS(c.x, c.y);
-      const len = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, u = clamp(24 * pf / len, 0.1, 0.5), q = qbez({ x: A[0], y: A[1] }, { x: C[0], y: C[1] }, { x: B[0], y: B[1] }, u);
+      const fwd = pth[0] === here.id, A = mapS(here.x, here.y), B = mapS(node(to).x, node(to).y);
+      const len = Math.hypot(B[0] - A[0], B[1] - A[1]) || 1, u = clamp(24 * pf / len, 0.1, 0.5), m = pathPt(pth, fwd ? u : 1 - u), [qx, qy] = mapS(m.x, m.y), q = { x: qx, y: qy };
       const bob = Math.sin(t * 5) * 0.8, [dx, dy] = DIR4[k], x = q.x + dx * bob, y = q.y + dy * bob, r = 4.4 * pf;
       g.beginPath(); g.arc(x, y + 0.7, r + 0.6, 0, TAU); g.fillStyle = 'rgba(16,48,28,.45)'; g.fill();
       g.beginPath(); g.arc(x, y, r, 0, TAU); paint('#fffbe8', 1, '#10301c');
