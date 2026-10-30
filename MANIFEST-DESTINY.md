@@ -66,7 +66,7 @@ older players have a reason to go back.
 | 1 New England | **ears of corn** ✅ | Corn kept the Pilgrims alive: Tisquantum showed them how to grow it, and the 1621 harvest is the one they celebrated |
 | 2 Mid-Atlantic | **quill pens** ✅ | the Declaration of Independence and the Constitution were written with them in Philadelphia |
 | 3 Atlantic South | **pieces of eight** ✅ | the Spanish silver coins of pirates, ports and St. Augustine |
-| 4 Frontier South | **apple seeds** | Johnny Appleseed planted orchards along the frontier |
+| 4 Frontier South | **apple seeds** ✅ | Johnny Appleseed planted orchards along the frontier |
 | 5 Great Lakes | **beaver pelts** | the fur trade's money: prices were counted in "made beaver" |
 | 6 Great Plains | **Pony Express letters** | mail carried 2,000 miles by relays of riders (1860) |
 | 7 Rocky Mountains | **fossils** | the Rockies' great dinosaur finds (the 1870s "Bone Wars") |
@@ -198,13 +198,26 @@ also hides World 3's golden spike ✅.
 *Railroad depot:* Charleston, with its Railroad Challenge **the Best Friend of Charleston** (1830) ✅.
 (Williamsburg, Yorktown and Savannah are left for a later pass.)
 
-### World 4: Over the mountains, the frontier South (1775 to 1840)
+### World 4: Over the mountains, the frontier South (1775 to 1811) ✅ built
 *Cherokee, Shawnee, Chickasaw, Choctaw and Muscogee homelands*
-The Cumberland Gap and the Wilderness Road (1775), Kentucky and Tennessee, Mammoth Cave, the Mississippi
-steamboats, the Louisiana Purchase at New Orleans (1803), Sequoyah's Cherokee writing system (1821), and the
-Trail of Tears (1838). Hero: **Ruth, frontier scout**.
-*Secret theme:* hidden trails and cave passages.
-*Railroad depot:* Chattanooga.
+Hero: **Jemima Boone** (joins after the Atlantic South's quiz; the climber: hold towards a wall, a cliff or a tree and
+she climbs right up it). Treasure: **apple seeds** (pioneer families carried them over the mountains to plant
+orchards). Creatures: turkeys, bobcats, possums, skunks, crows, box turtles, snakes; in Mammoth Cave, cave crickets and
+bats; on the Mississippi, gators, herons, crawfish, pelicans and leaping sturgeon.
+
+1. **The Cumberland Gap** (March 1775): Daniel Boone's axemen cut the Wilderness Road; ridges, cliffs, blazed trees ✅
+   (secret exit: a trail marker high on the ridge)
+2. **Boonesborough** (July 1776): Jemima's canoe, the trail of twigs she left, and the fort's stockade ✅
+3. **Mammoth Cave** (about 1798): the longest cave in the world; bats, crickets, dark pits, a miner's lantern ✅
+4. **The Natchez Trace** (1801): the old Chickasaw and Choctaw path from Nashville; boatmen walking home ✅
+5. **The Louisiana Purchase** (New Orleans, December 20, 1803): France's flag down, the U.S. flag up ✅
+6. **The First Steamboat** (December 1811) 🐟 boss: **the giant catfish** on a Mississippi sandbar, woken by the New
+   Madrid earthquakes (bubbles; after one hit, muddy waves; after two, he charges), then the World 4 quiz ✅
+
+*Secret-only level:* **Sequoyah's Alphabet** (New Echota, 1828: the Cherokee capital and the Cherokee Phoenix; its
+facts include Sequoyah's writing and the Trail of Tears), which also hides World 4's golden spike ✅.
+*Railroad depot:* Chattanooga, with its Railroad Challenge **the Western and Atlantic** (1850) ✅.
+(Fort Nashborough, 1779, is told in the Natchez Trace's facts. The Long Hunter's Cave became New Echota.)
 
 ### World 5: The Great Lakes, the Northwest Territory (1787 to 1850)
 *Anishinaabe (Ojibwe, Odawa, Potawatomi), Ho-Chunk, Menominee, Miami, Sauk and Meskwaki homelands*

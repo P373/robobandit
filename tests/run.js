@@ -3525,18 +3525,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const shape = { worlds: WORLDS.length, names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length, everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
         built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id)),
         years: WORLDS.flat().every(id => node(id).year), spike: WORLDS[8][WORLDS[8].length - 1] === 'spike', neighbours: NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 };
-      // Worlds 1 to 3 are built: beating World 1 leaves World 2 shut until New England's quiz is passed; beating World 2
+      // Worlds 1 to 4 are built: beating World 1 leaves World 2 shut until New England's quiz is passed; beating World 2
       // leaves World 3 shut until its quiz, and then World 3's signposts are walked past
-      const w1Built = [0, 1, 2].every(w => WORLDS[w].every(id => LEVELS[id] && !node(id).soon)) && ['nantucket', 'vineyard', 'culper', 'cove'].every(id => LEVELS[id]);
+      const w1Built = [0, 1, 2, 3].every(w => WORLDS[w].every(id => LEVELS[id] && !node(id).soon)) && ['nantucket', 'vineyard', 'culper', 'cove', 'newechota'].every(id => LEVELS[id]);
       WORLDS[0].forEach(id => { save.cleared[id] = true; });
       const signs = { w1Built, lexington: nodeOpen(node('lexington')), delawareBefore: nodeOpen(node('delaware')) };
       save.quiz[0] = true; signs.delawareAfter = nodeOpen(node('delaware'));
       WORLDS[1].forEach(id => { save.cleared[id] = true; }); signs.staugBefore = nodeOpen(node('staugustine'));
       save.quiz[1] = true; signs.staugAfter = nodeOpen(node('staugustine')); signs.jamestownAfter = nodeOpen(node('jamestown'));
-      // World 3 is built too: beating it leaves World 4 shut until the Atlantic South's quiz; then its signposts are walked past
-      const w4 = WORLDS[3][0]; ORDER.forEach(id => { save.cleared[id] = true; }); signs.w4Before = nodeOpen(node(w4));
-      save.quiz[2] = true; signs.w4After = nodeOpen(node(w4));
-      goMap(w4, true); enterLevel(); signs.notStarted = state === 'map'; delete save.quiz[0]; delete save.quiz[1]; delete save.quiz[2];
+      // Worlds 3 and 4 are built too: beating them leaves World 5 shut until the frontier's quiz; then its signposts are walked past
+      const w5 = WORLDS[4][0]; ORDER.forEach(id => { save.cleared[id] = true; }); save.quiz[2] = true; signs.w4Before = nodeOpen(node(w5));
+      save.quiz[3] = true; signs.w4After = nodeOpen(node(w5));
+      goMap(w5, true); enterLevel(); signs.notStarted = state === 'map'; for (const k of [0, 1, 2, 3]) delete save.quiz[k];
       // zoom out to the whole country and back in
       goMap('ctriver', true); run(90); const z1 = mapCam.z;
       mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
@@ -3557,7 +3557,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && r.start.w1 && !r.start.w2 && r.start.area === '1' && r.start.atSea, 'a new game starts out at sea on the Mayflower (1-1), in New England, with the rest of the story still locked: ' + JSON.stringify(r.start));
     check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific' && r.shape.neighbours, 'nine regions, every state (and D.C.) in one, Canada and Mexico next door: ' + JSON.stringify(r.shape));
     check(r.shape.built && r.shape.soon && r.shape.onlyStory && r.shape.years && r.shape.spike, 'the built levels are on the map, signposts mark the rest, there are no levels outside the story, every stop has a year, and the Golden Spike is the end: ' + JSON.stringify(r.shape));
-    check(r.signs.w1Built && r.signs.lexington && !r.signs.delawareBefore && r.signs.delawareAfter && !r.signs.staugBefore && r.signs.staugAfter && !r.signs.jamestownAfter && !r.signs.w4Before && r.signs.w4After && r.signs.notStarted, 'Worlds 1 to 3 are built; each next region opens once the quiz is passed, and signposts are walked past: ' + JSON.stringify(r.signs));
+    check(r.signs.w1Built && r.signs.lexington && !r.signs.delawareBefore && r.signs.delawareAfter && !r.signs.staugBefore && r.signs.staugAfter && !r.signs.jamestownAfter && !r.signs.w4Before && r.signs.w4After && r.signs.notStarted, 'Worlds 1 to 4 are built; each next region opens once the quiz is passed, and signposts are walked past: ' + JSON.stringify(r.signs));
     check(r.zoom.whole && r.zoom.z2 < r.zoom.z1 * 0.6 && r.zoom.backIn, 'zoom out to the whole country and back in: ' + JSON.stringify(r.zoom));
     check(r.lockedBefore && r.unlocked && r.relocked, 'Unlock All opens every level and path, and turns back off (and is saved): ' + JSON.stringify(r));
     check(r.drew === true && r.hiddenInLevel, 'every region, Alaska and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
@@ -3576,14 +3576,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       for (const n of NODES) { const nb = PATHS.filter(q => q[0] === n.id || q[1] === n.id).map(q => q[0] === n.id ? q[1] : q[0]), d = exitDirs(n.id); if (nb.length > 4 || nb.some(o => !d.includes(o)) || new Set(d.filter(Boolean)).size !== d.filter(Boolean).length) bad.push(n.id); }
       // and in the built regions, the trails from a stop set off well apart, each the way its arrow points (so no two look the same)
       const looks = [];
-      for (const id of [...WORLDS[0], ...WORLDS[1], ...WORLDS[2]]) {
+      for (const id of [...WORLDS[0], ...WORLDS[1], ...WORLDS[2], ...WORLDS[3]]) {
         const here = node(id), legs = PATHS.filter(q => q[0] === id || q[1] === id).map(q => { const o = q[0] === id ? q[1] : q[0], fwd = q[0] === id, pt = pathPt(q, fwd ? 0.15 : 0.85); return { o, a: Math.atan2(pt.y - here.y, pt.x - here.x) * 180 / Math.PI }; });
         const gap = (a, b) => { let x = Math.abs(a - b) % 360; return x > 180 ? 360 - x : x; };
         for (let i = 0; i < legs.length; i++) for (let j = i + 1; j < legs.length; j++) if (gap(legs[i].a, legs[j].a) < 55) looks.push(`${id}: ${legs[i].o} / ${legs[j].o}`);
         if (legs.length > 1) for (const L of legs) if (gap(L.a, [180, 0, -90, 90][exitDirs(id).indexOf(L.o)]) > 60) looks.push(`${id}: the arrow to ${L.o}`);
       }
-      // walk the built story from the Mayflower to Blackbeard with the D-pad only (a press of the direction the arrow shows)
-      const route = [...WORLDS[0], ...WORLDS[1], ...WORLDS[2]]; goMap(route[0], true); let walked = 0;
+      // walk the built story from the Mayflower to the first steamboat with the D-pad only (a press of the direction the arrow shows)
+      const route = [...WORLDS[0], ...WORLDS[1], ...WORLDS[2], ...WORLDS[3]]; goMap(route[0], true); let walked = 0;
       for (let i = 1; i < route.length; i++) {
         const k = exitDirs(mapLeo.at).indexOf(route[i]); if (k < 0) break;
         pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false;
@@ -3593,7 +3593,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const poly = q => { const pts = []; for (let k = 0; k <= 30; k++) pts.push(pathPt(q, k / 30)); return pts; };
       const segX = (p1, p2, p3, p4) => { const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x); if (!d) return false; const u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d, v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d; return u > 0 && u < 1 && v > 0 && v < 1; };
       const crosses = [];
-      for (const w of [0, 1, 2]) {
+      for (const w of [0, 1, 2, 3]) {
         const P = PATHS.filter(([a, b]) => worldOf(a) === w && worldOf(b) === w);
         for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
           if (P[i].slice(0, 2).some(x => P[j].slice(0, 2).includes(x))) continue;
@@ -3812,6 +3812,51 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'manifest-destiny-world3.png');
   });
 
+  await test('Manifest Destiny World 4, over the mountains: Jemima Boone joins and climbs walls, apple seeds, bobcats, possums, skunks, cave crickets and bats; the earthquakes; the giant catfish on the Mississippi (bubbles and waves), then its quiz', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes']) save[k] = {}; save.hero = 'wrestling'; paused = true; startGame();
+      out.order = WORLDS[3].map(id => levelTag(id) + ' ' + node(id).year).join(', ');
+      out.starts = [...WORLDS[3], 'newechota', 'chattanooga'].map(id => { startLevel(id); const story = bannerT > 0 && /1[0-9]{3}/.test(bannerText[0]); run(30); let drew = true; try { render(); } catch (e) { drew = e.message; } return [id, state === 'level' && player.y > 0 && phase === 'play', story, drew, lvl.collect]; });
+      // Jemima only joins after the Atlantic South's quiz; then she can be picked, and she climbs walls (the others slide down them)
+      save.quiz[0] = save.quiz[1] = true; out.lockedFirst = !heroJoined(3);
+      save.quiz[2] = true; showHeroes(); const pick = document.querySelector('#hlist [data-hero="jemima"]'); out.canPick = !!pick && !pick.disabled; pick.click(); out.playing = heroNow() === 'jemima' && save.hero === 'jemima'; hideHeroes();
+      const climb = hero => { save.hero = hero; startLevel('cumberland'); ents = ents.filter(e => !isEnemy(e)); for (let y = 2; y < 12; y++) lvl.t[y * lvl.w + 20] = T.STONE;   // a tall wall to climb
+        player.x = 18 * 16; player.y = 9 * 16; player.vx = 0; player.vy = -200; player.ground = false; keys.right = true; let top = player.y; run(120, () => { top = Math.min(top, player.y); }); keys.right = false; return Math.round(top / 16); };
+      out.climb = [climb('jemima'), climb('wrestling')]; save.hero = 'jemima';
+      try { out.drawn = true; render(); } catch (e) { out.drawn = e.message; }
+      const kinds = id => { startLevel(id); return lvl.cast; };
+      out.cast = { cumberland: kinds('cumberland'), mammoth: kinds('mammoth'), nashville: kinds('nashville'), boonesborough: kinds('boonesborough') };
+      // the earthquakes shake the screen on the steamboat level, and a steamboat carries you down the river
+      startLevel('steamboat'); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); let shook = false; run(500, () => { if (shake > 0.3) shook = true; }); out.quake = shook && !!ents.find(e => e.k === 'boat' && e.look === 'steamboat');
+      // the giant catfish: bubbles, then a wave after a hit, a charge after two, a chest after three, then the quiz and the end of the region
+      player.x = (lvl.w - 30) * 16; player.y = 9 * 16; run(60);
+      const boss = ents.find(e => e.k === 'boss'); out.awake = !!boss && boss.awake && /CATFISH/.test(bannerText[0]);
+      const shots = new Set(), watch = () => { boss.hurt = 0; player.inv = 1; player.x = 156 * 16; for (const e of ents) if (e.k === 'acorn') shots.add(e.kind); };
+      run(300, watch); boss.hurt = 0; bossHit(boss); run(400, watch); boss.hurt = 0; bossHit(boss); run(400, watch);
+      out.shots = [...shots]; out.fightDrew = true; try { for (let k = 0; k < 40; k++) { step(1 / 60); render(); } } catch (e) { out.fightDrew = e.message; }
+      boss.hurt = 0; bossHit(boss); run(300);
+      const chest = ents.find(e => e.k === 'pot'); out.chest = !!chest; if (chest) { player.x = chest.x; player.y = chest.y; player.vy = 0; run(5); }
+      out.quiz = state === 'quiz' && quiz && quiz.w === 3 && regionQuestions(3).length >= 25;
+      return new Promise(res => {
+        const next = () => { if (quiz) { document.querySelector('#quizA [data-right="1"]').click(); setTimeout(next, 700); return; }
+          out.ending = state === 'ending' && /FRONTIER SOUTH/.test(document.querySelector('#ending h1').textContent); paused = false; res(out); };
+        next();
+      });
+    });
+    check(r.order === '4-1 1775, 4-2 1776, 4-3 1798, 4-4 1801, 4-5 1803, 4-6 1811', 'World 4 runs in history order: ' + r.order);
+    check(r.starts.every(([, ok, story, drew, c]) => ok && story && drew === true && c === 'seed'), 'each level starts with its story card, draws, and hides apple seeds: ' + JSON.stringify(r.starts));
+    check(r.lockedFirst && r.canPick && r.playing && r.climb[0] <= r.climb[1] - 3 && r.drawn === true, 'Jemima Boone joins after the Atlantic South, can be picked, and climbs walls the others slide down: ' + JSON.stringify(r));
+    check(r.cast.cumberland.grumblin === 'bobcat' && r.cast.boonesborough.grumblin === 'possum' && r.cast.nashville.grumblin === 'skunk' && r.cast.mammoth.grumblin === 'cricket' && r.cast.mammoth.buzzer === 'bat', 'bobcats, possums, skunks, cave crickets and bats: ' + JSON.stringify(r.cast));
+    check(r.quake, 'the 1811 earthquakes shake the screen, and the steamboat is there to ride: ' + r.quake);
+    check(r.awake && r.shots.includes('bubble') && r.shots.includes('wave') && r.fightDrew === true && r.chest, 'the giant catfish burps bubbles, then muddy waves too, and three hits win a chest: ' + JSON.stringify(r));
+    check(r.quiz && r.ending, 'the chest leads to the frontier\'s quiz, and passing it ends the region: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-world4.png');
+  });
+
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
@@ -3838,7 +3883,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       paused = false; return out;
     });
     check(r.depots === 9 && r.track && r.drew === true, 'nine depots joined by one track across the country, and the whole map draws: ' + JSON.stringify(r));
-    check(r.built === 'quincy,baltimore,bestfriend', 'the Quincy, Baltimore and Charleston Railroad Challenges are built (the rest say coming soon): ' + r.built);
+    check(r.built === 'quincy,baltimore,bestfriend,chattanooga', 'the Quincy, Baltimore, Charleston and Chattanooga Railroad Challenges are built (the rest say coming soon): ' + r.built);
     check(r.shutBefore && r.spike && r.openAfter, 'the golden spike on Nantucket opens the Quincy depot (and is saved): ' + JSON.stringify(r));
     check(r.station && r.challenge, 'the station offers its Railroad Challenge (and shows the other depots, shut for now): ' + JSON.stringify(r));
     check(r.baltimore && r.riding && r.arrived, 'the train rides from Quincy to Baltimore, with the whole country in view: ' + JSON.stringify(r));
