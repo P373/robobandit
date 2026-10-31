@@ -4062,6 +4062,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Manifest Destiny map gates: through a whole playthrough, no trail can be walked until the level at its near end is beaten (crossroads, shortcuts, secret trails and railroad spurs too)', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const r = await p.evaluate(() => { const bad = new Set();
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes', 'cuts']) save[k] = {}; save.unlockAll = false; openCache = null;
+      const check = tag => { for (const q of graphPaths()) { if (!pathOpen(q)) continue; const [a, c] = q, ok = id => save.cleared[id] || node(id).junction || node(id).soon || id === START; if (!ok(a) && !ok(c)) bad.add(tag + ': ' + a + ' - ' + c); } };
+      check('start');
+      for (let w = 0; w < 6; w++) { for (const id of WORLDS[w]) { save.cleared[id] = true; openCache = null; check('after ' + id); } save.quiz[w] = true; openCache = null; check('quiz ' + w); }
+      return [...bad]; });
+    check(r.length === 0, 'trails open before the level at their near end is beaten: ' + r.join(', '));
+    await done(p);
+  });
+
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
