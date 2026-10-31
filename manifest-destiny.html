@@ -835,7 +835,7 @@ LEVELS.cumberland = builder('cumberland', 'The Cumberland Gap', 'gap', 212)
   .ground(0, 30).ground(31, 44, 10).ground(45, 60, 8).ground(61, 74, 10).ground(80, 110).ground(111, 126, 9).ground(127, 140, 7).ground(141, 156, 9).ground(162, 211)
   .at(6, 8, '?P?').at(11, 8, 'I').e('turkey', 18, 11).e('grumblin', 25, 11)
   .at(34, 6, 'B?B').at(42, 7, '--').e('buzzer', 46, 4).at(50, 4, 'I').e('grumblin', 56, 7).at(66, 6, '?C?').e('snake', 70, 9)
-  .at(76, 8, '---').at(86, 8, 'I').e('turkey', 92, 11).e('mid', 100, 11).at(104, 8, 'B?B').e('grumblin', 116, 8)
+  .at(76, 8, '---').at(86, 8, 'I').e('turkey', 92, 11, { as: 'bear' }).e('mid', 100, 11).at(104, 8, 'B?B').e('grumblin', 116, 8)
   .at(124, 6, '--').at(130, 3, 'I').e('snaily', 134, 6).at(135, 3, '---').e('sflag', 136, 2)   // the secret: a Cherokee trail marker, high on the ridge (to New Echota)
   .at(146, 5, '?S?').e('buzzer', 150, 4).e('plat', 157, 9, { w: 3, dx: 2, sp: 1 })
   .e('turkey', 168, 11).at(172, 8, 'H').at(176, 8, 'I').e('grumblin', 182, 11).stairs(190, 4)
@@ -853,7 +853,7 @@ LEVELS.boonesborough = builder('boonesborough', 'Boonesborough', 'kentucky', 210
   .e('plat', 79, 10, { w: 3, dx: 3, sp: 0.9, look: 'mishoon' })   // Jemima's canoe
   .at(92, 8, 'I').e('mid', 98, 11).e('turkey', 104, 11).at(108, 8, 'B?B').at(118, 4, 'I').e('grumblin', 122, 7)
   .at(134, 8, '?S?').e('snake', 140, 11).at(146, 8, 'H').e('buzzer', 150, 5).at(158, 6, 'B?B').e('grumblin', 162, 9)
-  .e('turkey', 172, 11).at(176, 8, 'I').stairs(186, 4)
+  .e('turkey', 172, 11, { as: 'bear' }).at(176, 8, 'I').stairs(186, 4)
   .gems(7, 5, 37, 3, 81, 7, 119, 1, 159, 3)
   .done({ gate: { mid: 'canoe', goal: 'palisade' }, goal: 198, music: 'canal', collect: 'seed', cast: { grumblin: 'possum', buzzer: 'crow', snaily: 'turtle' },
     story: ['JULY 14, 1776', 'Jemima Boone, 13, and two friends are carried off from their canoe. Jemima leaves a trail so her father can find them!'],
@@ -961,7 +961,7 @@ LEVELS.greenbay = builder('greenbay', 'Green Bay', 'greenbay', 236)
   .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 17, 11).e('turkey', 23, 11).e('buzzer', 28, 6)
   .at(34, 6, 'B?B').e('grumblin', 40, 9).at(48, 8, 'I').e('snaily', 54, 11).at(58, 8, '?C?').e('grumblin', 62, 11)
   .e('plat', 67, 10, { w: 3, dx: 3, sp: 1.1, look: 'mishoon' }).e('sturgeon', 70, 12)
-  .at(80, 8, 'I').e('buzzer', 84, 5).e('grumblin', 90, 11).at(100, 5, 'B?B').e('grumblin', 106, 8).e('mid', 118, 11).at(122, 8, 'I').e('turkey', 128, 11)
+  .at(80, 8, 'I').e('buzzer', 84, 5).e('grumblin', 90, 11).at(100, 5, 'B?B').e('grumblin', 106, 8).e('mid', 118, 11).at(122, 8, 'I').e('turkey', 128, 11, { as: 'bear' })
   .e('plat', 136, 10, { w: 3, dx: 3, sp: 1.2, look: 'mishoon' }).e('sturgeon', 139, 12).at(148, 8, '?S?').e('grumblin', 154, 11)
   .at(164, 6, 'B?B').e('buzzer', 168, 4).e('grumblin', 172, 9).at(182, 8, 'H').e('snaily', 188, 11).e('plat', 195, 10, { w: 2, dx: 2, sp: 1.2 })
   .e('grumblin', 206, 11).at(210, 8, 'I').e('buzzer', 214, 5).stairs(218, 4)
@@ -1071,12 +1071,12 @@ LEVELS.newsalem = builder('newsalem', "Lincoln's New Salem", 'sangamon', 200)
 LEVELS.portage = builder('portage', 'Grand Portage', 'portage', 200)
   .ground(0, 36).ground(37, 50, 10).ground(51, 66, 8).ground(67, 80, 10).ground(88, 120).ground(121, 134, 9).ground(135, 150).ground(158, 199)
   .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 16, 11).e('buzzer', 22, 6).at(30, 8, '?C?').e('grumblin', 34, 11).at(40, 6, 'B?B').e('grumblin', 46, 9)
-  .at(56, 4, 'I').e('buzzer', 60, 3).e('grumblin', 72, 9)
+  .at(56, 4, 'I').e('buzzer', 60, 3).e('thorny', 62, 7).e('grumblin', 72, 9)
   .e('plat', 81, 9, { w: 3, dx: 2, sp: 1.3 }).e('goldspike', 84, 4)   // the golden spike, over the falls
-  .e('mid', 96, 11).at(100, 8, '?S?').e('grumblin', 108, 11).at(126, 5, 'I').e('buzzer', 130, 4).at(140, 8, 'H')
+  .e('mid', 96, 11).at(100, 8, '?S?').e('turkey', 108, 11, { as: 'moose' }).at(126, 5, 'I').e('buzzer', 130, 4).at(140, 8, 'H')
   .e('plat', 151, 10, { w: 3, dx: 2, sp: 1.3 }).e('grumblin', 166, 11).at(170, 8, 'B?B').stairs(176, 4)
   .gems(7, 5, 41, 3, 85, 7, 127, 2, 152, 7)
-  .done({ gate: { mid: 'canoe', goal: 'pine' }, goal: 190, music: 'snow', collect: 'pelt', cast: { grumblin: 'wolf', buzzer: 'mosquito' },
+  .done({ gate: { mid: 'canoe', goal: 'pine' }, goal: 190, music: 'snow', collect: 'pelt', cast: { grumblin: 'wolf', buzzer: 'mosquito', thorny: 'porcupine' },
     story: ['THE 1790s', 'Voyageurs carry their canoes and heavy packs 9 miles around the waterfalls, into Canada!'],
     decor: [['fort', 186, 12]] });
 
@@ -1121,7 +1121,7 @@ LEVELS.fortmandan = builder('fortmandan', 'Fort Mandan', 'mandan', 252)
   .ground(0, 32).ground(33, 48, 10).ground(49, 64, 8).ground(65, 80, 10).ground(86, 114).ground(115, 130, 9).ground(131, 148).ground(155, 172).ground(173, 188, 9).ground(189, 204, 7).ground(210, 251)
   .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 16, 11).e('buzzer', 22, 6).e('grumblin', 28, 11)
   .at(36, 6, 'B?B').e('grumblin', 42, 9).at(54, 4, 'I').e('buzzer', 58, 3).at(68, 6, '?C?').e('grumblin', 74, 9)
-  .e('plat', 81, 9, { w: 2, dx: 1, sp: 1.4, look: 'ice' }).e('grumblin', 92, 11).at(96, 8, 'I').e('mid', 104, 11).at(118, 5, 'B?B').e('grumblin', 124, 8)
+  .e('plat', 81, 9, { w: 2, dx: 1, sp: 1.4, look: 'ice' }).e('turkey', 92, 11, { as: 'bison' }).at(96, 8, 'I').e('mid', 104, 11).at(118, 5, 'B?B').e('grumblin', 124, 8)
   .e('buzzer', 136, 5).e('grumblin', 140, 11).e('fall', 149, 10, { w: 2 }).e('fall', 152, 9, { w: 2 }).at(160, 8, '?S?').e('grumblin', 166, 11)
   .at(178, 5, 'H').e('grumblin', 182, 8).at(194, 3, 'I').e('buzzer', 198, 2).e('plat', 205, 8, { w: 2, dx: 1, sp: 1.4, look: 'ice' })
   .e('grumblin', 216, 11).at(222, 8, 'I').e('grumblin', 228, 11).stairs(236, 4)
@@ -1152,7 +1152,7 @@ LEVELS.chimney = builder('chimney', 'Chimney Rock', 'chimney', 254)
   .at(6, 8, '?P?').at(11, 8, 'I').e('snapper', 18, 12).e('snake', 24, 11).e('grumblin', 30, 11)
   .at(38, 6, 'B?B').e('buzzer', 44, 5).at(56, 4, 'I').e('grumblin', 60, 7).at(70, 6, '?C?').e('snake', 76, 9)
   .e('plat', 83, 9, { w: 2, dx: 1, sp: 1.5 }).e('snapper', 94, 12).at(98, 8, 'I').e('mid', 106, 11).e('snapper', 112, 12).at(120, 5, 'B?B').e('grumblin', 126, 8)
-  .e('snake', 138, 11).at(142, 8, '?S?').e('snapper', 146, 12).e('plat', 151, 10, { w: 3, dx: 2, sp: 1.5 }).e('grumblin', 162, 11).at(166, 8, 'I').e('snapper', 170, 12)
+  .e('snake', 138, 11).at(142, 8, '?S?').e('snapper', 146, 12).e('plat', 151, 10, { w: 3, dx: 2, sp: 1.5 }).e('turkey', 162, 11, { as: 'bison' }).at(166, 8, 'I').e('snapper', 170, 12)
   .at(182, 6, 'H').e('grumblin', 186, 9).at(198, 4, 'I').e('buzzer', 202, 3).e('plat', 209, 8, { w: 2, dx: 1, sp: 1.5 })
   .e('snapper', 220, 12).e('snake', 226, 11).e('grumblin', 232, 11).stairs(238, 4)
   .gems(7, 5, 39, 3, 57, 1, 152, 7, 199, 1)
@@ -1164,11 +1164,11 @@ LEVELS.chimney = builder('chimney', 'Chimney Rock', 'chimney', 254)
 LEVELS.bison = builder('bison', 'The Great Bison Herds', 'grassland', 254)
   .ground(0, 40).ground(41, 56, 10).ground(57, 76).ground(84, 112).ground(113, 128, 9).ground(129, 148).ground(156, 178).ground(179, 194, 10).ground(195, 212).ground(219, 253)
   .at(6, 8, '?P?').at(11, 8, 'I').e('grumblin', 18, 11).e('grumblin', 24, 11).e('snapper', 30, 12).e('buzzer', 36, 5)
-  .at(44, 6, 'B?B').e('grumblin', 50, 9).at(60, 8, 'I').at(66, 8, '?C?').e('grumblin', 70, 11).e('grumblin', 74, 11)
+  .at(44, 6, 'B?B').e('grumblin', 50, 9).at(60, 8, 'I').at(66, 8, '?C?').e('turkey', 70, 11, { as: 'bison' }).e('grumblin', 74, 11)
   .e('plat', 77, 10, { w: 3, dx: 2, sp: 1.5 }).e('snapper', 90, 12).at(94, 8, 'I').e('grumblin', 98, 11).e('mid', 104, 11).at(116, 5, 'B?B').e('grumblin', 122, 8)
   .e('grumblin', 132, 11).e('grumblin', 136, 11).at(140, 8, '?S?').e('snapper', 144, 12).e('plat', 149, 10, { w: 3, dx: 2, sp: 1.5 })
-  .e('grumblin', 162, 11).at(166, 8, 'I').e('grumblin', 170, 11).at(184, 6, 'H').e('grumblin', 188, 9).e('buzzer', 192, 4)
-  .e('grumblin', 200, 11).at(204, 8, 'I').e('grumblin', 208, 11).e('plat', 213, 10, { w: 2, dx: 2, sp: 1.5 }).e('snapper', 226, 12).e('grumblin', 232, 11).stairs(238, 4)
+  .e('turkey', 162, 11, { as: 'bison' }).at(166, 8, 'I').e('grumblin', 170, 11).at(184, 6, 'H').e('grumblin', 188, 9).e('buzzer', 192, 4)
+  .e('turkey', 200, 11, { as: 'bison' }).at(204, 8, 'I').e('grumblin', 208, 11).e('plat', 213, 10, { w: 2, dx: 2, sp: 1.5 }).e('snapper', 226, 12).e('grumblin', 232, 11).stairs(238, 4)
   .gems(7, 5, 45, 3, 78, 7, 117, 2, 214, 7)
   .done({ gate: { mid: 'skull', goal: 'farmgate' }, goal: 248, music: 'woods', collect: 'letter', cast: { grumblin: 'bison', buzzer: 'grasshopper', snapper: 'prairiedog' },
     story: ['1850', 'Millions of bison roam the Great Plains, and the Lakota, Cheyenne and Pawnee live by them.'],
@@ -1258,6 +1258,75 @@ const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctrive
   'cumberland', 'boonesborough', 'mammoth', 'nashville', 'neworleans', 'steamboat', 'newechota', 'chattanooga',
   'greenbay', 'mackinac', 'chicago', 'detroit', 'prophetstown', 'lakeerie', 'newsalem', 'portage', 'chicagorail',
   'stlouis', 'fortmandan', 'independencemo', 'chimney', 'bison', 'pony', 'sodhouse', 'twister', 'relay', 'omaha'];
+// ---- Underground rooms and cloud areas ----
+// Most levels hide a way down and a way up. A building (a cabin, a wetu, a sod house…) or a cave mouth has a door: press
+// ▲ (or ▼) at it and you go down into a little underground room (a root cellar, a corn storage pit, a cave, a prairie dog
+// town) full of coins and a power-up, and come back up through a door further along. A vine block grows a vine right up
+// into the clouds: a cloud area with coins and a block or two, and a slide back down further on. Where they go in each
+// level is worked out once, here, from the level's own ground: only where there's flat ground and open sky above.
+const ROOM_KINDS = {   // the way in → what's down there
+  house: ['cellar', 'The Root Cellar'], cabin: ['cellar', 'The Root Cellar'], soddy: ['cellar', 'The Storm Cellar'],
+  wetu: ['pit', 'The Corn Storage Pit'], yehakin: ['pit', 'The Corn Storage Pit'], council: ['pit', 'The Corn Storage Pit'], earthlodge: ['pit', 'The Cache Pit'],
+  palmhut: ['cave', 'A Hidden Cave'], cave: ['cave', 'A Hidden Cave'], burrow: ['burrow', 'The Prairie Dog Town'],
+};
+const LEVEL_HUTS = {
+  plimoth: 'house', cranberry: 'wetu', boston: 'house', providence: 'house', ctriver: 'house', maple: 'cabin', gulfmaine: 'cave', teaparty: 'house',
+  delaware: 'cabin', ludington: 'house', saratoga: 'cabin', valleyforge: 'cabin', independence: 'house', capital: 'house',
+  staugustine: 'palmhut', roanoke: 'house', jamestown: 'house', powhatan: 'yehakin', charleston: 'house',
+  cumberland: 'cave', boonesborough: 'cabin', nashville: 'cabin', neworleans: 'house',
+  greenbay: 'wetu', mackinac: 'cave', chicago: 'cabin', detroit: 'cabin', prophetstown: 'council', lakeerie: 'house',
+  stlouis: 'cabin', fortmandan: 'earthlodge', independencemo: 'cabin', chimney: 'cave', bison: 'burrow', pony: 'soddy', sodhouse: 'soddy',
+};
+const ROOM_LOOK = { cellar: ['cellar', { grumblin: 'rat', buzzer: 'bat' }], pit: ['cellar', { grumblin: 'raccoon', buzzer: 'bat' }], cave: ['mammoth', { grumblin: 'cricket', buzzer: 'bat' }], burrow: ['burrow', { grumblin: 'cricket', buzzer: 'bat' }] };
+const hashId = id => { let h = 7; for (const c of id) h = (h * 31 + c.charCodeAt(0)) >>> 0; return h; };
+function makeRoom(id, parent, hut) {
+  const [kind, name] = ROOM_KINDS[hut], [theme, cast] = ROOM_LOOK[kind], P = LEVELS[parent], w = 40, v = hashId(id) % 3;
+  const b = builder(id, name, theme, w).fill(0, w - 1, 0, 1, T.STONE).fill(0, 0, 2, 11, T.STONE).fill(w - 1, w - 1, 2, 11, T.STONE).ground(0, w - 1);
+  if (v === 0) b.coins(8, 9, 6).at(16, 8, '?P?').arc(22, 9, 6).at(30, 7, '---').coins(30, 5, 3).e('grumblin', 26, 11).e('buzzer', 18, 5);
+  else if (v === 1) b.at(8, 9, '--').coins(8, 7, 2).at(12, 7, '--').coins(12, 5, 2).at(16, 5, '-L-').coins(22, 10, 8).e('grumblin', 24, 11).e(kind === 'burrow' ? 'snake' : 'buzzer', 28, kind === 'burrow' ? 11 : 6);
+  else b.ground(14, 17, 10).ground(18, 21, 8).ground(22, 25, 10).coins(14, 8, 4).coins(18, 6, 4).coins(22, 8, 4).at(10, 8, '?P?').at(29, 8, 'BMB').e('grumblin', 30, 11);
+  b.e('exit', w - 5, 12, { look: 'door', hut: 'ladder' });
+  return b.done({ room: true, parent, music: 'caves', collect: P.collect, cast: kind === 'burrow' ? { ...cast, snake: 'rattler' } : cast });
+}
+function makeSky(id, parent) {
+  const P = LEVELS[parent], w = 50, v = hashId(id) % 2, b = builder(id, 'Above the Clouds', 'sky', w);
+  if (v === 0) b.ground(0, 8, 10).ground(12, 16, 9).ground(20, 25, 10).ground(29, 33, 8).ground(37, 49, 10).arc(9, 7, 4).coins(17, 6, 3).at(22, 6, '?P?').arc(33, 5, 5).at(42, 6, 'B?B').e('buzzer', 24, 5).e('buzzer', 40, 4);
+  else b.ground(0, 7, 10).ground(11, 14, 8).ground(18, 21, 6).ground(25, 28, 8).ground(32, 36, 10).ground(40, 49, 10).coins(11, 6, 4).coins(18, 4, 4).at(26, 4, '?S?').coins(32, 8, 5).at(43, 7, 'L').e('buzzer', 20, 3).e('buzzer', 34, 5);
+  b.e('skyexit', w - 5, 10);
+  return b.done({ room: true, parent, music: 'sky', collect: P.collect, cast: { buzzer: (P.cast || {}).buzzer || 'crow' } });
+}
+(function placeSecretsUnderAndOver() {
+  const solidTop = (L, x) => { for (let y = 0; y < L.h; y++) { const t = L.t[y * L.w + x]; if (SOLID.has(t) || t === T.ONEWAY || t === T.WATER) return t === T.GROUND || t === T.STONE ? y : -1; } return -1; };
+  const clear = (L, x, y0, y1) => { for (let y = Math.max(0, y0); y <= y1; y++) if (L.t[y * L.w + x]) return false; return true; };
+  const busy = (L, x, r) => L.ents.some(e => !['gem'].includes(e.k) && Math.abs(e.x - x) < r) || (L.decor || []).some(d => Math.abs(d[1] - x) < 6);
+  const spot = (L, from, to, wd, h, r = 3) => {
+    for (let x = Math.max(2, Math.round(from)); x <= Math.min(L.w - 8, Math.round(to)); x++) {
+      const top = solidTop(L, x); if (top < 7 || top > 12) continue;
+      let ok = true; for (let k = -1; k <= wd; k++) { if (solidTop(L, x + k) !== top || !clear(L, x + k, top - h, top - 1)) { ok = false; break; } }
+      if (ok && !busy(L, x, r) && !(L.goal && Math.abs(L.goal - x) < 8)) return { x, top };
+    }
+    return null;
+  };
+  for (const id of Object.keys(LEVEL_HUTS)) {
+    const L = LEVELS[id]; if (!L) continue;
+    const hut = LEVEL_HUTS[id];
+    let d = spot(L, L.w * 0.2, L.w * 0.42, 2, 5), o = d && spot(L, d.x + 18, L.w * 0.62, 2, 4);
+    if (!o) { d = spot(L, L.w * 0.08, L.w * 0.6, 2, 4, 2); o = d && spot(L, d.x + 12, L.w * 0.85, 2, 3, 2); }   // (a crowded level: look further along)
+    if (d && o) {
+      const rid = id + '_under'; LEVELS[rid] = makeRoom(rid, id, hut);
+      L.ents.push({ k: 'warp', x: d.x, y: d.top, room: rid, out: [o.x, o.top], look: 'door', hut });
+      L.ents.push({ k: 'hatch', x: o.x, y: o.top });   // (where you come back up)
+    }
+    let vb = spot(L, L.w * 0.55, L.w * 0.75, 1, 7), so = vb && spot(L, vb.x + 24, (L.goal || L.w) - 10, 1, vb.top + 1, 2);
+    if (!so) { vb = spot(L, L.w * 0.3, L.w * 0.8, 1, 7, 2); so = vb && spot(L, vb.x + 22, (L.goal || L.w) - 8, 1, vb.top + 1, 2); }
+    if (vb && so) {
+      const sid = id + '_sky'; LEVELS[sid] = makeSky(sid, id);
+      L.t[(vb.top - 4) * L.w + vb.x] = T.QBOW; L.skyRoom = sid; L.skyOut = so.x;
+      L.infoAt = L.infoAt;   // (unchanged)
+    }
+  }
+})();
+
 
 // ---------- Sound ----------
 const beep = RB.beep;
@@ -1780,26 +1849,29 @@ canvas.addEventListener('wheel', e => {
 function startPipe(w) {
   const p = player;
   phase = 'pipe'; phaseT = 0; p.vx = 0; p.vy = 0; p.crouch = false; p.x = w.x + 16 - p.w / 2;
-  pipe = { stage: 'sink', t: 0, clipY: w.y + 4, warp: w };
+  pipe = { stage: 'sink', t: 0, clipY: w.y + 4, warp: w, door: w.look === 'door' };
+  if (pipe.door) { p.x = w.x + 16 - p.w / 2; sfx.enter(); }
   sfx.pipe(); RB.pad.rumble(120, 0.4);
 }
 function pipeUpdate(dt) {
   const p = player; pipe.t += dt;
   if (pipe.stage === 'sink') {
-    p.y += 42 * dt;
-    if (pipe.t < 0.6) return;
+    if (!pipe.door) p.y += 42 * dt;   // (down the hollow tree; through a door, the screen just fades)
+    if (pipe.t < (pipe.door ? 0.45 : 0.6)) return;
     const w = pipe.warp;
     if (w.k === 'warp') {   // into the bonus room: fall in through the hole in the roof
       outside = { lvl, ents, out: w.out };
       const src = LEVELS[w.room]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
       for (const e of src.ents) spawnFromSpec(e);
-      p.x = 3 * TS; p.y = -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
+      p.x = 3 * TS; p.y = w.look === 'door' ? 12 * TS - p.h : -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
       music.play(lvl.music); phase = 'play'; pipe = null;
+      if (w.look === 'door') { doorFade = 0.45; banner(lvl.name.toUpperCase() + '!', 'Coins, a power-up… and a ladder back up', 2); }
     } else {                // back out: rise up out of the log further along
       const o = outside.out; lvl = outside.lvl; ents = outside.ents; outside = null; parts = []; pops = []; bumps = [];
       p.x = o[0] * TS + 16 - p.w / 2; p.y = o[1] * TS + 2; p.vy = 0;
       camX = clamp(p.x + p.w / 2 - LW * 0.4, 0, lvl.w * TS - LW); camLead = 0.4;
       music.play(lvl.music); sfx.pipe();
+      if (w.look === 'door') { p.y = o[1] * TS - p.h; p.ground = true; phase = 'play'; pipe = null; doorFade = 0.45; return; }   // (up the ladder and out of the cellar hatch)
       pipe = { stage: 'rise', t: 0, clipY: o[1] * TS };
     }
     return;
@@ -1811,7 +1883,7 @@ function pipeUpdate(dt) {
 
 // ---- Diving under the bog ----
 // The dark bog mat sinks right out of the bottom of the level; the camera pans down after it into the underwater world.
-let dive = null, camY = 0;
+let dive = null, camY = 0, doorFade = 0;
 function startDive(sp) { phase = 'dive'; phaseT = 0; dive = { sp }; sfx.splash(); RB.pad.rumble(160, 0.4); }
 function diveUpdate(dt) {
   const p = player;
@@ -1839,7 +1911,7 @@ const bowPt = (e, u) => {   // a point on the rainbow's curve, u from 0 (the blo
 let bowRide = null;
 function updateBowUp(e, dt) {
   const p = player;
-  if (e.grow < 1) { e.grow = Math.min(1, e.grow + dt / 1.4); if (e.grow >= 1) banner('A RAINBOW!', 'Jump on it to ride up to the clouds 🌈', 2); return; }
+  if (e.grow < 1) { e.grow = Math.min(1, e.grow + dt / 1.4); if (e.grow >= 1) banner('A VINE!', 'Jump on it to climb up to the clouds 🌿', 2); return; }
   if (e.used || phase !== 'play' || pipe) return;
   const cx = p.x + p.w / 2, cy = p.y + p.h / 2;
   for (let u = 0; u <= 0.36; u += 0.02) { const q = bowPt(e, u); if (Math.hypot(q.x - cx, q.y - cy) < 14) { startBowRide(e, u); return; } }
@@ -1866,7 +1938,7 @@ function enterClouds() {
   for (const e of src.ents) spawnFromSpec(e);
   p.x = 3 * TS; p.y = -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
   music.play(lvl.music); phase = 'play';
-  banner('ABOVE THE CLOUDS!', 'A secret place 🌈', 2.2);
+  banner('ABOVE THE CLOUDS!', 'Coins and treasure in the sky ☁️', 2.2);
 }
 // the rainbow slide at the end of the cloud area: back down into the level, further along
 function leaveClouds() {
@@ -2154,6 +2226,8 @@ const AIR = {
   sod: { n: 14, c: ['#ffffff', '#ffd0e8', '#fff2a0'], kind: 'petal', vx: -12, vy: 8 },       // prairie flowers
   storm: { n: 40, c: ['rgba(200,220,255,.7)'], kind: 'rain', vx: -60, vy: 200 },
   railhead: { n: 12, c: ['#ffffff', '#e8e8e8'], kind: 'wisp', vx: -22, vy: 0 },
+  cellar: { n: 10, c: ['#c8b898'], kind: 'mote', vx: 0, vy: 6 },
+  burrow: { n: 10, c: ['#c8a878'], kind: 'mote', vx: 0, vy: 8 },
   night: { n: 16, c: ['#e8ff8a'], kind: 'mote', vx: 2, vy: -3 },
   canal: { n: 12, c: ['#ffffff', '#cfeaff'], kind: 'spray', vx: -16, vy: -4 },
   cranberry: { n: 12, c: ['#e8a040', '#c83040', '#f0c060'], kind: 'leaf', vx: -12, vy: 12 },
@@ -2528,6 +2602,40 @@ function drawRaccoon(x, y, t, face, flat, e = {}) {
   g.beginPath(); g.moveTo(6.6, -8.4); g.lineTo(9.4, -7.6); g.lineTo(6.6, -6.8); g.closePath(); g.fillStyle = '#e8e8ec'; g.fill(); g.beginPath(); g.arc(9.2, -7.6, 0.7, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
   for (const ex of [3.2, 5.2]) { g.beginPath(); g.moveTo(ex - 1, -11.4); g.lineTo(ex, -13.6); g.lineTo(ex + 1, -11.4); g.closePath(); g.fillStyle = '#76767e'; g.fill(); }
   g.beginPath(); g.arc(5.6, -9.5, 0.8 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(5.8, -9.5, 0.4, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  g.restore();
+}
+// ---- big animals that charge when you come up in front of them: a black bear, a moose and a bison ----
+function drawBear(x, y, t, face, e = {}) {
+  const s2 = Math.sin(t * (e.rush > 0 ? 16 : 7)), y0 = y + e.h;
+  g.save(); g.translate(x + e.w / 2, y0); g.scale(face, 1);
+  for (const [lx, k] of [[-7, 1], [-3, -1], [3, -1], [7, 1]]) { rrect(lx - 1.8 + s2 * k * 0.8, -6, 3.6, 6, 1.4); g.fillStyle = '#16121a'; g.fill(); }
+  ell(-1, -10, 11, 7.4); g.fillStyle = vgrad(-18, -3, '#2e2a34', '#16121a'); g.fill();
+  ell(9, -13, 5, 4.4); g.fillStyle = '#26222c'; g.fill(); ell(13, -11.6, 2.6, 2); g.fillStyle = '#a8845a'; g.fill(); g.beginPath(); g.arc(15, -12, 0.9, 0, TAU); g.fillStyle = '#0a0808'; g.fill();
+  for (const ex of [6.4, 10]) { g.beginPath(); g.arc(ex, -17.4, 1.8, 0, TAU); g.fillStyle = '#26222c'; g.fill(); }
+  g.beginPath(); g.arc(10.4, -14, 0.8, 0, TAU); g.fillStyle = e.rush > 0 ? '#ff6a4a' : '#ffffff'; g.fill();
+  g.restore();
+}
+function drawMoose(x, y, t, face, e = {}) {
+  const s2 = Math.sin(t * (e.rush > 0 ? 16 : 7)), y0 = y + e.h;
+  g.save(); g.translate(x + e.w / 2, y0); g.scale(face, 1);
+  for (const [lx, k] of [[-7, 1], [-4, -1], [4, -1], [7, 1]]) { rrect(lx - 1 + s2 * k * 0.8, -9, 2, 9, 0.8); g.fillStyle = '#3a2618'; g.fill(); }
+  ell(-1, -12, 10, 5.6); g.fillStyle = vgrad(-18, -6, '#6a4a30', '#4a3020'); g.fill(); ell(-5, -16, 5, 3); g.fill();   // the humped back
+  g.save(); g.translate(9, -16); g.rotate(0.5); rrect(-2, -3, 9, 5, 2.4); g.fillStyle = '#5a3e28'; g.fill(); g.restore();   // the long nose
+  ell(8, -17, 3.4, 3.4); g.fillStyle = '#5a3e28'; g.fill(); g.fillStyle = '#4a3020'; g.fillRect(8, -14, 1.6, 4);   // the bell under the chin
+  g.fillStyle = '#d8c0a0'; for (const sx of [-1, 1]) { g.beginPath(); g.ellipse(7 + sx * 5, -22, 5, 2.4, sx * 0.3, 0, TAU); g.fill(); for (let k = 0; k < 3; k++) g.fillRect(4 + sx * 6 + k * 2.4 * sx, -26, 1.2, 3); }   // the big flat antlers
+  g.beginPath(); g.arc(9.6, -18, 0.8, 0, TAU); g.fillStyle = e.rush > 0 ? '#ff6a4a' : '#ffffff'; g.fill();
+  g.restore();
+}
+function drawBigBison(x, y, t, face, e = {}) {
+  const s2 = Math.sin(t * (e.rush > 0 ? 18 : 7)), y0 = y + e.h;
+  g.save(); g.translate(x + e.w / 2, y0); g.scale(face, 1);
+  for (const [lx, k] of [[-8, 1], [-5, -1], [4, -1], [7, 1]]) { rrect(lx - 1 + s2 * k * 0.8, -6, 2.2, 6, 0.8); g.fillStyle = '#2a1e16'; g.fill(); }
+  ell(-4, -9, 8, 5); g.fillStyle = '#6a4a30'; g.fill();
+  ell(4, -12, 7, 8); g.fillStyle = vgrad(-20, -4, '#5a3a24', '#3a2416'); g.fill();   // the great woolly hump
+  ell(10, -9, 4, 4.4); g.fillStyle = '#2e2018'; g.fill(); ell(10, -4.6, 2.4, 2.8); g.fill();   // head and beard
+  g.strokeStyle = '#e8e0d0'; g.lineWidth = 1.2; g.beginPath(); g.moveTo(8.6, -12); g.quadraticCurveTo(7.6, -15, 9.6, -16); g.stroke();
+  g.beginPath(); g.arc(11.6, -10, 0.8, 0, TAU); g.fillStyle = e.rush > 0 ? '#ff6a4a' : '#ffffff'; g.fill();
+  if (e.rush > 0 && Math.random() < 0.3) puff(x + e.w / 2 - face * 10, y0 - 1, 1, 'rgba(200,170,120,.7)');
   g.restore();
 }
 // ---- World 4's creatures: a bobcat, a possum, a skunk, a cave cricket and a bat ----
@@ -3703,12 +3811,15 @@ function drawHeron(e, t, pink) {
   g.beginPath(); g.arc(hx + 0.6, hy - 0.6, 0.9, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.beginPath(); g.arc(hx + 0.8, hy - 0.6, 0.45, 0, TAU); g.fillStyle = INK; g.fill();
   g.restore();
 }
+const RATTLERS = new Set(['chimney', 'grassland', 'ponyx', 'sod', 'storm', 'jumpoff', 'railhead', 'burrow']);
 function drawSnake(e, t) {   // a green snake with yellow stripes, slithering; now and then it rears up and flicks its tongue
   const face = e.face || -1, ph = e.t * 8, rear = e.rear > 0 ? Math.sin(Math.min(1, e.rear / 0.7) * Math.PI) * 5 : 0;
   g.save(); g.translate(e.x + 9, e.y + e.h); g.scale(face, 1); g.lineCap = 'round';
   g.beginPath(); for (let i = 0; i <= 12; i++) { const sx = -10 + i * 1.6, sy = -2.2 + Math.sin(ph - i * 0.7) * 1.4 * (1 - i / 14) - (i > 9 ? (i - 9) / 3 * rear : 0); i ? g.lineTo(sx, sy) : g.moveTo(sx, sy); }
-  g.lineWidth = 3.4; g.strokeStyle = '#3a9a3a'; g.stroke(); g.setLineDash([1.4, 2]); g.lineWidth = 1.1; g.strokeStyle = '#e8d84a'; g.stroke(); g.setLineDash([]);
-  ell(9.6, -3.4 - rear, 3, 2.2); g.fillStyle = '#4aac48'; g.fill();
+  const rat = RATTLERS.has(lvl.theme) || (lvl.cast && lvl.cast.snake === 'rattler');   // (a prairie rattlesnake: tan with brown blotches, and a rattle)
+  g.lineWidth = 3.4; g.strokeStyle = rat ? '#b89a62' : '#3a9a3a'; g.stroke(); g.setLineDash([1.4, 2]); g.lineWidth = 1.6; g.strokeStyle = rat ? '#6a4a2a' : '#e8d84a'; g.stroke(); g.setLineDash([]);
+  if (rat) { const sh = Math.sin(t * 40) * 0.8; for (let k = 0; k < 3; k++) { ell(-11 - k * 1.6, -2.2 + sh, 1, 1.3); g.fillStyle = '#e8d8b0'; g.fill(); } }
+  ell(9.6, -3.4 - rear, 3, 2.2); g.fillStyle = rat ? '#a88a54' : '#4aac48'; g.fill();
   g.beginPath(); g.arc(10.2, -4.4 - rear, 0.8, 0, TAU); g.fillStyle = '#ffe14a'; g.fill(); g.fillStyle = INK; g.fillRect(10.05, -5, 0.4, 1.2);
   if (Math.sin(t * 9) > 0.2) { g.beginPath(); g.moveTo(12.4, -3 - rear); g.lineTo(14.4, -3 - rear); g.lineTo(15.4, -3.9 - rear); g.moveTo(14.4, -3 - rear); g.lineTo(15.4, -2.1 - rear); g.lineWidth = 0.5; g.strokeStyle = '#e8303a'; g.stroke(); }
   g.restore();
@@ -3841,6 +3952,28 @@ function drawPalm(x, t) {   // a coconut palm: a curving ringed trunk and a crow
 }
 // Decorations painted behind the ground (they don't block anything): [kind, tileX, tileY, options]
 const groundTopAt = tx => { for (let ty = 0; ty < lvl.h; ty++) { const tl = tileAt(Math.floor(tx), ty); if (tl === T.GROUND || (tl === T.STONE && ty > 7)) return ty * TS; } return 12 * TS; };   // (the ground itself, not blocks floating above it)
+// the way into an underground room: the place's own building with its door, a cave mouth in the rock, a big burrow, or
+// (down in the room) a ladder up to the light
+function drawDoorway(hut, cx, base, t, near) {
+  if (hut === 'ladder') {
+    g.fillStyle = 'rgba(255,240,190,.35)'; g.beginPath(); g.moveTo(cx - 10, 2 * TS); g.lineTo(cx + 10, 2 * TS); g.lineTo(cx + 18, base); g.lineTo(cx - 18, base); g.closePath(); g.fill();   // daylight from the hatch above
+    g.fillStyle = '#7a5434'; g.fillRect(cx - 8, 2 * TS, 2.4, base - 2 * TS); g.fillRect(cx + 6, 2 * TS, 2.4, base - 2 * TS); for (let y = base - 8; y > 2 * TS; y -= 10) g.fillRect(cx - 8, y, 16, 2);
+    return;
+  }
+  if (hut === 'cave') {
+    g.beginPath(); g.moveTo(cx - 34, base); g.quadraticCurveTo(cx - 30, base - 52, cx, base - 56); g.quadraticCurveTo(cx + 30, base - 52, cx + 34, base); g.closePath(); paint(vgrad(base - 56, base, '#9a9284', '#6a6458'));
+    g.fillStyle = 'rgba(40,36,30,.35)'; for (let i = 0; i < 9; i++) g.fillRect(cx - 26 + (i * 13) % 50, base - 46 + (i * 7) % 36, 6, 2);
+    g.beginPath(); g.moveTo(cx - 11, base); g.quadraticCurveTo(cx - 11, base - 26, cx, base - 26); g.quadraticCurveTo(cx + 11, base - 26, cx + 11, base); g.closePath(); g.fillStyle = '#16120e'; g.fill();
+  } else if (hut === 'burrow') {
+    g.beginPath(); g.moveTo(cx - 26, base); g.quadraticCurveTo(cx, base - 26, cx + 26, base); g.closePath(); paint(vgrad(base - 20, base, '#b8945e', '#8a6a3e'));
+    ell(cx, base - 4, 9, 7); g.fillStyle = '#1a120a'; g.fill();
+    if (Math.sin(t * 1.3) > 0.4) drawPrairieDog(cx - 8, base - 32, t);   // a prairie dog keeping watch on top
+  } else {
+    drawDecor([hut, cx / TS, base / TS, {}], t);
+    g.beginPath(); g.ellipse(cx, base - 9, 6, 10, 0, Math.PI, 0); g.lineTo(cx + 6, base); g.lineTo(cx - 6, base); g.closePath(); g.fillStyle = '#1a120a'; g.fill();   // the open door
+  }
+  if (near) glow(cx, base - 10, 16, 'rgba(255,220,120,1)', 0.35 + 0.15 * Math.sin(t * 5));
+}
 function drawDecor(d, t) {
   const [kind, tx, ty, o = {}] = d, x = tx * TS, y = ty * TS;
   switch (kind) {
@@ -4432,10 +4565,12 @@ function drawHorseshoe(x, y, t) {
 // the really long rainbow: six bands following its curve, a soft glow, and a twinkle running up it
 function drawBowUp(e, t) {
   const n = Math.max(2, Math.round(60 * e.grow)), fade = e.used ? 0.5 : 1;
-  const cols = ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'];
   const pts = []; for (let i = 0; i <= n; i++) pts.push(bowPt(e, i / 60));
   g.globalAlpha = fade;
-  cols.forEach((c, k) => {
+  // a twisting green vine, thick at the root, with leaves along it
+  g.lineCap = 'round'; for (const [w2, c] of [[6, '#2a5a1a'], [4, '#4a9a2e']]) { g.beginPath(); pts.forEach((q, i) => { const X = q.x + Math.sin(i * 0.7) * 2; i ? g.lineTo(X, q.y) : g.moveTo(X, q.y); }); g.lineWidth = w2; g.strokeStyle = c; g.stroke(); }
+  for (let i = 3; i < pts.length; i += 4) { const q = pts[i], s2 = i % 8 ? 1 : -1; ell(q.x + s2 * 6, q.y, 5, 2.4, s2 * 0.6); g.fillStyle = '#5ab83a'; g.fill(); g.strokeStyle = '#2a5a1a'; g.lineWidth = 0.6; g.stroke(); }
+  if (false) ['#ff5a5a'].forEach((c, k) => {
     const off = (k - 2.5) * 2.2;
     g.beginPath();
     pts.forEach((q, i) => { const q2 = pts[Math.min(pts.length - 1, i + 1)], q1 = pts[Math.max(0, i - 1)], dx = q2.x - q1.x, dy = q2.y - q1.y, l = Math.hypot(dx, dy) || 1, X = q.x - dy / l * off, Y = q.y + dx / l * off; i ? g.lineTo(X, Y) : g.moveTo(X, Y); });
@@ -4729,7 +4864,9 @@ const THEMES = {
   ponyx: { top: '#a8b85a', topDk: '#7a8a3a', dirt: '#a8845a', dirtDk: '#86663e', edge: '#4a3420' },
   sod: { top: '#8ab84a', topDk: '#5a8a34', dirt: '#5a4632', dirtDk: '#43342a', edge: '#221a12' },
   storm: { top: '#6a9a4a', topDk: '#4a7034', dirt: '#5a4632', dirtDk: '#43342a', edge: '#221a12' },
-  railhead: { top: '#a8b85a', topDk: '#7a8a3a', dirt: '#7a6a5a', dirtDk: '#5a4e40', edge: '#2a221a' },     // South Carolina's red clay  // the red clay of the cliffs      // cobblestones on Boston's old brick
+  railhead: { top: '#a8b85a', topDk: '#7a8a3a', dirt: '#7a6a5a', dirtDk: '#5a4e40', edge: '#2a221a' },
+  cellar: { top: '#8a6a48', topDk: '#6a4e32', dirt: '#5a4432', dirtDk: '#43322a', edge: '#221812' },        // a packed-earth floor
+  burrow: { top: '#a88458', topDk: '#86663e', dirt: '#7a5c3a', dirtDk: '#5a4228', edge: '#2e2012' },     // South Carolina's red clay  // the red clay of the cliffs      // cobblestones on Boston's old brick
 };
 const hash = (x, y) => { let h = x * 374761393 + y * 668265263; h = (h ^ (h >> 13)) * 1274126177; return ((h ^ (h >> 16)) >>> 0) / 4294967296; };
 const tileCache = new Map();
@@ -4953,12 +5090,11 @@ function qTile() {
   for (const [a, b] of [[2.6, 2.6], [13.4, 2.6], [2.6, 13.4], [13.4, 13.4]]) { g.beginPath(); g.arc(a, b, 0.8, 0, TAU); paint('#b87010'); }
 }
 // the rainbow block: rainbow stripes and a little white arc (a really long rainbow is inside)
-function bowTile() {
-  g.save(); rrect(0.4, 0.4, 15.2, 15.2, 3.4); g.clip();
-  ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'].forEach((c, i) => { g.fillStyle = c; g.fillRect(0, i * 2.7, 16, 2.8); });
-  g.restore(); rrect(0.4, 0.4, 15.2, 15.2, 3.4); g.lineWidth = 1.1; g.strokeStyle = '#8a5208'; g.stroke();
-  g.beginPath(); g.arc(8, 11.5, 5, Math.PI, 0); g.lineWidth = 1.6; g.strokeStyle = '#ffffff'; g.stroke();
-  g.fillStyle = 'rgba(255,255,255,.55)'; rrect(2, 1.5, 12, 1.4, 0.7); g.fill();
+function bowTile() {   // the vine block: a green block with a sprouting seedling on it (bump it and a vine grows up to the clouds)
+  rrect(0.4, 0.4, 15.2, 15.2, 3.4); paint(vgrad(0, 16, '#7ac04a', '#4a8a2a'), 1.1, '#2a5a1a');
+  g.strokeStyle = '#f4ffe0'; g.lineWidth = 1.4; g.beginPath(); g.moveTo(8, 13); g.quadraticCurveTo(7, 9, 8.6, 5.4); g.stroke();
+  ell(5.6, 7, 2.6, 1.4, -0.5); g.fillStyle = '#f4ffe0'; g.fill(); ell(10.8, 5.4, 2.6, 1.4, 0.5); g.fill();
+  g.fillStyle = 'rgba(255,255,255,.4)'; rrect(2, 1.5, 12, 1.4, 0.7); g.fill();
 }
 function onewayTile(theme, L, Rt, alt) {
   if (theme === 'woods' || theme === 'bog') {
@@ -5956,6 +6092,24 @@ SCENERY.railhead = [
     g.fillStyle = '#3a3a44'; g.fillRect(300, 176, 30, 18); g.fillRect(304, 164, 6, 14); for (let k = 0; k < 3; k++) { g.fillStyle = '#8a5a34'; g.fillRect(334 + k * 40, 178, 36, 16); }
   } },
 ];
+SCENERY.cellar = [
+  { sp: 0.04, draw() { g.fillStyle = '#2e2218'; g.fillRect(0, 0, BG_W, 224); g.fillStyle = 'rgba(80,60,40,.5)'; for (let i = 0; i < 40; i++) g.fillRect(rndB(i, 1) * BG_W, rndB(i, 2) * 220, 8 + rndB(i, 3) * 10, 3); } },   // earthen walls
+  { sp: 0.2, draw() {   // wooden posts and shelves of crocks and jars, baskets of corn and potatoes, roots through the ceiling
+    for (let i = 0; i < 8; i++) { const x = 20 + i * 60; g.fillStyle = '#5a3e26'; g.fillRect(x, 40, 6, 170); }
+    for (let i = 0; i < 4; i++) { const x = 40 + i * 120; g.fillStyle = '#6a4a2e'; g.fillRect(x, 120, 70, 4); g.fillRect(x, 160, 70, 4);
+      for (let k = 0; k < 4; k++) { ell(x + 10 + k * 16, 112, 6, 8); g.fillStyle = ['#c8a87a', '#8a5a3a', '#a8b4c0', '#c87a4a'][(i + k) % 4]; g.fill(); }
+      for (let k = 0; k < 3; k++) { rrect(x + 6 + k * 22, 140, 18, 20, 3); g.fillStyle = '#9a7444'; g.fill(); g.fillStyle = k % 2 ? '#e8c050' : '#a8784a'; ell(x + 15 + k * 22, 141, 8, 3); g.fill(); } }
+    g.strokeStyle = 'rgba(120,90,60,.7)'; g.lineWidth = 1; for (let i = 0; i < 12; i++) { const x = 15 + i * 40; g.beginPath(); g.moveTo(x, 30); g.quadraticCurveTo(x + 6, 50, x + 2, 60 + (i % 3) * 8); g.stroke(); }
+  } },
+];
+SCENERY.burrow = [
+  { sp: 0.04, draw() { g.fillStyle = '#3a2814'; g.fillRect(0, 0, BG_W, 224); } },
+  { sp: 0.2, draw() {   // a maze of tunnels and round chambers, with roots and nests of dry grass
+    g.fillStyle = '#1e140a'; for (let i = 0; i < 6; i++) { const x = 40 + i * 80, y = 70 + (i % 3) * 40; ell(x, y, 26, 18); g.fill(); g.fillRect(x, y - 6, 80, 12); }
+    for (let i = 0; i < 3; i++) { ell(80 + i * 160, 190, 20, 6); g.fillStyle = '#c8a860'; g.fill(); }
+    g.strokeStyle = 'rgba(160,120,70,.7)'; g.lineWidth = 1; for (let i = 0; i < 14; i++) { const x = 10 + i * 34; g.beginPath(); g.moveTo(x, 20); g.quadraticCurveTo(x + 5, 40, x, 56); g.stroke(); }
+  } },
+];
 SCENERY.daytona = [
   { sp: 0.03, draw() {   // the Atlantic, wide and blue
     g.fillStyle = vgrad(140, 224, '#3ab0e0', '#1a7ab8'); g.fillRect(0, 140, BG_W, 84);
@@ -6460,6 +6614,7 @@ const SKIES = {
   erie: ['#6ab4ec', '#f4eedc'], sangamon: ['#2a2238', '#c8604a'], portage: ['#7a9ac0', '#e6eef2'], pioneer: ['#7ab4e6', '#f6ead0'],
   missouri: ['#7ab4e6', '#f2ead4'], mandan: ['#a8b8d0', '#f2f4f8'], jumpoff: ['#86b8e0', '#f6eccc'], chimney: ['#5aa8e8', '#fff0d0'], grassland: ['#4aa0e8', '#fff4d4'],
   ponyx: ['#e88a5a', '#ffd89a'], sod: ['#7ab8e8', '#f8f0d8'], storm: ['#3a4a3a', '#8a9a7a'], railhead: ['#7ab4e6', '#f6ead0'],
+  cellar: ['#1a120c', '#3a2a1c'], burrow: ['#2a1c10', '#4a3420'],
 };
 // the sky and sun, painted once per world and screen size
 let skyPic = null, skyKey = '';
@@ -6653,7 +6808,8 @@ function spawnFromSpec(e) {
     case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS, lit: checkpoint && lvl.gate ? -9 : 0 })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: 3, maxHp: 3, kind: e.kind || 'grumbles', who: e.who || 'sherlock', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3, act: 0, cst: 'walk' })); break;
-    case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out })); break;
+    case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out, look: e.look, hut: e.hut })); break;
+    case 'hatch': ents.push(mk('hatch', x, y - 4, { w: 32, h: 4 })); break;   // (a cellar hatch in the ground, where you come back up)
     case 'sturgeon': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5), look: 'sturgeon' })); break;   // (it leaps like the sharks did)
     case 'boat': {
       const b = mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: e.sp || 44, go: false, mx: 0, my: 0, look: e.look, storm: e.storm, waveT: 2 });
@@ -6673,7 +6829,7 @@ function spawnFromSpec(e) {
     case 'snake': ents.push(mk('snake', x, y + 8, { w: 18, h: 8, dir: -1, rear: 0, rearCD: rand(1, 3) })); break;
     case 'gator': ents.push(mk('gator', x - 6, y + 4, { w: 28, h: 12, dir: -1 })); break;
     case 'rooster': ents.push(mk('rooster', x + 1, y + 2, { w: 14, h: 14, dir: -1, hopCD: rand(0.5, 1.6) })); break;
-    case 'turkey': ents.push(mk('turkey', x + 1, y + 2, { w: 14, h: 14, dir: -1, rush: 0, cool: rand(0.5, 1.5), fan: 0 })); break;
+    case 'turkey': { const big = ['bear', 'moose', 'bison'].includes(e.as); ents.push(mk('turkey', x + 1 - (big ? 4 : 0), y + 2 - (big ? 6 : 0), { w: big ? 22 : 14, h: big ? 20 : 14, dir: -1, rush: 0, cool: rand(0.5, 1.5), fan: 0, as: e.as })); break; }   // (bears, moose and bison charge like turkeys, but bigger)
     case 'racer': ents.push(mk('racer', x - 6, y + 4, { w: 28, h: 12, dir: -1, face: -1, n: e.x })); break;
     case 'jelly': ents.push(mk('jelly', x + 2, y, { x0: x + 2, y0: y, w: 12, h: 12, ph: rand(0, 6) })); break;
     case 'puffer': ents.push(mk('puffer', x, y, { w: 14, h: 14, kick: rand(0.3, 1.2), face: -1, puff: 0 })); break;
@@ -6804,6 +6960,7 @@ function updateLevel(dt) {
   if (phase === 'bow') { bowUpdate(dt); updateEnts(dt); return; }
   if (phase === 'dive') { diveUpdate(dt); return; }
   if (camY) { camY *= Math.exp(-dt * 2.6); if (Math.abs(camY) < 0.5) camY = 0; }   // (easing back after the dive)
+  if (doorFade > 0) doorFade = Math.max(0, doorFade - dt);
   if (lvl.storm && Math.floor(clock / 5.3) !== Math.floor((clock - dt) / 5.3) && stormAt(camX) > 0.3) sfx.thunder();
   if (lvl.quake && phase === 'play' && Math.floor(clock / 7) !== Math.floor((clock - dt) / 7)) { shake = Math.max(shake, 0.45); sfx.pound(); RB.pad.rumble(280, 0.4); }   // the New Madrid earthquakes (1811): the ground shakes now and then
   if (phase === 'play' && !bossDown && !save.noTimer && timeLeft > 0) {
@@ -6921,10 +7078,16 @@ function updatePlayer(dt) {
   if (pressed.item) recallReserve();
   // muddy boots after stepping in poop: a few brown footprints
   if (p.muddy > 0) { p.muddy -= dt; p.printX = p.printX || p.x; if (p.ground && Math.abs(p.x - p.printX) > 10) { p.printX = p.x; ents.push(mk('smudge', p.x + p.w / 2 - 2, p.y + p.h - 2, { w: 0, h: 0, life: 4, print: true })); } }
-  // S standing on top of a hollow tree: down you go
+  // ▲ at a door (a cabin, a wetu, a cave mouth…): in you go
+  if (inp.up && !p.upHeld && p.ground && !p.carry && phase === 'play') {
+    const cx = p.x + p.w / 2, w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && e.look === 'door' && Math.abs(cx - (e.x + 16)) < 12 && Math.abs(p.y + p.h - (e.y + 4)) < 3);
+    if (w) { p.upHeld = true; startPipe(w); return; }
+  }
+  p.upHeld = inp.up;
+  // S standing on top of a hollow tree (or at a door): down you go
   if (inp.down && p.ground && !p.pound && phase === 'play') {
     const cx = p.x + p.w / 2;
-    const w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && Math.abs(cx - (e.x + 16)) < 7 && Math.abs(p.y + p.h - (e.y + 4)) < 2);
+    const w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && Math.abs(cx - (e.x + 16)) < (e.look === 'door' ? 12 : 7) && Math.abs(p.y + p.h - (e.y + 4)) < 2);
     if (w) { startPipe(w); return; }
   }
   // carrying a shell: let go of run to throw it (hold S to put it down gently)
@@ -7146,10 +7309,10 @@ function updateEnts(dt) {
       case 'turkey': {   // a wild turkey struts along; when the hero comes up in front of it, it fans its tail, gobbles and rushes at him
         e.cool -= dt; e.rush = Math.max(0, e.rush - dt);
         const front = (p.x + p.w / 2 - (e.x + e.w / 2)) * e.dir, level = Math.abs(p.y + p.h - (e.y + e.h)) < 24;
-        if (e.rush <= 0 && e.cool <= 0 && front > 0 && front < 80 && level) { e.rush = 0.9; e.cool = 2.2; sfx.gobble(); }
+        if (e.rush <= 0 && e.cool <= 0 && front > 0 && front < (e.as ? 110 : 80) && level) { e.rush = e.as ? 1.1 : 0.9; e.cool = 2.2; if (e.as) { sfx.pound(); shake = Math.max(shake, 0.12); } else sfx.gobble(); }
         e.fan = clamp(e.fan + (e.rush > 0 || (front > 0 && front < 110 && level) ? 4 : -2) * dt, 0, 1);
         if (!groundAhead(e) && e.ground) { e.dir *= -1; e.rush = 0; }
-        e.vx = e.dir * (e.rush > 0 ? 96 : 26);
+        e.vx = e.dir * (e.rush > 0 ? (e.as === 'bison' ? 120 : 96) : e.as ? 20 : 26);
         e.vy = Math.min(e.vy + 900 * dt, 300);
         moveX(e, e.vx * dt); if (e.wall) { e.dir = -e.wall; e.rush = 0; }
         moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
@@ -7993,7 +8156,7 @@ function drawEnt0(e, t) {
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
     case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : c === 'hessian' ? drawHessian : c === 'raccoon' ? drawRaccoon : c === 'pirate' ? drawPirate : c === 'hog' ? drawHog : c === 'bobcat' ? drawBobcat : c === 'possum' ? drawPossum : c === 'skunk' ? drawSkunk : c === 'cricket' ? drawCricket : c === 'beaver' ? drawBeaver : c === 'bison' ? drawBison : c === 'jackrabbit' ? drawJackrabbit : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
-    case 'turkey': drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
+    case 'turkey': if (e.as === 'bear') drawBear(x, y, tt, face, e); else if (e.as === 'moose') drawMoose(x, y, tt, face, e); else if (e.as === 'bison') drawBigBison(x, y, tt, face, e); else drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
     case 'snaily': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
     case 'shell': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': (lvl.cast && lvl.cast.thorny === 'porcupine' ? drawPorcupine : drawThorny)(x - 1, y - 3 - spookHop(e), tt, face, e); break;
@@ -8035,9 +8198,15 @@ function drawEnt0(e, t) {
     case 'friend': drawFriend(e, t); break;
     case 'warp': case 'exit': {   // a little bouncing arrow over a hollow tree when Leo's close: press S to go in
       const near = player && Math.abs(player.x + player.w / 2 - (x + 16)) < 40 && Math.abs(player.y + player.h - (y + 4)) < 60;
+      if (e.look === 'door') {   // a building or a cave mouth with a door (or, down below, a ladder up): an ▲ arrow over the door when you're close
+        drawDoorway(e.hut, x + 16, y + 4, t, near);
+        if (near && !pipe) { const by = y - 40 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 10, by + 8); g.lineTo(x + 22, by + 8); g.lineTo(x + 16, by); g.closePath(); paint('#ffe14a', 0.8, '#5a3a08'); }
+        break;
+      }
       if (near && !pipe) { const by = y - 22 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 10, by); g.lineTo(x + 22, by); g.lineTo(x + 16, by + 8); g.closePath(); g.fillStyle = '#ffe14a'; g.fill(); }
       break;
     }
+    case 'hatch': { rrect(x + 6, y + 2, 20, 4, 1); paint('#7a5434', 0.6, '#3a2410'); g.fillStyle = '#c8a040'; g.fillRect(x + 14, y + 3, 4, 1.4); break; }   // a cellar hatch
     case 'key': drawKey(x, y, t); break;
     case 'clover': drawClover(x - 1, y - 2, t); break;
     case 'flower': drawFlower(x - 1, y - 2, t); break;
@@ -8140,8 +8309,8 @@ function drawEnt0(e, t) {
       break;
     }
     case 'bowup': drawBowUp(e, t); break;
-    case 'skyexit': {   // a rainbow slide curving down off the edge of the clouds
-      for (let i = 0; i < 6; i++) { g.beginPath(); g.arc(x + 40, y + 34, 34 - i * 2.2, Math.PI, Math.PI * 1.75); g.lineWidth = 2.4; g.strokeStyle = ['#ff5a5a', '#ffa23a', '#ffe14a', '#5ad06a', '#5ab0ff', '#b07aff'][i]; g.stroke(); }
+    case 'skyexit': {   // a vine trailing down off the edge of the clouds: slide down it
+      for (let i = 0; i < 2; i++) { g.beginPath(); g.arc(x + 40, y + 34, 34 - i * 2.6, Math.PI, Math.PI * 1.75); g.lineWidth = i ? 2.4 : 4.4; g.strokeStyle = i ? '#5ab83a' : '#2a5a1a'; g.stroke(); }
       const by = y - 6 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 18, by); g.lineTo(x + 30, by + 6); g.lineTo(x + 18, by + 12); g.closePath(); g.fillStyle = '#ffe14a'; g.fill();
       break;
     }
@@ -9728,6 +9897,8 @@ function render() {
     if (camY) ctx.setTransform(scale, 0, 0, scale, 0, offY - Math.round(camY * scale));
     const o = offY; offY -= Math.round(camY * scale);
     try { drawLevel(); } finally { offY = o; }
+    const fade = pipe && pipe.door ? Math.min(1, pipe.t / 0.45) : doorFade > 0 ? doorFade / 0.45 : 0;   // (through a door: a quick fade to dark and back)
+    if (fade > 0) { ctx.fillStyle = `rgba(8,6,4,${fade})`; ctx.fillRect(0, 0, LW, LH); }
     if (camY) {
       ctx.setTransform(scale, 0, 0, scale, 0, offY);
       const y0 = camY > 0 ? LH - camY : 0, h = Math.abs(camY);

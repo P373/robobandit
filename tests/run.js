@@ -3530,7 +3530,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startGame();
       const start = { at: mapLeo.at, tag: levelTag('voyage'), plimoth: nodeOpen(node('plimoth')), w1: worldOpen(0), w2: worldOpen(1), area: mapArea(), atSea: node('voyage').x > node('plimoth').x, buttons: !document.getElementById('mapBtns').classList.contains('hidden') };
       const shape = { worlds: WORLDS.length, names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length, everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
-        built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id)),
+        built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id) || (LEVELS[id].room && node(LEVELS[id].parent))),
         years: WORLDS.flat().every(id => node(id).year), spike: WORLDS[8][WORLDS[8].length - 1] === 'spike', neighbours: NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 };
       // Worlds 1 to 6 are built: beating World 1 leaves World 2 shut until New England's quiz is passed; beating World 2
       // leaves World 3 shut until its quiz, and then World 3's signposts are walked past
@@ -3971,6 +3971,47 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.every(x => x.clearedAfter && x.nextAfterNormal), 'finishing the level the normal way opens the next level: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
+  });
+
+  await test('Manifest Destiny underground and up in the clouds: every main level has a door into an underground room and a vine up to the clouds; ▲ at the door goes down and the ladder comes back up further on; the vine climbs to a cloud area and its slide comes back down; bears, moose and bison charge', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } }, out = { levels: [] };
+      paused = true; startGame(); lives = 20;
+      for (const id of Object.keys(LEVEL_HUTS)) {
+        const L = LEVELS[id], d = L.ents.find(e => e.k === 'warp' && e.look === 'door'), o = { id, door: !!d, vine: !!L.skyRoom };
+        state = 'level'; startLevel(id); ents = ents.filter(e => !isEnemy(e)); keep = { form: 0, mount: false };
+        if (d) {   // in at the door, through the room, out of the hatch further on
+          const w = ents.find(e => e.k === 'warp'); player.x = w.x + 16 - player.w / 2; player.y = w.y + 4 - player.h; player.vy = 0; run(4);
+          keys.up = true; run(2); keys.up = false; run(40); o.inRoom = !!lvl.room && lvl.parent === id; let drew = true; try { render(); } catch (e) { drew = e.message; } o.roomDrew = drew;
+          const ex = ents.find(e => e.k === 'exit'); player.x = ex.x + 16 - player.w / 2; player.y = ex.y + 4 - player.h; player.vy = 0; run(4);
+          keys.up = true; run(2); keys.up = false; run(40); o.back = lvl.id === id && Math.abs(player.x / 16 - d.out[0]) < 2 && phase === 'play';
+        }
+        if (L.skyRoom) {   // bump the vine block, climb, and slide back down
+          state = 'level'; startLevel(id); ents = ents.filter(e => !isEnemy(e)); let bx = -1, by = -1;
+          for (let y = 0; y < lvl.h && bx < 0; y++) for (let x = 0; x < lvl.w; x++) if (lvl.t[y * lvl.w + x] === T.QBOW) { bx = x; by = y; break; }
+          player.x = bx * 16; player.y = (by + 1) * 16 + 2; player.vy = -300; player.ground = false; run(140);
+          const bow = ents.find(e => e.k === 'bowup'); if (bow) { player.x = bow.x0 + 8; player.y = bow.y0 - 30; run(2); const q = bowPt(bow, 0.1); player.x = q.x - player.w / 2; player.y = q.y - player.h / 2; run(400); }
+          o.inSky = !!lvl.room && lvl.theme === 'sky'; let drew = true; try { render(); } catch (e) { drew = e.message; } o.skyDrew = drew;
+          const se = ents.find(e => e.k === 'skyexit'); if (se) { player.x = se.x + 8; player.y = se.y; run(10); }
+          o.down = lvl.id === id;
+        }
+        out.levels.push(o);
+      }
+      // the big animals charge
+      state = 'level'; startLevel('bison'); ents = ents.filter(e => e.k === 'turkey'); const bison = ents.find(e => e.as === 'bison');
+      player.x = bison.x + bison.dir * 70; player.y = bison.y + bison.h - player.h; player.inv = 9; let rushed = false; run(150, () => { if (bison.rush > 0) rushed = true; }); out.charge = rushed;
+      try { render(); out.animalsDrew = true; } catch (e) { out.animalsDrew = e.message; }
+      paused = false; return out;
+    });
+    const L = r.levels;
+    check(L.length >= 36 && L.every(o => o.door && o.vine), 'every main level has a door and a vine: ' + L.filter(o => !o.door || !o.vine).map(o => o.id).join(', '));
+    check(L.every(o => o.inRoom && o.roomDrew === true && o.back), 'the doors lead down into a room and the ladders back up: ' + JSON.stringify(L.filter(o => !(o.inRoom && o.roomDrew === true && o.back))));
+    check(L.every(o => o.inSky && o.skyDrew === true && o.down), 'the vines climb to the clouds and slide back down: ' + JSON.stringify(L.filter(o => !(o.inSky && o.skyDrew === true && o.down))));
+    check(r.charge && r.animalsDrew === true, 'a bison charges when you come up in front of it: ' + JSON.stringify({ charge: r.charge, drew: r.animalsDrew }));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-under.png');
   });
 
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {

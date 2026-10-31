@@ -130,6 +130,20 @@ close.
 
 ---
 
+## Underground rooms and cloud areas
+
+Every main level in Worlds 1 to 6 has a way down and a way up, placed where the level's ground allows:
+- **A door** in a building that belongs there (a Pilgrim house, a wetu or yehakin, a log cabin, a sod house, a Mandan
+  earth lodge) or a cave mouth or a prairie-dog burrow. Press ▲ (or ▼) at it to go down into an underground room (a
+  root cellar, a corn storage pit, a cave, a storm cellar, a prairie dog town) with coins and a power-up, then climb the
+  ladder and come up through a cellar hatch further along.
+- **A vine block**: bump it and a vine grows up to a cloud area with coins and blocks; its vine slides you back down
+  further on.
+
+Big animals charge when you come up in front of them, like the turkeys: black bears in Kentucky and Wisconsin, moose at
+Grand Portage, bison on the plains. Rattlesnakes replace the green snakes on the Great Plains, and porcupines live in the
+north woods.
+
 ## The level timer
 
 Like Super Mario World's: the clock counts down a little faster than seconds (300 on most levels, 400 on long ones, 500
