@@ -35,9 +35,9 @@ After a change to `site.css`, bump the `?v=` on its link so browsers fetch the n
 
 ## Still to do
 
-- **Photos.** The storefront and the packed painting are still loaded from the old Wix site
-  (`static.wixstatic.com`). Download the originals into `img/` and point the two `<img>` tags at them before the Wix
-  site is shut down. More real photos would help a lot: the supplies wall, the card racks, a custom crate, the counter.
+- **More photos.** The storefront, the packed painting, the supplies wall and the card racks are in `img/` (from the
+  old site, small: about 455 px). Bigger originals and a few more (a custom crate, the counter, seafood coolers)
+  would make it look even better.
 - **Check with Andrew:** hours (the old site says Mon–Fri 9–5, closed weekends, but UPS and Yellow Pages list Mon–Fri
   9–5:30 and Sat 9–3), whether there's a notary, and whether there's a Facebook page to link.
 - **Going live:** in a new repo, delete the "Preview of the new…" bar and the `noindex` meta tag, change the
