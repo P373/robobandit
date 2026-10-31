@@ -3946,6 +3946,30 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'manifest-destiny-world6.png');
   });
 
+  await test('Manifest Destiny secret exits: a golden flag opens only the secret level; the level stays unbeaten, and the next level opens only when it is finished the normal way (in every world)', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); }, out = [];
+      localStorage.removeItem('md_save'); paused = true; startGame();
+      for (const [id, to] of PATHS.filter(q => q[2] === 'secret' && LEVELS[q[0]] && LEVELS[q[1]]).map(q => [q[0], q[1]])) {
+        for (const k of ['cleared', 'secrets', 'quiz', 'spikes']) save[k] = {}; save.unlockAll = false; openCache = null;
+        const w = worldOf(id); for (let k = 0; k < w; k++) save.quiz[k] = true;   // (earlier regions passed)
+        const before = WORLDS[w].slice(0, WORLDS[w].indexOf(id)); for (const b of before) save.cleared[b] = true; if (w > 0) for (const b of WORLDS[w - 1]) save.cleared[b] = true;
+        const next = WORLDS[w][WORLDS[w].indexOf(id) + 1];
+        state = 'level'; startLevel(id); reachGoal(true); run(300);
+        const afterSecret = { cleared: !!save.cleared[id], secretOpen: nodeOpen(node(to)), nextOpen: next ? nodeOpen(node(next)) : false };
+        state = 'level'; startLevel(id); reachGoal(); run(300);
+        out.push({ id, ...afterSecret, nextAfterNormal: next ? nodeOpen(node(next)) : true, clearedAfter: !!save.cleared[id] });
+      }
+      paused = false; return out;
+    });
+    check(r.length >= 6 && r.every(x => !x.cleared && x.secretOpen && !x.nextOpen), 'a secret exit opens just the secret level, not the next one: ' + JSON.stringify(r));
+    check(r.every(x => x.clearedAfter && x.nextAfterNormal), 'finishing the level the normal way opens the next level: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
@@ -4061,7 +4085,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       ship.x = ship.x1 - 4; run(20); out.arrived = ship.x === ship.x1 && LEVELS.voyage.t[10 * LEVELS.voyage.w + (ship.x1 + ship.w) / 16] === T.GROUND;
       // her secret exit, up at the main top, opens a sea lane to Nantucket
       startLevel('voyage'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.secret = !!save.secrets.voyage && pathOpen(PATHS.find(([a, b]) => a === 'voyage' && b === 'nantucket'));
-      out.plimothOpen = nodeOpen(node('plimoth'));
+      out.plimothShut = !nodeOpen(node('plimoth'));   // (a secret exit doesn't count as beating the level)
+      startLevel('voyage'); reachGoal(); run(300); out.plimothOpen = nodeOpen(node('plimoth'));
       // Plimoth: a turkey fans its tail and charges when the Pilgrim walks up in front of it
       startLevel('plimoth'); ents = ents.filter(e => e.k === 'friend' || e.k === 'turkey'); run(5);
       const tk = ents.find(e => e.k === 'turkey'); tk.cool = 0; tk.dir = -1; player.x = tk.x - 50; player.y = tk.y; player.vy = 0; run(6);
@@ -4085,7 +4110,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.yard, 'a yard carries the Pilgrim along with the ship: ' + JSON.stringify(r));
     check(r.rope, 'overboard, a rope hauls him back on deck: ' + JSON.stringify(r));
     check(r.wave && r.arrived, 'storm waves wash across the deck, and she stops at the Provincetown beach: ' + JSON.stringify(r));
-    check(r.secret && r.plimothOpen, "the secret exit opens the sea lane to Nantucket (and beating 1-1 opens Plimoth): " + JSON.stringify(r));
+    check(r.secret && r.plimothShut && r.plimothOpen, "the secret exit opens the sea lane to Nantucket only; beating 1-1 the normal way opens Plimoth: " + JSON.stringify(r));
     check(r.turkey, 'a turkey fans its tail and charges: ' + JSON.stringify(r));
     check(r.friend, 'Tisquantum shares his corn and is never an enemy: ' + JSON.stringify(r));
     check(r.corn && r.facts, 'five ears of corn to find, and five info boxes in each level: ' + JSON.stringify(r));

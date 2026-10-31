@@ -7656,7 +7656,7 @@ function clearUpdate(dt) {
 }
 function finishLevel() {
   const id = lvl.parent || lvl.id;   // (a secret exit inside a room counts for the level it's in)
-  save.cleared[id] = true;
+  if (!lvl.secretExit) save.cleared[id] = true;   // (a secret exit only opens the secret trail: the level still has to be finished the normal way to go on)
   const old = save.gems[id] || [];
   save.gems[id] = levelGems.map((g2, i) => g2 || !!old[i]);
   if (gotKey) save.key = true;
@@ -8482,7 +8482,7 @@ function openSet() {
     for (const pth of PATHS) {
       const [a, b, sec] = pth;
       if (!pathReady(pth)) continue;
-      if (!open.has(b) && !node(b).secret && passed(a)) { open.add(b); changed = true; }
+      if (!open.has(b) && !node(b).secret && (sec === 'secret' ? open.has(a) : passed(a))) { open.add(b); changed = true; }   // (a secret trail opens once its secret is found, cleared or not)
       if (!open.has(a) && passed(b) && !node(b).secret && !sec) { open.add(a); changed = true; }   // (and back along the road you came)
     }
   }
