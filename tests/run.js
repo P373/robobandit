@@ -3636,7 +3636,9 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const px = player.x, py = player.y; keys.right = true; run(30); keys.right = false; out.waits = player.x === px && player.y === py;
       pressed.jump = true; step(1 / 60); out.closed = !factOpen;
       // bump it again: "Remember?"
-      run(60); player.x = tx * 16 + 2; player.y = (ty + 1) * 16 + 1; player.vy = -260; player.ground = false; run(20); out.again = card(); closeFact();
+      run(60); player.x = tx * 16 + 2; player.y = (ty + 1) * 16 + 1; player.vy = -260; player.ground = false; keys.run = true; run(20); out.again = card();
+      // a run button held all along still counts once the fact is closed (the browser doesn't send it again)
+      out.heldThrough = keys.run === true; closeFact(); keys.run = false;
       // the quiz: five questions from World 1's info boxes
       const pool = regionQuestions(0).length;
       startQuiz(0, () => { out.passed = true; });
@@ -3653,7 +3655,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(r.data.every(([, n, ok]) => n >= 3 && n <= 5 && ok), 'every level has 3 to 5 short facts, each with a question and three different answers: ' + JSON.stringify(r.data));
     check(r.first.open && /Did you know/.test(r.first.head) && /Patuxet/.test(r.first.text) && /Plimoth Plantation · 1 of 5 · 1621/.test(r.first.src) && r.read, 'an info box pops up its fact, and the meter is filled in and saved: ' + JSON.stringify(r));
-    check(r.waits && r.closed, 'the game waits while the fact is up, and jump closes it: ' + JSON.stringify(r));
+    check(r.waits && r.closed && r.heldThrough, 'the game waits while the fact is up, jump closes it, and a button held all along still counts after: ' + JSON.stringify(r));
     check(/Remember/.test(r.again.head), 'bumping it again says "Remember?": ' + JSON.stringify(r.again));
     check(r.pool >= 25 && r.q1.n === 3 && r.fromRegion, 'the quiz asks questions from the region\'s info boxes, with three answers: ' + JSON.stringify(r));
     check(r.wrong && r.restarted, 'a wrong answer shows the right one and offers a new quiz: ' + JSON.stringify(r));

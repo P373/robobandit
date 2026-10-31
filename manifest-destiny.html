@@ -8887,8 +8887,7 @@ function openInfo(tx, ty) {
   const dpr = canvas.width / innerWidth, tall = canvas.width / canvas.height < 1.15;   // (on a tall phone: just under the game, above the touch buttons)
   factEl.style.top = tall ? Math.round((offY + LH * scale) / dpr + 10) + 'px' : ''; factEl.style.bottom = tall ? 'auto' : '';
   factEl.classList.remove('hidden'); touchEl.classList.add('hidden'); factOpen = true; factWait = 0.4; shake = 0;   // (a ground pound onto the box shakes the screen: not while the fact is up)
-  for (const k in keys) keys[k] = false;
-  sfx.mid(); if (first) addScore(500, tx * TS, ty * TS);
+  sfx.mid(); if (first) addScore(500, tx * TS, ty * TS);   // (keys held down stay held: the game just waits, so running on afterwards still works)
 }
 function closeFact() { factEl.classList.add('hidden'); factOpen = false; showTouch(); }   // (the touch buttons hide while it's up: tap anywhere to go on)
 function drawFactFace() {   // the hero you're playing, big, in the round portrait beside the speech bubble

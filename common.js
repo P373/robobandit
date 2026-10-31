@@ -708,7 +708,9 @@ const RB = (() => {
       // a button press always looks at the screen as it is right now (a menu may have just closed)
       const anyEdge = btn.some((b, i) => b && !prevBtn[i]);
       const menu = choices(anyEdge).length > 0;
-      if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); ignore = btn.slice(); }
+      // (coming out of a menu, only Ⓐ and Ⓑ, which pick and close things, wait to be let go; a D-pad direction or the run
+      // button held all along carries straight on in the game)
+      if (menu !== menuMode) { menuMode = menu; releaseAll(); if (!menu) setFocus(null); ignore = menu ? btn.slice() : btn.map((b, i) => b && (i === 0 || i === 1)); }
       ignore = ignore.map((b, i) => b && btn[i]);   // a button counts again once it's let go
       if (edge(8)) leaveRequest(now);
       if (edge(9)) {   // ☰: the RoboBandit menu, from anywhere (and ☰ again closes it)
