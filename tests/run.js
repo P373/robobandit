@@ -3997,8 +3997,13 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         if (d) {   // in at the door, through the room, out of the hatch further on
           const w = ents.find(e => e.k === 'warp'); player.x = w.x + 16 - player.w / 2; player.y = w.y + 4 - player.h; player.vy = 0; run(4);
           keys.up = true; run(2); keys.up = false; run(40); o.inRoom = !!lvl.room && lvl.parent === id; let drew = true; try { render(); } catch (e) { drew = e.message; } o.roomDrew = drew;
-          const ex = ents.find(e => e.k === 'exit'); player.x = ex.x + 16 - player.w / 2; player.y = ex.y + 4 - player.h; player.vy = 0; run(4);
-          keys.up = true; run(2); keys.up = false; run(40); o.back = lvl.id === id && Math.abs(player.x / 16 - d.out[0]) < 2 && phase === 'play';
+          // the ladder: jump at it from the side and hang on; jump lets go; then climb all the way up and out
+          const ex = ents.find(e => e.k === 'exit'); player.x = ex.x + 16 - player.w / 2 - 30; player.y = ex.y + 4 - player.h; player.vy = -280; player.vx = 90; player.ground = false; keys.right = true; run(18); keys.right = false;
+          o.grabbed = !!player.climb; const y0 = player.y; run(30); o.sticks = !!player.climb && Math.abs(player.y - y0) < 1;
+          keys.down = true; run(10); keys.down = false; o.climbsDown = player.y > y0 + 4 || player.ground;
+          pressed.jump = true; run(2); o.letsGo = !player.climb; run(60);
+          player.x = ex.x + 16 - player.w / 2; player.y = ex.y + 4 - player.h; player.vy = 0; run(4);
+          keys.up = true; run(20); o.notYet = !!lvl.room; run(200); keys.up = false; run(40); o.back = lvl.id === id && Math.abs(player.x / 16 - d.out[0]) < 2 && phase === 'play';
         }
         if (L.skyRoom) {   // bump the vine block, climb, and slide back down
           state = 'level'; startLevel(id); ents = ents.filter(e => !isEnemy(e)); let bx = -1, by = -1;
@@ -4019,6 +4024,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     const L = r.levels;
     check(L.length >= 36 && L.every(o => o.door && o.vine), 'every main level has a door and a vine: ' + L.filter(o => !o.door || !o.vine).map(o => o.id).join(', '));
+    check(L.every(o => o.grabbed && o.sticks && o.climbsDown && o.letsGo && o.notYet), 'down in a room you can jump onto the ladder from the side and hang on, climb down, and jump off; halfway up is not out yet: ' + JSON.stringify(L.filter(o => !(o.grabbed && o.sticks && o.climbsDown && o.letsGo && o.notYet))));
     check(L.every(o => o.inRoom && o.roomDrew === true && o.back), 'the doors lead down into a room and the ladders back up: ' + JSON.stringify(L.filter(o => !(o.inRoom && o.roomDrew === true && o.back))));
     check(L.every(o => o.inSky && o.skyDrew === true && o.down), 'the vines climb to the clouds and slide back down: ' + JSON.stringify(L.filter(o => !(o.inSky && o.skyDrew === true && o.down))));
     check(r.charge && r.animalsDrew === true, 'a bison charges when you come up in front of it: ' + JSON.stringify({ charge: r.charge, drew: r.animalsDrew }));
@@ -4201,16 +4207,19 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const fast = await p.evaluate(() => player.vx);
     await padHold(p, 'X', false); await p.evaluate(() => { __pad.axes[0] = 0; });
     check(air && fast > 120, 'Ⓐ should jump and Ⓧ + stick should run: ' + JSON.stringify({ air, fast }));
-    // Lucky Leo keeps its own Xbox layout: Ⓨ (or RB) throws the magic hat, RT runs too, and LT + Ⓐ hops off Shamrock
+    // its own Xbox layout: Ⓨ (or RB) throws the magic hat, RT / LT scroll the view right / left (like Super Mario World's R and L), and the stick down + Ⓐ hops off Star
     await p.evaluate(() => { setForm(3); player.hatless = false; ents = ents.filter(e => !isEnemy(e) && e.k !== 'cap'); });
     await padTap(p, 'Y'); await p.waitForTimeout(100);
     const yHat = await p.evaluate(() => ents.some(e => e.k === 'cap'));
-    await p.waitForTimeout(2500); await p.evaluate(() => { ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; player.vx = 0; __pad.axes[0] = 0.9; });
-    await padHold(p, 'RT', true); await p.waitForTimeout(1200); const rtFast = await p.evaluate(() => player.vx); await padHold(p, 'RT', false); await p.evaluate(() => { __pad.axes[0] = 0; });
+    await p.waitForTimeout(2500); await p.evaluate(() => { ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; player.vx = 0; player.inv = 30; player.face = 1; });
+    await p.waitForTimeout(1500); const cam0 = await p.evaluate(() => camX);
+    await padHold(p, 'RT', true); await p.waitForTimeout(900); const camR = await p.evaluate(() => camX); await padHold(p, 'RT', false);
+    await padHold(p, 'LT', true); await p.waitForTimeout(900); const camL = await p.evaluate(() => camX); await padHold(p, 'LT', false);
+    const look = { cam0: Math.round(cam0), camR: Math.round(camR), camL: Math.round(camL) };
     await p.evaluate(() => { mount(mk('unicorn', player.x, player.y, { w: 16, h: 22, st: 'wait', t: 1 })); });
-    await p.waitForTimeout(200); await padHold(p, 'LT', true); await padTap(p, 'A'); await padHold(p, 'LT', false); await p.waitForTimeout(900);   // (time to hop up and land again)
+    await p.waitForTimeout(200); await p.evaluate(() => { __pad.axes[1] = 1; }); await p.waitForTimeout(100); await padTap(p, 'A'); await p.evaluate(() => { __pad.axes[1] = 0; }); await p.waitForTimeout(900);
     const ltOff = await p.evaluate(() => !player.mount);
-    check(yHat && rtFast > 120 && ltOff, 'Lucky Leo on an Xbox controller: Ⓨ throws the hat, RT runs, LT + Ⓐ hops off Shamrock: ' + JSON.stringify({ yHat, rtFast, ltOff }));
+    check(yHat && look.camR > look.cam0 + 80 && look.camL < look.cam0 - 40 && ltOff, 'on an Xbox controller: Ⓨ throws the hat, RT and LT scroll the view right and left, the stick down + Ⓐ hops off Star: ' + JSON.stringify({ yHat, look, ltOff }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
     // on a phone: the game sits at the top like a handheld, with the buttons underneath

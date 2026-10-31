@@ -1823,23 +1823,23 @@ const keys = { left: false, right: false, jump: false, run: false, down: false, 
 let downFrom = '';   // which key pressed S: 'pad' for the controller's stick / D-pad (pushed to the side and a little down isn't a ground pound)
 const pressed = { jump: false, run: false, start: false, left: false, right: false, up: false, down: false, item: false, off: false, zoom: false };
 const KEYMAP = { KeyA: 'left', KeyD: 'right', Space: 'jump', KeyW: 'up', ShiftLeft: 'run', ShiftRight: 'run', KeyS: 'down',
-  KeyJ: 'hat', KeyK: 'hat', KeyE: 'item', KeyF: 'off', KeyM: 'zoom' };
-// 🎮 Manifest Destiny (like Lucky Leo) keeps its own controller layout: A / B jump, X / RT run (and throw rainbow sparks), Y / RB throw the hat,
-// LB drop the saved power-up, LT crouch: high jump, or ground pound in the air (LT + A hops off Shamrock); the D-pad and left stick are W A S D
+  KeyJ: 'hat', KeyK: 'hat', KeyE: 'item', KeyF: 'off', KeyM: 'zoom', KeyQ: 'lookL', KeyR: 'lookR' };
+// 🎮 Manifest Destiny keeps its own controller layout: A / B jump, X run (and throw apples), Y / RB throw the hat, LB drop the saved
+// power-up, and LT / RT scroll the view left or right to look ahead (like Super Mario World's L and R); the D-pad and left stick
+// are W A S D (down crouches: a high jump, or a ground pound in the air)
 // (a flat, side-on game: it never asks for inverted sticks, so a flying game's invert setting can't flip Leo)
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: 'KeyJ', 4: 'KeyE', 5: 'KeyJ', 6: 'KeyS', 7: 'ShiftLeft', 10: null });
-// is the controller's LT (crouch) held? LT's S always counts, even while walking; the stick's / D-pad's S only on its own
-const padLT = () => { try { const gp = [...(navigator.getGamepads ? navigator.getGamepads() : [])].find(x => x && x.connected); return !!(gp && gp.buttons[6] && gp.buttons[6].pressed); } catch (e) { return false; } };
-const downAlone = (l, r) => downFrom !== 'pad' || padLT() || !(l || r);
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: 'KeyJ', 4: 'KeyE', 5: 'KeyJ', 6: 'KeyQ', 7: 'KeyR', 10: null });
+const downAlone = (l, r) => downFrom !== 'pad' || !(l || r);
 if (RB.setControls) RB.setControls({ name: 'Manifest Destiny', camera: false, rows: [
   { act: 'Walk', keys: 'A / D', pad: '{LS} / {DPAD}', touch: '◀ ▶' },
   { act: 'Look up', keys: 'W', pad: '{LS} up', touch: '▲' },
-  { act: 'Run (and throw apples)', keys: 'hold Shift', pad: '{X} / {RT}', touch: 'hold B' },
+  { act: 'Run (and throw apples)', keys: 'hold Shift', pad: '{X}', touch: 'hold B' },
   { act: 'Jump (hold = higher, again = spin)', keys: 'Space', pad: '{A} / {B}', touch: 'A' },
-  { act: 'Crouch · high jump · ground pound', keys: 'S', pad: '{LT}', touch: '▼' },
+  { act: 'Crouch · high jump · ground pound', keys: 'S', pad: '{LS} down', touch: '▼' },
+  { act: 'Look ahead: scroll the view left / right', keys: 'Q / R', pad: '{LT} / {RT}', touch: '' },
   { act: 'Throw the magic hat', keys: 'J', pad: '{Y} / {RB}', touch: '🎩' },
   { act: 'Drop the saved power-up', keys: 'E', pad: '{LB}', touch: 'tap the box at the top' },
-  { act: 'Hop off Star', keys: 'F (or S + Space)', pad: '{LT} + {A}', touch: 'hold ▼, tap A' },
+  { act: 'Hop off Star', keys: 'F (or S + Space)', pad: '{LS} down + {A}', touch: 'hold ▼, tap A' },
   { act: 'Map: move / enter a level', keys: 'W A S D / Space or Enter', pad: '{DPAD} / {A}', touch: 'tap a level, tap again' },
   { act: 'Map: zoom out to the whole country (and back)', keys: 'M or Shift', pad: '{X}', touch: '🗺️ button, or pinch' },
 ] });
@@ -1944,7 +1944,7 @@ function pipeUpdate(dt) {
       for (const e of src.ents) spawnFromSpec(e);
       p.x = 3 * TS; p.y = w.look === 'door' ? 12 * TS - p.h : -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
       music.play(lvl.music); phase = 'play'; pipe = null;
-      if (w.look === 'door') { doorFade = 0.45; banner(lvl.name.toUpperCase() + '!', 'Coins, a power-up… and a ladder back up', 2); }
+      if (w.look === 'door') { doorFade = 0.45; banner(lvl.name.toUpperCase() + '!', 'Coins, a power-up… and a ladder: climb all the way up to get out', 2); }
     } else {                // back out: rise up out of the log further along
       const o = outside.out; lvl = outside.lvl; ents = outside.ents; outside = null; parts = []; pops = []; bumps = [];
       p.x = o[0] * TS + 16 - p.w / 2; p.y = o[1] * TS + 2; p.vy = 0;
@@ -2058,7 +2058,7 @@ function mount(e) {
   sfx.mount(); sparkle(p.x + 7, p.y + 10, '#ff9ad0', 12);
   if (e.k && !rideTold) {   // the first time he climbs on: how to get off again
     rideTold = true;
-    banner('SHAMROCK!', RB.touch ? 'To hop off: hold ▼ and tap A' : RB.pad.connected ? RB.padText('To hop off: hold {LT} and press {A}') : 'To hop off: press F (or hold S and press Space)', 3);
+    banner('SHAMROCK!', RB.touch ? 'To hop off: hold ▼ and tap A' : RB.pad.connected ? RB.padText('To hop off: hold {LS} down and press {A}') : 'To hop off: press F (or hold S and press Space)', 3);
   }
 }
 let rideTold = false;
@@ -6756,7 +6756,7 @@ let player = null, camX = 0, clock = 0, lives = 5, coins = 0, score = 0, checkpo
 let outside = null, pipe = null;
 const tries = {};
 let keep = { form: 0, mount: false };   // what Leo brings into the next level: his power and Shamrock (lost when he loses a life)   // deaths in each level since it was last cleared: after a few, Leo gets a helping hand   // the level we came from while in a hollow tree, and the going-down-a-log animation
-let phase = 'play', phaseT = 0, reserve = null, bumps = [], bossDown = false, camLead = 0.4;
+let phase = 'play', phaseT = 0, reserve = null, bumps = [], bossDown = false, camLead = 0.4, camPan = 0;
 const tileAt = (tx, ty) => {
   if (!lvl) return 0;
   if (tx < 0 || tx >= lvl.w) return T.STONE;   // the level's ends are walls
@@ -7055,7 +7055,9 @@ function updateLevel(dt) {
   // camera: leads in the direction Leo runs
   // the camera looks ahead the way Leo is going, easing into the new side when he turns round
   camLead += ((player.face > 0 ? 0.4 : 0.6) - camLead) * Math.min(1, dt * 1.8);
-  const want = player.x + player.w / 2 - LW * camLead;
+  // LT / RT (Q / R): scroll the view to look further left or right, like Super Mario World's L and R (it eases back when let go)
+  camPan += (((keys.lookR ? 1 : 0) - (keys.lookL ? 1 : 0)) * LW * 0.42 - camPan) * Math.min(1, dt * 4);
+  const want = player.x + player.w / 2 - LW * camLead + camPan;
   camX += (want - camX) * Math.min(1, dt * 7);
   camX = clamp(camX, 0, lvl.w * TS - LW);
 }
@@ -7067,6 +7069,22 @@ const inSyrup = o => !!lvl.syrup && ents.some(s => s.k === 'syrup' && o.x + o.w 
 function windNow() { if (!lvl || !lvl.wind) return 0; const c = (clock % 6.5) / 6.5; return c < 0.55 ? 0 : Math.sin((c - 0.55) / 0.45 * Math.PI) * lvl.wind; }
 function updatePlayer(dt) {
   const p = player, inp = input();
+  // the ladder up out of an underground room: jump at it from either side (or press ▲ at its foot) and you hang on;
+  // ▲ / ▼ climb, jump lets go, and climbing all the way to the hatch at the top is the way out
+  const lad = lvl.room && ents.find(e => e.k === 'exit' && e.hut === 'ladder');
+  p.climbCD = Math.max(0, (p.climbCD || 0) - dt);
+  if (lad && phase === 'play' && !p.mount) {
+    const lx = lad.x + 16, near = Math.abs(p.x + p.w / 2 - lx) < 11 && p.y < lad.y + 4;
+    if (!p.climb && near && p.climbCD <= 0 && (!p.ground || inp.up)) { p.climb = true; p.vx = 0; p.vy = 0; p.pound = null; p.twirl = 0; p.slide = 0; }
+    if (p.climb) {
+      p.x += (lx - p.w / 2 - p.x) * Math.min(1, dt * 14); p.vx = 0;
+      p.vy = inp.up ? -85 : inp.down ? 85 : 0; moveY(p, p.vy * dt); p.anim += Math.abs(p.vy) * dt * 0.12;
+      if (pressed.jump) { p.climb = false; p.climbCD = 0.4; p.vy = -250; p.vx = ((inp.right ? 1 : 0) - (inp.left ? 1 : 0)) * 110; p.ground = false; pressed.jump = false; sfx.jump(); }
+      else if (p.ground && inp.down) { p.climb = false; p.climbCD = 0.4; }   // (down at the bottom: step off)
+      else if (p.y <= 2 * TS + 2) { p.climb = false; startPipe(lad); return; }   // (up at the top: out through the hatch)
+      else { p.ground = false; return; }
+    }
+  } else p.climb = false;
   // in the water Leo swims (it never hurts him): slow sinking, A / D paddle, jump to swim up, and near the surface a jump leaps out
   const wasSwim = p.swim; p.swim = waterAt(p.x + p.w / 2, p.y + p.h - 5);
   if (p.swim && !wasSwim) { p.vy *= 0.3; p.pound = null; p.twirl = 0; p.slide = 0; sfx.splash(); for (let i = 0; i < 8; i++) particle(p.x + p.w / 2, p.y + p.h - 4, rand(-60, 60), rand(-160, -40), '#d8f0ff', 0.6, rand(1.5, 3)); }
@@ -7159,14 +7177,14 @@ function updatePlayer(dt) {
   if (p.muddy > 0) { p.muddy -= dt; p.printX = p.printX || p.x; if (p.ground && Math.abs(p.x - p.printX) > 10) { p.printX = p.x; ents.push(mk('smudge', p.x + p.w / 2 - 2, p.y + p.h - 2, { w: 0, h: 0, life: 4, print: true })); } }
   // ▲ at a door (a cabin, a wetu, a cave mouth…): in you go
   if (inp.up && !p.upHeld && p.ground && !p.carry && phase === 'play') {
-    const cx = p.x + p.w / 2, w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && e.look === 'door' && Math.abs(cx - (e.x + 16)) < 12 && Math.abs(p.y + p.h - (e.y + 4)) < 3);
+    const cx = p.x + p.w / 2, w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && e.look === 'door' && e.hut !== 'ladder' && Math.abs(cx - (e.x + 16)) < 12 && Math.abs(p.y + p.h - (e.y + 4)) < 3);
     if (w) { p.upHeld = true; startPipe(w); return; }
   }
   p.upHeld = inp.up;
   // S standing on top of a hollow tree (or at a door): down you go
   if (inp.down && p.ground && !p.pound && phase === 'play') {
     const cx = p.x + p.w / 2;
-    const w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && Math.abs(cx - (e.x + 16)) < (e.look === 'door' ? 12 : 7) && Math.abs(p.y + p.h - (e.y + 4)) < 2);
+    const w = ents.find(e => (e.k === 'warp' || e.k === 'exit') && e.hut !== 'ladder' && Math.abs(cx - (e.x + 16)) < (e.look === 'door' ? 12 : 7) && Math.abs(p.y + p.h - (e.y + 4)) < 2);
     if (w) { startPipe(w); return; }
   }
   // carrying a shell: let go of run to throw it (hold S to put it down gently)
@@ -8148,6 +8166,7 @@ function drawLevel() {
     if (!blink || phase !== 'play') {
       let pose = 'stand';
       if (phase === 'dying') pose = 'dead';
+      else if (p.climb) pose = 'jump';   // (hanging on the ladder, arms up)
       else if (!p.ground) pose = 'jump';
       else if (p.skid) pose = 'skid';
       else if (Math.abs(p.vx) > 5) pose = 'walk';
