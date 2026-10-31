@@ -179,6 +179,8 @@ figure.photo[hidden] { display: none; }
 
 @media (max-width: 920px) {
   nav.main { display: none; }
+  header.site { position: static; }
+  html { scroll-padding-top: 0; }
   .menu { display: block; }
   .hero .wrap, .split { grid-template-columns: 1fr; }
   .hero-art { max-width: 520px; }
