@@ -2212,7 +2212,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         return { open: !!el, heads: h, back: !!(el && el.querySelector('.rb-menu-this .rb-menu-back')), home: !!(el && el.querySelector('.rb-home-all')),
           focus: document.querySelector('.rb-pad-focus')?.className || '' };
       });
-      if (!m.open || !/This game/.test(m.heads[0] || '') || !m.heads.some(x => /Games/.test(x)) || !m.back || !m.home || !/rb-menu-back/.test(m.focus)) { bad.push(f + ' menu ' + JSON.stringify(m)); continue; }
+      const gameOnly = f === 'manifest-destiny.html';   // (its menu is just its own: no list of every game, and 🏠 RoboBandit main menu last)
+      if (!m.open || (!gameOnly && (!/This game/.test(m.heads[0] || '') || !m.heads.some(x => /Games/.test(x)))) || !m.back || !m.home || !/rb-menu-back/.test(m.focus)) { bad.push(f + ' menu ' + JSON.stringify(m)); continue; }
       // the stick (pushed down) walks the highlight to 🏠 All games, and Ⓐ goes there
       for (let i = 0; i < 40 && !(await p.evaluate(() => document.querySelector('.rb-pad-focus')?.classList.contains('rb-home-all'))); i++) {
         await padStick(p, 0, 0.9); await padStick(p, 0, 0);
