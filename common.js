@@ -269,9 +269,11 @@ const RB = (() => {
     list = [{ url: g[0], t: Date.now() }, ...list.filter(x => x && x.url !== g[0])].slice(0, 8);
     store.set('rb_recent', JSON.stringify(list));
   })();
-  let menuEl = null, menuShare = null, gameItems = null;
-  // a game can add its own buttons at the top of the menu (e.g. Back to the map): setMenuItems(() => [{ label, onClick }])
-  function setMenuItems(fn) { gameItems = fn; }
+  let menuEl = null, menuShare = null, gameItems = null, gameOnly = false;
+  // a game can add its own buttons at the top of the menu (e.g. Back to the map): setMenuItems(() => [{ label, onClick }]).
+  // { only: true } makes the menu just that game's: its own buttons, sound, then 🏠 RoboBandit main menu last (no list of
+  // every game and folder); the pause screen's 🏠 says the same.
+  function setMenuItems(fn, { only = false } = {}) { gameItems = fn; gameOnly = only; }
   function menuButton(bar) {
     if (bar.querySelector('.rb-menubtn')) return;
     const b = document.createElement('button');
@@ -306,7 +308,15 @@ const RB = (() => {
     for (const x of pauseExtras) if (!/controller/i.test(x.label) && !items.some(y => y.label === x.label)) items = [...items, x];
     menuEl = document.createElement('div');
     menuEl.className = 'rb-menu';
-    menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="RoboBandit menu">
+    if (gameOnly) menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="Game menu">
+      <div class="rb-menu-head"><span class="rb-menu-logo">${document.title.split(/[·|–-]/)[0].trim().toUpperCase()}</span>
+        <button type="button" class="rb-menu-x" title="Close (Esc)">✕</button></div>
+      <div class="rb-menu-set rb-menu-this"><button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button>${items.filter(x => !x.last).map(x => `<button type="button" data-g="${items.indexOf(x)}"${x.map ? ' data-map' : ''}>${x.label}</button>`).join('')}
+        <button type="button" data-m="sound">${muted ? '🔇 Sound: off' : '🔊 Sound: on'}</button>
+        ${document.fullscreenEnabled ? `<button type="button" data-m="fs">⛶ ${document.fullscreenElement ? 'Leave full screen' : 'Full screen'}</button>` : ''}
+        ${items.filter(x => x.last).map(x => `<button type="button" data-g="${items.indexOf(x)}">${x.label}</button>`).join('')}
+        <a href="${SITE_HOME}" class="rb-home-all">🏠 RoboBandit main menu</a></div></div>`;
+    else menuEl.innerHTML = `<div class="rb-menu-panel" role="dialog" aria-label="RoboBandit menu">
       <div class="rb-menu-head"><a href="${SITE_HOME}" class="rb-menu-logo" data-pad-home><img src="${SITE_ROOT}favicon.svg" alt="">ROBOBANDIT</a>
         <button type="button" class="rb-menu-x" title="Close (Esc)">✕</button></div>
       <h3>⭐ This game</h3><div class="rb-menu-set rb-menu-this"><button type="button" class="rb-menu-back" data-pad-default>▶ Back to the game</button>${items.map((x, i) => `<button type="button" data-g="${i}"${x.map ? ' data-map' : ''}>${x.label}</button>`).join('')}${controls ? '<button type="button" data-m="guide">🕹️ Controls (F1)</button>' : ''}</div>
@@ -376,7 +386,7 @@ const RB = (() => {
     pauseEl = document.createElement('div');
     pauseEl.className = 'rb-pause' + (extra.length > 3 ? ' rb-many' : '');   // (a long menu: smaller buttons, and it scrolls if it has to)
     pauseEl.innerHTML = `<div class="rb-panel"><h2>PAUSED</h2>${sub ? `<div class="rb-pause-sub">${sub}</div>` : ''}
-      <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}${controls && !extra.some(x => /controls/i.test(x.label)) ? '<button type="button" class="rb-guide-btn">🕹️ CONTROLS</button>' : ''}<a href="${homeHref()}" class="rb-home">🏠 All games</a>
+      <button type="button">▶ KEEP PLAYING</button>${extra.map((x, i) => `<button type="button" class="rb-extra" data-x="${i}">${x.label}</button>`).join('')}${controls && !extra.some(x => /controls/i.test(x.label)) ? '<button type="button" class="rb-guide-btn">🕹️ CONTROLS</button>' : ''}<a href="${homeHref()}" class="rb-home">${gameOnly ? '🏠 RoboBandit main menu' : '🏠 All games'}</a>
       <div class="rb-hint">${pad.connected ? padText('🎮 {A} to pick · {MENU} to carry on · {VIEW} for the menu') : touch ? 'Tap the button to carry on' : 'Press Esc to carry on · F1 for the controls'}</div></div>`;
     pauseEl.querySelector('.rb-home').addEventListener('click', () => dispatchEvent(new Event('rb-leave')));
     pauseEl.addEventListener('pointerdown', e => e.stopPropagation());

@@ -3444,6 +3444,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { localStorage.removeItem('md_save'); startGame(); startLevel('plimoth'); });
     await p.click('#btnMenu'); await p.waitForTimeout(150);
     const labels = await p.$$eval('.rb-menu-this button', bs => bs.map(b => b.textContent));
+    // the ☰ menu is just this game's: what you'd want now first, then the way out (the title screen, then RoboBandit)
+    const shape = await p.evaluate(() => ({ items: [...document.querySelectorAll('.rb-menu-this > *')].map(b => b.textContent.trim()), games: document.querySelectorAll('.rb-menu-games').length }));
     await p.click('.rb-menu-this [data-g="1"]'); await p.waitForTimeout(150);
     const again = await p.evaluate(() => ({ state, id: lvl.id, menu: !!document.querySelector('.rb-menu') }));
     await p.evaluate(() => pause()); await p.waitForTimeout(100);
@@ -3462,14 +3464,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       pause(); window.confirm = () => true; [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /New game/.test(b.textContent)).click();
       return { at: mapLeo.at, cleared: Object.keys(save.cleared).length, info: Object.keys(save.info).length, best: save.best, state };
     });
-    await p.evaluate(() => { pause(); [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /Title/.test(b.textContent)).click(); });
+    await p.evaluate(() => { pause(); [...document.querySelectorAll('.rb-pause .rb-extra')].find(b => /title screen/i.test(b.textContent)).click(); });
     const title = await p.evaluate(() => ({ state, shown: !document.getElementById('title').classList.contains('hidden') }));
+    const onMap = await p.evaluate(() => { startGame(); pause(); const l = [...document.querySelectorAll('.rb-pause .rb-extra, .rb-pause .rb-home')].map(b => b.textContent.trim()); RB.hidePause(); paused = false; return l; });
     check(labels.some(l => /map/.test(l)) && labels.some(l => /New game/.test(l)) && again.state === 'level' && again.id === 'plimoth' && !again.menu, 'menu: start the level again: ' + JSON.stringify({ labels, again }));
     check(/1-2 Plimoth Plantation · 1621/.test(pauseShows.sub) && ['map', 'again', 'Unlock all', 'heroes', 'New game'].every(w => pauseShows.labels.some(l => l.includes(w))), 'the pause screen says where you are, with the game\'s own menu: ' + JSON.stringify(pauseShows));
     check(map.state === 'map' && !map.paused && !map.pause, 'pause screen: back to the map: ' + JSON.stringify(map));
     check(unlocked.all && !unlocked.paused && relocked, 'unlock all levels from the pause menu, and lock them again: ' + JSON.stringify({ unlocked, relocked }));
     check(fresh.at === 'voyage' && fresh.cleared === 0 && fresh.info === 0 && fresh.best === 1234 && fresh.state === 'map', 'a new game starts over on the Mayflower, keeping the best score: ' + JSON.stringify(fresh));
     check(title.state === 'title' && title.shown, 'pause on the map: back to the title: ' + JSON.stringify(title));
+    const it = shape.items;
+    check(shape.games === 0 && /Back to the game/.test(it[0]) && /map/.test(it[1]) && /again/.test(it[2]) && /title screen/.test(it[it.length - 2]) && /RoboBandit main menu/.test(it[it.length - 1]) && it.some(l => /timer/.test(l)), 'the ☰ menu is just this game\'s, ending with the title screen and then the RoboBandit main menu: ' + JSON.stringify(shape));
+    check(/Zoom out/.test(onMap[0]) && /title screen/.test(onMap[onMap.length - 2]) && /RoboBandit main menu/.test(onMap[onMap.length - 1]), 'on the map the pause menu starts with zooming out, and ends the same way: ' + JSON.stringify(onMap));
     await done(p);
   });
 
@@ -3855,6 +3861,38 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.quiz && r.ending, 'the chest leads to the frontier\'s quiz, and passing it ends the region: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'manifest-destiny-world4.png');
+  });
+
+  await test('Manifest Destiny timer, like Super Mario World: it counts down in the HUD, waits while a fact is up, HURRY UP at 100, TIME UP costs a life, the time left is a bonus at the goal, and it can be turned off', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes']) save[k] = {}; save.noTimer = false; paused = true; startGame();
+      startLevel('plimoth'); ents = ents.filter(e => !isEnemy(e)); out.start = timeLeft;
+      run(360); out.after6s = timeLeft;   // (six seconds: ten counts)
+      // a fact on screen: the clock waits
+      const [tx, ty] = [Math.floor(lvl.infoAt[0] / 100), lvl.infoAt[0] % 100]; player.x = tx * 16 + 2; player.y = (ty + 1) * 16 + 1; player.vy = -260; player.ground = false; run(20);
+      const t0 = timeLeft; for (let i = 0; i < 300; i++) step(1 / 60); out.waits = factOpen && timeLeft === t0; closeFact();
+      // HURRY UP, then TIME UP
+      timeLeft = 101; timeAcc = 0; run(40); out.hurry = timeLeft === 100 && bannerText[0] === 'HURRY UP!';
+      let drew = true; try { render(); } catch (e) { drew = e.message; } out.drew = drew;
+      timeLeft = 1; timeAcc = 0; run(40); out.timeUp = phase === 'dying' && bannerText[0] === 'TIME UP!';
+      // the goal: what's left on the clock is a bonus, 50 a count
+      startLevel('plimoth'); timeLeft = 123; const before = score; reachGoal(); out.bonus = lvl.timeBonus === 6150 && score - before >= 6150 && /123 × 50/.test(bannerText[1]);
+      // turned off: it doesn't count, and there's no bonus
+      save.noTimer = true; startLevel('plimoth'); const t1 = timeLeft; run(400); out.off = timeLeft === t1; reachGoal(); out.offBonus = lvl.timeBonus === 0; save.noTimer = false;
+      out.longer = levelTime({ w: 250 }) > levelTime({ w: 220 }) && levelTime({ w: 220 }) > levelTime({ w: 200 }) && out.start === levelTime(LEVELS.plimoth);
+      paused = false; return out;
+    });
+    check(r.start >= 300 && r.after6s === r.start - 10, 'the clock starts at 300 (more on long levels) and counts a little faster than seconds: ' + JSON.stringify(r));
+    check(r.waits, 'it waits while a fact is up');
+    check(r.hurry && r.drew === true && r.timeUp, 'HURRY UP! at 100, and TIME UP! at 0 costs a life: ' + JSON.stringify(r));
+    check(r.bonus, 'at the goal, the time left is a bonus of 50 a count');
+    check(r.off && r.offBonus, 'the timer can be turned off (for the youngest players)');
+    check(r.longer, 'longer levels get more time');
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
   });
 
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {

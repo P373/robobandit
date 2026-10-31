@@ -1351,7 +1351,7 @@ const save = (() => {
   s = s && typeof s === 'object' ? s : {};
   return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6,
     unlockAll: !!s.unlockAll, facts: s.facts && typeof s.facts === 'object' ? s.facts : {}, info: s.info && typeof s.info === 'object' ? s.info : {}, quiz: s.quiz && typeof s.quiz === 'object' ? s.quiz : {}, spikes: s.spikes && typeof s.spikes === 'object' ? s.spikes : {}, hero: typeof s.hero === 'string' ? s.hero : 'wrestling',   // (Unlock All, while we build; and which history fact each level shows next)
-    at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
+    noTimer: !!s.noTimer, at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
 })();
 for (const [old, now] of [['mayflower', 'voyage'], ['canal', 'plimoth']]) {   // (levels that moved off the map: their place goes to the level there now)
   if (save.cleared[old] && !(now in save.cleared)) save.cleared[now] = true;
@@ -1697,26 +1697,31 @@ function pause() {
   if (paused || (state !== 'level' && state !== 'map')) return;
   paused = true; for (const k in keys) keys[k] = false; fingers.clear(); touchUpdate();
   const id = state === 'level' ? (outside ? outside.lvl.id : lvl && lvl.id) : mapLeo.at, n = node(id);
-  RB.showPause(resume, { sub: n ? `${levelTag(id)} ${n.name}${n.year ? ' · ' + n.year : ''}` : '', extra: [...gameMenu(), { label: '🎮 Controller settings', onClick: () => RB.controllerScreen() }] });
+  RB.showPause(resume, { sub: n ? `${levelTag(id)} ${n.name}${n.year ? ' · ' + n.year : ''}` : '', extra: gameMenu() });
 }
-// The game's own menu, on the pause screen and at the top of the ☰ menu: back to the map, try again, unlock every level,
-// the heroes, a new game, the title screen
+// The game's own menu, on the pause screen and in the ☰ menu (which shows only this game's things): first what you'd
+// want right now (back to the map, zoom out, try again), then the heroes and settings, and last the way out: the
+// Manifest Destiny title screen, then (added by the shared menu) the RoboBandit main menu.
 function gameMenu() {
   const here = () => (outside ? outside.lvl.id : lvl && lvl.id);
   const unpause = () => { if (paused) { paused = false; RB.hidePause(); last = performance.now(); } };
   const keepNow = () => { if (player && phase === 'play') keep = { form: player.form, mount: !!player.mount, laser: !!player.laser }; };
-  const always = [
-    { label: save.unlockAll ? '🔒 Lock the levels again' : '🔓 Unlock all levels', onClick: () => { unpause(); setUnlockAll(!save.unlockAll); } },
-    { label: '👪 The heroes', onClick: () => { unpause(); if (state === 'level') { keepNow(); goMap(here(), true); } showHeroes(); } },
-    { label: '✨ New game', onClick: () => { if (!confirm('Start a new game? This clears your progress in Manifest Destiny (your best score stays).')) return; unpause(); newGame(); } },
-  ];
-  if (state === 'level') return [
+  const now = state === 'level' ? [
     { label: '🗺️ Back to the map', map: true, onClick: () => { unpause(); const id = here(); outside = null; keepNow(); goMap(id); } },
     { label: '🔄 Start this level again', onClick: () => { unpause(); keepNow(); startLevel(here()); } },
-    ...always,
+  ] : state === 'map' ? [
+    { label: mapWhole ? '🔍 Zoom back in' : '🔍 Zoom out to the whole country', map: true, onClick: () => { unpause(); mapZoom(); } },
+  ] : [];
+  if (state !== 'level' && state !== 'map') return [];
+  return [...now,
+    { label: '👪 The heroes', onClick: () => { unpause(); if (state === 'level') { keepNow(); goMap(here(), true); } showHeroes(); } },
+    { label: save.noTimer ? '⏱ Turn the timer on' : '⏱ Turn the timer off', onClick: () => { unpause(); save.noTimer = !save.noTimer; persist(); RB.toast(save.noTimer ? '⏱ No timer: take all the time you like' : '⏱ The timer is on: reach the goal before it runs out!', 2600); } },
+    { label: save.unlockAll ? '🔒 Lock the levels again' : '🔓 Unlock all levels', onClick: () => { unpause(); setUnlockAll(!save.unlockAll); } },
+    { label: '🕹️ Controls', onClick: () => RB.controlsGuide() },
+    { label: '🎮 Controller settings', onClick: () => RB.controllerScreen() },
+    { label: '✨ New game', onClick: () => { if (!confirm('Start a new game? This clears your progress in Manifest Destiny (your best score stays).')) return; unpause(); newGame(); } },
+    { label: '🏁 Manifest Destiny title screen', last: true, onClick: () => { unpause(); if (state === 'level') { keepNow(); outside = null; } state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showTouch(); music.play('map'); } },
   ];
-  if (state === 'map') return [...always, { label: '🏁 Title screen', onClick: () => { unpause(); state = 'title'; lvl = null; document.getElementById('title').classList.remove('hidden'); showTouch(); music.play('map'); } }];
-  return [];
 }
 function setUnlockAll(on) {
   save.unlockAll = on; persist();
@@ -1730,7 +1735,7 @@ function newGame() {   // a fresh start: progress, secrets, facts seen and the s
   persist(); goMap(START, true);
   RB.toast('✨ A new game! The Mayflower is waiting at Plymouth, England.', 2600);
 }
-if (RB.setMenuItems) RB.setMenuItems(gameMenu);
+if (RB.setMenuItems) RB.setMenuItems(gameMenu, { only: true });
 function resume() { paused = false; RB.hidePause(); last = performance.now(); }
 RB.topbar({
   minimal: true,   // just ☰: sound, sharing, controller settings and all the games are in the menu, so the screen stays clear
@@ -5864,8 +5869,15 @@ function moveY(a, dy) {
 const groundAhead = a => { const tx = Math.floor((a.dir > 0 ? a.x + a.w + 1 : a.x - 1) / TS), ty = Math.floor((a.y + a.h + 1) / TS), t = tileAt(tx, ty); return SOLID.has(t) || t === T.ONEWAY; };
 
 // ---------- Starting a level ----------
+// The level timer, like Super Mario World's: it counts down a little faster than seconds; at 100 it's HURRY UP!, at 0 it's
+// TIME UP (a life lost), and what's left at the goal is a bonus, 50 points a count. It stops while a fact or the quiz is
+// up, and it can be turned off in the pause menu (for the youngest players).
+const TIME_TICK = 0.6;
+const levelTime = l => l.time || (l.challenge ? 250 : l.boss ? 300 : l.w > 236 ? 500 : l.w > 214 ? 400 : 300);
+let timeLeft = 300, timeAcc = 0;
 function startLevel(id, fromCheck = false) {
   closeFact();
+  timeLeft = levelTime(LEVELS[id]); timeAcc = 0;
   outside = null; pipe = null; dive = null; camY = 0;
   const src = LEVELS[id];
   lvl = { ...src, t: src.t.slice() };
@@ -6072,6 +6084,14 @@ function updateLevel(dt) {
   if (camY) { camY *= Math.exp(-dt * 2.6); if (Math.abs(camY) < 0.5) camY = 0; }   // (easing back after the dive)
   if (lvl.storm && Math.floor(clock / 5.3) !== Math.floor((clock - dt) / 5.3) && stormAt(camX) > 0.3) sfx.thunder();
   if (lvl.quake && phase === 'play' && Math.floor(clock / 7) !== Math.floor((clock - dt) / 7)) { shake = Math.max(shake, 0.45); sfx.pound(); RB.pad.rumble(280, 0.4); }   // the New Madrid earthquakes (1811): the ground shakes now and then
+  if (phase === 'play' && !bossDown && !save.noTimer && timeLeft > 0) {
+    timeAcc += dt;
+    while (timeAcc >= TIME_TICK && timeLeft > 0) {
+      timeAcc -= TIME_TICK; timeLeft--;
+      if (timeLeft === 100) { banner('HURRY UP!', '⏱ The clock is running out!', 2.2); sfx.key(); }
+      if (timeLeft === 0) { banner('TIME UP!', '', 2.4); killPlayer(); }
+    }
+  }
   updatePlayer(dt);
   updateEnts(dt);
   // camera: leads in the direction Leo runs
@@ -6854,7 +6874,7 @@ function bossHit(e) {
   e.hp--; e.hurt = 1.4; sfx.bossHit(); shake = 0.35; addScore(2000, e.x, e.y);
   for (const o of ents) if (o.k === 'acorn') o.gone = true;
   if (e.hp <= 0) {
-    e.vy = -250; bossDown = true; music.stop();
+    e.vy = -250; bossDown = true; music.stop(); if (!save.noTimer) addScore(timeLeft * 50);   // (the time that's left is a bonus here too)
     phase = 'boss-won'; phaseT = 0;
     banner('YOU DID IT!', (BOSS_CAST[e.who] || {}).done || `${BOSS_WHO[e.kind] || 'King Grumbles'} is beaten!`, 3.2);
   } else {
@@ -6889,9 +6909,10 @@ function reachGoal(secret = false) {
   const stars = hitTape ? 1 + Math.round(frac * 49) : 0;
   lvl.stars = stars;
   addScore(stars * 100);
+  const tb = save.noTimer ? 0 : timeLeft * 50; lvl.timeBonus = tb; addScore(tb);
   music.stop(); sfx.goal(); RB.pad.rumble(200, 0.4);
   if (secret) { banner('SECRET EXIT!', '🌟 A hidden path opens on the map'); sfx.key(); }
-  else banner('COURSE CLEAR!', stars ? `🌟 ${stars} star${stars === 1 ? '' : 's'}` : '');
+  else banner('COURSE CLEAR!', [stars ? `🌟 ${stars} star${stars === 1 ? '' : 's'}` : '', tb ? `⏱ ${timeLeft} × 50 = ${tb}` : ''].filter(Boolean).join('   '));
 }
 const goalTapeY = () => 40 + (Math.sin(clock * 1.6) * 0.5 + 0.5) * (10 * TS - 40);
 function clearUpdate(dt) {
@@ -8675,7 +8696,12 @@ function drawHUD() {
   shownScore = shownScore > score ? score : shownScore + Math.ceil((score - shownScore) * 0.2);   // the score counts up
   ink(String(shownScore).padStart(6, '0'), s * 6, s * 34, 9, '#ffffff');   // (the score, small, under the coins)
   if (!RB.touch) text(lvl.name.toUpperCase(), W - s * 8, LH * s - s * 14, 9, 'rgba(255,255,255,.75)', 'right');
-  if (gotKey) ink('🗝️', W / 2 + s * 16, s * 6, 12);
+  if (gotKey) ink('🗝️', W / 2 - s * 30, s * 6, 12);
+  if (!save.noTimer) {   // the clock: a little pocket watch and the time left, to the right of the crate (red, and blinking, once it's HURRY UP)
+    const tx = W / 2 + s * 15, hurry = timeLeft <= 100, blink = hurry && timeLeft > 0 && clock % 0.5 < 0.18;
+    icon(() => { g.beginPath(); g.arc(6, 8, 5.2, 0, TAU); paint('#f4f0e4', 1.2, '#14202e'); g.fillStyle = '#14202e'; g.fillRect(5.2, 1, 1.6, 2); g.strokeStyle = '#14202e'; g.lineWidth = 0.9; g.beginPath(); g.moveTo(6, 8); g.lineTo(6, 4.6); g.moveTo(6, 8); g.lineTo(8.4, 8); g.stroke(); }, tx, s * 5.6, 0.95);
+    if (!blink) ink(String(timeLeft).padStart(3, '0'), tx + s * 13, s * 7, 12, hurry ? '#ff7a5a' : '#ffffff');
+  }
   // floating score numbers
   for (const q of pops) ink(q.txt, (q.x - camX + 8) * s, q.y * s, 8, '#ffffff', 'center');
   if (bannerT > 0) {
