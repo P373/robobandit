@@ -38,8 +38,8 @@ After a change to `site.css`, bump the `?v=` on its link so browsers fetch the n
 - **More photos.** The storefront, the packed painting, the supplies wall and the card racks are in `img/` (from the
   old site, small: about 455 px). Bigger originals and a few more (a custom crate, the counter, seafood coolers)
   would make it look even better.
-- **Check with Andrew:** hours (the old site says Mon–Fri 9–5, closed weekends, but UPS and Yellow Pages list Mon–Fri
-  9–5:30 and Sat 9–3), whether there's a notary, and whether there's a Facebook page to link.
+- **Confirmed by Andrew (Oct 2026):** hours Mon–Fri 9–5, closed weekends; pickups FedEx 3:00 pm, UPS 4:00 pm; no
+  notary yet (he may add it); no live chat. Still to come: his photos, and Facebook and LinkedIn pages to link.
 - **Going live:** in a new repo, delete the "Preview of the new…" bar and the `noindex` meta tag, change the
   `robobandit.com/ccps/` addresses in `<head>` (og:url, og:image, twitter:image, JSON-LD) to the real domain, add a
   `CNAME` file with the domain, and point capecodpackandship.com's DNS at the new host.

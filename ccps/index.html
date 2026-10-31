@@ -72,7 +72,7 @@
         <tr data-day="6"><td>Saturday</td><td>Closed</td></tr>
         <tr data-day="0"><td>Sunday</td><td>Closed</td></tr>
       </table>
-      <p class="fine" id="pickups">Pickups: FedEx Ground 3:00 · FedEx Express 4:30 · UPS 5:00. Closed major holidays.</p>
+      <p class="fine" id="pickups">Daily pickups: FedEx 3:00 pm · UPS 4:00 pm. Closed major holidays.</p>
       <div class="btns"><a class="btn navy" href="tel:+15085401900">Call</a><a class="btn" href="https://www.google.com/maps/dir/?api=1&amp;destination=Cape+Cod+Pack+and+Ship+850+Main+St+Falmouth+MA+02540">Directions</a></div>
     </div>
   </div>
@@ -96,12 +96,12 @@
     <div class="carrier">
       <h3>UPS Authorized Shipping Outlet</h3>
       <p>Next Day Air (guaranteed), 2 and 3 day, and Ground. New England is usually next day by Ground.</p>
-      <p><b>Pickup: 5:00 pm</b>, Ground and Air.</p>
+      <p><b>Daily pickup: 4:00 pm.</b></p>
     </div>
     <div class="carrier">
       <h3>FedEx Authorized ShipCenter</h3>
       <p>Next day (guaranteed), 2 day, and Ground at competitive rates.</p>
-      <p><b>Pickups:</b> Ground 3:00 pm, Express 4:30 pm.</p>
+      <p><b>Daily pickup: 3:00 pm.</b></p>
     </div>
   </div>
 
@@ -226,7 +226,7 @@
 // Everything the page works out by itself. The hours and pickup times live here and in the table above.
 (function () {
   var OPEN = 9 * 60, CLOSE = 17 * 60;            // 9:00 to 5:00, Monday to Friday
-  var PICKUPS = [['FedEx Ground', 15 * 60], ['FedEx Express', 16 * 60 + 30], ['UPS', 17 * 60]];
+  var PICKUPS = [['FedEx', 15 * 60], ['UPS', 16 * 60]];
   var EMAIL = 'capecodpackandship@gmail.com';
 
   // the time on Cape Cod, wherever the visitor is
