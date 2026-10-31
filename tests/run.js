@@ -3489,7 +3489,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const r = await p.evaluate(async () => {
       const missing = Object.values(LEVELS).filter(L => L.music && !SONGS[L.music]).map(L => L.id);
       const realAudio = RB.audio, out = { missing, songs: {} };
-      for (const id of ['map', 'boss', 'caves', 'jazz']) {
+      for (const id of ['map', 'boss', 'caves', 'jazz', 'psalm', 'greensleeves', 'yankee', 'shanty', 'spanish', 'woodland', 'reel', 'paddle', 'susanna', 'gallop']) {
         const off = new OfflineAudioContext(2, 44100 * 6, 44100); RB.audio = () => off;
         music.stop(); music.play(id); music.schedule(5.5); music.stop();
         const buf = await off.startRendering(), d = buf.getChannelData(0);
@@ -3500,7 +3500,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(r.missing.length === 0, 'levels with no tune: ' + r.missing.join(', '));
     const styles = Object.values(r.songs).map(x => x.style);
-    check(['whimsy', 'epic', 'tender', 'swing'].every(st => styles.includes(st)), 'all four styles of score should be used: ' + JSON.stringify(r.songs));
+    check(['whimsy', 'epic', 'tender', 'swing', 'fife', 'shanty', 'guitar', 'fiddle', 'voyageur', 'western'].every(st => styles.includes(st)), 'every style of score should be used (each region has its own): ' + JSON.stringify(r.songs));
     check(Object.values(r.songs).every(x => x.rms > 0.004 && x.peak < 0.9), 'each style should be audible and never clip: ' + JSON.stringify(r.songs));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);

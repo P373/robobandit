@@ -1258,6 +1258,21 @@ const ORDER = ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctrive
   'cumberland', 'boonesborough', 'mammoth', 'nashville', 'neworleans', 'steamboat', 'newechota', 'chattanooga',
   'greenbay', 'mackinac', 'chicago', 'detroit', 'prophetstown', 'lakeerie', 'newsalem', 'portage', 'chicagorail',
   'stlouis', 'fortmandan', 'independencemo', 'chimney', 'bison', 'pony', 'sodhouse', 'twister', 'relay', 'omaha'];
+// ---- each region's own music ----
+// New England: the Pilgrims' psalm, Elizabethan Greensleeves, sea songs, and Yankee Doodle once the Revolution begins.
+// The Mid-Atlantic: fife and drum. The Atlantic South: Spanish guitar in Florida, Greensleeves for Roanoke, shanties in the
+// ports. Over the mountains: a fiddle reel (and Cajun accordion in New Orleans). The Great Lakes: the voyageurs'
+// paddling song. The Great Plains: Oh! Susanna and a western gallop. Native towns get a gentle cedar flute.
+const LEVEL_MUSIC = {
+  plimoth: 'psalm', cranberry: 'greensleeves', boston: 'psalm', providence: 'greensleeves', ctriver: 'greensleeves', gulfmaine: 'shanty', teaparty: 'yankee', nantucket: 'shanty', vineyard: 'woodland',
+  saratoga: 'yankee', independence: 'yankee', capital: 'yankee', delaware: 'yankee',
+  staugustine: 'spanish', roanoke: 'greensleeves', jamestown: 'psalm', powhatan: 'woodland', charleston: 'shanty', cove: 'shanty',
+  cumberland: 'reel', boonesborough: 'reel', nashville: 'reel', newechota: 'woodland',
+  greenbay: 'woodland', mackinac: 'paddle', chicago: 'paddle', detroit: 'paddle', prophetstown: 'woodland', portage: 'paddle',
+  stlouis: 'paddle', fortmandan: 'woodland', independencemo: 'susanna', chimney: 'susanna', bison: 'gallop', pony: 'gallop', sodhouse: 'susanna', relay: 'gallop',
+};
+for (const id in LEVEL_MUSIC) if (LEVELS[id]) LEVELS[id].music = LEVEL_MUSIC[id];
+
 // ---- Underground rooms and cloud areas ----
 // Most levels hide a way down and a way up. A building (a cabin, a wetu, a sod house…) or a cave mouth has a door: press
 // ▲ (or ▼) at it and you go down into a little underground room (a root cellar, a corn storage pit, a cave, a prairie dog
@@ -1423,6 +1438,36 @@ const sfx = {
 // scale steps, 6 eighth-notes to a bar (jigs) or 8 (reels); null is a rest. A bass note plays on each beat.
 const held = (...a) => a.flatMap(([n, d]) => [n, ...Array(d - 1).fill(null)]);   // a tune written as [note, how many steps it lasts]
 const SONGS = {
+  psalm: { bpm: 84, key: 55, mode: 'major', beat: 4, lead: 'reed', melody: [   // Old Hundredth (1551): the psalm tune the Pilgrims brought on the Mayflower
+    0, null, 0, null, -1, null, -2, null, -3, null, 0, null, 1, null, 2, null, null, null, null, null, null, null, null, null, 2, null, 2, null, 2, null, 1, null, 0, null, 3, null, 2, null, 1, null, null, null, null, null, null, null, null, null, 0, null, 1, null, 2, null, 1, null, 0, null, -2, null, -1, null, 0, null, null, null, null, null, null, null, null, null, 4, null, 2, null, 0, null, 1, null, 3, null, 2, null, 1, null, 0, null, null, null, null, null, null, null, null, null],
+    bass: [0, 0, 0, 0, 3, 4, 0, 5, 0, 0, 3, 0] },
+  greensleeves: { bpm: 100, key: 57, mode: 'minor', beat: 3, lead: 'flute', melody: [   // Greensleeves: an English tune from Queen Elizabeth's time, when Roanoke was settled
+    2, null, 3, 4, 5, 4, 3, null, 1, -1, 0, 1, 2, null, 0, 0, -1, 0, 1, null, -1, -3, null, null, 2, null, 3, 4, 5, 4, 3, null, 1, -1, 0, 1, 2, 1, 0, -1, -2, -1, 0, null, null, null, null, null, 6, null, null, 6, 5, 4, 3, null, 1, -1, 0, 1, 2, null, 0, 0, -1, 0, 1, null, -1, -3, null, null, 6, null, null, 6, 5, 4, 3, null, 1, -1, 0, 1, 2, 1, 0, -1, -2, -1, 0, null, null, 0, null, null],
+    bass: [0, 2, -1, 4, 0, 2, 4, 0, 2, -1, 0, 4, 2, -1, 4, 0] },
+  yankee: { bpm: 120, key: 60, mode: 'major', beat: 4, lead: 'flute', melody: [   // Yankee Doodle, on fife and drum: the Revolution's marching tune
+    0, 0, 1, 2, 0, 2, 1, -3, 0, 0, 1, 2, 0, null, -1, null, 0, 0, 1, 2, 3, 2, 1, 0, -1, -3, -2, -1, 0, null, 0, null, 5, 6, 5, 4, 5, 6, 7, null, 4, 5, 4, 3, 2, null, 4, null, 5, 6, 5, 4, 5, 6, 7, 5, 4, 7, 6, 8, 7, null, 7, null],
+    bass: [0, 0, 0, 4, 3, 0, 3, 4] },
+  shanty: { bpm: 108, key: 62, mode: 'dorian', beat: 3, lead: 'reed', melody: [   // a sea shanty, to haul ropes by (on a squeezebox, with stamping feet)
+    0, null, 0, 2, null, 4, 3, null, 2, 1, null, null, 0, null, 0, 2, null, 4, 7, null, null, 4, null, null, 5, null, 4, 3, null, 2, 1, null, 2, 3, null, 1, 0, null, 2, 1, null, -1, 0, null, null, null, null, null],
+    bass: [0, 3, 0, 4, 3, 6, 4, 0] },
+  spanish: { bpm: 112, key: 57, mode: 'spanish', beat: 3, lead: 'reed', melody: [   // Spanish guitar and castanets, for Spanish Florida
+    4, 5, 4, 3, 2, 1, 2, null, 1, 0, null, null, 4, 5, 4, 3, 2, 1, 2, 3, 4, null, null, null, 7, 6, 5, 4, null, 3, 4, null, 3, 2, null, 1, 2, 1, 2, 3, 2, 1, 0, null, null, null, null, null],
+    bass: [3, 6, 5, 0, 3, 6, 1, 0] },
+  woodland: { bpm: 92, key: 62, mode: 'major', beat: 4, lead: 'flute', melody: [   // a gentle cedar flute over the harp, on the five notes of the pentatonic scale
+    4, null, null, 5, 4, null, 2, null, 1, null, 2, null, null, null, null, null, 0, null, 1, 2, 4, null, 2, null, 1, null, null, null, null, null, null, null, 4, null, 5, null, 7, null, 5, 4, 5, null, null, 4, 2, null, null, null, 1, null, 2, 4, 2, null, 1, null, 0, null, null, null, null, null, null, null],
+    bass: [0, 0, 3, 4, 0, 3, 4, 0] },
+  reel: { bpm: 132, key: 62, mode: 'major', beat: 4, lead: 'pulse', melody: [   // a fiddle reel from the mountains, with a banjo
+    0, 2, 4, 2, 7, 4, 2, 4, 3, 5, 3, 1, 4, 3, 1, -1, 0, 2, 4, 2, 7, 4, 2, 4, 3, 1, -1, 1, 0, null, 0, null, 7, 6, 7, 8, 9, 8, 7, 5, 6, 7, 6, 4, 5, 4, 3, 1, 2, 4, 7, 4, 3, 5, 4, 1, 0, 2, 1, -1, 0, null, 0, null],
+    bass: [0, 3, 0, 4, 0, 4, 3, 0] },
+  paddle: { bpm: 104, key: 60, mode: 'major', beat: 4, lead: 'reed', melody: [   // a voyageurs' paddling song: every stroke on the beat
+    0, null, 0, 2, 4, null, 4, null, 5, null, 4, 2, 4, null, null, null, 2, null, 2, 1, 0, null, 1, 2, 1, null, null, null, -3, null, null, null, 0, null, 0, 2, 4, null, 4, null, 7, null, 5, 4, 5, null, null, null, 4, null, 2, 1, 2, null, 1, null, 0, null, null, null, null, null, null, null],
+    bass: [0, 3, 0, 4, 0, 3, 4, 0] },
+  susanna: { bpm: 120, key: 60, mode: 'major', beat: 4, lead: 'reed', melody: [   // Oh! Susanna (1848): the wagon trains' favourite, on harmonica and guitar
+    0, 1, 2, 4, 4, 5, 4, 2, 0, 1, 2, 2, 1, 0, 1, null, 0, 1, 2, 4, 4, 5, 4, 2, 0, 1, 2, 2, 1, 1, 0, null, 3, null, 3, null, 5, null, 5, null, 5, 4, 4, 2, 0, 1, null, null, 0, 1, 2, 4, 4, 5, 4, 2, 0, 1, 2, 2, 1, 1, 0, null],
+    bass: [0, 4, 0, 4, 3, 0, 4, 0] },
+  gallop: { bpm: 144, key: 57, mode: 'minor', beat: 4, lead: 'reed', melody: [   // a western gallop: hooves clip-clopping under the harmonica
+    0, null, 0, 0, 2, null, 4, null, 3, null, 2, null, 1, null, -1, null, 0, null, 0, 0, 2, null, 4, null, 7, null, null, null, 4, null, null, null, 5, null, 5, 5, 4, null, 3, null, 2, null, 3, null, 4, null, 2, null, 1, null, 1, 2, 1, null, -1, null, 0, null, null, null, 0, null, null, null],
+    bass: [0, 3, 0, 4, 5, 2, 4, 0] },
   map: { bpm: 112, key: 62, mode: 'major', beat: 3, lead: 'flute', melody: [   // Leo's theme: a soaring waltz with a leap of a sixth, like a film's opening titles
     4, null, null, 9, null, 8, 7, null, null, 4, null, null, 2, null, 4, 7, null, 9, 7, null, null, null, null, null,
     4, null, null, 9, null, 8, 7, null, 4, 2, null, 1, 2, null, null, null, null, null, 1, null, 2, 4, null, null,
@@ -1544,12 +1589,12 @@ Object.assign(SONGS, {
     [0, 2], [0, 2], [1, 2], [2, 2], [3, 2], [2, 2], [1, 2], [0, 2], [-1, 2], [-3, 2], [-2, 2], [-1, 2], [0, 4], [0, 4]),
     bass: [0, 0, 0, 4, 0, 3, 4, 0] },
 });
-const MODES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10] };
+const MODES = { major: [0, 2, 4, 5, 7, 9, 11], minor: [0, 2, 3, 5, 7, 8, 10], dorian: [0, 2, 3, 5, 7, 9, 10], spanish: [0, 1, 4, 5, 7, 8, 10] };   // (spanish: the Phrygian dominant scale of flamenco guitar)
 // The music is a little synthesised film orchestra (John Williams' sparkle crossed with Hans Zimmer's drive): strings
 // holding the chords, pizzicato and harp or a driving ostinato underneath, a woodwind, celesta or French-horn melody, low
 // strings and timpani or taiko, all in a concert-hall reverb. Each time a tune comes round again the arrangement grows,
 // like a score building: first just the tune and the strings, then the rhythm, then countermelodies and the big drums.
-const MUSIC_STYLE = { plimoth: 'whimsy', mayflower: 'tender', lighthouse: 'tender', mystic: 'whimsy', midnight: 'epic', boss: 'epic', castle: 'epic', launch: 'epic', sabine: 'epic', caves: 'tender', night: 'tender', deep: 'tender', reef: 'tender',
+const MUSIC_STYLE = { psalm: 'tender', greensleeves: 'tender', woodland: 'tender', yankee: 'fife', shanty: 'shanty', spanish: 'guitar', reel: 'fiddle', paddle: 'voyageur', susanna: 'western', gallop: 'western', plimoth: 'whimsy', mayflower: 'tender', lighthouse: 'tender', mystic: 'whimsy', midnight: 'epic', boss: 'epic', castle: 'epic', launch: 'epic', sabine: 'epic', caves: 'tender', night: 'tender', deep: 'tender', reef: 'tender',
   springs: 'tender', space: 'tender', nantucket: 'tender', snow: 'tender', basin: 'tender', jazz: 'swing', bayou: 'swing', city: 'swing', glades: 'swing', gwb: 'swing' };
 const MUSIC_VOL = 0.34;   // (about as loud as the old tunes, so the sound effects still come through)
 const music = (() => {
@@ -1630,6 +1675,12 @@ const music = (() => {
     shaker: (t, v) => noise(t, 0.05, v, 'highpass', 7500),
     bells: (t, v) => noise(t, 0.16, v, 'bandpass', 9500, { q: 3 }),   // sleigh bells
     swell: (t, d, v) => noise(t, d, v, 'highpass', 5000, { swell: true }),                                                                // a cymbal rising into the next phrase
+    fife: (f, t, d, v) => voice(f, t, d, { type: 'triangle', det: [0, 6], att: 0.015, rel: 0.07, vol: v, vib: 16, pan: 0.1 }),
+    fiddle: (f, t, d, v) => voice(f, t, d, { type: 'sawtooth', det: [-3, 3], cut: 3200, q: 1.5, att: 0.035, rel: 0.1, vol: v * 0.6, vib: 12, pan: 0.1 }),
+    harmonica: (f, t, d, v) => voice(f, t, d, { type: 'square', det: [-7, 7], cut: 1500, att: 0.04, rel: 0.1, vol: v * 0.5, vib: 6, pan: 0.05 }),
+    banjo: (f, t, v, pan = 0.25) => voice(f, t, 0.01, { type: 'triangle', det: [0, 0], mul: [1, 2], cut: 4500, att: 0.002, rel: 0.22, vol: v, pan }),
+    woodblock: (t, v, hi) => noise(t, 0.03, v, 'bandpass', hi ? 1900 : 1250, { q: 8 }),
+    castanet: (t, v) => noise(t, 0.025, v, 'bandpass', 4200, { q: 6 }),
     braam: (m, t, d, v) => { for (const [k, x] of [[0, -24], [1, -12], [2, -5]]) voice(hz(m + x), t, d, { type: 'sawtooth', det: [-10, 10], cut: 900, swell: 0.12, att: 0.35, rel: 0.9, vol: v * (k === 0 ? 1 : 0.7) }); },
   };
   function tick(until) {
@@ -1645,7 +1696,7 @@ const music = (() => {
       const swing = style === 'swing' && step % 2 === 1 ? st * 0.28 : 0, t = nextT + swing;
       // at the top of each bar: the string chord, the low strings, and a drum
       if (inBar === 0) {
-        const pv = style === 'epic' ? 0.02 : 0.016, lift = energy ? 1 : 0.75;
+        const folk = ['fife', 'shanty', 'guitar', 'fiddle', 'voyageur', 'western'].includes(style), pv = (style === 'epic' ? 0.02 : 0.016) * (folk ? 0.5 : 1), lift = energy ? 1 : 0.75;
         [0, 2, 4, 7].forEach((k, i) => I.strings(chordHz(k, style === 'epic' ? -1 : 0), nextT, barT * 0.98, pv * lift, -0.3 + i * 0.2, 0));
         I.cellos(chordHz(0, -2), nextT, barT * 0.95, (style === 'epic' ? 0.055 : 0.04) * lift);
         if (style === 'epic') { I.taiko(nextT, energy ? 0.36 : 0.24); if (energy >= 1) I.timp(chordHz(0, -2), nextT, 0.25); }
@@ -1667,6 +1718,28 @@ const music = (() => {
         const pat = [0, 2, 4, 7, 9, 7, 4, 2], k = pat[step % 8];
         if (energy >= 1 || step % 2 === 0) I.harp(chordHz(k, 0), nextT, 0.045);
         if (energy >= 2 && inBar === 0) I.celesta(chordHz(4, 2), nextT + st, 0.035);
+      } else if (style === 'fife') {   // fife and drum: a snare rattling the march, a bass drum on the strong beats
+        I.snare(nextT, inBar % 2 ? 0.018 : 0.034); if (inBar === 0 || inBar === barSteps / 2) I.taiko(nextT, 0.16);
+        if (energy >= 1 && step % 2 === 0) I.pizz(chordHz(inBar === 0 ? 0 : 4, -1), nextT, 0.08, -0.2);
+      } else if (style === 'shanty') {   // a squeezebox on the beats and stamping feet (with a clap on the second beat)
+        if (inBar % 3 === 0) { [0, 2, 4].forEach(k => I.accordion(chordHz(k, 0), nextT, st * 1.6, 0.012)); I.taiko(nextT, inBar === 0 ? 0.2 : 0.12); }
+        if (energy >= 1 && inBar === 3) I.snare(nextT, 0.03);
+        if (energy >= 2 && step % 2 === 1) I.shaker(nextT, 0.015);
+      } else if (style === 'guitar') {   // a strummed guitar (each chord swept from the low string up) and castanets clicking
+        if (inBar % 2 === 0) [0, 2, 4, 7].forEach((k, i) => I.harp(chordHz(k, -1), nextT + i * 0.018, inBar === 0 ? 0.05 : 0.03, -0.2));
+        if (energy >= 1) I.castanet(nextT, inBar % 2 ? 0.02 : 0.035);
+      } else if (style === 'fiddle') {   // boom-chuck: a plucked bass on the beats, banjo chords off them, a rolling banjo when it's big
+        if (step % 4 === 0) I.pizz(chordHz(step % 8 === 0 ? 0 : 4, -1), nextT, 0.12, -0.2);
+        if (step % 4 === 2) [0, 2, 4].forEach(k => I.banjo(chordHz(k, 0), nextT, 0.03));
+        if (energy >= 1) { const pat = [0, 4, 7, 4, 2, 4, 7, 4]; I.banjo(chordHz(pat[step % 8], 1), nextT, 0.018, 0.3); }
+      } else if (style === 'voyageur') {   // the paddles: a deep stroke on every beat, water swishing, a squeezebox holding the chord
+        if (step % 2 === 0) I.taiko(nextT, inBar === 0 ? 0.2 : 0.12);
+        if (step % 2 === 1) I.shaker(nextT, 0.018);
+        if (inBar === 0 && energy >= 1) [0, 2, 4].forEach(k => I.accordion(chordHz(k, 0), nextT, barT * 0.9, 0.009));
+      } else if (style === 'western') {   // hooves clip-clopping and a strummed guitar: boom (bass) chuck (chord)
+        I.woodblock(nextT, step % 2 ? 0.03 : 0.045, step % 4 < 2);
+        if (step % 4 === 0) I.pizz(chordHz(step % 8 === 0 ? 0 : 4, -1), nextT, 0.12, -0.2);
+        if (step % 4 === 2) [0, 2, 4].forEach((k, i) => I.harp(chordHz(k, 0), nextT + i * 0.012, 0.03, 0.2));
       } else if (style === 'swing') {   // a walking bass on the beats, swung brushes, and chords on the off-beats
         if (step % 2 === 0) { const walk = [0, 2, 4, 5][(inBar / 2) % 4]; I.pizz(hz(deg(s, root + walk) - 24), nextT, 0.13, -0.15); }
         if (energy >= 1) I.shaker(t, step % 2 ? 0.035 : 0.02);
@@ -1690,6 +1763,12 @@ const music = (() => {
         if (style === 'epic') { I.horn(hz(deg(s, n)), t, d, 0.05 * lv); if (energy >= 2) I.strings(f, t, d, 0.022, 0.2); if (energy >= 3) I.trumpet(f, t, d, 0.03); }
         else if (style === 'tender') { (s.lead === 'flute' ? I.flute : I.oboe)(f, t, d, 0.05 * lv); if (energy >= 1) I.strings(hz(deg(s, n)), t, d, 0.016, -0.2); if (energy >= 3) I.celesta(f * 2, t, 0.03); }
         else if (style === 'swing') { (song === 'bayou' ? I.accordion : I.clarinet)(f, t, d, 0.06 * lv); if (energy >= 2) I.trumpet(hz(deg(s, n - 2) + 12), t, d, 0.03); }
+        else if (style === 'fife') { I.fife(f * 2, t, d, 0.045 * lv); if (energy >= 2) I.fife(hz(deg(s, n - 2) + 24), t, d, 0.025); }   // (and a second fife a third below)
+        else if (style === 'shanty') { I.accordion(f, t, d, 0.06 * lv); if (energy >= 2) I.strings(hz(deg(s, n)), t, d, 0.018, -0.2); }
+        else if (style === 'guitar') { I.oboe(f, t, d, 0.05 * lv); if (energy >= 2) I.harp(f * 2, t, 0.03, 0.3); }
+        else if (style === 'fiddle') { I.fiddle(f, t, d, 0.07 * lv); if (energy >= 2) I.fiddle(hz(deg(s, n - 2) + 12), t, d, 0.03); }
+        else if (style === 'voyageur') { I.horn(hz(deg(s, n)), t, d, 0.045 * lv); if (energy >= 1) I.fiddle(f, t, d, 0.035); }   // (low voices singing, a fiddle with them)
+        else if (style === 'western') { I.harmonica(f, t, d, 0.07 * lv); if (energy >= 2) I.fiddle(hz(deg(s, n - 2) + 12), t, d, 0.025); }
         else {
           if (s.lead === 'reed') I.clarinet(f, t, d, 0.06 * lv); else I.flute(f, t, d, 0.055 * lv);
           if (energy >= 1 && round % 2 === 1) I.celesta(f * 2, t, 0.035);                    // celesta sparkling an octave up
