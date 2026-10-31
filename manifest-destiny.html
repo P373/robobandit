@@ -1803,7 +1803,7 @@ const save = (() => {
   s = s && typeof s === 'object' ? s : {};
   return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6,
     unlockAll: !!s.unlockAll, facts: s.facts && typeof s.facts === 'object' ? s.facts : {}, info: s.info && typeof s.info === 'object' ? s.info : {}, quiz: s.quiz && typeof s.quiz === 'object' ? s.quiz : {}, spikes: s.spikes && typeof s.spikes === 'object' ? s.spikes : {}, hero: typeof s.hero === 'string' ? s.hero : 'wrestling',   // (Unlock All, while we build; and which history fact each level shows next)
-    noTimer: !!s.noTimer, at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
+    noTimer: !!s.noTimer, cuts: s.cuts && typeof s.cuts === 'object' ? s.cuts : {}, at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
 })();
 for (const [old, now] of [['mayflower', 'voyage'], ['canal', 'plimoth']]) {   // (levels that moved off the map: their place goes to the level there now)
   if (save.cleared[old] && !(now in save.cleared)) save.cleared[now] = true;
@@ -2186,7 +2186,7 @@ function setUnlockAll(on) {
   if (state === 'map' && !nodeOpen(node(mapLeo.at))) goMap(START, true);
 }
 function newGame() {   // a fresh start: progress, secrets, facts seen and the saved spot are cleared (the best score stays)
-  for (const k of ['cleared', 'gems', 'secrets', 'facts', 'info', 'quiz', 'spikes']) save[k] = {};
+  for (const k of ['cleared', 'gems', 'secrets', 'facts', 'info', 'quiz', 'spikes', 'cuts']) save[k] = {};
   save.hero = 'wrestling'; save.at = null; save.keep = null; save.unlockAll = false; save.key = false; openCache = null;
   lives = 5; coins = 0; score = 0; keep = { form: 0, mount: false };
   persist(); goMap(START, true);
@@ -8517,7 +8517,7 @@ const insidePoly = (pts, x, y) => { let c = false; for (let i = 0, j = pts.lengt
 const STATE_WORLD = { ME: 1, NH: 1, VT: 1, MA: 1, RI: 1, CT: 1, NY: 2, NJ: 2, PA: 2, DE: 2, MD: 2, DC: 2, VA: 3, NC: 3, SC: 3, GA: 3, FL: 3,
   AL: 4, MS: 4, LA: 4, AR: 4, TN: 4, KY: 4, WV: 4, OH: 5, MI: 5, IN: 5, IL: 5, WI: 5, MN: 6, IA: 6, MO: 6, KS: 6, NE: 6, SD: 6, ND: 6,
   MT: 7, ID: 7, WY: 7, UT: 7, CO: 7, OK: 8, TX: 8, NM: 8, AZ: 8, NV: 8, OR: 9, WA: 9, AK: 9, HI: 9, CA: 9 };
-const WORLD_NAMES = ['New England', 'The Mid-Atlantic', 'The Atlantic South', 'The Music South', 'The Great Lakes', 'The Great Plains', 'The Rocky Mountains', 'The Southwest', 'The Pacific'];
+const WORLD_NAMES = ['New England', 'The Mid-Atlantic', 'The Atlantic South', 'The Frontier South', 'The Great Lakes', 'The Great Plains', 'The Rocky Mountains', 'The Southwest', 'The Pacific'];
 const WORLD_HUE = [130, 45, 165, 300, 15, 55, 265, 30, 145];   // neighbouring worlds never look alike (and none of them is sea blue)
 const STATE_NAMES = { ME: 'MAINE', NH: 'NH', VT: 'VT', MA: 'MASS.', RI: 'RI', CT: 'CT', NY: 'NEW YORK', NJ: 'NJ', PA: 'PENNSYLVANIA', DE: 'DE', MD: 'MD', DC: 'DC',
   VA: 'VIRGINIA', NC: 'N. CAROLINA', SC: 'S. CAROLINA', GA: 'GEORGIA', FL: 'FLORIDA', AL: 'ALABAMA', MS: 'MISS.', LA: 'LOUISIANA', AR: 'ARKANSAS', TN: 'TENNESSEE',
@@ -8670,7 +8670,7 @@ const PATHS = [...ROUTE.slice(1).map((id, i) => [ROUTE[i], id]),
   ['voyage', 'nantucket', 'secret'], ['cranberry', 'vineyard', 'secret'], ['ludington', 'culper', 'secret'], ['staugustine', 'cove', 'secret'], ['cumberland', 'newechota', 'secret'],
   ['mackinac', 'portage', 'secret'], ['pony', 'relay', 'secret'], ['rendezvous', 'hiddenvalley', 'secret'], ['santafe', 'camino', 'secret'], ['sutter', 'klondike', 'secret'],
   ...DEPOTS.map(d => [d.from, d.id, 'rail'])];   // (a spur out to each region's railroad depot, open once its golden spike is found)
-const pathReady = ([a, b, sec]) => save.unlockAll ? true : sec === 'rail' ? !!save.spikes[DEPOT[b].w] : sec ? !!save.secrets[a] : worldOf(a) === worldOf(b) || worldOf(a) < 0 || !!save.quiz[worldOf(a)];   // (into the next region: once its quiz is passed)
+const pathReady = ([a, b, sec]) => save.unlockAll ? true : sec === 'short' ? !!save.quiz[worldOf(a)] && !!save.quiz[worldOf(b)] : sec === 'rail' ? !!save.spikes[DEPOT[b].w] : sec ? !!save.secrets[a] : worldOf(a) === worldOf(b) || worldOf(a) < 0 || !!save.quiz[worldOf(a)];   // (into the next region: once its quiz is passed)
 // most of the trip is on foot; a few legs are by boat, and the far north by plane (for now)
 const FLIGHT_PATHS = new Set(['sutter|klondike']);
 const SEA_PATHS = new Set(['voyage|plimoth', 'voyage|nantucket', 'cranberry|vineyard', 'ludington|culper', 'lexington|delaware', 'mchenry|staugustine', 'staugustine|roanoke', 'mackinac|portage']);
@@ -8740,7 +8740,42 @@ const pathPt = (pth, u) => { if (pth.base) return pathPt(pth.base, pth.u0 + (pth
 // spur), the crossing becomes a crossroads once both regions are beaten: walking along either trail you stop there, and
 // the D-pad can turn onto the other one. (Until then the trails just pass over each other.) Each trail with a crossroads
 // on it is cut into pieces at the crossing, so the walking, the arrows and the D-pad all treat a crossroads like a stop.
-const JUNCTIONS = [], JNODE = {};
+// ---- shortcuts between neighbouring regions ----
+// Once two regions next to each other are both beaten, a short new trail is cut through the grass between their nearest
+// stops (Hartford to Sybil's Ride, say), so you can get from one region to the other without the long way round. They're
+// picked once, here: stops of different regions close together, not already joined, with room for one more trail (a
+// stop has at most four, one for each D-pad direction) that leaves well apart from the trails already there, and that
+// doesn't cross any other trail.
+(function cutShortcuts() {
+  const id2 = (a, b) => PATHS.some(q => q.slice(0, 2).includes(a) && q.slice(0, 2).includes(b));
+  const legs = id => PATHS.filter(q => q[0] === id || q[1] === id).map(q => { const o = q[0] === id ? q[1] : q[0], pt = pathPt(q, q[0] === id ? 0.15 : 0.85), h = node(id); return Math.atan2(pt.y - h.y, pt.x - h.x); });
+  const gap = (a, b) => { let x = Math.abs(a - b) % (2 * Math.PI); return x > Math.PI ? 2 * Math.PI - x : x; };
+  const [x0] = US(-73, 41), [x1] = US(-69.5, 41), near = Math.abs(x1 - x0);   // (about three and a half degrees of longitude)
+  const S = 24, poly = q => { const pts = []; for (let k = 0; k <= S; k++) pts.push(pathPt(q, k / S)); return pts; };
+  const segX = (p1, p2, p3, p4) => { const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x); if (!d) return false; const u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d, v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d; return u > 0.02 && u < 0.98 && v > 0.02 && v < 0.98; };
+  const stops = WORLDS.slice(0, 6).flat().filter(id => LEVELS[id] && !LEVELS[id].boss);
+  const cands = [];
+  for (let i = 0; i < stops.length; i++) for (let j = i + 1; j < stops.length; j++) {
+    const a = stops[i], b = stops[j], wa = worldOf(a), wb = worldOf(b); if (wa === wb || Math.abs(wa - wb) > 2 || id2(a, b)) continue;
+    const d = Math.hypot(node(a).x - node(b).x, node(a).y - node(b).y); if (d < near) cands.push([d, a, b]);
+  }
+  cands.sort((p, q) => p[0] - q[0]);
+  const used = new Set(), perPair = {};
+  for (const [, a, b] of cands) {
+    const pair = [worldOf(a), worldOf(b)].sort().join(); if (used.has(a) || used.has(b) || (perPair[pair] || 0) >= 2) continue;
+    if (legs(a).length >= 4 || legs(b).length >= 4) continue;
+    const q = [a, b, 'short'], A = node(a), B = node(b), ta = Math.atan2(B.y - A.y, B.x - A.x), tb = ta + Math.PI, d = Math.hypot(B.x - A.x, B.y - A.y);
+    // leave each stop the D-pad way that's free (well clear of its trails) and closest to where the other stop lies
+    const free = (id, toward) => [0, Math.PI / 2, Math.PI, -Math.PI / 2].filter(c => legs(id).every(x => gap(x, c) > 1.0)).sort((p2, q2) => gap(p2, toward) - gap(q2, toward))[0];
+    const ca = free(a, ta), cb = free(b, tb); if (ca == null || cb == null || gap(ca, ta) > 2.4 || gap(cb, tb) > 2.4) continue;
+    const L = d * 0.4; PATH_BEND2[a + '|' + b] = [{ x: A.x + Math.cos(ca) * L, y: A.y + Math.sin(ca) * L }, { x: B.x + Math.cos(cb) * L, y: B.y + Math.sin(cb) * L }];
+    const P = poly(q); let hit = false;
+    for (const o of PATHS) { if (o.slice(0, 2).some(x => x === a || x === b) || (worldOf(o[0]) !== worldOf(o[1]) && !o[2])) continue; const Q = poly(o); for (let m = 0; m < S && !hit; m++) for (let k = 0; k < S && !hit; k++) if (segX(P[m], P[m + 1], Q[k], Q[k + 1])) hit = true; if (hit) break; }
+    if (hit) { delete PATH_BEND2[a + '|' + b]; continue; }
+    PATHS.push(q); used.add(a); used.add(b); perPair[pair] = (perPair[pair] || 0) + 1;
+  }
+})();
+const JUNCTIONS = [], JNODE = {}, cutAnim = {};
 function findJunctions() {
   const S = 40, poly = q => { const pts = []; for (let k = 0; k <= S; k++) pts.push(pathPt(q, k / S)); return pts; };
   const P = PATHS.map(poly);
@@ -9225,7 +9260,14 @@ const INSETS = ['AK', 'HI'].map(st => { const b = [1e9, 1e9, -1e9, -1e9]; for (c
 const WORLD_AT = [US(-69.4, 45.3), US(-76.6, 41.0), US(-80.7, 33.6), US(-88.8, 34.2), US(-86.0, 41.6), US(-98.5, 42.6), US(-110.2, 43.4), US(-105.0, 33.4), US(-120.6, 40.4)];
 const MAP_TOP = 40, MAP_BOTTOM = 20;   // (the world's name and the level's name sit along the top, the lives and hints along the bottom)
 const MAP_ALL = [-4, 10, 979, 614];
-let mapWhole = false, mapLook = null;   // zoomed right out; or looking at another world than Leo's (tapped on the whole map)
+let mapWhole = false, mapLook = null, pickWorld = 0;
+// straight to a region from the whole map: its next level to play (or its first stop, if they're all beaten)
+function travelTo(w) {
+  const ids = WORLDS[w].filter(id => LEVELS[id] && nodeOpen(node(id))); if (!ids.length) return;
+  const to = ids.find(id => !save.cleared[id]) || ids[0];
+  if (to !== mapLeo.at) { sfx.oneUp(); RB.toast(`🧭 Off to World ${w + 1}: ${WORLD_NAMES[w]}!`, 2000); }
+  goMap(to, true);
+}   // zoomed right out; or looking at another world than Leo's (tapped on the whole map)
 const mapCam = { x: 0, y: 0, z: 1 };
 function mapArea() {   // the part of the map Leo is in (halfway along a trail, the one he's heading to)
   const a = node(mapLeo.at), b = mapLeo.to && node(mapLeo.to);
@@ -9266,7 +9308,7 @@ const SECRET_TOASTS = {
   staugustine: '🗺️ Secret exit! A treasure map: a path opens south to the sunken Treasure Fleet',
 };
 // which levels hide a secret exit (the map shows a little star by them: grey until it's found, then gold, like Super Mario World's red dots)
-const hasSecretExit = id => PATHS.some(([a, , sec]) => sec && a === id) || !!(LEVELS[id] && LEVELS[id].secretGoal);
+const hasSecretExit = id => PATHS.some(([a, , sec]) => sec === 'secret' && a === id) || !!(LEVELS[id] && LEVELS[id].secretGoal);
 // ---- the heroes: a real young person from each region's story joins as you reach it (Wrestling is the first; the
 // others come as their worlds are built). Where history doesn't record a name, the hero is a young person of that time.
 const HEROES = [
@@ -9395,7 +9437,7 @@ function mapTap(cxp, cyp) {
       if (!worldOpen(w)) continue;
       for (const id of WORLDS[w]) { const [sx, sy] = mapS(node(id).x, node(id).y), d = Math.hypot(sx - lx, sy - ly); if (d < bd) { bd = d; best = node(id); } }
     }
-    if (best && bd < 40) { mapWhole = false; mapLook = areaOf(best) === mapArea() ? null : areaOf(best); sfx.step(); }
+    if (best && bd < 40) { const w = worldOf(best.id); if (WORLDS[w].some(id => LEVELS[id])) { pickWorld = w; travelTo(w); } else { mapWhole = false; mapLook = areaOf(best) === mapArea() ? null : areaOf(best); sfx.step(); } }   // (a built region: go straight there)
     return;
   }
   let n = null, nd = 14;
@@ -9476,7 +9518,16 @@ function updateMap(dt) {
     const want = mapWant(), k = Math.min(1, dt * 4); mapCam.x += (want.x - mapCam.x) * k; mapCam.y += (want.y - mapCam.y) * k; mapCam.z *= Math.pow(want.z / mapCam.z, k);
     return;
   }
-  if (pressed.run || pressed.zoom) mapZoom();
+  if (pressed.run || pressed.zoom) { mapZoom(); if (mapWhole) pickWorld = Math.max(0, worldOf(mapLeo.at)); }
+  if (mapWhole && !mapLeo.to) {   // the whole country: the D-pad picks a region you've opened, and Ⓐ takes you straight there
+    const open = WORLDS.map((w, i) => i).filter(i => worldOpen(i) && WORLDS[i].some(id => LEVELS[id]));
+    if (!open.includes(pickWorld)) pickWorld = open.includes(worldOf(mapLeo.at)) ? worldOf(mapLeo.at) : open[0];
+    const k = open.indexOf(pickWorld), step = pressed.right || pressed.down ? 1 : pressed.left || pressed.up ? -1 : 0;
+    if (step && open.length > 1) { pickWorld = open[(k + step + open.length) % open.length]; sfx.step(); }
+    if (pressed.jump || pressed.start) travelTo(pickWorld);
+    const want = mapWant(), kk = Math.min(1, dt * 4); mapCam.x += (want.x - mapCam.x) * kk; mapCam.y += (want.y - mapCam.y) * kk; mapCam.z *= Math.pow(want.z / mapCam.z, kk);
+    return;
+  }
   if (!mapLeo.to) {
     if (pressed.left) mapMove([-1, 0]); else if (pressed.right) mapMove([1, 0]);
     else if (pressed.up) mapMove([0, -1]); else if (pressed.down) mapMove([0, 1]);
@@ -9646,6 +9697,10 @@ function drawMap() {
   // sailboat, flights are dashed arcs with a plane; locked trails are faint grey dots until they open.
   const pf = clamp(0.55 + z * 0.4, 0.7, 1.1);
   drawRailroad(pf);
+  if (mapWhole && !mapRail && state === 'map') {   // the region you've picked to travel to: its stops ringed in gold
+    const ids = WORLDS[pickWorld].filter(id => LEVELS[id]), cx = ids.reduce((a, id) => a + node(id).x, 0) / ids.length, cy = ids.reduce((a, id) => a + node(id).y, 0) / ids.length, r = Math.max(...ids.map(id => Math.hypot(node(id).x - cx, node(id).y - cy))) * mapCam.z + 8;
+    const [sx, sy] = mapS(cx, cy); g.beginPath(); g.arc(sx, sy, r, 0, TAU); g.lineWidth = 1.6; g.setLineDash([3, 2]); g.lineDashOffset = -clock * 8; g.strokeStyle = '#ffd23a'; g.stroke(); g.setLineDash([]);
+  }
   if (mapWhole && !mapRail) for (const n of NODES) {   // the whole map: just a dot for each level (gold to play, red once beaten); on the railroad, only the stations
     if (n.depot || n.soon || !worldOpen(worldOf(n.id)) || !nodeOpen(n)) continue;
     const [x, y] = mapS(n.x, n.y); g.beginPath(); g.arc(x, y, 1.6, 0, TAU); paint(save.cleared[n.id] ? '#e8453a' : '#ffd23a', 0.6, 'rgba(0,0,0,.4)');
@@ -9674,6 +9729,14 @@ function drawMap() {
       const u = 0.2 + ((t * 0.07 + PATHS.indexOf(pth) * 0.3) % 1) * 0.6, q = P(u), bob = Math.sin(t * 3) * 0.5;   // a little sailboat
       g.beginPath(); g.moveTo(q.x - 3, q.y + 1 + bob); g.lineTo(q.x + 3, q.y + 1 + bob); g.lineTo(q.x + 2, q.y + 2.6 + bob); g.lineTo(q.x - 2, q.y + 2.6 + bob); g.closePath(); g.fillStyle = '#c8603a'; g.fill();
       g.beginPath(); g.moveTo(q.x, q.y + 1 + bob); g.lineTo(q.x, q.y - 4.6 + bob); g.lineTo(q.x + 2.8, q.y + bob); g.closePath(); g.fillStyle = '#ffffff'; g.fill();
+      continue;
+    }
+    if (pth[2] === 'short') {   // a shortcut between two regions: a fresh dirt path cut through the grass (the first time, you see it being cut)
+      if (!save.cuts[key] && !save.unlockAll) { save.cuts[key] = true; persist(); cutAnim[key] = t; RB.toast(`✂️ A new path has been cut: ${a.name} to ${b.name}!`, 2800); }
+      const k = cutAnim[key] != null ? clamp((t - cutAnim[key]) / 1.8, 0, 1) : 1, part = () => { g.beginPath(); const q0 = P(u0); g.moveTo(q0.x, q0.y); for (let i = 1; i <= 24; i++) { const q = P(u0 + (u1 - u0) * k * i / 24); g.lineTo(q.x, q.y); } };
+      part(); g.lineWidth = 4.4 * pf; g.strokeStyle = 'rgba(70,46,20,.45)'; g.stroke(); part(); g.lineWidth = 3 * pf; g.strokeStyle = '#c8a46a'; g.stroke();
+      for (let u = u0 + 0.06; u < u0 + (u1 - u0) * k; u += 0.12) { const q = P(u), q2 = P(Math.min(1, u + 0.01)), nx = -(q2.y - q.y), ny = q2.x - q.x, l = Math.hypot(nx, ny) || 1; for (const sd of [-1, 1]) { const gx = q.x + nx / l * 3.4 * pf * sd, gy = q.y + ny / l * 3.4 * pf * sd; g.strokeStyle = '#3e8a34'; g.lineWidth = 0.7; g.beginPath(); g.moveTo(gx - 1, gy + 1); g.lineTo(gx - 1.4, gy - 1.6); g.moveTo(gx, gy + 1); g.lineTo(gx + 0.4, gy - 2); g.moveTo(gx + 1, gy + 1); g.lineTo(gx + 1.6, gy - 1.2); g.stroke(); } }
+      if (k < 1) { const q = P(u0 + (u1 - u0) * k); for (let i = 0; i < 3; i++) { g.fillStyle = '#5ab83a'; g.fillRect(q.x + Math.sin(t * 20 + i) * 4, q.y - 3 - ((t * 30 + i * 5) % 8), 1.4, 1.4); } }   // (grass flying where it's being cut)
       continue;
     }
     curve(); g.lineWidth = 3.4 * pf; g.strokeStyle = pth[2] ? 'rgba(255,220,90,.35)' : 'rgba(255,255,255,.28)'; g.stroke();   // a faint worn track under the dots
@@ -9913,7 +9976,8 @@ function drawHUD() {
     }
     if (mapWhole) {
       text('THE UNITED STATES', s * 8, s * 6, 12, '#ffd23a');
-      text(RB.touch ? 'TAP A WORLD TO ZOOM IN' : RB.pad.connected ? RB.padText('{X} ZOOM BACK IN') : 'M OR SHIFT TO ZOOM BACK IN', s * 8, s * 22, 9, '#ffffff');
+      text(`➜ WORLD ${pickWorld + 1}: ${WORLD_NAMES[pickWorld].toUpperCase()}`, s * 8, s * 22, 11, '#ffffff');
+      text(RB.touch ? 'TAP A WORLD TO GO THERE' : RB.pad.connected ? RB.padText('{DPAD} PICK A WORLD · {A} GO THERE · {X} ZOOM BACK IN') : 'ARROWS PICK A WORLD · SPACE GOES THERE · M ZOOMS BACK IN', s * 8, s * 36, 9, '#ffffff');
       if (save.unlockAll) text('🔓 ALL UNLOCKED', s * 8, LH * s - s * 18, 9, '#ffe680');
       return;
     }

@@ -4032,6 +4032,36 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p, 'manifest-destiny-under.png');
   });
 
+  await test('Manifest Destiny getting between regions: shortcuts are cut between nearby regions once both are beaten, and on the whole map the D-pad picks any open region and Ⓐ goes straight there', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const run = n => { for (let i = 0; i < n; i++) step(1 / 60); }, out = {};
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes', 'cuts']) save[k] = {}; save.unlockAll = false; paused = true; startGame();
+      const sc = PATHS.filter(q => q[2] === 'short'); out.count = sc.length;
+      const q = sc.find(x => x[0] === 'maple' || x[1] === 'maple') || sc[0], wa = worldOf(q[0]), wb = worldOf(q[1]);
+      for (const w of new Set([wa, wb])) for (const id of WORLDS[w]) save.cleared[id] = true; for (let w = 0; w <= Math.max(wa, wb); w++) for (const id of WORLDS[w]) save.cleared[id] = true; openCache = null;
+      out.shutFirst = !pathOpen(q);
+      for (let w = 0; w <= Math.max(wa, wb); w++) save.quiz[w] = true; openCache = null; out.openAfter = pathOpen(q);
+      // walk the shortcut with the D-pad
+      goMap(q[0], true); run(30); const k = exitDirs(q[0]).indexOf(q[1]); out.dir = k;
+      if (k >= 0) { pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false; run(400); }
+      out.walked = mapLeo.at === q[1];
+      let drew = true; try { drawMap(); } catch (e) { drew = e.message; } out.drew = drew; out.cutSaved = !!save.cuts[q[0] + '|' + q[1]];
+      // the whole map: pick a region and go there
+      goMap('plimoth', true); mapZoom(true); run(5); const before = pickWorld;
+      pressed.right = true; run(1); pressed.right = false; out.picked = pickWorld !== before;
+      pressed.jump = true; run(1); pressed.jump = false; run(10); out.went = worldOf(mapLeo.at) === pickWorld && !mapWhole;
+      try { mapZoom(true); run(3); drawMap(); drawHUD(); out.wholeDrew = true; } catch (e) { out.wholeDrew = e.message; }
+      paused = false; return out;
+    });
+    check(r.count >= 2 && r.shutFirst && r.openAfter, 'shortcuts between nearby regions open once both are beaten (not before): ' + JSON.stringify(r));
+    check(r.dir >= 0 && r.walked && r.drew === true && r.cutSaved, 'the D-pad walks a shortcut, and the new path is drawn (and remembered as cut): ' + JSON.stringify(r));
+    check(r.picked && r.went && r.wholeDrew === true, 'on the whole map the D-pad picks a region and Ⓐ goes straight there: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p);
+  });
+
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
