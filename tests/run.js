@@ -3583,22 +3583,30 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       save.unlockAll = true; openCache = null; paused = true; startGame();
       // each stop: its trails each get a different direction
       const bad = [];
-      for (const n of NODES) { const nb = PATHS.filter(q => q[0] === n.id || q[1] === n.id).map(q => q[0] === n.id ? q[1] : q[0]), d = exitDirs(n.id); if (nb.length > 4 || nb.some(o => !d.includes(o)) || new Set(d.filter(Boolean)).size !== d.filter(Boolean).length) bad.push(n.id); }
+      for (const n of [...NODES, ...Object.values(JNODE)]) { const nb = graphPaths().filter(q => q[0] === n.id || q[1] === n.id).map(q => q[0] === n.id ? q[1] : q[0]), d = exitDirs(n.id); if (nb.length > 4 || nb.some(o => !d.includes(o)) || new Set(d.filter(Boolean)).size !== d.filter(Boolean).length) bad.push(n.id); }
       // and in the built regions, the trails from a stop set off well apart, each the way its arrow points (so no two look the same)
       const looks = [];
-      for (const id of WORLDS.slice(0, 6).flat()) {
-        const here = node(id), legs = PATHS.filter(q => q[0] === id || q[1] === id).map(q => { const o = q[0] === id ? q[1] : q[0], fwd = q[0] === id, pt = pathPt(q, fwd ? 0.15 : 0.85); return { o, a: Math.atan2(pt.y - here.y, pt.x - here.x) * 180 / Math.PI }; });
+      for (const id of [...WORLDS.slice(0, 6).flat(), ...JUNCTIONS.filter(j => junctionOn(j) && [j.a, j.b].every(q => q.slice(0, 2).every(x => LEVELS[x]))).map(j => j.id)]) {   // (the crossroads in the built regions too)
+        const here = node(id), legs = graphPaths().filter(q => q[0] === id || q[1] === id).map(q => { const o = q[0] === id ? q[1] : q[0], fwd = q[0] === id, pt = pathPt(q, fwd ? 0.15 : 0.85); return { o, a: Math.atan2(pt.y - here.y, pt.x - here.x) * 180 / Math.PI }; });
         const gap = (a, b) => { let x = Math.abs(a - b) % 360; return x > 180 ? 360 - x : x; };
         for (let i = 0; i < legs.length; i++) for (let j = i + 1; j < legs.length; j++) if (gap(legs[i].a, legs[j].a) < 55) looks.push(`${id}: ${legs[i].o} / ${legs[j].o}`);
         if (legs.length > 1) for (const L of legs) if (gap(L.a, [180, 0, -90, 90][exitDirs(id).indexOf(L.o)]) > 60) looks.push(`${id}: the arrow to ${L.o}`);
       }
       // walk the built story from the Mayflower to Twister Alley with the D-pad only (a press of the direction the arrow shows)
       const route = WORLDS.slice(0, 6).flat(); goMap(route[0], true); let walked = 0;
-      for (let i = 1; i < route.length; i++) {
-        const k = exitDirs(mapLeo.at).indexOf(route[i]); if (k < 0) break;
-        pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false;
-        run(400); if (mapLeo.at !== route[i]) break; walked++;
+      const press = k => { pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false; run(400); };
+      for (let i = 1; i < route.length; i++) {   // (through any crossroads on the way: straight on along the same trail)
+        const base = PATHS.find(q => q.slice(0, 2).includes(route[i - 1]) && q.slice(0, 2).includes(route[i]));
+        for (let hop = 0; hop < 6 && mapLeo.at !== route[i]; hop++) { const k = exitDirs(mapLeo.at).findIndex(o => { const q = o && pathBetween(mapLeo.at, o); return q && (q === base || q.base === base) && (o === route[i] || node(o).junction); }); if (k < 0) break; press(k); }
+        if (mapLeo.at !== route[i]) break; walked++;
       }
+      // at a crossroads, every way is open: turn onto the other trail
+      const j0 = JUNCTIONS.find(junctionOn); goMap(j0.a[0], true); for (let hop = 0; hop < 3 && mapLeo.at !== j0.id; hop++) { const k = exitDirs(mapLeo.at).indexOf(j0.id); if (k < 0) break; press(k); }
+      const atCross = mapLeo.at === j0.id, turns = exitDirs(j0.id).filter(Boolean).length; const kt = exitDirs(j0.id).findIndex(o => o && [j0.b[0], j0.b[1]].includes(o));
+      if (kt >= 0) press(kt); const turned = [j0.b[0], j0.b[1]].includes(mapLeo.at);
+      let drewX = true; try { goMap(j0.a[0], true); mapLeo.at = j0.id; mapLeo.x = JNODE[j0.id].x; mapLeo.y = JNODE[j0.id].y; drawMap(); drawHUD(); } catch (e) { drewX = e.message; }
+      // and before the regions are beaten, the trails just pass over each other
+      save.unlockAll = false; for (const k in save.quiz) delete save.quiz[k]; openCache = null; const shut = !JUNCTIONS.some(junctionOn); save.unlockAll = true; openCache = null;
       // the built regions' trails don't cross each other (only the one trail between the regions has to cross one)
       const poly = q => { const pts = []; for (let k = 0; k <= 30; k++) pts.push(pathPt(q, k / 30)); return pts; };
       const segX = (p1, p2, p3, p4) => { const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x); if (!d) return false; const u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d, v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d; return u > 0 && u < 1 && v > 0 && v < 1; };
@@ -3614,13 +3622,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       }
       let drew = true; try { goMap('ludington', true); run(30); drawMap(); } catch (e) { drew = e.message; }
       save.unlockAll = false; paused = false;
-      return { bad, looks, walked, need: route.length - 1, crosses, drew };
+      return { bad, looks, walked, need: route.length - 1, crosses, drew, cross: { atCross, turns, turned, drewX, shut } };
     });
     check(r.bad.length === 0, 'every stop gives each of its trails a different D-pad direction: ' + r.bad.join(', '));
     check(r.looks.length === 0, 'the trails from each stop set off well apart, each the way its arrow points: ' + r.looks.join(', '));
     check(r.walked === r.need, `the D-pad alone walks the whole story (${r.walked} of ${r.need} steps)`);
     check(r.crosses.length === 0, 'the trails inside a region never cross: ' + r.crosses.join(', '));
     check(r.drew === true, 'the map (with its direction arrows) draws: ' + r.drew);
+    check(r.cross.atCross && r.cross.turns === 4 && r.cross.turned && r.cross.drewX === true && r.cross.shut, 'once the regions are beaten, a crossroads lets you turn any way onto the other trail (and not before): ' + JSON.stringify(r.cross));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p);
   });

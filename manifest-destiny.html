@@ -8631,7 +8631,7 @@ for (const d of DEPOTS) NODES.push(at(d.id, d.xy, d.name, d.region, { year: d.ye
 // the track: east to west along the main line, with a branch south from Baltimore and one down to Santa Fe
 const RAIL_TRACK = [['quincy', 'baltimore'], ['baltimore', 'bestfriend'], ['bestfriend', 'chattanooga'], ['baltimore', 'chicagorail'],
   ['chicagorail', 'omaha'], ['omaha', 'cheyenne'], ['cheyenne', 'sacramento'], ['omaha', 'santaferail']];
-const node = id => NODES.find(n => n.id === id);
+const node = id => (id && id[0] === '+' ? JNODE[id] : NODES.find(n => n.id === id));   // (a '+' id is a crossroads where two trails cross)
 const START = 'voyage';   // the story starts on the Mayflower, coming into Provincetown Harbor in 1620
 const WORLDS = [
   ['voyage', 'plimoth', 'cranberry', 'boston', 'providence', 'ctriver', 'maple', 'gulfmaine', 'teaparty', 'lexington'],
@@ -8684,7 +8684,7 @@ bend('nashville|neworleans', US(-86.6, 30.9));   // (down the Trace, arriving at
 bend2('mchenry|staugustine', US(-72.5, 39.0), US(-73.5, 26.3));
 bend2('blackbeard|cumberland', US(-77.0, 36.9), US(-80.5, 37.4));
 // worlds 5 and 6: every trail leaves each stop close to its own D-pad direction (worked out by a little script, then checked)
-bend2('steamboat|greenbay', US(-91.6, 36.6), US(-91.4, 42.8));
+bend2('steamboat|greenbay', US(-88.7, 35.6), US(-88.6, 41.2));
 bend2('greenbay|mackinac', US(-85.88, 44.54), US(-86.78, 45.83));
 bend2('mackinac|chicago', US(-85.44, 43.43), US(-86.91, 44.3));
 bend2('chicago|detroit', US(-85.1, 41.91), US(-85.6, 42.34));
@@ -8715,8 +8715,48 @@ const qbez = (a, c, b, u) => ({ x: (1 - u) * (1 - u) * a.x + 2 * u * (1 - u) * c
 // the map clear): a cubic curve through two control points
 const cbez = (a, c1, c2, b, u) => { const v = 1 - u; return { x: v * v * v * a.x + 3 * v * v * u * c1.x + 3 * v * u * u * c2.x + u * u * u * b.x, y: v * v * v * a.y + 3 * v * v * u * c1.y + 3 * v * u * u * c2.y + u * u * u * b.y }; };
 // a point along a trail, u from 0 (its first stop) to 1 (its second)
-const pathPt = (pth, u) => { const a = node(pth[0]), b = node(pth[1]), c2 = PATH_BEND2[pth[0] + '|' + pth[1]]; return c2 ? cbez(a, c2[0], c2[1], b, u) : qbez(a, pathCtrl(pth), b, u); };
-const pathBetween = (x, y) => PATHS.find(([a, b]) => (a === x && b === y) || (a === y && b === x));
+const pathPt = (pth, u) => { if (pth.base) return pathPt(pth.base, pth.u0 + (pth.u1 - pth.u0) * u); const a = node(pth[0]), b = node(pth[1]), c2 = PATH_BEND2[pth[0] + '|' + pth[1]]; return c2 ? cbez(a, c2[0], c2[1], b, u) : qbez(a, pathCtrl(pth), b, u); };
+// ---- crossroads ----
+// Where two trails cross on the map (a trail between regions over another region's trail, a secret trail, a railroad
+// spur), the crossing becomes a crossroads once both regions are beaten: walking along either trail you stop there, and
+// the D-pad can turn onto the other one. (Until then the trails just pass over each other.) Each trail with a crossroads
+// on it is cut into pieces at the crossing, so the walking, the arrows and the D-pad all treat a crossroads like a stop.
+const JUNCTIONS = [], JNODE = {};
+function findJunctions() {
+  const S = 40, poly = q => { const pts = []; for (let k = 0; k <= S; k++) pts.push(pathPt(q, k / S)); return pts; };
+  const P = PATHS.map(poly);
+  for (let i = 0; i < PATHS.length; i++) for (let j = i + 1; j < PATHS.length; j++) {
+    const A = PATHS[i], B = PATHS[j]; if (A.slice(0, 2).some(x => B.slice(0, 2).includes(x))) continue;
+    for (let m = 0; m < S; m++) for (let n = 0; n < S; n++) {
+      const p1 = P[i][m], p2 = P[i][m + 1], p3 = P[j][n], p4 = P[j][n + 1], d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x); if (!d) continue;
+      const u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d, v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d;
+      if (u > 0 && u < 1 && v > 0 && v < 1) {
+        const ua = (m + u) / S, ub = (n + v) / S; if (ua < 0.06 || ua > 0.94 || ub < 0.06 || ub > 0.94) continue;
+        const id = '+' + JUNCTIONS.length, x = p1.x + (p2.x - p1.x) * u, y = p1.y + (p2.y - p1.y) * u;
+        JUNCTIONS.push({ id, a: A, ua, b: B, ub }); JNODE[id] = { id, x, y, junction: true, name: 'A Crossroads', region: 'Two trails cross here' };
+      }
+    }
+  }
+}
+findJunctions();
+const worldBeaten = w => !!save.unlockAll || (w >= 0 && !!save.quiz[w]);
+const junctionOn = j => pathOpen(j.a) && pathOpen(j.b) && worldBeaten(worldOf(j.a[0])) && worldBeaten(worldOf(j.b[0]));
+let graphCache = null, graphKey = '';
+function graphPaths() {   // the trails as you can walk them now: those with a crossroads on them cut into pieces there
+  if (!JUNCTIONS.length && !graphCache) { graphCache = PATHS; }
+  const on = JUNCTIONS.filter(junctionOn), key = on.map(j => j.id).join() + '|' + openKey;
+  if (graphCache && key === graphKey) return graphCache;
+  const cuts = new Map(); for (const j of on) { for (const [pth, u] of [[j.a, j.ua], [j.b, j.ub]]) { if (!cuts.has(pth)) cuts.set(pth, []); cuts.get(pth).push([u, j.id]); } }
+  const out = [];
+  for (const pth of PATHS) {
+    const c = cuts.get(pth); if (!c) { out.push(pth); continue; }
+    c.sort((x, y) => x[0] - y[0]); const stops = [[0, pth[0]], ...c, [1, pth[1]]];
+    for (let k = 1; k < stops.length; k++) { const seg = [stops[k - 1][1], stops[k][1], pth[2]]; seg.base = pth; seg.u0 = stops[k - 1][0]; seg.u1 = stops[k][0]; out.push(seg); }
+  }
+  graphKey = key; graphCache = out; for (const k in exitDirCache) delete exitDirCache[k];
+  return out;
+}
+const pathBetween = (x, y) => graphPaths().find(([a, b]) => (a === x && b === y) || (a === y && b === x)) || PATHS.find(([a, b]) => (a === x && b === y) || (a === y && b === x));
 // Which levels are open: worked out all at once (a level opens when the one before it is beaten, or is only a signpost
 // you can walk past), and again only when something's been beaten or found. Unlock All opens everything, while we build.
 let openCache = null, openKey = '';
@@ -8739,8 +8779,8 @@ function openSet() {
   openKey = key; openCache = open;
   return open;
 }
-const nodeOpen = n => !!n && openSet().has(n.id);
-const pathOpen = pth => pathReady(pth) && nodeOpen(node(pth[0])) && nodeOpen(node(pth[1]));
+const nodeOpen = n => !!n && (n.junction || openSet().has(n.id));
+const pathOpen = pth => pth.base ? pathOpen(pth.base) : pathReady(pth) && nodeOpen(node(pth[0])) && nodeOpen(node(pth[1]));
 const worldOpen = w => !!save.unlockAll || WORLDS[w].some(id => nodeOpen(node(id)));
 const stateOpen = st => worldOpen(STATE_WORLD[st] - 1);
 const mapLeo = { at: START, x: node(START).x, y: node(START).y, to: null, path: [] };
@@ -9268,9 +9308,10 @@ function goMap(from, quiet = false) {
 const DIR4 = [[-1, 0], [1, 0], [0, -1], [0, 1]];
 const exitDirCache = {};
 function exitDirs(id) {
+  graphPaths();   // (a crossroads opening up changes the directions: the cache is cleared then)
   if (exitDirCache[id]) return exitDirCache[id];
   const here = node(id), out = [null, null, null, null];
-  const nb = PATHS.filter(p => p[0] === id || p[1] === id).map(p => {
+  const nb = graphPaths().filter(p => p[0] === id || p[1] === id).map(p => {
     const o = p[0] === id ? p[1] : p[0], fwd = p[0] === id;
     const q = pathPt(p, fwd ? 0.25 : 0.75), there = node(o);
     let vx = q.x - here.x, vy = q.y - here.y, d = Math.hypot(vx, vy) || 1; vx /= d; vy /= d;   // which way the trail sets off
@@ -9344,7 +9385,7 @@ function mapTap(cxp, cyp) {
   if (n.id === mapLeo.at && !mapLeo.to) { enterLevel(); return; }
   // walk there along open paths (breadth-first)
   const prev = { [mapLeo.at]: null }, q = [mapLeo.at];
-  while (q.length) { const c = q.shift(); for (const pth of PATHS) { if (!pth.includes(c) || !pathOpen(pth)) continue; const o = pth[0] === c ? pth[1] : pth[0]; if (!(o in prev)) { prev[o] = c; q.push(o); } } }
+  while (q.length) { const c = q.shift(); for (const pth of graphPaths()) { if (!pth.slice(0, 2).includes(c) || !pathOpen(pth)) continue; const o = pth[0] === c ? pth[1] : pth[0]; if (!(o in prev)) { prev[o] = c; q.push(o); } } }
   if (!(n.id in prev)) return;
   const route = []; for (let c = n.id; c && c !== mapLeo.at; c = prev[c]) route.unshift(c);
   mapLeo.path = route; mapLeo.autoEnter = true; mapLook = null;
@@ -9353,6 +9394,7 @@ function mapTap(cxp, cyp) {
 function enterLevel() {
   if (mapLeo.to || mapLeo.train) return;
   const n = node(mapLeo.at);
+  if (n.junction) { sfx.bump(); return; }   // (a crossroads: pick a trail with the D-pad)
   if (mapRail) { showStation(n.id); return; }   // (on the railroad: stop at this station)
   if (mapWhole) { mapZoom(false); return; }   // (on the whole map, jump zooms back in)
   if (n.depot) { boardTrain(); return; }   // (a depot: all aboard, and up to the railroad map)
@@ -9423,11 +9465,11 @@ function updateMap(dt) {
   }
   if (mapLeo.to) {
     // Leo walks along the curve of the trail (boats sail it, and a flight takes a couple of seconds whatever the distance)
-    const n = node(mapLeo.to), from = node(mapLeo.at), pth = pathBetween(mapLeo.at, mapLeo.to), key = pth ? pth[0] + '|' + pth[1] : '';
+    const n = node(mapLeo.to), from = node(mapLeo.at), pth = pathBetween(mapLeo.at, mapLeo.to), bp = pth && pth.base ? pth.base : pth, key = bp ? bp[0] + '|' + bp[1] : '';
     const fly = FLIGHT_PATHS.has(key), c = pth ? pathCtrl(pth) : { x: (from.x + n.x) / 2, y: (from.y + n.y) / 2 }, len = Math.hypot(n.x - from.x, n.y - from.y) * 1.06 * mapCam.z || 1;
     mapLeo.u = (mapLeo.u || 0) + (fly ? dt / 2.6 : Math.max(110 * dt / len, dt / 3));
     if (mapLeo.u >= 1) {
-      mapLeo.u = 0; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.at = n.id; mapLeo.to = null; mapLeo.flying = false; rememberSpot();
+      mapLeo.u = 0; mapLeo.x = n.x; mapLeo.y = n.y; mapLeo.at = n.id; mapLeo.to = null; mapLeo.flying = false; if (!n.junction) rememberSpot();
       if (mapLeo.path.length) mapLeo.to = mapLeo.path.shift();
       else if (mapLeo.autoEnter) { mapLeo.autoEnter = false; }
     } else {
@@ -9654,7 +9696,8 @@ function drawMapHero(pf) {   // the hero on the map: walking, sailing, flying or
   if (mapLeo.train) { drawTrainIcon(lx, ly, mapLeo.train.ang, 1.4); return; }
   if (mapRail) { drawTrainIcon(lx, ly, 0, 1.4); return; }   // (waiting at the station)
   if (mapLeo.flying) { drawPlane(lx, ly, mapLeo.flying, 2.2 * ls); return; }
-  const sailing = mapLeo.to ? SEA_PATHS.has(mapLeo.at + '|' + mapLeo.to) || SEA_PATHS.has(mapLeo.to + '|' + mapLeo.at) : mapLeo.at === 'voyage' && !save.cleared.voyage;
+  const wp = mapLeo.to && pathBetween(mapLeo.at, mapLeo.to), wb = wp && wp.base ? wp.base : wp;
+  const sailing = mapLeo.to ? !!wb && SEA_PATHS.has(wb[0] + '|' + wb[1]) : mapLeo.at === 'voyage' && !save.cleared.voyage;
   if (sailing) { drawShipIcon(lx, ly - 2, mapLeo.to ? (mapLeo.face || 1) : -1, 1.4 * ls); return; }
   g.save(); g.translate(lx, ly); g.scale(ls, ls);
   const walking = !!mapLeo.to, hop = walking ? Math.abs(Math.sin(t * 10)) * 3 : Math.abs(Math.sin(t * 3)) * 1;
@@ -9678,6 +9721,11 @@ function drawMapHero(pf) {   // the hero on the map: walking, sailing, flying or
 // trail), showing which way to press to take it
 function drawExitArrows(pf) {
   const t = clock;
+  for (const j of JUNCTIONS) {   // the crossroads that are open: a little signpost where the trails cross
+    if (!junctionOn(j)) continue; const n = JNODE[j.id]; if (!mapOnScreen(n.x, n.y)) continue; const [x, y] = mapS(n.x, n.y);
+    g.beginPath(); g.arc(x, y, 3.4 * pf, 0, TAU); paint('#fff4c8', 0.9, '#5a3a18');
+    g.fillStyle = '#5a3a18'; g.fillRect(x - 0.5 * pf, y - 9 * pf, 1 * pf, 6 * pf); g.fillStyle = '#c8a060'; g.fillRect(x - 0.4 * pf, y - 9 * pf, 5 * pf, 2 * pf); g.fillRect(x - 4.6 * pf, y - 6.4 * pf, 5 * pf, 2 * pf);
+  }
   if (mapRail && !mapLeo.train && state === 'map') {   // on the railroad: an arrow from the station towards each station the D-pad rides to
     const here = node(mapLeo.at), [hx, hy] = mapS(here.x, here.y);
     railDirs(here.id).forEach((to, k) => {
@@ -9699,6 +9747,11 @@ function drawExitArrows(pf) {
       g.beginPath(); g.arc(x, y + 0.7, r + 0.6, 0, TAU); g.fillStyle = 'rgba(16,48,28,.45)'; g.fill();
       g.beginPath(); g.arc(x, y, r, 0, TAU); paint('#fffbe8', 1, '#10301c');
       g.save(); g.translate(x, y); g.rotate(Math.atan2(dy, dx)); g.beginPath(); g.moveTo(2.6 * pf, 0); g.lineTo(-1.6 * pf, -2.2 * pf); g.lineTo(-1.6 * pf, 2.2 * pf); g.closePath(); g.fillStyle = '#10301c'; g.fill(); g.restore();
+      if (here.junction || dirs.filter(Boolean).length >= 3) {   // at a crossroads (or a busy stop) each arrow says where it leads (past any crossroads, to the stop)
+        let dest = to, prev = here.id; for (let k2 = 0; k2 < 6 && node(dest).junction; k2++) { const nx = (pathBetween(prev, dest) || []).base, segs = graphPaths().filter(q => q.base === nx && q.slice(0, 2).includes(dest) && !q.slice(0, 2).includes(prev)); if (!segs.length) break; prev = dest; dest = segs[0][0] === dest ? segs[0][1] : segs[0][0]; }
+        const label = node(dest).name; g.font = `bold ${Math.round(5.6 * pf)}px system-ui, sans-serif`; g.textAlign = dx < 0 ? 'right' : dx > 0 ? 'left' : 'center'; g.textBaseline = 'middle'; g.lineJoin = 'round';
+        const lx = x + dx * 7 * pf, ly = y + dy * 8 * pf; g.lineWidth = 2.2; g.strokeStyle = 'rgba(16,48,28,.85)'; g.strokeText(label, lx, ly); g.fillStyle = '#fff6d0'; g.fillText(label, lx, ly);
+      }
     });
   }
 }
@@ -9845,7 +9898,12 @@ function drawHUD() {
       if (save.unlockAll) text('🔓 ALL UNLOCKED', s * 8, LH * s - s * 18, 9, '#ffe680');
       return;
     }
-    const n = node(mapLeo.to || mapLeo.at), gems = save.gems[n.id] || [], wi = worldOf(n.id);
+    const n = node(mapLeo.to || mapLeo.at);
+    if (n.junction) {   // a crossroads: where each way goes
+      text('✚ A CROSSROADS', s * 8, s * 6, 12, '#ffd23a'); text('PICK A TRAIL: EACH ARROW SAYS WHERE IT GOES', s * 8, s * 20, 10, '#ffffff');
+      return;
+    }
+    const gems = save.gems[n.id] || [], wi = worldOf(n.id);
     text(wi >= 0 ? `WORLD ${wi + 1}: ${WORLD_NAMES[wi].toUpperCase()}` : 'MANIFEST DESTINY', s * 8, s * 6, 12, '#ffd23a');
     text(`${levelTag(n.id)}  ${n.name.toUpperCase()}`, s * 8, s * 20, 12, '#ffffff');
     text(`${n.region ? '📍 ' + n.region.toUpperCase() + '  ' : ''}${n.soon ? '🚧 COMING SOON' : `${save.cleared[n.id] ? '✔ CLEARED  ' : ''}${collectOf(LEVELS[n.id]).emoji} ${gems.filter(Boolean).length}/5${INFO[n.id] ? `  ℹ️ ${(save.info[n.id] || []).filter(Boolean).length}/${INFO[n.id].length}` : ''}`}`, s * 8, s * 31, 9, '#fff2c0');
