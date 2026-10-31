@@ -7244,7 +7244,7 @@ function updateEnts(dt) {
       }
       case 'clover': case 'hat': case 'horseshoe': case 'flower': case 'magichat': case 'prism': {
         if (e.rise > 0) { const s = Math.min(e.rise, 20 * dt); e.y -= s; e.rise -= s; break; }
-        if (e.drop) { e.y += 40 * dt; if (e.y > 40) e.drop = false; break; }
+        if (e.drop) { e.vy = 60; if (e.y < 8) e.y += 60 * dt; else moveY(e, 60 * dt); if (e.ground || e.y > LH + 30) { e.drop = false; e.vy = 0; if (e.y > LH + 30) e.gone = true; } break; }   // (your saved power-up floats gently all the way down to the ground)
         if (e.k === 'flower' || e.k === 'prism') break;
         e.vx = e.dir * (e.k === 'horseshoe' ? 70 : 55);
         e.vy = Math.min(e.vy + 900 * dt, 300);
