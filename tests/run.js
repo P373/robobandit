@@ -3985,21 +3985,29 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('nantucket'); const spike = ents.find(e => e.k === 'goldspike'); player.x = spike.x; player.y = spike.y; player.vy = 0; run(3);
       out.spike = !!save.spikes[0] && /GOLDEN SPIKE/.test(bannerText[0]) && JSON.parse(localStorage.getItem('md_save')).spikes[0] === true;
       openCache = null; out.openAfter = depotOpen('quincy') && pathOpen(['boston', 'quincy', 'rail']);
-      // the station: its Railroad Challenge, and the train to other depots (shut, or still being built)
-      goMap('quincy', true); enterLevel(); const rows = [...document.querySelectorAll('#stList button')];
-      out.station = state === 'station' && rows.length === DEPOTS.length && !rows[0].disabled && rows.slice(1).every(b => b.disabled);
-      rows[0].click(); out.challenge = state === 'level' && lvl.id === 'quincy' && lvl.challenge && levelTag('quincy') === '🚂';
-      // the train: with World 2's spike (in the Culper Ring) the Baltimore depot opens too, and the train runs between them
+      // at the depot, Ⓐ boards the train: up to the railroad map (the whole country, just the track and the stations)
+      goMap('quincy', true); enterLevel(); run(30); out.boarded = mapRail && mapWhole && state === 'map' && !mapLeo.train;
+      let drewRail = true; try { drawMap(); drawHUD(); } catch (e) { drewRail = e.message; } out.drewRail = drewRail;
+      // Ⓐ again stops at the station: its Railroad Challenge, or get off and explore the region
+      enterLevel(); const rows = [...document.querySelectorAll('#stList button')];
+      out.station = state === 'station' && rows.length === 2 && !rows[0].disabled && rows[1].dataset.act === 'explore';
+      rows[0].click(); out.challenge = state === 'level' && lvl.id === 'quincy' && lvl.challenge && levelTag('quincy') === '🚂' && !mapRail;
+      // the train: with World 2's spike (in the Culper Ring) the Baltimore depot opens too, and the D-pad rides there
       save.spikes[1] = true; save.cleared.mchenry = true; openCache = null; out.baltimore = depotOpen('baltimore');
-      goMap('quincy', true); enterLevel(); document.querySelector('#stList [data-act="ride:baltimore"]').click(); run(30); out.riding = !!mapLeo.train && mapWhole;
-      run(600); out.arrived = mapLeo.at === 'baltimore' && !mapLeo.train && state === 'map';
+      goMap('quincy', true); enterLevel(); const k = railDirs('quincy').indexOf('baltimore'); out.dir = k;
+      pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false; run(30); out.riding = !!mapLeo.train && mapWhole;
+      run(600); out.arrived = mapLeo.at === 'baltimore' && !mapLeo.train && state === 'map' && mapRail && mapWhole;   // (still on the railroad map)
+      // stop, and get off: down into the Mid-Atlantic around the depot
+      enterLevel(); document.querySelector('#stList [data-act="explore"]').click(); run(30); out.off = state === 'map' && !mapRail && !mapWhole && mapLeo.at === 'baltimore' && worldOf('baltimore') === 1;
       paused = false; return out;
     });
     check(r.depots === 9 && r.track && r.drew === true, 'nine depots joined by one track across the country, and the whole map draws: ' + JSON.stringify(r));
     check(r.built === 'quincy,baltimore,bestfriend,chattanooga,chicagorail,omaha', 'the Railroad Challenges from Quincy to Omaha are built (the rest say coming soon): ' + r.built);
     check(r.shutBefore && r.spike && r.openAfter, 'the golden spike on Nantucket opens the Quincy depot (and is saved): ' + JSON.stringify(r));
-    check(r.station && r.challenge, 'the station offers its Railroad Challenge (and shows the other depots, shut for now): ' + JSON.stringify(r));
-    check(r.baltimore && r.riding && r.arrived, 'the train rides from Quincy to Baltimore, with the whole country in view: ' + JSON.stringify(r));
+    check(r.boarded && r.drewRail === true, 'at a depot the train boards, and the map zooms out to the railroad: ' + JSON.stringify(r));
+    check(r.station && r.challenge, 'stopping at a station offers its Railroad Challenge, or getting off to explore: ' + JSON.stringify(r));
+    check(r.baltimore && r.dir >= 0 && r.riding && r.arrived, 'the D-pad rides the train from Quincy to Baltimore, and it waits there on the railroad map: ' + JSON.stringify(r));
+    check(r.off, 'getting off at Baltimore drops you into the Mid-Atlantic around the depot: ' + JSON.stringify(r));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await done(p, 'manifest-destiny-railroad.png');
   });
