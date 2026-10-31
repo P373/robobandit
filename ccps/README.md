@@ -6,7 +6,7 @@ The new website for Cape Cod Pack & Ship, 850 Main St, Unit 3, Falmouth MA. It's
 - **Preview (unlisted):** https://robobandit.com/ccps/ is not linked from anywhere, and every page carries `noindex`,
   so search engines leave it out.
 - **Plain files, no build step, nothing to slow it down:** no web fonts (system fonts), no frameworks, and the Google
-  Map only loads when someone taps "Show the map". Any static host works: GitHub Pages, Netlify, Cloudflare Pages.
+  Map only loads when a visitor scrolls down to it. Any static host works: GitHub Pages, Netlify, Cloudflare Pages.
 
 | File | What it is |
 | --- | --- |
@@ -24,8 +24,8 @@ for the storm" or "add notary service". The places to know:
 
 | What | Where |
 | --- | --- |
-| Hours | The table in the hero (`table.hours`), the FAQ answer about Saturdays, the Visit list, the JSON-LD block in `<head>`, and `OPEN`/`CLOSE` in the script at the bottom (it drives "Open now / Closed now") |
-| Pickup times | The `#pickups` line under the hours, the carrier cards, the FAQ, and `PICKUPS` in the script (it drives the "next pickup in …" countdown) |
+| Hours | The table in the hero (`table.hours`), the Visit list, the JSON-LD block in `<head>`, and `OPEN`/`CLOSE` in the script at the bottom (it drives "Open now / Closed now") |
+| Pickup times | The `#pickups` line under the hours, the carrier cards, and `PICKUPS` in the script (it drives the "next pickup in …" countdown) |
 | Holiday / storm notice | `<div class="notice" hidden>` at the top: write the message and remove `hidden` |
 | Phone, fax, email | Search for `508-540-1900`, `508-540-4300` and `capecodpackandship@gmail.com` (also `EMAIL` in the script, used by the quote form) |
 | Prices | Copies (10¢), local delivery ($70/hr): in the Copies and Packing sections |
