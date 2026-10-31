@@ -67,8 +67,8 @@ older players have a reason to go back.
 | 2 Mid-Atlantic | **quill pens** ✅ | the Declaration of Independence and the Constitution were written with them in Philadelphia |
 | 3 Atlantic South | **pieces of eight** ✅ | the Spanish silver coins of pirates, ports and St. Augustine |
 | 4 Frontier South | **apple seeds** ✅ | Johnny Appleseed planted orchards along the frontier |
-| 5 Great Lakes | **beaver pelts** | the fur trade's money: prices were counted in "made beaver" |
-| 6 Great Plains | **Pony Express letters** | mail carried 2,000 miles by relays of riders (1860) |
+| 5 Great Lakes | **beaver pelts** ✅ | the fur trade's money: prices were counted in "made beaver" |
+| 6 Great Plains | **Pony Express letters** ✅ | mail carried 2,000 miles by relays of riders (1860) |
 | 7 Rocky Mountains | **fossils** | the Rockies' great dinosaur finds (the 1870s "Bone Wars") |
 | 8 Southwest | **silver spurs** | the cowboy's gear, from the vaqueros |
 | 9 Pacific | **gold nuggets** | the Gold Rush |
@@ -129,6 +129,13 @@ close.
 9. Pacific: Grabwell's claim jumpers at Sutter's Mill, then **Grabwell himself at the Golden Spike** (the finale)
 
 ---
+
+## The level timer
+
+Like Super Mario World's: the clock counts down a little faster than seconds (300 on most levels, 400 on long ones, 500
+on the longest, 250 on Railroad Challenges). At 100 it's HURRY UP!, at 0 it's TIME UP (a life lost), and the time left
+at the goal (or a boss) is a bonus of 50 points a count. It stops while a fact or the quiz is up, and the menu can turn
+it off for the youngest players.
 
 ## The worlds, in history order
 
@@ -219,21 +226,43 @@ facts include Sequoyah's writing and the Trail of Tears), which also hides World
 *Railroad depot:* Chattanooga, with its Railroad Challenge **the Western and Atlantic** (1850) ✅.
 (Fort Nashborough, 1779, is told in the Natchez Trace's facts. The Long Hunter's Cave became New Echota.)
 
-### World 5: The Great Lakes, the Northwest Territory (1787 to 1850)
-*Anishinaabe (Ojibwe, Odawa, Potawatomi), Ho-Chunk, Menominee, Miami, Sauk and Meskwaki homelands*
-The fur trade, Fort Mackinac, Tecumseh and the Shawnee (1811), the Erie Canal's boats arriving on Lake Erie,
-Chicago (1833), Lincoln's Illinois. Hero: **Jacques, voyageur and trapper**. Beavers everywhere.
-*Secret theme:* voyageur canoe routes and portages. One secret-only level crosses into **Canada** (Grand Portage
-to Fort William on Lake Superior, the fur trade's big summer meeting place).
-*Railroad depot:* Chicago, the great railroad hub.
+### World 5: The Great Lakes (1634 to 1831) ✅ built
+*Anishinaabe (Ojibwe, Odawa, Potawatomi), Ho-Chunk, Menominee, Miami, Shawnee, Kickapoo homelands*
+Hero: **Magdelaine La Framboise** (Odawa and French, a great fur trader of Mackinac Island; joins after the frontier's
+quiz; the glider: hold jump while falling). Treasure: **beaver pelts**. Creatures: beavers, wolves, raccoons, crows,
+gulls, mosquitoes, box turtles, lake sturgeon. The levels are longer (236 to 240 tiles) and harder from here on.
 
-### World 6: The Great Plains (1804 to 1870s)
+1. **Green Bay** (1634): Jean Nicolet, looking for China, meets the Ho-Chunk ✅
+2. **Fort Mackinac** (1780): a voyageurs' great canoe across the Straits, the white bluff ✅ (secret exit: a voyageur's
+   sash high on the bluff)
+3. **Point du Sable's Trading Post** (the 1780s): Chicago's first settler, the wild-onion marsh ✅
+4. **Fort Detroit** (1796): the British flag down, the American flag up; the French ribbon farms ✅
+5. **Prophetstown** (1808): Tecumseh and Tenskwatawa's town of many nations ✅
+6. **The Erie Canal** (1825): a canal boat pulled by a mule, up through the locks ✅
+7. **Lincoln's New Salem** (1831) 🦫 boss: **the giant beaver** whose dam has Lincoln's flatboat stuck (sticks; after
+   one hit, rolling logs; after two, he charges), then the World 5 quiz ✅
+
+*Secret-only level:* **Grand Portage** (the 1790s, into Canada), with World 5's golden spike ✅.
+*Railroad depot:* Chicago, **the Pioneer Engine** (1848) ✅.
+
+### World 6: The Great Plains (1804 to the 1870s) ✅ built
 *Lakota, Dakota, Pawnee, Osage, Kaw, Omaha, Mandan, Hidatsa and Cheyenne homelands*
-Lewis and Clark leave St. Louis (1804) and winter with the Mandan, Sacagawea joins them, the Oregon Trail's
-jumping-off towns (1840s), the Pony Express (1860), the Homestead Act and sod houses (1862), the bison. Hero:
-**Addie, pioneer**.
-*Secret theme:* Pony Express relay stations.
-*Railroad depot:* Omaha (1865, where the Union Pacific started west).
+Hero: **Virginia Reed** (crossed the plains at 12, in 1846; joins after the Great Lakes' quiz; the high jumper).
+Treasure: **Pony Express letters**. Creatures: bison, jackrabbits, prairie dogs that pop up, rattlesnakes,
+grasshoppers, hawks, wolves. Longer again (252 to 256 tiles), with 500 on the clock.
+
+1. **St. Louis** (May 1804): Lewis and Clark's keelboat up the Missouri ✅
+2. **Fort Mandan** (winter 1804): earth lodges in the snow; Sacagawea joins ✅
+3. **The Oregon Trail Begins** (Independence, 1843): the Great Migration's wagons ✅
+4. **Chimney Rock** (1845): the trail's famous landmark, prairie dog towns ✅
+5. **The Great Bison Herds** (1850): tipis, and stampeding bison to jump ✅
+6. **The Pony Express** (April 1860): ride a pony from the first block ✅ (secret exit: a rider's mochila, high up)
+7. **The First Homestead** (1863): Daniel Freeman's claim, sod houses, grasshoppers ✅
+8. **Twister Alley** (the 1870s) 🌪️ boss: **the twister** (hay bales; after one hit, flying boards and a pull towards
+   it; after two, it races across the field), then the World 6 quiz ✅
+
+*Secret-only level:* **Hollenberg Station** (1860), with World 6's golden spike ✅.
+*Railroad depot:* Omaha, **the Union Pacific** (1865) ✅.
 
 ### World 7: The Rocky Mountains (1805 to 1869)
 *Shoshone, Crow, Blackfeet, Ute, Nez Perce and Arapaho homelands*

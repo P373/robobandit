@@ -3531,18 +3531,18 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const shape = { worlds: WORLDS.length, names: WORLD_NAMES.slice(), states: Object.keys(US_POLYS).length, everyState: Object.keys(US_POLYS).every(st => STATE_WORLD[st] >= 1 && STATE_WORLD[st] <= 9),
         built: ORDER.every(id => node(id) && LEVELS[id] && !node(id).soon), soon: NODES.filter(n => n.soon).every(n => !LEVELS[n.id]), onlyStory: Object.keys(LEVELS).every(id => node(id)),
         years: WORLDS.flat().every(id => node(id).year), spike: WORLDS[8][WORLDS[8].length - 1] === 'spike', neighbours: NEIGHBOURS.CAN.length > 3 && NEIGHBOURS.MEX.length >= 1 };
-      // Worlds 1 to 4 are built: beating World 1 leaves World 2 shut until New England's quiz is passed; beating World 2
+      // Worlds 1 to 6 are built: beating World 1 leaves World 2 shut until New England's quiz is passed; beating World 2
       // leaves World 3 shut until its quiz, and then World 3's signposts are walked past
-      const w1Built = [0, 1, 2, 3].every(w => WORLDS[w].every(id => LEVELS[id] && !node(id).soon)) && ['nantucket', 'vineyard', 'culper', 'cove', 'newechota'].every(id => LEVELS[id]);
+      const w1Built = [0, 1, 2, 3, 4, 5].every(w => WORLDS[w].every(id => LEVELS[id] && !node(id).soon)) && ['nantucket', 'vineyard', 'culper', 'cove', 'newechota', 'portage', 'relay'].every(id => LEVELS[id]);
       WORLDS[0].forEach(id => { save.cleared[id] = true; });
       const signs = { w1Built, lexington: nodeOpen(node('lexington')), delawareBefore: nodeOpen(node('delaware')) };
       save.quiz[0] = true; signs.delawareAfter = nodeOpen(node('delaware'));
       WORLDS[1].forEach(id => { save.cleared[id] = true; }); signs.staugBefore = nodeOpen(node('staugustine'));
       save.quiz[1] = true; signs.staugAfter = nodeOpen(node('staugustine')); signs.jamestownAfter = nodeOpen(node('jamestown'));
-      // Worlds 3 and 4 are built too: beating them leaves World 5 shut until the frontier's quiz; then its signposts are walked past
-      const w5 = WORLDS[4][0]; ORDER.forEach(id => { save.cleared[id] = true; }); save.quiz[2] = true; signs.w4Before = nodeOpen(node(w5));
-      save.quiz[3] = true; signs.w4After = nodeOpen(node(w5));
-      goMap(w5, true); enterLevel(); signs.notStarted = state === 'map'; for (const k of [0, 1, 2, 3]) delete save.quiz[k];
+      // Worlds 3 to 6 are built too: beating them leaves World 7 shut until the Great Plains' quiz; then its signposts are walked past
+      const w7 = WORLDS[6][0]; ORDER.forEach(id => { save.cleared[id] = true; }); for (const k of [2, 3, 4]) save.quiz[k] = true; signs.w4Before = nodeOpen(node(w7));
+      save.quiz[5] = true; signs.w4After = nodeOpen(node(w7));
+      goMap(w7, true); enterLevel(); signs.notStarted = state === 'map'; for (const k of [0, 1, 2, 3, 4, 5]) delete save.quiz[k];
       // zoom out to the whole country and back in
       goMap('ctriver', true); run(90); const z1 = mapCam.z;
       mapZoom(true); run(90); const zoom = { z1, z2: mapCam.z, whole: mapWhole };
@@ -3563,7 +3563,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(r.start.at === 'voyage' && r.start.tag === '1-1' && !r.start.plimoth && r.start.w1 && !r.start.w2 && r.start.area === '1' && r.start.atSea, 'a new game starts out at sea on the Mayflower (1-1), in New England, with the rest of the story still locked: ' + JSON.stringify(r.start));
     check(r.shape.worlds === 9 && r.shape.states === 51 && r.shape.everyState && r.shape.names[0] === 'New England' && r.shape.names[8] === 'The Pacific' && r.shape.neighbours, 'nine regions, every state (and D.C.) in one, Canada and Mexico next door: ' + JSON.stringify(r.shape));
     check(r.shape.built && r.shape.soon && r.shape.onlyStory && r.shape.years && r.shape.spike, 'the built levels are on the map, signposts mark the rest, there are no levels outside the story, every stop has a year, and the Golden Spike is the end: ' + JSON.stringify(r.shape));
-    check(r.signs.w1Built && r.signs.lexington && !r.signs.delawareBefore && r.signs.delawareAfter && !r.signs.staugBefore && r.signs.staugAfter && !r.signs.jamestownAfter && !r.signs.w4Before && r.signs.w4After && r.signs.notStarted, 'Worlds 1 to 4 are built; each next region opens once the quiz is passed, and signposts are walked past: ' + JSON.stringify(r.signs));
+    check(r.signs.w1Built && r.signs.lexington && !r.signs.delawareBefore && r.signs.delawareAfter && !r.signs.staugBefore && r.signs.staugAfter && !r.signs.jamestownAfter && !r.signs.w4Before && r.signs.w4After && r.signs.notStarted, 'Worlds 1 to 6 are built; each next region opens once the quiz is passed, and signposts are walked past: ' + JSON.stringify(r.signs));
     check(r.zoom.whole && r.zoom.z2 < r.zoom.z1 * 0.6 && r.zoom.backIn, 'zoom out to the whole country and back in: ' + JSON.stringify(r.zoom));
     check(r.lockedBefore && r.unlocked && r.relocked, 'Unlock All opens every level and path, and turns back off (and is saved): ' + JSON.stringify(r));
     check(r.drew === true && r.hiddenInLevel, 'every region, Alaska and the whole country draw, and the map buttons hide in a level: ' + JSON.stringify({ drew: r.drew, hidden: r.hiddenInLevel }));
@@ -3582,14 +3582,14 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       for (const n of NODES) { const nb = PATHS.filter(q => q[0] === n.id || q[1] === n.id).map(q => q[0] === n.id ? q[1] : q[0]), d = exitDirs(n.id); if (nb.length > 4 || nb.some(o => !d.includes(o)) || new Set(d.filter(Boolean)).size !== d.filter(Boolean).length) bad.push(n.id); }
       // and in the built regions, the trails from a stop set off well apart, each the way its arrow points (so no two look the same)
       const looks = [];
-      for (const id of [...WORLDS[0], ...WORLDS[1], ...WORLDS[2], ...WORLDS[3]]) {
+      for (const id of WORLDS.slice(0, 6).flat()) {
         const here = node(id), legs = PATHS.filter(q => q[0] === id || q[1] === id).map(q => { const o = q[0] === id ? q[1] : q[0], fwd = q[0] === id, pt = pathPt(q, fwd ? 0.15 : 0.85); return { o, a: Math.atan2(pt.y - here.y, pt.x - here.x) * 180 / Math.PI }; });
         const gap = (a, b) => { let x = Math.abs(a - b) % 360; return x > 180 ? 360 - x : x; };
         for (let i = 0; i < legs.length; i++) for (let j = i + 1; j < legs.length; j++) if (gap(legs[i].a, legs[j].a) < 55) looks.push(`${id}: ${legs[i].o} / ${legs[j].o}`);
         if (legs.length > 1) for (const L of legs) if (gap(L.a, [180, 0, -90, 90][exitDirs(id).indexOf(L.o)]) > 60) looks.push(`${id}: the arrow to ${L.o}`);
       }
-      // walk the built story from the Mayflower to the first steamboat with the D-pad only (a press of the direction the arrow shows)
-      const route = [...WORLDS[0], ...WORLDS[1], ...WORLDS[2], ...WORLDS[3]]; goMap(route[0], true); let walked = 0;
+      // walk the built story from the Mayflower to Twister Alley with the D-pad only (a press of the direction the arrow shows)
+      const route = WORLDS.slice(0, 6).flat(); goMap(route[0], true); let walked = 0;
       for (let i = 1; i < route.length; i++) {
         const k = exitDirs(mapLeo.at).indexOf(route[i]); if (k < 0) break;
         pressed[['left', 'right', 'up', 'down'][k]] = true; run(1); for (const b of ['left', 'right', 'up', 'down']) pressed[b] = false;
@@ -3599,7 +3599,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const poly = q => { const pts = []; for (let k = 0; k <= 30; k++) pts.push(pathPt(q, k / 30)); return pts; };
       const segX = (p1, p2, p3, p4) => { const d = (p2.x - p1.x) * (p4.y - p3.y) - (p2.y - p1.y) * (p4.x - p3.x); if (!d) return false; const u = ((p3.x - p1.x) * (p4.y - p3.y) - (p3.y - p1.y) * (p4.x - p3.x)) / d, v = ((p3.x - p1.x) * (p2.y - p1.y) - (p3.y - p1.y) * (p2.x - p1.x)) / d; return u > 0 && u < 1 && v > 0 && v < 1; };
       const crosses = [];
-      for (const w of [0, 1, 2, 3]) {
+      for (const w of [0, 1, 2, 3, 4, 5]) {
         const P = PATHS.filter(([a, b]) => worldOf(a) === w && worldOf(b) === w);
         for (let i = 0; i < P.length; i++) for (let j = i + 1; j < P.length; j++) {
           if (P[i].slice(0, 2).some(x => P[j].slice(0, 2).includes(x))) continue;
@@ -3895,6 +3895,57 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Manifest Destiny Worlds 5 and 6, the Great Lakes and the Great Plains: longer levels with more time, Magdelaine glides, Virginia jumps highest, beaver pelts and Pony Express letters, the canoe, canal boat and keelboat, prairie dogs and bison; the giant beaver and the twister, then their quizzes', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(async () => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info', 'spikes']) save[k] = {}; save.hero = 'wrestling'; paused = true; startGame();
+      out.order = [4, 5].map(w => WORLDS[w].map(id => levelTag(id) + ' ' + node(id).year).join(', '));
+      out.starts = [...WORLDS[4], 'portage', 'chicagorail', ...WORLDS[5], 'relay', 'omaha'].map(id => { startLevel(id); const story = bannerT > 0 && /1[0-9]{3}/.test(bannerText[0]); run(30); let drew = true; try { render(); } catch (e) { drew = e.message; } return [id, state === 'level' && player.y > 0 && phase === 'play', story, drew, lvl.collect]; });
+      // the levels get longer: more to cross than the worlds before, and more time on the clock for it
+      const avg = w => WORLDS[w].filter(id => !LEVELS[id].boss).reduce((a, id) => a + LEVELS[id].w, 0) / WORLDS[w].filter(id => !LEVELS[id].boss).length;
+      out.longer = avg(4) > avg(3) + 20 && avg(5) > avg(4) + 10 && levelTime(LEVELS.bison) > levelTime(LEVELS.greenbay) && levelTime(LEVELS.greenbay) > levelTime(LEVELS.cumberland);
+      // the new heroes: Magdelaine after the frontier's quiz (she glides), Virginia after the Great Lakes' (she jumps highest)
+      for (const k of [0, 1, 2]) save.quiz[k] = true; out.locked = !heroJoined(4) && !heroJoined(5);
+      save.quiz[3] = true; save.quiz[4] = true; out.joined = heroJoined(4) && heroJoined(5);
+      const fall = hero => { save.hero = hero; startLevel('greenbay'); ents = ents.filter(e => !isEnemy(e)); player.x = 72 * 16; player.y = 2 * 16; player.vy = 0; player.ground = false; keys.jump = true; let n = 0; run(40, () => { if (!player.ground) n++; }); keys.jump = false; return Math.round(player.y); };
+      out.glide = [fall('magdelaine'), fall('wrestling')];
+      const jump = hero => { save.hero = hero; startLevel('stlouis'); ents = ents.filter(e => !isEnemy(e)); player.x = 100 * 16; player.y = 11 * 16 - player.h; player.vx = 0; player.vy = 0; run(10); const y0 = player.y; let top = y0; pressed.jump = true; keys.jump = true; run(60, () => { top = Math.min(top, player.y); }); keys.jump = false; return Math.round(y0 - top); };
+      out.jump = [jump('virginia'), jump('wrestling')];
+      save.hero = 'virginia'; startLevel('chimney'); try { render(); out.heroDrew = true; } catch (e) { out.heroDrew = e.message; }
+      save.hero = 'magdelaine'; try { render(); } catch (e) { out.heroDrew = e.message; }
+      const kinds = id => { startLevel(id); return lvl.cast; };
+      out.cast = { greenbay: kinds('greenbay'), bison: kinds('bison'), chimney: kinds('chimney') };
+      out.boats = ['mackinac', 'lakeerie', 'stlouis'].map(id => { startLevel(id); return (ents.find(e => e.k === 'boat') || {}).look; });
+      // the bosses: the giant beaver (sticks, then rolling logs) and the twister (hay bales, then boards), each a chest after three hits
+      const fight = (id, w, name) => {
+        state = 'level'; startLevel(id); ents = ents.filter(e => !isEnemy(e) || e.k === 'boss'); player.x = 168 * 16; player.y = 9 * 16; player.inv = 3; run(60);
+        const boss = ents.find(e => e.k === 'boss'), o = { awake: !!boss && boss.awake && name.test(bannerText[0]) };
+        const shots = new Set(), watch = () => { boss.hurt = 0; player.inv = 1; player.x = 156 * 16; for (const e of ents) if (e.k === 'acorn') shots.add(e.kind); };
+        run(300, watch); boss.hurt = 0; bossHit(boss); run(400, watch); boss.hurt = 0; bossHit(boss); run(400, watch);
+        o.shots = [...shots]; o.drew = true; try { for (let k = 0; k < 40; k++) { step(1 / 60); render(); } } catch (e) { o.drew = e.message; }
+        boss.hurt = 0; bossHit(boss); run(300);
+        const chest = ents.find(e => e.k === 'pot'); o.chest = !!chest; if (chest) { player.x = chest.x; player.y = chest.y; player.vy = 0; run(5); }
+        o.quiz = state === 'quiz' && quiz && quiz.w === w && regionQuestions(w).length >= 25;
+        return o;
+      };
+      const finishQuiz = re => new Promise(res => { const next = () => { if (quiz) { document.querySelector('#quizA [data-right="1"]').click(); setTimeout(next, 700); return; } res(state === 'ending' && re.test(document.querySelector('#ending h1').textContent)); }; next(); });
+      delete save.quiz[4]; out.beaver = fight('newsalem', 4, /BEAVER/); out.beaver.ending = await finishQuiz(/GREAT LAKES/);
+      paused = true; out.twister = fight('twister', 5, /TWISTER/); out.twister.ending = await finishQuiz(/GREAT PLAINS/);
+      paused = false; return out;
+    });
+    check(r.order[0] === '5-1 1634, 5-2 1780, 5-3 1785, 5-4 1796, 5-5 1808, 5-6 1825, 5-7 1831' && r.order[1] === '6-1 1804, 6-2 1804, 6-3 1843, 6-4 1845, 6-5 1850, 6-6 1860, 6-7 1863, 6-8 1875', 'Worlds 5 and 6 run in history order: ' + JSON.stringify(r.order));
+    check(r.starts.every(([id, ok, story, drew, c]) => ok && story && drew === true && c === (['greenbay', 'mackinac', 'chicago', 'detroit', 'prophetstown', 'lakeerie', 'newsalem', 'portage', 'chicagorail'].includes(id) ? 'pelt' : 'letter')), 'each level starts with its story card, draws, and hides beaver pelts (World 5) or Pony Express letters (World 6): ' + JSON.stringify(r.starts));
+    check(r.longer, 'the levels get longer world by world, with more time on the clock');
+    check(r.locked && r.joined && r.glide[0] < r.glide[1] - 40 && r.jump[0] > r.jump[1] + 6 && r.heroDrew === true, 'Magdelaine joins after the frontier and glides; Virginia joins after the Great Lakes and jumps highest: ' + JSON.stringify({ glide: r.glide, jump: r.jump, drew: r.heroDrew }));
+    check(r.cast.greenbay.grumblin === 'beaver' && r.cast.bison.grumblin === 'bison' && r.cast.chimney.snapper === 'prairiedog' && r.cast.bison.buzzer === 'grasshopper', 'beavers, bison, prairie dogs and grasshoppers: ' + JSON.stringify(r.cast));
+    check(r.boats.join() === 'voyageur,canalboat,keelboat', 'a voyageur canoe at Mackinac, a canal boat on the Erie Canal, the keelboat at St. Louis: ' + r.boats.join());
+    for (const [b, a, z] of [['beaver', 'stick', 'log'], ['twister', 'hay', 'board']]) check(r[b].awake && r[b].shots.includes(a) && r[b].shots.includes(z) && r[b].drew === true && r[b].chest && r[b].quiz && r[b].ending, `the ${b}: ${a}s, then ${z}s, a chest, the quiz and the end of the region: ` + JSON.stringify(r[b]));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-world6.png');
+  });
+
   await test('Manifest Destiny railroad: depots coast to coast on the map, a golden spike (on Nantucket) opens the Quincy depot, its Railroad Challenge plays, and the train rides between open depots', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
@@ -3921,7 +3972,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       paused = false; return out;
     });
     check(r.depots === 9 && r.track && r.drew === true, 'nine depots joined by one track across the country, and the whole map draws: ' + JSON.stringify(r));
-    check(r.built === 'quincy,baltimore,bestfriend,chattanooga', 'the Quincy, Baltimore, Charleston and Chattanooga Railroad Challenges are built (the rest say coming soon): ' + r.built);
+    check(r.built === 'quincy,baltimore,bestfriend,chattanooga,chicagorail,omaha', 'the Railroad Challenges from Quincy to Omaha are built (the rest say coming soon): ' + r.built);
     check(r.shutBefore && r.spike && r.openAfter, 'the golden spike on Nantucket opens the Quincy depot (and is saved): ' + JSON.stringify(r));
     check(r.station && r.challenge, 'the station offers its Railroad Challenge (and shows the other depots, shut for now): ' + JSON.stringify(r));
     check(r.baltimore && r.riding && r.arrived, 'the train rides from Quincy to Baltimore, with the whole country in view: ' + JSON.stringify(r));
