@@ -266,12 +266,12 @@ const clamp = (v, a, b) => Math.max(a, Math.min(b, v));
 const T = {
   EMPTY: 0, GROUND: 1, BRICK: 2, QCOIN: 3, QPOWER: 4, USED: 5, STONE: 6, ONEWAY: 7,
   PIPE_TL: 8, PIPE_TR: 9, PIPE_L: 10, PIPE_R: 11, SPIKES: 12, LAVA: 13, HIDDEN: 14, QSTAR: 15,
-  COIN: 16, MULTI: 17, WATER: 18, QONEUP: 19, QRIDE: 20, QHAT: 21, QBOW: 22, QINFO: 23, INFOREAD: 24,
+  COIN: 16, MULTI: 17, WATER: 18, QONEUP: 19, QRIDE: 20, QHAT: 21, QBOW: 22, QINFO: 23, INFOREAD: 24, PLANK: 25,
 };
-const SOLID = new Set([T.QINFO, T.INFOREAD, T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP, T.QRIDE, T.QHAT, T.QBOW]);
+const SOLID = new Set([T.PLANK, T.QINFO, T.INFOREAD, T.GROUND, T.BRICK, T.QCOIN, T.QPOWER, T.USED, T.STONE, T.PIPE_TL, T.PIPE_TR, T.PIPE_L, T.PIPE_R, T.QSTAR, T.MULTI, T.QONEUP, T.QRIDE, T.QHAT, T.QBOW]);
 const QBLOCKS = new Set([T.QINFO, T.INFOREAD, T.QCOIN, T.QPOWER, T.QSTAR, T.QONEUP, T.QRIDE, T.QHAT, T.QBOW]);
 const CHARS = { '#': T.GROUND, B: T.BRICK, '?': T.QCOIN, P: T.QPOWER, U: T.USED, '=': T.STONE, '-': T.ONEWAY, '^': T.SPIKES, '~': T.LAVA,
-  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE, C: T.QHAT, R: T.QBOW, I: T.QINFO };   // Y: the block that calls Shamrock the unicorn; C: the magic hat
+  H: T.HIDDEN, S: T.QSTAR, o: T.COIN, M: T.MULTI, w: T.WATER, L: T.QONEUP, Y: T.QRIDE, C: T.QHAT, R: T.QBOW, I: T.QINFO, k: T.PLANK };   // (k: a ship's wooden planking, or a crate)   // Y: the block that calls Shamrock the unicorn; C: the magic hat
 
 // ---------- Levels ----------
 // Each level is built from a few commands (ground, gaps, blocks, pipes, enemies…) on a 14-row grid.
@@ -306,28 +306,40 @@ function builder(id, name, theme, w) {
 
 const LEVELS = {};
 // ===================== World 1: New England =====================
-// 1-1. The Mayflower: Plymouth, England, September 1620. Board the Mayflower and sail the Atlantic: climb her rigging for
-// coins, jump the waves that wash over the deck in the great storm (and the ship's rats), and if you go overboard, a
-// rope hauls you back, as one did for John Howland. After 66 days: land ho! Cape Cod, and the beach at Provincetown.
-LEVELS.voyage = builder('voyage', 'The Mayflower', 'atlantic', 220)
-  .fill(0, 219, 12, 13, T.WATER).ground(0, 10, 10).ground(170, 219, 10)
-  .at(5, 6, '?P?')   // the quay at Plymouth, England (a gentle start: the rats are aboard)
-  // the Mayflower: her deck (the ship's own platform), the stern and fore castles, the yards up her three masts, the main top
-  .e('boat', 11, 10, { w: 20, to: 150, sp: 46, look: 'mayflower', storm: [56, 112],
-    rig: [[0, -2, 4, 'castle'], [16.5, -1, 3.5, 'castle'], [4, -5, 3, 'yard'], [7.5, -4.5, 5, 'yard'], [8.5, -7.5, 3.5, 'yard'], [10.4, -9, 1.6, 'top'], [13.5, -4.5, 4.5, 'yard'], [14, -7, 3.5, 'yard']],
-    rats: [[5, 9], [12, 16]] })
-  .e('buzzer', 20, 6, { as: 'gull' }).coins(22, 3, 4).at(24, 6, '?B?').arc(32, 2, 6)
-  .e('whale', 44, 12).coins(42, 0, 5).at(50, 6, 'B?B')
-  .at(60, 6, 'C').coins(64, 3, 5)                                          // the hat power-up, partway across
-  .e('sflag', 66, 1)   // the secret: up at the main top as the ship passes, a golden flag (she first tried for the Hudson, south past Nantucket's shoals)
-  .arc(72, 2, 7).at(80, 6, '?P?').e('mid', 86, 9).coins(92, 4, 6).at(100, 6, 'B?BH')   // (a hidden 1-up)
-  .arc(108, 2, 7).at(118, 6, '?B?').e('whale', 126, 12).coins(124, 0, 5).at(136, 6, 'BPB')
-  .e('buzzer', 146, 5, { as: 'gull' }).e('buzzer', 160, 6, { as: 'gull' })
-  // Provincetown: the beach at the tip of Cape Cod, with the dunes and woods the Pilgrims saw
-  .e('crab', 176, 9).at(180, 6, '?P?').e('turkey', 186, 9).at(190, 7, '----').coins(190, 6, 4).e('turkey', 196, 9).e('buzzer', 198, 6, { as: 'gull' })
-  .at(30, 6, 'I').at(68, 6, 'I').at(90, 6, 'I').at(128, 6, 'I').at(184, 6, 'I')   // info boxes: leaving England, 66 days, John Howland, Oceanus, the Compact
-  .gems(6, 3, 34, 0, 76, 1, 104, 3, 192, 4)
-  .done({ gate: { mid: 'buoy', goal: 'driftwood' }, goal: 206, music: 'mayflower', ship: true, storm: [56, 112], decor: [['quay', 0, 10, { to: 11 }], ['capeshore', 168, 10, { to: 220 }]], collect: 'corn', cast: { grumblin: 'rat' },
+// 1-1. The Mayflower: Plymouth, England, September 1620. Walk down the gangway from the quay into the ship, and climb up
+// through her, deck by deck. The hold at the bottom: casks and barrels (some loose and rolling as she rolls), sacks and
+// crates, and the animals the Pilgrims brought (pigs, goats and chickens) with the ship's rats. Up a hatch to the 'tween
+// deck, where the 102 passengers lived for 66 days: hammocks and bunks, families, the ship's guns, and the shallop stowed
+// in pieces. Up again to the main deck in the storm, the forecastle at the bow, and the great cabin at the stern, where
+// the Compact was signed. Its door opens on Cape Cod: the Mayflower anchored off Provincetown, and the ship's boat rows you
+// ashore to the beach. (The ship is a cutaway: the bow is on the left, by the quay; the stern on the right.)
+LEVELS.voyage = builder('voyage', 'The Mayflower', 'atlantic', 240)
+  .fill(0, 239, 12, 13, T.WATER).ground(0, 12, 10)                       // the quay at Plymouth, England
+  .fill(13, 15, 12, 12, T.PLANK)                                        // the gangway, down into the hold
+  // the ship: her bottom, the hold's ceiling (the 'tween deck), the main deck, the forecastle, the great cabin at the stern
+  .fill(16, 131, 12, 13, T.PLANK).fill(16, 16, 4, 8, T.PLANK).fill(131, 131, 4, 11, T.PLANK)
+  .fill(17, 130, 8, 8, T.PLANK).fill(123, 123, 8, 8, T.EMPTY).e('ladder', 123, 8, { bottom: 12 })   // (a hatch with a ladder up, at the stern end)
+  .fill(17, 130, 4, 4, T.PLANK).fill(27, 27, 4, 4, T.EMPTY).e('ladder', 27, 4, { bottom: 8 })        // (and another at the bow end)
+  .fill(16, 22, 3, 3, T.PLANK)                                          // the forecastle, a step up at the bow
+  .fill(112, 131, 0, 0, T.PLANK).fill(112, 112, 0, 1, T.PLANK)           // the great cabin under the poop deck (its door is the gap below)
+  // the hold: casks rolling about, crates and sacks, pigs, goats, chickens and the ship's rats
+  .at(22, 9, '?P?').at(28, 9, 'I').e('grumblin', 32, 11).e('shell', 38, 11, { look: 'barrel', roll: 1 }).e('rooster', 46, 11)
+  .at(52, 9, 'B?B').e('grumblin', 56, 11, { as: 'pig' }).at(62, 10, 'kk').e('turkey', 70, 11, { as: 'goat' }).at(76, 9, 'H')
+  .e('shell', 84, 11, { look: 'barrel', roll: -1 }).e('rooster', 92, 11).at(98, 9, '?P?').e('grumblin', 104, 11).e('shell', 112, 11, { look: 'barrel', roll: -1 })
+  // the 'tween deck, coming back the other way: hammocks and families, the guns, the shallop
+  .e('grumblin', 116, 7).at(106, 5, 'B?B').e('cannon', 100, 7).e('mid', 92, 7).at(84, 5, 'I').e('grumblin', 78, 7).e('cannon', 66, 7)
+  .at(56, 5, 'C').e('grumblin', 50, 7).at(42, 5, 'I').e('shell', 38, 7, { look: 'barrel', roll: 1 }).e('grumblin', 34, 7)
+  // the main deck in the storm: gulls, a loose cask, rats, the yards up the masts (and a golden flag at the main top)
+  .at(19, 0, '?P?').e('buzzer', 40, 1, { as: 'gull' }).at(46, 1, '---').e('grumblin', 52, 3).at(59, 2, '---').e('sflag', 62, 1)
+  .at(70, 1, 'I').e('shell', 78, 3, { look: 'barrel', roll: -1 }).e('buzzer', 88, 1, { as: 'gull' }).at(94, 1, '--').e('grumblin', 100, 3)
+  // the great cabin: the Mayflower Compact, and the door that opens on Cape Cod
+  .at(120, 1, 'I').e('warp', 127, 4, { look: 'door', hut: 'cabindoor', goto: [150, 9] })
+  // Provincetown Harbor, November 1620: the Mayflower at anchor, the ship's boat rowing ashore, and the beach
+  .e('boat', 140, 10, { w: 20, to: 140, sp: 0, look: 'mayflower' }).e('boat', 162, 12, { w: 5, to: 182, sp: 40, look: 'rowboat' })
+  .ground(188, 239, 10).e('crab', 194, 9).at(198, 6, '?P?').e('turkey', 206, 9).at(212, 7, '----').coins(212, 6, 4).e('turkey', 220, 9).e('buzzer', 224, 6, { as: 'gull' })
+  .gems(40, 10, 18, 1, 86, 6, 84, 2, 214, 5)
+  .done({ gate: { mid: 'lantern', goal: 'driftwood' }, goal: 230, music: 'mayflower', decor: [['quay', 0, 10, { to: 11 }], ['mayflowerhull', 16, 12, { to: 131 }], ['capeshore', 186, 10, { to: 240 }]],
+    collect: 'corn', cast: { grumblin: 'rat' },
     story: ['SEPTEMBER 1620', '102 passengers set sail from Plymouth, England, for America. Climb aboard the Mayflower!'] });
 
 // 1-2. Plimoth Plantation, 1621: from the shore up through the Wampanoag homesite by Town Brook, where Tisquantum shows
@@ -1938,6 +1950,11 @@ function pipeUpdate(dt) {
     if (!pipe.door) p.y += 42 * dt;   // (down the hollow tree; through a door, the screen just fades)
     if (pipe.t < (pipe.door ? 0.45 : 0.6)) return;
     const w = pipe.warp;
+    if (w.goto) {   // a door within the level (the Mayflower's great cabin, out onto Cape Cod 66 days later)
+      p.x = w.goto[0] * TS; p.y = w.goto[1] * TS - p.h; p.vy = 0; p.ground = false; camX = clamp(p.x + p.w / 2 - LW * 0.4, 0, lvl.w * TS - LW); camLead = 0.4;
+      phase = 'play'; pipe = null; doorFade = 0.9; sfx.goal(); banner('66 DAYS LATER…', 'LAND HO! The Mayflower anchors off Cape Cod, at Provincetown. Row ashore!', 3.2);
+      return;
+    }
     if (w.k === 'warp') {   // into the bonus room: fall in through the hole in the roof
       outside = { lvl, ents, out: w.out };
       const src = LEVELS[w.room]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
@@ -2681,6 +2698,36 @@ function drawRaccoon(x, y, t, face, flat, e = {}) {
   g.beginPath(); g.moveTo(6.6, -8.4); g.lineTo(9.4, -7.6); g.lineTo(6.6, -6.8); g.closePath(); g.fillStyle = '#e8e8ec'; g.fill(); g.beginPath(); g.arc(9.2, -7.6, 0.7, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
   for (const ex of [3.2, 5.2]) { g.beginPath(); g.moveTo(ex - 1, -11.4); g.lineTo(ex, -13.6); g.lineTo(ex + 1, -11.4); g.closePath(); g.fillStyle = '#76767e'; g.fill(); }
   g.beginPath(); g.arc(5.6, -9.5, 0.8 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#ffffff'; g.fill(); g.beginPath(); g.arc(5.8, -9.5, 0.4, 0, TAU); g.fillStyle = '#1e1a20'; g.fill();
+  g.restore();
+}
+// ---- aboard the Mayflower: a rolling cask, a pig and a goat ----
+function drawBarrel(x, y, spin) {   // an oak cask on its side, rolling: hoops round it, the end turning
+  g.save(); g.translate(x + 7, y + 7);
+  rrect(-7, -6.4, 14, 12.8, 4); paint(vgrad(-6.4, 6.4, '#a8784a', '#6a4426'), 0.8, '#3a2410');
+  g.fillStyle = '#4a4a50'; for (const hx of [-4.6, 4]) g.fillRect(hx, -6.4, 1.4, 12.8);
+  g.rotate(spin); g.strokeStyle = 'rgba(40,24,10,.55)'; g.lineWidth = 0.8; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(-3, 0); g.lineTo(3, 0); g.stroke(); g.rotate(Math.PI / 3); }
+  g.restore();
+}
+function drawPig(x, y, t, face, flat, e = {}) {   // a pink pig, trotting, with a curly tail
+  const s2 = Math.sin(t * 11);
+  g.save(); g.translate(x + 8, y + 16); g.scale(face, flat ? 0.38 : 1);
+  for (const [lx, k] of [[-4, 1], [-1.6, -1], [2, -1], [4.4, 1]]) { rrect(lx - 0.9 + s2 * k * 0.4, -3.6, 1.8, 3.6, 0.8); g.fillStyle = '#d88a8a'; g.fill(); }
+  ell(-0.4, -6.4, 6.6, 4.2); g.fillStyle = vgrad(-10, -2, '#f4b4b0', '#d88a8a'); g.fill();
+  g.strokeStyle = '#d88a8a'; g.lineWidth = 0.9; g.beginPath(); g.arc(-7.6, -7.6, 1.4, 0, Math.PI * 1.6); g.stroke();
+  ell(5.6, -7, 2.4, 2.2); g.fillStyle = '#f0a8a4'; g.fill(); ell(8, -6.6, 1.2, 1.4); g.fillStyle = '#e88a8a'; g.fill();
+  g.beginPath(); g.moveTo(3.4, -9); g.lineTo(4.4, -11.4); g.lineTo(5.6, -9.2); g.fillStyle = '#e09090'; g.fill();
+  g.beginPath(); g.arc(6, -8, 0.6 * (e.spook > 0 ? 1.4 : 1), 0, TAU); g.fillStyle = '#1a1410'; g.fill();
+  g.restore();
+}
+function drawGoat(x, y, t, face, e = {}) {   // a nanny goat: white and brown, a beard, little horns; she lowers her head and charges
+  const s2 = Math.sin(t * (e.rush > 0 ? 16 : 8)), y0 = y + e.h, butt = e.fan > 0.5 ? 0.35 : 0;
+  g.save(); g.translate(x + e.w / 2, y0); g.scale(face, 1);
+  for (const [lx, k] of [[-5, 1], [-3, -1], [3, -1], [5, 1]]) { rrect(lx - 0.8 + s2 * k * 0.6, -5, 1.6, 5, 0.6); g.fillStyle = '#5a4a3a'; g.fill(); }
+  ell(-0.6, -8, 6.6, 3.8); g.fillStyle = vgrad(-12, -4, '#f2eee4', '#c8bca8'); g.fill(); ell(-2, -8.6, 2.6, 2); g.fillStyle = '#8a6a44'; g.fill();
+  g.save(); g.translate(5, -10); g.rotate(butt); ell(1.4, 0, 3, 2.4); g.fillStyle = '#ece6d8'; g.fill();
+  g.strokeStyle = '#6a5a44'; g.lineWidth = 1; g.beginPath(); g.moveTo(0, -1.6); g.quadraticCurveTo(-1.6, -4, -3, -3.4); g.stroke();
+  g.fillStyle = '#d8d0c0'; g.beginPath(); g.moveTo(3, 1.6); g.lineTo(2.4, 4.4); g.lineTo(1.4, 1.8); g.fill();   // the beard
+  g.beginPath(); g.arc(2, -0.6, 0.6, 0, TAU); g.fillStyle = e.rush > 0 ? '#c8402a' : '#1a1410'; g.fill(); g.restore();
   g.restore();
 }
 // ---- big animals that charge when you come up in front of them: a black bear, a moose and a bison ----
@@ -4039,6 +4086,12 @@ function drawDoorway(hut, cx, base, t, near) {
     g.fillStyle = '#7a5434'; g.fillRect(cx - 8, 2 * TS, 2.4, base - 2 * TS); g.fillRect(cx + 6, 2 * TS, 2.4, base - 2 * TS); for (let y = base - 8; y > 2 * TS; y -= 10) g.fillRect(cx - 8, y, 16, 2);
     return;
   }
+  if (hut === 'cabindoor') {   // the great cabin's door, out onto the stern gallery
+    rrect(cx - 7, base - 24, 14, 24, [6, 6, 0, 0]); paint(vgrad(base - 24, base, '#8a5a32', '#5a3418'), 1, '#2a180a');
+    g.fillStyle = 'rgba(30,16,6,.5)'; g.fillRect(cx - 0.5, base - 22, 1, 22); g.beginPath(); g.arc(cx + 4, base - 11, 1, 0, TAU); g.fillStyle = '#d8b040'; g.fill();
+    if (near) glow(cx, base - 12, 16, 'rgba(255,220,120,1)', 0.4);
+    return;
+  }
   if (hut === 'cave') {
     g.beginPath(); g.moveTo(cx - 34, base); g.quadraticCurveTo(cx - 30, base - 52, cx, base - 56); g.quadraticCurveTo(cx + 30, base - 52, cx + 34, base); g.closePath(); paint(vgrad(base - 56, base, '#9a9284', '#6a6458'));
     g.fillStyle = 'rgba(40,36,30,.35)'; for (let i = 0; i < 9; i++) g.fillRect(cx - 26 + (i * 13) % 50, base - 46 + (i * 7) % 36, 6, 2);
@@ -4142,6 +4195,59 @@ function drawDecor(d, t) {
       g.beginPath(); g.moveTo(x - w / 2 - 4, y - h); g.lineTo(x - w / 2 + 4, y - h - 8 * k); g.lineTo(x + w / 2 - 4, y - h - 8 * k); g.lineTo(x + w / 2 + 4, y - h); g.closePath(); paint('#6a9a3e');
       g.fillStyle = '#3a3a40'; g.fillRect(x + w / 4, y - h - 16 * k, 3, 10 * k);
       rrect(x - 5 * k, y - 16 * k, 10 * k, 16 * k, 1); g.fillStyle = '#4a3020'; g.fill(); rrect(x - 18 * k, y - 18 * k, 8 * k, 6 * k, 1); g.fillStyle = '#f0e0a0'; g.fill();
+      break;
+    }
+    case 'mayflowerhull': {   // the Mayflower in cutaway, from the bow (on the left, by the quay) to the stern: everything behind the decks
+      const X0 = x, X1 = ((o.to || 131) + 1) * TS, deck = 4 * TS, mid = 8 * TS, hold = y, sway = Math.sin(t * 0.9) * 1.2;
+      // the far side of the hull: dark oak planking, the ribs (frames) curving up, the beams under each deck with their knees
+      g.fillStyle = '#3a2618'; g.fillRect(X0, deck, X1 - X0, hold - deck);
+      g.fillStyle = 'rgba(255,220,170,.06)'; for (let yy = deck + 4; yy < hold; yy += 8) g.fillRect(X0, yy, X1 - X0, 1);
+      for (let xx = X0 + 24; xx < X1; xx += 48) { g.fillStyle = '#2a1a0e'; g.fillRect(xx, deck, 7, hold - deck); g.fillStyle = 'rgba(255,220,170,.08)'; g.fillRect(xx, deck, 1.4, hold - deck);
+        for (const by of [deck, mid]) { g.fillStyle = '#2a1a0e'; g.beginPath(); g.moveTo(xx, by + 16); g.lineTo(xx - 10, by + 16); g.lineTo(xx, by + 26); g.fill(); } }   // (a knee under each beam)
+      // lanterns swinging from the beams, glowing warm
+      for (let xx = X0 + 120; xx < X1 - 40; xx += 260) for (const by of [deck + 16, mid + 16]) {
+        const lx = xx + sway * 2; g.strokeStyle = '#1a1008'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(xx, by); g.lineTo(lx, by + 8); g.stroke();
+        rrect(lx - 3, by + 8, 6, 8, 1.5); g.fillStyle = '#ffd880'; g.fill(); g.strokeStyle = '#3a3a40'; g.stroke(); glow(lx, by + 12, 28, 'rgba(255,200,110,1)', 0.35);
+      }
+      // the hold: casks stacked in pyramids, sacks of grain and dried peas, crates, hay, and the animals' pen
+      for (let xx = X0 + 60; xx < X1 - 60; xx += 210) {
+        for (let r = 0; r < 3; r++) for (let c = 0; c < 3 - r; c++) { const bx = xx + c * 15 + r * 7.5, by = hold - 12 - r * 12; ell(bx, by, 7.2, 6); g.fillStyle = '#6a4626'; g.fill(); g.fillStyle = '#3a3a3e'; g.fillRect(bx - 4.6, by - 6, 1.2, 12); g.fillRect(bx + 3.4, by - 6, 1.2, 12); }
+        for (let k = 0; k < 3; k++) { ell(xx + 70 + k * 12, hold - 7, 7, 7); g.fillStyle = ['#c8b080', '#b8a070', '#d0bc90'][k]; g.fill(); }   // sacks
+        rrect(xx + 110, hold - 22, 22, 22, 1); g.fillStyle = '#7a5838'; g.fill(); g.strokeStyle = '#3a2410'; g.lineWidth = 1; g.beginPath(); g.moveTo(xx + 110, hold - 22); g.lineTo(xx + 132, hold); g.moveTo(xx + 132, hold - 22); g.lineTo(xx + 110, hold); g.stroke();
+      }
+      g.fillStyle = '#c8a850'; g.fillRect(52 * TS, hold - 5, 30 * TS, 5); for (let xx = 52 * TS; xx < 82 * TS; xx += 7) g.fillRect(xx, hold - 8 - (xx % 3), 1.2, 4);   // straw for the pigs, goats and chickens
+      g.fillStyle = '#6a4a2a'; for (let xx = 52 * TS; xx <= 82 * TS; xx += 24) g.fillRect(xx, hold - 26, 3, 26); g.fillRect(52 * TS, hold - 22, 30 * TS, 2);   // the pen's rails
+      // the 'tween deck, where the passengers lived: hammocks slung between the frames, bunks with blankets, families
+      // sitting together, gunports with grey daylight, the shallop stowed in pieces, and the two dogs (a mastiff and a spaniel)
+      for (let xx = X0 + 30; xx < X1 - 70; xx += 96) {
+        g.strokeStyle = '#d8c8a0'; g.lineWidth = 2; g.beginPath(); g.moveTo(xx, deck + 22); g.quadraticCurveTo(xx + 22, deck + 44 + sway, xx + 44, deck + 22); g.stroke();   // a hammock
+        ell(xx + 22, deck + 36 + sway, 10, 4); g.fillStyle = '#8a6a8a'; g.fill(); g.beginPath(); g.arc(xx + 32, deck + 33 + sway, 3, 0, TAU); g.fillStyle = '#f0c8a0'; g.fill();
+        rrect(xx + 50, deck + 30, 36, 6, 1); g.fillStyle = '#6a4a2a'; g.fill(); g.fillStyle = ['#a83a3a', '#3a6a9a', '#6a8a3a'][(xx / 96 | 0) % 3]; g.fillRect(xx + 52, deck + 26, 32, 5);   // a bunk with a blanket
+        rrect(xx + 58, deck + 56, 10, 6, 2); g.fillStyle = '#1e2430'; g.fill(); g.fillStyle = 'rgba(170,190,210,.5)'; g.fillRect(xx + 60, deck + 57, 6, 4);   // a gunport
+      }
+      for (let k = 0; k < 7; k++) {   // the passengers, sitting and standing (coifs and hats), keeping out of the weather
+        const px = X0 + 140 + k * 230, py = mid - 4;
+        for (let m = 0; m < 3; m++) { const fx = px + m * 11, h = m === 2 ? 12 : 18; rrect(fx - 4, py - h, 8, h, 3); g.fillStyle = ['#4a3a5a', '#6a3a2a', '#3a4a3a'][(k + m) % 3]; g.fill(); g.beginPath(); g.arc(fx, py - h - 3, 3.2, 0, TAU); g.fillStyle = '#f0c8a0'; g.fill();
+          if ((k + m) % 2) { g.fillStyle = '#ffffff'; g.beginPath(); g.arc(fx, py - h - 4, 3.4, Math.PI, 0); g.fill(); } else { g.fillStyle = '#222228'; g.fillRect(fx - 4.4, py - h - 6.6, 8.8, 1.6); g.fillRect(fx - 2.6, py - h - 10, 5.2, 4); } }
+      }
+      g.beginPath(); g.moveTo(58 * TS, mid - 6); g.quadraticCurveTo(60 * TS, mid - 26, 74 * TS, mid - 22); g.lineTo(74 * TS, mid - 6); g.closePath(); g.fillStyle = '#8a6440'; g.fill(); g.strokeStyle = '#4a3018'; g.lineWidth = 1; g.stroke();   // the shallop
+      for (const [dx, c] of [[0, '#c8a070'], [18, '#f0e8dc']]) { ell(46 * TS + dx, mid - 5, 7, 3.4); g.fillStyle = c; g.fill(); ell(46 * TS + dx + 6, mid - 8, 3, 2.6); g.fill(); }   // the dogs, asleep
+      // the bow (left) and the stern (right): the stem post and the hull door; the stern with its carved windows
+      g.fillStyle = '#5a3a1e'; g.fillRect(X0 - 6, 1 * TS, 8, hold + 2 * TS - TS); g.fillStyle = '#ffe8a0'; g.globalAlpha = 0.25; g.fillRect(X0, 9 * TS, 6, 3 * TS); g.globalAlpha = 1;
+      g.fillStyle = '#6a4426'; g.fillRect(X1 - 2, -2 * TS, 8, hold + 4 * TS); for (let k = 0; k < 3; k++) { rrect(X1 - 1, 1 * TS + k * 10, 6, 7, 1); g.fillStyle = '#ffe08a'; g.fill(); }
+      // up on deck: the rail, the three masts with their yards and sails, the rigging, the forecastle's bell, and the great cabin's
+      // walls, stern windows and the table where the Compact was signed
+      g.fillStyle = '#6a4426'; g.fillRect(X0, deck - 14, X1 - X0, 2.4); for (let xx = X0; xx < X1; xx += 12) g.fillRect(xx, deck - 14, 2, 14);
+      for (const [mx, top] of [[34, -9], [66, -12], [98, -8]]) { const mxp = mx * TS + sway;
+        g.strokeStyle = 'rgba(40,24,10,.6)'; g.lineWidth = 0.8; for (const dx of [-60, -30, 30, 60]) { g.beginPath(); g.moveTo(mxp, top * TS + 40); g.lineTo(mx * TS + dx, deck - 12); g.stroke(); }   // shrouds
+        g.fillStyle = '#5a3a1e'; g.fillRect(mxp - 3, top * TS, 6, deck - top * TS);
+        for (const [yy, w2] of [[-1.4, 70], [top + 4, 56]]) { g.fillStyle = '#5a3a1e'; g.fillRect(mxp - w2 / 2, yy * TS, w2, 3); g.beginPath(); g.moveTo(mxp - w2 / 2 + 4, yy * TS + 3); g.quadraticCurveTo(mxp + 8, yy * TS + 30 + sway * 3, mxp + w2 / 2 - 4, yy * TS + 3); g.fillStyle = 'rgba(240,230,205,.85)'; g.fill(); }   // yards and sails, bellied by the wind
+      }
+      g.fillStyle = '#5a3a1e'; g.fillRect(18 * TS, 1 * TS, 2, 2 * TS); g.fillRect(18 * TS - 4, 1 * TS, 10, 2); g.save(); g.translate(18 * TS + 1, 1 * TS + 4); g.rotate(Math.sin(t * 1.4) * 0.3); g.fillStyle = '#c89a3a'; g.beginPath(); g.moveTo(-4, 0); g.lineTo(4, 0); g.lineTo(6, 9); g.lineTo(-6, 9); g.fill(); g.restore();   // the ship's bell
+      g.fillStyle = '#5a3c24'; g.fillRect(112 * TS, 0, 20 * TS, deck); g.fillStyle = 'rgba(255,220,170,.06)'; for (let yy = 4; yy < deck; yy += 8) g.fillRect(112 * TS, yy, 20 * TS, 1);
+      for (let k = 0; k < 3; k++) { rrect(124 * TS + k * 22, 18, 16, 20, 2); g.fillStyle = 'rgba(150,180,210,.7)'; g.fill(); g.strokeStyle = '#3a2410'; g.lineWidth = 1; g.stroke(); g.beginPath(); g.moveTo(124 * TS + k * 22 + 8, 18); g.lineTo(124 * TS + k * 22 + 8, 38); g.moveTo(124 * TS + k * 22, 28); g.lineTo(124 * TS + k * 22 + 16, 28); g.stroke(); }   // the stern windows
+      g.fillStyle = '#6a4426'; g.fillRect(116 * TS, deck - 18, 40, 4); g.fillRect(117 * TS, deck - 14, 3, 14); g.fillRect(116 * TS + 34, deck - 14, 3, 14);   // the table…
+      g.fillStyle = '#f4ead0'; g.save(); g.translate(116 * TS + 14, deck - 21); g.rotate(-0.1); g.fillRect(0, 0, 14, 4); g.restore(); g.fillStyle = '#f8f4e8'; g.fillRect(116 * TS + 32, deck - 26, 2, 8); glow(116 * TS + 33, deck - 28, 10, 'rgba(255,210,120,1)', 0.6);   // …the Compact, and a candle
       break;
     }
     case 'cabin': {   // a frontier log cabin: round logs notched at the corners, a clapboard roof and a stick-and-clay chimney
@@ -4981,6 +5087,12 @@ function drawTile(tile, tx, ty, x, y, th, t) {
       break;
     }
     case T.STONE: put(theme + 'S', () => stoneTile(theme)); break;
+    case T.PLANK: { const top = !SOLID.has(tileAt(tx, ty - 1)); put('PLANK' + (+top) + (tx % 3), () => {   // a ship's timbers: oak planks with pegs and tar seams
+      g.fillStyle = '#7a5434'; g.fillRect(0, 0, 16, 16); g.fillStyle = '#8e6440'; g.fillRect(0, 0, 16, 7); g.fillStyle = 'rgba(30,16,6,.55)'; g.fillRect(0, 7, 16, 1.2); g.fillRect(0, 15, 16, 1);
+      g.fillRect((tx % 3) * 5 + 2, 0, 1, 7); g.fillRect(((tx + 1) % 3) * 5 + 4, 8, 1, 7);
+      g.fillStyle = '#4a3018'; g.beginPath(); g.arc(3, 3.5, 0.8, 0, TAU); g.arc(13, 11.5, 0.8, 0, TAU); g.fill();
+      if (top) { g.fillStyle = '#b08a5a'; g.fillRect(0, 0, 16, 1.6); }
+    }); break; }
     case T.BRICK: case T.MULTI: if (theme === 'boston') put('bostonS', () => stoneTile(theme)); else put('B', brickTile); break;   // (in Boston, chests of tea to bust open)
     case T.USED: put('U', usedTile); break;
     case T.QINFO: case T.INFOREAD: put((tile === T.QINFO ? 'INFO' : 'INFOR') + infoStyle(), () => infoTile(tile === T.INFOREAD)); break;
@@ -6887,8 +6999,9 @@ function spawnFromSpec(e) {
     case 'mid': ents.push(mk('mid', x, y - 2 * TS, { w: 16, h: 3 * TS, lit: checkpoint && lvl.gate ? -9 : 0 })); break;
     case 'key': ents.push(mk('key', x, y, { w: 16, h: 14 })); break;
     case 'boss': ents.push(mk('boss', x, y - 16, { w: 28, h: 31, hp: 3, maxHp: 3, kind: e.kind || 'grumbles', who: e.who || 'sherlock', dir: -1, hurt: 0, cyc: 0, jumpT: 2, throwT: 3, act: 0, cst: 'walk' })); break;
-    case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out, look: e.look, hut: e.hut })); break;
-    case 'hatch': ents.push(mk('hatch', x, y - 4, { w: 32, h: 4 })); break;   // (a cellar hatch in the ground, where you come back up)
+    case 'warp': case 'exit': ents.push(mk(e.k, x, y - 4, { w: 32, h: 4, room: e.room, out: e.out, look: e.look, hut: e.hut, goto: e.goto })); break;
+    case 'hatch': ents.push(mk('hatch', x, y - 4, { w: 32, h: 4 })); break;
+    case 'ladder': ents.push(mk('ladder', x, y, { w: 16, h: (e.bottom - e.y) * TS, top: e.y, bottom: e.bottom })); break;   // (a ship's ladder up through a hatch)   // (a cellar hatch in the ground, where you come back up)
     case 'sturgeon': ents.push(mk('shark', x, LH + 40, { x0: x, w: 26, h: 12, st: 'swim', cool: rand(0.5, 1.5), look: 'sturgeon' })); break;   // (it leaps like the sharks did)
     case 'boat': {
       const b = mk('boat', x, y, { x0: x, x1: e.to * TS, w: e.w * TS, h: 8, sp: e.sp || 44, go: false, mx: 0, my: 0, look: e.look, storm: e.storm, waveT: 2 });
@@ -6907,6 +7020,7 @@ function spawnFromSpec(e) {
     case 'heron': ents.push(mk('heron', x + 1, y + 16 - 34, { w: 14, h: 34, dir: -1, face: -1, jab: 0, jabCD: rand(0.5, 1.5), pause: 0 })); break;   // (a tall box: its legs are harmless, see touchPlayer)
     case 'snake': ents.push(mk('snake', x, y + 8, { w: 18, h: 8, dir: -1, rear: 0, rearCD: rand(1, 3) })); break;
     case 'gator': ents.push(mk('gator', x - 6, y + 4, { w: 28, h: 12, dir: -1 })); break;
+    case 'shell': ents.push(mk('shell', x + 1, y + 2, { w: 14, h: 14, vx: (e.roll || 0) * 70, look: e.look })); break;   // (a cask rolling about the ship as she rolls)
     case 'rooster': ents.push(mk('rooster', x + 1, y + 2, { w: 14, h: 14, dir: -1, hopCD: rand(0.5, 1.6) })); break;
     case 'turkey': { const big = ['bear', 'moose', 'bison'].includes(e.as); ents.push(mk('turkey', x + 1 - (big ? 4 : 0), y + 2 - (big ? 6 : 0), { w: big ? 22 : 14, h: big ? 20 : 14, dir: -1, rush: 0, cool: rand(0.5, 1.5), fan: 0, as: e.as })); break; }   // (bears, moose and bison charge like turkeys, but bigger)
     case 'racer': ents.push(mk('racer', x - 6, y + 4, { w: 28, h: 12, dir: -1, face: -1, n: e.x })); break;
@@ -7071,17 +7185,19 @@ function updatePlayer(dt) {
   const p = player, inp = input();
   // the ladder up out of an underground room: jump at it from either side (or press ▲ at its foot) and you hang on;
   // ▲ / ▼ climb, jump lets go, and climbing all the way to the hatch at the top is the way out
-  const lad = lvl.room && ents.find(e => e.k === 'exit' && e.hut === 'ladder');
+  const shipLad = ents.find(e => e.k === 'ladder' && Math.abs(p.x + p.w / 2 - (e.x + 8)) < 9 && p.y + p.h > e.top * TS && p.y < e.bottom * TS);
+  const lad = shipLad || (lvl.room && ents.find(e => e.k === 'exit' && e.hut === 'ladder'));
   p.climbCD = Math.max(0, (p.climbCD || 0) - dt);
   if (lad && phase === 'play' && !p.mount) {
-    const lx = lad.x + 16, near = Math.abs(p.x + p.w / 2 - lx) < 11 && p.y < lad.y + 4;
+    const lx = lad.x + (lad.k === 'ladder' ? 8 : 16), near = Math.abs(p.x + p.w / 2 - lx) < (lad.k === 'ladder' ? 9 : 11) && p.y < lad.y + (lad.k === 'ladder' ? lad.h : 4);
     if (!p.climb && near && p.climbCD <= 0 && (!p.ground || inp.up)) { p.climb = true; p.vx = 0; p.vy = 0; p.pound = null; p.twirl = 0; p.slide = 0; }
     if (p.climb) {
       p.x += (lx - p.w / 2 - p.x) * Math.min(1, dt * 14); p.vx = 0;
       p.vy = inp.up ? -85 : inp.down ? 85 : 0; moveY(p, p.vy * dt); p.anim += Math.abs(p.vy) * dt * 0.12;
       if (pressed.jump) { p.climb = false; p.climbCD = 0.4; p.vy = -250; p.vx = ((inp.right ? 1 : 0) - (inp.left ? 1 : 0)) * 110; p.ground = false; pressed.jump = false; sfx.jump(); }
       else if (p.ground && inp.down) { p.climb = false; p.climbCD = 0.4; }   // (down at the bottom: step off)
-      else if (p.y <= 2 * TS + 2) { p.climb = false; startPipe(lad); return; }   // (up at the top: out through the hatch)
+      else if (lad.k === 'ladder' && p.y + p.h <= lad.top * TS + 1) { p.climb = false; p.climbCD = 0.4; p.y = lad.top * TS - p.h; p.x = lx + (p.face >= 0 ? 9 : -9 - p.w); p.vy = 0; p.ground = true; }   // (up through the hatch: step off onto the deck)
+      else if (lad.k !== 'ladder' && p.y <= 2 * TS + 2) { p.climb = false; startPipe(lad); return; }   // (up at the top: out through the hatch)
       else { p.ground = false; return; }
     }
   } else p.climb = false;
@@ -7297,7 +7413,7 @@ function updateEnts(dt) {
         moveY(e, e.vy * dt); if (e.ground) e.vy = 0;
         e.grace = Math.max(0, (e.grace || 0) - dt);
         if (e.vx) for (const o of ents) if (o !== e && !o.dead && isEnemy(o) && overlap(e, o)) { if (o.k === 'boss') { if (bossOpen(o)) { bossHit(o); flipEnemy(e, -Math.sign(e.vx)); } } else if (o.k === 'shell' && o.vx) { flipEnemy(o, Math.sign(e.vx)); flipEnemy(e, -Math.sign(e.vx)); } else flipEnemy(o, Math.sign(e.vx)); }
-        if (!e.vx) { e.still = (e.still || 0) + dt; if (e.still > 7) { e.k = 'snaily'; e.h = 16; e.y -= 2; e.dir = p.x < e.x ? -1 : 1; e.still = 0; } } else e.still = 0;
+        if (!e.vx && e.look !== 'barrel') { e.still = (e.still || 0) + dt; if (e.still > 7) { e.k = 'snaily'; e.h = 16; e.y -= 2; e.dir = p.x < e.x ? -1 : 1; e.still = 0; } } else e.still = 0;
         if (e.y > LH + 30) e.gone = true;
         break;
       }
@@ -7466,7 +7582,7 @@ function updateEnts(dt) {
           e.waveT -= dt;
           if (e.waveT <= 0) { e.waveT = rand(2.3, 3.4); ents.push(mk('acorn', e.x + e.w + 8, e.y - 12, { vx: e.sp - 112, vy: 0, w: 12, h: 12, kind: 'wave', grav: 1e-9, free: true })); sfx.splash(); }
         }
-        if (e.look === 'mayflower' && (p.swim || (p.y + p.h > 12 * TS - 4 && !p.ride)) && phase === 'play') {   // overboard (at sea, at the quay or by the beach), even bobbing at the surface: a rope hauls the hero back on deck
+        if (e.look === 'mayflower' && (p.swim || (p.y + p.h > 12 * TS - 4 && !p.ride && !p.ground)) && Math.abs(p.x - (e.x + e.w / 2)) < 30 * TS && phase === 'play') {   // overboard near her (in the water, even bobbing at the surface): a rope hauls the hero back on deck
           e.ob = (e.ob || 0) + dt;
           if (e.ob > 0.8) {
             e.ob = 0; p.x = e.x + 3 * TS; p.y = e.y - p.h - 30; p.vx = 0; p.vy = 0; p.inv = Math.max(p.inv, 1.2); sfx.spring();
@@ -8253,10 +8369,10 @@ function drawEnt0(e, t) {
   const tt = t + (e.x % 7);   // so enemies don't all move in step
   if (e.flip) { g.save(); g.translate(x + 8, y + 8); g.scale(1, -1); g.translate(-x - 8, -y - 8); }
   switch (e.k) {
-    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : c === 'hessian' ? drawHessian : c === 'raccoon' ? drawRaccoon : c === 'pirate' ? drawPirate : c === 'hog' ? drawHog : c === 'bobcat' ? drawBobcat : c === 'possum' ? drawPossum : c === 'skunk' ? drawSkunk : c === 'cricket' ? drawCricket : c === 'beaver' ? drawBeaver : c === 'bison' ? drawBison : c === 'jackrabbit' ? drawJackrabbit : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
-    case 'turkey': if (e.as === 'bear') drawBear(x, y, tt, face, e); else if (e.as === 'moose') drawMoose(x, y, tt, face, e); else if (e.as === 'bison') drawBigBison(x, y, tt, face, e); else drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
+    case 'grumblin': { const c = e.as || (lvl.cast && lvl.cast.grumblin); (c === 'rat' ? drawRat : c === 'wolf' ? drawWolf : c === 'redcoat' ? drawRedcoat : c === 'hessian' ? drawHessian : c === 'raccoon' ? drawRaccoon : c === 'pirate' ? drawPirate : c === 'hog' ? drawHog : c === 'bobcat' ? drawBobcat : c === 'possum' ? drawPossum : c === 'skunk' ? drawSkunk : c === 'cricket' ? drawCricket : c === 'beaver' ? drawBeaver : c === 'bison' ? drawBison : c === 'jackrabbit' ? drawJackrabbit : c === 'pig' ? drawPig : drawGrumblin)(x - 1, y - 2 - spookHop(e), tt, face, e.flat, e); break; }
+    case 'turkey': if (e.as === 'goat') drawGoat(x, y, tt, face, e); else if (e.as === 'bear') drawBear(x, y, tt, face, e); else if (e.as === 'moose') drawMoose(x, y, tt, face, e); else if (e.as === 'bison') drawBigBison(x, y, tt, face, e); else drawTurkey(x - 1, y - 2 - spookHop(e), tt, face, e); break;
     case 'snaily': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - spookHop(e), tt, face, false, 0, e); break;
-    case 'shell': (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
+    case 'shell': if (e.look === 'barrel') { drawBarrel(x, y, e.vx ? t * 9 * Math.sign(e.vx) : 0); break; } (lvl.cast && lvl.cast.snaily === 'turtle' ? drawBoxTurtle : HERMITS.has(lvl.theme) ? drawHermit : drawSnaily)(x - 1, y - 2, tt, 1, true, e.vx ? t * 18 * Math.sign(e.vx) : 0); break;
     case 'thorny': (lvl.cast && lvl.cast.thorny === 'porcupine' ? drawPorcupine : drawThorny)(x - 1, y - 3 - spookHop(e), tt, face, e); break;
     case 'buzzer': if (e.as === 'gull') drawGull(x - 1, y - 2, tt, face); else if (e.as === 'pelican' || (lvl.cast && lvl.cast.buzzer === 'pelican')) drawPelican(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'mosquito') drawMosquito(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'bat') drawBat(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'grasshopper') drawGrasshopper(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'hawk') drawHawk(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'crow') drawCrow(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'hornet') drawHornet(x - 1, y - 2, tt, face); else if (lvl.cast && lvl.cast.buzzer === 'gull') drawGull(x - 1, y - 2, tt, face); else if (SWAMP.has(lvl.theme)) drawDragonfly(x - 1, y - 2, tt, face); else if (PELICANS.has(lvl.theme)) drawPelican(x - 1, y - 2, tt, face); else if (lvl.theme === 'space') drawUFO(x - 1, y - 2, tt); else if (CAPE.has(lvl.theme)) drawGull(x - 1, y - 2, tt, face); else if (BIGCITY.has(lvl.theme)) drawPigeon(x - 1, y - 2, tt, face); else drawBuzzer(x - 1, y - 2, tt, face); break;
     case 'snapper': { const pd = lvl.cast && lvl.cast.snapper === 'prairiedog', hog = pd || (lvl.cast && lvl.cast.snapper === 'groundhog'); if (hog) { ell(x + 4, e.pipeY * TS, 10, 3.4); g.fillStyle = '#7a5434'; g.fill(); ell(x + 4, e.pipeY * TS - 0.6, 5, 1.6); g.fillStyle = '#2a180a'; g.fill(); }   // (a groundhog's burrow)
@@ -8304,6 +8420,7 @@ function drawEnt0(e, t) {
       if (near && !pipe) { const by = y - 22 + Math.abs(Math.sin(t * 5)) * 4; g.beginPath(); g.moveTo(x + 10, by); g.lineTo(x + 22, by); g.lineTo(x + 16, by + 8); g.closePath(); g.fillStyle = '#ffe14a'; g.fill(); }
       break;
     }
+    case 'ladder': { g.fillStyle = '#7a5434'; g.fillRect(x + 2, y - 6, 2.4, e.h + 6); g.fillRect(x + 11.6, y - 6, 2.4, e.h + 6); for (let yy = y - 2; yy < y + e.h; yy += 8) g.fillRect(x + 2, yy, 12, 2); break; }   // a ladder up through the hatch
     case 'hatch': { rrect(x + 6, y + 2, 20, 4, 1); paint('#7a5434', 0.6, '#3a2410'); g.fillStyle = '#c8a040'; g.fillRect(x + 14, y + 3, 4, 1.4); break; }   // a cellar hatch
     case 'key': drawKey(x, y, t); break;
     case 'clover': drawClover(x - 1, y - 2, t); break;
