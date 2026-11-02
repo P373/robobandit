@@ -3240,7 +3240,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         const start = pts.filter(([x]) => x <= 4).sort((a, b) => b[1] - a[1])[0];
         const seen = new Set([k(...start)]), q = [start];
         let far = 0;
-        const doors = L.ents.filter(e => e.k === 'warp' && e.goto);   // (a door within the level, like the Mayflower's great cabin: through it to where it leads)
+        const doors = L.ents.filter(e => e.k === 'warp' && (e.goto || (e.room && e.out && LEVELS[e.room] && LEVELS[e.room].parent === id && !/_under$/.test(e.room))))   // (a door within the level, or through a room of its own like Plimoth's grist mill: through it to where it comes out)
+          .map(e => ({ x: e.x, y: e.y, goto: e.goto || [Math.round(e.out[0]), e.out[1] - 1] }));
         for (let pass = 0; pass < 3; pass++) { if (pass) for (const d of doors) if ([...seen].some(v => { const [a, b] = v.split(',').map(Number); return Math.abs(a - d.x) <= 1 && Math.abs(b - (d.y - 1)) <= 1; })) { const g2 = d.goto, kk = k(g2[0], g2[1]); stand.add(kk); if (!seen.has(kk)) { seen.add(kk); q.push([g2[0], g2[1]]); pts.push([g2[0], g2[1]]); } }
         while (q.length) {
           const [x, y] = q.shift();
@@ -3259,9 +3260,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
         const below = (tx, ty) => [...seen].some(q => { const [a, b] = q.split(',').map(Number); return Math.abs(a - tx) <= 1 && b >= ty + 1 && b <= ty + 5; });   // somewhere to bump it from
         const hatI = [...L.t].findIndex(v => v === T.QHAT), hx = hatI % W, hy = Math.floor(hatI / W);
         const infos = []; for (let i = 0; i < L.t.length; i++) if (L.t[i] === T.QINFO) infos.push([i % W, Math.floor(i / W)]);
+        const roomInfos = Object.values(LEVELS).filter(R => R.parent === id && R.infoMap).reduce((n, R) => n + [...R.t].filter(v => v === T.QINFO).length, 0);   // (some facts are inside the level's rooms)
         const flagE = L.ents.find(e => e.k === 'sflag');
         out[id] = { far, goal: L.goal, corn: L.ents.filter(e => e.k === 'gem').length, hat: hatI < 0 ? null : { early: hx < 20, reach: below(hx, hy) },
-          hidden: L.t.includes(T.HIDDEN), infos: infos.length, info: (INFO[id] || []).length, infoReach: infos.every(([x, y]) => below(x, y)), flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
+          hidden: L.t.includes(T.HIDDEN), infos: infos.length + roomInfos, info: (INFO[id] || []).length, infoReach: infos.every(([x, y]) => below(x, y)), flag: flagE ? [...seen].some(q => near(q, flagE)) : null };
       }
       return out;
     });
@@ -3670,7 +3672,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       });
     });
     check(r.data.every(([, n, ok]) => n >= 3 && n <= 5 && ok), 'every level has 3 to 5 short facts, each with a question and three different answers: ' + JSON.stringify(r.data));
-    check(r.first.open && /Did you know/.test(r.first.head) && /Patuxet/.test(r.first.text) && /Plimoth Plantation · 1 of 5 · 1621/.test(r.first.src) && r.read, 'an info box pops up its fact, and the meter is filled in and saved: ' + JSON.stringify(r));
+    check(r.first.open && /Did you know/.test(r.first.head) && /Plymouth Rock/.test(r.first.text) && /Plimoth Plantation · 1 of 5 · 1621/.test(r.first.src) && r.read, 'an info box pops up its fact, and the meter is filled in and saved: ' + JSON.stringify(r));
     check(r.waits && r.closed && r.heldThrough, 'the game waits while the fact is up, jump closes it, and a button held all along still counts after: ' + JSON.stringify(r));
     check(/Remember/.test(r.again.head), 'bumping it again says "Remember?": ' + JSON.stringify(r.again));
     check(r.pool >= 25 && r.q1.n === 3 && r.fromRegion, 'the quiz asks questions from the region\'s info boxes, with three answers: ' + JSON.stringify(r));
@@ -4166,6 +4168,56 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     check(screen.open && screen.note && !screen.rows && !screen.cam, 'the controller screen explains there is nothing to invert here: ' + JSON.stringify(screen));
     check(back.pause && !back.screen, 'Done goes back to the pause menu: ' + JSON.stringify(back));
     await done(p);
+  });
+
+  await test('Manifest Destiny 1-2, Plimoth: Plymouth Rock, up Town Brook to the grist mill (the falls block the way: through the mill), the Pilgrim village and a house full of things, the fort, the nush wetu, a mishoon to ride and fish to catch, and the 1621 harvest feast', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      localStorage.removeItem('md_save'); for (const k of ['cleared', 'secrets', 'quiz', 'info']) save[k] = {}; paused = true; startGame(); state = 'level';
+      startLevel('plimoth'); ents = ents.filter(e => !isEnemy(e)); player.inv = 9999;
+      const L = LEVELS.plimoth, solid = (x, y) => SOLID.has(L.t[y * L.w + x]);
+      out.rock = L.decor.some(d => d[0] === 'rock' && d[3] && d[3].portico) && Math.floor(lvl.infoAt[0] / 100) < 20;
+      // the falls: a cliff seven tiles high, so the only way on is through the mill's door
+      out.cliff = [4, 5, 6, 7, 8, 9, 10].every(y => solid(61, y)) && !solid(60, 10) && L.decor.some(d => d[0] === 'gristmill');
+      let drew = true; const draw = () => { try { render(); } catch (e) { drew = e.message; } };
+      const enter = w => { player.x = w.x + 16 - player.w / 2; player.y = w.y + 4 - player.h; player.vy = 0; player.ground = true; run(2); keys.up = true; run(3); keys.up = false; run(60); ents = ents.filter(e => !isEnemy(e)); player.inv = 9999; };
+      const bump = (j = 0) => { const k = lvl.infoAt[j], tx = Math.floor(k / 100), ty = k % 100; player.x = tx * 16 + 2; player.y = (ty + 1) * 16 + 1; player.vy = -260; player.ground = false; run(20); const txt = factEl.querySelector('.ftxt').textContent; closeFact(); run(5); return txt; };
+      out.rock = out.rock && /Plymouth Rock/.test(bump(0));
+      enter(ents.find(e => e.k === 'warp' && e.room === 'plimoth_mill'));
+      out.mill = lvl.id === 'plimoth_mill' && /GRIST MILL/.test(bannerText[0]) && /Jenney/.test(bump()) && save.info.plimoth[1] === true && ents.some(e => e.k === 'exhibit' && e.look === 'mortar'); draw();
+      const lad = ents.find(e => e.k === 'exit'); player.x = lad.x + 16 - player.w / 2; player.y = 12 * 16 - player.h; player.ground = true; keys.up = true; run(220); keys.up = false; run(30);
+      out.topOfFalls = lvl.id === 'plimoth' && player.x > 62 * 16 && player.y < 4 * 16;
+      // the village: into a house to see the Pilgrims' things
+      enter(ents.find(e => e.k === 'warp' && e.room === 'plimoth_house'));
+      const ex = ents.filter(e => e.k === 'exhibit'); player.x = ex[1].x + 4; player.y = ex[1].y + 32 - player.h; run(3);
+      out.house = lvl.id === 'plimoth_house' && ex.length >= 5 && ex[1].told && /CHEST/.test(bannerText[0]) && /forks/.test(bump()); draw();
+      const door = ents.find(e => e.k === 'exit'); enter(door); out.backOut = lvl.id === 'plimoth' && Math.abs(player.x / 16 - 99) < 2;
+      const fort = ents.find(e => e.k === 'exhibit' && /FORT/.test(e.title)); player.x = fort.x + 4; player.y = fort.y + 32 - player.h; run(3); out.fort = /FORT/.test(bannerText[0]) && L.decor.some(d => d[0] === 'fort');
+      // the Wampanoag homesite: the nush wetu, three fires inside, and its things
+      enter(ents.find(e => e.k === 'warp' && e.room === 'plimoth_wetu'));
+      out.wetu = lvl.id === 'plimoth_wetu' && ents.filter(e => e.k === 'exhibit').length >= 6 && /wetu/.test(bump()) && ents.some(e => e.look === 'wampum'); draw();
+      enter(ents.find(e => e.k === 'exit')); out.outOfWetu = lvl.id === 'plimoth' && player.x > 200 * 16;
+      // the mishoon: one being burned out of a log, and one to ride across the river, catching fish
+      const log = ents.find(e => e.look === 'mishoonlog'); player.x = log.x; player.y = log.y + 32 - player.h; run(3); out.log = /MISHOON/.test(bannerText[0]);
+      const canoe = ents.find(e => e.k === 'boat' && e.look === 'mishoon'); player.x = canoe.x + 12; player.y = canoe.y - player.h; player.vy = 0; run(90); out.paddles = canoe.go && canoe.x > canoe.x0;
+      const fish = ents.find(e => e.k === 'catchfish'); fish.cool = 0; player.x = fish.x - 20; run(2); out.leaps = fish.st === 'leap'; run(12); player.ride = null; player.x = fish.x; player.y = fish.y - 4; player.vy = 0; run(2);
+      out.fish = fish.gone && lvl.fish === 1 && /FISH/.test(bannerText[0]); draw();
+      // the harvest feast of 1621, and its fact
+      const feast = ents.find(e => e.k === 'exhibit' && /FEAST/.test(e.title)); player.x = feast.x + 4; player.y = feast.y + 32 - player.h; run(3);
+      out.feast = /FEAST/.test(bannerText[0]) && /Thanksgiving/.test(feast.text) && L.decor.some(d => d[0] === 'feast') && /Massasoit/.test(bump(1));
+      out.drew = drew; out.infoAll = save.info.plimoth.filter(Boolean).length === 5 && INFO.plimoth.length === 5;
+      paused = false; return out;
+    });
+    check(r.rock && r.cliff, 'Plymouth Rock under its canopy to start; then the falls by the grist mill are too high to jump: ' + JSON.stringify(r));
+    check(r.mill && r.topOfFalls, 'through the grist mill (its fact inside), and up the ladder to the top of the falls: ' + JSON.stringify(r));
+    check(r.house && r.backOut && r.fort, 'into a Pilgrim house to see their things (and its fact), back out, and up to the fort: ' + JSON.stringify(r));
+    check(r.wetu && r.outOfWetu, 'through the nush wetu, with its things and its fact: ' + JSON.stringify(r));
+    check(r.log && r.paddles && r.leaps && r.fish, 'a mishoon being made, then one to ride, and fish leaping to catch: ' + JSON.stringify(r));
+    check(r.feast && r.infoAll && r.drew === true, 'the 1621 harvest feast, and all five facts found along the way: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-plimoth.png');
   });
 
   await test('Manifest Destiny 1-1 and 1-2: board the Mayflower and go below (the hold with its barrels and animals, then the \'tween deck, each a room of its own), up on deck she sails, and the ship\'s boat rows you ashore at Provincetown; at Plimoth, turkeys charge and Tisquantum shares his corn; ears of corn and info boxes; a story card', async () => {

@@ -354,29 +354,72 @@ LEVELS.voyage_tween = shipRoom('voyage_tween', "The 'Tween Deck", 90)   // betwe
   .done({ room: true, parent: 'voyage', music: 'mayflower', collect: 'corn', cast: { grumblin: 'rat' }, decor: [['shipinside', 0, 12, { to: 90, deck: 'tween' }]],
     enter: ["THE 'TWEEN DECK", 'The 102 passengers lived down here for 66 days, in hammocks and bunks. Climb up to the main deck!'] });
 
-// 1-2. Plimoth Plantation, 1621: from the shore up through the Wampanoag homesite by Town Brook, where Tisquantum shows
-// the Pilgrims how to plant corn, through the cornfields to the palisade wall, and up the first street to the fort.
-LEVELS.plimoth = builder('plimoth', 'Plimoth Plantation', 'plimoth', 222)
-  .ground(0, 23).ground(30, 70).ground(71, 92, 11).ground(93, 124).ground(125, 150, 11).ground(151, 172, 10).ground(173, 221, 9)
-  .fill(24, 29, 13, 13, T.GROUND).fill(24, 29, 12, 12, T.WATER)   // Town Brook, shallow enough to wade, where the herring run in spring
-  .at(8, 8, '?P?').e('crab', 14, 11).e('buzzer', 18, 6, { as: 'gull' }).e('turkey', 21, 11)
-  .at(25, 10, '=').at(28, 9, '=')   // stepping stones across the brook
-  .e('snaily', 34, 11).e('friend', 44, 11, { who: 'tisquantum' }).e('turkey', 52, 11).at(56, 8, 'B?B').e('thorny', 62, 11)
-  .e('grumblin', 68, 11).arc(70, 7, 6)
-  // the cornfields: corn, beans and squash growing together, and crows after the corn
-  .e('buzzer', 78, 5).at(80, 6, '?C?').e('turkey', 86, 10).e('snaily', 90, 10).at(96, 8, '----').at(100, 6, '----').coins(100, 5, 4)
-  .e('buzzer', 104, 4).e('mid', 108, 11).e('grumblin', 114, 11).e('turkey', 118, 11).at(120, 8, 'BPB')
-  // the palisade, and Leyden Street climbing the hill: house roofs to hop along
-  .at(128, 7, '-----').at(135, 5, '----').e('thorny', 138, 10).e('grumblin', 144, 10).at(146, 6, '?S?')
-  .at(154, 6, '-----').e('turkey', 158, 9).at(161, 4, '----').coins(161, 3, 4).e('buzzer', 166, 3).e('grumblin', 170, 9)
-  .at(176, 5, '-----').e('snaily', 180, 8).at(183, 3, '----').e('turkey', 186, 8).at(188, 4, 'BHB').e('buzzer', 192, 4)
-  .e('thorny', 194, 8)
-  .at(13, 8, 'I').at(36, 8, 'I').at(49, 8, 'I').at(88, 7, 'I').at(170, 6, 'I')   // info boxes: Patuxet, the first winter, Tisquantum, the Three Sisters, the harvest feast
-  .gems(9, 5, 27, 6, 64, 6, 136, 3, 184, 1)
-  .done({ gate: { mid: 'scarecrow', goal: 'palisade' }, goal: 208, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' },
-    story: ['DECEMBER 1620', 'The Pilgrims build their homes at Plymouth. Their first winter is cold and hard.'],
-    decor: [['rock', 5, 12], ['wetu', 38, 12], ['fire', 48, 12], ['wetu', 58, 12, { s: 0.85 }], ['canoe', 31, 12], ['corn', 74, 11, { n: 18 }], ['palisade', 125, 11, { to: 205 }],
-      ['house', 130.5, 11], ['house', 136.5, 11, { h: 96 }], ['house', 156.5, 10], ['house', 162.5, 10, { h: 96 }], ['house', 178.5, 9], ['house', 184.5, 9, { h: 96 }], ['fort', 201, 9]] });
+// 1-2. Plimoth, 1621 (and the Plymouth you can visit today): from Plymouth Rock up Town Brook to the grist mill, where
+// the waterfall and the waterwheel block the way and the only way on is through the mill; out at the top of the falls and
+// up Leyden Street through the Pilgrim village (go into a house and see their things) to the fort on the hill; down to the
+// Wampanoag homesite, through the nush wetu (a long house with three fires), past a mishoon being burned out of a log,
+// across the river in a mishoon catching fish, and to the harvest feast of 1621.
+LEVELS.plimoth = builder('plimoth', 'Plimoth Plantation', 'plimoth', 270)
+  // the shore and Plymouth Rock, under its stone canopy
+  .ground(0, 22).at(12, 8, 'I').e('buzzer', 21, 6, { as: 'gull' }).gems(16, 8)
+  // up Town Brook: stepping stones, the path climbing beside the brook, and the herring run
+  .fill(23, 27, 13, 13, T.GROUND).fill(23, 27, 12, 12, T.WATER).at(25, 10, '=')
+  .ground(28, 40, 11).ground(41, 60, 11).e('grumblin', 31, 10).at(34, 7, '?P?').e('buzzer', 38, 5).e('turkey', 40, 10).e('snaily', 46, 10).at(45, 7, 'H').gems(50, 7)
+  // the grist mill: the waterfall pours down the cliff onto the wheel, and the mill's door is the only way on
+  .ground(61, 70, 4).e('warp', 52, 11, { room: 'plimoth_mill', out: [66, 4], look: 'door', hut: 'cabindoor' })
+  .ground(71, 77, 6).ground(78, 86, 8).e('buzzer', 82, 4)
+  // the Pilgrim village, up Leyden Street inside the palisade: house roofs to hop along, and one house to go into
+  .ground(87, 104, 10).ground(105, 122, 9).ground(123, 138, 8).ground(139, 152, 7)
+  .at(90, 6, '-----').e('grumblin', 95, 9).at(97, 4, '-----').e('warp', 98.5, 10, { room: 'plimoth_house', out: [98.5, 10], look: 'door', hut: 'cabindoor' }).e('buzzer', 103, 5)
+  .at(105, 5, '?C?').e('mid', 108, 8).at(111, 5, '-----').e('thorny', 116, 8).at(117, 3, '-----').gems(118, 5).at(124, 4, 'B?B')
+  .at(126, 4, '-----').e('grumblin', 131, 7).at(132, 2, '-----').e('buzzer', 140, 3).at(147, 3, '?S?').e('exhibit', 144, 6, { look: 'none', title: 'THE FORT, 1622',
+    text: 'Cannons stood on its flat roof to guard the town. Downstairs it was the meetinghouse, where everyone went to church.' })
+  // out of the village and down to the Wampanoag homesite: Tisquantum, the Three Sisters garden, the nush wetu
+  .ground(153, 158, 9).ground(159, 206, 11).e('friend', 165, 10, { who: 'tisquantum' }).e('turkey', 175, 10).e('buzzer', 179, 6).gems(176, 7)
+  .e('warp', 186, 11, { room: 'plimoth_wetu', out: [202, 11], look: 'door', hut: 'matdoor' })
+  // a mishoon being made: a log hollowed out by fire. Then ride one across the river, catching fish
+  .e('exhibit', 204, 10, { look: 'mishoonlog', title: 'MAKING A MISHOON', text: 'A canoe made from one big tree. Small fires burn out the inside, and the ash is scraped away with shells and stones.' })
+  .fill(207, 240, 12, 13, T.WATER).e('boat', 207, 12, { w: 3, to: 238, sp: 34, look: 'mishoon' })
+  .e('catchfish', 213, 12).e('catchfish', 219, 12, { look: 'cod' }).e('catchfish', 225, 12).e('catchfish', 231, 12, { look: 'cod' }).gems(224, 8)
+  // the harvest feast, autumn 1621
+  .ground(241, 269, 11).at(248, 7, 'I').e('exhibit', 244, 10, { look: 'none', title: 'THE HARVEST FEAST, 1621',
+    text: 'Wildfowl and five deer, corn, and maybe fish and shellfish too. No pumpkin pie, no potatoes, and nobody called it Thanksgiving yet!' })
+  .done({ gate: { mid: 'scarecrow', goal: 'cedar' }, goal: 264, music: 'plimoth', collect: 'corn', cast: { grumblin: 'wolf', snaily: 'turtle', thorny: 'porcupine', buzzer: 'crow' }, ownRooms: true, infoMap: [0, 4],
+    story: ['PLYMOUTH, 1621', 'From Plymouth Rock up Town Brook to the mill, through the Pilgrim village, to the Wampanoag homesite and the harvest feast!'],
+    decor: [['rock', 7, 12, { portico: true }], ['brook', 28, 11, { to: 61 }], ['gristmill', 55, 11, { cliff: 61 }], ['palisade', 85, 10, { to: 152 }],
+      ['house', 92.5, 10], ['house', 99.5, 10, { h: 96 }], ['house', 113.5, 9], ['house', 119.5, 9, { h: 96 }], ['house', 128.5, 8], ['house', 134.5, 8, { h: 96 }], ['fort', 146, 7],
+      ['corn', 166, 11, { n: 5 }], ['fire', 183, 11], ['nushwetu', 194, 11], ['feast', 251, 11]] });
+// inside: the grist mill, a Pilgrim house, and the nush wetu (each a room of its own, holding one of the level's facts)
+const roomShell = (id, name, w, floor = T.PLANK, roof = T.PLANK, wall = T.PLANK) => { const b = builder(id, name, 'cellar', w).fill(0, w - 1, 12, 13, floor).fill(0, 0, 0, 11, wall).fill(w - 1, w - 1, 0, 11, wall); if (roof) b.fill(0, w - 1, 0, 1, roof); return b; };
+LEVELS.plimoth_mill = roomShell('plimoth_mill', 'The Grist Mill', 52)
+  .e('exhibit', 8, 11, { look: 'mortar', title: 'MORTAR AND PESTLE', text: 'Before there was a mill, corn was pounded into meal by hand, in a hollow log with a heavy wooden pestle. Hard work!' })
+  .e('grumblin', 14, 11).coins(12, 8, 3).at(19, 8, 'I').e('exhibit', 27, 11, { look: 'none', title: 'THE MILLSTONES',
+    text: 'The top stone turns and the bottom one stays still. Corn trickles in from the hopper and comes out as cornmeal.' })
+  .at(33, 9, 'kk').coins(33, 7, 2).at(37, 7, 'k?k').e('grumblin', 40, 11).coins(42, 10, 3)
+  .e('exit', 47, 12, { look: 'door', hut: 'ladder' })
+  .done({ room: true, parent: 'plimoth', music: 'plimoth', collect: 'corn', cast: { grumblin: 'rat' }, infoMap: [1], decor: [['millinside', 0, 12, { to: 52 }]],
+    enter: ['THE GRIST MILL', 'Inside the Jenney Grist Mill on Town Brook. The mill there today is a copy, built on the very same spot. Climb up to the top of the falls!'] });
+LEVELS.plimoth_house = roomShell('plimoth_house', 'A Pilgrim House', 36, T.GROUND)
+  .e('exhibit', 5, 11, { look: 'pot', title: 'THE HEARTH', text: 'All the cooking was done over the fire in iron pots: stews of corn, beans, fish and meat called pottage.' })
+  .e('exhibit', 11, 11, { look: 'chest', title: 'A SEA CHEST', text: 'Families packed their clothes, tools and books into wooden chests like this one for the Mayflower voyage.' })
+  .at(14, 8, 'I').coins(17, 7, 3)
+  .e('exhibit', 19, 11, { look: 'trencher', title: 'A TRENCHER AND SPOON', text: 'A wooden plate, often shared by two people. They ate with spoons, knives and fingers.' })
+  .e('exhibit', 24, 11, { look: 'musket', title: 'A MATCHLOCK MUSKET', text: 'Fired by a slow-burning cord called a match. Used for hunting ducks and geese, and for protection.' })
+  .e('exhibit', 29, 11, { look: 'bed', title: 'A BED', text: 'Mattresses were stuffed with straw or feathers. Children often slept on the floor or in a little trundle bed.' })
+  .e('exit', 32, 12, { look: 'door', hut: 'cabindoor' })
+  .done({ room: true, parent: 'plimoth', music: 'plimoth', collect: 'corn', infoMap: [2], decor: [['houseinside', 0, 12, { to: 36 }]],
+    enter: ['A PILGRIM HOUSE', 'One room for the whole family, with a dirt floor. Walk around and look at their things!'] });
+LEVELS.plimoth_wetu = roomShell('plimoth_wetu', 'The Nush Wetu', 52, T.GROUND, 0, T.GROUND)
+  .e('exhibit', 7, 11, { look: 'mats', title: 'CATTAIL MATS', text: 'Woven from cattail leaves. Hung on the walls, they keep out the wind and shed the rain.' })
+  .e('exhibit', 15, 11, { look: 'claypot', title: 'A CLAY POT', text: 'Shaped by hand from coils of clay, with a pointed bottom that sits in the fire. Good for corn and stews.' })
+  .e('exhibit', 20, 11, { look: 'basket', title: 'A BASKET', text: 'Woven from plants and bark, for carrying corn, berries, nuts and shellfish.' })
+  .at(25, 7, 'I').coins(23, 4, 5)
+  .e('exhibit', 31, 11, { look: 'wampum', title: 'WAMPUM', text: 'Beads made from the purple and white shells of the quahog clam and the whelk. Wampum belts were made to remember important things.' })
+  .e('exhibit', 36, 11, { look: 'bow', title: 'A BOW AND ARROWS', text: 'Used for hunting deer, turkeys and ducks in the woods and marshes.' })
+  .e('exhibit', 42, 11, { look: 'furs', title: 'A SLEEPING PLATFORM', text: 'Raised beds along the walls, covered with mats and warm deer and bear furs.' })
+  .e('exit', 47, 12, { look: 'door', hut: 'matdoor' })
+  .done({ room: true, parent: 'plimoth', music: 'plimoth', collect: 'corn', infoMap: [3], decor: [['wetuinside', 0, 12, { to: 52 }]],
+    enter: ['THE NUSH WETU', 'A Wampanoag long house, with three fires inside. Welcome! Walk around and look.'] });
 
 // 1-3. Cranberry Bog, autumn 1622: the Wampanoag homeland on Cape Cod. Wetus by the shore, a mishoon (dugout canoe) to
 // ride, squishy bog mats that sink under your feet, and the cranberries the Wampanoag call sassamanash.
@@ -1351,7 +1394,7 @@ function makeSky(id, parent) {
     const hut = LEVEL_HUTS[id];
     let d = spot(L, L.w * 0.2, L.w * 0.42, 2, 5), o = d && spot(L, d.x + 18, L.w * 0.62, 2, 4);
     if (!o) { d = spot(L, L.w * 0.08, L.w * 0.6, 2, 4, 2); o = d && spot(L, d.x + 12, L.w * 0.85, 2, 3, 2); }   // (a crowded level: look further along)
-    if (d && o) {
+    if (d && o && !L.ownRooms) {
       const rid = id + '_under'; LEVELS[rid] = makeRoom(rid, id, hut);
       L.ents.push({ k: 'warp', x: d.x, y: d.top, room: rid, out: [o.x, o.top], look: 'door', hut });
       L.ents.push({ k: 'hatch', x: o.x, y: o.top });   // (where you come back up)
@@ -4111,6 +4154,12 @@ function drawDoorway(hut, cx, base, t, near) {
     g.fillStyle = '#7a5434'; g.fillRect(cx - 8, 2 * TS, 2.4, base - 2 * TS); g.fillRect(cx + 6, 2 * TS, 2.4, base - 2 * TS); for (let y = base - 8; y > 2 * TS; y -= 10) g.fillRect(cx - 8, y, 16, 2);
     return;
   }
+  if (hut === 'matdoor') {   // a wetu's low doorway, its mat rolled up over it
+    g.beginPath(); g.moveTo(cx - 8, base); g.lineTo(cx - 8, base - 16); g.quadraticCurveTo(cx, base - 24, cx + 8, base - 16); g.lineTo(cx + 8, base); g.closePath(); g.fillStyle = '#1e140c'; g.fill();
+    rrect(cx - 10, base - 25, 20, 5, 2.5); g.fillStyle = '#c8b07a'; g.fill(); g.strokeStyle = '#6a4a2a'; g.lineWidth = 0.8; g.stroke();
+    if (near) glow(cx, base - 12, 16, 'rgba(255,200,120,1)', 0.35 + 0.15 * Math.sin(t * 5));
+    return;
+  }
   if (hut === 'cabindoor') {   // the great cabin's door, out onto the stern gallery
     rrect(cx - 7, base - 24, 14, 24, [6, 6, 0, 0]); paint(vgrad(base - 24, base, '#8a5a32', '#5a3418'), 1, '#2a180a');
     g.fillStyle = 'rgba(30,16,6,.5)'; g.fillRect(cx - 0.5, base - 22, 1, 22); g.beginPath(); g.arc(cx + 4, base - 11, 1, 0, TAU); g.fillStyle = '#d8b040'; g.fill();
@@ -4177,6 +4226,12 @@ function drawDecor(d, t) {
       break;
     }
     case 'rock': {   // Plymouth Rock, with its date (cut into it much later: the story that the Pilgrims stepped onto it was first told in 1741)
+      if (o.portico) {   // the granite canopy over it today (1921): columns, a plain beam and a low pediment, the rock down in a pit with an iron railing
+        g.fillStyle = '#c8c4b8'; g.fillRect(x - 46, y - 4, 92, 4); for (const cx2 of [-40, -24, 18, 34]) { g.fillStyle = '#e4e0d4'; g.fillRect(x + cx2, y - 74, 7, 70); g.fillStyle = 'rgba(0,0,0,.12)'; g.fillRect(x + cx2 + 5, y - 74, 2, 70); g.fillStyle = '#d0ccc0'; g.fillRect(x + cx2 - 1.5, y - 76, 10, 3); }
+        g.fillStyle = '#d8d4c8'; g.fillRect(x - 46, y - 86, 92, 11); g.beginPath(); g.moveTo(x - 48, y - 86); g.lineTo(x, y - 102); g.lineTo(x + 48, y - 86); g.closePath(); g.fillStyle = '#e4e0d4'; g.fill(); g.strokeStyle = '#a8a498'; g.lineWidth = 1; g.stroke();
+        g.font = 'bold 6px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#7a766c'; g.fillText('PLYMOUTH ROCK', x, y - 78);
+        g.strokeStyle = '#2a2a30'; g.lineWidth = 1; g.beginPath(); g.moveTo(x - 30, y - 12); g.lineTo(x + 30, y - 12); g.stroke(); for (let k = -28; k <= 28; k += 6) { g.beginPath(); g.moveTo(x + k, y - 12); g.lineTo(x + k, y - 2); g.stroke(); }
+      }
       g.beginPath(); g.moveTo(x - 18, y); g.quadraticCurveTo(x - 20, y - 14, x - 4, y - 16); g.quadraticCurveTo(x + 16, y - 18, x + 20, y - 4); g.lineTo(x + 20, y); g.closePath(); paint(vgrad(y - 18, y, '#b8b4a8', '#7a766e'));
       ell(x - 6, y - 12, 7, 2.4, -0.2); g.fillStyle = 'rgba(255,255,255,.25)'; g.fill();
       g.font = 'bold 7px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#4a4640'; g.fillText('1620', x + 1, y - 5);
@@ -4291,6 +4346,127 @@ function drawDecor(d, t) {
         rrect(57 * TS, fl - 10, 26, 10, 1); g.fillStyle = '#c8b080'; g.fill(); g.fillStyle = '#3a3a3e'; g.fillRect(57 * TS + 8, fl - 20, 10, 9); glow(57 * TS + 13, fl - 12, 14, 'rgba(255,150,60,1)', 0.5 + 0.15 * Math.sin(t * 9));   // a pot over the cooking box
         for (const [dx, c] of [[0, '#c8a070'], [22, '#f0e8dc']]) { ell(46 * TS + dx, fl - 5, 8, 4); g.fillStyle = c; g.fill(); ell(46 * TS + dx + 7, fl - 9, 3.4, 3); g.fill(); }   // the dogs, asleep: a mastiff and a spaniel
       }
+      break;
+    }
+    case 'brook': {   // Town Brook, running down beside the path from the falls (the herring swim up it every spring)
+      const X1 = (o.to || tx + 30) * TS; g.fillStyle = '#6a9ab8'; g.fillRect(x, y - 7, X1 - x, 7); g.fillStyle = '#8ab8d4'; g.fillRect(x, y - 7, X1 - x, 2);
+      g.fillStyle = 'rgba(255,255,255,.7)'; for (let k = 0; k < (X1 - x) / 24; k++) g.fillRect(x + ((k * 24 - t * 30) % (X1 - x) + (X1 - x)) % (X1 - x), y - 5 + (k % 2) * 2, 6, 1);
+      g.fillStyle = '#7a8a6a'; for (let xx = x; xx < X1; xx += 18) { ell(xx + 6, y - 7, 4, 1.6); g.fill(); }
+      break;
+    }
+    case 'gristmill': {   // the Jenney Grist Mill (1636) on Town Brook: a shingled mill, its big wooden wheel turning under a flume, and the falls
+      const base = y, cl = (o.cliff || tx + 6) * TS, top = 4 * TS, mx = x - 6 * TS, mw = 7 * TS, wall = 70, R = 30, wx = cl - R - 10, wy = base - R - 6, spin = t * 1.6;
+      // the mill: a stone foundation, cedar-shingled walls, a steep roof, small windows, its sign
+      g.fillStyle = '#8a8478'; g.fillRect(mx - 2, base - 12, mw + 4, 12); g.fillStyle = 'rgba(40,36,30,.3)'; for (let k = 0; k < 7; k++) g.fillRect(mx + k * 16, base - 12 + (k % 2) * 6, 12, 1);
+      rrect(mx, base - wall, mw, wall - 12, 1); g.fillStyle = vgrad(base - wall, base, '#a08a6a', '#7a6448'); g.fill();
+      g.lineWidth = 0.6; for (let yy = base - wall + 6; yy < base - 12; yy += 6) { g.strokeStyle = 'rgba(60,40,20,.45)'; g.beginPath(); g.moveTo(mx, yy); g.lineTo(mx + mw, yy); g.stroke(); g.strokeStyle = 'rgba(60,40,20,.25)'; for (let xx = mx + ((yy / 6) % 2) * 5 + 3; xx < mx + mw; xx += 10) { g.beginPath(); g.moveTo(xx, yy); g.lineTo(xx, yy - 6); g.stroke(); } }
+      g.beginPath(); g.moveTo(mx - 8, base - wall); g.lineTo(mx + mw / 2, base - wall - 38); g.lineTo(mx + mw + 8, base - wall); g.closePath(); paint(vgrad(base - wall - 38, base - wall, '#5a4a3a', '#3a2e24'));
+      for (const [wx2, wy2] of [[12, -56], [84, -56], [84, -32]]) { rrect(mx + wx2, base + wy2, 12, 12, 1); g.fillStyle = '#2a2a34'; g.fill(); g.strokeStyle = '#e8e0d0'; g.lineWidth = 1; g.strokeRect(mx + wx2, base + wy2, 12, 12); g.beginPath(); g.moveTo(mx + wx2 + 6, base + wy2); g.lineTo(mx + wx2 + 6, base + wy2 + 12); g.stroke(); }
+      rrect(mx + 22, base - wall - 9, 68, 11, 2); g.fillStyle = '#f0e8d4'; g.fill(); g.font = 'bold 6.4px sans-serif'; g.textAlign = 'center'; g.fillStyle = '#3a2410'; g.fillText('JENNEY GRIST MILL · 1636', mx + 56, base - wall - 1.6);
+      ell(mx - 10, base - 9, 4, 9); g.fillStyle = '#a8a498'; g.fill(); ell(mx - 10, base - 9, 1.4, 2.4); g.fillStyle = '#6a665e'; g.fill();   // an old millstone leaning by the door
+      g.fillStyle = '#4a3420'; g.fillRect(mx + mw - 2, wy - 3, wx - mx - mw + 2, 6);   // the wheel's axle, into the mill
+      // the flume carrying water from the top of the falls onto the top of the wheel (an overshot wheel)
+      g.fillStyle = '#6a4a2a'; g.fillRect(wx - 4, top + 10, cl - wx + 4, 6); g.fillRect(wx + 4, top + 16, 3, wy - R - top - 16); g.fillStyle = 'rgba(150,200,230,.95)'; g.fillRect(wx - 4, top + 8, cl - wx + 4, 2.6);
+      g.fillStyle = 'rgba(170,215,240,.85)'; g.fillRect(wx - 8, top + 14, 5, wy - R - top - 8);
+      // the wheel: rim, spokes and buckets, turning, with water spilling off it
+      g.save(); g.translate(wx, wy); g.rotate(spin); g.strokeStyle = '#5a3a1e'; g.lineWidth = 3.4; g.beginPath(); g.arc(0, 0, R, 0, TAU); g.stroke(); g.lineWidth = 2; g.beginPath(); g.arc(0, 0, R - 7, 0, TAU); g.stroke();
+      for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4; g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(a) * R, Math.sin(a) * R); g.lineWidth = 1.8; g.stroke(); }
+      for (let k = 0; k < 18; k++) { const a = k * TAU / 18; g.save(); g.rotate(a); g.fillStyle = '#8a5e36'; g.fillRect(R - 7, -2.2, 8, 4.4); g.restore(); }
+      g.beginPath(); g.arc(0, 0, 5, 0, TAU); g.fillStyle = '#3a2a1a'; g.fill(); g.restore();
+      for (let k = 0; k < 5; k++) { const yy = wy + ((t * 70 + k * 13) % (base - wy)); g.fillStyle = 'rgba(200,230,250,.8)'; g.fillRect(wx - R - 2 + (k % 2) * 3, yy, 1.6, 6); }
+      // the falls: the brook pours over the cliff edge in a white sheet, foaming at the bottom
+      g.fillStyle = 'rgba(150,200,230,.9)'; g.fillRect(cl - 9, top, 9, base - top); g.fillStyle = 'rgba(255,255,255,.75)'; for (let k = 0; k < 7; k++) { const yy = top + ((t * 90 + k * 23) % (base - top)); g.fillRect(cl - 8 + (k % 3) * 3, yy, 1.4, 10); }
+      for (let k = 0; k < 7; k++) { ell(cl - 14 - k * 6 + Math.sin(t * 5 + k) * 2, base - 2, 6, 3); g.fillStyle = 'rgba(255,255,255,.75)'; g.fill(); }
+      break;
+    }
+    case 'nushwetu': {   // a nush wetu: a long house of bent saplings, bark on the roof, cattail mats on the walls, three smoke holes
+      const W = 7 * TS, H = 62, base = y;
+      g.beginPath(); g.moveTo(x - W, base); g.lineTo(x - W, base - H * 0.55); g.quadraticCurveTo(x - W, base - H, x - W + 34, base - H); g.lineTo(x + W - 34, base - H); g.quadraticCurveTo(x + W, base - H, x + W, base - H * 0.55); g.lineTo(x + W, base); g.closePath();
+      paint(vgrad(base - H, base, '#a88a5a', '#7a5e3a')); g.save(); g.clip();
+      g.fillStyle = '#7a5a3a'; g.fillRect(x - W, base - H, 2 * W, H * 0.42); g.strokeStyle = 'rgba(50,34,16,.5)'; g.lineWidth = 0.8;
+      for (let xx = x - W + 10; xx < x + W; xx += 26) { g.strokeRect(xx, base - H - 2, 24, H * 0.42); }   // the bark sheets on the roof
+      g.fillStyle = 'rgba(210,190,130,.35)'; for (let xx = x - W; xx < x + W; xx += 4) g.fillRect(xx, base - H * 0.58, 2, H * 0.58);   // the cattail mats, in vertical stripes
+      g.strokeStyle = 'rgba(70,50,28,.5)'; for (const yy of [0.45, 0.25]) { g.beginPath(); g.moveTo(x - W, base - H * yy); g.lineTo(x + W, base - H * yy); g.stroke(); }
+      g.restore();
+      for (const sx of [-W * 0.6, 0, W * 0.6]) { rrect(x + sx - 6, base - H - 3, 12, 5, 2); g.fillStyle = '#2a1e14'; g.fill(); for (let i = 0; i < 3; i++) { const ph = (t * 0.4 + i / 3 + sx * 0.01) % 1; g.globalAlpha = 0.35 * (1 - ph); g.beginPath(); g.arc(x + sx + Math.sin(ph * 6 + i) * 4, base - H - 6 - ph * 32, 3 + ph * 6, 0, TAU); g.fillStyle = '#e8e8e8'; g.fill(); g.globalAlpha = 1; } }
+      g.beginPath(); g.moveTo(x + W - 16, base); g.lineTo(x + W - 16, base - 16); g.quadraticCurveTo(x + W - 8, base - 24, x + W, base - 16); g.lineTo(x + W, base); g.closePath(); g.fillStyle = '#1e140c'; g.fill();   // the far door
+      break;
+    }
+    case 'feast': {   // the harvest feast of 1621: deer roasting over the fire, fowl, corn bread, squash, fish and shellfish, Pilgrims and Wampanoag together
+      const base = y, X0 = x - 8 * TS;
+      // the fire and a deer on the spit
+      g.fillStyle = '#5a3a1e'; g.fillRect(X0 + 4, base - 30, 3, 30); g.fillRect(X0 + 50, base - 30, 3, 30); g.fillRect(X0 + 2, base - 31, 54, 2.4);
+      for (const hx of [X0 + 18, X0 + 38]) { g.save(); g.translate(hx, base - 26); g.rotate(-0.15); ell(0, 0, 9, 5.4); g.fillStyle = '#8a4a26'; g.fill(); ell(-2, -1.6, 5, 2); g.fillStyle = '#b8683a'; g.fill(); g.fillStyle = '#f0e8d8'; g.fillRect(8, -1.2, 6, 2.4); ell(14, 0, 1.8, 2.2); g.fill(); g.restore(); }   // haunches of venison roasting on the spit
+      for (let k = 0; k < 4; k++) { const f = Math.sin(t * 11 + k) * 2; g.beginPath(); g.moveTo(X0 + 16 + k * 8, base); g.quadraticCurveTo(X0 + 19 + k * 8, base - 13 + f, X0 + 22 + k * 8, base); g.fillStyle = k % 2 ? '#ffd040' : '#ff7a2a'; g.fill(); } glow(X0 + 29, base - 8, 34, 'rgba(255,150,60,1)', 0.45);
+      // two long tables of planks on trestles, with the food
+      for (const [tx0, tw] of [[X0 + 80, 96], [X0 + 196, 96]]) {
+        g.fillStyle = '#6a4426'; g.fillRect(tx0, base - 16, tw, 3.4); g.fillRect(tx0 + 6, base - 13, 3, 13); g.fillRect(tx0 + tw - 9, base - 13, 3, 13);
+        for (let k = 0; k < 6; k++) { const fx = tx0 + 8 + k * 15, fy = base - 16;
+          switch (k % 6) {
+            case 0: ell(fx, fy - 4, 6, 4); g.fillStyle = '#b8743a'; g.fill(); ell(fx + 5, fy - 7, 2, 2.4); g.fill(); break;   // a roast goose
+            case 1: for (let c = 0; c < 3; c++) { ell(fx - 3 + c * 3, fy - 3, 1.6, 4, 0.3); g.fillStyle = '#e8c048'; g.fill(); } break;   // corn
+            case 2: ell(fx, fy - 4, 6, 4.6); g.fillStyle = '#e8862a'; g.fill(); g.fillStyle = '#5a7a2a'; g.fillRect(fx - 0.6, fy - 10, 1.4, 3); break;   // a squash
+            case 3: ell(fx, fy - 2.4, 7, 2); g.fillStyle = '#b8945a'; g.fill(); ell(fx, fy - 4, 5, 1.8); g.fillStyle = '#8a9a9a'; g.fill(); break;   // fish on a wooden platter
+            case 4: for (let c = 0; c < 4; c++) { ell(fx - 4 + c * 2.6, fy - 2 - (c % 2) * 1.6, 1.8, 1.2, 0.5); g.fillStyle = '#2a2a3a'; g.fill(); } break;   // mussels
+            case 5: rrect(fx - 5, fy - 4, 10, 4, 1); g.fillStyle = '#d8a858'; g.fill(); break;   // corn bread
+          }
+        }
+      }
+      // the people: Pilgrims and Wampanoag, sitting and standing around the tables
+      const folk = [[60, 'wampanoag', 0], [74, 'man', 0], [92, 'woman', 1], [112, 'wampanoag', 1], [134, 'man', 1], [156, 'wampanoag', 1], [184, 'woman', 0], [206, 'wampanoag', 1], [228, 'man', 1], [250, 'wampanoag', 1], [272, 'woman', 1], [300, 'wampanoag', 0]];
+      for (const [fx, who, sit] of folk) drawPerson(X0 + fx, base, who, !!sit, t, fx % 3 ? 1 : -1);
+      break;
+    }
+    case 'millinside': {   // inside the grist mill: the wheel's shaft through the wall turning a great wooden gear, the millstones with the hopper over them
+      const X1 = (o.to || 52) * TS, top = 2 * TS, fl = y, spin = t * 1.6;
+      g.fillStyle = '#4a3624'; g.fillRect(x, top, X1 - x, fl - top); g.fillStyle = 'rgba(255,230,190,.07)'; for (let xx = x; xx < X1; xx += 12) g.fillRect(xx, top, 1, fl - top);
+      for (let xx = x + 40; xx < X1; xx += 96) { g.fillStyle = '#2e2014'; g.fillRect(xx, top, 8, fl - top); g.fillRect(xx - 30, top + 40, 68, 6); }   // posts and beams
+      // the great gear, turned by the waterwheel's shaft, meshing with a small gear that turns the stone above it
+      const gx = 12 * TS, gy = fl - 50;
+      g.fillStyle = '#3a2614'; g.fillRect(x, gy - 3, gx - x, 6);
+      g.save(); g.translate(gx, gy); g.rotate(spin); g.beginPath(); g.arc(0, 0, 40, 0, TAU); g.lineWidth = 6; g.strokeStyle = '#7a5434'; g.stroke(); for (let k = 0; k < 24; k++) { g.save(); g.rotate(k * TAU / 24); g.fillStyle = '#9a7048'; g.fillRect(40, -2.4, 7, 4.8); g.restore(); }
+      for (let k = 0; k < 4; k++) { g.save(); g.rotate(k * Math.PI / 2); g.fillStyle = '#6a4626'; g.fillRect(-3, 0, 6, 40); g.restore(); } g.beginPath(); g.arc(0, 0, 6, 0, TAU); g.fillStyle = '#2a1a0e'; g.fill(); g.restore();
+      g.save(); g.translate(gx + 62, gy - 8); g.rotate(-spin * 3); for (let k = 0; k < 8; k++) { g.save(); g.rotate(k * Math.PI / 4); g.fillStyle = '#5a3a1e'; g.fillRect(-1.6, 0, 3.2, 14); g.restore(); } g.beginPath(); g.arc(0, 0, 10, 0, TAU); g.strokeStyle = '#5a3a1e'; g.lineWidth = 3; g.stroke(); g.restore();
+      g.fillStyle = '#5a3a1e'; g.fillRect(gx + 60, top, 4, gy - 8 - top);   // the shaft up to the stones
+      // the millstones in their wooden case, the hopper above, cornmeal pouring into a tub
+      const sx = 27 * TS; rrect(sx - 36, fl - 40, 72, 16, 3); g.fillStyle = '#7a5434'; g.fill(); ell(sx, fl - 42, 34, 6); g.fillStyle = '#a8a498'; g.fill(); ell(sx, fl - 46, 30, 5); g.fillStyle = '#c0bcb0'; g.fill();
+      g.save(); g.translate(sx, fl - 46); g.scale(1, 0.17); g.rotate(spin * 2); g.strokeStyle = 'rgba(80,76,70,.6)'; g.lineWidth = 3; for (let k = 0; k < 6; k++) { g.rotate(Math.PI / 3); g.beginPath(); g.moveTo(6, 0); g.lineTo(28, 6); g.stroke(); } g.restore();
+      g.fillStyle = '#6a4a2a'; g.fillRect(sx - 30, fl - 24, 4, 24); g.fillRect(sx + 26, fl - 24, 4, 24);
+      g.beginPath(); g.moveTo(sx - 20, fl - 90); g.lineTo(sx + 20, fl - 90); g.lineTo(sx + 4, fl - 60); g.lineTo(sx - 4, fl - 60); g.closePath(); paint('#8a6440'); g.fillStyle = '#e8c048'; ell(sx, fl - 90, 18, 3); g.fill();   // the hopper full of corn
+      g.fillStyle = 'rgba(240,220,160,.9)'; g.fillRect(sx + 34, fl - 30, 2, 18); rrect(sx + 28, fl - 14, 16, 14, 2); g.fillStyle = '#8a6a44'; g.fill(); ell(sx + 36, fl - 14, 8, 2); g.fillStyle = '#f0dca0'; g.fill();
+      // sacks of corn and cornmeal, and a window with the wheel turning outside in the falling water
+      for (let k = 0; k < 4; k++) { ell(38 * TS + k * 13, fl - 8 - (k === 2 ? 10 : 0), 8, 8); g.fillStyle = ['#c8b080', '#d8c898', '#bca478', '#d0bc90'][k]; g.fill(); }
+      const wx = 44 * TS, wy = top + 30; rrect(wx, wy, 40, 34, 2); g.fillStyle = '#8ab8d8'; g.fill(); g.save(); g.beginPath(); g.rect(wx, wy, 40, 34); g.clip(); g.translate(wx + 20, wy + 40); g.rotate(spin); g.strokeStyle = '#5a3a1e'; g.lineWidth = 3; g.beginPath(); g.arc(0, 0, 28, 0, TAU); g.stroke(); for (let k = 0; k < 8; k++) { g.beginPath(); g.moveTo(0, 0); g.lineTo(Math.cos(k * Math.PI / 4) * 28, Math.sin(k * Math.PI / 4) * 28); g.lineWidth = 1.6; g.stroke(); } g.restore();
+      g.fillStyle = 'rgba(255,255,255,.6)'; for (let k = 0; k < 4; k++) g.fillRect(wx + 4 + k * 3, wy + ((t * 60 + k * 9) % 34), 1.2, 6); g.strokeStyle = '#2a1a0e'; g.lineWidth = 2; g.strokeRect(wx, wy, 40, 34); g.beginPath(); g.moveTo(wx + 20, wy); g.lineTo(wx + 20, wy + 34); g.stroke();
+      glow(wx + 20, wy + 17, 50, 'rgba(255,250,220,1)', 0.15);
+      break;
+    }
+    case 'houseinside': {   // inside a Pilgrim house: wattle-and-daub walls between timber posts, the great fireplace, herbs drying from the beams
+      const X1 = (o.to || 36) * TS, top = 2 * TS, fl = y;
+      g.fillStyle = '#d8ccb0'; g.fillRect(x, top, X1 - x, fl - top); g.fillStyle = 'rgba(120,100,70,.12)'; for (let k = 0; k < 40; k++) g.fillRect(x + (k * 53) % (X1 - x), top + (k * 31) % (fl - top), 6, 2);
+      for (let xx = x + 8 * TS; xx < X1; xx += 7 * TS) { g.fillStyle = '#5a3a1e'; g.fillRect(xx, top, 7, fl - top); } g.fillStyle = '#5a3a1e'; g.fillRect(x, top + 4, X1 - x, 6);
+      // the fireplace: a big brick-and-clay hearth with a wooden lintel, the fire, a trammel and the pot
+      g.fillStyle = '#9a6a4a'; g.fillRect(x + 16, fl - 92, 82, 92); g.fillStyle = '#2a1a12'; rrect(x + 24, fl - 62, 66, 62, 3); g.fill(); g.fillStyle = '#5a3a1e'; g.fillRect(x + 16, fl - 70, 82, 8);
+      for (let k = 0; k < 5; k++) { const f = Math.sin(t * 11 + k) * 2; g.beginPath(); g.moveTo(x + 36 + k * 9, fl); g.quadraticCurveTo(x + 40 + k * 9, fl - 16 + f, x + 44 + k * 9, fl); g.fillStyle = k % 2 ? '#ffd040' : '#ff7a2a'; g.fill(); } glow(x + 57, fl - 14, 50, 'rgba(255,150,60,1)', 0.45);
+      // herbs and corn drying from the beam, a shelf with pewter and a Bible, a small window
+      for (let k = 0; k < 8; k++) { const hx = x + 140 + k * 46; g.strokeStyle = '#6a5a3a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(hx, top + 10); g.lineTo(hx, top + 18); g.stroke(); g.fillStyle = k % 3 ? '#6a8a4a' : '#e8c048'; ell(hx, top + 22, 3, 6); g.fill(); }
+      g.fillStyle = '#6a4426'; g.fillRect(x + 13 * TS, fl - 80, 60, 4); for (let k = 0; k < 3; k++) { ell(x + 13 * TS + 10 + k * 14, fl - 86, 5, 5); g.fillStyle = '#a8a8b0'; g.fill(); } rrect(x + 13 * TS + 46, fl - 92, 10, 12, 1); g.fillStyle = '#3a2a2a'; g.fill();
+      rrect(x + 22 * TS, top + 36, 26, 22, 1); g.fillStyle = '#e8dcb8'; g.fill(); g.strokeStyle = '#5a3a1e'; g.lineWidth = 2; g.strokeRect(x + 22 * TS, top + 36, 26, 22); glow(x + 22 * TS + 13, top + 47, 30, 'rgba(255,250,220,1)', 0.2);   // (oiled paper, not glass)
+      break;
+    }
+    case 'wetuinside': {   // inside the nush wetu: the bent sapling frame overhead, mats on the walls, three fires with smoke rising to the smoke holes
+      const X1 = (o.to || 52) * TS, fl = y;
+      g.fillStyle = '#5a4428'; g.fillRect(x, 0, X1 - x, fl); g.fillStyle = 'rgba(210,190,130,.18)'; for (let xx = x; xx < X1; xx += 4) g.fillRect(xx, 40, 2, fl - 40);
+      g.strokeStyle = '#3a2814'; g.lineWidth = 3; for (let xx = x + 12; xx < X1; xx += 40) { g.beginPath(); g.moveTo(xx, fl); g.lineTo(xx, 44); g.quadraticCurveTo(xx, 6, xx + 20, 6); g.quadraticCurveTo(xx + 40, 6, xx + 40, 44); g.stroke(); }   // the sapling arches
+      g.lineWidth = 2; for (const yy of [20, 50, 80, 110]) { g.beginPath(); g.moveTo(x, yy + (yy < 40 ? 0 : 0)); g.lineTo(X1, yy); g.stroke(); }
+      for (const fx of [13, 26, 39]) {
+        const cx = fx * TS + 8; g.globalAlpha = 0.9; g.fillStyle = '#8ab0c8'; rrect(cx - 10, 0, 20, 8, 2); g.fill(); g.globalAlpha = 1; glow(cx, 4, 30, 'rgba(255,255,230,1)', 0.25);   // the smoke hole, with sky
+        for (let k = 0; k < 4; k++) { ell(cx - 9 + k * 6, fl - 2, 3.4, 2.4); g.fillStyle = '#7a766c'; g.fill(); }
+        for (let k = 0; k < 3; k++) { const f = Math.sin(t * 11 + k + fx) * 1.6; g.beginPath(); g.moveTo(cx - 6 + k * 5, fl - 2); g.quadraticCurveTo(cx - 4 + k * 5, fl - 13 + f, cx - 2 + k * 5, fl - 2); g.fillStyle = k === 1 ? '#ffd040' : '#ff7a2a'; g.fill(); }
+        glow(cx, fl - 8, 40, 'rgba(255,150,60,1)', 0.4);
+        for (let i = 0; i < 4; i++) { const ph = (t * 0.3 + i / 4 + fx * 0.1) % 1; g.globalAlpha = 0.22 * (1 - ph * 0.6); g.beginPath(); g.arc(cx + Math.sin(ph * 6 + i) * 6, fl - 16 - ph * (fl - 30), 4 + ph * 8, 0, TAU); g.fillStyle = '#d8d8d0'; g.fill(); g.globalAlpha = 1; }
+      }
+      for (let xx = x + 60; xx < X1 - 60; xx += 150) { for (let k = 0; k < 3; k++) { g.strokeStyle = '#6a5a3a'; g.lineWidth = 0.8; g.beginPath(); g.moveTo(xx + k * 8, 50); g.lineTo(xx + k * 8, 58); g.stroke(); ell(xx + k * 8, 64, 2.4, 6); g.fillStyle = ['#e8c048', '#c8402a', '#5a3a8a'][k]; g.fill(); } }   // corn drying (yellow, red and blue)
       break;
     }
     case 'cabin': {   // a frontier log cabin: round logs notched at the corners, a clapboard roof and a stick-and-clay chimney
@@ -4511,6 +4687,92 @@ function drawDecor(d, t) {
       break;
     }
   }
+}
+// people for the feast and the scenes: a Pilgrim man (tall black hat), a Pilgrim woman (white coif and apron), a Wampanoag
+// man (a deerskin mantle, a feather in his hair), standing or sitting, about as tall as the hero
+function drawPerson(x, base, who, sit, t, face = 1) {
+  g.save(); g.translate(x, base); g.scale(face, 1); const h = sit ? 12 : 18, bob = Math.sin(t * 2 + x) * 0.4;
+  if (who === 'wampanoag') {
+    rrect(-3.6, -h, 7.2, h, 3); g.fillStyle = '#b8784a'; g.fill(); g.beginPath(); g.moveTo(-4, -h + 1); g.lineTo(3, -h + 1); g.lineTo(4.4, -h + 9); g.lineTo(-4.4, -h + 10); g.closePath(); g.fillStyle = '#b8905a'; g.fill();
+    g.fillStyle = '#8e6a3e'; g.fillRect(-4, -4, 8, 4); g.beginPath(); g.arc(0, -h - 3.6 + bob, 3.8, 0, TAU); g.fillStyle = '#b8784a'; g.fill(); g.fillStyle = '#1a1410'; g.beginPath(); g.arc(-0.6, -h - 4.6 + bob, 3.8, Math.PI * 0.95, Math.PI * 2.05); g.fill();
+    g.fillStyle = '#f0ece0'; g.beginPath(); g.ellipse(-2.6, -h - 9.4 + bob, 1, 3.4, -0.4, 0, TAU); g.fill(); g.fillStyle = '#3a2a1a'; g.fillRect(-2.9, -h - 9 + bob, 0.6, 2);
+  } else {
+    const woman = who === 'woman';
+    rrect(-3.8, -h, 7.6, h, 3); g.fillStyle = woman ? '#6a4a3a' : '#3a3a42'; g.fill(); if (woman) { g.fillStyle = '#f0ece0'; g.fillRect(-2.4, -h + 6, 4.8, h - 7); } else { g.fillStyle = '#f0ece0'; g.fillRect(-3, -h, 6, 1.6); }
+    g.beginPath(); g.arc(0, -h - 3.6 + bob, 3.6, 0, TAU); g.fillStyle = '#f2c8a0'; g.fill();
+    if (woman) { g.fillStyle = '#ffffff'; g.beginPath(); g.arc(0, -h - 4.4 + bob, 3.9, Math.PI * 0.9, Math.PI * 2.1); g.fill(); }
+    else { g.fillStyle = '#222228'; g.fillRect(-5, -h - 6.4 + bob, 10, 1.6); g.fillRect(-3.2, -h - 12 + bob, 6.4, 6); g.fillStyle = '#c8a040'; g.fillRect(-3.2, -h - 7.6 + bob, 6.4, 1); }
+  }
+  g.restore();
+}
+// a museum piece in a room or along the way (what it is pops up when you walk up to it), with a little sparkle until you have
+function drawExhibit(e, t) {
+  const cx = e.x + 10, b = e.y + 32;
+  switch (e.look) {
+    case 'mortar':   // a hollow log mortar and a long wooden pestle
+      rrect(cx - 7, b - 18, 14, 18, 2); paint(vgrad(b - 18, b, '#9a6e44', '#6a4626')); ell(cx, b - 18, 7, 2.4); g.fillStyle = '#3a2412'; g.fill(); ell(cx, b - 18.6, 4, 1.2); g.fillStyle = '#e8c860'; g.fill();
+      g.save(); g.translate(cx + 2, b - 18); g.rotate(0.25); rrect(-1.4, -24, 2.8, 26, 1.2); g.fillStyle = '#b8905e'; g.fill(); ell(0, -24, 2.6, 3.4); g.fill(); g.restore(); break;
+    case 'pot':   // an iron pot on a trammel hook over the fire
+      for (let k = 0; k < 3; k++) { const f = Math.sin(t * 12 + k * 2) * 1.6; g.beginPath(); g.moveTo(cx - 7 + k * 5, b); g.quadraticCurveTo(cx - 5 + k * 5, b - 10 + f, cx - 3 + k * 5, b); g.fillStyle = k === 1 ? '#ffd040' : '#ff7a2a'; g.fill(); }
+      glow(cx, b - 6, 22, 'rgba(255,150,60,1)', 0.5); g.strokeStyle = '#2a2a2e'; g.lineWidth = 1; g.beginPath(); g.moveTo(cx, b - 34); g.lineTo(cx, b - 22); g.stroke();
+      ell(cx, b - 14, 8, 7); g.fillStyle = '#2a2a30'; g.fill(); g.fillStyle = '#4a4a54'; g.fillRect(cx - 8, b - 20, 16, 2.4); g.beginPath(); g.arc(cx, b - 20, 8, Math.PI, 0); g.strokeStyle = '#2a2a30'; g.stroke(); break;
+    case 'chest':   // a wooden sea chest with iron bands
+      rrect(cx - 11, b - 13, 22, 13, 1); paint(vgrad(b - 13, b, '#8a5a32', '#5a3418')); g.beginPath(); g.moveTo(cx - 11, b - 13); g.quadraticCurveTo(cx, b - 21, cx + 11, b - 13); g.closePath(); paint('#7a4c28');
+      g.fillStyle = '#3a3a40'; g.fillRect(cx - 7, b - 18, 2, 18); g.fillRect(cx + 5, b - 18, 2, 18); g.fillStyle = '#c8a040'; g.fillRect(cx - 1.4, b - 12, 2.8, 3.4); break;
+    case 'trencher':   // a table with a wooden trencher, a spoon and a knife (no forks)
+      g.fillStyle = '#6a4426'; g.fillRect(cx - 12, b - 14, 24, 3); g.fillRect(cx - 10, b - 11, 2.4, 11); g.fillRect(cx + 8, b - 11, 2.4, 11);
+      rrect(cx - 6, b - 17, 12, 3, 1); g.fillStyle = '#b88a54'; g.fill(); ell(cx - 9, b - 15.6, 1.6, 1); g.fillStyle = '#c8c8cc'; g.fill(); g.fillRect(cx - 9, b - 15.8, 4, 0.8); g.fillStyle = '#9a9aa0'; g.fillRect(cx + 7, b - 16, 4, 0.8); break;
+    case 'musket':   // a matchlock musket resting on two pegs on the wall, its match cord coiled beside it
+      g.fillStyle = '#5a3a1e'; g.fillRect(cx - 12, b - 24, 2, 3); g.fillRect(cx + 10, b - 24, 2, 3); g.fillStyle = '#3a3a40'; g.fillRect(cx - 16, b - 26.5, 26, 1.8);
+      g.beginPath(); g.moveTo(cx + 8, b - 27); g.lineTo(cx + 18, b - 26); g.lineTo(cx + 19, b - 21); g.lineTo(cx + 9, b - 25); g.closePath(); g.fillStyle = '#7a4a22'; g.fill();
+      g.strokeStyle = '#c8b080'; g.lineWidth = 0.8; ell(cx - 2, b - 14, 4, 2); g.stroke(); ell(cx - 2, b - 15, 3, 1.6); g.stroke(); break;
+    case 'bed':   // a rope bed with a straw mattress and a coverlet, a little trundle bed underneath
+      g.fillStyle = '#5a3a1e'; g.fillRect(cx - 14, b - 14, 3, 14); g.fillRect(cx + 11, b - 18, 3, 18); g.fillRect(cx - 14, b - 9, 28, 2.4);
+      rrect(cx - 12, b - 14, 24, 5, 2); g.fillStyle = '#e0cc90'; g.fill(); rrect(cx - 6, b - 15, 18, 5, 2); g.fillStyle = '#7a3a3a'; g.fill(); ell(cx - 9, b - 15, 3.4, 2); g.fillStyle = '#ffffff'; g.fill();
+      g.fillStyle = '#6a4426'; g.fillRect(cx - 12, b - 5, 20, 4); break;
+    case 'mats':   // a cattail mat hanging on a pole
+      g.fillStyle = '#5a3a1e'; g.fillRect(cx - 12, b - 30, 24, 2); for (let k = 0; k < 12; k++) { g.fillStyle = k % 2 ? '#c8b07a' : '#b89e66'; g.fillRect(cx - 11 + k * 2, b - 28, 2, 24); } g.fillStyle = 'rgba(90,64,30,.6)'; for (const yy of [-22, -14, -6]) g.fillRect(cx - 11, b + yy, 22, 1); break;
+    case 'claypot':   // a pointed clay pot standing in the fire's coals
+      glow(cx, b - 2, 16, 'rgba(255,140,60,1)', 0.45); g.fillStyle = '#c84a2a'; for (let k = 0; k < 4; k++) { ell(cx - 6 + k * 4, b - 1, 2, 1.2); g.fill(); }
+      g.beginPath(); g.moveTo(cx - 7, b - 18); g.quadraticCurveTo(cx - 9, b - 8, cx, b - 2); g.quadraticCurveTo(cx + 9, b - 8, cx + 7, b - 18); g.closePath(); paint(vgrad(b - 18, b, '#9a7454', '#6a4a30'));
+      g.strokeStyle = 'rgba(40,24,10,.5)'; g.lineWidth = 0.6; for (let k = 0; k < 3; k++) { g.beginPath(); g.moveTo(cx - 6, b - 16 + k * 2); g.lineTo(cx + 6, b - 16 + k * 2); g.stroke(); } break;
+    case 'basket':   // a woven basket full of corn
+      for (let k = 0; k < 3; k++) { ell(cx - 4 + k * 4, b - 13, 2, 4, -0.3 + k * 0.3); g.fillStyle = '#e8c048'; g.fill(); }
+      g.beginPath(); g.moveTo(cx - 9, b - 12); g.lineTo(cx + 9, b - 12); g.lineTo(cx + 7, b); g.lineTo(cx - 7, b); g.closePath(); paint('#b8945a'); g.strokeStyle = 'rgba(90,60,26,.7)'; g.lineWidth = 0.7; for (let k = 0; k < 4; k++) { g.beginPath(); g.moveTo(cx - 8.6 + k * 0.5, b - 10 + k * 3); g.lineTo(cx + 8.6 - k * 0.5, b - 10 + k * 3); g.stroke(); } break;
+    case 'wampum':   // a wampum belt on a stand: rows of purple and white shell beads in a pattern
+      g.fillStyle = '#5a3a1e'; g.fillRect(cx - 13, b - 26, 2, 26); g.fillRect(cx + 11, b - 26, 2, 26); g.fillRect(cx - 13, b - 26, 26, 2);
+      for (let r = 0; r < 5; r++) for (let c = 0; c < 10; c++) { const white = (Math.abs(c - 4.5) < 1.5 && r !== 2) || (r === 2 && c % 3 === 0); g.fillStyle = white ? '#f4f0ea' : '#5a2a6a'; g.fillRect(cx - 10 + c * 2, b - 22 + r * 2.6, 1.8, 2.2); } break;
+    case 'bow':   // a bow and a quiver of arrows leaning on the wall
+      g.strokeStyle = '#7a4a22'; g.lineWidth = 1.6; g.beginPath(); g.arc(cx - 16, b - 14, 15, -0.9, 0.9); g.stroke(); g.strokeStyle = '#e8e0c8'; g.lineWidth = 0.5; g.beginPath(); g.moveTo(cx - 16 + Math.cos(-0.9) * 15, b - 14 + Math.sin(-0.9) * 15); g.lineTo(cx - 16 + Math.cos(0.9) * 15, b - 14 + Math.sin(0.9) * 15); g.stroke();
+      g.save(); g.translate(cx + 4, b); g.rotate(0.2); rrect(-3, -18, 6, 18, 2); g.fillStyle = '#9a6a3a'; g.fill(); g.fillStyle = '#5a3a1e'; for (let k = 0; k < 3; k++) g.fillRect(-2 + k * 1.6, -24, 0.8, 7); g.fillStyle = '#e8e0d0'; for (let k = 0; k < 3; k++) g.fillRect(-2.4 + k * 1.6, -25, 1.4, 2.4); g.restore(); break;
+    case 'furs':   // a sleeping platform covered with a fur
+      g.fillStyle = '#6a4a2a'; g.fillRect(cx - 14, b - 10, 28, 2.6); g.fillRect(cx - 13, b - 8, 2, 8); g.fillRect(cx + 11, b - 8, 2, 8);
+      g.beginPath(); g.moveTo(cx - 13, b - 10); g.quadraticCurveTo(cx - 6, b - 16, cx + 2, b - 13); g.quadraticCurveTo(cx + 10, b - 15, cx + 14, b - 10); g.closePath(); g.fillStyle = '#4a3020'; g.fill(); g.fillStyle = '#6a4a30'; ell(cx - 4, b - 12.4, 5, 1.4); g.fill(); break;
+    case 'mishoonlog':   // a big log on the shore, its middle burning out to make a mishoon, with a pile of shell scrapers
+      rrect(cx - 26, b - 10, 52, 10, 5); paint(vgrad(b - 10, b, '#8a6a44', '#5a4026')); ell(cx - 26, b - 5, 3, 5); g.fillStyle = '#c8a06a'; g.fill();
+      rrect(cx - 18, b - 11, 36, 4, 2); g.fillStyle = '#1a120c'; g.fill(); for (let k = 0; k < 6; k++) { g.fillStyle = Math.sin(t * 7 + k * 1.7) > 0 ? '#ff7a2a' : '#c83a1a'; g.fillRect(cx - 15 + k * 6, b - 10.4, 3, 1.6); }
+      glow(cx, b - 10, 26, 'rgba(255,130,50,1)', 0.35);
+      for (let i = 0; i < 3; i++) { const ph = (t * 0.45 + i / 3) % 1; g.globalAlpha = 0.3 * (1 - ph); g.beginPath(); g.arc(cx - 8 + i * 8 + Math.sin(ph * 5) * 3, b - 14 - ph * 34, 3 + ph * 7, 0, TAU); g.fillStyle = '#d8d8d8'; g.fill(); g.globalAlpha = 1; }
+      for (let k = 0; k < 3; k++) { ell(cx + 32 + k * 4, b - 1.4, 2.2, 1.4); g.fillStyle = '#e8e0f0'; g.fill(); } break;
+  }
+  if (!e.told) { const sy = b - 44 + Math.sin(t * 3) * 2, r = 4 + Math.sin(t * 6) * 0.6; glow(cx, sy, 12, 'rgba(255,230,120,1)', 0.4); g.beginPath(); for (let k = 0; k < 8; k++) { const a = k * Math.PI / 4, rr = k % 2 ? r * 0.4 : r; g.lineTo(cx + Math.cos(a) * rr, sy + Math.sin(a) * rr); } g.closePath(); g.fillStyle = '#ffe680'; g.fill(); }
+}
+// a striped bass or a cod, leaping out of the river
+function drawCatchFish(e, t) {
+  if (e.st === 'under') { g.globalAlpha = 0.25; ell(e.x + 7, e.y0 + 3, 7, 1.4); g.fillStyle = '#1a3a4a'; g.fill(); g.globalAlpha = 1; return; }
+  g.save(); g.translate(e.x + 7, e.y + 4); g.scale(e.face || 1, 1); g.rotate(Math.atan2(e.vy, Math.abs(e.vx) + 60) * 0.8);
+  const cod = e.look === 'cod';
+  g.beginPath(); g.moveTo(-7, 0); g.lineTo(-11, -4); g.lineTo(-11, 4); g.closePath(); g.fillStyle = cod ? '#7a6a44' : '#6a7a6a'; g.fill();
+  ell(0, 0, 8, 3.6); g.fillStyle = vgrad(-3.6, 3.6, cod ? '#9a8a5a' : '#8a9a8a', cod ? '#e8dcc0' : '#e8ece8'); g.fill();
+  if (cod) { g.fillStyle = 'rgba(70,50,20,.6)'; for (let k = 0; k < 5; k++) { g.beginPath(); g.arc(-4 + k * 2, -1.4 + (k % 2), 0.6, 0, TAU); g.fill(); } g.fillStyle = '#f0ece0'; g.fillRect(-6, 0.4, 11, 0.6); }
+  else { g.fillStyle = 'rgba(30,40,40,.7)'; for (const yy of [-2, -0.6, 0.8]) g.fillRect(-6, yy, 11, 0.6); }
+  g.beginPath(); g.arc(5.4, -0.8, 0.9, 0, TAU); g.fillStyle = '#1a1a1a'; g.fill(); g.restore();
+}
+// a Wampanoag man paddling the mishoon from the bow
+function drawPaddler(e, t) {
+  const px = e.x + e.w - 9, base = e.y + 1, st = e.go && e.x < e.x1 ? Math.sin(t * 5) : 0;
+  drawPerson(px, base, 'wampanoag', true, t, -1);
+  g.save(); g.translate(px - 2, base - 10); g.rotate(0.5 + st * 0.4); g.fillStyle = '#9a6a3a'; g.fillRect(-0.8, 0, 1.6, 20); ell(0, 21, 2, 4); g.fill(); g.restore();
 }
 function drawPlatLook(e, t) {   // the special moving platforms: a canoe, a plank, a cow, a log raft (and older ones)
   const x = e.x, y = e.y, w = e.w;
@@ -7073,6 +7335,8 @@ function spawnFromSpec(e) {
     case 'cannon': setTile(e.x, e.y, T.USED); ents.push(mk('cannon', x, y, { w: 0, h: 0, cool: rand(1, 2), recoil: 0, face: -1 })); break;
     case 'palm': ents.push(mk('appletree', x, 0, { w: 0, h: 0, cool: rand(0.3, 1.5), palm: true })); break;   // a palm tree that drops coconuts
     case 'hint': ents.push(mk('hint', x - 16, y - 3 * TS, { w: 48, h: 4 * TS })); break;
+    case 'exhibit': ents.push(mk('exhibit', x - 2, y + TS - 32, { w: 20, h: 32, look: e.look, title: e.title, text: e.text, told: false })); break;   // a museum piece: walk up to it and learn what it is
+    case 'catchfish': ents.push(mk('catchfish', x, y + 10, { w: 14, h: 8, y0: y, look: e.look || 'bass', st: 'under', cool: rand(0.3, 1.2), vx: 0, vy: 0 })); break;   // a fish that leaps out of the river: catch it
     case 'sflag': ents.push(mk('sflag', x, y - 2 * TS, { w: 16, h: 3 * TS })); break;
     case 'goldspike': ents.push(mk('goldspike', x, y, { w: 14, h: 16 })); break;   // a region's golden spike: it opens the railroad depot
     case 'sponge': ents.push(mk('sponge', x, 12 * TS - 7, { x0: x, y0: 12 * TS - 7, w: (e.w || 3) * TS, h: 9, deep: !!e.deep, mx: 0, my: 0, sq: 0 })); break;
@@ -7616,6 +7880,11 @@ function updateEnts(dt) {
         e.face = e.dir;
         break;
       }
+      case 'catchfish': {   // under the water until the hero comes close, then a leap in an arc and back in with a splash
+        if (e.st === 'under') { e.y = e.y0 + 10; e.cool -= dt; if (e.cool <= 0 && Math.abs(p.x - e.x) < 110) { e.st = 'leap'; e.vy = -330; e.vx = (p.x > e.x ? 1 : -1) * 24; e.face = e.vx > 0 ? 1 : -1; sfx.splash(); for (let i = 0; i < 6; i++) particle(e.x + 7, e.y0, rand(-50, 50), rand(-140, -40), '#d8f0ff', 0.5, rand(1.5, 3)); } }
+        else { e.vy += 600 * dt; e.x += e.vx * dt; e.y += e.vy * dt; if (e.vy > 0 && e.y > e.y0 + 6) { e.st = 'under'; e.cool = rand(1.2, 2.4); e.x -= e.vx * 0.4; sfx.splash(); } }
+        break;
+      }
       case 'boat': {   // sails off once the hero is aboard, and stops at the far dock
         if (!e.go && !e.hold && (p.ride === e || (p.ride && p.ride.on === e))) e.go = true;
         if (e.look === 'mayflower' && e.go && e.x >= e.x1 && !e.landHo) { e.landHo = true; sfx.goal(); banner('66 DAYS LATER… LAND HO!', 'The Mayflower anchors off Cape Cod in November. Jump down into the ship\'s boat and row ashore!', 3.4); }
@@ -7758,6 +8027,14 @@ function touchPlayer(e) {
     return;
   }
   if (e.k === 'friend') { friendTouch(e); return; }
+  if (e.k === 'exhibit') { if (!e.told && overlap(p, e)) { e.told = true; banner(e.title, e.text, 4.4); sfx.mid(); addScore(100, e.x, e.y); sparkle(e.x + 10, e.y + 6, '#fff2a0', 8); } return; }
+  if (e.k === 'catchfish') {
+    if (e.st === 'leap' && overlap(p, e)) {
+      e.gone = true; addScore(200, e.x, e.y); sfx.coin(); sparkle(e.x + 7, e.y + 4, '#d8f0ff', 10); lvl.fish = (lvl.fish || 0) + 1;
+      if (lvl.fish === 1) banner('YOU CAUGHT A FISH!', 'That fall the Pilgrims caught cod and bass, and Tisquantum showed them how to catch eels. Fish may well have been at the feast!', 4.4);
+    }
+    return;
+  }
   if (e.k === 'hint') { if (overlap(p, e) && !e.told) { e.told = true; banner('WALL JUMP!', 'Jump in, hold towards a wall, and press jump to kick off it. Back and forth to the top!', 3.4); } return; }
   if (e.k === 'heron' ? !heronTouch(e) : !overlap(p, e)) return;
   const stomp = p.vy > 0 && p.y + p.h - p.vy * STEP <= e.y + (p.mount ? 10 : 6), pounding = p.pound === 'drop';
@@ -8315,7 +8592,7 @@ function drawLevel() {
     const k = clamp(1 - (gy - bottom) / 90, 0.25, 1);
     ell(cx, gy + 0.5, w * 0.55 * k, 1.8 * k); g.fillStyle = `rgba(0,0,0,${0.18 * k})`; g.fill();
   };
-  for (const e of ents) if (!e.dead && !e.flip && e.w > 6 && e.w < 40 && e.k !== 'mid' && e.k !== 'warp' && e.k !== 'exit' && e.k !== 'firebar' && e.x > cx - 40 && e.x < cx + LW + 40) shadow(e.x + e.w / 2, e.y + e.h, e.w);
+  for (const e of ents) if (!e.dead && !e.flip && e.w > 6 && e.w < 40 && e.k !== 'mid' && e.k !== 'warp' && e.k !== 'exit' && e.k !== 'firebar' && e.k !== 'catchfish' && e.k !== 'exhibit' && e.x > cx - 40 && e.x < cx + LW + 40) shadow(e.x + e.w / 2, e.y + e.h, e.w);
   if (player && phase !== 'dying' && !pipe) shadow(player.x + player.w / 2, player.y + player.h, player.mount ? 22 : 14);
   sprBegin();
   for (let ty = 0; ty < lvl.h; ty++) for (let tx = tx0; tx <= tx1; tx++) if (lvl.t[ty * lvl.w + tx] === T.COIN) drawCoin(tx * TS, ty * TS, t + tx * 0.21);
@@ -8456,6 +8733,8 @@ function drawEnt0(e, t) {
     }
     case 'gem': collectIcon()(x - 1, y - 1, t); break;
     case 'friend': drawFriend(e, t); break;
+    case 'exhibit': drawExhibit(e, t); break;
+    case 'catchfish': drawCatchFish(e, t); break;
     case 'warp': case 'exit': {   // a little bouncing arrow over a hollow tree when Leo's close: press S to go in
       const near = player && Math.abs(player.x + player.w / 2 - (x + 16)) < 40 && Math.abs(player.y + player.h - (y + 4)) < 60;
       if (e.look === 'door') {   // a building or a cave mouth with a door (or, down below, a ladder up): an ▲ arrow over the door when you're close
@@ -8482,7 +8761,7 @@ function drawEnt0(e, t) {
       g.beginPath(); g.moveTo(-1, -4); g.lineTo(-3.6, 3); g.lineWidth = 0.9; g.strokeStyle = 'rgba(255,255,255,.9)'; g.stroke();
       g.restore(); break;
     }
-    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (e.look === 'raft') drawRaft(e, t); else if (e.look === 'rowboat' || e.look === 'durham') drawRowboat(e, t); else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river' || e.look === 'steamboat') drawSteamboat(e, t); else if (e.look === 'voyageur') drawVoyageurCanoe(e, t); else if (e.look === 'canalboat') drawCanalBoat(e, t); else if (e.look === 'keelboat') drawKeelboat(e, t); else drawBoat(e, t); break;
+    case 'boat': if (e.look === 'mayflower') drawMayflowerShip(e, t); else if (e.look === 'raft') drawRaft(e, t); else if (e.look === 'rowboat' || e.look === 'durham') drawRowboat(e, t); else if (e.look === 'mishoon') { drawPlatLook({ ...e, x: e.x + 4, w: e.w - 8, my: e.go && e.x < e.x1 ? 1 : 0 }, t); drawPaddler(e, t); } else if (lvl.theme === 'glades') drawAirboat(e, t); else if (lvl.theme === 'bayou') drawPirogue(e, t); else if (lvl.theme === 'river' || e.look === 'steamboat') drawSteamboat(e, t); else if (e.look === 'voyageur') drawVoyageurCanoe(e, t); else if (e.look === 'canalboat') drawCanalBoat(e, t); else if (e.look === 'keelboat') drawKeelboat(e, t); else drawBoat(e, t); break;
     case 'heron': drawHeron(e, tt, FLAMINGOS.has(lvl.theme)); break;
     case 'snake': drawSnake(e, tt); break;
     case 'gator': drawGator(x, y, tt, face, e.w + 2); break;
@@ -9013,11 +9292,11 @@ const INFO = {
     { f: 'Before going ashore at Provincetown, 41 men signed the Mayflower Compact: a promise to make fair laws together, and to obey them.', q: 'What was the Mayflower Compact?', a: ['A promise to make fair laws together', 'A map of America', 'A kind of ship'] },
   ],
   plimoth: [
-    { f: 'Plymouth was built where the Wampanoag village of Patuxet had been. Most of its people had died of a sickness brought by European sailors.', q: 'Whose village had stood where the Pilgrims built Plymouth?', a: ['The Wampanoag village of Patuxet', 'A Spanish fort', 'An English castle'] },
-    { f: 'The Pilgrims\' first winter was terrible. About half of the people from the Mayflower died before spring.', q: 'What happened in the Pilgrims\' first winter at Plymouth?', a: ['About half of them died', 'They sailed back home', 'It was warm and easy'] },
-    { f: 'Tisquantum, also called Squanto, was a Patuxet man who spoke English. He showed the Pilgrims how to plant corn and where to fish.', q: 'Who showed the Pilgrims how to plant corn?', a: ['Tisquantum (Squanto)', 'The king of England', 'A sailor'] },
-    { f: 'The Wampanoag grew the "Three Sisters" together: corn, beans and squash. The beans climb the corn, and the big squash leaves keep the weeds down.', q: 'What are the "Three Sisters"?', a: ['Corn, beans and squash', 'Three ships', 'Three Pilgrim girls'] },
-    { f: 'In the fall of 1621, about 90 Wampanoag men and the Pilgrims shared a harvest feast. It lasted three days.', q: 'How long did the 1621 harvest feast last?', a: ['Three days', 'One hour', 'A whole year'] },
+    { f: 'Plymouth Rock is said to be where the Pilgrims stepped ashore. Nobody wrote that down in 1620: the story was first told in 1741. Today the rock rests under a stone canopy.', q: 'Plymouth Rock is said to be where the Pilgrims first…', a: ['Stepped ashore', 'Planted corn', 'Built a fort'] },
+    { f: 'The Jenney Grist Mill was built on Town Brook in 1636. Falling water turns its big wheel, and the wheel turns a heavy millstone that grinds corn into cornmeal.', q: 'What turned the wheel of the grist mill?', a: ['Falling water', 'Horses', 'The wind'] },
+    { f: 'A Pilgrim house had one room with a dirt floor, a thatched roof, and a big fireplace for cooking and warmth. People ate with spoons, knives and fingers: no forks!', q: 'What did the Pilgrims NOT use to eat?', a: ['Forks', 'Spoons', 'Fingers'] },
+    { f: 'Wampanoag homes are called wetus, made of bent saplings. Summer wetus were covered with cattail mats, winter ones with bark. A nush wetu is a long one with three fires.', q: 'What is a Wampanoag home called?', a: ['A wetu', 'An igloo', 'A castle'] },
+    { f: 'In the fall of 1621, the Wampanoag leader Massasoit and about 90 of his men joined the Pilgrims\' harvest feast. It lasted three days, and they brought five deer.', q: 'How long did the 1621 harvest feast last?', a: ['Three days', 'One hour', 'A whole year'] },
   ],
   cranberry: [
     { f: 'Wampanoag means "People of the First Light." They live where the sun rises first, on the eastern edge of the land.', q: 'What does "Wampanoag" mean?', a: ['People of the First Light', 'People of the Mountains', 'Big Canoe'] },
