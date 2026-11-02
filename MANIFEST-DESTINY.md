@@ -160,7 +160,7 @@ Southwest and the Pacific. Every world's card says whose homelands it crosses.
 ### World 1: New England, the colonies (1620 to 1775)
 *Wampanoag, Massachusett, Narragansett, Pequot, Mohegan, Nipmuc and Wabanaki homelands*
 
-1. **The Mayflower** (1620): walk up the gangway from the quay at Plymouth, England, and go through the ship deck by deck: the hold (rolling barrels, casks, sacks, the pigs, goats and chickens, rats), up a ladder to the 'tween deck where the passengers lived (hammocks, bunks, cannons at the gunports), up a ladder to the main deck and the forecastle, then into the great cabin at the stern. Its door opens 66 days later in Provincetown Harbor: row ashore to Cape Cod ✅ built
+1. **The Mayflower** (1620): walk up the gangplank at Plymouth, England, and go through the door in her stern castle: below decks, each deck is a room of its own. The hold (rolling barrels, casks, sacks, the pigs, goats and chickens, rats), then up a ladder to the 'tween deck where the passengers lived (hammocks, bunks, families, cannons at the gunports), then up onto the main deck, and she sets sail across the Atlantic through the storm. She anchors off Cape Cod in November: jump down into the ship's boat and row ashore to the dunes at Provincetown ✅ built
 2. **Plimoth Plantation** (1621): the colony, the Wampanoag homesite, the first harvest ✅ built
 3. **Cranberry Bog** (1622): the Wampanoag homeland, sassamanash, the seasons ✅ built
 4. **A City upon a Hill** (1630): the Puritans build Boston; the cows on the Common ✅ built
@@ -173,7 +173,7 @@ Southwest and the Pacific. Every world's card says whose homelands it crosses.
     sea), then the World 1 quiz ✅ built
 
 *Secret-only levels (whaling and islands):* Martha's Vineyard (Noepe, from a golden flag over the Cranberry Bog) ✅,
-Nantucket (the whaling capital, from a golden flag above the Mayflower's main deck) ✅. Their facts are a bonus: the quiz asks only about
+Nantucket (the whaling capital, from the Mayflower's main top) ✅. Their facts are a bonus: the quiz asks only about
 the main road's levels.
 *Railroad depot:* the Granite Railway, Quincy (1826, one of America's first railroads) ✅, with its Railroad
 Challenge level; New England's golden spike is hidden on Nantucket.
@@ -397,7 +397,7 @@ This is a game about Manifest Destiny for children, so it has to be truthful as 
 
 1. ✅ **The Mayflower** and **Plimoth Plantation**, with Wrestling Brewster, turkeys, wolves, crows, porcupines,
    box turtles, ship rats and seagulls; ears of corn to find; Canada and Mexico on the map; the heroes screen.
-   The Mayflower's secret exit (a golden flag high above the main deck) opens the sea lane to Nantucket.
+   The Mayflower's secret exit (up at the main top) opens the sea lane to Nantucket.
 2. ✅ The old road-trip levels removed (Lucky Leo keeps them); every stop of the story on the map as a signpost;
    the new power-ups (pumpkin, apples, horseshoe); info boxes and the region quiz; the game's own pause menu (new
    game, unlock all levels); the title scene; and 1-3 to 1-6 (Cranberry Bog, Boston, Providence, the Connecticut River).

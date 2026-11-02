@@ -4168,7 +4168,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
-  await test('Manifest Destiny 1-1 and 1-2: through the Mayflower deck by deck (the hold with its casks and animals, the \'tween deck, the main deck, the forecastle, the great cabin) and ashore at Provincetown; at Plimoth, turkeys charge and Tisquantum shares his corn; ears of corn and info boxes; a story card', async () => {
+  await test('Manifest Destiny 1-1 and 1-2: board the Mayflower and go below (the hold with its barrels and animals, then the \'tween deck, each a room of its own), up on deck she sails, and the ship\'s boat rows you ashore at Provincetown; at Plimoth, turkeys charge and Tisquantum shares his corn; ears of corn and info boxes; a story card', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));
     const r = await p.evaluate(() => {
@@ -4179,18 +4179,29 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       startLevel('voyage');
       out.story = bannerT > 0 && /1620/.test(bannerText[0]);
       out.cast = LEVELS.voyage.cast.grumblin === 'rat' && LEVELS.plimoth.cast.snaily === 'turtle' && LEVELS.plimoth.collect === 'corn';
-      // down the gangway from the quay into the hold: casks rolling about, pigs, goats and chickens, and rats
-      const L = LEVELS.voyage, plank = (x, y) => L.t[y * L.w + x] === T.PLANK;
-      out.decks = plank(40, 12) && plank(40, 8) && plank(40, 4) && plank(18, 3) && plank(120, 0) && !plank(123, 8) && !plank(27, 4);   // the hold, the 'tween deck, the main deck, the forecastle, the great cabin; a hatch up at each end
-      out.props = L.decor.some(d => d[0] === 'mayflowerhull') && ['pig', 'goat'].every(a => L.ents.some(e => e.as === a)) && L.ents.some(e => e.k === 'rooster') && L.ents.some(e => e.k === 'cannon') && L.ents.filter(e => e.look === 'barrel').length >= 4;
-      ents = ents.filter(e => !isEnemy(e) || e.look === 'barrel'); player.x = 3 * 16; player.inv = 99; keys.right = true; run(240); keys.right = false; out.boarded = player.x > 17 * 16 && player.y > 9 * 16 && phase === 'play';
-      const barrel = ents.find(e => e.look === 'barrel' && e.x < 60 * 16 && e.y > 9 * 16); barrel.vx = 70; const bx = barrel.x; run(30); out.rolls = barrel.x !== bx && barrel.look === 'barrel'; barrel.vx = 0; run(60 * 9); out.staysBarrel = barrel.k === 'shell';
-      let drewShip = true; try { for (const [x, y] of [[30, 11], [80, 7], [60, 3], [120, 3]]) { player.x = x * 16; player.y = (y + 1) * 16 - player.h; player.vy = 0; run(3); render(); } } catch (e) { drewShip = e.message; } out.drewShip = drewShip;
-      // the great cabin's door: 66 days later, the Mayflower anchored off Provincetown, and the ship's boat rows you ashore
-      const door = ents.find(e => e.k === 'warp' && e.goto); player.x = door.x + 16 - player.w / 2; player.y = door.y + 4 - player.h; player.vy = 0; player.ground = true; run(2);
-      keys.up = true; run(3); keys.up = false; run(60); out.landHo = player.x > 145 * 16 && player.x < 160 * 16 && /66 DAYS/.test(bannerText[0]);
+      // up the gangplank from the quay onto the Mayflower: she waits at the quay until you've been below
+      const L = LEVELS.voyage, H = LEVELS.voyage_hold, TW = LEVELS.voyage_tween, ship = ents.find(e => e.look === 'mayflower');
+      ents = ents.filter(e => !isEnemy(e)); player.x = 3 * 16; player.inv = 999; keys.right = true; run(150); keys.right = false; run(60);
+      out.boarded = player.ride === ship && ship.x === ship.x0 && ship.hold && !ship.go;
+      // the door in her stern castle goes below: the hold is a room of its own (planks overhead and underfoot, nothing else)
+      const into = (w) => { player.x = w.x + 16 - player.w / 2; player.y = w.y + 4 - player.h; player.vy = 0; player.ground = true; run(2); keys.up = true; run(3); keys.up = false; run(60); };
+      into(ents.find(e => e.k === 'warp' && e.below));
+      const shut = (R) => [0, 1, 12, 13].every(y => [5, 30, R.w - 5].every(x => R.t[y * R.w + x] === T.PLANK)) && [2, 6, 11].every(y => R.t[y * R.w] === T.PLANK && R.t[y * R.w + R.w - 1] === T.PLANK);
+      out.hold = lvl.id === 'voyage_hold' && shut(H) && /HOLD/.test(bannerText[0]) && player.y > 10 * 16;
+      out.props = H.decor[0][0] === 'shipinside' && ['pig', 'goat'].every(a => H.ents.some(e => e.as === a)) && H.ents.some(e => e.k === 'rooster') && H.ents.filter(e => e.look === 'barrel').length >= 3 && TW.ents.filter(e => e.k === 'cannon').length >= 2;
+      const barrel = ents.find(e => e.look === 'barrel'); barrel.vx = 70; const bx = barrel.x; run(30); out.rolls = barrel.x !== bx && barrel.look === 'barrel'; barrel.vx = 0; run(60 * 9); out.staysBarrel = barrel.k === 'shell';
+      let drewShip = true; const draw = () => { try { render(); } catch (e) { drewShip = e.message; } }; draw();
+      // up the ladder at the far end: the 'tween deck, another room of its own, then up again onto the main deck
+      const climb = () => { const lad = ents.find(e => e.k === 'exit'); player.x = lad.x + 16 - player.w / 2; player.y = 12 * 16 - player.h; player.vy = 0; player.ground = true; ents = ents.filter(e => e === lad); keys.up = true; run(220); keys.up = false; run(30); };
+      climb(); out.tween = lvl.id === 'voyage_tween' && shut(TW) && /TWEEN/.test(bannerText[0]); draw();
+      climb(); out.onDeck = lvl.id === 'voyage' && player.ride === ship && !ship.hold && !ents.some(e => e.below && !e.gone) && /ON DECK/.test(bannerText[0]); draw();
+      run(90); out.sails = ship.go && ship.x > ship.x0 + 40;
+      // she anchors off Provincetown in November, and the ship's boat rows you ashore
+      ship.x = ship.x1 - 4; player.x = ship.x + 80; player.y = ship.y - player.h; run(30); out.landHo = ship.x === ship.x1 && /66 DAYS/.test(bannerText[0]); draw();
       const boat = ents.find(e => e.k === 'boat' && e.look === 'rowboat'); player.x = boat.x + 20; player.y = boat.y - player.h; player.vy = 0; run(60 * 9); keys.right = true; run(90); keys.right = false;
-      out.ashore = player.x > 185 * 16 && L.t[10 * L.w + 190] === T.GROUND;
+      out.ashore = player.x > 185 * 16 && L.t[10 * L.w + 190] === T.GROUND && L.decor.some(d => d[0] === 'capeshore'); draw(); out.drewShip = drewShip;
+      // back from the checkpoint, she's already under sail (no going below again)
+      checkpoint = { x: 86 * 16 }; startLevel('voyage', true); out.fromCheck = !ents.some(e => e.below) && !ents.find(e => e.look === 'mayflower').hold;
       // her secret exit, up at the main top, opens a sea lane to Nantucket
       startLevel('voyage'); touchPlayerAs(ents.find(e => e.k === 'sflag')); run(300); out.secret = !!save.secrets.voyage && pathOpen(PATHS.find(([a, b]) => a === 'voyage' && b === 'nantucket'));
       out.plimothShut = !nodeOpen(node('plimoth'));   // (a secret exit doesn't count as beating the level)
@@ -4214,9 +4225,10 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(r.route, 'World 1 starts with the Mayflower and Plimoth Plantation: ' + JSON.stringify(r));
     check(r.story && r.cast, 'the level opens with its story card, and the new animals play the parts: ' + JSON.stringify(r));
-    check(r.decks && r.props, 'the Mayflower in cutaway: the hold, the \'tween deck, the main deck, the forecastle and the great cabin, a hatch up at each end, with casks, animals, guns and the passengers\' quarters: ' + JSON.stringify(r));
-    check(r.boarded && r.rolls && r.staysBarrel && r.drewShip === true, 'from the quay down the gangway into the hold, where casks roll about (and stay casks): ' + JSON.stringify(r));
-    check(r.landHo && r.ashore, 'the great cabin\'s door: 66 days later, land ho at Provincetown, and the ship\'s boat rows you ashore: ' + JSON.stringify(r));
+    check(r.boarded, 'up the gangplank onto the Mayflower, and she waits at the quay: ' + JSON.stringify(r));
+    check(r.hold && r.props && r.rolls && r.staysBarrel, 'her stern door goes below into the hold, a room of its own, with barrels rolling (and staying barrels), pigs, goats and chickens: ' + JSON.stringify(r));
+    check(r.tween && r.onDeck && r.sails && r.fromCheck, 'up a ladder to the \'tween deck, up again onto the main deck, and she sets sail (from the checkpoint too): ' + JSON.stringify(r));
+    check(r.landHo && r.ashore && r.drewShip === true, 'she anchors off Provincetown, land ho, and the ship\'s boat rows you ashore to the November dunes: ' + JSON.stringify(r));
     check(r.secret && r.plimothShut && r.plimothOpen, "the secret exit opens the sea lane to Nantucket only; beating 1-1 the normal way opens Plimoth: " + JSON.stringify(r));
     check(r.turkey, 'a turkey fans its tail and charges: ' + JSON.stringify(r));
     check(r.friend, 'Tisquantum shares his corn and is never an enemy: ' + JSON.stringify(r));
