@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 360 64" role="img" aria-label="Cape Cod Pack &amp; Ship">
+  <rect width="64" height="64" rx="14" fill="#13294b"/>
+  <path d="M32 12 50 21v22L32 52 14 43V21z" fill="#c8955a"/>
+  <path d="M14 21l18 9 18-9M32 30v22" fill="none" stroke="#13294b" stroke-width="3" stroke-linejoin="round"/>
+  <path d="M23 16.5l18 9" stroke="#e9c48f" stroke-width="4"/>
+  <path d="M8 50c5 0 5-4 10-4s5 4 10 4 5-4 10-4 5 4 10 4 5-4 10-4" fill="none" stroke="#5fb3d9" stroke-width="3.5" stroke-linecap="round"/>
+  <text x="78" y="30" font-family="Inter, Arial, sans-serif" font-weight="900" font-size="25" fill="#13294b">Cape Cod Pack <tspan fill="#c2305b">&amp;</tspan> Ship</text>
+  <text x="79" y="52" font-family="Inter, Arial, sans-serif" font-weight="600" font-size="13.5" letter-spacing="1.6" fill="#566173">PACKING · SHIPPING · FALMOUTH</text>
+</svg>

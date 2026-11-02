@@ -1,0 +1,15 @@
+{
+  "name": "Cape Cod Pack & Ship",
+  "short_name": "Pack & Ship",
+  "description": "Packing, shipping, copies and fax in Falmouth, MA.",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#13294b",
+  "theme_color": "#13294b",
+  "icons": [
+    { "src": "favicon.svg", "type": "image/svg+xml", "sizes": "any" },
+    { "src": "img/icon-192.png", "type": "image/png", "sizes": "192x192" },
+    { "src": "img/icon-512.png", "type": "image/png", "sizes": "512x512", "purpose": "any maskable" }
+  ]
+}
