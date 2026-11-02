@@ -4183,6 +4183,8 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
       const L = LEVELS.voyage, H = LEVELS.voyage_hold, TW = LEVELS.voyage_tween, ship = ents.find(e => e.look === 'mayflower');
       ents = ents.filter(e => !isEnemy(e)); player.x = 3 * 16; player.inv = 999; keys.right = true; run(150); keys.right = false; run(60);
       out.boarded = player.ride === ship && ship.x === ship.x0 && ship.hold && !ship.go;
+      // no hopping ahead across the ocean on the blocks over the sea: the sailors call you back aboard
+      player.x = 50 * 16; player.y = 5 * 16 - player.h; player.vy = 0; run(3); out.noSkip = player.x < ship.x + ship.w && /STAY ABOARD/.test(bannerText[0]); run(60);
       // the door in her stern castle goes below: the hold is a room of its own (planks overhead and underfoot, nothing else)
       const into = (w) => { player.x = w.x + 16 - player.w / 2; player.y = w.y + 4 - player.h; player.vy = 0; player.ground = true; run(2); keys.up = true; run(3); keys.up = false; run(60); };
       into(ents.find(e => e.k === 'warp' && e.below));
@@ -4225,7 +4227,7 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     });
     check(r.route, 'World 1 starts with the Mayflower and Plimoth Plantation: ' + JSON.stringify(r));
     check(r.story && r.cast, 'the level opens with its story card, and the new animals play the parts: ' + JSON.stringify(r));
-    check(r.boarded, 'up the gangplank onto the Mayflower, and she waits at the quay: ' + JSON.stringify(r));
+    check(r.boarded && r.noSkip, 'up the gangplank onto the Mayflower, she waits at the quay, and you can\'t skip ahead over the sea on the blocks: ' + JSON.stringify(r));
     check(r.hold && r.props && r.rolls && r.staysBarrel, 'her stern door goes below into the hold, a room of its own, with barrels rolling (and staying barrels), pigs, goats and chickens: ' + JSON.stringify(r));
     check(r.tween && r.onDeck && r.sails && r.fromCheck, 'up a ladder to the \'tween deck, up again onto the main deck, and she sets sail (from the checkpoint too): ' + JSON.stringify(r));
     check(r.landHo && r.ashore && r.drewShip === true, 'she anchors off Provincetown, land ho, and the ship\'s boat rows you ashore to the November dunes: ' + JSON.stringify(r));

@@ -1971,12 +1971,13 @@ function pipeUpdate(dt) {
       outside = { lvl, ents, out: w.out };
       const src = LEVELS[w.room]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
       for (const e of src.ents) spawnFromSpec(e);
-      p.x = 3 * TS; p.y = w.look === 'door' ? 12 * TS - p.h : -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
+      setupInfo(src); p.x = 3 * TS; p.y = w.look === 'door' ? 12 * TS - p.h : -p.h - 4; p.vy = 0; camX = 0; camLead = 0.4;
       music.play(lvl.music); phase = 'play'; pipe = null;
       if (w.look === 'door') { doorFade = 0.45; banner(...(lvl.enter || [lvl.name.toUpperCase() + '!', 'Coins, a power-up… and a ladder: climb all the way up to get out']), lvl.enter ? 3.2 : 2); }
     } else if (w.next) {   // up a ladder into the next room (the Mayflower's hold, then her 'tween deck)
       const src = LEVELS[w.next]; lvl = { ...src, t: src.t.slice() }; ents = []; parts = []; pops = []; bumps = [];
       for (const e of src.ents) spawnFromSpec(e);
+      setupInfo(src);
       p.x = 3 * TS; p.y = 12 * TS - p.h; p.vy = 0; p.ground = true; camX = 0; camLead = 0.4; sfx.pipe();
       phase = 'play'; pipe = null; doorFade = 0.45; if (lvl.enter) banner(...lvl.enter, 3.2);
     } else {                // back out: rise up out of the log further along
@@ -7018,10 +7019,7 @@ function startLevel(id, fromCheck = false) {
   state = 'level';
   showTouch();
   // the story: the year and what's happening, at the start of the level; and the bits along the way not passed yet
-  lvl.infoAt = [];
-  for (let tx = 0; tx < lvl.w; tx++) for (let ty = 0; ty < lvl.h; ty++) if (src.t[ty * lvl.w + tx] === T.QINFO) lvl.infoAt.push(tx * 100 + ty);
-  const read = save.info[id] || [];
-  lvl.infoAt.forEach((k, i) => { if (read[i]) setTile(Math.floor(k / 100), k % 100, T.INFOREAD); });
+  setupInfo(src);
   if (lvl.story && !fromCheck) banner(lvl.story[0], lvl.story[1], 4.2);   // the year and where we are
 }
 function mk(k, x, y, o = {}) { return { k, x, y, w: 14, h: 14, vx: 0, vy: 0, dir: -1, t: 0, dead: false, ...o }; }
@@ -7633,6 +7631,10 @@ function updateEnts(dt) {
             if (!e.toldRope) { e.toldRope = true; banner('MAN OVERBOARD!', 'Like John Howland in 1620, you grab a rope and the sailors haul you back aboard!', 3.6); }
           }
         } else e.ob = Math.max(0, (e.ob || 0) - dt * 0.5);
+        if (e.look === 'mayflower' && e.x < e.x1 && p.x > e.x + e.w + 2 * TS && phase === 'play') {   // no hopping ahead across the ocean on the blocks: the sailors call you back aboard
+          p.x = e.x + 3 * TS; p.y = e.y - p.h - 30; p.vx = 0; p.vy = 0; p.inv = Math.max(p.inv, 1.2); sfx.spring();
+          banner('STAY ABOARD!', e.go ? 'It\'s a long way across the ocean: the Mayflower will carry you.' : 'Go below first: the door in the stern castle. Then she sets sail!', 3);
+        }
         e.mx = e.go ? Math.min(e.sp * dt, e.x1 - e.x) : 0; e.my = 0; e.x += e.mx;
         if (e.go && e.mx > 0 && Math.random() < 0.5) particle(e.x + rand(-4, 2), e.y + 10, rand(-40, -10), rand(-30, -5), 'rgba(255,255,255,.8)', 0.5, rand(1.5, 3));   // the wake
         break;
@@ -9377,8 +9379,17 @@ const INFO = {
 // the info box pop-up (the game waits; tap it, or press jump, to carry on)
 const factEl = document.getElementById('fact');
 let factOpen = false, factWait = 0;
+// the level's info boxes, left to right (a room inside a level, like a mill or a house, can hold some of its level's facts:
+// infoMap says which fact each of its boxes is)
+const infoIdx = i => (lvl.infoMap ? lvl.infoMap[i] : i);
+function setupInfo(src) {
+  lvl.infoAt = [];
+  for (let tx = 0; tx < lvl.w; tx++) for (let ty = 0; ty < lvl.h; ty++) if (src.t[ty * lvl.w + tx] === T.QINFO) lvl.infoAt.push(tx * 100 + ty);
+  const read = save.info[lvl.parent || lvl.id] || [];
+  lvl.infoAt.forEach((k, i) => { if (read[infoIdx(i)]) setTile(Math.floor(k / 100), k % 100, T.INFOREAD); });
+}
 function openInfo(tx, ty) {
-  const id = lvl.parent || lvl.id, i = lvl.infoAt.indexOf(tx * 100 + ty), f = INFO[id] && INFO[id][i];
+  const id = lvl.parent || lvl.id, j = lvl.infoAt.indexOf(tx * 100 + ty), i = j < 0 ? -1 : infoIdx(j), f = INFO[id] && INFO[id][i];
   if (!f) return;
   const read = save.info[id] || (save.info[id] = []), first = !read[i];
   read[i] = true; persist();
@@ -10163,7 +10174,7 @@ function drawHUD() {
   // info meter at the top right, beside the small round ☰ menu.
   const ink = (str, x, y, size, color = '#fff', align = 'left') => { ctx.font = font(size); ctx.textAlign = align; ctx.lineJoin = 'round'; ctx.lineWidth = s * 1.6; ctx.strokeStyle = '#14202e'; ctx.strokeText(str, x, y); ctx.fillStyle = color; ctx.fillText(str, x, y); };
   const icon = (fn, x, y, k = 0.95) => { ctx.save(); ctx.setTransform(s * k, 0, 0, s * k, x, y + offY); const old = g; g = ctx; try { fn(); } finally { g = old; ctx.restore(); } };
-  const nInfo = (lvl.infoAt || []).length, readI = save.info[lvl.parent || lvl.id] || [], dpr = canvas.width / innerWidth;
+  const nInfo = (INFO[lvl.parent || lvl.id] || lvl.infoAt || []).length, readI = save.info[lvl.parent || lvl.id] || [], dpr = canvas.width / innerWidth;
   const R = W - 58 * dpr;   // (the right edge, clear of the ☰ button)
   icon(() => { g.save(); g.translate(8, 12); ell(0, 0, 7.4, 1.9); paint(PILGRIM.hatDk); g.beginPath(); g.moveTo(-4.4, -0.4); g.lineTo(-3.4, -9.6); g.quadraticCurveTo(0, -11, 3.4, -9.6); g.lineTo(4.4, -0.4); g.closePath(); paint('#3a3a44'); rrect(-4.2, -3.4, 8.4, 2, 0.5); paint(PILGRIM.band); g.restore(); }, s * 6, s * 4);
   ink('×' + lives, s * 23, s * 7, 12);
