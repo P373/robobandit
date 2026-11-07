@@ -4170,6 +4170,50 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await done(p);
   });
 
+  await test('Manifest Destiny: walk the Cape, Pokémon style: walk tile by tile from Provincetown, water and trees block the way, talk to people and read signs, coins in the grass, animals in the tall grass fill the field guide, and doorways play the levels and bring you back', async () => {
+    const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
+    const errors = []; p.on('pageerror', e => errors.push(e.message));
+    await p.evaluate(() => { localStorage.removeItem('md_save'); });
+    await p.click('#btnWalk'); await p.waitForTimeout(300);
+    const r = await p.evaluate(() => {
+      const out = {}, run = (n, f) => { for (let i = 0; i < n; i++) { if (f) f(i); step(1 / 60); } };
+      for (const k of ['cleared', 'secrets']) save[k] = {}; save.walk = null; paused = true; startWalk();
+      let drew = true; const draw = () => { try { render(); } catch (e) { drew = e.message; } };
+      out.start = state === 'walk' && walk.x === 40 && walk.y === 6 && /PROVINCETOWN/.test(walk.zone); draw();
+      out.blocks = walkBlocked(25, 20) && WALK_MAP.get(25, 20) <= 1 && [...Array(WK.W * WK.H).keys()].some(i => WALK_MAP.t[i] === WT.TREE && walkBlocked(i % WK.W, i / WK.W | 0)) && !walkBlocked(41, 5);
+      // walk east along the path, a tile at a time
+      keys.right = true; run(13); keys.right = false; run(20); out.walks = walk.x === 41 && walk.y === 6 && !walk.moving;
+      // talk to the woman by the shore, and read the harbor sign
+      walk.x = walk.fx = 43; walk.y = walk.fy = 6; walk.dir = 'up'; pressed.jump = true; run(1); out.talk = !!walk.dlg && /November 11/.test(walk.dlg.lines[0]); draw();
+      pressed.jump = true; run(1); pressed.jump = true; run(1); out.talkDone = !walk.dlg;
+      walk.x = walk.fx = 42; walk.y = walk.fy = 5; walk.dir = 'up'; pressed.jump = true; run(1); out.sign = !!walk.dlg && /PROVINCETOWN HARBOR/.test(walk.dlg.lines[0]); walk.dlg = null;
+      // a locked doorway: the bog, before Plimoth is beaten
+      walk.x = walk.fx = 29; walk.y = walk.fy = 34; walk.dir = 'down'; walk.moving = null; keys.down = true; run(20); keys.down = false; out.locked = walk.x === 29 && walk.y === 35 && !!walk.dlg && /not open yet/.test(walk.dlg.lines[0]); walk.dlg = null;
+      // a coin hidden in the grass
+      const c0 = coins, [ix, iy] = WALK_ITEMS[0]; walk.x = ix; walk.y = iy; walkArrive(); out.item = coins === c0 + 5 && walkSave().items[ix + ',' + iy]; walk.dlg = null;
+      // an animal in the tall grass: into the field guide
+      walk.forceEnc = true; walk.x = 53; walk.y = 15; walkArrive(); out.enc = !!walk.enc && /appeared/.test(walk.dlg.lines[0]) && Object.keys(walkSave().guide).length === 1; draw(); walk.dlg = null; walk.enc = null; walk.forceEnc = false;
+      // the ship's boat: a doorway into 1-1, and back here when it's beaten
+      walk.x = walk.fx = 40; walk.y = walk.fy = 7; walk.dir = 'down'; walk.moving = null; keys.down = true; run(20); keys.down = false;
+      out.prompt = !!walk.dlg && walk.dlg.door && /MAYFLOWER/.test(walk.dlg.lines[0]);
+      for (let i = 0; i < 3; i++) { pressed.jump = true; run(1); }
+      out.inLevel = state === 'level' && lvl.id === 'voyage' && walkHome;
+      reachGoal(); run(400); out.back = state === 'walk' && walk.x === 40 && walk.y === 8 && !!save.cleared.voyage && nodeOpen(node('plimoth')); draw();
+      // the pause menu: from the big map you can walk the Cape, and from the Cape you can go to the big map
+      out.menuWalk = gameMenu().some(o => /Big map|big map/.test(o.label));
+      goMap('voyage', true); out.menuMap = gameMenu().some(o => /Walk around Cape Cod/.test(o.label)); startWalk();
+      out.saved = JSON.parse(localStorage.getItem('md_save')).walk.x === 40;
+      out.drew = drew; paused = false; return out;
+    });
+    check(r.start && r.blocks && r.walks, 'the Cape from above: start at Provincetown, walk a tile at a time, and water and trees block the way: ' + JSON.stringify(r));
+    check(r.talk && r.talkDone && r.sign, 'face someone or a sign and press Ⓐ: they talk, in a dialog box: ' + JSON.stringify(r));
+    check(r.locked && r.item && r.enc, 'a locked doorway says why, coins hide in the grass, and animals in the tall grass go in the field guide: ' + JSON.stringify(r));
+    check(r.prompt && r.inLevel && r.back, 'step onto the ship\'s boat and press Ⓐ to play 1-1; beat it and you\'re back on the Cape, with Plimoth open: ' + JSON.stringify(r));
+    check(r.menuWalk && r.menuMap && r.saved && r.drew === true, 'the menus go between the Cape and the big map, and where you are is saved: ' + JSON.stringify(r));
+    check(errors.length === 0, 'page errors: ' + errors.join(' | '));
+    await done(p, 'manifest-destiny-walk.png');
+  });
+
   await test('Manifest Destiny 1-2, Plimoth: Plymouth Rock, up Town Brook to the grist mill (the falls block the way: through the mill), the Pilgrim village and a house full of things, the fort, the nush wetu, a mishoon to ride and fish to catch, and the 1621 harvest feast', async () => {
     const p = await open(browser, 'manifest-destiny.html', { viewport: { width: 960, height: 540 } });
     const errors = []; p.on('pageerror', e => errors.push(e.message));

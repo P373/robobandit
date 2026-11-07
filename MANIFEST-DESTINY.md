@@ -355,6 +355,21 @@ the country together.
 
 ---
 
+## Walk the Cape (a Pokémon-style overworld)
+
+From the title screen (🚶 Walk the Cape) or the map's menu, walk Cape Cod and Plimoth from above, a tile at a time, like
+Pokémon. Route 1620 runs from the beach at Provincetown, where the Mayflower lies at anchor, down the Cape past Corn Hill
+and First Encounter Beach, across the upper Cape past the cranberry bog and kettle ponds, and up the coast to Plymouth
+Rock, the palisaded village and the Wampanoag homesite at Patuxet. The trail north leads to Boston on the big map.
+
+- **Doorways play the levels:** the ship's boat (1-1), the village gate (1-2), the bog (1-3), and boats to Noepe and
+  Nantucket once their secret ways are found. Beat a level and you're back on the Cape, where you went in.
+- **People and signs** (face them, press Ⓐ): the Pilgrims' wash day, Myles Standish, Tisquantum, sassamanash, Corn Hill,
+  First Encounter Beach, Plymouth Rock, the kettle ponds.
+- **Hidden coins** glint in the grass; **animals in the tall grass** (turkey, deer, fox, box turtle, heron, horseshoe crab,
+  harbor seal) each add a fact to the **field guide**.
+- Controls: the D-pad, stick, arrows or W A S D walk (hold Ⓧ or Shift to hurry); Ⓐ or Space talks and goes in.
+
 ## Telling it honestly
 
 This is a game about Manifest Destiny for children, so it has to be truthful as well as fun.

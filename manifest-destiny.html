@@ -184,6 +184,7 @@
     </details>
     <div class="stats" id="titleBest"></div>
     <button class="big-btn" id="btnPlay">⛵ Set sail!</button>
+    <div><button class="big-btn alt" id="btnWalk">🚶 Walk the Cape</button></div>
     <div><button class="big-btn alt" id="btnHeroesTitle">👪 The heroes</button></div>
   </div>
 </div>
@@ -1870,7 +1871,7 @@ const save = (() => {
   s = s && typeof s === 'object' ? s : {};
   return { cleared: s.cleared || {}, gems: s.gems || {}, secrets: s.secrets || {}, key: !!s.key, best: +s.best || 0, beaten: !!s.beaten, beaten2: !!s.beaten2, beaten3: !!s.beaten3, beaten4: !!s.beaten4, beaten5: !!s.beaten5, beaten6: !!s.beaten6,
     unlockAll: !!s.unlockAll, facts: s.facts && typeof s.facts === 'object' ? s.facts : {}, info: s.info && typeof s.info === 'object' ? s.info : {}, quiz: s.quiz && typeof s.quiz === 'object' ? s.quiz : {}, spikes: s.spikes && typeof s.spikes === 'object' ? s.spikes : {}, hero: typeof s.hero === 'string' ? s.hero : 'wrestling',   // (Unlock All, while we build; and which history fact each level shows next)
-    noTimer: !!s.noTimer, cuts: s.cuts && typeof s.cuts === 'object' ? s.cuts : {}, at: typeof s.at === 'string' ? s.at : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
+    noTimer: !!s.noTimer, cuts: s.cuts && typeof s.cuts === 'object' ? s.cuts : {}, at: typeof s.at === 'string' ? s.at : null, walk: s.walk && typeof s.walk === 'object' && s.walk.items && s.walk.guide ? s.walk : null, keep: s.keep && typeof s.keep === 'object' ? s.keep : null };   // (where Leo was on the map, and his power-up)
 })();
 for (const [old, now] of [['mayflower', 'voyage'], ['canal', 'plimoth']]) {   // (levels that moved off the map: their place goes to the level there now)
   if (save.cleared[old] && !(now in save.cleared)) save.cleared[now] = true;
@@ -1889,7 +1890,7 @@ const gemCount = () => Object.values(save.gems).reduce((a, g) => a + g.filter(Bo
 const keys = { left: false, right: false, jump: false, run: false, down: false, up: false };
 let downFrom = '';   // which key pressed S: 'pad' for the controller's stick / D-pad (pushed to the side and a little down isn't a ground pound)
 const pressed = { jump: false, run: false, start: false, left: false, right: false, up: false, down: false, item: false, off: false, zoom: false };
-const KEYMAP = { KeyA: 'left', KeyD: 'right', Space: 'jump', KeyW: 'up', ShiftLeft: 'run', ShiftRight: 'run', KeyS: 'down',
+const KEYMAP = { ArrowLeft: 'left', ArrowRight: 'right', ArrowUp: 'up', ArrowDown: 'down', KeyA: 'left', KeyD: 'right', Space: 'jump', KeyW: 'up', ShiftLeft: 'run', ShiftRight: 'run', KeyS: 'down',
   KeyJ: 'hat', KeyK: 'hat', KeyE: 'item', KeyF: 'off', KeyM: 'zoom', KeyQ: 'lookL', KeyR: 'lookR', KeyG: 'down' };   // (G: the controller's left trigger)
 // 🎮 Manifest Destiny keeps its own controller layout: A / B jump, X run (and throw apples), Y throw the hat, LT crouch (a ground
 // pound in the air, even while the stick is pushed sideways), RT drop the saved power-up, and LB / RB scroll the view back or
@@ -2234,7 +2235,7 @@ function recallReserve() {
 }
 
 function pause() {
-  if (paused || (state !== 'level' && state !== 'map')) return;
+  if (paused || (state !== 'level' && state !== 'map' && state !== 'walk')) return;
   paused = true; for (const k in keys) keys[k] = false; fingers.clear(); touchUpdate();
   const id = state === 'level' ? (outside ? outside.lvl.id : lvl && lvl.id) : mapLeo.at, n = node(id);
   RB.showPause(resume, { sub: n ? `${levelTag(id)} ${n.name}${n.year ? ' · ' + n.year : ''}` : '', extra: gameMenu() });
@@ -2253,8 +2254,11 @@ function gameMenu() {
     { label: '🗺️ Get off the train here', map: true, onClick: () => { unpause(); leaveTrain(); } },
   ] : state === 'map' ? [
     { label: mapWhole ? '🔍 Zoom back in' : '🔍 Zoom out to the whole country', map: true, onClick: () => { unpause(); mapZoom(); } },
+    { label: '🚶 Walk around Cape Cod & Plimoth', map: true, onClick: () => { unpause(); startWalk(); } },
+  ] : state === 'walk' ? [
+    { label: '🗺️ The big map (all of America)', map: true, onClick: () => { unpause(); goMap(save.at && node(save.at) && nodeOpen(node(save.at)) ? save.at : START, true); } },
   ] : [];
-  if (state !== 'level' && state !== 'map') return [];
+  if (state !== 'level' && state !== 'map' && state !== 'walk') return [];
   return [...now,
     { label: '👪 The heroes', onClick: () => { unpause(); if (state === 'level') { keepNow(); goMap(here(), true); } showHeroes(); } },
     { label: save.noTimer ? '⏱ Turn the timer on' : '⏱ Turn the timer off', onClick: () => { unpause(); save.noTimer = !save.noTimer; persist(); RB.toast(save.noTimer ? '⏱ No timer: take all the time you like' : '⏱ The timer is on: reach the goal before it runs out!', 2600); } },
@@ -2272,7 +2276,7 @@ function setUnlockAll(on) {
 }
 function newGame() {   // a fresh start: progress, secrets, facts seen and the saved spot are cleared (the best score stays)
   for (const k of ['cleared', 'gems', 'secrets', 'facts', 'info', 'quiz', 'spikes', 'cuts']) save[k] = {};
-  save.hero = 'wrestling'; save.at = null; save.keep = null; save.unlockAll = false; save.key = false; openCache = null;
+  save.hero = 'wrestling'; save.at = null; save.keep = null; save.walk = null; save.unlockAll = false; save.key = false; openCache = null;
   lives = 5; coins = 0; score = 0; keep = { form: 0, mount: false };
   persist(); goMap(START, true);
   RB.toast('✨ A new game! The Mayflower is waiting at Plymouth, England.', 2600);
@@ -9791,11 +9795,12 @@ function showHeroes() {
 }
 function hideHeroes() {
   heroesEl.classList.add('hidden');
-  if (heroesFrom === 'map') goMap(mapLeo.at, true); else { state = 'title'; document.getElementById('title').classList.remove('hidden'); }
+  if (heroesFrom === 'walk') startWalk(); else if (heroesFrom === 'map') goMap(mapLeo.at, true); else { state = 'title'; document.getElementById('title').classList.remove('hidden'); }
 }
 document.getElementById('btnHeroesBack').addEventListener('click', () => { RB.audio(); hideHeroes(); });
 document.getElementById('btnHeroesTitle').addEventListener('click', () => { RB.audio(); showHeroes(); });
 function goMap(from, quiet = false) {
+  if (walkHome) { walkHome = false; if (WALK_DOORS.some(d => d.id === from && !d.exit)) { if (state === 'level') save.at = from; startWalk(from); return; } }   // (a level started from walking the Cape: back to the Cape)
   state = 'map'; phase = 'play';
   lvl = null;
   document.getElementById('title').classList.add('hidden');
@@ -10410,6 +10415,7 @@ function blob(cx, cy, rx, ry, seed) {
 // ---------- HUD (drawn sharp, on top of the pixels) ----------
 const tHatBtn = document.getElementById('tHat');
 function drawHUD() {
+  if (state === 'walk') return;   // (walking the Cape draws its own)
   const s = scale, W = canvas.width;
   const font = px => `${Math.round(px * s / 1.5)}px Bungee, system-ui, sans-serif`;
   ctx.textBaseline = 'top';
@@ -10503,7 +10509,7 @@ function drawHUD() {
 }
 
 // ---------- Screens and touch buttons ----------
-function showTouch() { touchEl.classList.toggle('hidden', !(RB.touch && (state === 'level' || state === 'map'))); }
+function showTouch() { touchEl.classList.toggle('hidden', !(RB.touch && (state === 'level' || state === 'map' || state === 'walk'))); }
 // the map's own buttons: 🗺️ zoom out to the whole country (🔍 back in), and 🔓 Unlock All (every level and path open, while we build)
 const mapBtns = document.getElementById('mapBtns'), bZoom = document.getElementById('bZoom');
 bZoom.addEventListener('click', e => { RB.audio(); e.currentTarget.blur(); mapZoom(); });
@@ -10530,7 +10536,247 @@ function startGame() {
   goMap(at, true);
 }
 document.getElementById('btnPlay').addEventListener('click', startGame);
+document.getElementById('btnWalk').addEventListener('click', () => {   // walk Cape Cod and Plimoth, Pokémon style, and step into the levels from there
+  RB.audio(); score = 0; coins = 0; lives = 5; reserve = null;
+  keep = save.keep && save.keep.form != null ? { form: save.keep.form | 0, mount: !!save.keep.mount, laser: !!save.keep.laser } : { form: 0, mount: false };
+  startWalk();
+});
 document.getElementById('btnMapAgain').addEventListener('click', () => { if (endFrom === LAST_BOSS) score = 0; goMap(endFrom); const w = WORLD_ENDS[endFrom]; if (w) setTimeout(() => RB.toast(w.toast, 3000), 600); if (endFrom === 'canaveral') setTimeout(() => RB.toast('🚀 3… 2… 1… Blast off to Outer Space!', 3000), 3800); });
+
+// ---------- Walk the Cape: a Pokémon-style overworld ----------
+// Cape Cod and Plimoth, tile by tile, seen from above: walk Route 1620 from where the Mayflower anchored at Provincetown,
+// down the Cape past Corn Hill and First Encounter Beach, across to Plymouth Rock, Plimoth and Patuxet. Talk to people
+// (face them and press Ⓐ), read signs, find coins hidden in the grass, meet animals in the tall grass for your field guide,
+// and step into a doorway (the ship's boat, the village gate, the bog) to play that level. Beat it and you're back here.
+const WK = { W: 64, H: 40 };
+const WT = { SEA: 0, SHALLOW: 1, SAND: 2, GRASS: 3, TALL: 4, TREE: 5, PATH: 6, DUNE: 7, BOG: 8, POND: 9, HOUSE: 10, WETU: 11, FENCE: 12, DOCK: 13, ROCK: 14, CORN: 15, FLOWER: 16, FORT: 17 };
+const WALKABLE = new Set([WT.SAND, WT.GRASS, WT.TALL, WT.PATH, WT.DUNE, WT.DOCK, WT.CORN, WT.FLOWER]);
+const WALK_MAP = (() => {
+  const { W, H } = WK, t = new Uint8Array(W * H), set = (x, y, v) => { if (x >= 0 && y >= 0 && x < W && y < H) t[y * W + x] = v; }, get = (x, y) => (x < 0 || y < 0 || x >= W || y >= H ? WT.SEA : t[y * W + x]);
+  // the land: the mainland on the left, the upper Cape along the bottom, the outer Cape up the right, and the hook of
+  // Provincetown curling round its harbor at the top
+  const land = [[0, 0], [14, 0], [15, 4], [14, 8], [16, 12], [16, 16], [15, 19], [16, 22], [15, 26], [17, 29], [22, 30.5], [30, 30.5], [38, 30], [44, 30.5], [47.5, 28], [48, 22], [47.5, 16], [47.5, 11],
+    [46.5, 7.6], [42, 7.4], [38, 7.8], [35.5, 8.8], [34, 10.6], [32.6, 11.2], [31.2, 10.2], [31, 7.5], [32.4, 4.6], [35, 3], [42, 1.6], [50, 1.4], [56, 2.6], [58.6, 5], [59.4, 10], [59.4, 18], [59.8, 26], [59.4, 33], [58.6, 38], [57, 40], [0, 40]];
+  const inPoly = (x, y) => { let c = false; for (let i = 0, j = land.length - 1; i < land.length; j = i++) { const [xi, yi] = land[i], [xj, yj] = land[j]; if ((yi > y) !== (yj > y) && x < (xj - xi) * (y - yi) / (yj - yi) + xi) c = !c; } return c; };
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) set(x, y, inPoly(x + 0.5, y + 0.5) ? WT.GRASS : WT.SEA);
+  const isLand = (x, y) => get(x, y) !== WT.SEA;
+  const near = (x, y, f) => { for (let dy = -1; dy <= 1; dy++) for (let dx = -1; dx <= 1; dx++) if ((dx || dy) && f(x + dx, y + dy)) return true; return false; };
+  const shore = []; for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (isLand(x, y) && near(x, y, (a, b) => !isLand(a, b) && a >= 0 && b >= 0 && a < W && b < H)) shore.push([x, y]);
+  for (const [x, y] of shore) set(x, y, WT.SAND);
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (get(x, y) === WT.SEA && near(x, y, isLand)) set(x, y, WT.SHALLOW);
+  const hsh = (x, y) => { let h = (x * 374761393 + y * 668265263) | 0; h = (h ^ (h >>> 13)) * 1274126177 | 0; return ((h ^ (h >>> 16)) >>> 0) / 4294967296; };
+  // woods: pitch pines and oaks wherever it's grassy and not by the trail
+  for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) if (get(x, y) === WT.GRASS && hsh(x, y) > 0.55) set(x, y, WT.TREE);
+  // the Province Lands: dunes along the top of the hook
+  for (let y = 1; y < 6; y++) for (let x = 33; x < 58; x++) if (get(x, y) === WT.GRASS || get(x, y) === WT.TREE) set(x, y, hsh(x + 3, y) > 0.8 ? WT.GRASS : WT.DUNE);
+  // Route 1620 (two tiles wide), and the side trails
+  const line = (pts, w = 2, v = WT.PATH) => { for (let i = 1; i < pts.length; i++) { const [x0, y0] = pts[i - 1], [x1, y1] = pts[i], n = Math.max(Math.abs(x1 - x0), Math.abs(y1 - y0)) * 2; for (let k = 0; k <= n; k++) { const x = Math.round(x0 + (x1 - x0) * k / n), y = Math.round(y0 + (y1 - y0) * k / n); for (let a = 0; a < w; a++) for (let b = 0; b < w; b++) if (isLand(x + a, y + b)) set(x + a, y + b, v); } } };
+  line([[40, 6], [45, 5], [52, 4], [55, 6], [55, 12], [54, 20], [54, 28], [51, 33], [44, 34], [34, 34], [24, 33], [16, 34], [9, 33], [8, 30], [8, 25], [9, 23]]);
+  line([[54, 11], [49, 11]], 1); line([[54, 22], [49, 22]], 1); line([[8, 28], [5, 28]], 1); line([[30, 34], [29, 36]], 1); line([[20, 34], [20, 38]], 1); line([[9, 23], [9, 21]], 1); line([[14, 19], [11, 22]], 1);
+  line([[8, 13], [8, 8], [7, 1]], 2);   // north, out of the village, to Boston
+  // tall grass along the way (animals hide in it), and clearings with flowers
+  const rect = (x0, y0, x1, y1, v, only) => { for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) if (!only || only.includes(get(x, y))) set(x, y, v); };
+  const soft = [WT.GRASS, WT.TREE];
+  rect(51, 13, 56, 18, WT.TALL, soft); rect(50, 24, 53, 31, WT.TALL, soft); rect(38, 32, 46, 33, WT.TALL, [...soft, WT.PATH]); rect(10, 29, 14, 32, WT.TALL, soft); rect(3, 3, 12, 6, WT.TALL, soft); rect(24, 31, 28, 32, WT.FLOWER, soft);
+  // Plimoth: the palisade round the village, its houses and the fort, with the gate on the south side (the level's door)
+  rect(3, 12, 13, 21, WT.GRASS, null); rect(3, 12, 13, 12, WT.FENCE, null); rect(3, 21, 13, 21, WT.FENCE, null); rect(3, 12, 3, 21, WT.FENCE, null); rect(13, 12, 13, 21, WT.FENCE, null);
+  for (const [x, y] of [[5, 15], [7, 15], [10, 15], [5, 18], [7, 18], [10, 18]]) set(x, y, WT.HOUSE); set(8, 13, WT.FORT); rect(4, 16, 12, 16, WT.PATH, null); set(9, 21, WT.PATH); set(9, 20, WT.PATH); set(9, 19, WT.PATH); set(9, 17, WT.PATH);
+  set(8, 12, WT.FENCE); set(7, 12, WT.FENCE);
+  rect(7, 8, 9, 11, WT.PATH, soft); set(8, 12, WT.PATH);   // (the north gate, out to Boston)
+  set(15, 19, WT.ROCK);   // Plymouth Rock, on the shore
+  // Patuxet: the Wampanoag homesite south of the village, its wetus and a Three Sisters field
+  rect(2, 25, 7, 31, WT.GRASS, soft); set(3, 26, WT.WETU); set(5, 25, WT.WETU); set(2, 28, WT.WETU); rect(3, 29, 6, 31, WT.CORN, null);
+  // the cranberry bog on the upper Cape (sassamanash), with its door on the north side
+  rect(25, 36, 32, 38, WT.BOG, null); rect(24, 35, 33, 35, WT.GRASS, [WT.TREE]); set(29, 35, WT.PATH);
+  // ponds (kettle ponds left by the glaciers)
+  rect(42, 37, 44, 38, WT.POND, soft); rect(56, 30, 57, 31, WT.POND, soft); rect(18, 25, 19, 26, WT.POND, soft);
+  // the dock at the south shore, where boats go out to the islands, and the ship's boat on the beach at Provincetown
+  rect(20, 38, 20, 39, WT.DOCK, null); rect(19, 39, 22, 39, WT.DOCK, null); rect(40, 7, 41, 8, WT.SAND, null); set(40, 8, WT.DOCK);
+  return { t, get: (x, y) => (x < 0 || y < 0 || x >= W || y >= H ? WT.SEA : t[y * W + x]), hsh };
+})();
+// the doorways into the levels (stand on one and press Ⓐ), the people, the signs, and the hidden coins
+const WALK_DOORS = [
+  { x: 40, y: 8, id: 'voyage', name: 'THE MAYFLOWER', look: 'boat', say: 'The ship\'s boat, pulled up on the beach. Row out to the Mayflower and sail her across the Atlantic!' },
+  { x: 9, y: 21, id: 'plimoth', name: 'PLIMOTH PLANTATION', look: 'gate', say: 'The gate in the palisade. Inside: Plymouth Rock, the grist mill, the village, the fort and the harvest feast.' },
+  { x: 29, y: 35, id: 'cranberry', name: 'CRANBERRY BOG', look: 'bog', say: 'The Wampanoag call cranberries sassamanash. Squishy bog mats and a mishoon to ride!' },
+  { x: 19, y: 39, id: 'vineyard', name: 'NOEPE (MARTHA\'S VINEYARD)', look: 'boat', say: 'A boat out to Noepe, the island the Wampanoag have lived on for thousands of years.', secret: true },
+  { x: 22, y: 39, id: 'nantucket', name: 'NANTUCKET', look: 'boat', say: 'A boat out to Nantucket, far out in the ocean.', secret: true },
+  { x: 7, y: 1, id: 'boston', name: 'NORTH TO BOSTON', look: 'sign', say: 'The trail north, up the coast to Boston and the rest of New England (on the big map).', exit: true },
+];
+const WALK_PEOPLE = [
+  { x: 43, y: 5, who: 'woman', lines: ['We came ashore here on November 11, 1620, after 66 days at sea!', 'The first thing we women did was wash our clothes on the beach. Monday was wash day for years after.'] },
+  { x: 53, y: 9, who: 'man', lines: ['I\'m Myles Standish. We\'re exploring the Cape, looking for a place to build our town.'] },
+  { x: 8, y: 22, who: 'man', lines: ['Welcome to Plimoth! Our first winter was terrible: about half of us didn\'t live to see spring.', 'But in March, a Wampanoag man walked into town and said, "Welcome, Englishmen!"'] },
+  { x: 7, y: 28, who: 'wampanoag', lines: ['I am Tisquantum. This was my village, Patuxet.', 'I will show you how to plant corn, with a fish in each hill to feed it, and where to catch eels.'] },
+  { x: 31, y: 34, who: 'wampanoag', lines: ['We call these berries sassamanash. We eat them, make medicine with them, and dye cloth red with their juice.'] },
+  { x: 21, y: 37, who: 'man', lines: ['I row out to the islands: Noepe and Nantucket.', 'Find the secret way to each one first (a golden flag in a level), and I\'ll take you!'] },
+];
+const WALK_SIGNS = [
+  { x: 42, y: 4, lines: ['PROVINCETOWN HARBOR. The Mayflower anchored here for about five weeks while the Pilgrims explored Cape Cod.', 'Before they went ashore, the men signed the Mayflower Compact, promising to make fair laws together.'] },
+  { x: 50, y: 10, lines: ['CORN HILL. Here the Pilgrims found corn that the Nauset people had stored for winter, and took it.', 'Months later, they paid the Nauset back.'] },
+  { x: 50, y: 21, lines: ['FIRST ENCOUNTER BEACH. In December 1620, Nauset men and the Pilgrims met here for the first time.', 'Arrows and musket shots flew, but no one was hurt.'] },
+  { x: 14, y: 20, lines: ['PLYMOUTH ROCK. The story says the Pilgrims stepped ashore onto this rock. Nobody wrote that down until 1741!'] },
+  { x: 33, y: 33, lines: ['ROUTE 1620. West to Plimoth, east and north to Provincetown. Watch the tall grass: animals live there!'] },
+  { x: 49, y: 37, lines: ['KETTLE PONDS. Long ago, chunks of glacier ice melted and left these round ponds all over Cape Cod.'] },
+];
+const WALK_ITEMS = [[36, 2], [57, 8], [56, 25], [47, 36], [37, 37], [14, 37], [2, 34], [12, 4], [11, 26], [26, 31]];
+const WALK_ZONES = [[30, 0, 64, 9, 'PROVINCETOWN'], [47, 9, 64, 19, 'TRURO'], [47, 19, 64, 30, 'EASTHAM'], [16, 30, 64, 40, 'ROUTE 1620'], [0, 0, 16, 12, 'TRAIL NORTH'], [0, 12, 16, 23, 'PLIMOTH'], [0, 23, 16, 40, 'PATUXET']];
+const WALK_ANIMALS = [
+  { id: 'turkey', e: '🦃', name: 'Wild turkey', where: 'woods', fact: 'Wild turkeys can fly short distances, and at night they sleep up in the trees.' },
+  { id: 'deer', e: '🦌', name: 'White-tailed deer', where: 'woods', fact: 'When a deer senses danger, it flashes the white underside of its tail to warn the others.' },
+  { id: 'fox', e: '🦊', name: 'Red fox', where: 'woods', fact: 'A red fox can hear a mouse moving under the snow, then leap up and pounce on it!' },
+  { id: 'turtle', e: '🐢', name: 'Eastern box turtle', where: 'woods', fact: 'Box turtles can live more than 100 years, and close their shells up tight like a box.' },
+  { id: 'heron', e: '🐦', name: 'Great blue heron', where: 'shore', fact: 'A great blue heron stands perfectly still in shallow water, then spears a fish with its beak.' },
+  { id: 'crab', e: '🦀', name: 'Horseshoe crab', where: 'shore', fact: 'Horseshoe crabs are older than the dinosaurs, and they have blue blood! (They\'re not really crabs.)' },
+  { id: 'seal', e: '🦭', name: 'Harbor seal', where: 'shore', fact: 'Harbor seals rest on Cape Cod\'s beaches and sandbars, especially in winter.' },
+];
+let walk = null, walkHome = false;
+const walkSave = () => (save.walk && typeof save.walk === 'object' ? save.walk : (save.walk = { x: 40, y: 6, items: {}, guide: {} }));
+const walkBlocked = (x, y) => !WALKABLE.has(WALK_MAP.get(x, y)) || WALK_PEOPLE.some(p => p.x === x && p.y === y) || WALK_SIGNS.some(s => s.x === x && s.y === y);
+function startWalk(at) {
+  const ws = walkSave(), d = at && WALK_DOORS.find(o => o.id === at);
+  if (d) { ws.x = d.x; ws.y = d.y; }
+  if (walkBlocked(ws.x, ws.y) && !WALK_DOORS.some(o => o.x === ws.x && o.y === ws.y)) { ws.x = 40; ws.y = 6; }
+  walk = { x: ws.x, y: ws.y, fx: ws.x, fy: ws.y, dir: 'down', moving: null, t: 0, anim: 0, dlg: null, zone: '', zoneT: 0, enc: null };
+  state = 'walk'; lvl = null; phase = 'play'; walkHome = false;
+  document.getElementById('title').classList.add('hidden'); document.getElementById('ending').classList.add('hidden');
+  persist(); music.play('map'); showTouch();
+  walkZone(true);
+}
+function walkZone(force) {
+  const z = WALK_ZONES.find(([x0, y0, x1, y1]) => walk.x >= x0 && walk.x < x1 && walk.y >= y0 && walk.y < y1), name = z ? z[4] : 'CAPE COD';
+  if (name !== walk.zone || force) { walk.zone = name; walk.zoneT = 2.4; }
+}
+function walkSay(lines, then) { walk.dlg = { lines, i: 0, then }; sfx.step(); }
+function walkDoor(d) {
+  const open = d.exit || nodeOpen(node(d.id));
+  if (!open) { walkSay(d.secret ? [`${d.name}: find the secret way there first! Look for a golden flag in a level.`] : [`${d.name}: not open yet. Beat the level before it first!`]); return; }
+  walkSay([`${d.name}${d.exit ? '' : ' · ' + levelTag(d.id)}`, d.say, d.exit ? 'Press Ⓐ to go.' : 'Press Ⓐ to play!'], () => {
+    if (d.exit) { walkSave().x = 8; walkSave().y = 3; persist(); goMap(nodeOpen(node('boston')) ? 'boston' : 'plimoth', true); return; }
+    walkSave().x = d.x; walkSave().y = d.y; persist();
+    walkHome = true; sfx.enter(); hideTouchBriefly(); startLevel(d.id);
+  });
+  walk.dlg.door = true;
+}
+function updateWalk(dt) {
+  clock += dt; const w = walk, ws = walkSave(), inp = input();
+  w.zoneT = Math.max(0, w.zoneT - dt);
+  if (w.dlg) {   // a dialog box is up: Ⓐ goes on to the next line (and at the end, does what it's for); a doorway's box closes if you walk away
+    if (pressed.jump || pressed.start) { w.dlg.i++; sfx.step(); if (w.dlg.i >= w.dlg.lines.length) { const then = w.dlg.then; w.dlg = null; if (then) then(); } }
+    else if (w.dlg && w.dlg.door && (pressed.left || pressed.right || pressed.down || (pressed.up && !pressed.jump))) w.dlg = null;   // (a fresh press: still holding the way you walked in doesn't close it)
+    if (w.dlg || state !== 'walk') return;
+    return;
+  }
+  if (w.moving) {
+    const sp = (inp.run ? 9 : 5) * dt; w.t += sp; w.anim += sp;
+    const [dx, dy] = w.moving; w.fx = w.x - dx + dx * Math.min(1, w.t); w.fy = w.y - dy + dy * Math.min(1, w.t);
+    if (w.t < 1) return;
+    w.moving = null; w.fx = w.x; w.fy = w.y; ws.x = w.x; ws.y = w.y;
+    walkArrive(); if (w.dlg) return;
+  }
+  const dir = inp.left ? 'left' : inp.right ? 'right' : inp.up ? 'up' : inp.down ? 'down' : null;
+  if (dir) {
+    const [dx, dy] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[dir];
+    if (dir !== w.dir && !w.turnT) { w.dir = dir; w.turnT = 0.08; }
+    w.turnT = Math.max(0, (w.turnT || 0) - dt);
+    if (w.turnT <= 0) { if (!walkBlocked(w.x + dx, w.y + dy)) { w.x += dx; w.y += dy; w.moving = [dx, dy]; w.t = 0; } else if (!w.bump) { w.bump = 0.3; sfx.step(); } }
+  } else w.turnT = 0;
+  w.bump = Math.max(0, (w.bump || 0) - dt);
+  if (pressed.jump || pressed.start) {   // Ⓐ: talk to the person or read the sign you're facing, or go through the doorway you're on
+    const [dx, dy] = { left: [-1, 0], right: [1, 0], up: [0, -1], down: [0, 1] }[w.dir], tx = w.x + dx, ty = w.y + dy;
+    const who = WALK_PEOPLE.find(p => p.x === tx && p.y === ty), sign = WALK_SIGNS.find(s => s.x === tx && s.y === ty), door = WALK_DOORS.find(d => d.x === w.x && d.y === w.y);
+    if (who) walkSay(who.lines); else if (sign) walkSay(sign.lines); else if (door) walkDoor(door);
+  }
+}
+function walkArrive() {   // just stepped onto a tile: a doorway, a hidden coin, or an animal in the tall grass
+  const w = walk, ws = walkSave(); walkZone();
+  const door = WALK_DOORS.find(d => d.x === w.x && d.y === w.y); if (door) { walkDoor(door); return; }
+  const k = w.x + ',' + w.y;
+  if (WALK_ITEMS.some(([x, y]) => x === w.x && y === w.y) && !ws.items[k]) { ws.items[k] = true; coins += 5; addScore(500); sfx.coin(); persist(); walkSay(['You found 5 coins hidden here!']); return; }
+  const tile = WALK_MAP.get(w.x, w.y);
+  if (tile === WT.TALL && Math.random() < (w.forceEnc ? 1 : 0.14)) {
+    const shore = [WT.SAND, WT.SHALLOW].some(v => [[1, 0], [-1, 0], [0, 1], [0, -1], [2, 0], [-2, 0], [0, 2], [0, -2]].some(([a, b]) => WALK_MAP.get(w.x + a, w.y + b) === v));
+    const pool = WALK_ANIMALS.filter(a => a.where === (shore ? 'shore' : 'woods')), a = pool[Math.floor(Math.random() * pool.length)], isNew = !ws.guide[a.id];
+    ws.guide[a.id] = true; persist(); w.enc = a; sfx.mid();
+    const n = Object.keys(ws.guide).length;
+    walkSay([`A wild ${a.name.toLowerCase().replace(/^wild /, '')} appeared!`, a.fact, isNew ? `New in your field guide! (${n} of ${WALK_ANIMALS.length})` : `It's in your field guide already. (${n} of ${WALK_ANIMALS.length})`], () => { w.enc = null; });
+  }
+}
+// the drawing: GBA-style tiles, the people and signs, Wrestling walking, a dialog box and the place name
+function drawWalk() {
+  const w = walk, T16 = 16, t = clock, cx = clamp(w.fx * T16 + 8 - LW / 2, 0, WK.W * T16 - LW), cy = clamp(w.fy * T16 + 8 - LH / 2, 0, WK.H * T16 - LH);
+  g.textBaseline = 'alphabetic'; g.save(); g.translate(-Math.round(cx), -Math.round(cy));
+  const x0 = Math.floor(cx / T16), y0 = Math.floor(cy / T16), x1 = Math.ceil((cx + LW) / T16), y1 = Math.ceil((cy + LH) / T16), H = WALK_MAP.hsh;
+  for (let y = y0; y <= y1; y++) for (let x = x0; x <= x1; x++) {
+    const v = WALK_MAP.get(x, y), px = x * T16, py = y * T16, r = H(x, y);
+    const base = { [WT.SEA]: '#3a88d8', [WT.SHALLOW]: '#5aa8ec', [WT.SAND]: '#f2e2a8', [WT.DUNE]: '#ead69a', [WT.PATH]: '#e2c890', [WT.BOG]: '#8a2a32', [WT.POND]: '#4a98e0', [WT.DOCK]: '#4a98e0', [WT.ROCK]: '#f2e2a8' }[v] || '#7ac85a';
+    g.fillStyle = base; g.fillRect(px, py, T16, T16);
+    if (v === WT.SEA || v === WT.SHALLOW || v === WT.POND) { g.fillStyle = 'rgba(255,255,255,.5)'; const ph = (t * 1.2 + r * 6) % 4; if (ph < 2.4) { g.fillRect(px + 3 + (r * 6 | 0), py + 5 + (r * 7 | 0) % 6, 5, 1); g.fillRect(px + 5 + (r * 6 | 0), py + 4 + (r * 7 | 0) % 6, 3, 1); } }
+    else if (v === WT.GRASS || v === WT.FLOWER || v === WT.TREE || v === WT.HOUSE || v === WT.WETU || v === WT.FENCE || v === WT.FORT) { g.fillStyle = '#62b04a'; if (r > 0.5) { g.fillRect(px + 3, py + 4, 1, 2); g.fillRect(px + 5, py + 3, 1, 3); g.fillRect(px + 7, py + 4, 1, 2); } if (r < 0.2) { g.fillRect(px + 10, py + 10, 1, 2); g.fillRect(px + 12, py + 9, 1, 3); } }
+    else if (v === WT.SAND || v === WT.DUNE || v === WT.ROCK) { g.fillStyle = 'rgba(160,120,60,.25)'; g.fillRect(px + (r * 12 | 0), py + 6 + (r * 9 | 0) % 8, 2, 1); if (v === WT.DUNE) { g.fillStyle = '#9aa04a'; for (let k = 0; k < 3; k++) g.fillRect(px + 3 + k * 4, py + 7 - (k % 2) * 2, 1, 5); } }
+    else if (v === WT.PATH) { g.fillStyle = 'rgba(140,100,50,.25)'; if (r > 0.6) g.fillRect(px + 4, py + 9, 2, 2); if (r < 0.3) g.fillRect(px + 11, py + 3, 2, 1); }
+    // the sand's edge against the water: a little curl of foam
+    if (v === WT.SHALLOW) { g.fillStyle = 'rgba(255,255,255,.55)'; for (const [a, b, rx, ry, rw, rh] of [[0, -1, 0, 0, 16, 1.4], [0, 1, 0, 14.6, 16, 1.4], [-1, 0, 0, 0, 1.4, 16], [1, 0, 14.6, 0, 1.4, 16]]) if (WALKABLE.has(WALK_MAP.get(x + a, y + b)) || WALK_MAP.get(x + a, y + b) === WT.TREE) g.fillRect(px + rx, py + ry, rw, rh); }
+    switch (v) {
+      case WT.TALL: { g.fillStyle = '#7ac85a'; g.fillRect(px, py, 16, 16); for (let k = 0; k < 4; k++) { const bx = px + 1 + (k % 2) * 8, by = py + 2 + (k >> 1) * 7, sw = Math.sin(t * 2.4 + x + k) * 0.8; g.fillStyle = '#2e8a2e'; g.beginPath(); g.moveTo(bx, by + 7); g.lineTo(bx + 2 + sw, by); g.lineTo(bx + 3.5, by + 5); g.lineTo(bx + 5 + sw, by + 0.5); g.lineTo(bx + 7, by + 7); g.closePath(); g.fill(); g.fillStyle = '#4aaa3a'; g.fillRect(bx + 2, by + 3, 1, 3); } break; }
+      case WT.TREE: { g.fillStyle = 'rgba(0,0,0,.18)'; ell(px + 8, py + 14, 7, 2.4); g.fill(); g.fillStyle = '#6a4424'; g.fillRect(px + 6.5, py + 10, 3, 5); const pine = r > 0.75;
+        if (pine) { g.fillStyle = '#2a6a3a'; g.beginPath(); g.moveTo(px + 8, py - 3); g.lineTo(px + 15, py + 11); g.lineTo(px + 1, py + 11); g.closePath(); g.fill(); g.fillStyle = '#3a8a4a'; g.beginPath(); g.moveTo(px + 8, py - 1); g.lineTo(px + 11, py + 6); g.lineTo(px + 5, py + 6); g.closePath(); g.fill(); }
+        else { g.fillStyle = '#2e7a34'; g.beginPath(); g.arc(px + 8, py + 6, 7.4, 0, TAU); g.fill(); g.fillStyle = '#48a044'; g.beginPath(); g.arc(px + 6, py + 4, 4, 0, TAU); g.fill(); g.fillStyle = '#6ac05a'; g.fillRect(px + 4, py + 2, 2, 2); } break; }
+      case WT.FLOWER: { for (let k = 0; k < 3; k++) { const fx = px + 3 + ((r * 10 + k * 5) % 11), fy = py + 3 + ((r * 13 + k * 4) % 10); g.fillStyle = ['#f05a7a', '#ffffff', '#f0d040'][k]; g.fillRect(fx, fy, 2, 2); g.fillStyle = '#e8a020'; g.fillRect(fx + 0.6, fy + 0.6, 0.8, 0.8); } break; }
+      case WT.BOG: { g.fillStyle = '#c0303a'; for (let k = 0; k < 6; k++) g.fillRect(px + 1 + (k % 3) * 5 + (r * 2 | 0), py + 2 + (k / 3 | 0) * 7, 3, 3); g.fillStyle = '#5a7a3a'; g.fillRect(px, py + 15, 16, 1); break; }
+      case WT.CORN: { g.fillStyle = '#9a7a4a'; g.fillRect(px, py, 16, 16); for (let k = 0; k < 2; k++) { const sx = px + 4 + k * 8; g.fillStyle = '#4a9a3a'; g.fillRect(sx, py + 1, 2, 13); g.fillStyle = '#f0c840'; g.fillRect(sx + 2, py + 5, 2, 4); g.fillStyle = '#e8862a'; g.fillRect(sx - 3, py + 12, 4, 3); } break; }
+      case WT.HOUSE: { g.fillStyle = 'rgba(0,0,0,.2)'; g.fillRect(px + 1, py + 13, 15, 3); g.fillStyle = '#c8a878'; g.fillRect(px + 1, py + 6, 14, 9); g.fillStyle = '#4a3020'; g.fillRect(px + 7, py + 10, 3, 5); g.fillStyle = '#3a4a5a'; g.fillRect(px + 3, py + 8, 2, 2); g.fillStyle = '#d8b450'; g.beginPath(); g.moveTo(px - 1, py + 7); g.lineTo(px + 8, py - 2); g.lineTo(px + 17, py + 7); g.closePath(); g.fill(); g.fillStyle = 'rgba(120,80,20,.4)'; for (let k = 0; k < 3; k++) g.fillRect(px + 2 + k * 4, py + 3 + k % 2, 3, 1); break; }
+      case WT.FORT: { g.fillStyle = '#8a6a44'; g.fillRect(px - 2, py + 2, 20, 13); g.fillStyle = '#6a4a2a'; g.fillRect(px - 2, py + 2, 20, 2); g.fillStyle = '#2a2a30'; g.fillRect(px + 1, py - 1, 4, 3); g.fillRect(px + 11, py - 1, 4, 3); g.fillStyle = '#4a3020'; g.fillRect(px + 6, py + 9, 4, 6); break; }
+      case WT.WETU: { g.fillStyle = 'rgba(0,0,0,.2)'; ell(px + 8, py + 14, 8, 2.4); g.fill(); g.fillStyle = '#a88a5a'; g.beginPath(); g.ellipse(px + 8, py + 14, 8, 12, 0, Math.PI, 0); g.fill(); g.fillStyle = '#7a5a3a'; for (let k = 0; k < 3; k++) g.fillRect(px + 2, py + 5 + k * 3, 12, 0.8); g.fillStyle = '#2a1a10'; g.fillRect(px + 6, py + 9, 4, 5); break; }
+      case WT.FENCE: { g.fillStyle = '#7a5a34'; for (let k = 0; k < 4; k++) { g.fillRect(px + k * 4, py + 1, 3, 14); g.beginPath(); g.moveTo(px + k * 4, py + 1); g.lineTo(px + k * 4 + 1.5, py - 2); g.lineTo(px + k * 4 + 3, py + 1); g.fill(); } g.fillStyle = 'rgba(0,0,0,.25)'; g.fillRect(px, py + 15, 16, 1); break; }
+      case WT.DOCK: { g.fillStyle = '#9a6a3a'; g.fillRect(px, py + 1, 16, 14); g.fillStyle = '#6a4424'; for (let k = 0; k < 4; k++) g.fillRect(px, py + 1 + k * 4, 16, 0.8); break; }
+      case WT.ROCK: { g.fillStyle = '#9a968c'; ell(px + 8, py + 10, 7, 5); g.fill(); g.fillStyle = '#bab6ac'; ell(px + 7, py + 8, 4, 2); g.fill(); g.fillStyle = '#4a4640'; g.font = 'bold 4px sans-serif'; g.textAlign = 'center'; g.fillText('1620', px + 8, py + 12); break; }
+      case WT.POND: break;
+    }
+  }
+  // the Mayflower at anchor in the harbor
+  { const sx = 38 * T16, sy = 9.2 * T16, bob = Math.sin(t * 1.4) * 1;
+    g.fillStyle = 'rgba(0,0,0,.18)'; ell(sx + 32, sy + 18, 36, 5); g.fill();
+    g.fillStyle = '#6a4426'; g.beginPath(); g.moveTo(sx, sy + 4 + bob); g.lineTo(sx + 64, sy + 4 + bob); g.lineTo(sx + 56, sy + 16 + bob); g.lineTo(sx + 8, sy + 16 + bob); g.closePath(); g.fill(); g.fillStyle = '#8a5e36'; g.fillRect(sx + 4, sy + 4 + bob, 56, 3);
+    for (const [mx, mh] of [[18, 26], [34, 32], [50, 22]]) { g.fillStyle = '#4a3020'; g.fillRect(sx + mx, sy + 4 - mh + bob, 2, mh); g.fillStyle = '#f2ead6'; g.fillRect(sx + mx - 7, sy + 6 - mh + bob, 16, mh * 0.55); }
+    g.fillStyle = '#d82a2a'; g.fillRect(sx + 35, sy - 30 + bob, 6, 3); }
+  // the hidden coins: a glint in the grass
+  for (const [ix, iy] of WALK_ITEMS) if (!walkSave().items[ix + ',' + iy] && ix >= x0 - 1 && ix <= x1 && iy >= y0 - 1 && iy <= y1) { const s2 = (Math.sin(t * 4 + ix) + 1) / 2; if (s2 > 0.55) { g.fillStyle = '#fff6c0'; const px = ix * T16 + 8, py = iy * T16 + 7; g.fillRect(px - 0.5, py - 3, 1, 6); g.fillRect(px - 3, py - 0.5, 6, 1); } }
+  // the doorways: a gentle glow and a little marker
+  for (const d of WALK_DOORS) { if (d.x < x0 - 2 || d.x > x1 + 2 || d.y < y0 - 2 || d.y > y1 + 2) continue; const px = d.x * T16 + 8, py = d.y * T16 + 8, open = d.exit || nodeOpen(node(d.id)), bob = Math.sin(t * 3) * 1.5;
+    if (d.look === 'boat') { g.fillStyle = '#7a4a24'; g.beginPath(); g.ellipse(px, py + 2, 8, 4, 0, 0, Math.PI); g.fill(); g.fillRect(px - 8, py, 16, 2); }
+    if (d.look === 'gate') { g.fillStyle = '#5a3a1e'; g.fillRect(px - 8, py - 6, 2, 14); g.fillRect(px + 6, py - 6, 2, 14); g.fillRect(px - 8, py - 7, 16, 2); }
+    if (d.look === 'sign') { g.fillStyle = '#6a4424'; g.fillRect(px - 1, py - 2, 2, 10); g.fillStyle = '#b8864a'; g.fillRect(px - 7, py - 7, 14, 6); g.fillStyle = '#3a2410'; g.font = 'bold 5px sans-serif'; g.textAlign = 'center'; g.fillText('N ▲', px, py - 2.6); }
+    glow(px, py, 14, open ? 'rgba(255,230,120,1)' : 'rgba(200,200,200,1)', 0.35);
+    g.fillStyle = open ? '#ffd23a' : '#a8a8a8'; g.beginPath(); g.moveTo(px - 4, py - 13 + bob); g.lineTo(px + 4, py - 13 + bob); g.lineTo(px, py - 8 + bob); g.closePath(); g.fill(); g.strokeStyle = '#3a2410'; g.lineWidth = 0.8; g.stroke(); }
+  // signs and people (people turn to face you when you talk to them)
+  for (const s of WALK_SIGNS) { const px = s.x * T16, py = s.y * T16; g.fillStyle = '#6a4424'; g.fillRect(px + 7, py + 7, 2, 8); g.fillStyle = '#c89a5a'; g.fillRect(px + 2, py + 2, 12, 7); g.strokeStyle = '#5a3a1e'; g.lineWidth = 1; g.strokeRect(px + 2, py + 2, 12, 7); g.fillStyle = '#5a3a1e'; g.fillRect(px + 4, py + 4, 8, 0.8); g.fillRect(px + 4, py + 6, 6, 0.8); }
+  const sorted = [...WALK_PEOPLE.map(p => ({ ...p, k: 'p' })), { k: 'me', x: w.fx, y: w.fy }].sort((a, b) => a.y - b.y);
+  for (const o of sorted) {
+    const px = o.x * T16 + 8, py = o.y * T16 + 15;
+    g.fillStyle = 'rgba(0,0,0,.2)'; ell(px, py, 6, 2); g.fill();
+    if (o.k === 'p') { const face = walk.x < o.x ? -1 : 1; g.save(); g.translate(px, py); g.scale(0.8, 0.8); drawPerson(0, 0, o.who, false, t, face); g.restore(); continue; }
+    const face = w.dir === 'left' ? -1 : w.dir === 'right' ? 1 : (w.lastFace || 1); if (w.dir === 'left' || w.dir === 'right') w.lastFace = face;
+    g.save(); g.translate(px, py); g.scale(0.7, 0.7); drawHero(-8, -30 + (w.moving ? Math.abs(Math.sin(w.anim * Math.PI)) * -2 : 0), 0, w.moving ? 'walk' : 'stand', face, t, null, { swing: w.moving ? Math.sin(w.anim * Math.PI * 2) : 0, look: w.dir === 'up' ? -1 : 0 }); g.restore();
+  }
+  g.restore();
+  // the place name, Pokémon style, when you walk into a new area
+  if (w.zoneT > 0) { const a = Math.min(1, w.zoneT * 2, (2.4 - w.zoneT) * 4); g.globalAlpha = a; rrect(6, 6, 112, 20, 3); g.fillStyle = '#fff8e4'; g.fill(); g.lineWidth = 1.4; g.strokeStyle = '#5a3a1e'; g.stroke(); g.fillStyle = '#3a2410'; g.font = 'bold 9px system-ui, sans-serif'; g.textAlign = 'left'; g.fillText(w.zone, 12, 19); g.globalAlpha = 1; }
+  // coins and the field guide, top right
+  { const ws = walkSave(), n = Object.keys(ws.guide).length; rrect(LW - 130, 6, 86, 20, 3); g.fillStyle = 'rgba(255,248,228,.92)'; g.fill(); g.strokeStyle = '#5a3a1e'; g.lineWidth = 1; g.stroke();
+    g.font = 'bold 9px system-ui, sans-serif'; g.textAlign = 'left'; g.fillStyle = '#3a2410'; g.fillText(`🪙 ${coins}   📖 ${n}/${WALK_ANIMALS.length}`, LW - 124, 19); }
+  // an animal met in the tall grass: shown big, like a wild Pokémon
+  if (w.enc) { const ex = LW / 2, ey = 30; rrect(ex - 56, ey, 112, 92, 8); g.fillStyle = 'rgba(255,255,255,.96)'; g.fill(); g.strokeStyle = '#3a6ad8'; g.lineWidth = 2; g.stroke(); g.fillStyle = '#c8e8b0'; ell(ex, ey + 64, 40, 9); g.fill(); g.font = '44px system-ui, sans-serif'; g.textAlign = 'center'; g.fillText(w.enc.e, ex, ey + 62); g.font = 'bold 9px system-ui, sans-serif'; g.fillStyle = '#1a1a1a'; g.fillText(w.enc.name.toUpperCase(), ex, ey + 84); }
+  // the dialog box
+  if (w.dlg) {
+    const bx = 8, bh = 54, by = LH - bh - 8, bw = LW - 16; rrect(bx, by, bw, bh, 6); g.fillStyle = '#ffffff'; g.fill(); g.lineWidth = 2.4; g.strokeStyle = '#2a2a3a'; g.stroke(); rrect(bx + 3, by + 3, bw - 6, bh - 6, 4); g.lineWidth = 1; g.strokeStyle = '#4a7ad8'; g.stroke();
+    g.fillStyle = '#1a1a1a'; g.font = 'bold 9px system-ui, sans-serif'; g.textAlign = 'left';
+    const words = String(w.dlg.lines[w.dlg.i] || '').split(' '), lines = []; let cur = '';
+    for (const wd of words) { const tryL = cur ? cur + ' ' + wd : wd; if (g.measureText(tryL).width > bw - 26 && cur) { lines.push(cur); cur = wd; } else cur = tryL; } if (cur) lines.push(cur);
+    lines.slice(0, 4).forEach((l, i) => g.fillText(l, bx + 12, by + 16 + i * 11));
+    if (Math.sin(t * 6) > 0) { g.fillStyle = '#d02a2a'; g.beginPath(); g.moveTo(bx + bw - 16, by + bh - 13); g.lineTo(bx + bw - 8, by + bh - 13); g.lineTo(bx + bw - 12, by + bh - 8); g.closePath(); g.fill(); }
+  }
+}
 
 // ---------- Loop ----------
 // The game moves on by exactly the time since the last frame (in small slices), so motion is smooth
@@ -10554,6 +10800,7 @@ function step(dt) {
   bannerT = Math.max(0, bannerT - dt); shake = Math.max(0, shake - dt);
   if (state === 'level') updateLevel(dt);
   else if (state === 'map') updateMap(dt);
+  else if (state === 'walk') updateWalk(dt);
   else clock += dt;
   for (const k in pressed) pressed[k] = false;
 }
@@ -10579,6 +10826,7 @@ function render() {
     }
   }
   else if (state === 'title' || (state === 'heroes' && heroesFrom === 'title')) drawTitleScene();
+  else if (state === 'walk' && walk) drawWalk();
   else drawMap();
   mapButtons();
   if (state === 'level' && lvl) {   // a warm wash of sunlight from the top (cool moonlight on dark levels) and softly darker edges
