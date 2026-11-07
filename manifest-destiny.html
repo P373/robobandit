@@ -1908,7 +1908,7 @@ if (RB.setControls) RB.setControls({ name: 'Manifest Destiny', camera: false, ro
   { act: 'Drop the saved power-up', keys: 'E', pad: '{RT}', touch: 'tap the box at the top' },
   { act: 'Hop off Star', keys: 'F (or S + Space)', pad: '{LS} down + {A}', touch: 'hold ▼, tap A' },
   { act: 'Map: move / enter a level', keys: 'W A S D / Space or Enter', pad: '{DPAD} / {A}', touch: 'tap a level, tap again' },
-  { act: 'Map: zoom out to the whole country (and back)', keys: 'M or Shift', pad: '{X}', touch: '🗺️ button, or pinch' },
+  { act: 'Map: zoom out to the whole country (and back)', keys: 'M or Shift (Q / R)', pad: '{X} (or {LB} out, {RB} in)', touch: '🗺️ button, or pinch' },
 ] });
 let paused = false;
 addEventListener('keydown', e => {
@@ -9969,7 +9969,8 @@ function updateMap(dt) {
     const want = mapWant(), k = Math.min(1, dt * 4); mapCam.x += (want.x - mapCam.x) * k; mapCam.y += (want.y - mapCam.y) * k; mapCam.z *= Math.pow(want.z / mapCam.z, k);
     return;
   }
-  if (pressed.run || pressed.zoom) { mapZoom(); if (mapWhole) pickWorld = Math.max(0, worldOf(mapLeo.at)); }
+  const zoomTo = pressed.run || pressed.zoom ? !mapWhole : pressed.lookL && !mapWhole ? true : pressed.lookR && mapWhole ? false : null;   // (Ⓧ switches; LB zooms out to the whole country, RB back in)
+  if (zoomTo !== null) { mapZoom(zoomTo); if (mapWhole) pickWorld = Math.max(0, worldOf(mapLeo.at)); }
   if (mapWhole && !mapLeo.to) {   // the whole country: the D-pad picks a region you've opened, and Ⓐ takes you straight there
     const open = WORLDS.map((w, i) => i).filter(i => worldOpen(i) && WORLDS[i].some(id => LEVELS[id]));
     if (!open.includes(pickWorld)) pickWorld = open.includes(worldOf(mapLeo.at)) ? worldOf(mapLeo.at) : open[0];

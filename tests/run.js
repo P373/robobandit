@@ -4325,6 +4325,11 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     await p.evaluate(() => { mount(mk('unicorn', player.x, player.y, { w: 16, h: 22, st: 'wait', t: 1 })); });
     await p.waitForTimeout(200); await p.evaluate(() => { __pad.axes[1] = 1; }); await p.waitForTimeout(100); await padTap(p, 'A'); await p.evaluate(() => { __pad.axes[1] = 0; }); await p.waitForTimeout(900);
     const ltOff = await p.evaluate(() => !player.mount);
+    // on the map: LB zooms out to the whole country, RB back in
+    await p.evaluate(() => { goMap('voyage', true); }); await p.waitForTimeout(300);
+    await padTap(p, 'LB'); await p.waitForTimeout(200); const lbOut = await p.evaluate(() => state === 'map' && mapWhole);
+    await padTap(p, 'RB'); await p.waitForTimeout(200); const rbIn = await p.evaluate(() => state === 'map' && !mapWhole);
+    check(lbOut && rbIn, 'on the map, LB zooms out to the whole country and RB zooms back in: ' + JSON.stringify({ lbOut, rbIn }));
     check(yHat && look.camR > look.cam0 + 80 && look.camL < look.cam0 - 40 && ltPound && ltOff, 'on an Xbox controller: Ⓨ throws the hat, RB and LB scroll the view forward and back, LT ground pounds in the air, the stick down + Ⓐ hops off Star: ' + JSON.stringify({ yHat, look, ltPound, ltOff }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
