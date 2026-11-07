@@ -1890,22 +1890,22 @@ const keys = { left: false, right: false, jump: false, run: false, down: false, 
 let downFrom = '';   // which key pressed S: 'pad' for the controller's stick / D-pad (pushed to the side and a little down isn't a ground pound)
 const pressed = { jump: false, run: false, start: false, left: false, right: false, up: false, down: false, item: false, off: false, zoom: false };
 const KEYMAP = { KeyA: 'left', KeyD: 'right', Space: 'jump', KeyW: 'up', ShiftLeft: 'run', ShiftRight: 'run', KeyS: 'down',
-  KeyJ: 'hat', KeyK: 'hat', KeyE: 'item', KeyF: 'off', KeyM: 'zoom', KeyQ: 'lookL', KeyR: 'lookR' };
-// 🎮 Manifest Destiny keeps its own controller layout: A / B jump, X run (and throw apples), Y / RB throw the hat, LB drop the saved
-// power-up, and LT / RT scroll the view left or right to look ahead (like Super Mario World's L and R); the D-pad and left stick
-// are W A S D (down crouches: a high jump, or a ground pound in the air)
+  KeyJ: 'hat', KeyK: 'hat', KeyE: 'item', KeyF: 'off', KeyM: 'zoom', KeyQ: 'lookL', KeyR: 'lookR', KeyG: 'down' };   // (G: the controller's left trigger)
+// 🎮 Manifest Destiny keeps its own controller layout: A / B jump, X run (and throw apples), Y throw the hat, LT crouch (a ground
+// pound in the air, even while the stick is pushed sideways), RT drop the saved power-up, and LB / RB scroll the view back or
+// forward to look ahead (like Super Mario World's L and R); the D-pad and left stick are W A S D
 // (a flat, side-on game: it never asks for inverted sticks, so a flying game's invert setting can't flip Leo)
-if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: 'KeyJ', 4: 'KeyE', 5: 'KeyJ', 6: 'KeyQ', 7: 'KeyR', 10: null });
+if (RB.pad && RB.pad.setButtons) RB.pad.setButtons({ 0: 'Space', 1: 'Space', 2: 'ShiftLeft', 3: 'KeyJ', 4: 'KeyQ', 5: 'KeyR', 6: 'KeyG', 7: 'KeyE', 10: null });
 const downAlone = (l, r) => downFrom !== 'pad' || !(l || r);
 if (RB.setControls) RB.setControls({ name: 'Manifest Destiny', camera: false, rows: [
   { act: 'Walk', keys: 'A / D', pad: '{LS} / {DPAD}', touch: '◀ ▶' },
   { act: 'Look up', keys: 'W', pad: '{LS} up', touch: '▲' },
   { act: 'Run (and throw apples)', keys: 'hold Shift', pad: '{X}', touch: 'hold B' },
   { act: 'Jump (hold = higher, again = spin)', keys: 'Space', pad: '{A} / {B}', touch: 'A' },
-  { act: 'Crouch · high jump · ground pound', keys: 'S', pad: '{LS} down', touch: '▼' },
-  { act: 'Look ahead: scroll the view left / right', keys: 'Q / R', pad: '{LT} / {RT}', touch: '' },
-  { act: 'Throw the magic hat', keys: 'J', pad: '{Y} / {RB}', touch: '🎩' },
-  { act: 'Drop the saved power-up', keys: 'E', pad: '{LB}', touch: 'tap the box at the top' },
+  { act: 'Crouch · high jump · ground pound', keys: 'S', pad: '{LT} / {LS} down', touch: '▼' },
+  { act: 'Look ahead: scroll the view back / forward', keys: 'Q / R', pad: '{LB} / {RB}', touch: '' },
+  { act: 'Throw the magic hat', keys: 'J', pad: '{Y}', touch: '🎩' },
+  { act: 'Drop the saved power-up', keys: 'E', pad: '{RT}', touch: 'tap the box at the top' },
   { act: 'Hop off Star', keys: 'F (or S + Space)', pad: '{LS} down + {A}', touch: 'hold ▼, tap A' },
   { act: 'Map: move / enter a level', keys: 'W A S D / Space or Enter', pad: '{DPAD} / {A}', touch: 'tap a level, tap again' },
   { act: 'Map: zoom out to the whole country (and back)', keys: 'M or Shift', pad: '{X}', touch: '🗺️ button, or pinch' },
@@ -1917,7 +1917,7 @@ addEventListener('keydown', e => {
     e.preventDefault();
     if (!keys[k]) {
       pressed[k] = true;
-      if (k === 'down') downFrom = e.isTrusted ? e.code : 'pad';   // the controller's keys are made up by common.js
+      if (k === 'down') downFrom = e.isTrusted || e.code === 'KeyG' ? e.code : 'pad';   // the controller's keys are made up by common.js
       if (k === 'left' || k === 'right') pressed[k] = true;
     }
     keys[k] = true;

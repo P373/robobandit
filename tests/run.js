@@ -52,7 +52,7 @@ const fakePad = () => {
   window.__pad = gp;
   navigator.getGamepads = () => [gp, null, null, null];
 };
-const PAD = { A: 0, B: 1, X: 2, Y: 3, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
+const PAD = { A: 0, B: 1, X: 2, Y: 3, LB: 4, RB: 5, LT: 6, RT: 7, VIEW: 8, MENU: 9, UP: 12, DOWN: 13, LEFT: 14, RIGHT: 15 };
 const padHold = async (p, b, on) => { await p.evaluate(([i, on]) => { __pad.buttons[i] = { pressed: on, value: on ? 1 : 0 }; }, [PAD[b], on]); await p.waitForTimeout(90); };
 const padTap = async (p, b) => { await padHold(p, b, true); await padHold(p, b, false); };
 const padStick = async (p, x, y) => { await p.evaluate(([x, y]) => { __pad.axes[0] = x; __pad.axes[1] = y; }, [x, y]); await p.waitForTimeout(150); };
@@ -4316,13 +4316,16 @@ const padFocus = p => p.evaluate(() => { const e = document.querySelector('.rb-p
     const yHat = await p.evaluate(() => ents.some(e => e.k === 'cap'));
     await p.waitForTimeout(2500); await p.evaluate(() => { ents = ents.filter(e => e.k !== 'cap'); player.hatless = false; player.vx = 0; player.inv = 30; player.face = 1; });
     await p.waitForTimeout(1500); const cam0 = await p.evaluate(() => camX);
-    await padHold(p, 'RT', true); await p.waitForTimeout(900); const camR = await p.evaluate(() => camX); await padHold(p, 'RT', false);
-    await padHold(p, 'LT', true); await p.waitForTimeout(900); const camL = await p.evaluate(() => camX); await padHold(p, 'LT', false);
+    await padHold(p, 'RB', true); await p.waitForTimeout(900); const camR = await p.evaluate(() => camX); await padHold(p, 'RB', false);
+    await padHold(p, 'LB', true); await p.waitForTimeout(900); const camL = await p.evaluate(() => camX); await padHold(p, 'LB', false);
     const look = { cam0: Math.round(cam0), camR: Math.round(camR), camL: Math.round(camL) };
+    // LT in the air: a ground pound, even with the stick pushed to the side
+    await p.waitForTimeout(400); await p.evaluate(() => { player.y -= 70; player.vy = -60; player.ground = false; __pad.axes[0] = 1; }); await p.waitForTimeout(60);
+    await padHold(p, 'LT', true); await p.waitForTimeout(120); const ltPound = await p.evaluate(() => !!player.pound); await padHold(p, 'LT', false); await p.evaluate(() => { __pad.axes[0] = 0; }); await p.waitForTimeout(700);
     await p.evaluate(() => { mount(mk('unicorn', player.x, player.y, { w: 16, h: 22, st: 'wait', t: 1 })); });
     await p.waitForTimeout(200); await p.evaluate(() => { __pad.axes[1] = 1; }); await p.waitForTimeout(100); await padTap(p, 'A'); await p.evaluate(() => { __pad.axes[1] = 0; }); await p.waitForTimeout(900);
     const ltOff = await p.evaluate(() => !player.mount);
-    check(yHat && look.camR > look.cam0 + 80 && look.camL < look.cam0 - 40 && ltOff, 'on an Xbox controller: Ⓨ throws the hat, RT and LT scroll the view right and left, the stick down + Ⓐ hops off Star: ' + JSON.stringify({ yHat, look, ltOff }));
+    check(yHat && look.camR > look.cam0 + 80 && look.camL < look.cam0 - 40 && ltPound && ltOff, 'on an Xbox controller: Ⓨ throws the hat, RB and LB scroll the view forward and back, LT ground pounds in the air, the stick down + Ⓐ hops off Star: ' + JSON.stringify({ yHat, look, ltPound, ltOff }));
     check(errors.length === 0, 'page errors: ' + errors.join(' | '));
     await ctx.close();
     // on a phone: the game sits at the top like a handheld, with the buttons underneath
