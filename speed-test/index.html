@@ -1,0 +1,264 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow"><!-- unlisted: not linked from RoboBandit, kept out of search -->
+  <title>Speed Test</title>
+  <meta name="description" content="How fast is your internet? Ping, download and upload, measured against Cloudflare's speed-test servers.">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <meta name="theme-color" content="#0d1b3d">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Bungee&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #0d1b3d; --panel: #16295a; --ink: #f4f7ff; --muted: #9fb0d8; --line: #2b4386;
+      --accent: #f8e848; --accent-shadow: #b89810; --down: #3fd0ff; --up: #b98cff; --ping: #5ee38f; --bad: #ff7a7a;
+    }
+    * { box-sizing: border-box; }
+    html, body { margin: 0; background: var(--bg); color: var(--ink); font: 16px/1.45 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+    main { max-width: 560px; margin: 0 auto; padding: 24px 16px 40px; }
+    h1 { font: 26px 'Bungee', system-ui, sans-serif; text-align: center; margin: 4px 0 2px; letter-spacing: .5px; }
+    .sub { text-align: center; color: var(--muted); margin: 0 0 18px; font-size: 14px; }
+
+    .gauge { position: relative; width: 100%; max-width: 340px; margin: 0 auto; aspect-ratio: 1 / .78; }
+    .gauge svg { width: 100%; height: 100%; display: block; }
+    .gauge .track { stroke: var(--line); }
+    .gauge .fill { stroke: var(--down); transition: stroke-dashoffset .25s linear, stroke .3s; }
+    .gauge .tick { fill: var(--muted); font: 11px system-ui, sans-serif; text-anchor: middle; }
+    .readout { position: absolute; left: 0; right: 0; top: 40%; text-align: center; }
+    .readout .num { font: 44px 'Bungee', system-ui, sans-serif; font-variant-numeric: tabular-nums; line-height: 1; }
+    .readout .unit { color: var(--muted); font-size: 14px; margin-top: 6px; }
+    .phase { text-align: center; min-height: 1.5em; color: var(--muted); margin: 4px 0 16px; font-weight: 600; }
+    .phase.err { color: var(--bad); }
+
+    .go { display: block; margin: 0 auto 26px; font: 18px 'Bungee', system-ui, sans-serif; cursor: pointer; border: 0;
+      padding: 16px 38px; color: #081848; background: var(--accent); box-shadow: 0 5px 0 var(--accent-shadow), 0 0 0 4px #081848; }
+    .go:active { transform: translateY(3px); box-shadow: 0 2px 0 var(--accent-shadow), 0 0 0 4px #081848; }
+    .go:disabled { opacity: .5; cursor: default; transform: none; }
+
+    .tiles { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .tile { background: var(--panel); border: 2px solid var(--line); border-radius: 10px; padding: 12px 8px; text-align: center; }
+    .tile .label { font: 11px 'Bungee', system-ui, sans-serif; letter-spacing: .5px; }
+    .tile .val { font: 22px 'Bungee', system-ui, sans-serif; margin: 6px 0 0; font-variant-numeric: tabular-nums; }
+    .tile .u { color: var(--muted); font-size: 12px; }
+    .tile.ping .label { color: var(--ping); } .tile.down .label { color: var(--down); } .tile.up .label { color: var(--up); }
+    .tile.active { border-color: currentColor; }
+    .tile.ping.active { color: var(--ping); } .tile.down.active { color: var(--down); } .tile.up.active { color: var(--up); }
+    .tile.active .val { color: var(--ink); }
+    .jitter { color: var(--muted); font-size: 12px; margin-top: 2px; min-height: 1.2em; }
+
+    .verdict { margin: 18px 0 0; padding: 12px 14px; background: var(--panel); border-radius: 10px; border: 2px solid var(--line); display: none; }
+    .verdict.show { display: block; }
+    details { margin-top: 22px; color: var(--muted); font-size: 14px; }
+    details summary { cursor: pointer; color: var(--ink); font-weight: 600; }
+    details p { margin: 8px 0; }
+    @media (max-width: 380px) { .tile .val { font-size: 18px; } .readout .num { font-size: 36px; } }
+  </style>
+</head>
+<body>
+<main>
+  <h1>Speed Test</h1>
+  <p class="sub">How fast is your internet right now?</p>
+
+  <div class="gauge">
+    <svg viewBox="0 0 200 156" aria-hidden="true">
+      <path class="track" d="M 28 128 A 80 80 0 1 1 172 128" fill="none" stroke-width="14" stroke-linecap="round"/>
+      <path class="fill" id="arc" d="M 28 128 A 80 80 0 1 1 172 128" fill="none" stroke-width="14" stroke-linecap="round"/>
+      <g id="ticks"></g>
+    </svg>
+    <div class="readout"><div class="num" id="num">–</div><div class="unit" id="unit">Mbps</div></div>
+  </div>
+  <div class="phase" id="phase" aria-live="polite">Press GO to start</div>
+  <button class="go" id="go">GO</button>
+
+  <div class="tiles">
+    <div class="tile ping" id="t-ping"><div class="label">Ping</div><div class="val" id="v-ping">–</div><div class="u">ms</div><div class="jitter" id="v-jitter"></div></div>
+    <div class="tile down" id="t-down"><div class="label">Download</div><div class="val" id="v-down">–</div><div class="u">Mbps</div><div class="jitter"></div></div>
+    <div class="tile up" id="t-up"><div class="label">Upload</div><div class="val" id="v-up">–</div><div class="u">Mbps</div><div class="jitter"></div></div>
+  </div>
+  <div class="verdict" id="verdict"></div>
+
+  <details>
+    <summary>How does it work?</summary>
+    <p><b>Ping</b>: sends 15 tiny requests and times each round trip. The middle (median) time is your ping; how much it wobbles is the jitter.</p>
+    <p><b>Download</b>: pulls big chunks of random data over 4 connections at once for about 8 seconds, counting every byte as it arrives. The first second is skipped while the connection warms up. Speed = bits received ÷ seconds.</p>
+    <p><b>Upload</b>: the same, but sending chunks of data up instead.</p>
+    <p>The test data comes from Cloudflare's free public speed-test server (speed.cloudflare.com), the nearest one to you. A full test uses roughly 50–500 MB, depending on how fast your connection is.</p>
+  </details>
+</main>
+
+<script>
+(() => {
+  const SERVER = 'https://speed.cloudflare.com';
+  const STREAMS = 4;            // parallel connections, so one slow connection doesn't cap the result
+  const DURATION = 8000;        // ms per download / upload phase
+  const WARMUP = 1000;          // ms ignored at the start (TCP slow start)
+  const PINGS = 15;
+
+  const $ = id => document.getElementById(id);
+  const arc = $('arc'), ARC_LEN = arc.getTotalLength();
+  arc.style.strokeDasharray = ARC_LEN; arc.style.strokeDashoffset = ARC_LEN;
+
+  // gauge on a log-ish scale: 0, 1, 5, 10, 50, 100, 500, 1000 Mbps
+  const MARKS = [0, 1, 5, 10, 50, 100, 500, 1000];
+  const frac = mbps => {
+    if (mbps <= 0) return 0;
+    for (let i = 1; i < MARKS.length; i++) {
+      if (mbps <= MARKS[i]) return (i - 1 + (mbps - MARKS[i - 1]) / (MARKS[i] - MARKS[i - 1])) / (MARKS.length - 1);
+    }
+    return 1;
+  };
+  (function drawTicks() {
+    const g = $('ticks'), cx = 100, cy = 100, r = 62;
+    MARKS.forEach((m, i) => {
+      const a = (-225 + 270 * i / (MARKS.length - 1)) * Math.PI / 180;
+      const t = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+      t.setAttribute('x', (cx + r * Math.cos(a)).toFixed(1)); t.setAttribute('y', (cy + r * Math.sin(a) + 4).toFixed(1));
+      t.setAttribute('class', 'tick'); t.textContent = m >= 1000 ? '1G' : m;
+      g.appendChild(t);
+    });
+  })();
+
+  function show(value, unit, color, gaugeFrac) {
+    $('num').textContent = value; $('unit').textContent = unit;
+    arc.style.stroke = color;
+    arc.style.strokeDashoffset = ARC_LEN * (1 - Math.max(0, Math.min(1, gaugeFrac)));
+  }
+  const fmt = mbps => mbps >= 100 ? mbps.toFixed(0) : mbps >= 10 ? mbps.toFixed(1) : mbps.toFixed(2);
+  const css = v => getComputedStyle(document.documentElement).getPropertyValue(v).trim();
+  function phase(text, err) { $('phase').textContent = text; $('phase').classList.toggle('err', !!err); }
+  function activate(id) { ['t-ping', 't-down', 't-up'].forEach(t => $(t).classList.toggle('active', t === id)); }
+
+  // ---------- ping ----------
+  async function measurePing() {
+    const times = [];
+    for (let i = 0; i <= PINGS; i++) {
+      const t0 = performance.now();
+      const r = await fetch(`${SERVER}/__down?bytes=0&r=${Math.random()}`, { cache: 'no-store' });
+      await r.arrayBuffer();
+      const ms = performance.now() - t0;
+      if (i > 0) {                                  // the first one also opens the connection: skip it
+        times.push(ms);
+        show(ms.toFixed(0), 'ms ping', css('--ping'), Math.min(1, ms / 200));
+      }
+    }
+    const sorted = times.slice().sort((a, b) => a - b);
+    const median = sorted[Math.floor(sorted.length / 2)];
+    let jitter = 0;
+    for (let i = 1; i < times.length; i++) jitter += Math.abs(times[i] - times[i - 1]);
+    jitter /= times.length - 1;
+    return { median, jitter };
+  }
+
+  // a meter that counts bytes and reports the speed after the warm-up
+  function meter(color) {
+    const start = performance.now();
+    let total = 0, warmBytes = null, warmTime = null;
+    return {
+      add(n) {
+        total += n;
+        const now = performance.now();
+        if (warmBytes === null && now - start >= WARMUP) { warmBytes = total; warmTime = now; }
+      },
+      mbps() {
+        const now = performance.now();
+        const [b, t] = warmBytes === null ? [total, now - start] : [total - warmBytes, now - warmTime];
+        return t > 0 ? (b * 8) / (t / 1000) / 1e6 : 0;
+      },
+      elapsed: () => performance.now() - start,
+      tick() { const m = this.mbps(); show(fmt(m), 'Mbps', color, frac(m)); },
+    };
+  }
+
+  // ---------- download ----------
+  async function measureDownload() {
+    const m = meter(css('--down'));
+    const ctrl = new AbortController();
+    const timer = setInterval(() => m.tick(), 150);
+    const stream = async () => {
+      let size = 1e6;                              // start small, grow so fast lines aren't just measuring request overhead
+      while (m.elapsed() < DURATION) {
+        const r = await fetch(`${SERVER}/__down?bytes=${size}&r=${Math.random()}`, { cache: 'no-store', signal: ctrl.signal });
+        const reader = r.body.getReader();
+        for (;;) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          m.add(value.length);
+        }
+        size = Math.min(size * 2, 50e6);
+      }
+    };
+    setTimeout(() => ctrl.abort(), DURATION);
+    await Promise.all(Array.from({ length: STREAMS }, () => stream().catch(e => { if (e.name !== 'AbortError') throw e; })));
+    clearInterval(timer);
+    return m.mbps();
+  }
+
+  // ---------- upload ----------
+  async function measureUpload() {
+    const m = meter(css('--up'));
+    const timer = setInterval(() => m.tick(), 150);
+    // random bytes so nothing along the way can compress them
+    const chunk = new Uint8Array(4e6);
+    for (let i = 0; i < chunk.length; i += 65536) crypto.getRandomValues(chunk.subarray(i, i + 65536));
+    const stream = async () => {
+      let size = 250e3;
+      while (m.elapsed() < DURATION) {
+        // no custom headers and a plain Blob: a "simple" CORS request, so no preflight
+        await fetch(`${SERVER}/__up?r=${Math.random()}`, { method: 'POST', body: new Blob([chunk.subarray(0, size)]), cache: 'no-store' });
+        m.add(size);
+        size = Math.min(size * 2, chunk.length);
+      }
+    };
+    await Promise.all(Array.from({ length: STREAMS }, stream));
+    clearInterval(timer);
+    return m.mbps();
+  }
+
+  function verdict(down, up, ping) {
+    const lines = [];
+    if (down >= 100) lines.push('Very fast: 4K streaming on several screens, big downloads in moments.');
+    else if (down >= 25) lines.push('Fast: HD and 4K streaming, video calls and online games all work well.');
+    else if (down >= 10) lines.push('OK: HD video and video calls work, but a busy house may feel it.');
+    else if (down >= 3) lines.push('Slow: fine for browsing and SD video; HD may buffer.');
+    else lines.push('Very slow: pages and video will struggle.');
+    if (ping > 100) lines.push('High ping: online games and video calls may lag.');
+    else if (ping < 30) lines.push('Low ping: great for online games.');
+    if (up < 3) lines.push('Upload is low: your side of video calls may look blurry.');
+    $('verdict').innerHTML = lines.map(l => `<div>${l}</div>`).join('');
+    $('verdict').classList.add('show');
+  }
+
+  $('go').addEventListener('click', async () => {
+    const go = $('go');
+    go.disabled = true; go.textContent = 'Testing…';
+    $('verdict').classList.remove('show');
+    ['v-ping', 'v-down', 'v-up'].forEach(id => $(id).textContent = '–'); $('v-jitter').textContent = '';
+    try {
+      activate('t-ping'); phase('Measuring ping…');
+      const p = await measurePing();
+      $('v-ping').textContent = p.median.toFixed(0); $('v-jitter').textContent = `jitter ${p.jitter.toFixed(0)} ms`;
+
+      activate('t-down'); phase('Testing download…');
+      const down = await measureDownload();
+      $('v-down').textContent = fmt(down);
+
+      activate('t-up'); phase('Testing upload…');
+      const up = await measureUpload();
+      $('v-up').textContent = fmt(up);
+
+      activate(null); show(fmt(down), 'Mbps download', css('--down'), frac(down));
+      phase('Done!'); verdict(down, up, p.median);
+    } catch (e) {
+      activate(null); show('–', 'Mbps', css('--bad'), 0);
+      phase(navigator.onLine === false ? 'You seem to be offline.' : "Couldn't reach the test server. Check your connection and try again.", true);
+      console.error(e);
+    }
+    go.disabled = false; go.textContent = 'Again';
+  });
+})();
+</script>
+</body>
+</html>
