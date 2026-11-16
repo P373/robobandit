@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow"><!-- unlisted: not linked from anywhere, kept out of search -->
+<title>2027 Currier &amp; Ives Calendar</title>
+<meta name="description" content="Currier &amp; Ives wall calendar for 2027, with the compliments of Murray &amp; MacDonald Insurance Services, Inc..">
+<meta property="og:title" content="2027 Currier &amp; Ives Calendar">
+<meta property="og:description" content="With the compliments of Murray &amp; MacDonald Insurance Services, Inc..">
+<meta property="og:image" content="https://robobandit.com/calendar/pages/2027-01.jpg">
+<meta name="theme-color" content="#2a2723">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<style>
+  :root {
+    --wall: #2a2723;
+    --wall-2: #34302b;
+    --paper: #f5f1e7;
+    --ink: #f1ebdd;
+    --muted: #b9b0a0;
+    --accent: #c4202c;
+    --page-ratio: 16 / 22;
+    --bar: 56px;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; height: 100%; background: var(--wall); color: var(--ink); }
+  body {
+    font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
+    display: flex; flex-direction: column; min-height: 100dvh; overflow: hidden;
+    padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+    background: radial-gradient(ellipse at 50% 30%, var(--wall-2), var(--wall) 70%);
+  }
+  header, nav {
+    height: var(--bar); flex: none; display: flex; align-items: center; justify-content: space-between;
+    padding: 0 12px; gap: 8px;
+  }
+  header h1 { font-size: 15px; font-weight: normal; letter-spacing: .08em; text-transform: uppercase; margin: 0;
+              color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  header .count { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
+  main { flex: 1; position: relative; min-height: 0; touch-action: pan-y; }
+  .slide { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 4px 12px;
+           container-type: size; }
+  .slide.on { display: flex; }
+  .page {
+    /* the calendar's own 16 x 22 shape, as large as the screen allows */
+    aspect-ratio: var(--page-ratio);
+    width: min(100cqw - 24px, (100cqh - 8px) * 16 / 22);
+    height: auto;
+    background: var(--paper);
+    box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
+    display: block;
+  }
+  @supports not (width: 1cqw) {   /* older browsers: size from the viewport instead */
+    .page { width: min(100vw - 24px, (100vh - 2 * var(--bar) - 8px) * 16 / 22); }
+  }
+  .page img { width: 100%; height: 100%; display: block; object-fit: contain; }
+  nav button {
+    min-width: 88px; height: 44px; border-radius: 22px; border: 1px solid rgba(255,255,255,.18);
+    background: rgba(255,255,255,.06); color: var(--ink); font: inherit; font-size: 16px; cursor: pointer;
+  }
+  nav button:active { background: rgba(255,255,255,.16); }
+  nav button:disabled { opacity: .3; cursor: default; }
+  nav .label { font-size: 18px; letter-spacing: .02em; text-align: center; flex: 1; white-space: nowrap; }
+  /* last slide: the whole year and the download */
+  .year { flex-direction: column; overflow-y: auto; justify-content: flex-start; padding: 8px 12px 16px; }
+  .year h2 { font-weight: normal; font-size: 22px; margin: 6px 0 2px; text-align: center; }
+  .year p { margin: 0 0 12px; color: var(--muted); font-size: 14px; text-align: center; }
+  .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 760px; }
+  @media (min-width: 640px) { .sheet { grid-template-columns: repeat(4, 1fr); } }
+  .sheet a { display: block; color: var(--muted); text-decoration: none; font-size: 12px; text-align: center; }
+  .sheet img { width: 100%; aspect-ratio: var(--page-ratio); display: block; background: var(--paper);
+               box-shadow: 0 3px 10px rgba(0,0,0,.4); margin-bottom: 4px; }
+  .download {
+    display: block; margin: 18px auto 6px; padding: 14px 22px; border-radius: 28px; text-align: center;
+    background: var(--accent); color: #fff; text-decoration: none; font-size: 17px; max-width: 420px; width: 100%;
+  }
+  .small { font-size: 13px; color: var(--muted); text-align: center; margin-top: 6px; }
+  .small a { color: var(--ink); }
+</style>
+</head>
+<body>
+<header>
+  <h1>2027 Currier &amp; Ives Calendar</h1>
+  <span class="count" id="count"></span>
+</header>
+<main id="stage">
+  <section class="slide" data-label="January" aria-label="January 2027: Central Park, Winter"><div class="page"><img src="pages/2027-01.jpg" alt="January 2027: Central Park, Winter"></div></section>
+  <section class="slide" data-label="February" aria-label="February 2027: Winter Morning in the Country"><div class="page"><img data-src="pages/2027-02.jpg" alt="February 2027: Winter Morning in the Country"></div></section>
+  <section class="slide" data-label="March" aria-label="March 2027: Falling Spring, Virginia"><div class="page"><img data-src="pages/2027-03.jpg" alt="March 2027: Falling Spring, Virginia"></div></section>
+  <section class="slide" data-label="April" aria-label="April 2027: The Lake in the Woods"><div class="page"><img data-src="pages/2027-04.jpg" alt="April 2027: The Lake in the Woods"></div></section>
+  <section class="slide" data-label="May" aria-label="May 2027: American Railroad Scene"><div class="page"><img data-src="pages/2027-05.jpg" alt="May 2027: American Railroad Scene"></div></section>
+  <section class="slide" data-label="June" aria-label="June 2027: Summer Shades"><div class="page"><img data-src="pages/2027-06.jpg" alt="June 2027: Summer Shades"></div></section>
+  <section class="slide" data-label="July" aria-label="July 2027: Yachts on a Summer Cruise"><div class="page"><img data-src="pages/2027-07.jpg" alt="July 2027: Yachts on a Summer Cruise"></div></section>
+  <section class="slide" data-label="August" aria-label="August 2027: Lake Mohonk"><div class="page"><img data-src="pages/2027-08.jpg" alt="August 2027: Lake Mohonk"></div></section>
+  <section class="slide" data-label="September" aria-label="September 2027: Lake George, N.Y."><div class="page"><img data-src="pages/2027-09.jpg" alt="September 2027: Lake George, N.Y."></div></section>
+  <section class="slide" data-label="October" aria-label="October 2027: American Hunting Scenes"><div class="page"><img data-src="pages/2027-10.jpg" alt="October 2027: American Hunting Scenes"></div></section>
+  <section class="slide" data-label="November" aria-label="November 2027: Home to Thanksgiving"><div class="page"><img data-src="pages/2027-11.jpg" alt="November 2027: Home to Thanksgiving"></div></section>
+  <section class="slide" data-label="December" aria-label="December 2027: Central Park in Winter"><div class="page"><img data-src="pages/2027-12.jpg" alt="December 2027: Central Park in Winter"></div></section>
+  <section class="slide year" data-label="The Year" aria-label="The whole year and download">
+    <h2>2027 at a glance</h2>
+    <a class="download" href="calendar-2027.pdf" download>Download the calendar (PDF)</a>
+    <div class="small">All 12 months, 16 × 22 in pages at 300 dpi, ready to print (47 MB).</div>
+    <p style="margin-top:14px">Tap a month to see it.</p>
+    <div class="sheet">
+      <a href="#1" data-go="0"><img data-src="thumbs/2027-01.jpg" alt="January 2027: Central Park, Winter">January</a>
+      <a href="#2" data-go="1"><img data-src="thumbs/2027-02.jpg" alt="February 2027: Winter Morning in the Country">February</a>
+      <a href="#3" data-go="2"><img data-src="thumbs/2027-03.jpg" alt="March 2027: Falling Spring, Virginia">March</a>
+      <a href="#4" data-go="3"><img data-src="thumbs/2027-04.jpg" alt="April 2027: The Lake in the Woods">April</a>
+      <a href="#5" data-go="4"><img data-src="thumbs/2027-05.jpg" alt="May 2027: American Railroad Scene">May</a>
+      <a href="#6" data-go="5"><img data-src="thumbs/2027-06.jpg" alt="June 2027: Summer Shades">June</a>
+      <a href="#7" data-go="6"><img data-src="thumbs/2027-07.jpg" alt="July 2027: Yachts on a Summer Cruise">July</a>
+      <a href="#8" data-go="7"><img data-src="thumbs/2027-08.jpg" alt="August 2027: Lake Mohonk">August</a>
+      <a href="#9" data-go="8"><img data-src="thumbs/2027-09.jpg" alt="September 2027: Lake George, N.Y.">September</a>
+      <a href="#10" data-go="9"><img data-src="thumbs/2027-10.jpg" alt="October 2027: American Hunting Scenes">October</a>
+      <a href="#11" data-go="10"><img data-src="thumbs/2027-11.jpg" alt="November 2027: Home to Thanksgiving">November</a>
+      <a href="#12" data-go="11"><img data-src="thumbs/2027-12.jpg" alt="December 2027: Central Park in Winter">December</a>
+    </div>
+    <div class="small" style="margin-top:16px">With the compliments of Murray &amp; MacDonald Insurance Services, Inc..</div>
+    <div class="small">Prints courtesy of the Library of Congress, The Metropolitan Museum of Art and the National Gallery of Art.</div>
+  </section>
+</main>
+<nav>
+  <button id="prev" aria-label="Previous month">‹ Prev</button>
+  <span class="label" id="label"></span>
+  <button id="next" aria-label="Next month">Next ›</button>
+</nav>
+<script>
+(function () {
+  var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
+  var label = document.getElementById('label'), count = document.getElementById('count');
+  var prev = document.getElementById('prev'), next = document.getElementById('next');
+  var i = 0;
+
+  function load(n) {               // images load only when their month is near
+    var s = slides[n]; if (!s) return;
+    var img = s.querySelector('img[data-src]');
+    if (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); }
+  }
+  function show(n, push) {
+    i = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
+    load(i); load(i + 1); load(i - 1);
+    if (i === slides.length - 1) slides[i].querySelectorAll('img[data-src]').forEach(function (im) {
+      im.src = im.getAttribute('data-src'); im.removeAttribute('data-src');
+    });
+    label.textContent = slides[i].getAttribute('data-label');
+    count.textContent = (i + 1) + ' / ' + slides.length;
+    prev.disabled = i === 0; next.disabled = i === slides.length - 1;
+    if (push !== false) history.replaceState(null, '', '#' + (i + 1));
+  }
+  prev.onclick = function () { show(i - 1); };
+  next.onclick = function () { show(i + 1); };
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowLeft') show(i - 1);
+    if (e.key === 'ArrowRight') show(i + 1);
+  });
+  // swipe left / right
+  var x0 = null, y0 = null;
+  var stage = document.getElementById('stage');
+  stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
+  stage.addEventListener('touchend', function (e) {
+    if (x0 === null) return;
+    var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
+    if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(i + (dx < 0 ? 1 : -1));
+    x0 = null;
+  });
+  document.querySelectorAll('.sheet a').forEach(function (a) {
+    a.onclick = function (e) { e.preventDefault(); show(+a.getAttribute('data-go')); };
+  });
+  // start at the link's month, else this month if it's in the calendar's year, else January
+  var h = parseInt(location.hash.slice(1), 10);
+  var now = new Date(), start = 0;
+  if (h >= 1 && h <= slides.length) start = h - 1;
+  else if (now.getFullYear() === 2027) start = now.getMonth();
+  show(start, false);
+  window.addEventListener('hashchange', function () {
+    var n = parseInt(location.hash.slice(1), 10);
+    if (n >= 1 && n <= slides.length) show(n - 1, false);
+  });
+})();
+</script>
+</body>
+</html>
