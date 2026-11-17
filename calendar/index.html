@@ -8,93 +8,116 @@
 <meta name="description" content="Currier &amp; Ives wall calendar for 2027, with the compliments of Murray &amp; MacDonald Insurance Services, Inc..">
 <meta property="og:title" content="2027 Currier &amp; Ives Calendar">
 <meta property="og:description" content="With the compliments of Murray &amp; MacDonald Insurance Services, Inc..">
-<meta property="og:image" content="https://robobandit.com/calendar/pages/2027-01.jpg">
+<meta property="og:image" content="https://robobandit.com/calendar/pages/2027-01-1100.jpg">
 <meta name="theme-color" content="#2a2723">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <style>
   :root {
-    --wall: #2a2723;
-    --wall-2: #34302b;
-    --paper: #f5f1e7;
-    --ink: #f1ebdd;
-    --muted: #b9b0a0;
-    --accent: #c4202c;
-    --page-ratio: 16 / 22;
-    --bar: 56px;
+    --wall: #2a2723; --wall-2: #34302b; --paper: #f5f1e7; --ink: #f1ebdd; --muted: #b9b0a0;
+    --accent: #c4202c; --line: rgba(255,255,255,.12); --bar: 52px;
   }
   * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
   html, body { margin: 0; height: 100%; background: var(--wall); color: var(--ink); }
   body {
     font-family: Georgia, "Iowan Old Style", "Palatino Linotype", serif;
-    display: flex; flex-direction: column; min-height: 100dvh; overflow: hidden;
+    display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
     padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
-    background: radial-gradient(ellipse at 50% 30%, var(--wall-2), var(--wall) 70%);
+    background: radial-gradient(ellipse at 40% 30%, var(--wall-2), var(--wall) 70%);
   }
-  header, nav {
-    height: var(--bar); flex: none; display: flex; align-items: center; justify-content: space-between;
-    padding: 0 12px; gap: 8px;
-  }
-  header h1 { font-size: 15px; font-weight: normal; letter-spacing: .08em; text-transform: uppercase; margin: 0;
+  header, nav { height: var(--bar); flex: none; display: flex; align-items: center; justify-content: space-between;
+                padding: 0 12px; gap: 8px; }
+  header h1 { font-size: 14px; font-weight: normal; letter-spacing: .08em; text-transform: uppercase; margin: 0;
               color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   header .count { font-size: 14px; color: var(--muted); font-variant-numeric: tabular-nums; }
-  main { flex: 1; position: relative; min-height: 0; touch-action: pan-y; }
-  .slide { position: absolute; inset: 0; display: none; align-items: center; justify-content: center; padding: 4px 12px;
-           container-type: size; }
+  main { flex: 1; position: relative; min-height: 0; }
+  .slide { position: absolute; inset: 0; display: none; }
   .slide.on { display: flex; }
-  .page {
-    /* the calendar's own 16 x 22 shape, as large as the screen allows */
-    aspect-ratio: var(--page-ratio);
-    width: min(100cqw - 24px, (100cqh - 8px) * 16 / 22);
-    height: auto;
-    background: var(--paper);
-    box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35);
-    display: block;
-  }
-  @supports not (width: 1cqw) {   /* older browsers: size from the viewport instead */
-    .page { width: min(100vw - 24px, (100vh - 2 * var(--bar) - 8px) * 16 / 22); }
-  }
-  .page img { width: 100%; height: 100%; display: block; object-fit: contain; }
-  nav button {
-    min-width: 88px; height: 44px; border-radius: 22px; border: 1px solid rgba(255,255,255,.18);
-    background: rgba(255,255,255,.06); color: var(--ink); font: inherit; font-size: 16px; cursor: pointer;
-  }
-  nav button:active { background: rgba(255,255,255,.16); }
-  nav button:disabled { opacity: .3; cursor: default; }
-  nav .label { font-size: 18px; letter-spacing: .02em; text-align: center; flex: 1; white-space: nowrap; }
-  /* last slide: the whole year and the download */
-  .year { flex-direction: column; overflow-y: auto; justify-content: flex-start; padding: 8px 12px 16px; }
-  .year h2 { font-weight: normal; font-size: 22px; margin: 6px 0 2px; text-align: center; }
-  .year p { margin: 0 0 12px; color: var(--muted); font-size: 14px; text-align: center; }
-  .year > * { width: 100%; max-width: 760px; flex: none; }
-  .year h3 { font-weight: normal; font-size: 18px; margin: 26px 0 8px; padding-bottom: 6px; text-align: left;
-             border-bottom: 1px solid rgba(255,255,255,.15); letter-spacing: .03em; }
-  .specs { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.5; color: var(--ink); }
-  .specs li { margin-bottom: 6px; }
+  img { display: block; }
+  picture { display: contents; }
+  a { color: var(--ink); }
+
+  /* ---------- a month: the page, and on wide screens a details panel */
+  .month { align-items: center; justify-content: center; padding: 4px 12px; container-type: size; gap: 0; }
+  .page { aspect-ratio: 16 / 22; width: min(100cqw - 24px, (100cqh - 8px) * 16 / 22); background: var(--paper);
+          box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 2px 6px rgba(0,0,0,.35); cursor: zoom-in; flex: none; }
+  @supports not (width: 1cqw) { .page { width: min(100vw - 24px, (100vh - 2 * var(--bar) - 8px) * 16 / 22); } }
+  .page img { width: 100%; height: 100%; object-fit: contain; }
+  .info { display: none; }
+  .zoom-btn { font: inherit; font-size: 15px; color: var(--ink); background: rgba(255,255,255,.07);
+              border: 1px solid rgba(255,255,255,.2); border-radius: 22px; padding: 10px 18px; cursor: pointer; }
+  /* zoomed: the page at full width, scroll to read the small type */
+  .month.on.zoom { display: block; overflow: auto; padding: 12px; }
+  .month.zoom .page { width: min(100%, 1800px); margin: 0 auto; cursor: zoom-out; }
+  .month.zoom .info { display: none !important; }
+
+  /* ---------- the overview */
+  .slide.overview.on { display: block; }
+  .overview { overflow-y: auto; padding: 8px 16px 32px; -webkit-overflow-scrolling: touch; }
+  .ov { max-width: 760px; margin: 0 auto; }
+  .ov-head h2 { font-weight: normal; font-size: 24px; margin: 8px 0 4px; }
+  .ov-head p { margin: 0 0 8px; color: var(--muted); font-size: 15px; }
+  .ov h3 { font-weight: normal; font-size: 18px; margin: 28px 0 10px; padding-bottom: 6px; border-bottom: 1px solid var(--line);
+           letter-spacing: .03em; }
+  .ov p.note { margin: 0 0 12px; color: var(--muted); font-size: 14px; }
+  .download { display: block; margin: 14px 0 6px; padding: 13px 20px; border-radius: 26px; text-align: center;
+              background: var(--accent); color: #fff; text-decoration: none; font-size: 17px; }
+  .download.light { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); }
+  .small { font-size: 13px; color: var(--muted); line-height: 1.45; }
   table.spec { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.4; }
-  table.spec th, table.spec td { text-align: left; vertical-align: top; padding: 7px 8px;
-                                 border-bottom: 1px solid rgba(255,255,255,.08); }
-  table.spec th { font-weight: normal; color: var(--muted); width: 32%; }
-  @media (max-width: 480px) { table.spec th, table.spec td { display: block; width: auto; padding: 2px 0; }
-                              table.spec td { padding-bottom: 10px; } table.spec th { border: 0; } }
-  .specs b { font-weight: normal; color: var(--muted); }
-  .photos { columns: 1; column-gap: 14px; }
+  table.spec th, table.spec td { text-align: left; vertical-align: top; padding: 7px 8px 7px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
+  table.spec th { font-weight: normal; color: var(--muted); width: 34%; }
+  .specs { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.5; }
+  .specs li { margin-bottom: 6px; }
+  .photos { columns: 1; column-gap: 16px; }
   @media (min-width: 640px) { .photos { columns: 2; } }
-  .photos figure { margin: 0 0 16px; break-inside: avoid; }
-  .photos img { width: 100%; display: block; border-radius: 4px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
-  .photos figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
-  .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 760px; }
+  .photos figure { margin: 0 0 18px; break-inside: avoid; }
+  .photos img { width: 100%; height: auto; border-radius: 4px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
+  .photos figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.45; }
+  .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
   @media (min-width: 640px) { .sheet { grid-template-columns: repeat(4, 1fr); } }
-  .sheet a { display: block; color: var(--muted); text-decoration: none; font-size: 12px; text-align: center; }
-  .sheet img { width: 100%; aspect-ratio: var(--page-ratio); display: block; background: var(--paper);
-               box-shadow: 0 3px 10px rgba(0,0,0,.4); margin-bottom: 4px; }
-  .download {
-    display: block; margin: 18px auto 6px; padding: 14px 22px; border-radius: 28px; text-align: center;
-    background: var(--accent); color: #fff; text-decoration: none; font-size: 17px; max-width: 420px; width: 100%;
+  .sheet a { display: block; color: var(--muted); text-decoration: none; font-size: 13px; text-align: center; }
+  .sheet img { width: 100%; height: auto; aspect-ratio: 16 / 22; background: var(--paper); box-shadow: 0 3px 10px rgba(0,0,0,.4);
+               margin-bottom: 5px; }
+  .credits { margin-top: 24px; }
+  /* phones: details first (the printer needs the files), then the pictures */
+  .ov-side { order: -1; }
+  .ov-cols { display: flex; flex-direction: column; }
+
+  /* ---------- nav */
+  nav button { min-width: 84px; height: 42px; border-radius: 21px; border: 1px solid rgba(255,255,255,.18);
+               background: rgba(255,255,255,.06); color: var(--ink); font: inherit; font-size: 16px; cursor: pointer; }
+  nav button:hover { background: rgba(255,255,255,.12); }
+  nav button:disabled { opacity: .3; cursor: default; }
+  nav .label { font-size: 18px; text-align: center; flex: 1; white-space: nowrap; }
+  .strip { display: none; }
+
+  /* ---------- wide screens: pictures on the left two-thirds, details on the right third */
+  @media (min-width: 1000px) {
+    :root { --bar: 48px; }
+    .ov { max-width: 1500px; }
+    .ov-cols { display: grid; grid-template-columns: minmax(0, 2fr) minmax(320px, 1fr); gap: 40px; align-items: start; }
+    .ov-side { order: 0; position: sticky; top: 0; max-height: calc(100dvh - 2 * var(--bar) - 16px); overflow-y: auto;
+               padding-right: 6px; }
+    .ov-side h3:first-child { margin-top: 8px; }
+    .photos { columns: 2; }
+    .sheet { grid-template-columns: repeat(4, 1fr); }
+    .ov-head { margin-bottom: 8px; }
+
+    .month.on:not(.zoom) { display: grid; grid-template-columns: minmax(0, 2fr) minmax(300px, 1fr); gap: 32px;
+                align-items: center; padding: 8px 32px; }
+    .month .page { justify-self: center; width: min(100%, (100cqh - 16px) * 16 / 22); }
+    .info { display: block; align-self: center; max-width: 420px; }
+    .info .mo { font-size: 15px; color: var(--muted); letter-spacing: .06em; text-transform: uppercase; }
+    .info .t { font-size: 26px; margin: 10px 0 6px; line-height: 1.25; }
+    .info .s { font-size: 17px; font-style: italic; color: var(--ink); margin-bottom: 18px; }
+    .info .c { font-size: 14px; color: var(--muted); line-height: 1.5; margin-bottom: 22px; }
+    .info .c a { color: var(--ink); }
+
+    nav .label { display: none; }
+    .strip { display: flex; gap: 4px; flex-wrap: nowrap; justify-content: center; flex: 1; overflow: hidden; }
+    .strip button { min-width: 0; height: 32px; padding: 0 10px; font-size: 14px; border-radius: 16px;
+                    border-color: transparent; background: transparent; color: var(--muted); }
+    .strip button.on { background: rgba(255,255,255,.14); color: var(--ink); }
   }
-  .download.light { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); margin-top: 14px; }
-  .small { font-size: 13px; color: var(--muted); text-align: center; margin-top: 6px; }
-  .small a { color: var(--ink); }
 </style>
 </head>
 <body>
@@ -103,108 +126,115 @@
   <span class="count" id="count"></span>
 </header>
 <main id="stage">
-  <section class="slide year" data-label="Overview" aria-label="Printing overview">
-    <h2>2027 Currier &amp; Ives Calendar</h2>
-    <p>Printing overview · with the compliments of Murray &amp; MacDonald Insurance Services, Inc.</p>
-
-    <h3>Files</h3>
-    <a class="download" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027.pdf" download>Print PDF (68 MB)</a>
-    <div class="small">12 pages, 16 × 22 in, 300 dpi, RGB, no bleed. White background (no ink): print on cream or natural stock.</div>
-    <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027-display.pdf" download>Display PDF (68 MB)</a>
-    <div class="small">The same pages with the cream paper colour printed in: for plain white stock, screens and frames.</div>
-
-    <h3>Size and construction</h3>
-    <table class="spec">
-        <tr><th>Finished size</th><td>16″ wide × 22″ tall (portrait)</td></tr>
-        <tr><th>Flat sheet</th><td>16″ × 44″, folded in half at the top</td></tr>
-        <tr><th>Construction</th><td>3 folded sheets × 4 pages = 12 months, nested and bound at the fold</td></tr>
-        <tr><th>Cover</th><td>Optional: please quote with and without</td></tr>
-        <tr><th>Fallback</th><td>If 44″ isn’t possible: 6 separate 16 × 22 sheets, bound across the top</td></tr>
-    </table>
-    <h3>Printing</h3>
-    <table class="spec">
-        <tr><th>Colour</th><td>Full colour both sides (4/4, CMYK process)</td></tr>
-        <tr><th>Method</th><td>Digital for small runs or offset for large: your recommendation</td></tr>
-        <tr><th>Back side</th><td>Printed so each month reads upright when the page is flipped up (head-to-head or head-to-foot: please confirm)</td></tr>
-    </table>
-    <h3>Paper</h3>
-    <table class="spec">
-        <tr><th>Weight</th><td>70–80# text, uncoated, cream or natural (the original was 70# cream text)</td></tr>
-        <tr><th>Upgrade option</th><td>100# text, if the fold is scored</td></tr>
-        <tr><th>Cover, if used</th><td>80# cover, same colour</td></tr>
-        <tr><th>Please tell us</th><td>Which cream or natural stocks you carry, and whether show-through will be a problem</td></tr>
-    </table>
-    <h3>Binding and finishing</h3>
-    <table class="spec">
-        <tr><th>Binding</th><td>Saddle-stitched (stapled) at the top fold, or your recommendation</td></tr>
-        <tr><th>Hanging</th><td>Drilled hanging hole, or a tab at the top for an agency label</td></tr>
-        <tr><th>Folding</th><td>Scored before folding, so the fold doesn’t crack</td></tr>
-    </table>
-    <h3>Files</h3>
-    <table class="spec">
-        <tr><th>Format</th><td>Print-ready PDF, 300 dpi at full size (above)</td></tr>
-        <tr><th>Colour mode</th><td>Currently RGB: please send your CMYK profile</td></tr>
-        <tr><th>Bleed and margins</th><td>Can supply ⅛″ bleed with crop marks: please give your safe margin</td></tr>
-        <tr><th>Layout</th><td>Currently single 16 × 22 pages: tell us if you want 16 × 44 spreads</td></tr>
-    </table>
-    <h3>Quantity, proof, delivery</h3>
-    <table class="spec">
-        <tr><th>Quantities to quote</th><td>25, 50, 100, 250</td></tr>
-        <tr><th>Proof</th><td>A printed, folded and bound sample on the actual paper before the full run</td></tr>
-        <tr><th>Turnaround</th><td>Time from file approval to finished calendars, and the last day to send files</td></tr>
-        <tr><th>Deadline</th><td>Delivered to Falmouth, MA 02556 by December 15, ideally early December</td></tr>
-    </table>
-    <h3>Questions for every printer</h3>
-    <ol class="specs">
-      <li>Can you print a 16 × 44 sheet? If not, what’s your largest sheet?</li>
-      <li>Do you fold and bind in-house, or send it out?</li>
-      <li>Which cream or natural uncoated papers do you have?</li>
-      <li>Is there a setup fee, and what’s the price per calendar at each quantity?</li>
-    </ol>
-
-    <h3>The original we are matching</h3>
-    <p>A 2022 edition, photographed with a tape measure.</p>
-    <div class="photos">
-      <figure class="tall"><a href="original/original-sheet-flat.jpg"><img data-src="original/original-sheet-flat.jpg" alt="One sheet laid flat: 16 in wide and about 44 in long, with a die-cut hanging slot at 22 in. The two 22 in halves are printed head to head (the upper half is upside down)."></a><figcaption>One sheet laid flat: 16 in wide and about 44 in long, with a die-cut hanging slot at 22 in. The two 22 in halves are printed head to head (the upper half is upside down).</figcaption></figure>
-      <figure><a href="original/original-width-16in.jpg"><img data-src="original/original-width-16in.jpg" alt="The foot of a month page: 16 in wide. Month grid, moon phases, the previous and next months, and the agency&#x27;s logo between them."></a><figcaption>The foot of a month page: 16 in wide. Month grid, moon phases, the previous and next months, and the agency&#x27;s logo between them.</figcaption></figure>
-      <figure><a href="original/original-sheet-bottom.jpg"><img data-src="original/original-sheet-bottom.jpg" alt="The bottom of the sheet, at about 44 in: the print (about 13.3 × 8 in in this edition) with its title and subtitle beneath."></a><figcaption>The bottom of the sheet, at about 44 in: the print (about 13.3 × 8 in in this edition) with its title and subtitle beneath.</figcaption></figure>
-      <figure><a href="original/original-edge-closeup.jpg"><img data-src="original/original-edge-closeup.jpg" alt="Close-up of the trimmed edge at 16 in."></a><figcaption>Close-up of the trimmed edge at 16 in.</figcaption></figure>
+  <section class="slide overview on" data-label="Overview" aria-label="Printing overview">
+    <div class="ov">
+      <div class="ov-head">
+        <h2>2027 Currier &amp; Ives Calendar</h2>
+        <p>Printing overview · with the compliments of Murray &amp; MacDonald Insurance Services, Inc.</p>
+      </div>
+      <div class="ov-cols">
+        <div class="ov-main">
+          <h3>The original we are matching</h3>
+          <p class="note">A 2022 edition, photographed with a tape measure. Click a photo for full size.</p>
+          <div class="photos">
+      <figure><a href="original/original-sheet-flat-812.webp" target="_blank"><picture><source type="image/webp" srcset="original/original-sheet-flat-600.webp 600w, original/original-sheet-flat-812.webp 812w, original/original-sheet-flat-812.webp 812w" sizes="(min-width: 1100px) 280px, (min-width: 640px) 45vw, 92vw"><img src="original/original-sheet-flat-812.jpg" alt="One sheet laid flat: 16 in wide and about 44 in long, with a die-cut hanging slot at 22 in. The two 22 in halves are printed head to head (the upper half is upside down)." loading="lazy" decoding="async"></picture></a><figcaption>One sheet laid flat: 16 in wide and about 44 in long, with a die-cut hanging slot at 22 in. The two 22 in halves are printed head to head (the upper half is upside down).</figcaption></figure>
+      <figure><a href="original/original-width-16in-1800.webp" target="_blank"><picture><source type="image/webp" srcset="original/original-width-16in-600.webp 600w, original/original-width-16in-1200.webp 1200w, original/original-width-16in-1800.webp 1800w" sizes="(min-width: 1100px) 280px, (min-width: 640px) 45vw, 92vw"><img src="original/original-width-16in-1200.jpg" alt="The foot of a month page: 16 in wide. Month grid, moon phases, the previous and next months, and the agency&#x27;s logo between them." loading="lazy" decoding="async"></picture></a><figcaption>The foot of a month page: 16 in wide. Month grid, moon phases, the previous and next months, and the agency&#x27;s logo between them.</figcaption></figure>
+      <figure><a href="original/original-sheet-bottom-1800.webp" target="_blank"><picture><source type="image/webp" srcset="original/original-sheet-bottom-600.webp 600w, original/original-sheet-bottom-1200.webp 1200w, original/original-sheet-bottom-1800.webp 1800w" sizes="(min-width: 1100px) 280px, (min-width: 640px) 45vw, 92vw"><img src="original/original-sheet-bottom-1200.jpg" alt="The bottom of the sheet, at about 44 in: the print (about 13.3 × 8 in in this edition) with its title and subtitle beneath." loading="lazy" decoding="async"></picture></a><figcaption>The bottom of the sheet, at about 44 in: the print (about 13.3 × 8 in in this edition) with its title and subtitle beneath.</figcaption></figure>
+      <figure><a href="original/original-edge-closeup-1800.webp" target="_blank"><picture><source type="image/webp" srcset="original/original-edge-closeup-600.webp 600w, original/original-edge-closeup-1200.webp 1200w, original/original-edge-closeup-1800.webp 1800w" sizes="(min-width: 1100px) 280px, (min-width: 640px) 45vw, 92vw"><img src="original/original-edge-closeup-1200.jpg" alt="Close-up of the trimmed edge at 16 in." loading="lazy" decoding="async"></picture></a><figcaption>Close-up of the trimmed edge at 16 in.</figcaption></figure>
+          </div>
+          <h3>The twelve months</h3>
+          <p class="note">Click a month to see it, or press Next.</p>
+          <div class="sheet">
+      <a href="#2" data-go="1"><picture><source type="image/webp" srcset="thumbs/2027-01-240.webp 240w, thumbs/2027-01-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-01-480.jpg" alt="January 2027: Central Park, Winter" loading="lazy" decoding="async"></picture>January</a>
+      <a href="#3" data-go="2"><picture><source type="image/webp" srcset="thumbs/2027-02-240.webp 240w, thumbs/2027-02-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-02-480.jpg" alt="February 2027: Winter Morning in the Country" loading="lazy" decoding="async"></picture>February</a>
+      <a href="#4" data-go="3"><picture><source type="image/webp" srcset="thumbs/2027-03-240.webp 240w, thumbs/2027-03-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-03-480.jpg" alt="March 2027: Falling Spring, Virginia" loading="lazy" decoding="async"></picture>March</a>
+      <a href="#5" data-go="4"><picture><source type="image/webp" srcset="thumbs/2027-04-240.webp 240w, thumbs/2027-04-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-04-480.jpg" alt="April 2027: The Lake in the Woods" loading="lazy" decoding="async"></picture>April</a>
+      <a href="#6" data-go="5"><picture><source type="image/webp" srcset="thumbs/2027-05-240.webp 240w, thumbs/2027-05-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-05-480.jpg" alt="May 2027: American Railroad Scene" loading="lazy" decoding="async"></picture>May</a>
+      <a href="#7" data-go="6"><picture><source type="image/webp" srcset="thumbs/2027-06-240.webp 240w, thumbs/2027-06-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-06-480.jpg" alt="June 2027: Summer Shades" loading="lazy" decoding="async"></picture>June</a>
+      <a href="#8" data-go="7"><picture><source type="image/webp" srcset="thumbs/2027-07-240.webp 240w, thumbs/2027-07-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-07-480.jpg" alt="July 2027: Yachts on a Summer Cruise" loading="lazy" decoding="async"></picture>July</a>
+      <a href="#9" data-go="8"><picture><source type="image/webp" srcset="thumbs/2027-08-240.webp 240w, thumbs/2027-08-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-08-480.jpg" alt="August 2027: Lake Mohonk" loading="lazy" decoding="async"></picture>August</a>
+      <a href="#10" data-go="9"><picture><source type="image/webp" srcset="thumbs/2027-09-240.webp 240w, thumbs/2027-09-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-09-480.jpg" alt="September 2027: Lake George, N.Y." loading="lazy" decoding="async"></picture>September</a>
+      <a href="#11" data-go="10"><picture><source type="image/webp" srcset="thumbs/2027-10-240.webp 240w, thumbs/2027-10-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-10-480.jpg" alt="October 2027: American Hunting Scenes" loading="lazy" decoding="async"></picture>October</a>
+      <a href="#12" data-go="11"><picture><source type="image/webp" srcset="thumbs/2027-11-240.webp 240w, thumbs/2027-11-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-11-480.jpg" alt="November 2027: Home to Thanksgiving" loading="lazy" decoding="async"></picture>November</a>
+      <a href="#13" data-go="12"><picture><source type="image/webp" srcset="thumbs/2027-12-240.webp 240w, thumbs/2027-12-480.webp 480w" sizes="(min-width: 1100px) 180px, 31vw"><img src="thumbs/2027-12-480.jpg" alt="December 2027: Central Park in Winter" loading="lazy" decoding="async"></picture>December</a>
+          </div>
+          <div class="small credits">Prints courtesy of the Library of Congress, The Metropolitan Museum of Art and the National Gallery of Art.</div>
+        </div>
+        <div class="ov-side">
+          <h3>Files</h3>
+          <a class="download" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027.pdf" download>Print PDF (68 MB)</a>
+          <div class="small">12 pages, 16 × 22 in, 300 dpi, RGB, no bleed. White background (no ink): print on cream or natural stock.</div>
+          <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027-display.pdf" download>Display PDF (68 MB)</a>
+          <div class="small">The same pages with the cream paper color printed in: for plain white stock, screens and frames.</div>
+        <h3>Size and construction</h3>
+        <table class="spec">
+            <tr><th>Finished size</th><td>16″ wide × 22″ tall (portrait)</td></tr>
+            <tr><th>Flat sheet</th><td>16″ × 44″, folded in half at the top</td></tr>
+            <tr><th>Construction</th><td>3 folded sheets × 4 pages = 12 months, nested and bound at the fold</td></tr>
+            <tr><th>Cover</th><td>Optional: please quote with and without</td></tr>
+            <tr><th>Fallback</th><td>If 44″ isn’t possible: 6 separate 16 × 22 sheets, bound across the top</td></tr>
+        </table>
+        <h3>Printing</h3>
+        <table class="spec">
+            <tr><th>Color</th><td>Full color both sides (4/4, CMYK process)</td></tr>
+            <tr><th>Method</th><td>Digital for small runs or offset for large: your recommendation</td></tr>
+            <tr><th>Back side</th><td>Printed so each month reads upright when the page is flipped up (head-to-head or head-to-foot: please confirm)</td></tr>
+        </table>
+        <h3>Paper</h3>
+        <table class="spec">
+            <tr><th>Weight</th><td>70–80# text, uncoated, cream or natural (the original was 70# cream text)</td></tr>
+            <tr><th>Upgrade option</th><td>100# text, if the fold is scored</td></tr>
+            <tr><th>Cover, if used</th><td>80# cover, same color</td></tr>
+            <tr><th>Please tell us</th><td>Which cream or natural stocks you carry, and whether show-through will be a problem</td></tr>
+        </table>
+        <h3>Binding and finishing</h3>
+        <table class="spec">
+            <tr><th>Binding</th><td>Saddle-stitched (stapled) at the top fold, or your recommendation</td></tr>
+            <tr><th>Hanging</th><td>Drilled hanging hole, or a tab at the top for an agency label</td></tr>
+            <tr><th>Folding</th><td>Scored before folding, so the fold doesn’t crack</td></tr>
+        </table>
+        <h3>Files</h3>
+        <table class="spec">
+            <tr><th>Format</th><td>Print-ready PDF, 300 dpi at full size (above)</td></tr>
+            <tr><th>Color mode</th><td>Currently RGB: please send your CMYK profile</td></tr>
+            <tr><th>Bleed and margins</th><td>Can supply ⅛″ bleed with crop marks: please give your safe margin</td></tr>
+            <tr><th>Layout</th><td>Currently single 16 × 22 pages: tell us if you want 16 × 44 spreads</td></tr>
+        </table>
+        <h3>Quantity, proof, delivery</h3>
+        <table class="spec">
+            <tr><th>Quantities to quote</th><td>25, 50, 100, 250</td></tr>
+            <tr><th>Proof</th><td>A printed, folded and bound sample on the actual paper before the full run</td></tr>
+            <tr><th>Turnaround</th><td>Time from file approval to finished calendars, and the last day to send files</td></tr>
+            <tr><th>Deadline</th><td>Delivered to Falmouth, MA 02556 by December 15, ideally early December</td></tr>
+        </table>
+        <h3>Questions for every printer</h3>
+        <ol class="specs">
+          <li>Can you print a 16 × 44 sheet? If not, what’s your largest sheet?</li>
+          <li>Do you fold and bind in-house, or send it out?</li>
+          <li>Which cream or natural uncoated papers do you have?</li>
+          <li>Is there a setup fee, and what’s the price per calendar at each quantity?</li>
+        </ol>
+        </div>
+      </div>
     </div>
-
-    <h3>The twelve months</h3>
-    <p>Tap a month to see it, or press Next.</p>
-    <div class="sheet">
-      <a href="#2" data-go="1"><img data-src="thumbs/2027-01.jpg" alt="January 2027: Central Park, Winter">January</a>
-      <a href="#3" data-go="2"><img data-src="thumbs/2027-02.jpg" alt="February 2027: Winter Morning in the Country">February</a>
-      <a href="#4" data-go="3"><img data-src="thumbs/2027-03.jpg" alt="March 2027: Falling Spring, Virginia">March</a>
-      <a href="#5" data-go="4"><img data-src="thumbs/2027-04.jpg" alt="April 2027: The Lake in the Woods">April</a>
-      <a href="#6" data-go="5"><img data-src="thumbs/2027-05.jpg" alt="May 2027: American Railroad Scene">May</a>
-      <a href="#7" data-go="6"><img data-src="thumbs/2027-06.jpg" alt="June 2027: Summer Shades">June</a>
-      <a href="#8" data-go="7"><img data-src="thumbs/2027-07.jpg" alt="July 2027: Yachts on a Summer Cruise">July</a>
-      <a href="#9" data-go="8"><img data-src="thumbs/2027-08.jpg" alt="August 2027: Lake Mohonk">August</a>
-      <a href="#10" data-go="9"><img data-src="thumbs/2027-09.jpg" alt="September 2027: Lake George, N.Y.">September</a>
-      <a href="#11" data-go="10"><img data-src="thumbs/2027-10.jpg" alt="October 2027: American Hunting Scenes">October</a>
-      <a href="#12" data-go="11"><img data-src="thumbs/2027-11.jpg" alt="November 2027: Home to Thanksgiving">November</a>
-      <a href="#13" data-go="12"><img data-src="thumbs/2027-12.jpg" alt="December 2027: Central Park in Winter">December</a>
-    </div>
-    <div class="small" style="margin-top:16px">Prints courtesy of the Library of Congress, The Metropolitan Museum of Art and the National Gallery of Art.</div>
   </section>
-  <section class="slide" data-label="January" aria-label="January 2027: Central Park, Winter"><div class="page"><img data-src="pages/2027-01.jpg" alt="January 2027: Central Park, Winter"></div></section>
-  <section class="slide" data-label="February" aria-label="February 2027: Winter Morning in the Country"><div class="page"><img data-src="pages/2027-02.jpg" alt="February 2027: Winter Morning in the Country"></div></section>
-  <section class="slide" data-label="March" aria-label="March 2027: Falling Spring, Virginia"><div class="page"><img data-src="pages/2027-03.jpg" alt="March 2027: Falling Spring, Virginia"></div></section>
-  <section class="slide" data-label="April" aria-label="April 2027: The Lake in the Woods"><div class="page"><img data-src="pages/2027-04.jpg" alt="April 2027: The Lake in the Woods"></div></section>
-  <section class="slide" data-label="May" aria-label="May 2027: American Railroad Scene"><div class="page"><img data-src="pages/2027-05.jpg" alt="May 2027: American Railroad Scene"></div></section>
-  <section class="slide" data-label="June" aria-label="June 2027: Summer Shades"><div class="page"><img data-src="pages/2027-06.jpg" alt="June 2027: Summer Shades"></div></section>
-  <section class="slide" data-label="July" aria-label="July 2027: Yachts on a Summer Cruise"><div class="page"><img data-src="pages/2027-07.jpg" alt="July 2027: Yachts on a Summer Cruise"></div></section>
-  <section class="slide" data-label="August" aria-label="August 2027: Lake Mohonk"><div class="page"><img data-src="pages/2027-08.jpg" alt="August 2027: Lake Mohonk"></div></section>
-  <section class="slide" data-label="September" aria-label="September 2027: Lake George, N.Y."><div class="page"><img data-src="pages/2027-09.jpg" alt="September 2027: Lake George, N.Y."></div></section>
-  <section class="slide" data-label="October" aria-label="October 2027: American Hunting Scenes"><div class="page"><img data-src="pages/2027-10.jpg" alt="October 2027: American Hunting Scenes"></div></section>
-  <section class="slide" data-label="November" aria-label="November 2027: Home to Thanksgiving"><div class="page"><img data-src="pages/2027-11.jpg" alt="November 2027: Home to Thanksgiving"></div></section>
-  <section class="slide" data-label="December" aria-label="December 2027: Central Park in Winter"><div class="page"><img data-src="pages/2027-12.jpg" alt="December 2027: Central Park in Winter"></div></section>
+  <section class="slide month" data-label="January" aria-label="January 2027: Central Park, Winter"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-01-700.webp 700w, pages/2027-01-1100.webp 1100w, pages/2027-01-1600.webp 1600w, pages/2027-01-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-01-1600.jpg" alt="January 2027: Central Park, Winter" decoding="async"></picture></div><aside class="info"><div class="mo">January 2027</div><div class="t">Central Park, Winter.</div><div class="s">The Skating Pond.</div><div class="c">Currier &amp; Ives, 1862. The Metropolitan Museum of Art, Bequest of Adele S. Colgate, 1962. <a href="https://www.metmuseum.org/art/collection/search/339890" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="February" aria-label="February 2027: Winter Morning in the Country"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-02-700.webp 700w, pages/2027-02-1100.webp 1100w, pages/2027-02-1600.webp 1600w, pages/2027-02-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-02-1600.jpg" alt="February 2027: Winter Morning in the Country" decoding="async"></picture></div><aside class="info"><div class="mo">February 2027</div><div class="t">Winter Morning in the Country.</div><div class="s">Currier &amp; Ives, 1873.</div><div class="c">Currier &amp; Ives, 1873. The Metropolitan Museum of Art, Bequest of Adele S. Colgate, 1962. <a href="https://www.metmuseum.org/art/collection/search/380483" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="March" aria-label="March 2027: Falling Spring, Virginia"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-03-700.webp 700w, pages/2027-03-1100.webp 1100w, pages/2027-03-1600.webp 1600w, pages/2027-03-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-03-1600.jpg" alt="March 2027: Falling Spring, Virginia" decoding="async"></picture></div><aside class="info"><div class="mo">March 2027</div><div class="t">Falling Spring, Virginia.</div><div class="s">Currier &amp; Ives, 1868.</div><div class="c">Currier &amp; Ives, 1868. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/95514560/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="April" aria-label="April 2027: The Lake in the Woods"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-04-700.webp 700w, pages/2027-04-1100.webp 1100w, pages/2027-04-1600.webp 1600w, pages/2027-04-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-04-1600.jpg" alt="April 2027: The Lake in the Woods" decoding="async"></picture></div><aside class="info"><div class="mo">April 2027</div><div class="t">The Lake in the Woods.</div><div class="s">Deer at the water’s edge, Currier &amp; Ives.</div><div class="c">Currier &amp; Ives. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/2002707734/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="May" aria-label="May 2027: American Railroad Scene"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-05-700.webp 700w, pages/2027-05-1100.webp 1100w, pages/2027-05-1600.webp 1600w, pages/2027-05-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-05-1600.jpg" alt="May 2027: American Railroad Scene" decoding="async"></picture></div><aside class="info"><div class="mo">May 2027</div><div class="t">American Railroad Scene.</div><div class="s">Lightning Express Trains Leaving the Junction.</div><div class="c">Currier &amp; Ives, 1874. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/90708612/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="June" aria-label="June 2027: Summer Shades"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-06-700.webp 700w, pages/2027-06-1100.webp 1100w, pages/2027-06-1600.webp 1600w, pages/2027-06-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-06-1600.jpg" alt="June 2027: Summer Shades" decoding="async"></picture></div><aside class="info"><div class="mo">June 2027</div><div class="t">Summer Shades.</div><div class="s">Currier &amp; Ives, 1859.</div><div class="c">Currier &amp; Ives, 1859. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/2002695758/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="July" aria-label="July 2027: Yachts on a Summer Cruise"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-07-700.webp 700w, pages/2027-07-1100.webp 1100w, pages/2027-07-1600.webp 1600w, pages/2027-07-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-07-1600.jpg" alt="July 2027: Yachts on a Summer Cruise" decoding="async"></picture></div><aside class="info"><div class="mo">July 2027</div><div class="t">Yachts on a Summer Cruise.</div><div class="s">Currier &amp; Ives, 1871.</div><div class="c">Currier &amp; Ives, 1871. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/2002698881/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="August" aria-label="August 2027: Lake Mohonk"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-08-700.webp 700w, pages/2027-08-1100.webp 1100w, pages/2027-08-1600.webp 1600w, pages/2027-08-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-08-1600.jpg" alt="August 2027: Lake Mohonk" decoding="async"></picture></div><aside class="info"><div class="mo">August 2027</div><div class="t">Lake Mohonk.</div><div class="s">The Shawangunk Mountains, Ulster County, New York.</div><div class="c">Currier &amp; Ives. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/2002707735/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="September" aria-label="September 2027: Lake George, N.Y."><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-09-700.webp 700w, pages/2027-09-1100.webp 1100w, pages/2027-09-1600.webp 1600w, pages/2027-09-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-09-1600.jpg" alt="September 2027: Lake George, N.Y." decoding="async"></picture></div><aside class="info"><div class="mo">September 2027</div><div class="t">Lake George, N.Y.</div><div class="s">The Adirondacks, Warren County, New York.</div><div class="c">Currier &amp; Ives. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/2002707733/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="October" aria-label="October 2027: American Hunting Scenes"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-10-700.webp 700w, pages/2027-10-1100.webp 1100w, pages/2027-10-1600.webp 1600w, pages/2027-10-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-10-1600.jpg" alt="October 2027: American Hunting Scenes" decoding="async"></picture></div><aside class="info"><div class="mo">October 2027</div><div class="t">American Hunting Scenes.</div><div class="s">“A Good Chance.”</div><div class="c">Currier &amp; Ives, 1863. Library of Congress, Prints &amp; Photographs Division. <a href="https://www.loc.gov/pictures/item/90708556/" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="November" aria-label="November 2027: Home to Thanksgiving"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-11-700.webp 700w, pages/2027-11-1100.webp 1100w, pages/2027-11-1600.webp 1600w, pages/2027-11-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-11-1600.jpg" alt="November 2027: Home to Thanksgiving" decoding="async"></picture></div><aside class="info"><div class="mo">November 2027</div><div class="t">Home to Thanksgiving.</div><div class="s">Currier &amp; Ives, 1867.</div><div class="c">Currier &amp; Ives, 1867. National Gallery of Art, Collection of Mr. and Mrs. Paul Mellon. <a href="https://www.nga.gov/artworks/66577-home-thanksgiving" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
+  <section class="slide month" data-label="December" aria-label="December 2027: Central Park in Winter"><div class="page"><picture><source type="image/webp" data-srcset="pages/2027-12-700.webp 700w, pages/2027-12-1100.webp 1100w, pages/2027-12-1600.webp 1600w, pages/2027-12-2400.webp 2400w" sizes="(min-width: 1000px) calc((100vh - 120px) * 0.727), calc(100vw - 24px)"><img data-src="pages/2027-12-1600.jpg" alt="December 2027: Central Park in Winter" decoding="async"></picture></div><aside class="info"><div class="mo">December 2027</div><div class="t">Central Park in Winter.</div><div class="s">Skating and sleighing by moonlight, New York City.</div><div class="c">Currier &amp; Ives. The Metropolitan Museum of Art, Bequest of Adele S. Colgate, 1962. <a href="https://www.metmuseum.org/art/collection/search/364576" target="_blank" rel="noopener">Catalog record</a></div><button class="zoom-btn" type="button">View full size</button></aside></section>
 </main>
 <nav>
   <button id="prev" aria-label="Previous">‹ Prev</button>
   <span class="label" id="label"></span>
+  <div class="strip" id="strip"></div>
   <button id="next" aria-label="Next">Next ›</button>
 </nav>
 <script>
@@ -212,23 +242,51 @@
   var slides = Array.prototype.slice.call(document.querySelectorAll('.slide'));
   var label = document.getElementById('label'), count = document.getElementById('count');
   var prev = document.getElementById('prev'), next = document.getElementById('next');
+  var strip = document.getElementById('strip');
   var i = 0;
 
-  function load(n) {               // images load only when their month is near
+  // month list for wide screens
+  slides.forEach(function (s, k) {
+    var b = document.createElement('button');
+    var name = s.getAttribute('data-label');
+    b.textContent = k === 0 ? 'Overview' : name.slice(0, 3);
+    b.title = name;
+    b.onclick = function () { show(k); };
+    strip.appendChild(b);
+  });
+  var stripButtons = strip.querySelectorAll('button');
+
+  function load(n) {               // a month's picture loads only when it is near
     var s = slides[n]; if (!s) return;
-    var img = s.querySelector('img[data-src]');
-    if (img) { img.src = img.getAttribute('data-src'); img.removeAttribute('data-src'); }
+    s.querySelectorAll('[data-srcset]').forEach(function (e) {
+      e.setAttribute('srcset', e.getAttribute('data-srcset')); e.removeAttribute('data-srcset');
+    });
+    s.querySelectorAll('img[data-src]').forEach(function (e) {
+      e.src = e.getAttribute('data-src'); e.removeAttribute('data-src');
+    });
+  }
+  function unzoom(s) {
+    if (!s.classList.contains('zoom')) return;
+    s.classList.remove('zoom');
+    s.querySelectorAll('img, source').forEach(function (e) { e.sizes = e.getAttribute('data-sizes') || e.sizes; });
+  }
+  function zoom(s) {
+    s.classList.add('zoom');
+    s.querySelectorAll('img, source').forEach(function (e) {
+      if (!e.getAttribute('data-sizes')) e.setAttribute('data-sizes', e.sizes);
+      e.sizes = 'min(100vw, 1800px)';
+    });
+    s.scrollTop = 0;
   }
   function show(n, push) {
+    if (slides[i]) unzoom(slides[i]);
     i = Math.max(0, Math.min(slides.length - 1, n));
     slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
     load(i); load(i + 1); load(i - 1);
-    if (i === 0) slides[i].querySelectorAll('img[data-src]').forEach(function (im) {
-      im.src = im.getAttribute('data-src'); im.removeAttribute('data-src');
-    });
     label.textContent = slides[i].getAttribute('data-label');
     count.textContent = (i + 1) + ' / ' + slides.length;
     prev.disabled = i === 0; next.disabled = i === slides.length - 1;
+    stripButtons.forEach(function (b, k) { b.classList.toggle('on', k === i); });
     if (push !== false) history.replaceState(null, '', '#' + (i + 1));
   }
   prev.onclick = function () { show(i - 1); };
@@ -236,13 +294,21 @@
   document.addEventListener('keydown', function (e) {
     if (e.key === 'ArrowLeft') show(i - 1);
     if (e.key === 'ArrowRight') show(i + 1);
+    if (e.key === 'Escape') unzoom(slides[i]);
   });
-  // swipe left / right
+  // a click on the page, or "View full size", zooms in and out
+  slides.forEach(function (s) {
+    var page = s.querySelector('.page'), btn = s.querySelector('.zoom-btn');
+    function toggle() { s.classList.contains('zoom') ? unzoom(s) : zoom(s); }
+    if (page) page.addEventListener('click', toggle);
+    if (btn) btn.addEventListener('click', toggle);
+  });
+  // swipe left / right (not while zoomed, where a swipe pans)
   var x0 = null, y0 = null;
   var stage = document.getElementById('stage');
   stage.addEventListener('touchstart', function (e) { x0 = e.touches[0].clientX; y0 = e.touches[0].clientY; }, { passive: true });
   stage.addEventListener('touchend', function (e) {
-    if (x0 === null) return;
+    if (x0 === null || slides[i].classList.contains('zoom')) { x0 = null; return; }
     var dx = e.changedTouches[0].clientX - x0, dy = e.changedTouches[0].clientY - y0;
     if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) show(i + (dx < 0 ? 1 : -1));
     x0 = null;
