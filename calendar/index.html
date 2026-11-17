@@ -62,6 +62,8 @@
               background: var(--accent); color: #fff; text-decoration: none; font-size: 17px; }
   .download.light { background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.25); }
   .small { font-size: 13px; color: var(--muted); line-height: 1.45; }
+  .update-note { margin: 16px 0 0; padding: 12px 14px; border-left: 3px solid var(--accent); background: rgba(255,255,255,.05);
+                 font-size: 15px; line-height: 1.45; color: var(--ink); }
   table.spec { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.4; }
   table.spec th, table.spec td { text-align: left; vertical-align: top; padding: 7px 8px 7px 0; border-bottom: 1px solid rgba(255,255,255,.08); }
   table.spec th { font-weight: normal; color: var(--muted); width: 34%; }
@@ -162,11 +164,15 @@
         </div>
         <div class="ov-side">
           <h3>Files</h3>
-          <a class="download" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027.pdf" download>Print PDF (68 MB)</a>
-          <div class="small">12 pages, 16 × 22 in, 300 dpi, RGB, no bleed. White background (no ink): print on cream or natural stock.</div>
-          <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027-display.pdf" download>Display PDF (68 MB)</a>
-          <div class="small">The same pages with the cream paper color printed in: for plain white stock, screens and frames.</div>
-        <h3>Size and construction</h3>
+          <a class="download" href="https://github.com/P373/robobandit/releases/download/calendar-2027/currier-ives-2027-16x22-print-CMYK-nobg.pdf" download>Print PDF, paper white (220 MB)</a>
+          <div class="small">CMYK, 13 pages, 16 × 22 in trim + ⅛ in bleed, crop marks, PDF/X-1a. For cream or natural stock: no ink on the background.</div>
+          <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/currier-ives-2027-16x22-print-CMYK.pdf" download>Print PDF, cream background (219 MB)</a>
+          <div class="small">The same, with the cream paper color printed in, for white stock or to compare.</div>
+          <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/currier-ives-2027-16x22-preview-RGB.pdf" download>Preview PDF (for email and approval) (5 MB)</a>
+          <div class="small">A small RGB proof of how the CMYK will print.</div>
+          <p class="update-note">Need something different? We can update the PDF to meet your needs (bleed, color profile, page setup or 16 × 44 spreads). Just ask.</p>
+
+<h3>Size and construction</h3>
         <table class="spec">
             <tr><th>Finished size</th><td>16″ wide × 22″ tall (portrait)</td></tr>
             <tr><th>Flat sheet</th><td>16″ × 44″, folded in half at the top</td></tr>
@@ -195,10 +201,10 @@
         </table>
         <h3>Files</h3>
         <table class="spec">
-            <tr><th>Format</th><td>Print-ready PDF, 300 dpi at full size (above)</td></tr>
-            <tr><th>Color mode</th><td>Currently RGB: please send your CMYK profile</td></tr>
-            <tr><th>Bleed and margins</th><td>Can supply ⅛″ bleed with crop marks: please give your safe margin</td></tr>
-            <tr><th>Layout</th><td>Currently single 16 × 22 pages: tell us if you want 16 × 44 spreads</td></tr>
+            <tr><th>Format</th><td>PDF/X-1a:2001, 300 ppi, no fonts (all type drawn), no transparency</td></tr>
+            <tr><th>Color mode</th><td>CMYK, GRACoL 2013 Uncoated (CGATS21-2 RCU); black type 100% K, overprinting; max ink 278%</td></tr>
+            <tr><th>Bleed and margins</th><td>⅛″ bleed, crop marks outside the bleed, TrimBox and BleedBox set; nothing within 0.375″ of the trim</td></tr>
+            <tr><th>Layout</th><td>13 single 16 × 22 pages in reading order (cover, January–December); you impose the 16 × 44 sheets</td></tr>
         </table>
         <h3>Quantity, proof, delivery</h3>
         <table class="spec">
