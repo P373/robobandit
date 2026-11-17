@@ -71,6 +71,12 @@
              border-bottom: 1px solid rgba(255,255,255,.15); letter-spacing: .03em; }
   .specs { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.5; color: var(--ink); }
   .specs li { margin-bottom: 6px; }
+  table.spec { border-collapse: collapse; width: 100%; font-size: 15px; line-height: 1.4; }
+  table.spec th, table.spec td { text-align: left; vertical-align: top; padding: 7px 8px;
+                                 border-bottom: 1px solid rgba(255,255,255,.08); }
+  table.spec th { font-weight: normal; color: var(--muted); width: 32%; }
+  @media (max-width: 480px) { table.spec th, table.spec td { display: block; width: auto; padding: 2px 0; }
+                              table.spec td { padding-bottom: 10px; } table.spec th { border: 0; } }
   .specs b { font-weight: normal; color: var(--muted); }
   .photos { columns: 1; column-gap: 14px; }
   @media (min-width: 640px) { .photos { columns: 2; } }
@@ -107,14 +113,54 @@
     <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027-display.pdf" download>Display PDF (68 MB)</a>
     <div class="small">The same pages with the cream paper colour printed in: for plain white stock, screens and frames.</div>
 
-    <h3>Specifications</h3>
-    <ul class="specs">
-      <li><b>Pages:</b> 12, one per month (January–December 2027), portrait.</li>
-      <li><b>Page size:</b> 16 × 22 in trimmed. Each page: the print on top, the month grid below.</li>
-      <li><b>Paper:</b> cream or natural, uncoated or matte, heavy enough to hang flat.</li>
-      <li><b>Format of the original</b> (photos below): sheets 16 in wide and about 44 in long, two 22 in pages per sheet printed head to head, with a die-cut hanging slot at the centre fold.</li>
-      <li><b>Colour:</b> full colour; the red rules and holiday dates are a single deep red.</li>
-    </ul>
+    <h3>Size and construction</h3>
+    <table class="spec">
+        <tr><th>Finished size</th><td>16″ wide × 22″ tall (portrait)</td></tr>
+        <tr><th>Flat sheet</th><td>16″ × 44″, folded in half at the top</td></tr>
+        <tr><th>Construction</th><td>3 folded sheets × 4 pages = 12 months, nested and bound at the fold</td></tr>
+        <tr><th>Cover</th><td>Optional: please quote with and without</td></tr>
+        <tr><th>Fallback</th><td>If 44″ isn’t possible: 6 separate 16 × 22 sheets, bound across the top</td></tr>
+    </table>
+    <h3>Printing</h3>
+    <table class="spec">
+        <tr><th>Colour</th><td>Full colour both sides (4/4, CMYK process)</td></tr>
+        <tr><th>Method</th><td>Digital for small runs or offset for large: your recommendation</td></tr>
+        <tr><th>Back side</th><td>Printed so each month reads upright when the page is flipped up (head-to-head or head-to-foot: please confirm)</td></tr>
+    </table>
+    <h3>Paper</h3>
+    <table class="spec">
+        <tr><th>Weight</th><td>70–80# text, uncoated, cream or natural (the original was 70# cream text)</td></tr>
+        <tr><th>Upgrade option</th><td>100# text, if the fold is scored</td></tr>
+        <tr><th>Cover, if used</th><td>80# cover, same colour</td></tr>
+        <tr><th>Please tell us</th><td>Which cream or natural stocks you carry, and whether show-through will be a problem</td></tr>
+    </table>
+    <h3>Binding and finishing</h3>
+    <table class="spec">
+        <tr><th>Binding</th><td>Saddle-stitched (stapled) at the top fold, or your recommendation</td></tr>
+        <tr><th>Hanging</th><td>Drilled hanging hole, or a tab at the top for an agency label</td></tr>
+        <tr><th>Folding</th><td>Scored before folding, so the fold doesn’t crack</td></tr>
+    </table>
+    <h3>Files</h3>
+    <table class="spec">
+        <tr><th>Format</th><td>Print-ready PDF, 300 dpi at full size (above)</td></tr>
+        <tr><th>Colour mode</th><td>Currently RGB: please send your CMYK profile</td></tr>
+        <tr><th>Bleed and margins</th><td>Can supply ⅛″ bleed with crop marks: please give your safe margin</td></tr>
+        <tr><th>Layout</th><td>Currently single 16 × 22 pages: tell us if you want 16 × 44 spreads</td></tr>
+    </table>
+    <h3>Quantity, proof, delivery</h3>
+    <table class="spec">
+        <tr><th>Quantities to quote</th><td>25, 50, 100, 250</td></tr>
+        <tr><th>Proof</th><td>A printed, folded and bound sample on the actual paper before the full run</td></tr>
+        <tr><th>Turnaround</th><td>Time from file approval to finished calendars, and the last day to send files</td></tr>
+        <tr><th>Deadline</th><td>Delivered to Falmouth, MA 02556 by December 15, ideally early December</td></tr>
+    </table>
+    <h3>Questions for every printer</h3>
+    <ol class="specs">
+      <li>Can you print a 16 × 44 sheet? If not, what’s your largest sheet?</li>
+      <li>Do you fold and bind in-house, or send it out?</li>
+      <li>Which cream or natural uncoated papers do you have?</li>
+      <li>Is there a setup fee, and what’s the price per calendar at each quantity?</li>
+    </ol>
 
     <h3>The original we are matching</h3>
     <p>A 2022 edition, photographed with a tape measure.</p>
