@@ -66,6 +66,17 @@
   .year { flex-direction: column; overflow-y: auto; justify-content: flex-start; padding: 8px 12px 16px; }
   .year h2 { font-weight: normal; font-size: 22px; margin: 6px 0 2px; text-align: center; }
   .year p { margin: 0 0 12px; color: var(--muted); font-size: 14px; text-align: center; }
+  .year > * { width: 100%; max-width: 760px; flex: none; }
+  .year h3 { font-weight: normal; font-size: 18px; margin: 26px 0 8px; padding-bottom: 6px; text-align: left;
+             border-bottom: 1px solid rgba(255,255,255,.15); letter-spacing: .03em; }
+  .specs { margin: 0; padding-left: 20px; font-size: 15px; line-height: 1.5; color: var(--ink); }
+  .specs li { margin-bottom: 6px; }
+  .specs b { font-weight: normal; color: var(--muted); }
+  .photos { columns: 1; column-gap: 14px; }
+  @media (min-width: 640px) { .photos { columns: 2; } }
+  .photos figure { margin: 0 0 16px; break-inside: avoid; }
+  .photos img { width: 100%; display: block; border-radius: 4px; box-shadow: 0 3px 10px rgba(0,0,0,.4); }
+  .photos figcaption { font-size: 13px; color: var(--muted); margin-top: 6px; line-height: 1.4; }
   .sheet { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; max-width: 760px; }
   @media (min-width: 640px) { .sheet { grid-template-columns: repeat(4, 1fr); } }
   .sheet a { display: block; color: var(--muted); text-decoration: none; font-size: 12px; text-align: center; }
@@ -86,7 +97,53 @@
   <span class="count" id="count"></span>
 </header>
 <main id="stage">
-  <section class="slide" data-label="January" aria-label="January 2027: Central Park, Winter"><div class="page"><img src="pages/2027-01.jpg" alt="January 2027: Central Park, Winter"></div></section>
+  <section class="slide year" data-label="Overview" aria-label="Printing overview">
+    <h2>2027 Currier &amp; Ives Calendar</h2>
+    <p>Printing overview · with the compliments of Murray &amp; MacDonald Insurance Services, Inc.</p>
+
+    <h3>Files</h3>
+    <a class="download" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027.pdf" download>Print PDF (68 MB)</a>
+    <div class="small">12 pages, 16 × 22 in, 300 dpi, RGB, no bleed. White background (no ink): print on cream or natural stock.</div>
+    <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027-display.pdf" download>Display PDF (68 MB)</a>
+    <div class="small">The same pages with the cream paper colour printed in: for plain white stock, screens and frames.</div>
+
+    <h3>Specifications</h3>
+    <ul class="specs">
+      <li><b>Pages:</b> 12, one per month (January–December 2027), portrait.</li>
+      <li><b>Page size:</b> 16 × 22 in trimmed. Each page: the print on top, the month grid below.</li>
+      <li><b>Paper:</b> cream or natural, uncoated or matte, heavy enough to hang flat.</li>
+      <li><b>Format of the original</b> (photos below): sheets 16 in wide and about 44 in long, two 22 in pages per sheet printed head to head, with a die-cut hanging slot at the centre fold.</li>
+      <li><b>Colour:</b> full colour; the red rules and holiday dates are a single deep red.</li>
+    </ul>
+
+    <h3>The original we are matching</h3>
+    <p>A 2022 edition, photographed with a tape measure.</p>
+    <div class="photos">
+      <figure class="tall"><a href="original/original-sheet-flat.jpg"><img data-src="original/original-sheet-flat.jpg" alt="One sheet laid flat: 16 in wide and about 44 in long, with a die-cut hanging slot at 22 in. The two 22 in halves are printed head to head (the upper half is upside down)."></a><figcaption>One sheet laid flat: 16 in wide and about 44 in long, with a die-cut hanging slot at 22 in. The two 22 in halves are printed head to head (the upper half is upside down).</figcaption></figure>
+      <figure><a href="original/original-width-16in.jpg"><img data-src="original/original-width-16in.jpg" alt="The foot of a month page: 16 in wide. Month grid, moon phases, the previous and next months, and the agency&#x27;s logo between them."></a><figcaption>The foot of a month page: 16 in wide. Month grid, moon phases, the previous and next months, and the agency&#x27;s logo between them.</figcaption></figure>
+      <figure><a href="original/original-sheet-bottom.jpg"><img data-src="original/original-sheet-bottom.jpg" alt="The bottom of the sheet, at about 44 in: the print (about 13.3 × 8 in in this edition) with its title and subtitle beneath."></a><figcaption>The bottom of the sheet, at about 44 in: the print (about 13.3 × 8 in in this edition) with its title and subtitle beneath.</figcaption></figure>
+      <figure><a href="original/original-edge-closeup.jpg"><img data-src="original/original-edge-closeup.jpg" alt="Close-up of the trimmed edge at 16 in."></a><figcaption>Close-up of the trimmed edge at 16 in.</figcaption></figure>
+    </div>
+
+    <h3>The twelve months</h3>
+    <p>Tap a month to see it, or press Next.</p>
+    <div class="sheet">
+      <a href="#2" data-go="1"><img data-src="thumbs/2027-01.jpg" alt="January 2027: Central Park, Winter">January</a>
+      <a href="#3" data-go="2"><img data-src="thumbs/2027-02.jpg" alt="February 2027: Winter Morning in the Country">February</a>
+      <a href="#4" data-go="3"><img data-src="thumbs/2027-03.jpg" alt="March 2027: Falling Spring, Virginia">March</a>
+      <a href="#5" data-go="4"><img data-src="thumbs/2027-04.jpg" alt="April 2027: The Lake in the Woods">April</a>
+      <a href="#6" data-go="5"><img data-src="thumbs/2027-05.jpg" alt="May 2027: American Railroad Scene">May</a>
+      <a href="#7" data-go="6"><img data-src="thumbs/2027-06.jpg" alt="June 2027: Summer Shades">June</a>
+      <a href="#8" data-go="7"><img data-src="thumbs/2027-07.jpg" alt="July 2027: Yachts on a Summer Cruise">July</a>
+      <a href="#9" data-go="8"><img data-src="thumbs/2027-08.jpg" alt="August 2027: Lake Mohonk">August</a>
+      <a href="#10" data-go="9"><img data-src="thumbs/2027-09.jpg" alt="September 2027: Lake George, N.Y.">September</a>
+      <a href="#11" data-go="10"><img data-src="thumbs/2027-10.jpg" alt="October 2027: American Hunting Scenes">October</a>
+      <a href="#12" data-go="11"><img data-src="thumbs/2027-11.jpg" alt="November 2027: Home to Thanksgiving">November</a>
+      <a href="#13" data-go="12"><img data-src="thumbs/2027-12.jpg" alt="December 2027: Central Park in Winter">December</a>
+    </div>
+    <div class="small" style="margin-top:16px">Prints courtesy of the Library of Congress, The Metropolitan Museum of Art and the National Gallery of Art.</div>
+  </section>
+  <section class="slide" data-label="January" aria-label="January 2027: Central Park, Winter"><div class="page"><img data-src="pages/2027-01.jpg" alt="January 2027: Central Park, Winter"></div></section>
   <section class="slide" data-label="February" aria-label="February 2027: Winter Morning in the Country"><div class="page"><img data-src="pages/2027-02.jpg" alt="February 2027: Winter Morning in the Country"></div></section>
   <section class="slide" data-label="March" aria-label="March 2027: Falling Spring, Virginia"><div class="page"><img data-src="pages/2027-03.jpg" alt="March 2027: Falling Spring, Virginia"></div></section>
   <section class="slide" data-label="April" aria-label="April 2027: The Lake in the Woods"><div class="page"><img data-src="pages/2027-04.jpg" alt="April 2027: The Lake in the Woods"></div></section>
@@ -98,35 +155,11 @@
   <section class="slide" data-label="October" aria-label="October 2027: American Hunting Scenes"><div class="page"><img data-src="pages/2027-10.jpg" alt="October 2027: American Hunting Scenes"></div></section>
   <section class="slide" data-label="November" aria-label="November 2027: Home to Thanksgiving"><div class="page"><img data-src="pages/2027-11.jpg" alt="November 2027: Home to Thanksgiving"></div></section>
   <section class="slide" data-label="December" aria-label="December 2027: Central Park in Winter"><div class="page"><img data-src="pages/2027-12.jpg" alt="December 2027: Central Park in Winter"></div></section>
-  <section class="slide year" data-label="The Year" aria-label="The whole year and download">
-    <h2>2027 at a glance</h2>
-    <a class="download" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027.pdf" download>Print PDF (68 MB)</a>
-    <div class="small">16 × 22 in, 300 dpi, white background: for a print shop, on cream or natural paper.</div>
-    <a class="download light" href="https://github.com/P373/robobandit/releases/download/calendar-2027/calendar-2027-display.pdf" download>Display PDF (68 MB)</a>
-    <div class="small">16 × 22 in, 300 dpi, with the cream paper colour: for screens, frames and plain white paper.</div>
-    <p style="margin-top:14px">Tap a month to see it.</p>
-    <div class="sheet">
-      <a href="#1" data-go="0"><img data-src="thumbs/2027-01.jpg" alt="January 2027: Central Park, Winter">January</a>
-      <a href="#2" data-go="1"><img data-src="thumbs/2027-02.jpg" alt="February 2027: Winter Morning in the Country">February</a>
-      <a href="#3" data-go="2"><img data-src="thumbs/2027-03.jpg" alt="March 2027: Falling Spring, Virginia">March</a>
-      <a href="#4" data-go="3"><img data-src="thumbs/2027-04.jpg" alt="April 2027: The Lake in the Woods">April</a>
-      <a href="#5" data-go="4"><img data-src="thumbs/2027-05.jpg" alt="May 2027: American Railroad Scene">May</a>
-      <a href="#6" data-go="5"><img data-src="thumbs/2027-06.jpg" alt="June 2027: Summer Shades">June</a>
-      <a href="#7" data-go="6"><img data-src="thumbs/2027-07.jpg" alt="July 2027: Yachts on a Summer Cruise">July</a>
-      <a href="#8" data-go="7"><img data-src="thumbs/2027-08.jpg" alt="August 2027: Lake Mohonk">August</a>
-      <a href="#9" data-go="8"><img data-src="thumbs/2027-09.jpg" alt="September 2027: Lake George, N.Y.">September</a>
-      <a href="#10" data-go="9"><img data-src="thumbs/2027-10.jpg" alt="October 2027: American Hunting Scenes">October</a>
-      <a href="#11" data-go="10"><img data-src="thumbs/2027-11.jpg" alt="November 2027: Home to Thanksgiving">November</a>
-      <a href="#12" data-go="11"><img data-src="thumbs/2027-12.jpg" alt="December 2027: Central Park in Winter">December</a>
-    </div>
-    <div class="small" style="margin-top:16px">With the compliments of Murray &amp; MacDonald Insurance Services, Inc..</div>
-    <div class="small">Prints courtesy of the Library of Congress, The Metropolitan Museum of Art and the National Gallery of Art.</div>
-  </section>
 </main>
 <nav>
-  <button id="prev" aria-label="Previous month">‹ Prev</button>
+  <button id="prev" aria-label="Previous">‹ Prev</button>
   <span class="label" id="label"></span>
-  <button id="next" aria-label="Next month">Next ›</button>
+  <button id="next" aria-label="Next">Next ›</button>
 </nav>
 <script>
 (function () {
@@ -144,7 +177,7 @@
     i = Math.max(0, Math.min(slides.length - 1, n));
     slides.forEach(function (s, k) { s.classList.toggle('on', k === i); });
     load(i); load(i + 1); load(i - 1);
-    if (i === slides.length - 1) slides[i].querySelectorAll('img[data-src]').forEach(function (im) {
+    if (i === 0) slides[i].querySelectorAll('img[data-src]').forEach(function (im) {
       im.src = im.getAttribute('data-src'); im.removeAttribute('data-src');
     });
     label.textContent = slides[i].getAttribute('data-label');
@@ -171,11 +204,9 @@
   document.querySelectorAll('.sheet a').forEach(function (a) {
     a.onclick = function (e) { e.preventDefault(); show(+a.getAttribute('data-go')); };
   });
-  // start at the link's month, else this month if it's in the calendar's year, else January
-  var h = parseInt(location.hash.slice(1), 10);
-  var now = new Date(), start = 0;
+  // start on the overview, or at the slide the link names (#2 = January … #13 = December)
+  var h = parseInt(location.hash.slice(1), 10), start = 0;
   if (h >= 1 && h <= slides.length) start = h - 1;
-  else if (now.getFullYear() === 2027) start = now.getMonth();
   show(start, false);
   window.addEventListener('hashchange', function () {
     var n = parseInt(location.hash.slice(1), 10);
